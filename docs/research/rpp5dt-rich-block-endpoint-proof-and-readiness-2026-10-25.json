@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dt rich endpoint evidence and child-inventory readiness",
+  "date": "2026-10-25",
+  "parentCommit": "af528653",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "RICH_AUTHORED_ENDPOINT_COVERAGE_IMPLEMENTED_ORIGINAL_CHILD_SPACE_DEPENDENCY_LIVE_OUTPUT_AND_FULL_PARITY_OPEN",
+  "scope": {
+    "productionChanges": false,
+    "productionSnapshotCommit": "af528653",
+    "productionUnchangedCheck": "git diff --quiet af528653 -- src dwg2dxf returned zero",
+    "existingImplementation": "Shared BLOCK/ENDBLK original-source replay, physical role profiles and scoped BLOCK_RECORD name/units/preview normalization",
+    "thisSlice": "Test-only richer endpoint controls, reusable common-entity mutation census, INTEGER64 raw observer support and implementation-ready child-stream plan",
+    "publicInterfaceVtableChanged": false,
+    "publicModelLayoutChanged": false,
+    "nativeDwgParsingOrEncodingChanged": false,
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "Runtime locally authored scratch DXF only",
+    "referenceLimit": "Nonzero reference roles observed, not dependency targets qualified; endpoint reconciliation remains scoped normalization",
+    "countLimit": "Named control routes, not distinct documents, unique file fixtures or every process allocation"
+  },
+  "richControlsPerConfiguration": {
+    "ctest": "libdxfrw_block_source_proof",
+    "selector": "--block-proof",
+    "actualImportProfiles": 8,
+    "axes": "AC1021/AC1024/AC1027/AC1032 x ASCII/Binary",
+    "richFields": "Common name/color/lineweight/visibility/material/visual/plot fields; two reserved reactors and extension dictionary; versioned proxy count and split chunks; thickness/angle/extrusion/unload; balanced XDATA lists/object/binary/scalar/string",
+    "originalFileScalarRoleSpans": 848,
+    "independentObserver": "Original-file byte walker plus separately authored exact field/role/handle ledger; expected roles not inferred from production scanner",
+    "ledgerOracleCorruptions": 5088,
+    "ledgerCorruptionAxes": "Each scalar span x group index/code/scope/field/role/handle",
+    "ledgerCorruptionLimit": "Oracle self-controls, not 5088 malformed input drawings or independent CAD semantic tests",
+    "nameProfileAndFreshDataRetries": 14,
+    "nameCoverage": "Escaped/literal Unicode equality both ways, conflicting and duplicate redundant group 3, optional absent group 3, tolerated missing/empty group 2 rescued by BLOCK_RECORD without source admission",
+    "oneFieldFaultCensus": 102,
+    "fieldFaultAndFreshDataRetries": 408,
+    "fieldFaultAxes": "102 common/native/cursor/POINT/BLOCK mutations x begin/footer x ASCII/Binary",
+    "fieldFaultLimit": "Fail-closed through guards, pairing or reconciliation, not an isolated comparator theorem",
+    "richGrammarRefusalAndFreshDataRetries": 96,
+    "grammarAxes": "12 mutations x four modern versions x both encodings",
+    "grammarCoverage": "Proxy count mismatch/wrong version/duplicate; reserved application nesting/foreign field; incomplete extrusion; unknown handle; unload boolean loss; duplicate angle; empty APPID; early XDATA",
+    "grammarLimit": "Earlier parser refusal allowed; not every case necessarily reaches the profile audit",
+    "contextFaultAndFreshDataRetries": 10,
+    "contextCoverage": "Pending original begin/footer XDATA, tolerated distinct footer owner, later malformed ENTITIES input and post-proof cleanup exception, both encodings",
+    "exactBelowAggregateQuotaAndFreshDataRetries": 32,
+    "quotaAxes": "records/logical bytes/groups/logical work x eight rich profiles",
+    "richReplayProfileAllocationFaultAndFreshDataRetries": 209,
+    "allocationInterval": "Calibrated observed C++ allocations in actual rich endpoint closure replay/profile, both encodings",
+    "allocationLimit": "Logical allowances and observed C++ intervals only; no complete process-allocator, capacity/RSS or CPU theorem",
+    "recovery": "Corrected fresh data/session on same adapter; existing raw reader controls separately retain same-codec recovery"
+  },
+  "preservedControls": {
+    "baselineEndpointImports": 48,
+    "baselineOriginalRoleSpans": 2064,
+    "baselineScopedReconciliations": 24,
+    "baselineProfileRefusalRetries": 32,
+    "baselineRawMutationRetries": 12,
+    "baselineReconciliationFaultRetries": 8,
+    "baselineReplayAllocationFaultRetries": 59,
+    "priorSourceCapture": "All RPP-5dr/RPP-5ds source capture, callback, context, quota, original span/corruption and same-codec recovery controls still run",
+    "attdefImmutableFieldFaultAndRetries": 296,
+    "censusRefactor": "Shared common fault helper extracted without changing the existing ATTDEF host/nested fault list or count"
+  },
+  "findings": {
+    "initialRichControls": "PASS before any production edit",
+    "completeExpandedControls": "PASS without production edit",
+    "productionDefectOrFixClaimed": false,
+    "nextSourceInspection": "Central dxfReader::readRec sees scalar admission; processEntities handles top-level dispatch; INSERT/POLYLINE consume compound physical subrecords; unknown entities already stage processRawEntity/addRawDxfEntity",
+    "nextImplementation": "Opt-in bounded original record inventory and source-to-staged-delivery association, not callback-count reconstruction"
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 3.42
+    },
+    "asan": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 7.54
+    },
+    "sequentialCohorts": true,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "tests": [
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof"
+    ],
+    "strictOwningBuilds": true,
+    "compileGate": "lc3_compat_check passes both configurations; mirrored API source compile, not actual CAD execution or formal binary ABI certification",
+    "fullProjectSuiteRun": false,
+    "broadRuntimeCohortRepeated": false,
+    "broaderPriorEvidence": "RPP-5ds 17/17 normal and ASan is historical; production files unchanged, so this test-only extension uses owning checks",
+    "nativeLinuxWindowsFreecadRun": false,
+    "independentAcisAcdsSemanticKernelRun": false
+  },
+  "qualification": {
+    "provedResourceFamilyCount": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportPromotion": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false
+  },
+  "next": [
+    "Opt-in original scalar/record observations with actual physical ordinals/identities/owner roles, pending first-boundary anchor, comments and compound record accounting; no reconstruction from callbacks",
+    "Pair accepted original child inventory with DxfBlockEventSink typed/raw/no-callback dispositions and immutable ATTDEF source pairs, preserving footer/callback failure semantics and opt-out compatibility",
+    "Independent mixed known/unknown/compound child order and owner controls, omission/reordering/mutation/drop/late failure, quotas, allocations, cleanup and same-facade recovery",
+    "Separate ENTITIES space/BLOCK_RECORD association and selected common/style/APPID/LAYER/object/default/opaque dependencies plus ATTRIB/SEQEND before changing ATTDEF rawTypedMatched or advisory Bound",
+    "Retain full B2b/B3/C live/output/identity/rollback, original IMAGE/document/native/speed/ownership/2D/3D/FreeCAD and independent semantic/platform scope; self-update, unblock, commit/report and continue"
+  ],
+  "sourceSha256": {
+    "tests/attdef_source_field_faults.h": "4393238e3ac7bfbec747214472ce436c4c18572e6e7105681bd7bc54e24eff60",
+    "tests/block_source_controls.h": "fa24d773823c57c64d3f9e3890e16c4f6df2f8b032c4c1f245cf25b4c5a45a0e",
+    "tests/block_source_proof_controls.h": "b19c6cac629486205acda653e3d94cf361133ff4fb040e7394f9a959ac812ba8",
+    "tests/block_source_rich_controls.h": "f40e3465e0ee4daef0eab67daec7958b2739c778ff4cc7ab1e6cdd16f69d633c"
+  },
+  "evidenceSha256": {
+    "/tmp/rpp5dt-initial-build.log": "0924301a081f19e85adca21929c25c2f457346308847a60d2ede1c5f9cb17156",
+    "/tmp/rpp5dt-rich-baseline.log": "45434e7f8afe504af809dcee50f9b936ce2b46e88f862dddea0a7b1fcc1e5a5b",
+    "/tmp/rpp5dt-rich-complete-build.log": "0924301a081f19e85adca21929c25c2f457346308847a60d2ede1c5f9cb17156",
+    "/tmp/rpp5dt-rich-complete.log": "21559e8b6bd089a8a7e13868b06a746a6a61b063a8ef6200a7bcf5ed3039eb64",
+    "/tmp/rpp5dt-asan-build.log": "fb9ea6974620ee8be5a59e782e4bf4d2bfe1db6ffff954174c8f86738813583a",
+    "/tmp/rpp5dt-normal-compat-build.log": "d672af4178a2acb754193cc23449b43c2d489693a95d2f998f4f289f5607c568",
+    "/tmp/rpp5dt-normal-owning.log": "4ddbdad55489b8fe22578cde806e64bb0b71461fc3535d860f078cb864d0acd8",
+    "/tmp/rpp5dt-normal-owning.xml": "e70cd4bbf0764aa8614fef54da695a40464c349bb196f7e9f659e483f128c4d1",
+    "/tmp/rpp5dt-asan-owning.log": "a86443277cdc738243f6d0779d05269f90c92bc52fb70ddac1daaa042d475960",
+    "/tmp/rpp5dt-asan-owning.xml": "56050fb6209d35872286923f3b1d882323f2c1c62c3d3058fb3afe4814933e08"
+  }
+}

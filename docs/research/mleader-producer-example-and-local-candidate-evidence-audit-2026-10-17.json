@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-mleader-producer-example-local-candidate-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "RESEARCH_ONLY_NO_SUPPORT_PROMOTION",
+  "scope": "Refresh the producer-evidence boundary for MLEADER content type, context flags, and nested payloads.",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "kind": "primary-format-reference",
+      "finding": "The nested context table identifies group 172 as Text Flow Direction and separately lists hasMText (290) and HasBlock (296). It does not enumerate the full legal content-type/context-flag tuple matrix."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mleader.html",
+      "kind": "peer-documentation-example",
+      "finding": "The page labels two examples as created by BricsCAD: MTEXT context 290/296=1/0 and BLOCK context 0/1. It gives no exact producer release or source-file hash and omits the entity-level content-type value; the examples do not qualify complete tuples or a writer."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+      "kind": "primary-format-reference",
+      "finding": "The common MLeader table uses entity-level group 172 for Content Type, distinct from context-level group 172."
+    }
+  ],
+  "localCandidateProbe": {
+    "name": "architectural_-_annotation_scaling_and_multileaders.dwg",
+    "version": "AC1021",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "producerProvenance": "Unknown.",
+    "tool": "build-gcc/dwg2dxf/dwg2dxf",
+    "toolSha256": "f1a8a96a931f512ad7737abd4c0e9bb4bf435d01006a38dcce1c6d6c82d067b8",
+    "traceSha256": "c811f0ddc74615fd61a4620bb881821b5de8ce27ff138ff4e78ea2d561535347",
+    "observations": {
+      "mleaderParserTraceEntries": 36,
+      "readerCrcMismatchCount": 13,
+      "objectParseFailureCount": 36,
+      "strictConversionExitCode": 1,
+      "outputDxfPublished": false
+    },
+    "disposition": "Candidate only, not an admitted tuple witness. Preserve integrity fail-closed behavior; obtain exact provenance and an independent clean read before using these records for semantic claims."
+  },
+  "planEffect": "Refine existing MLEADER step 5 only. Keep the generated 48-case local ASCII/binary matrix classified as representational retention, not tuple legality. Continue other local-ready implementation slices while producer/native gates remain external.",
+  "fixturesAdded": 0,
+  "dependenciesAdded": 0,
+  "testRegistrationsAdded": 0,
+  "supportClaimsPromoted": 0,
+  "findingsAdded": 0,
+  "topLevelSubplansAdded": 0,
+  "externalJDispositionChanged": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

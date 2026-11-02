@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-value-dependency-physical-identity-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical value-dependency identity and typed output binding",
+  "status": "PHYSICAL_30_SOURCE_IDENTITIES_AND_TYPED_PROFILES_BOUND_TO_OUTPUT",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "ACDBASSOCVALUEDEPENDENCY",
+    "count": 30
+  },
+  "operation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/mechanical-p4-dictionary-audit.dxf",
+    "route": "libdxfrw AC1024 DWG to explicit-partial ASCII DXF",
+    "exitCode": 0,
+    "output": {
+      "path": "/private/tmp/mechanical-p4-dictionary-audit.dxf",
+      "sha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
+      "bytes": 161368,
+      "debugLog": "/private/tmp/mechanical-p4-dictionary-audit.log",
+      "debugLogSha256": "288a217c15d25c84a81da956988dcee2bf71c9fd046837cedbacd8de719ee687",
+      "recordCounts": {
+        "ACDBASSOCVALUEDEPENDENCY": 30,
+        "method": "Parse ASCII DXF group-code/value pairs and count only code 0 records with this record name."
+      }
+    }
+  },
+  "identityAndFieldProof": {
+    "sourceToOutput": "30/30 source identities have one exact output counterpart; record identity, complete admitted typed profile, and references match.",
+    "freshReadback": {
+      "method": "Read the exact physical partial DXF with dx_iface and compare typed value-dependency records to the source-bound projection.",
+      "probeSource": "/private/tmp/assoc_value_roundtrip_compare.cpp",
+      "probeSourceSha256": "b0377f4e2438a2277874ea219aedc0876c4761d476bff89f6076daed6ae7c067",
+      "probeBinary": "/private/tmp/assoc_value_roundtrip_compare",
+      "probeBinarySha256": "39e296af3d5aa902fdc414741344b7ed0bced3ebd58886b8d4cd3b55b83c36e9",
+      "result": "PASS: source_count=30 output_count=30 exact_value=30 exact_record=30."
+    }
+  },
+  "failureAndRetry": {
+    "selector": "dwg2dxf_associative_dwg_root_network_value_dependency_export",
+    "encodingCoverage": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "Invalid reachable references refuse while preserving a pre-existing destination sentinel.",
+      "Late mutation after entity writing refuses before publication.",
+      "Corrected retry succeeds and output count/read-wire fields match the expected profile."
+    ],
+    "fixturePolicy": "Generated in memory; no investigation DWG/DXF fixture was added."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "4a23486b42034cd2d61d937a65310c85727650306cf3435c5ce39f8a192b4045",
+      "adapterTestSha256": "99321d75a077221204be646133e7b7117e54a891c40021c0356d412096c66fd0"
+    },
+    "focusedNormalTests": {
+      "selectors": [
+        "dwg2dxf_associative_geometry_dependency_graph_export",
+        "dwg2dxf_associative_dwg_root_network_value_dependency_export"
+      ],
+      "result": "PASS 2/2."
+    },
+    "focusedAsanTests": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selectors": [
+        "dwg2dxf_associative_geometry_dependency_graph_export",
+        "dwg2dxf_associative_dwg_root_network_value_dependency_export"
+      ],
+      "testCommand": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R 'dwg2dxf_associative_(geometry_dependency_graph|dwg_root_network_value_dependency)_export' --output-on-failure",
+      "result": "PASS 2/2.",
+      "adapterTestSha256": "48e9758300d443c45d888b1e3934b2e546e4706aea5fb51aa3c778cfb7ccd608"
+    },
+    "fullSuites": "NOT_RUN; focused validation only."
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "bff16ac04e272a19dff776cb7c2539b120ea8a483d42b88347f7badf85c7c9cf",
+    "dwg2dxf/dx_iface.h": "cc9caf95e3ab26bf93a8fb603af505bec6819b83b467196319af797450eab6fe",
+    "dwg2dxf/dx_standard_output.h": "ca308558841a623aeee390cc9922ef587121e4dc29c3e831346e5fc4156420eb",
+    "tests/dwg2dxf_adapter_tests.cpp": "e23555282a79d3f8e3ea3f3fa853dc509418dd34946bc08e8350bc89ae170627"
+  },
+  "remaining": "The value-dependency identity/field packet is closed. P4 strict-complete export remains blocked by 228 opaque callbacks and zero retained correlation frames. The next audited output gap is the seven missing physical DICTIONARY records and reachable XRECORD children, listed in p4-ac1024-dictionary-output-gap-audit-2026-10-31.json.",
+  "limitations": [
+    "This proves one AC1024 physical partial-output profile; it does not establish strict complete document conversion.",
+    "The reader census still reports 228 opaque callbacks and zero retained correlation frames; strict-complete admission is unchanged.",
+    "No LibreCAD, LibreCAD_3, FreeCAD, native-platform, ABI/package, 3D semantic qualification, or support claim is promoted."
+  ]
+}

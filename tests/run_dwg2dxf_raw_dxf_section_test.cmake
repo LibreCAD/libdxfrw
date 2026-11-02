@@ -16,9 +16,16 @@ set(_output2 "${_test_dir}/opaque-acdsdata-output2.dxf")
 # Locally author the controls in the build tree; this is not a committed sample
 # or a schema-validity oracle. It verifies the CLI's standalone DXF-to-DXF
 # handle identity repair, VIEWPORT typed pass-through, and keeps an unrelated
-# code-320 field opaque.
+# code-320 field opaque. Explicit entity owner1F must have a source
+# BLOCK_RECORD identity; otherwise the strict owner guard correctly rejects
+# this control before raw-section conversion is exercised.
 file(WRITE "${_input}"
     "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n"
+    "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nBLOCK_RECORD\n5\n1E\n"
+    "330\n0\n100\nAcDbSymbolTable\n70\n1\n"
+    "0\nBLOCK_RECORD\n5\n1F\n330\n1E\n100\nAcDbSymbolTableRecord\n"
+    "100\nAcDbBlockTableRecord\n2\n*Model_Space\n70\n0\n280\n1\n281\n0\n"
+    "0\nENDTAB\n0\nENDSEC\n"
     "0\nSECTION\n2\nENTITIES\n0\nLINE\n5\n30\n330\n1F\n"
     "100\nAcDbEntity\n8\n0\n100\nAcDbLine\n"
     "10\n1.0\n20\n2.0\n30\n3.0\n11\n4.0\n21\n5.0\n31\n6.0\n"
@@ -91,7 +98,7 @@ foreach(_required IN ITEMS
 endforeach()
 foreach(_entity_check IN ITEMS
         "AcDbRay\n[ \t]*10\n1\n[ \t]*20\n2\n[ \t]*30\n3\n[ \t]*11\n0\n[ \t]*21\n0\n[ \t]*31\n1\n"
-        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n0\\.6\n[ \t]*31\n0\\.8\n")
+        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n(0\\.599999999999[0-9]*|0\\.6|0\\.600000000000[0-9]*)\n[ \t]*31\n(0\\.799999999999[0-9]*|0\\.8|0\\.800000000000[0-9]*)\n")
     string(REGEX MATCH "${_entity_check}" _entity_match "${_contents}")
     if(_entity_match STREQUAL "")
         message(FATAL_ERROR
@@ -137,7 +144,7 @@ foreach(_required IN ITEMS
 endforeach()
 foreach(_entity_check IN ITEMS
         "AcDbRay\n[ \t]*10\n1\n[ \t]*20\n2\n[ \t]*30\n3\n[ \t]*11\n0\n[ \t]*21\n0\n[ \t]*31\n1\n"
-        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n0\\.6\n[ \t]*31\n0\\.8\n")
+        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n(0\\.599999999999[0-9]*|0\\.6|0\\.600000000000[0-9]*)\n[ \t]*31\n(0\\.799999999999[0-9]*|0\\.8|0\\.800000000000[0-9]*)\n")
     string(REGEX MATCH "${_entity_check}" _entity_match "${_contents2}")
     if(_entity_match STREQUAL "")
         message(FATAL_ERROR

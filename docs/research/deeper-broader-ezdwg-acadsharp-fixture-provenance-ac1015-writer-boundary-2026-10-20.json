@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ezdwg fixture provenance and bounded AC1015 writer route",
+  "mode": "Primary-source repository, package, documentation, and corpus-provenance review; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Resolve the source/license provenance of the named ezdwg ACadSharp sample fixtures.",
+    "Reassess ezdwg's current read, write, DWG-to-DXF, and optional interoperability routes.",
+    "Refine the existing optional peer gate without adding peer runtimes or fixtures to local fast validation.",
+    "Keep explicit 3D entities, ACIS/AcDs carriers, B-rep semantics, and native CAD acceptance separate."
+  ],
+  "method": {
+    "kind": "Read-only web review of project README, writer guide, named sample-corpus README, PyPI package page, and dwg-rs primary docs",
+    "peer_repositories_cloned_or_built": false,
+    "peer_packages_installed_or_run": false,
+    "native_cad_applications_or_kernels_run": false,
+    "external_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "production_code_changed": false,
+    "test_code_changed": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "limitations": "Mutable upstream main pages were reviewed alongside the current PyPI version page. The ezdwg 0.16.3 package was not installed or executed, and package-to-source commit correspondence was not established. ACadSharp fixture origin within ezdwg was resolved only for the five files listed in its nested README; original authoring producers and the provenance of neighboring paired DXFs remain unknown."
+  },
+  "sources": [
+    {
+      "project": "ezdwg README",
+      "url": "https://github.com/monozukuri-ai/ezdwg",
+      "revision": "Mutable main accessed 2026-10-20; package source mapping not established",
+      "observed": "The project describes a read-focused Rust-core DWG API for AC1012-AC1032 and a bounded native AC1015 writer. It lists high-level entity coverage but does not provide a complete entity-by-version conformance denominator.",
+      "evidence_ceiling": "Project-declared API scope; no package runtime or independent format-conformance result."
+    },
+    {
+      "project": "ezdwg PyPI release 0.16.3",
+      "url": "https://pypi.org/project/ezdwg/0.16.3/",
+      "revision": "PyPI package metadata accessed 2026-10-20; release uploaded 2026-10-17",
+      "artifact_identity": {
+        "sdist_sha256": "77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c",
+        "macos_universal2_wheel_sha256": "50414743576011389c2382c7a129da78cdd0b3bf17af05f3beef88597b7ff0c8"
+      },
+      "observed": "PyPI lists 0.16.3 as the latest release at review time. Earlier plan research identified workspace/lockfile version drift; the package hash does not by itself bind the artifact to the current repository source.",
+      "evidence_ceiling": "Supports immutable package identification only; no package was installed or run."
+    },
+    {
+      "project": "ezdwg conversion and AC1015 writer guide",
+      "url": "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/convert.md",
+      "revision": "Mutable main accessed 2026-10-20",
+      "observed": "The guide limits native DWG writing to AC1015 and enumerates bounded entity, block, and resource support. It excludes ACIS/3DSOLID and complete document metadata, says strict validation covers selected/discovered data, and identifies ezdxf as the DWG-to-DXF writing backend. It documents optional ODA interoperability tests outside ordinary CI.",
+      "evidence_ceiling": "Implementation-scope and test-design information; no released runtime or ODA acceptance was reproduced."
+    },
+    {
+      "project": "ezdwg ACadSharp fixture README",
+      "url": "https://github.com/monozukuri-ai/ezdwg/tree/main/test_dwg/acadsharp",
+      "revision": "Mutable main accessed 2026-10-20",
+      "observed": "The nested README names five DWG fixtures, their original paths in the public ACadSharp repository, and the ACadSharp MIT license. It does not state each file's authoring producer or expected-value provenance.",
+      "evidence_ceiling": "Resolves source repository and stated license for those named files only; does not establish producer independence, paired-DXF provenance, correctness, or permission to copy them into this repository."
+    },
+    {
+      "project": "dwg-rs README and clean-room policy",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md"
+      ],
+      "revision": "Mutable main accessed 2026-10-20",
+      "observed": "The project describes itself as spec-led and pre-alpha, reports per-version decoded/skipped/errored counts, and distinguishes container tests from incomplete per-entity decode coverage.",
+      "evidence_ceiling": "Potential container-focused comparator only; not a broad semantic oracle or writer-acceptance result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06/PAR-49: bind optional peer evidence to exact artifact, route, version, entity family, and per-source disposition.",
+      "PAR-07/S8: do not conflate AC1015 explicit-entity writing, ezdxf-backed DXF projection, ACIS carrier semantics, or native CAD acceptance.",
+      "PAR-14: keep all peer runtimes outside per-slice fast validation and continue when external qualification is unavailable."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Resolved the stated repository source and MIT license for the five DWGs named under ezdwg/test_dwg/acadsharp, while leaving authoring producer and neighboring paired-DXF provenance unresolved.",
+    "Bound the possible ezdwg comparator role to an optional AC1015 explicit-entity question after exact package/source binding; its DWG-to-DXF route is ezdxf-backed and its writer strictness is scoped, not whole-document proof.",
+    "Kept peer fixtures out of the repository and required scratch-generated inputs with independently authored expected values.",
+    "Made no change to implementation order, validation frequency, peer dependencies, or support claims."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

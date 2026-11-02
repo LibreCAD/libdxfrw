@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c borrowed DXF modeler/SURFACE text and atomic chunk publication",
+  "mode": "generated ASCII/Binary focused implementation slice",
+  "scope": [
+    "Avoid the owned getString() return copy for raw modeler and SURFACE group 1/3 payloads",
+    "Keep borrowed token views within the current parseCode call",
+    "Reserve SURFACE chunk metadata before payload publication and roll back on insertion failure"
+  ],
+  "evidence": {
+    "localSource": {
+      "files": [
+        "src/intern/dxfreader.h",
+        "src/drw_entities.cpp",
+        "tests/hardening_tests.cpp",
+        "CMakeLists.txt"
+      ],
+      "finding": "dxfReader::getString() returns an owned std::string, while modeler/SURFACE groups 1/3 preserve raw token spelling and do not need semantic conversion. An internal record-lifetime view removes this intermediate owner."
+    }
+  },
+  "changes": {
+    "production": [
+      "Added internal getStringView(), returning a view into the current dxfReader strData valid only until the next readRec().",
+      "Modeler and SURFACE payload parsers consume the borrowed view; modeler caret decoding writes directly to its final vector.",
+      "SURFACE reserves payload-chunk metadata before payload append and restores rawAcisData to its original length if metadata insertion unexpectedly throws.",
+      "Changed the checked text-to-byte append helper to accept std::string_view."
+    ],
+    "generatedTests": [
+      "Modeler parser test verifies escaped-caret decoding, group 1/3 concatenation, inserted group-1 separator, chunk offsets/lengths, and exact logical retained bytes.",
+      "Existing generated ASCII/Binary carrier retained-budget test verifies modeler and SURFACE chunk payloads, exact/under-cap admission, callback suppression, and retry.",
+      "Existing modeler writer chunk-boundary control was rerun."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror; compatibility target succeeds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-direct-append",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-acis-carrier-retained-budget",
+        "result": "PASS (generated ASCII/Binary carrier controls)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_modeler_text_direct_append$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- src/intern/dxfreader.h src/drw_entities.cpp tests/hardening_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "Raw modeler/SURFACE text consumers no longer create a getString() intermediate; payload bytes, chunk ranges, and logical retained-byte behavior remain covered by generated controls.",
+    "unresolved": [
+      "Continue the exact-source 7S.2c retained-owner, staging, scratch, and writer-copy audit",
+      "Associative-action class-specific value grammar",
+      "Remaining HATCH C5 producer behavior and C4/C6-C8 semantics",
+      "Three AC1024 sample object failures and separate CLASSES CRC attribution",
+      "Remaining DWG/version-specific typed semantics",
+      "Native FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the source-backed 7S.2c audit and take a locally evidenced correctness or ownership slice independently of external gates."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

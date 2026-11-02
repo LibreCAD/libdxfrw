@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DIMASSOC DXF intersection-object edge fast slice",
+  "mode": "local implementation with generated in-memory tests",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Preserve DIMASSOC intersection object handle group 332 and documented groups 74/92",
+    "Route the intersection handle through existing DXF reference remapping and emitted-entity closure",
+    "Keep unqualified XREF and DWG body semantics fail-closed",
+    "Use focused ASCII/Binary validation without external sample fixtures"
+  ],
+  "method": {
+    "kind": "Generated in-memory ASCII/Binary DXF round-trip and emitted-graph controls",
+    "externalFilesDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "testRegistrationAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgBytesChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "This is a partial typed DXF DIMASSOC subset. It does not establish live associative updates, complete DIMASSOC semantics, XREF-reference roles, or DWG DIMASSOC layout."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DIMASSOC DXF table",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "revision": "Published AutoCAD 2024 DXF reference, accessed 2026-10-17",
+      "observed": "The table defines group 72 osnap type values including intersection (6) and apparent intersection (11); group 332 is the intersection geometry object ID; groups 74 and 92 are its subentity type and GS marker; group 302 is an intersection XREF handle string; group 75 is the last-point flag."
+    },
+    {
+      "project": "Local DWG/DXF parity plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "Worktree plan over de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The implementation sequence requires preservation/refusal for unmodeled fields, exact output graph closure for references, no inferred DWG byte layout, focused per-slice verification, and no fixture additions from external repositories."
+    }
+  ],
+  "implementation": {
+    "model": "DRW_DimensionAssociationOsnapRef now has presence/value fields for intersection object handle, subentity type, and GS marker. Parser detects duplicate/orphan 74/92/332 values; XREF groups 301/302 remain guarded.",
+    "writer": "Groups 332/74/92 are emitted in Autodesk order. Group 332 uses the same resolver/remapper and emitted-entity graph check as group 331. Types 6/11 require nonzero main-object group 331 and intersection-object group 332 handles; non-intersection types reject intersection-only fields; group 74 is range-checked as signed 16-bit.",
+    "dwgBoundary": "The DWG encoder refuses all newly modeled intersection-only DXF fields before bytes; no DWG parser or wire-format code changed.",
+    "apiImpact": "Public osnap-reference structure layout changed; downstream consumers must rebuild and no ABI compatibility is claimed."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_wave1_tests lc3_compat_check dwg2dxf -j2",
+    "focusedSelectors": [
+      "build-gcc/libdxfrw_hardening_tests --dimassoc-documented-scalar-fields (group 72 type 6 and apparent-intersection type 11)",
+      "build-gcc/libdxfrw_hardening_tests --dimassoc-unsupported-detail",
+      "build-gcc/libdxfrw_wave1_tests --dimassoc-graph-closure",
+      "build-gcc/libdxfrw_wave1_tests --integer-valued-boolean-wire-kinds"
+    ],
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure (1/1 passed)",
+    "fullWave1CtestRun": false,
+    "strictBuildPassed": true,
+    "focusedSelectorsPassed": true,
+    "owningCtestPassed": true
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "scopedDiffCheck": true,
+    "testsRun": true
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-dxf-raw-entity-xdata-1005-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "RAW_ENTITY_XDATA_1005_EMITTED_TARGET_CLOSURE_PASSES",
+  "scope": "Generated same-document dx_iface replay of ordered XDATA references on opaque DXF entities, with owner-local target closure before record emission.",
+  "generatedControl": {
+    "version": "AC1027",
+    "encodings": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "rawEntityReferences": [
+      {
+        "container": "modelspace",
+        "targets": [
+          "source model-space BLOCK_RECORD",
+          "preceding typed model-space LINE"
+        ]
+      },
+      {
+        "container": "Named",
+        "targets": [
+          "source Named BLOCK_RECORD",
+          "preceding typed named-block LINE"
+        ]
+      }
+    ],
+    "preservationAndAdmissionChecks": [
+      "two group-1005 references map to their unique emitted target identities",
+      "group-1005 is treated as a reference only in XDATA context, not group-102 application data or ordinary entity data",
+      "repeated XDATA group order is retained",
+      "group-1000 strings, group-1002 braces, and group-1004 binary data remain unchanged",
+      "zero handle spelling 0000 remains literal",
+      "arbitrary group-320 value remains unchanged",
+      "unresolved target, duplicate raw source identity, and out-of-XDATA 1005 reject atomically"
+    ],
+    "failureDestinationControl": "Each negative case begins with a pre-existing destination sentinel and verifies byte-for-byte preservation.",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuilds": [
+      {
+        "command": "cmake --build build --target libdxfrw_block_owner_tests libdxfrw_wave1_tests lc3_compat_check -j4",
+        "result": "passed"
+      }
+    ],
+    "focusedCtests": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_block_owners|libdxfrw_wave1)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "independentReaderOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "3f0efec476a22aa86240b68f4315232d65e5cc4e23e83a892da30e638a4744a7"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "f0bf74205577e3bc45d86f7208912080f7e2c8e6268950e9641a908c6292e9b0"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "aac0f0f6b71afaa77efda51e12362b0f18f8b3cc0ee824d2ea91cbd291d5383c"
+    },
+    {
+      "path": "tests/block_owner_tests.cpp",
+      "sha256": "5f0380a52359077cfe19bc1313793d40144800d890f8d7858d4ce9b25719b5c6"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "group-1005 references in generated raw entities can map to uniquely emitted BLOCK_RECORD and prior typed-entity targets",
+      "accepted XDATA order and tested non-reference controls round-trip in both tested encodings",
+      "missing target, duplicate raw identity, and out-of-XDATA handle roles do not replace an existing destination"
+    ],
+    "doesNotEstablish": [
+      "forward-reference resolution for records emitted later",
+      "full source-record-set versus emitted-ledger parity on all raw routes",
+      "ACAD_PROXY_ENTITY group-92/93 payload framing or group-94 object-ID closure",
+      "all reference roles, custom entity semantics, or cross-document copying",
+      "independent peer agreement or native CAD acceptance"
+    ]
+  },
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The shared source and test files contain unrelated existing workspace edits."
+  }
+}

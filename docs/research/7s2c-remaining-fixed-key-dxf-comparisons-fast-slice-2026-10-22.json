@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c remaining fixed-key DXF comparisons",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Use current-record borrowed string views for immediate fixed-key parser decisions and avoid copies of discarded string tokens.",
+    "routes": [
+      "MLEADER nested CONTEXT_DATA/LEADER/LEADER_LINE markers (group codes 300-305)",
+      "TABLE CELL_VALUE discriminator and discarded group 304",
+      "typed entity empty group-5 self-handle check",
+      "top-level SECTION/EOF and raw-section ENDSEC routing",
+      "AcDbField subclass marker",
+      "raw DXF self-handle lexeme validation"
+    ],
+    "lifetime": "Every borrowed view is consumed synchronously before the next dxfReader::readRec() call.",
+    "behavior": "Existing parser state transitions, validation outcomes, error behavior, callbacks, retained values, and wire output are unchanged.",
+    "non_claims": [
+      "no new DXF feature or support claim",
+      "no persistent fixture",
+      "no public API or layout change",
+      "no external/native consumer qualification"
+    ]
+  },
+  "generated_control": {
+    "profile": "ASCII and Binary DXF MLEADER parser vectors with a 32-KiB unknown marker at each of group codes 300-305",
+    "assertions": [
+      "valid prefixes reach each nested control state",
+      "all six unknown nested markers are rejected",
+      "the following group-0 record remains aligned after rejection"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "ctests": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_borrowed_subclass_markers|libdxfrw_dxf_fixtures)$' --output-on-failure",
+    "ctest_result": "PASS (2/2; 4.54 s)",
+    "diff_check": "PASS (src/drw_entities.cpp, src/libdxfrw.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "acsh_evidence_boundary": {
+    "oda_v5_4_1_class_specific_layout": "NOT_FOUND; generic bit-code rules do not establish these proprietary solid-history bodies",
+    "local_libredwg_0_14_diagnostic": "same implausibly large ShRevolve direction on the existing AC1024 sample; ACSH_LOFT/REVOLVE classes are marked DEBUGGING",
+    "disposition": "No field-width or alignment change justified; preserve fail-closed typed parsing and opaque-frame retention",
+    "semantic_oracle": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad pre-existing user changes; this slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue with the next locally evidenced semantic gap without waiting on external gates. Keep the three AC1024 visualization object-parse failures separate from the CLASSES CRC warning, preserve fail-closed associative-action widths, and do not guess proprietary ShLoft/ShRevolve field widths."
+}

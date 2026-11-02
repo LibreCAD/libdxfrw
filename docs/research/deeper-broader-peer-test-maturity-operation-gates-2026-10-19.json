@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer test maturity and operation gates",
+  "mode": "Primary-source repository/documentation review and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Inspect what selected open-source DWG/DXF peer tests actually exercise, beyond headline format/version capability declarations.",
+    "Separate paired conversion diffs, reader sample tests, strict parsing, recovery, writer output, and native consumer acceptance.",
+    "Refine existing PAR-07/S8 composed evidence and implementation readiness without increasing per-slice validation cost."
+  ],
+  "sources": [
+    {
+      "name": "GNU LibreDWG test-dxf script and dwgread utility",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgread.1"
+      ],
+      "observed": "test-dxf.sh invokes dwg2dxf on a corpus DWG, filters and normalizes the output, then compares it to a paired DXF through diff and a custom comparator piped to less. This is human-review-oriented paired-output tooling, not a machine-readable semantic pass or native-acceptance test. The project separately documents dwgread output formats including JSON, which can support structured comparison when the exact build/profile is pinned."
+    },
+    {
+      "name": "ACadSharp version matrix and sample-purpose maintainer response",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/discussions/520"
+      ],
+      "observed": "The README publishes separate DXF/DWG reader/writer capability by AC version. The maintainer says the repository samples are used by the Tests project to check that the DXF and DWG readers work properly. That does not establish writer round trips, unknown-record preservation, semantic parity, or native acceptance for each matrix cell."
+    },
+    {
+      "name": "IxMilia.Dxf compatibility and entity-scope disclosures",
+      "urls": [
+        "https://github.com/ixmilia/dxf/blob/main/README.md"
+      ],
+      "observed": "The project states DXF support from R10 through R2014 except MESH, MLEADER, SURFACE, TABLE, and VIEWPORT. It separately warns that emitted 3DSOLID, BODY, REGION, proxy, dimension, MTEXT, and other entities may not open in AutoCAD, and that some types require specific fields (for example, LEADER vertices). These are project statements, not independently reproduced peer runs or libdxfrw findings."
+    },
+    {
+      "name": "ezdxf strict parsing, recovery, and audit guidance",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/usage_for_beginners.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "observed": "The documentation distinguishes strict readfile for valid trusted files from a recovery API for flawed files. Recovery returns an auditor and can still report unrecoverable errors; a recovered object model therefore does not demonstrate that strict parsing accepted the original file unchanged."
+    },
+    {
+      "name": "FreeCAD DWG converter and DXF importer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "FreeCAD documents DWG import as external DWG-to-DXF conversion followed by a selected DXF importer, with multiple importer backends. Its stock DXF importer documentation says embedded ACIS/SAT solids cannot be read. This consumer route has separate converter and importer loss boundaries and is not a direct DWG semantic oracle or ACIS kernel result."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 operation-aware comparator and composed checkpoint",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing fast-slice validation and fixture constraints",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md current totals: 138 findings / 77 top-level subplans; J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Peer test evidence is now explicitly operation-scoped. Interactive paired-output review and reader-only sample coverage are not writer or semantic qualification; recovery is separate from strict parsing; output serialization is separate from independent parser and native acceptance. DWG disagreements remain ODA/spec-led and unresolved conflicts retain OPEN_SPEC_RECONCILIATION status. This adds no peer/full-suite execution to fast implementation slices."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation/repository review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-test-maturity-operation-gates-2026-10-19.json"
+    ],
+    "limitations": "Sources are current project documentation, repository scripts, README disclosures, and a maintainer response; mutable branch pages are not immutable artifact qualification. The research did not build or execute peer projects, inspect their complete automated test suites, download drawings, run a native CAD application, or produce local conformance evidence. No support capability is promoted."
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-parser-writer-loss-and-robustness-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden current DWG/DXF 3D peer research to parser robustness, silent writer loss, versioned ACIS/AcDs support boundaries, and implementation-ready local validation updates.",
+  "method": {
+    "kind": "Read-only review of public release notes, source documentation, and issue/PR histories, reconciled against current plan gates",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/issues/1152",
+      "https://github.com/DomCR/ACadSharp/pull/1154",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/issues/1038",
+      "https://github.com/DomCR/ACadSharp/issues/1179",
+      "https://docs.techsoft3d.com/exchange/2023_SP2/start/format/acis_reader.html",
+      "https://docs.techsoft3d.com/hoops/exchange/start/supported-formats.html"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "Release notes and issue/PR histories are route/failure-mode evidence only. Do not infer current peer behavior from an older issue; any execution comparison needs an exact release/commit, license, runtime, locally generated controls, and per-source disposition. ODA v5.4.1 remains authoritative for DWG layouts."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG current robustness and version boundary signals",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": [
+        "LibreDWG 0.14.1 release notes report an oversized 3DSOLID SAT block-size overflow fix and an off-by-one fix that had dropped the final SAT block during DXF export.",
+        "The same NEWS file says direct R2007 DWG encoding is not supported and falls back to R2010 encoding.",
+        "LibreDWG source documentation uses stable/unstable/unhandled/test-coverage categories and lists BODY, MESH, and associated 3D routes among its documented test-coverage gaps."
+      ],
+      "doesNotEstablish": [
+        "that libdxfrw has the same defect",
+        "a normative DWG or ACIS byte layout",
+        "that LibreDWG has no tests beyond the documented inventory"
+      ],
+      "planUse": "Prioritize tiny boundary tests at changed ACIS chunk/length code and keep modern DWG writer claims version-specific. Use ODA v5.4.1 and this repository's generated tests, not peer implementation details, as authority."
+    },
+    {
+      "topic": "ACadSharp Prototype_1b issue history reconciled with released fix",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1154"
+      ],
+      "observed": [
+        "v3.6.51 notes report reading ACIS payloads for 3DSOLID, REGION, and BODY from DXF/DWG and reading the AcDs payload-area offset.",
+        "v3.6.51 notes include the full Prototype_1b section parser PR #1154; issue #1152 was closed as completed through that PR.",
+        "GitHub currently lists v3.8.0 as the latest ACadSharp release."
+      ],
+      "doesNotEstablish": [
+        "full arbitrary-schema correctness of the parser",
+        "B-rep semantics, broad producer/version coverage, or current runtime behavior",
+        "a reason to retain the closed issue as an unresolved peer defect"
+      ],
+      "planUse": "Use the exact selected release, not pre-fix issue discussion, for any optional comparator; continue validating our own ODA-based AcDs linkage and schema boundaries independently."
+    },
+    {
+      "topic": "DXF writer silent-loss and numeric round-trip reports",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1038",
+        "https://github.com/DomCR/ACadSharp/issues/1179"
+      ],
+      "observed": [
+        "Open issue #1195 reports that ACadSharp 3.4.9 omitted DWG 3DSOLID/REGION entities from DXF without diagnostics; this report predates listed v3.8.0 and has not been reproduced in this review.",
+        "MESH DXF writer issue #1038 was closed by #1067, demonstrating a peer-reported mesh-to-proxy/empty-output failure mode and a linked fix.",
+        "ASCII DXF numeric precision issue #1179 was closed by #1186; v3.7.16 release notes record decimal-precision support."
+      ],
+      "doesNotEstablish": [
+        "that the current ACadSharp release still loses solids or meshes",
+        "a defect in libdxfrw",
+        "a need for textual byte identity across DXF producers"
+      ],
+      "planUse": "Strengthen existing writer-loss tests to match source entities to exact output/read-back disposition by identity and owner/block path; compare typed numeric semantics using declared tolerances, separately from opaque byte identity."
+    },
+    {
+      "topic": "Commercial semantic-reader boundary",
+      "sources": [
+        "https://docs.techsoft3d.com/exchange/2023_SP2/start/format/acis_reader.html",
+        "https://docs.techsoft3d.com/hoops/exchange/start/supported-formats.html"
+      ],
+      "observed": [
+        "HOOPS Exchange documents SAT/SAB B-rep access and explicitly excludes some advanced procedural ACIS geometries; surface/curve evaluators have different robustness levels.",
+        "Its format matrix treats tessellation and B-rep as separate support dimensions."
+      ],
+      "doesNotEstablish": [
+        "open-source peer status",
+        "that a runtime, license, or exact semantic result is available in this environment",
+        "general ACIS completeness"
+      ],
+      "planUse": "Retain as an optional independent semantic route only; require exact pinned runtime and analytic validation, not tessellation or bounds as B-rep evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSliceExternalRuns": false,
+    "locallyGeneratedControlsOnly": true,
+    "dwgLayoutAuthority": "ODA v5.4.1",
+    "sourceEntityDispositionRequired": true,
+    "numericSemanticChecksUseDeclaredTolerance": true,
+    "opaqueCarrierByteChecksRemainSeparate": true,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "At changed ACIS carrier boundaries, add focused generated tests for empty/one/multiple/final chunks, bounded length, overflow arithmetic, truncation, and following-record alignment.",
+      "For the existing ACIS writer-loss gate, account for each source entity by identity and block/owner path and require exact retention or an explicit actionable failure/skip result.",
+      "For typed 3D values, validate strict read-back with explicit absolute/relative tolerances; keep exact opaque-byte digests as a separate assertion.",
+      "At the existing composed peer checkpoint only, use an exact current release/commit and local controls; if unavailable, record NOT_RUN and continue."
+    ]
+  },
+  "validation": {
+    "parityMatrixUpdated": true,
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

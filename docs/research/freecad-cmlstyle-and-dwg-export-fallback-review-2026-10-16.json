@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the current DWG/DXF peer review across MLINESTYLE graph closure, FreeCAD's converter selection/fallback path, and the local writer; update existing implementation gates without duplicating findings or promoting support.",
+  "method": {
+    "evidenceKinds": [
+      "Autodesk DXF reference pages",
+      "FreeCAD public issue and merged pull-request reports",
+      "read-only local source and plan audit"
+    ],
+    "localFilesReviewed": [
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localBuildOrTestsRun": false,
+    "externalDrawingsDownloaded": false,
+    "evidenceRule": "Issue reports and unpinned application behavior are test leads only. A source-only candidate mismatch is not a local defect until a generated local output is captured and checked against an applicable primary contract and exact consumer profile."
+  },
+  "evidence": [
+    {
+      "topic": "MLINESTYLE is a cross-section name/object/owner graph, not one header field",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+        "https://help.autodesk.com/cloudhelp/2025/CHT/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm"
+      ],
+      "observations": [
+        "The HEADER variable $CMLSTYLE is the current multiline-style name, not a handle.",
+        "An MLINESTYLE object is owned by the ACAD_MLINESTYLE named-object dictionary entry.",
+        "An MLINE has both a redundant style name in group 2 and a handle reference in group 340; Autodesk says the referenced style must be in the MLINESTYLE dictionary.",
+        "The reviewed pages do not establish that every drawing without MLINE entities must contain a default Standard object."
+      ],
+      "planAction": "Extend existing f.4b.1b generated tests to assert the header name, root dictionary entry, object owner, MLINE identity/name/pointer and output-handle mapping independently. Keep the no-style/default policy open pending target-specific primary/consumer evidence."
+    },
+    {
+      "topic": "FreeCAD dangling-$CMLSTYLE report and merged repair",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/31836",
+        "https://github.com/FreeCAD/FreeCAD/pull/31896"
+      ],
+      "observations": [
+        "Issue #31836 reports FreeCAD R12/R14 DXF output carrying $CMLSTYLE=STANDARD without an ACAD_MLINESTYLE dictionary; the reporter states LibreDWG 0.14 dxf2dwg refused the file with a misleading Out of memory message and succeeded after only that variable was removed.",
+        "PR #31896 merged as commit 3389881, removing the header variable from two FreeCAD header templates.",
+        "The PR's proposed regression test was removed before merge at maintainer request, so the merge is not a continuing regression-test guarantee.",
+        "The issue says later LibreDWG master tolerated the absent dictionary; this review did not pin or run that source, and does not transfer the behavior to a released build or normative DXF policy."
+      ],
+      "limits": [
+        "This is a FreeCAD exporter report, not a reproduction against libdxfrw output.",
+        "The reported profile is R12/R14 and does not determine modern-target libdxfrw behavior.",
+        "LibreDWG's error string is not sufficient to diagnose a local failure."
+      ],
+      "planAction": "Use the report as a generated graph-closure test lead, not as authorization to copy the R12/R14 omission. Pin any optional LibreDWG executable and inspect actual output and strict reopen."
+    },
+    {
+      "topic": "FreeCAD Automatic DWG-export converter fallback",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/31835"
+      ],
+      "observations": [
+        "The open issue reports that FreeCAD 1.1.3's Automatic DXF-to-DWG route can return the first converter's intended output path without verifying it exists, preventing later configured converter fallback.",
+        "The reported Windows profile used LibreDWG 0.14 and ODA File Converter 27.1.0; a forced ODA route succeeded while Automatic did not reach ODA."
+      ],
+      "limits": [
+        "The report is application-side, platform/version-specific and was not reproduced here.",
+        "It does not establish a libdxfrw parser or writer defect."
+      ],
+      "planAction": "At the existing composed FreeCAD checkpoint, test explicit converter selection first using a fresh unique destination and capture the exact process/output. If Automatic behavior itself is in scope, separate it into its own receipt cell and verify fallback after failure; stale or absent output is never success."
+    },
+    {
+      "topic": "Local source candidate requiring a generated output check",
+      "localEvidence": [
+        "src/drw_header.cpp: DRW_Header::write emits $CMLSTYLE for post-R12 output and defaults its value to Standard.",
+        "src/libdxfrw.cpp: a low-level writeMLineStyle method exists, but source-tree references show no dwg2dxf adapter dispatch to it.",
+        "dwg2dxf/dx_iface.h: import callbacks retain MLineStyle, while current writeObjects routing does not emit its typed dictionary/object graph; the existing plan tracks this in f.4b."
+      ],
+      "limits": [
+        "No generated output was captured in this research pass.",
+        "No production defect is established; source-level presence of a header default is not a strict-reader failure result.",
+        "The current plan already owns MLINESTYLE integration, so no new finding or subplan is justified."
+      ],
+      "planAction": "In the existing fast DXF fixture/adapter targets, add locally generated ASCII/binary no-style, Standard-style, custom-style and MLINE closure cases with root owner, object owner, group 2/340, remap, and terminal framing assertions. Keep strict peer/native validation at the existing composed checkpoint."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwners": [
+      "f.4b.1b MLINESTYLE",
+      "f.4c composed FreeCAD/converter checkpoint",
+      "existing DXF fixture and named-object adapter tests"
+    ],
+    "fastValidation": "One focused generated ASCII/binary test target per MLINESTYLE slice; do not rerun full suites per family.",
+    "composedValidation": "One exact explicit-converter check after graph emission closes; Automatic fallback is a separate downstream application route.",
+    "fixturePolicy": "No external DWG/DXF payload is added. Generated files remain in memory or disposable scratch space.",
+    "queueChange": "None. Current 7AG/7F contract work remains ahead; f.4b work runs after its existing f.3b/f.3c prerequisites.",
+    "dependenciesOrRegistrations": "None"
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerOrNativeRuntimeRuns": 0,
+    "localBuildOrTestsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 124,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

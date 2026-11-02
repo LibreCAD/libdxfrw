@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.implementation-slice-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Raw DXF translated references to reminted table records",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Preserve raw DXF object references when referenced table records receive newly emitted handles",
+    "Use an existing generated MLEADERSTYLE round trip as the smallest production-path reproducer",
+    "Keep the change local to raw handle replay and avoid promoting support claims"
+  ],
+  "finding": {
+    "sourcePath": "dxfRW::writeRawDxfEntityGroups",
+    "failure": "Translated handle-reference codes consulted structural, block-record, and minted-object mappings, but did not consult sourceHandleToWrittenTableMap populated by table-record emission.",
+    "observedControl": "The generated MLEADERSTYLE code-342 reference named source STYLE handle 0x31 while table output reminted the STYLE record. Readback then could not resolve the reference to the emitted STYLE target.",
+    "correction": "When raw source-handle remapping is enabled, consult the emitted-table map after structural/block mappings and before generic minted-object mappings. Structural mappings retain precedence."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "controls": [
+      "Corrected generated MLEADERSTYLE code 341 to target a BLOCK_RECORD and code 342 to target STYLE.",
+      "Marked the synthetic typed-only serializer receipt as test plumbing, not a real DWG read or external evidence.",
+      "Existing ASCII and Binary readback assertions verify a unique target for all four rooted MLEADERSTYLE property references."
+    ],
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "names": [
+          "libdxfrw_named_resource_import_evidence",
+          "libdxfrw_dictionary_default_adapter_roundtrip",
+          "libdxfrw_dictionary_with_default_writer",
+          "libdxfrw_extension_graph_limits"
+        ],
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_dictionary_with_default_writer|libdxfrw_extension_graph_limits)$' --output-on-failure",
+        "result": "PASS (4/4; 0.31 s)."
+      }
+    ],
+    "diffCheck": "git diff --check -- src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeCadRun": false
+  },
+  "supportDisposition": {
+    "claimsPromoted": false,
+    "planFindings": 133,
+    "topLevelSubplans": 76,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "source_sha256": {
+    "src/libdxfrw.cpp": "52e74d4418e7074edd3b2e0356da937e3f9dce88011e8f18b0480f14c41a37fa",
+    "tests/dwg2dxf_adapter_tests.cpp": "de31e64793bca7fceb0bbb21fef6e073c0d111bc59245db5d51baac51acc489f"
+  },
+  "workspaceNote": "Broad pre-existing worktree changes were preserved. This local slice is uncommitted and is not a peer/native qualification result."
+}

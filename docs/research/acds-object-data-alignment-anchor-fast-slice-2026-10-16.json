@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-acds-object-data-alignment-anchor-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Implement PAR-124 using the ODA-defined AcDs object-data alignment anchor and generated in-memory controls in the existing graph-preservation test.",
+  "normativeBasis": {
+    "specification": "ODA Open Design Specification for .dwg files v5.4.1, sections 24.2.2.1-24.2.2.3",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "localInterpretation": "The data marker is segment stream start plus (objectDataAlignmentOffset << 4). Data-index record-header local offsets are relative to the segment data area; each data-record local offset is relative to the data-start marker.",
+    "lastRecordSpan": "Unchanged; retain existing segment-end minus record-start calculation pending a separate coordinate derivation."
+  },
+  "implementation": {
+    "productionFile": "src/drw_datastorage.cpp",
+    "testFile": "tests/graph_preservation_tests.cpp",
+    "existingOwner": "PAR-07 / S8.3 / libdxfrw_graph_preservation_tests",
+    "changes": [
+      "Replace packed-header counting and round-up heuristic with checked objectDataAlignmentOffset multiplication/addition and segment-bound validation.",
+      "Validate indexed record-header spans against the declared header region before parsing.",
+      "Generated direct-record vector places the declared marker at segment-relative offset 112 while the prior heuristic selects 96.",
+      "Assert exact handle-to-payload lookup with reordered data-index entries and a following record sentinel.",
+      "Add before-header and beyond-segment marker rejection controls.",
+      "Link the header-anchored record to a DRW_ModelerGeometry by handle and assert exact attached bytes."
+    ],
+    "fixturePolicy": "All vectors are built in memory from scratch. No DWG, DXF, or SAB file fixture was downloaded or added to the repository.",
+    "testRegistrationOrDependencyAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_graph_preservation_tests --parallel 2",
+    "buildResult": "PASS; strict target rebuilt src/drw_datastorage.cpp and tests/graph_preservation_tests.cpp and linked successfully.",
+    "testCommand": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1, 0.62 seconds.",
+    "diffCheck": "PASS for src/drw_datastorage.cpp and tests/graph_preservation_tests.cpp.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "nativeCadOrPeer": "NOT RUN.",
+    "followUpGeneratedControlRepair": {
+      "scope": "Existing in-memory AcDs section builders in tests/dwg_reader_matrix_tests.cpp now emit the ODA-defined objectDataAlignmentOffset for positive inline and Blob01 records; malformed-anchor negatives remain in the graph-preservation target.",
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "buildResult": "PASS.",
+      "testCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_graph_preservation|libdxfrw_dxf_fixtures|libdxfrw_dwg_reader_matrix|libdxfrw_hardening)$' --output-on-failure",
+      "testResult": "PASS 5/5 in 7.91 seconds; the prior reader-matrix failure from six synthetic sections with a zero/missing data marker is corrected.",
+      "diffCheck": "PASS."
+    }
+  },
+  "planImpact": {
+    "finding": "PAR-124",
+    "findingStatus": "LOCAL_ANCHOR_CORRECTION_IMPLEMENTED; broader AcDs carrier/ACIS semantics remain open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 124,
+      "topLevelImplementationSubplans": 71
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false
+  }
+}

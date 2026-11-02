@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "FreeCAD CLI compatibility test aligned with strict proxy-cache refusal",
+  "mode": "local focused test-contract correction",
+  "scope": [
+    "Diagnose the existing fast FreeCAD CLI CTest failure on tracked special DWG samples",
+    "Preserve the ordinary successful FreeCAD argv control",
+    "Require explicit atomic refusal when typed proxy-graphics caches cannot be replayed"
+  ],
+  "method": {
+    "changedFiles": [
+      "tests/run_freecad_dwg2dxf_compat_test.cmake",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "trackedFixtureFilesChanged": 0,
+    "newFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "externalToolsRun": false,
+    "commands": [
+      "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_cli_compat$' --output-on-failure",
+      "git diff --check -- tests/run_freecad_dwg2dxf_compat_test.cmake DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/freecad-cli-proxy-refusal-contract-fast-slice-2026-10-18.json"
+    ],
+    "initialObservedFailure": "The pre-correction compatibility test expected RTEXT/ARCALIGNEDTEXT and MPOLYGON conversions to succeed; the installed local converter returned nonzero with typed-proxy-graphics-not-preserved, correctly withholding DXF publication.",
+    "limitations": "Tracked fixture refusal is a local policy/behavior check, not successful conversion support for proxy caches, native FreeCAD runtime evidence, or semantic geometry evidence."
+  },
+  "results": {
+    "ordinaryFreecadArgvAndReadbackControl": "PASS",
+    "rtextArcAlignedTextExpectedAtomicRefusal": "PASS",
+    "mpolygonExpectedAtomicRefusal": "PASS",
+    "focusedCtest": {
+      "name": "dwg2dxf_freecad_cli_compat",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "PASS",
+    "fullTestSuiteRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextOwner": "Any expansion of DXF proxy-graphics replay must remain a per-type/subclass-scope capability with exact raw bytes, version/count-code provenance, and parser/writer round-trip evidence. Do not weaken the current fail-closed gate to satisfy an entity-count assertion."
+  }
+}

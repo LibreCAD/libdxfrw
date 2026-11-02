@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-acis-generated-control-security-refresh-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary repository, release-note, security-advisory, and format-reference review; no peer runtime",
+  "question": "Does the broader open-source sweep identify an admissible way to generate known ACIS controls or a new local implementation defect?",
+  "sources": [
+    {
+      "project": "obj2cad",
+      "artifact": "mutable public main README and repository metadata",
+      "references": [
+        "https://github.com/cbassuarez/obj2cad",
+        "https://github.com/cbassuarez/obj2cad/blob/main/README.md",
+        "https://github.com/cbassuarez/obj2cad/blob/main/LICENSE"
+      ],
+      "observed": "The MIT-licensed pre-release documents a dedicated obj2cad-acis SAT/SAB writer, an R2018 ASCII/Binary DXF writer, and an acis-samples command for plane, box, cylinder, cone, sphere, and torus. The README says DXF is verified while DWG and curved surfaces remain beta pending AutoCAD acceptance. DXF readback uses ezdxf and DWG uses ACadRust; the documented mesh parity checks do not establish ACIS B-rep validity. The DWG writer delegates to a patched ACadRust snapshot. The inspected repository view did not bind an immutable release/source archive or full writer lineage.",
+      "disposition": "CONDITIONAL_GENERATOR_CANDIDATE/NOT_RUN. Pin commit/archive hash, inspect license and writer source, avoid bundled corpus fixtures, generate only temporary controls, and do not count as independent reader/kernel/native/DWG evidence."
+    },
+    {
+      "project": "CADKernel",
+      "artifact": "mutable public README format matrix",
+      "references": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "observed": "The README describes broad multi-format support, but its format-specific table marks ACIS SAT/SAB read and write as unimplemented.",
+      "disposition": "Exclude from the current ACIS comparator denominator; use detailed per-format implementation/test evidence over broad project-level compatibility claims."
+    },
+    {
+      "project": "LibreDWG",
+      "artifact": "0.14.1 release notes and GHSA-6v3v-3gmq-63v4",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-6v3v-3gmq-63v4"
+      ],
+      "observed": "The 0.14.1 release notes report a 32-bit overflow in the 3DSOLID block_size bounds expression that allowed an oversized SAT block to bypass a guard and corrupt memory; they also report a DXF export off-by-one that dropped the final SAT block. These reveal external risk classes, not a corresponding libdxfrw bug.",
+      "disposition": "Targeted audit input for existing ACIS safety and carrier-completeness owners. Add a local test only if equivalent unchecked local arithmetic or an uncovered terminal-block path is found. Do not port the peer's implementation mechanically."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF Reference",
+      "artifact": "AutoCAD 2012 DXF Reference, 3DSOLID table",
+      "references": [
+        "https://images.autodesk.com/adsk/files/autocad_2012_pdf_dxf-reference_enu.pdf"
+      ],
+      "observed": "The reference describes modeler version group 70, proprietary group-1 lines, optional group-3 continuation lines, the following AcDb3dSolid subclass, and optional history handle group 350. It specifies carrier framing, not ACIS record grammar or solid semantics.",
+      "disposition": "Use only to define the DXF carrier assertions in a locally generated control; keep raw reconstruction, ACIS graph parsing, B-rep construction, and native acceptance distinct."
+    }
+  ],
+  "implementationReadiness": [
+    "Try the immutable-source obj2cad generator only at the existing composed checkpoint; if source/license/lineage cannot be bound cheaply, record NOT_RUN/UNBOUND and self-unblock to a local analytic-control generator.",
+    "Start with one asymmetric known-shape, one DXF version, and one encoding; assert full group-1/group-3 reconstruction, modeler version, history reference, source handle, payload hash, and following-record alignment.",
+    "Check exact carrier first, then ACIS graph, then a pinned geometry route against independently authored analytic expectations. Audit parser, writer, and kernel lineage before calling routes independent.",
+    "Do not infer DWG AcDs section, entity-owner association, or DWG support from a standalone DXF-generated SAB control.",
+    "Audit local checked arithmetic, byte extents, parser budgets, and final-block handling. Add only missing boundary tests; defer sanitizer/fuzz work to the existing scheduled composed validation window.",
+    "Do not add an external fixture, dependency, CI lane, or per-slice peer/native run."
+  ],
+  "planDelta": {
+    "newLocalDefect": false,
+    "newImplementationFinding": false,
+    "newTopLevelSubplan": false,
+    "conditionalScratchGeneratorCandidateAdded": true,
+    "newTestOrFixture": false,
+    "newDependency": false,
+    "supportClaimPromoted": false,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "peerRunPerformed": false,
+    "nativeCadRunPerformed": false,
+    "externalDrawingDownloaded": false,
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": "All repository pages are mutable. No peer archive was fetched, no project was installed or executed, no external drawing or fixture was downloaded, and no local security-audit test was changed or run. The generated-control idea remains conditional and cannot promote semantic support or any deferred J-item."
+}

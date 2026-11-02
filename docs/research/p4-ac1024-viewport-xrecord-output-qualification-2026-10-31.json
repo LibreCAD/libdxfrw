@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-viewport-xrecord-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify VIEWPORT-owned annotation-scale XRECORD identities",
+  "status": "TWO_XRECORD_IDENTITIES_QUALIFIED_STRICT_GATE_STILL_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "records": [
+      {
+        "record": "XRECORD",
+        "objectType": 79,
+        "handle": "0x28D",
+        "ownerViewport": "0x28B",
+        "extensionDictionary": "0x28C",
+        "dictionaryKey": "ASDK_XREC_ANNOTATION_SCALE_INFO",
+        "values": "one group-90 value and one group-340 handle"
+      },
+      {
+        "record": "XRECORD",
+        "objectType": 79,
+        "handle": "0x292",
+        "ownerViewport": "0x290",
+        "extensionDictionary": "0x291",
+        "dictionaryKey": "ASDK_XREC_ANNOTATION_SCALE_INFO",
+        "values": "one group-90 value and one group-340 handle"
+      }
+    ],
+    "profileEvidence": "Source dictionary membership and value profiles are recorded in p4-ac1024-dictionary-output-gap-audit-2026-10-31.json. Physical XRECORD payloads are bounded immutable source snapshots and are compared against staged output.",
+    "fixturePolicy": "Existing repository DWG only. No DWG or DXF fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "For the two witnessed VIEWPORTs only, inspect the staged OBJECTS section and prove the XRECORD source frame, immutable typed snapshot, emitted handle identity, complete decoded record equality, referenced target presence, extension DICTIONARY key/owner, and mapped parent VIEWPORT. Publish each type-79 callback qualification only with the same successful output transaction as its parent VIEWPORT profile.",
+    "scope": "Exact AC1024 witness profile only. Other type-79 profiles remain unqualified. This is output identity/field evidence, not independent CAD semantic or consumer qualification."
+  },
+  "qualification": {
+    "before": 213,
+    "after": 215,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {"objectType": 79, "handle": "0x28D", "record": "XRECORD", "ownerViewport": "0x28B"},
+      {"objectType": 79, "handle": "0x292", "record": "XRECORD", "ownerViewport": "0x290"}
+    ],
+    "remaining": 13,
+    "remainingBreakdown": {"standardObjectType42": 13},
+    "strictExport": "Still refuses before publication at 215/228. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes 215 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The viewport selector injects an invalid infinite field. ASCII and Binary writes refuse atomically and preserve the prior destination and published qualification state.",
+    "retry": "Restore the original fields and retry with the same adapter. Both VIEWPORT and XRECORD identities publish only after successful output; fresh readback checks the two dictionary keys, owner edges, referenced roles, viewport projection, and exact selected XRECORD payloads.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "viewportReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including full typed viewport fields, derived groups 68/69, membership, extension DICTIONARY/XRECORD ownership, atomic refusal, unchanged qualification state, and corrected same-adapter retry."
+    },
+    "xrecordReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; all eight physical XRECORD identities, owner keys, references and ordered payloads pass readback, rollback and retry controls."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "/private/tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict export refused at 215/228 without published identities, Legacy retry published 215, and the only unresolved callbacks were the 13 listed type-42 DICTIONARY identities. Scratch source and executable stayed outside Git."
+    },
+    "fullSuites": "NOT RUN; touched warning-as-error build and focused selectors/strict gate/census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Qualify VIEWPORT-owned XRECORD callbacks 0x28D and 0x292 for the exact AC1024 witness with staged output/readback and transactional parent/owner/reference proof."
+    ],
+    "nextPacket": "Trace the 13 remaining type-42 DICTIONARY callbacks by root/owner role; choose one bounded owner cluster and prove its complete source entries, target roles, emitted record fields and dependencies before qualifying any identities.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "f5c92dc8695a4390c72137e70661d877368c85b9f48d7697727fa14659952b82",
+    "dwg2dxf/dx_iface.h": "9dd7b21cfd88782e23408a6605d9ac28c7d1e8a9f8227d18597143aae4462827",
+    "tests/dwg2dxf_adapter_tests.cpp": "cb0fd0cd582403a4cc2b8bf9c37856f96c01d176773a707250fff9e119318fbf"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dxf-layer-control-absent-extension-dictionary-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Accept DXF LAYER control without an extension dictionary",
+  "status": "STRICT_DXF_LAYER_CONTROL_AND_BLOCK_OWNER_ROUNDTRIPS_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "kind": "locally generated DXF control",
+    "generator": "tests/block_owner_tests.cpp",
+    "repositoryStatus": "test source creates ASCII/Binary control in the build scratch directory; no drawing fixture was added",
+    "profile": "AC1027 DXF with one LAYER TABLE control handle and a layer row, without an extension dictionary"
+  },
+  "finding": {
+    "failure": "A valid absent xdictionary handle is represented as 0, the same value as DRW::NoHandle. The DXF layer-control callback rejected 0 as invalid, and the getter repeated that rejection before its intended no-dictionary success branch.",
+    "correction": "Treat dictionary handle 0 as absence when a valid nonzero table control handle is present. Keep rejecting a missing control handle and a nonzero dictionary with no owner control.",
+    "scope": "This admits the no-extension-dictionary case only. It does not qualify an LAYER control extension graph or alter DWG layer-control source publication."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_block_owner_tests libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_insert_block_record_source_handle_binding$|^libdxfrw_block_owners$|^dwg2dxf_block_owners_(ascii|binary)_cli$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "result": "PASS, 5/5."
+    },
+    "physicalDwg": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -d -v2010 /private/tmp/title_block_arch_after_layer_fix.dxf",
+      "result": "Strict refusal remains at source XRECORD 0x121F group 1071, after extension-graph admission and INSERT target resolution."
+    },
+    "fixturesAdded": 0
+  },
+  "planImpact": {
+    "completedActionsRemoved": [],
+    "remainingP4Scope": "No change to the P4 exit gate. Physical DWG output remains blocked at XRECORD 0x121F group 1071; the Title_Block-ARCH complete graph and staged-byte/fresh-readback proof remain open.",
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "db0687a2941a898a2c787dc2fc2898df87c66d14677304cbbd4f3dd146842a9a",
+    "tests/block_owner_tests.cpp": "0d7fe85d1b8e97a22bb5327fefe3db3a4252bb4944199c5fe224e2e14dcf079c",
+    "build-gcc/dwg2dxf/dwg2dxf": "a685a881887f1a3a5deb6e5d73bfee13eb516032d83df1f2862f29d927d53512",
+    "build-gcc/tests/libdxfrw_block_owner_tests": "e516e3f62c7278ce5dd0c42c073d90bd562b902e3ba402d3f73071d44d2f1ec3"
+  }
+}

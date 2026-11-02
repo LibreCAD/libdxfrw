@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-acdsdata-owner-remap-output-overlay-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Remove the remaining whole-section clone from ACDSDATA raw-section replay while preserving source-handle remapping, malformed-input refusal, and caller-carrier immutability.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp"
+    ],
+    "behavior": [
+      "writeRawDxfSection validates the original const section vectors before preparing remaps.",
+      "collectAcdsAsmDataOwnerHandleOverrides scans qualifying ACDSRECORD/AcDbDs::ID/ASM_Data records and stores only ordered group-index/emitted-handle pairs.",
+      "The raw-group writer validates override indices and handle strings, then emits the overridden group-320 spelling at the original position without copying or mutating all section groups/rawValues.",
+      "ASCII hardening controls verify ordinary and schema-only direct replay, two independent A1-to-B2 and C3-to-D4 remaps, unresolved-owner and duplicate-marker refusal before output, and unchanged source typed/raw values."
+    ]
+  },
+  "commands": [
+    "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build-gcc/libdxfrw_hardening_tests --dxf-raw-section-writer-common-path",
+    "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+  ],
+  "results": {
+    "strictTarget": "passed",
+    "focusedSelector": "passed",
+    "compatibilityTarget": "passed",
+    "hardeningCTest": "passed 1/1",
+    "dxfFixturesCTest": "passed 1/1",
+    "diffCheck": "passed"
+  },
+  "limits": {
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "writerRssBoundEstablished": false,
+    "allWriterOrProjectionCopiesAccounted": false,
+    "callerCarrierMutabilityChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "Uncommitted; shared checkout contains broad pre-existing user changes. No staging or commit was attempted."
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingPlanItem": "7S.2c.d.17.10 common raw-section writer copy avoidance",
+    "followUpSlice": "7S.2c.d.17.23 ACDSDATA owner-remap output overlay",
+    "remaining": "Other writer/projection copies and public post-callback mutation remain separate scopes; this slice only eliminates the ACDSDATA whole-section clone."
+  }
+}

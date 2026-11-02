@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-batch-dxf-output-suffix-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Implement the local 7BH.3 canonical batch output suffix and filesystem-identity protection without adding test drawings; record a separately observed future-name collation gap.",
+  "changes": [
+    {
+      "path": "dwg2dxf/main.cpp",
+      "details": "Batch output filenames replace the input extension with .dxf before collision preflight and conversion. Existing lexical and filesystem-identity protections remain; native future-name collation is not implemented."
+    },
+    {
+      "path": "tests/dwg2dxf_cli_contract_tests.py",
+      "details": "Batch expectations use the canonical .dxf suffix; the focused batch selector verifies an existing repository AC1015 DWG produces ASCII DXF under .dxf, reopens through normal suffix dispatch, rejects same-stem DWG/DXF inputs in both list orders, and refuses temporary symlink/hard-link output aliases before publication. A separate unretained reproducer observed that case-equivalent future names bypass lexical preflight on the local case-insensitive volume."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "details": "Updated PAR-103, 7BH status, next-action notes, and implementation progress. A future-name collation gap is recorded, while implementation remains deferred until native capability and comparison semantics are established."
+    }
+  ],
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf -j2",
+      "passed": true
+    },
+    "focusedHarness": {
+      "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --batch-only",
+      "passed": true,
+      "boundedControls": 24,
+      "host": "Darwin 27.0.0 arm64",
+      "aliasControls": [
+        "symlink output aliases source",
+        "hard-link output aliases source"
+      ]
+    },
+    "caseEquivalentFutureOutputReproduction": {
+      "performed": true,
+      "caseInsensitiveHostDirectory": true,
+      "inputs": ["CaseCollision.dwg", "casecollision.dxf"],
+      "observed": "Lexical preflight returned success and both normalized output names referred to the same filesystem name.",
+      "expectedSafeBehavior": "Reject the batch before conversion and leave the output directory unchanged.",
+      "passingControl": false,
+      "incompleteAsciiFoldPrototypeRetained": false
+    },
+    "fullCliCtest": false,
+    "nativeFilesystemQualification": false,
+    "nativeFutureNameCollationImplementation": false,
+    "unicodeCasefoldAndNormalizationQualification": false,
+    "hostAliasControls": true,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "gitDiffCheck": true
+  },
+  "remaining": [
+    "Implement collision detection using verified filesystem-native capabilities and name-equivalence semantics; do not substitute ASCII folding or a small set of probes.",
+    "Qualify case-equivalent output collision behavior on native Linux and Windows, including per-directory case settings, normalization, platform aliases, and failure/cleanup behavior.",
+    "Review whether identity indexing can be optimized without weakening the preflight contract."
+  ],
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "The shared worktree contains many unrelated pre-existing modifications; this local slice was kept unstaged and uncommitted."
+  }
+}

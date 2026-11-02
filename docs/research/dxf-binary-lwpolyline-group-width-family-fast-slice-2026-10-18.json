@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-39/7X Binary-DXF LWPOLYLINE group-width family guard",
+  "mode": "generated local fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise a real Binary-DXF serializer family after the low-level integer-width sink guard",
+    "Verify LWPOLYLINE group-90 I32 and group-70 I16 payloads with a test-owned raw stream walk",
+    "Verify the following entity sentinel and exact EOF framing without persistent fixtures",
+    "Exercise the same serializer family across every currently mapped DXF writer target from AC1014 through AC1032"
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "ctestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testChanges": [
+      "Extended --dxf-binary-group-width-guard to run an end-to-end dx_iface Binary-DXF LWPOLYLINE export control",
+      "Added an independent raw binary walker asserting group 90 is four bytes/value 3 and group 70 is two bytes/value 1",
+      "Required the immediately following LINE and complete EOF framing for AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032",
+      "Generated output is temporary and removed"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "passed": true
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dxf-binary-group-width-guard",
+      "passed": true
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_binary_group_width_guard$' --output-on-failure",
+      "passed": true,
+      "passedTests": 1,
+      "failedTests": 0
+    },
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "serializerFamiliesCoveredByThisSlice": ["LWPOLYLINE"],
+    "targetVersionsCovered": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "overallBinaryNumericCallsiteCensusComplete": false,
+    "rawChunkAndReplayPathsQualified": false,
+    "allVersionsAndProfilesQualified": false,
+    "findingsChanged": 0,
+    "topLevelSubplansChanged": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one real serializer-family control across seven writer target versions for the existing Binary-DXF width-typing gate. The remaining literal/dynamic writer call-site census, other families, raw/chunk paths, and LibreCAD-legacy classifier qualification stay open; no defect was found by this one-family control."
+  },
+  "workingTree": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptCreated": "docs/research/dxf-binary-lwpolyline-group-width-family-fast-slice-2026-10-18.json",
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree contains extensive unrelated user/work-in-progress changes; the slice remains uncommitted and unstaged."
+  }
+}

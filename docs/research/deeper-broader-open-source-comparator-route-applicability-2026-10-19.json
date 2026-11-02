@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader open-source comparator route applicability and operation-specific coverage",
+  "mode": "Primary project documentation/source and issue review; research-only plan refinement",
+  "scope": [
+    "Compare route-specific behavior and coverage claims across ACadSharp, FreeCAD, GDAL, ezdxf, LibreDWG, and Open CASCADE.",
+    "Distinguish structured codec read/write, conversion, recovery, XREF import, OGR projection, native acceptance, and geometry semantics.",
+    "Refine the existing PAR-07/S8 composed comparator manifest without changing local implementation or routine validation cadence."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, source, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Documentation and issue pages may describe mutable repositories or a specific reported build. No external route was executed, so this pass refines evidence admission and implementation readiness rather than qualifying peer behavior or proving a new local defect."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1131"
+      ],
+      "observed": "The project publishes separate DXF-reader, DXF-writer, DWG-reader, and DWG-writer version columns. Issue #1131 reports a specific custom-object path where unknown-entity notifications did not correspond to final document membership.",
+      "evidenceCeiling": "Mutable capability declaration and a peer-specific issue report; not a pinned artifact run or evidence of a libdxfrw defect."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "Stock DWG handling uses an external converter to create DXF, then a selected C++ or legacy Python importer. The documented importer entity lists differ: the legacy route lists 3DFACE; the C++ route omits it and skips text, dimensions, and attributes in blocks. Documentation says stock importers do not read embedded ACIS/SAT solids.",
+      "evidenceCeiling": "Current documentation of intended consumer workflow and limits; not a native platform run or a libdxfrw support qualification."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "observed": "The DXF route is an OGR projection with documented unsupported entities and missing 3D/OCS behavior for some annotations, plus styling and geometry limitations.",
+      "evidenceCeiling": "Projection behavior only; not a structural round-trip, general DXF implementation, native CAD, or spline semantic oracle."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "observed": "The project documents structured DXF read/write and third-party data retention; its XREF import is a deliberately smaller copyable/transformable subset, and its recovery route repairs structurally flawed inputs while preserving separate audit diagnostics.",
+      "evidenceCeiling": "Operation-specific documentation; XREF import and recovery results cannot substitute for strict read/write retention evidence."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "The README declares a version-limited DWG writer. Issue #1411 reports that one LibreDWG 0.14.8593 build retained modern solid entity shells while losing R2013+ AcDs SAB payload on a generated input and a private drawing.",
+      "evidenceCeiling": "A version-specific README claim and a report for one build; not a universal statement about current LibreDWG or a local libdxfrw defect."
+    },
+    {
+      "project": "Open CASCADE",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "observed": "Current project materials distinguish standard open-source OCCT formats from separately sold ACIS SAT/SAB and DXF exchange components.",
+      "evidenceCeiling": "Product/edition documentation; an OCCT-based application cannot be assumed to include a stock open-source ACIS reader."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-07/S8",
+    "planEffect": "Add a compact route/applicability manifest at the existing composed checkpoint, including exact artifact and operation, intended/unsupported families, observed dispositions, provenance, and claim boundary.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-dwg-dxf-evidence-v1",
+  "id": "p4-ac1024-standard-dictionary-block-record-owner-output-proof-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 standard DICTIONARY BLOCK_RECORD owner-role output proof",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "trackedFixture": false,
+    "note": "Existing local drawing used for evidence; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "sources": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "615bf839339f4b58aaaf0ea433c8da2680516f67ea0fbb6d42e570117df6c0da"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "8fd37a73a99595f9b139a118673f9e0cf62bec635f9086bad0a110ac436a3253"
+      }
+    ],
+    "changes": [
+      "Resolve a source owner through the parsed BLOCK_RECORD name and the writer's actual model/paper/named block-record handle; reject ambiguous, duplicate, absent or conflicting bindings.",
+      "Close standard-object owner and owner-reference roles only when the staged handle is a unique BLOCK_RECORD in TABLES.",
+      "Four standard DICTIONARY source identities with BLOCK_RECORD owners now receive complete staged-output proof: 0x00F2, 0x1069, 0x1116 and 0x121C."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS with warning-as-error enabled",
+      "dwg2dxfSha256": "4ea3833edb6e52d6518de169708abb535889d966c540950c7637a885370dc37c",
+      "adapterTestSha256": "0228285601486dde47ddda1f516aa5ef1ba2e3eef6e332dcb419ba9f1dcb225e",
+      "localRoundtripSha256": "a86dde314fab22a47d0520ff5cb0346c9c4db20c820cff5976fb4cb79c3c1c92"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_opaque_source_capture_and_strict_output_gate|dwg2dxf_standard_dwg_object_source_capture|dwg2dxf_dwg_layer_table_control_dictionary|dwg2dxf_standard_dwg_object_payload_correlation)$' --output-on-failure",
+      "result": "PASS 4/4"
+    },
+    "asciiReadback": {
+      "command": "dwg2dxf with --allow-partial-dwg-read, then fresh source/output import and exact DICTIONARY projection comparison",
+      "outputSha256": "7d4c62e177870b6914e417655df1757ac436493c3410078da9d033019533a41a",
+      "outputBytes": 358883,
+      "readbackLogSha256": "133ec616ef3f5cfaf5f69b2e0db2717d20b1b79f9ee7677cecfe213da5373b1f",
+      "result": "PASS for all five compared DICTIONARY bodies and ordered entries. The four identities with BLOCK_RECORD owners also clear strict output qualification. Handle 0x0107 remains unqualified because its source owner 0x0010 is LAYER_CONTROL; equal body readback alone does not prove that owner role."
+    },
+    "strictCompleteConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -d -v2010 <output.dxf>",
+      "result": "Expected refusal at the whole-document gate after qualification advanced from 95/109 to 99/109. Four identities (0x00F2, 0x1069, 0x1116, 0x121C) cleared; 10 remain.",
+      "logSha256": "0962ba2deebfc1d718679eff9f2181aed197a6be38ebf0b3142b7d9a86d8b553",
+      "remainingUnqualifiedIdentities": [
+        {"handle": "0x000A", "type": 82},
+        {"handle": "0x000F", "type": 82},
+        {"handle": "0x0052", "type": 34},
+        {"handle": "0x0107", "type": 42, "record": "DICTIONARY", "ownerRole": "LAYER_CONTROL; not qualified"},
+        {"handle": "0x1117", "sourceFrame": "missing"},
+        {"handle": "0x1118", "type": 513, "record": "BLOCKVISIBILITYPARAMETER"},
+        {"handle": "0x1119", "type": 514, "record": "BLOCKVISIBILITYGRIP"},
+        {"handle": "0x111A", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT"},
+        {"handle": "0x111B", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT"},
+        {"handle": "0x1122", "type": 519, "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"}
+      ],
+      "supportClaimEffect": "none"
+    },
+    "nonGatingBaselineControl": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --rooted-standard-dwg-output-proof",
+      "result": "FAIL; reproduced against pre-slice HEAD with the same generated-source control. Its strict composed-qualification assertions already fail at baseline; it is unrelated to this physical AC1024 owner mapping and was not used as the changed-hook selector.",
+      "baselineLogSha256": "cf78ee08a8907907daccbf4ae6118b6890247b78c443c24c941557b4ccf1327d"
+    }
+  },
+  "supportClaimEffect": "none",
+  "planImpact": {
+    "completedLocalActionRemoved": "Bind four standard DICTIONARY callbacks to complete staged output with source-name-based BLOCK_RECORD owner remapping and role checks.",
+    "next": "Resolve the remaining 10 callbacks individually without weakening strict document refusal. Continue the physical dynamic-block graph proof at EvaluationGraph 0x1117 and the outstanding descendants/role sets."
+  }
+}

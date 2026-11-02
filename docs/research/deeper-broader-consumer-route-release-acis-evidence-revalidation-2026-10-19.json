@@ -1,0 +1,67 @@
+{
+  "title": "Deeper/broader consumer-route, release-artifact, and ACIS evidence revalidation",
+  "date": "2026-10-19",
+  "scope": "Primary-source revalidation of FreeCAD DWG/DXF routes and current open-source ACIS reader/writer evidence; advisory qualification research only.",
+  "sources": [
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observation": "Stock DWG is external converter -> DXF -> selected importer. C++ and legacy Python importer feature lists differ; only the legacy list includes 3DFACE, neither documents MESH, and the guide says stock FreeCAD cannot read embedded ACIS/SAT solids. CADExchanger is described as a separate 3D DWG route. The documentation repository was archived 2026-04-01, so documentation is route guidance, not a particular binary's runtime result."
+    },
+    {
+      "project": "FreeCAD source",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observation": "Current convertToDxf() invokes the configured converter and calls communicate(), then treats existence of the expected output path as success without checking the child return code. This is a FreeCAD integration concern; qualification must capture status and independently inspect the fresh DXF."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observation": "Issue #1195 remains open; linked ACIS writer PR #1240 remains open and undeployed, depends on the ACDS/ACIS schema-storage work, and cannot be treated as released or independently accepted support."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "observation": "On reported LibreDWG 0.14.8593 build 8a1ae764, a scratch-generated AC1032 DXF REGION with a 5,489-byte SAB loses the R2013+ AcDs payload while retaining the entity shell. It is build-specific peer evidence, not a current-master or libdxfrw result."
+    },
+    {
+      "project": "CADMPEG release",
+      "url": "https://github.com/cadmpeg/cadmpeg/releases",
+      "observation": "v0.6.2 is listed at short commit 7bcc952, released 2026-10-19, with published checksummed binaries. The Apple Silicon macOS archive SHA-256 is f5b56c71f6717a996656368a518a4e223999bc5d2258d8c3e72f050751db5134; the Windows x64 archive SHA-256 is bebea5db3e42ac125c22892de9c39030e0d553a18c07a53ac7e6b057b7880880."
+    },
+    {
+      "project": "CADMPEG SAT codec",
+      "urls": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/latest",
+        "https://docs.rs/crate/cadmpeg-asm/latest",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md"
+      ],
+      "observation": "The currently served codec and ASM crates are 0.6.1. The codec is a profile-limited bare SAT/SAB/SMT/SMB parser/neutral-geometry transfer route, not a DWG/DXF/AcDs reader or general-purpose ACIS kernel. The exact embedded crate versions/source used in the v0.6.2 release binary were not resolved."
+    }
+  ],
+  "decisions": [
+    "Keep stock FreeCAD qualification limited to the exact selected converter/importer and explicit entity profile; ACIS semantic consumption by stock FreeCAD is not applicable.",
+    "Keep ACadSharp PR #1240 advisory until merged, released, and independently qualified.",
+    "Use LibreDWG #1411 only as a build-scoped scratch-generated carrier-loss shape; separate shell survival from AcDs payload and B-rep semantics.",
+    "Classify CADMPEG v0.6.2 as BINARY_ARTIFACT_PINNED / EMBEDDED_CODEC_UNBOUND / NOT_RUN until source and crate versions are matched. If run later, compare only exact owner-closed bare payloads and record all losses plus independent analytic expectations.",
+    "Do not create a new PAR finding or top-level subplan from these peer/source disclosures.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "peer_runtime": "not run",
+    "native_cad": "not run",
+    "packages_downloaded": false,
+    "fixtures_added": false,
+    "tests_or_ctest_changed": false,
+    "dependencies_changed": false,
+    "support_claim_changed": false,
+    "finding_and_subplan_totals_changed": false,
+    "plan_totals": "137 findings / 77 top-level subplans"
+  }
+}

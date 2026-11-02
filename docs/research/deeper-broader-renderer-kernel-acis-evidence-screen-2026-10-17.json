@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader renderer and kernel ACIS evidence screen",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "primary-source repository-document review with a generated local fast test",
+  "scope": [
+    "Screen ACIS claims from renderers and downstream kernel adapters",
+    "Separate raw carrier, parser, edge/mesh projection, B-rep semantics, and native acceptance",
+    "Close the planned generated NOD graph-edge/no-edge control pair for raw proxies",
+    "Keep external semantic J gates and validation cadence unchanged"
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChanged": true,
+    "localFilesInspected": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: ACIS evidence gates, PAR-49/7G, previous peer-provenance reviews",
+      "tests/dxf_fixture_tests.cpp:testNodRootOrdering"
+    ],
+    "limitations": "Peer findings are repository documentation and self-test descriptions, not independently reproduced behavior. ACadRust and pid-cad share codec lineage; renderer output and same-codec round trips are not independent semantic evidence. No external CAD application or ACIS kernel ran."
+  },
+  "sources": [
+    {
+      "project": "ProGPU DXF technical note",
+      "url": "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+      "observed": "The repository-controlled note describes a tagged SAB scanner and a tagless sequential fallback, then describes extracting edge endpoints. This establishes only what the note claims about a renderer path; it does not establish full B-rep closure or analytic validity."
+    },
+    {
+      "project": "pid-cad tessellation notes",
+      "url": "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+      "observed": "The ACIS path is documented as kernel lifting with direct per-surface fallback sampling when a face is not expressible in the kernel. Its resulting render mesh is therefore a display/projection result with fallback behavior, not an exact-solid oracle."
+    },
+    {
+      "project": "ACadRust planar-body cube round-trip test",
+      "url": "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "observed": "The test creates a cube from explicit vertices/faces, writes AC1032 DWG, reloads it with the same codec, and checks ACIS data presence. It is a useful generated model shape and same-codec transport regression, not independent semantic validation."
+    }
+  ],
+  "localCrossCheck": {
+    "acisEvidence": "The plan already separates carrier bytes, AcDs association, ACIS parse completeness, shape semantics, and native consumer acceptance. The new screen sharpens labels: edge-only projections are PROJECTION_ONLY; fallback meshes are RENDERED_OR_TESSELLATED; only independent, complete, analytically checked geometry may be SHAPE_VALIDATED.",
+    "graphTest": "The existing generated ASCII/Binary test covered strict refusal for an NOD edge to a raw proxy and tolerant edge omission with raw proxy preservation. The new no-edge case strictly exports and reopens the same raw proxy without manufacturing a NOD entry.",
+    "validation": "Built libdxfrw_dxf_fixture_tests and lc3_compat_check; ran the fixture executable and owning libdxfrw_dxf_fixtures CTest; git diff --check passed. No full suite was run."
+  },
+  "assessment": {
+    "evidenceLanes": [
+      "opaque carrier retention and exact association",
+      "parser structure and unsupported-record disposition",
+      "edge-only projection",
+      "fallback or complete tessellation",
+      "closed B-rep topology and analytic measures",
+      "native CAD import/display/audit"
+    ],
+    "lineageRule": "A same-codec round-trip is a regression test, not an independent reader vote. Downstream renderers that share the codec or use fallback sampling cannot promote semantic support.",
+    "speedRule": "Use the already-owned focused generated selectors at the touched slice; keep kernels and native consumer runs at the composed checkpoint.",
+    "graphRule": "For the raw-proxy NOD route, test the unsupported carrier both referenced and unreferenced; with a reference, strict mode refuses before publication and tolerant mode removes the edge while preserving the carrier."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyIncreased": false,
+    "newTestsOrRegistrations": 0,
+    "generatedTestControlsAdded": 1,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuntimeExecutions": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 129,
+    "topLevelImplementationSubplans": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "receiptJsonParsed": true,
+    "planDiffCheck": true,
+    "testsRun": true,
+    "focusedBuild": "PASS: libdxfrw_dxf_fixture_tests and lc3_compat_check",
+    "focusedExecutable": "PASS: build-gcc/libdxfrw_dxf_fixture_tests",
+    "owningCTest": "PASS: libdxfrw_dxf_fixtures",
+    "fullSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0
+  }
+}

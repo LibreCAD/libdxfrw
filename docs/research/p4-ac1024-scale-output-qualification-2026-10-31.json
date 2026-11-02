@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-scale-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Transactional qualification for AC1024 SCALE output",
+  "status": "PARTIAL_OUTPUT_IDENTITIES_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local sample only; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "sourceFile": "dwg2dxf/dx_iface.cpp",
+    "sha256": "83f78f6faa94cd4cdc4ba1ddd037b5c17fe55634a30f667899d52d037ce5c7a8",
+    "change": "After hasUnchangedDwgScales and the staged SCALE inspector succeed, stage each exact source handle from m_dwgScaleOutputSources in the per-write opaque identity qualification set. Qualification remains transactional and is published only after successful DXF commit.",
+    "proofRoute": "The existing output observer checks all 17 source identities, rooted ACAD_SCALELIST membership, ordered key/handle edges, owner/reactor links and complete typed SCALE fields. Independent file readback reimports the physical DWG and output DXF; a late source mutation is refused while preserving the destination sentinel, then the corrected source retries successfully.",
+    "physicalReadbackReceipt": "docs/research/p4-ac1024-scale-physical-output-binding-2026-10-31.json"
+  },
+  "census": {
+    "opaqueCallbacks": 228,
+    "previouslyQualified": 174,
+    "scaleIdentitiesAdded": 17,
+    "currentlyQualified": 191,
+    "remaining": 37,
+    "remainingBreakdown": {
+      "DICTIONARYVAR": 8,
+      "MATERIAL": 3,
+      "MLEADERSTYLE": 2,
+      "TABLESTYLE": 1,
+      "ACDBDICTIONARYWDFLT": 1,
+      "SORTENTSTABLE": 1,
+      "unnamedEntityType34": 2,
+      "unnamedObjectTypes73_80_82": 4,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictAttempt": {
+      "result": "refused before publication",
+      "diagnostic": "strict-complete conversion requires output qualification for every opaque DWG callback (qualified=191/228)",
+      "publishedOutputQualificationCountAfterRefusal": 0
+    },
+    "legacyRetry": {
+      "result": "succeeded",
+      "publishedOutputQualificationCount": 191
+    }
+  },
+  "physicalOutput": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/p4-scale-qualified.dxf",
+    "result": "PASS; conversion completed using explicit partial-read mode.",
+    "outputSha256": "9e549ab431f3ce1040f96fb646582b22e929db79bbfce958cff9312b631b6471",
+    "debugLogSha256": "6e5a9744a0f2ea1cd62ab972cb970237097f9a70a163ec7acbe54670816679e9"
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildResult": "PASS with configured -Werror flags.",
+    "sameAdapterPhysicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg /private/tmp/p4-scale-qualified.dxf",
+      "result": "PASS: 17 typed/raw identities, rooted dictionary membership, owner/reactors, exact fields, mutation refusal, sentinel preservation and corrected retry. The expected injected failure diagnostic preceded the pass result."
+    },
+    "strictAndLegacyCensus": "PASS: strict attempt refused at 191/228 and published zero; subsequent legacy retry succeeded and published 191.",
+    "fullSuites": "NOT_RUN; the source-bound physical selector and current strict/legacy census were used."
+  },
+  "limitations": [
+    "191/228 is a source-identity conversion qualification count, not semantic support evidence or strict-complete export success.",
+    "P4 remains open; the 37 unqualified callback identities continue to block strict export.",
+    "No LibreCAD, LibreCAD_3, FreeCAD, native-platform, ABI/package or 3D semantic qualification is promoted."
+  ],
+  "nextPacket": {
+    "operation": "Connect the existing AC1024 DICTIONARYVAR source/output/readback proof to the transactional opaque identity qualification set.",
+    "count": 8,
+    "focusedSelector": "dwg2dxf_dictionaryvar_physical_output_readback plus the current opaque strict-gate selector",
+    "condition": "Stage source handles only after unchanged-source checks, exact dictionary owner/key closure, typed value inspection and fresh output decoding pass."
+  }
+}

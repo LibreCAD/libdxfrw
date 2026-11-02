@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Model-space LAYOUT group-331 VPORT target audit",
+  "mode": "Primary-source documentation review, diagnostic-only AC1024 trace, and validated generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Determine whether the layout graph preflight's assumption that every non-null LAYOUT group-331 reference targets a paper-space VIEWPORT applies to the model layout.",
+    "Correlate ODA and Autodesk field descriptions, open-source layout documentation, and a local trace without weakening paper-space owner checks.",
+    "Add an implementation-ready local fix slice under the existing PAR-49/7G.3 plan owner while preserving the fast-test cadence and external evidence limits."
+  ],
+  "sources": [
+    {
+      "name": "ODA Open Design Specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": "The LAYOUT object field list describes group 330 as the associated paperspace BLOCK_RECORD soft pointer and group 331 as the last-active viewport soft pointer; R2004+ separately stores viewport count and a repeated viewport-handle list.",
+      "limits": "The inspected field description does not identify one target class for group 331 across model and paper layouts. ODA v5.4.1 remains the authoritative DWG byte-layout reference; this pass did not edit DWG parsing."
+    },
+    {
+      "name": "Autodesk LAYOUT DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+      "observed": "The DXF table describes group 331 as the ID/handle to the viewport last active in the layout when the layout was current.",
+      "limits": "The table does not specify a universal runtime target class for every layout type."
+    },
+    {
+      "name": "ezdxf layout-management documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html",
+      "observed": "The documentation states that the modelspace layout requires (?) a VPORT entity in the VPORT table at group code 331; it separately describes a main VIEWPORT entity for paperspace layouts.",
+      "limits": "The question mark signals uncertainty in this peer documentation. It is corroboration for a narrow profile-specific candidate, not normative authority or proof of general interoperability."
+    },
+    {
+      "name": "Local layout graph validator and generated controls",
+      "paths": [
+        "dwg2dxf/dx_iface.cpp:14534-15020",
+        "tests/dxf_fixture_tests.cpp:1500-1730",
+        "tests/dxf_fixture_tests.cpp:27474-27483"
+      ],
+      "observed": "validateLayoutGraph()'s hasOwnedViewport lambda searches retained entity containers and requires a DRW_Viewport with paperspace status and layout-owner consistency. The existing layout-graph selector tests the paper-space VIEWPORT route but does not set the Model LAYOUT's lastActiveViewportHandle to a VPORT table record.",
+      "limits": "This is source evidence for the rejection path, not a corrected implementation or a completed regression test."
+    },
+    {
+      "name": "Diagnostic-only local AC1024 trace",
+      "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y --allow-partial-dwg-read -d -v2010 <disposable-output.dxf>",
+      "observed": "The trace logs VPORT handle 0x94 (decimal 148), reports Model LAYOUT handle 34, and then rejects LAYOUT 331 because handle 148 does not resolve to a retained entity. The read observation reports operationSucceeded=true, semanticCoverage=partial-observed, 663 observed and published frames, zero entity/object parse failures, and 14 skipped unsupported associative-class instances.",
+      "limits": "The sample provenance was not independently established. The file was read in place, not copied or modified, and is not proposed as a fixture. Explicit partial mode does not weaken owner/reference validation; this failure does not show that strict conversion should accept the partial input. Output and trace were written under a disposable system temporary directory."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 1,
+    "newFindings": 1,
+    "newFindingId": "PAR-142",
+    "implementationStatus": "FAST_SLICE_IMPLEMENTED_AND_VALIDATED_UNCOMMITTED",
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-49 / 7G.3 layout graph",
+    "planTotals": {
+      "findings": 142,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": "Adds the model-layout group-331 case as the next bounded 7G.3 local follow-up; does not reorder unrelated work or composed external/native checkpoints.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added PAR-142 for the locally observed model-layout group-331 target-class false rejection, with its exact validator path and evidence limits.",
+    "Specified a narrow positive route only when normalized Model layout identity and reciprocal *MODEL_SPACE BLOCK_RECORD identity agree; resolve nonzero 331 to one unique DRW_Vport by handle.",
+    "Preserved paper-layout VIEWPORT owner checks, the current-paper-space ownerless DWG exception, atomic output refusal, and strict-versus-partial DWG-read policy.",
+      "Added generated ASCII/Binary positive and wrong-target negative controls to the existing layout-graph selector, without a new fixture or mandatory full-suite/peer/native run.",
+      "Implemented the narrow reciprocal Model/*MODEL_SPACE to unique VPORT resolver; paper-layout VIEWPORT ownership validation remains unchanged.",
+      "Updated DXF VPORT serialization to register emitted handles for valid source VPORT handles, preserving Model LAYOUT 331 through remapping.",
+      "Verified focused selector, owning CTest, scoped warning-as-error builds, and diff checks; slice remains uncommitted because the shared worktree has extensive unrelated overlapping changes.",
+    "Kept the sample diagnostic-only, uncommitted, and non-promoting; documented the unresolved later associative/SUN graph failures and self-unblocking next step."
+  ],
+  "method": {
+    "localProductionCodeChanged": true,
+    "testCodeChanged": true,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "fullTestSuitesRun": 0,
+    "focusedTestsRun": 2,
+    "diagnosticCliRuns": 1,
+    "validation": [
+      "Local source review confirmed that the validator currently only resolves group 331 through entity containers as paper-space DRW_Viewport records.",
+      "A single AC1024 diagnostic conversion with explicit partial mode reproduced the class mismatch at export preflight.",
+      "Official ODA and Autodesk documentation plus ezdxf's qualified modelspace note were reviewed; no target-class rule was generalized from the peer source alone.",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2 passed with -Werror.",
+      "build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract passed for generated ASCII and Binary controls.",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure passed (1/1).",
+      "git diff --check passed for the implementation, test, plan, and receipt files."
+    ]
+  },
+  "limitations": [
+    "The AC1024 input is partial-observed and has 14 skipped unsupported associative-class instances; resolving PAR-142 alone cannot promote conversion completeness.",
+    "Autodesk and ODA publish the group-331 role but do not state an invariant target class covering all layout types in the inspected passages.",
+    "The ezdxf modelspace statement is qualified with '(?)' and is corroborative, not normative.",
+    "The new controls and production correction are validated only by generated local ASCII/Binary DXF and the owning test; no external producer, native CAD consumer, Linux/Windows consumer, or independent geometry semantics were exercised.",
+    "The slice remains uncommitted because extensive unrelated changes already occupy the shared worktree and overlap the touched source/test files.",
+    "No external/native semantic evidence was gathered; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

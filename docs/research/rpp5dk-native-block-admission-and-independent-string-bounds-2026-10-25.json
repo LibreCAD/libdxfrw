@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dk native block admission and independent string bounds",
+  "date": "2026-10-25",
+  "parentCommit": "f6eeabb9be7e944106e8d39b4f143c8e773d6158",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "TWO_IDENTIFIED_NATIVE_CONTROLS_RESOLVED_77_OF_77_NORMAL_AND_ASAN_FULL_GOAL_OPEN",
+  "scope": {
+    "runtimeChange": "Remove contradictory null-layout admission guard from metadata defineBlock; retain XREF nonnull-layout and owned-content refusal",
+    "nativeEncodingOrParsingMethodsChanged": false,
+    "productionLayoutEncodingChanged": false,
+    "publicApiOrModelLayoutChanged": false,
+    "newExternalDrawingPayloadsCommitted": false,
+    "outputEligible": false,
+    "supportClaimsPromoted": false,
+    "sourceFamiliesUnchanged": 9
+  },
+  "authoritativeReference": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "ODA Open Design Specification 5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 common non-entity format",
+      "20.4.52 BLOCK_HEADER",
+      "20.4.84 LAYOUT"
+    ],
+    "completeRelevantPagesVisuallyInspected": [
+      103,
+      104,
+      163,
+      164,
+      165,
+      209,
+      210,
+      211
+    ],
+    "authorityBoundary": "Specification supplies bit-based stream/handle layouts. Byte-sized string carrier padding is a labelled generated-writer profile, not a universal specification rule."
+  },
+  "baseline": {
+    "previousImplementation": "8939f7f8",
+    "planTriageCommit": "f6eeabb9",
+    "immutableReceipt": "docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json",
+    "historicalNormalAndAsanEach": {
+      "passed": 67,
+      "failed": 2,
+      "total": 69
+    },
+    "historicalPristineParent": "e0848ddce70c469307599e7b560017e869cd5192",
+    "parentControlsRebuiltThisSlice": false,
+    "preFixCurrentControls": {
+      "normalPassed": 0,
+      "asanPassed": 0,
+      "totalPerBuild": 2
+    },
+    "diagnoses": [
+      "NoHandle is zero. The initial metadata guard rejects zero layoutHandle while the XREF guard requires zero; every XREF is therefore refused before its content-scope probe.",
+      "The independent R2007 cursor assumes byte-aligned strings plus fixed seven-bit separation. The failing generated frame has end=1928 and size=1480; start=1928-17-1480=431 bits.",
+      "After fixing string ranges the dictionary walker exposes 8 residual padding bits: separate string-carrier and combined-stream alignment phases must each be bounded."
+    ],
+    "enumDiagnostics": {
+      "13": "AC1015/R2000",
+      "15": "AC1021/R2007"
+    }
+  },
+  "controls": {
+    "versions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "successfulMetadataCells": 24,
+    "cellAxes": "6 revisions x reference/overlay x loaded/unloaded",
+    "independentExistingWireScope": "Object/common prefix, versioned flag/index/dependent/overlay/loaded fields. Not every XREF metadata field or handle role.",
+    "readback": "Metadata/default fields, null layout association, empty XREF content, one following ordinary-block LINE with exact coordinates and parent owner",
+    "lowLevelAdmission": "Paper-layout nonnull and ordinary null accepted; XREF/overlay nonnull refused without bytes/map/handle-watermark/block-count/active-scope mutation; corrected null admitted",
+    "frameFailureSchedules": 12,
+    "frameFailurePoints": [
+      "before ENDBLK frame",
+      "after ENDBLK frame"
+    ],
+    "frameRollback": "Exact published buffer, object map, block/name index and emitted block-delimiter set restored; no active scope/write-error contamination; concrete-writer retry succeeds",
+    "allocatorContract": "Frame rollback deliberately preserves monotonic handle high-water mark; no claim of exact handle reuse or exhaustive allocation-throw coverage",
+    "invalidProfiles": [
+      "nonnull XREF hard pointer",
+      "overlay without XREF flag",
+      "nonnull XREF layout association",
+      "nonnull 64-bit XREF hard pointer"
+    ],
+    "invalidProfileVersionCells": 24,
+    "failedMissingDestinationTransactions": 24,
+    "failedExistingDestinationTransactions": 24,
+    "correctedSameFacadeTransactions": 24,
+    "publication": "Missing destination remains absent; existing scratch-authored sentinel bytes remain exact; corrected fresh same-facade transaction publishes and reads back uniquely",
+    "stickyContract": "defineBlock failure remains sticky within its write; beginBlockContent XREF refusal is a non-latching scope probe; fresh write clears prior operation failure"
+  },
+  "independentStringWalker": {
+    "productionStringWriterOrLocatorHelpersUsed": false,
+    "framingScope": "Owning controls retain existing dwgBuffer frame-prefix/CRC helpers and generated receipts; no whole-frame independent-reader claim",
+    "location": "tests/dwg_local_roundtrip_tests.cpp",
+    "consumers": [
+      "LAYOUT viewport DATA walk",
+      "ACAD_LAYOUT dictionary key/membership walk"
+    ],
+    "originalBitViews": true,
+    "eliminatedByteSliceCopies": true,
+    "footerSizing": "Exact 16-bit or extended 16+15-bit declared range, no byte-alignment/fixed-seven assumption",
+    "generatedPadding": "Exactly ceil(consumed string bits/8) carrier padding plus combined stream/footer alignment; every pad bit zero. No arbitrary 14-bit allowance.",
+    "handPackedPositiveCells": 32,
+    "axes": "8 start-bit residues x short/extended size x direct-bit/byte-carrier profile",
+    "rejectedCorruptions": {
+      "text": 32,
+      "size": 32,
+      "truncatedEnd": 32,
+      "padding": 30,
+      "total": 126
+    },
+    "existingChecksRetained": [
+      "CRC",
+      "bounded DATA fields",
+      "exact string values",
+      "viewport/owner handle roles",
+      "unique references",
+      "multi-layout dictionary membership",
+      "following sentinel adjacency"
+    ],
+    "fullIndependentXrefMetadataAndHandleProfile": false,
+    "viewportCountDiscrepancy": "Unchanged: current generated/sample-traced BL profile versus ODA v5.4.1 RL table label; this correction makes no new decision."
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC",
+    "owning": {
+      "tests": [
+        "libdxfrw_dwg_block_record_xref_roundtrip",
+        "dwg_block_record_layout_association",
+        "libdxfrw_dwg_block_owner_membership_index"
+      ],
+      "normal": {
+        "passed": 3,
+        "total": 3,
+        "elapsedSeconds": 1.17
+      },
+      "asan": {
+        "passed": 3,
+        "total": 3,
+        "elapsedSeconds": 2.2
+      }
+    },
+    "normal": {
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0,
+      "total": 77,
+      "elapsedSeconds": 69.32,
+      "log": "/tmp/rpp5dk-normal-cohort.log",
+      "logSha256": "7f30b7dccf7efffce30f4028fcd1ec75899743eb144995982452d4de04c30c28",
+      "junit": "/tmp/rpp5dk-normal.xml"
+    },
+    "asan": {
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0,
+      "total": 77,
+      "elapsedSeconds": 154.5,
+      "log": "/tmp/rpp5dk-asan-cohort.log",
+      "logSha256": "8aac3e21141bf4447f9b7888101851c0f071974540a04ff19401168ffab645f0",
+      "junit": "/tmp/rpp5dk-asan.xml",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "sourceSelection": "Prior RPP-5dj exact 69 plus eight affected native/writer/CLI checks",
+    "addedTests": [
+      "libdxfrw_dwg_block_owner_membership_index",
+      "libdxfrw_dwg_block_record_xref_index",
+      "libdxfrw_dwg_mixed_missing_block_ownership",
+      "libdxfrw_dwg_space_block_delimiter_owner",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_writer_version_matrix",
+      "dwg_layout_compound_insert_owner_roundtrip",
+      "dwg2dxf_freecad_cli_compat"
+    ],
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "dwg_block_record_layout_association",
+      "dwg_layout_compound_insert_owner_roundtrip",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_acad_field_writer_candidate",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_block_owners",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+      "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_dimension_picture_block_full_conversion",
+      "libdxfrw_dwg_block_owner_membership_index",
+      "libdxfrw_dwg_block_record_xref_index",
+      "libdxfrw_dwg_block_record_xref_roundtrip",
+      "libdxfrw_dwg_mixed_missing_block_ownership",
+      "libdxfrw_dwg_space_block_delimiter_owner",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_extension_graph_limits",
+      "libdxfrw_field_cadvalue_date_payload",
+      "libdxfrw_field_cadvalue_double",
+      "libdxfrw_field_cadvalue_general_format_flag",
+      "libdxfrw_field_cadvalue_long",
+      "libdxfrw_field_cadvalue_object_id",
+      "libdxfrw_field_cadvalue_points",
+      "libdxfrw_field_cadvalue_string",
+      "libdxfrw_field_cadvalue_unknown_type",
+      "libdxfrw_field_child_cadvalue_types",
+      "libdxfrw_field_child_object_id_invalid_handle_role",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_field_oversized_child_value_count",
+      "libdxfrw_field_retained_owner_budget",
+      "libdxfrw_field_unknown_child_cadvalue_versions",
+      "libdxfrw_field_unqualified_format_flags",
+      "libdxfrw_field_unsupported_child_cadvalue_buffers",
+      "libdxfrw_linetype_extension_graph",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_writer_version_matrix"
+    ],
+    "normalAndAsanCtestCohortsSequential": true,
+    "fullProjectSuiteRepeated": false,
+    "leakChecking": false,
+    "strictWarningsRetained": true,
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Consumer source compilation, not native application runtime"
+    },
+    "builds": {
+      "normal": {
+        "log": "/tmp/rpp5dk-normal-build.log",
+        "sha256": "5fc569d3e9f8f34a6bbe86935cfaa3644f1f3bb391218e78558147d8360f435b"
+      },
+      "asan": {
+        "log": "/tmp/rpp5dk-asan-build.log",
+        "sha256": "49ad415b40fe76d8f35265919433202baca82159abd5223a5821d0a73ae8aacb"
+      }
+    },
+    "freecadCliScope": "Repository-fixture CLI argument/output contract only; not a native FreeCAD installed runtime",
+    "newIndependentExternalReaderRun": false
+  },
+  "nextReadyWork": [
+    "ATTDEF exact source/context through DxfBlockEventSink at accepted ENDBLK, with actual finalization/extrusion context",
+    "BLOCK/ENDBLK, ATTRIB/SEQEND, APPID/LAYER and complete source/common/target worklist",
+    "B3/C editable/frozen equality and fully preplanned atomic output",
+    "Replay/owner speed, allocation-failure and complete native field/reference audits",
+    "Original 2D/3D consumer and independent semantic/platform obligations"
+  ],
+  "qualification": {
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "fullGoalComplete": false
+  },
+  "sourceSha256": {
+    "src/intern/dwgwriter15.cpp": "742926bf20fb53b0e0774335e446a1108bc2c09472e4c57c896045fec320cc63",
+    "tests/dwg_local_roundtrip_tests.cpp": "b601b30e8f2b936347293023cfdd152661b1a16324549527b860b792bc9cc5d8",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6d4a2fdbeba7d65bd6fd823a9a82d117c7b07618966be139cff58db9ea61b78a"
+  }
+}

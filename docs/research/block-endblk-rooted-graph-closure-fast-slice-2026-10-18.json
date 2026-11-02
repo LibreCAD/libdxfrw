@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK and ENDBLK rooted extension graph closure",
+  "mode": "generated local fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Index retained BLOCK and ENDBLK source identities in the existing typed extension-object graph planner.",
+    "Traverse delimiter-rooted typed extension-dictionary and reactor edges; validate delimiter handles as typed XRECORD targets.",
+    "Emit ordinary and canonical fixed-space BLOCK reactor/extension-dictionary groups and bind source BLOCK identities before dependent owner references are written.",
+    "Preserve arbitrary group-320 XRECORD values as opaque payload, and reject unresolved explicit roots transactionally.",
+    "Use only the existing repository fixture edited in memory and generated temporary ASCII/Binary DXFs."
+  ],
+  "sourceCrosswalk": {
+    "planOwner": "PAR-65/7AM.3",
+    "codePaths": [
+      "dx_iface::prepareExtensionObjectGraph",
+      "dxfRW::writeBlock",
+      "dxfRW::setFixedSpaceBlockBeginCarriers",
+      "dxfRW::writeBlocks",
+      "dxfRW::writeEntityReferenceGroups",
+      "dxfRW::bindSourceBlockBeginHandle",
+      "dxfRW::writeBlockEndCommonFields",
+      "testBlockXrefPathRoundTrip"
+    ],
+    "evidenceBoundary": "Local ASCII then Binary conversion and third-read ordinary/fixed-space BLOCK and ENDBLK graph/owner/reference/payload evidence, transactional refusal of an unresolved BLOCK extension root, and same-adapter recovery. Arbitrary appData reference semantics, BLOCK_RECORD unit/layout-link composition, peer behavior, and native CAD acceptance remain unqualified."
+  },
+  "verification": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp src/libdxfrw.h dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "targetBuild": "passed",
+    "focusedSelector": "passed",
+    "owningCTest": {
+      "name": "libdxfrw_block_xref_path_roundtrip",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.04
+    },
+    "compatibilityTarget": "passed",
+    "diffCheck": "passed; receipt JSON parsed with jq empty"
+  },
+  "assessment": {
+    "productionFilesChanged": true,
+    "publicApiChanged": true,
+    "publicApiChange": "Additive non-virtual dxfRW setup method; DRW_Interface contract and object layouts are unchanged.",
+    "newFixtures": 0,
+    "newCtestRegistrations": 0,
+    "fullSuitesRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "remaining": [
+    "Arbitrary application-defined appData handle semantics remain opaque unless covered by a separately qualified contract.",
+    "BLOCK_RECORD units/layout links and their composed owner/reference checks remain under the separate 7G.3 work.",
+    "Independent peer semantic comparison and native CAD acceptance remain at composed evidence gates."
+  ],
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The shared worktree was already broadly modified. This slice changes the BLOCK/ENDBLK writer, graph planner, existing focused test owner, plan, and receipt; unrelated edits were preserved."
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-string",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "732418f8997dda54127f13023f7ec05a27b99fa3e9c9655655bf8711db1cef10",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "kString (type 4) root value in the detached string stream",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA defines type 4 as a string CadValue; R2007+ TV data is carried in the detached string stream.",
+    "localGap": "The FIELD DWG vectors lacked a positive type-4 root-value case covering its typed TV and detached format/value text."
+  },
+  "change": "Added generated AC1021/AC1024 FIELD root type-4 controls for CAD Text, asserting typed value, unit/format/value strings, outer FIELD value text and length, validity, and DWG re-encoding. No production parser or writer change.",
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-string: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_cadvalue_string$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_double|cadvalue_string|cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (16/16)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg_object_vectors_tests.cpp src/drw_objects.cpp: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

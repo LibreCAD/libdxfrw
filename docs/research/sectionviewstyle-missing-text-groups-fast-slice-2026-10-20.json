@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle missing text-group insertion coverage",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-138",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "Added generated ASCII/Binary regression coverage for edited typed SectionViewStyle strings whose corresponding group-300 raw values are absent; existing production insertion branches passed without behavior changes.",
+  "behavior": {
+    "fields": [
+      "SectionViewStyle group-1 identifier-exclusion characters",
+      "SectionViewStyle group-3 view-label pattern",
+      "SectionViewStyle group-4 hatch pattern"
+    ],
+    "sourceControl": "Reload the selector-generated drawing and remove one matching group-300 value from each relevant subclass/style-group while keeping raw-value slots aligned.",
+    "expectedOrder": "Independently build the expected carrier with each changed text group inserted at its subclass/style-group boundary.",
+    "compatibility": "No production behavior or public interface change; DetailViewStyle raw carrier remains unchanged in the round trip."
+  },
+  "tests": {
+    "selector": "--modeldoc-view-style-callbacks",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "coverage": [
+      "Missing raw SectionViewStyle group-1/3/4 text values edited through typed fields",
+      "Typed string values reimport exactly after same-version export",
+      "Exact ordered SectionViewStyle raw-carrier roundtrip",
+      "Unchanged DetailViewStyle raw carrier",
+      "Closed ModelDocViewStyle resource references",
+      "Following POINT entity continuity"
+    ],
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1 passed)",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for tests/dwg2dxf_adapter_tests.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFilesChanged": [],
+    "testFiles": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "planFiles": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "dependenciesAdded": 0,
+    "externalRuns": 0,
+    "nativeApplicationRuns": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

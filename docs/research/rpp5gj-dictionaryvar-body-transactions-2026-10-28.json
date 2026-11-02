@@ -1,0 +1,1148 @@
+{
+  "schema": "libdxfrw-dictionaryvar-body-transactions-v1",
+  "slice": "RPP-5gj",
+  "date": "2026-10-28",
+  "dateTimezone": "America/Toronto",
+  "observedAtUtc": "2026-10-28T10:33:09.710388+00:00",
+  "parentCommit": "31523cd77a9283575f904d69b5d7f1a72e54c8fa",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "scope": "Modern AC1021/24/27/32 standard and application DXF DICTIONARYVAR represented schema280/value1 three-way transactions against a private immutable first-import raw baseline. Preserve raw-only and disjoint edits, agree on matching edits, refuse conflicts, retain unknown fields and unchanged absence/spelling, freeze planned output and inspect actual emission. Legacy canonical raw-authoritative behavior and DWG ownership/typed-output behavior are retained as separate routes; native semantics and arbitrary complete documents are not qualified.",
+  "fileSha256": {
+    "CMakeLists.txt": "d0b8e78ae93a81aa7c330e12440f1361d6586f7f3b619c6ab46197fb25bffbd3",
+    "dwg2dxf/dx_data.h": "bd222e8a4c9f219d039621ea0cd36acf1b34d1d53ce25d3c09c9df265dbdba8b",
+    "dwg2dxf/dx_iface.cpp": "636c585abb4e60429e20f684a1b485046da22d6d97bd3903d596d9e64b012e18",
+    "dwg2dxf/dx_iface.h": "730b05e05393f35dea33503059a10f033718ee0c8133b8d05bf1acd020275097",
+    "tests/dxf_fixture_tests.cpp": "2fba2070a6c539d2f95b26ade5e3a23fccab1b5b3d3d857ab66414323506c7b8",
+    "tools/qualify_material_source_order.py": "9b4721f7a1308534b9c8bc3ac6a6602662438c8627ba36dd1d9c0b6ae0fa312b"
+  },
+  "baseline": {
+    "operation": "Canonical-only typed value edit before implementation",
+    "exportProducedFile": true,
+    "expectedValue": "edited_\u03a9^A",
+    "observedVariableFields": [
+      {
+        "code": 280,
+        "value": "    0"
+      },
+      {
+        "code": 1,
+        "value": "custom-\u03a9"
+      },
+      {
+        "code": 280,
+        "value": "    0"
+      },
+      {
+        "code": 1,
+        "value": "second"
+      }
+    ],
+    "sourceSha256": "0bbc2c2b7a811c1a7bd1b741ebb032eaf6c4db557b47cf144d606facb311085c",
+    "outputSha256": "871905df879a29f584fecff01392726e0b07df3bb903f8ef3ef2ae8006a52831",
+    "readbackMatched": false
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "supports": "DICTIONARYVAR subclass, schema280 (currently0), value1 and normative system-variable owner. Other admitted numeric schemas are structural transport controls, not native semantic qualification."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+      "supports": "ASCII text control characters use caret notation; literal carets expand with a following space. Binary strings remain a distinct context."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/low_level_tools/dxf_unicode_decoder.html",
+      "supports": "Primary peer documentation says regular readfile intentionally leaves DXF Unicode escapes encoded and exposes decode_dxf_unicode for explicit normalization. Applied once in both output formats."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/tools/text.html",
+      "supports": "Primary peer caret_decode utility independently normalizes ASCII control/literal caret notation. It is not applied to binary text."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/tutorials/custom_data.html",
+      "supports": "The independent producer stores metadata under the NOD EZDXF_META application dictionary and uses DICTIONARYVAR strings."
+    }
+  ],
+  "implementation": [
+    "Capture original first-import modern DXF variable raw bodies as private shared_ptr<const> baselines. Precharge a private container-lifetime logical allowance including map/control overhead before copying; failed raw-list insertion erases the inserted baseline and does not charge bytes. Existing public raw-callback counts remain unchanged; sticky capture failure blocks output.",
+    "Generalize the custom modern snapshot/inspection path to standard and application variables, preserving canonical root and custom ownership admission. DWG typed output and legacy canonical raw replay remain distinct. No installed library headers, callbacks/pure virtuals or DWG byte parsers change; private dx_data/dx_iface users must recompile.",
+    "Owning-decode original and current raw bodies in the original captured wire context. Reconcile schema and value independently against the immutable baseline: typed-only and raw-only changes compose, disjoint changes combine, identical same-field changes agree, and differing same-field changes refuse before publication. Require current common metadata to match its raw representation.",
+    "Retain a unique DictionaryVariables body. Preserve omitted default fields and exact unchanged numeric spelling. Rewrite changed existing represented slots, insert changed omitted slots at the body boundary, and transcode existing known text across ASCII/Binary. Retain opaque fields from the current raw model. Ambiguous/repeated structural or represented slots refuse; unknown schema semantics are not invented.",
+    "Precharge 64 times both current and original raw logical estimates plus twice typed logical storage before decoding/copying. This is bounded logical accounting, not a controlled RSS/performance result.",
+    "Freeze current typed/raw sources, immutable baseline pointer, reconciled output schema/value and complete raw projection. Existing dictionary snapshots guard containing entries/owners. Revalidate identities/fields through callbacks and use actual output field/reference proof plus owning-decode before final publication.",
+    "Move the allocating hasSingleSuccessfulNamedResourceImport check inside the noexcept preparation method try block. A persistent allocation-failure control previously aborted at the unguarded provenance check; direct LLDB evidence and corrected reached-failure/retry controls are retained.",
+    "Add an optional C++ test probe that edits actual independently generated EZDXF_META data, then independent peer readback of edited text and preserved owners/material matrices/3D geometry. Use documented peer Unicode normalization once for both formats and caret normalization for ASCII only. No peer parser or drawing payload is copied into Git."
+  ],
+  "controls": {
+    "counterLine": "DICTIONARYVAR transaction profiles=32; readbacks=422; refusals=72; retries=132; callbacks=40; presence=32; lexical=2; prepFaults=16; corruptions=26",
+    "counts": {
+      "profiles": 32,
+      "readbacks": 422,
+      "preflightRefusals": 72,
+      "correctedRetries": 132,
+      "callbackRefusals": 40,
+      "presenceProfiles": 32,
+      "lexicalProfiles": 2,
+      "reachedPreparationAllocationFailures": 16,
+      "preparationAllocationOffsetsAttempted": 20,
+      "outputViewCorruptions": 26
+    },
+    "profiles": "Four modern versions x two source formats x two output formats x standard/application owner. Each checks unchanged, typed value/schema, raw-only value, disjoint schema/value, agreeing edits, both conflict fields and corrected retries, plus an opaque raw-field edit with literal wire proof and owning readback.",
+    "presence": "32 source/output/owner/presence profiles retain schema/value absence unchanged and insert both represented fields when edited. Two literal ASCII numeric spellings remain exact through a value edit.",
+    "callbacks": "40 standard-route real callback mutations across four phases and both encodings: typed value, raw value, duplicate typed identity, duplicate raw identity and containing dictionary entry. Sentinel destinations and absence of owned temporary files are checked, then corrected same-adapter outputs pass.",
+    "allocation": "20 sparse preparation offsets (0,1,2,4,8,16,32,64,128,256 per encoding) reach16 actual persistent allocation failures. All attempts retain sentinel destinations; all20 subsequent normal exports/readbacks succeed. These are direct preparation injections, not filesystem or exhaustive whole-export fault coverage.",
+    "outputCorruption": "26 field corruptions of replayed completed standard-route edited OBJECTS views are refused by the actual inspector; restored views pass. Existing application-route view corruptions remain in the affected cohort.",
+    "compatibility": "The cohort retains existing application ownership/refusal/retry profiles, canonical DXF/synthetic typed DWG value edits, dictionary owner/default/source tests, named-resource typed/raw limits, MATERIAL controls, local/installed CLI probes and LibreCAD_3 compile checks. These are not formal ABI/application or native Linux/Windows FreeCAD qualification."
+  },
+  "independentPeer": {
+    "normal": {
+      "producer": "ezdxf",
+      "version": "1.4.5",
+      "packages": {
+        "ezdxf": "1.4.5",
+        "numpy": "2.5.4",
+        "fonttools": "4.68.0",
+        "pyparsing": "3.3.3",
+        "typing_extensions": "4.16.0"
+      },
+      "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "probeSha256": "1193881a81e4c5affb3ecc1279d009217d7f99b32c7332cb8bf11b652e964182",
+      "converterSha256": "252953810b4190f40b4fe377e9b8c53577fb0374b26a87ef18902b5f0e6ef843",
+      "bodyProbesPassed": 8,
+      "selectedUnchangedRoundTripsMatched": 16,
+      "selectedEditedMetadataRoundTripsMatched": 16,
+      "normalization": {
+        "allFormats": [
+          "ezdxf.decode_dxf_unicode"
+        ],
+        "asciiOnly": [
+          "ezdxf.tools.text.caret_decode"
+        ]
+      },
+      "reportSha256": "e0d701798ba6fa580e11438009882f96a07f67b54dd7b4ea8da2daeb5ac2629d",
+      "inputs": [
+        {
+          "version": "AC1021",
+          "format": "asc",
+          "sha256": "03e09a3b3d111e62c73929c4fcc8680c0986e1ca575deede096a1c1532bca0a8"
+        },
+        {
+          "version": "AC1021",
+          "format": "bin",
+          "sha256": "5c2fa138f1214a34d1ed4f122ce35e75c0e94672c39149ccae4e8a1780466f15"
+        },
+        {
+          "version": "AC1024",
+          "format": "asc",
+          "sha256": "2a6953575171103fa6bbd587e37b2169e61f02e0ab86750f76c7796379d94419"
+        },
+        {
+          "version": "AC1024",
+          "format": "bin",
+          "sha256": "02d28999dc7b0d876f693fb3ac1db981fb477e84977ea8d9850dbd62b8f89026"
+        },
+        {
+          "version": "AC1027",
+          "format": "asc",
+          "sha256": "b1eee7843d825946833dbd5434fa65df7d933744b7d0e0f0bf81437dcab230c5"
+        },
+        {
+          "version": "AC1027",
+          "format": "bin",
+          "sha256": "aacf00d0f05e638e0d5b332ae022168ccac32a9f7b4ec13af81ef920a9f4acda"
+        },
+        {
+          "version": "AC1032",
+          "format": "asc",
+          "sha256": "bbc44ef3c895e63d9bf8eabad9562080614498b400760975798319d4e6510c9e"
+        },
+        {
+          "version": "AC1032",
+          "format": "bin",
+          "sha256": "9f4e2df840818c967cc725337248d91af1398749cad8d04033ba3d0a29bc6953"
+        }
+      ],
+      "unchangedOutputs": [
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "b21b24501613db44b58493afff085615ffd4a476c1755d4ae2f24aaf72d6013f"
+        },
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "47c91ddd558074c7cb6298e9614b8b02a46b2aa58e85165a58761bc4f6f1d9f2"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "f9408ad7b64c73ff6ce0ad1115719396ed3a096f4d0984074cd1ed9905f2d46d"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "f8c08123da1db11cd574613c1c07bdb3e7d9028375f9739c90411f5ee08e7bd4"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "2d69e9b6f5ee9eefda4a96da5eb0c0c4adcdc6ccae9fab8c619f85acb8c4bcd6"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "eda00e466915a7317375f1700a045d7a2bca35f17384011ffa0d7d89dc0ac155"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "0dba18f6dd60dd347cc327305c86e72f0ee9255ab6d6730658b610eb5a3124a7"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "c6ee35f4a0e197e2caafcff867f38c041fb2e60f820740955151c8e2a8942f6e"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "d2fda8136837f9d1107d896ed6370b1fa780783be86457204dffe0c9942aacdb"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "cf65d4575d7f41852f7e6aa1ba6ad9cb2c0f21d17444a422035ef5fa57ff723d"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "3002834392393760dae6a907748b45c4e72e75807dcfcd1ae13eb289cbe890bc"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "bae1378ec87a90425f446e2c0b03cee597462ff210b8154bc156bbf00f3eda6f"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "5e61e0018fc6b02e05dc251ba3246c61584560aa7616164cf006b58306241979"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "d141320b74eccf43147b67927c8bb649f8e1e3d5112ee367d80a6d8346e62e1c"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "1213cb13b9d6e43a71381bfaea19a98cd0fcea92ef1b53012baf8d82c38f947e"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "fc59b7e08ad27cfe1d51c9ec0fbea9fc1f21b5932d2a5f1793d25d61866fa3e6"
+        }
+      ],
+      "editedOutputs": [
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "d24c6b51a2e60a49a854b4c3ac6de651ad4af7ce140a75967a4234dd5114a9f7"
+        },
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "c40ca38633f210c4ca1fb07e56661ee62f3dbad0a339c8b2a00ac7fe95a22c69"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "59f5dc118ca83f143bdea14e3afe297638755c9d0126a2588d85fc17eb22f226"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "18b0bdaa5e461f1df174eeed7be90b5905dbea195439af62b5e67e734f2166e1"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "e9c9d2bc3fef50f724b157c6ab246709611f52d324bd53acb7b7bd1d10b42d49"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "9e5b547049b02d1e5d86e24c4ea9f0d9af6bbf53c62a41f6d407e56a1d6be03d"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "ef9c94bf04d16675a6f9a595a3b2e807f659b56f9ceed153d644069966714d59"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "becfa95d9d5f7664a53da80260b1a232033c798a38cf697900b0df7f35d37b30"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "8844539b531ae684a80812a5d7246370eaf540d93415e6ef1d97384b60590279"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "37e6ad1bd3d0be4147e4c79b1b4ed82a2d9f7b8b9aa5f32ea97568a877e4dd45"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "89dbf438e1daea70638396d016a0145dc93aabe2d2f23cb3eddf0809220744ad"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "3ea8d6f60b0f16edef8d42f422ef9234bd3e9800a0e58b50e5c02902014124e4"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "0541078914d684b56d52bd654d6bbdff23dfa15565321e762d955d577b8f776e"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "71f768bafecb8d658dc106d5b64dc8f521a38e900ac57523137aa1473136b34b"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "4ff7c4ec1727a87cedd56fd2e2ec7b34230a69eed14b139d342e150631f5092c"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "29af947a6f844b77b5fd3e923da1625c3090d5984c3e4abbfa2bc9c388db42b2"
+        }
+      ]
+    },
+    "asan": {
+      "producer": "ezdxf",
+      "version": "1.4.5",
+      "packages": {
+        "ezdxf": "1.4.5",
+        "numpy": "2.5.4",
+        "fonttools": "4.68.0",
+        "pyparsing": "3.3.3",
+        "typing_extensions": "4.16.0"
+      },
+      "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "probeSha256": "7e786837630f01939c3e3ecd872ce833372e418ad460bd493a7820566712fe21",
+      "converterSha256": "0855c8dc014e6154eca8f69040afe3323d19fcdb78cef7ff755a2ba4fe0a1ae4",
+      "bodyProbesPassed": 8,
+      "selectedUnchangedRoundTripsMatched": 16,
+      "selectedEditedMetadataRoundTripsMatched": 16,
+      "normalization": {
+        "allFormats": [
+          "ezdxf.decode_dxf_unicode"
+        ],
+        "asciiOnly": [
+          "ezdxf.tools.text.caret_decode"
+        ]
+      },
+      "reportSha256": "e55029f026a43df721f97942881a53d03d8b3e84787f63957d3203c0a7c81fc2",
+      "inputs": [
+        {
+          "version": "AC1021",
+          "format": "asc",
+          "sha256": "bacd126db08a6af33cfd9f50b13c89efcc8719f9301e75afa83fc3311240e113"
+        },
+        {
+          "version": "AC1021",
+          "format": "bin",
+          "sha256": "529103d24eb97ff7a13eb431e322b61f102c5d738f57f49ed29465af63b2129f"
+        },
+        {
+          "version": "AC1024",
+          "format": "asc",
+          "sha256": "752110c6731958ce95eb72ed5164b2f60faacc3918499e161c8838de944c5540"
+        },
+        {
+          "version": "AC1024",
+          "format": "bin",
+          "sha256": "b30c6c871a806103b672125a7de7ccdd6e2cbecbf228e84896b3d36cddee96f9"
+        },
+        {
+          "version": "AC1027",
+          "format": "asc",
+          "sha256": "09446d2e352a8d3ed188e8768fc762094443fee0a23f459082ee0703cc213436"
+        },
+        {
+          "version": "AC1027",
+          "format": "bin",
+          "sha256": "4f763bc01be1c42ad19895699b1150ff7d7403b6eb6dd4df30636b9454f60d9d"
+        },
+        {
+          "version": "AC1032",
+          "format": "asc",
+          "sha256": "cb3228037c9b0b1177a3f69fbf17d6bb9b35e78a56886f3f09c8baf010ef65f4"
+        },
+        {
+          "version": "AC1032",
+          "format": "bin",
+          "sha256": "90ea8dc01309bc875467684c22f5d16deb74050ab19dfb169dec2439b199d844"
+        }
+      ],
+      "unchangedOutputs": [
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "958eae6d2e2e7330f2a3311bac93f6b56f9110f29af3f317a4cbee4e266b889a"
+        },
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "2c290d1ebff7481e0780856fcece6cd711c9ee01b40c13d6188b70e72fd4d516"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "0dc878b3d9c83a05cc017a5a3d29a3918805411cdccc42ecebd6be9ce1233405"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "463bd05dfc8936daa4c83597644d658734c1ea0802df6eed369c28ecb7171cc4"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "258e80c3074a5e8068fc4a1a6378c94372e2c86f9c5cae54e38ed8196ea6c2fc"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "5d43e63ab68cbd1246c145ebe75dc72081a6adbf49421ead0aaa11b535597436"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "467ab5b8c03d8d49e5c544fd7b2453dd2154c1b4b1acceb7924c07a398983d2f"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "bc8445a0c9702d108cdc0a2bc538c13cc53b9e0b3d393623b66d790a15aca3d1"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "1aa4fe213d25c3c92363e292d78a2f531fcfbf64098356b85056e1aa7b18f104"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "e6aeacb868788accc99a18d3cb3776f8d4115bf0f677ec3408f6cbf9ca1cc256"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "30f0dd8cdc5e8dcdbc60c61aae8b7061288821ab01fdfd5cae6dd85d862277e7"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "428a48b3699ff4568ca0657001ed133c95636db79d36b951590da6fc124fbde8"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "e0f793426034f1768c6d17353144f48d69f46b407a3728d8ee49bdeef2d75d04"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "4ee9dbc2a8a80ddc9b86cf713a80a5466c30c88bc230a022d52964395aa67616"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "7b27059785f6869310d48dfe494a52d54407c65726f1767671ecd471961a5bdc"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "4f94e1443dc0b591a3d5dcf5107874e69701e34417d1695b8ba8a72f367ed227"
+        }
+      ],
+      "editedOutputs": [
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "2769535e580f19f799ea7872e9a1c6539051e35a90627ff4792627729521a9cb"
+        },
+        {
+          "version": "AC1021",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "5ee4221c5dfc836d876142bc8442d018a6f954c5eb59f9fb42e81f6cd7466f24"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "1ff157c41401a9eb85fc861932ae692c01561ddb874c0afe5736ec129a754ee5"
+        },
+        {
+          "version": "AC1021",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "cebc31ccc7ae0406aea3d45da2c3aadbd2558c5da468f8f31f982c04d329ffd1"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "c393dae9a58340f8b8f0d5f6aa78e736dd543fd756b4fb09ad35bd363dd3cff8"
+        },
+        {
+          "version": "AC1024",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "17dd50957cf5922a3c67fd6d0ea469fcfc2e5ded965b856c062f5deaad6c6666"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "8b2220a3366fee546575c1b1f4af76af5f650d87eaa5402d7748eeed6eb5b55f"
+        },
+        {
+          "version": "AC1024",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "d0abec22829155db46d9a3a588cf0929881c13ef610ae418ac66dcca83792be4"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "9b430e194252329b4a184cdba990a78b9b5f7a961fa05de540f318f4580029a6"
+        },
+        {
+          "version": "AC1027",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "661bea4cab08d466eaf72b69c05a93c977d7cbefe46a5f556de3edb0424b6e80"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "a6572b34a5dbf4a7b3bfa2b2064539bcfee2340730383c3cc6c636615786c297"
+        },
+        {
+          "version": "AC1027",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "9ab408c67c26c0611dd8396562dbc332ca56cae68dd58c67256cbd68b1939190"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "asc",
+          "sha256": "4a504c8a4bf7a8ccbc8f050e482c87076fd5c86658a8d236767e55a3d1b9be5c"
+        },
+        {
+          "version": "AC1032",
+          "input": "asc",
+          "output": "bin",
+          "sha256": "4cf71db701d6bbda87db10063a67a5edc3a0b3a47bee12323fbbfbdc9bf35728"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "asc",
+          "sha256": "172d468e5f3d6d35b9eb08d883076efd29a072ef2441df345b474b5fcaaf72f7"
+        },
+        {
+          "version": "AC1032",
+          "input": "bin",
+          "output": "bin",
+          "sha256": "6d22ae8c6c41e1c98c4ff4cc35c2b3ac7d444220d859ad4254aa7ed60231e4c2"
+        }
+      ]
+    }
+  },
+  "qualification": {
+    "selected": [
+      "libdxfrw_build_inventory",
+      "libdxfrw_build_inventory_selftest",
+      "libdxfrw_public_header_hygiene",
+      "libdxfrw_generated_dictionary_source_metadata",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_material_text_owner_budget",
+      "libdxfrw_material_body_transactions",
+      "libdxfrw_material_normal_boundaries",
+      "libdxfrw_material_source_order",
+      "libdxfrw_dictionaryvar_transactions",
+      "libdxfrw_dictionaryvar_custom_owners",
+      "libdxfrw_header_material_bindings",
+      "libdxfrw_layer_material_bindings",
+      "libdxfrw_material_consumer_bindings",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_dxf_consumer_finalization",
+      "libdxfrw_extension_graph_limits",
+      "dwg2dxf_material_typed_capture_limits",
+      "dwg2dxf_named_resource_typed_capture_limits",
+      "dwg2dxf_named_resource_raw_capture_limits",
+      "libdxfrw_named_resource_import_evidence",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_dictionary_effective_ownership",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_shade_consumer_output",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "registrationsMatch": true,
+    "frozenInputs": 593,
+    "sourceManifestSha256": "9e8539a913549e4bdd8659786cb908bd2763890fe95fb699e1ad5cf6701205a9",
+    "sourceManifestUnchanged": true,
+    "bothBuildsAndPackagingBeforeRuntime": true,
+    "normalBeforeAsan": true,
+    "countersMatchAcrossConfigurations": true,
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "fullSuiteRun": false,
+    "packaging": {
+      "steps": [
+        {
+          "step": "inventory",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check"
+          ],
+          "exitCode": 0,
+          "seconds": 0.07854104100260884
+        },
+        {
+          "step": "configure",
+          "command": [
+            "/Users/dli/dev/libdxfrw/configure",
+            "--disable-shared",
+            "CXXFLAGS=-O0"
+          ],
+          "exitCode": 0,
+          "seconds": 6.259044250007719
+        },
+        {
+          "step": "dist",
+          "command": [
+            "make",
+            "dist"
+          ],
+          "exitCode": 0,
+          "seconds": 6.888184124982217
+        },
+        {
+          "step": "check-bz2",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check",
+            "--archive",
+            "/Users/dli/dev/libdxfrw/build/rpp5gj-evidence/source-release/libdxfrw-2.0.0.tar.bz2"
+          ],
+          "exitCode": 0,
+          "seconds": 0.7952557080134284
+        },
+        {
+          "step": "check-gz",
+          "command": [
+            "python3",
+            "-B",
+            "tools/generate_build_inventory.py",
+            "--check",
+            "--archive",
+            "/Users/dli/dev/libdxfrw/build/rpp5gj-evidence/source-release/libdxfrw-2.0.0.tar.gz"
+          ],
+          "exitCode": 0,
+          "seconds": 0.20841700001619756
+        }
+      ],
+      "archives": [
+        {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gj-evidence/source-release/libdxfrw-2.0.0.tar.bz2",
+          "sha256": "fdc3f841cb699d39569f6934c37747e54ae408b7d80e5212186dcf930f946a01"
+        },
+        {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gj-evidence/source-release/libdxfrw-2.0.0.tar.gz",
+          "sha256": "e04fdc08a80e109b48c00587392174ce001cbc8ea6660e15d270c34e0d10ea33"
+        }
+      ],
+      "end": "2026-10-28T10:31:05.065996+00:00",
+      "sourceInputs": 593,
+      "scope": "Source archive byte verification only; no extracted-source build or distcheck"
+    },
+    "normal": {
+      "build": {
+        "start": "2026-10-28T10:27:38.303298+00:00",
+        "end": "2026-10-28T10:27:58.946668+00:00",
+        "seconds": 20.643073084007483,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_writer_primitives_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ]
+      },
+      "start": "2026-10-28T10:31:39.353373+00:00",
+      "end": "2026-10-28T10:32:17.833661+00:00",
+      "seconds": 38.47977870897739,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_material_normal_boundaries",
+          "status": "Passed    6.97 sec"
+        },
+        {
+          "name": "dwg2dxf_acds_strict_material_closure",
+          "status": "Passed    5.21 sec"
+        },
+        {
+          "name": "libdxfrw_material_body_transactions",
+          "status": "Passed   12.50 sec"
+        },
+        {
+          "name": "libdxfrw_material_strict_color_closure",
+          "status": "Passed    3.41 sec"
+        },
+        {
+          "name": "dwg2dxf_generated_root_common_closure",
+          "status": "Passed    3.95 sec"
+        },
+        {
+          "name": "libdxfrw_material_color_lexemes",
+          "status": "Passed    3.46 sec"
+        },
+        {
+          "name": "libdxfrw_header_material_bindings",
+          "status": "Passed    2.76 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    2.67 sec"
+        },
+        {
+          "name": "libdxfrw_public_header_hygiene",
+          "status": "Passed   10.34 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_custom_owners",
+          "status": "Passed    1.96 sec"
+        },
+        {
+          "name": "libdxfrw_material_source_order",
+          "status": "Passed    1.69 sec"
+        },
+        {
+          "name": "libdxfrw_material_consumer_bindings",
+          "status": "Passed    1.67 sec"
+        },
+        {
+          "name": "libdxfrw_shade_consumer_output",
+          "status": "Passed    1.37 sec"
+        },
+        {
+          "name": "libdxfrw_layer_material_bindings",
+          "status": "Passed    1.68 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_consumer_finalization",
+          "status": "Passed    0.36 sec"
+        },
+        {
+          "name": "libdxfrw_generated_dictionary_source_metadata",
+          "status": "Passed    0.53 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    1.08 sec"
+        },
+        {
+          "name": "libdxfrw_material_root_output_compatibility",
+          "status": "Passed    0.27 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.27 sec"
+        },
+        {
+          "name": "libdxfrw_extension_graph_limits",
+          "status": "Passed    0.70 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_material_text_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "dwg2dxf_material_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.07 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory_selftest",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_writer_primitives",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.06 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    0.81 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_material_raw_scalar_wire_controls",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_operation_admission",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_raw_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_named_resource_import_evidence",
+          "status": "Passed    0.53 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_transactions",
+          "status": "Passed    3.68 sec"
+        }
+      ],
+      "passed": 34,
+      "writerOutputPropertyExitCode": 0,
+      "independentBodyProbesPassed": 8,
+      "independentSelectedRoundTrips": 16,
+      "independentVariableEdits": 16,
+      "ctestSeconds": 35.9,
+      "logSha256": "f6543fef4528abf63e56e816584b59db659c31785a018d19acd1ea8db33e9e4e",
+      "countersSha256": "d46dbfe07e9858ecb600918abc637778538dc9debe3cb33eec3b99774d58e353"
+    },
+    "asan": {
+      "build": {
+        "start": "2026-10-28T10:27:59.028820+00:00",
+        "end": "2026-10-28T10:30:43.594034+00:00",
+        "seconds": 164.563394124998,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_writer_primitives_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ]
+      },
+      "start": "2026-10-28T10:32:17.879910+00:00",
+      "end": "2026-10-28T10:32:43.289140+00:00",
+      "seconds": 25.408946167008253,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_material_body_transactions",
+          "status": "Passed    7.74 sec"
+        },
+        {
+          "name": "libdxfrw_public_header_hygiene",
+          "status": "Passed   10.58 sec"
+        },
+        {
+          "name": "libdxfrw_material_normal_boundaries",
+          "status": "Passed    4.07 sec"
+        },
+        {
+          "name": "dwg2dxf_acds_strict_material_closure",
+          "status": "Passed    2.78 sec"
+        },
+        {
+          "name": "dwg2dxf_generated_root_common_closure",
+          "status": "Passed    2.32 sec"
+        },
+        {
+          "name": "libdxfrw_header_material_bindings",
+          "status": "Passed    1.93 sec"
+        },
+        {
+          "name": "libdxfrw_material_strict_color_closure",
+          "status": "Passed    1.76 sec"
+        },
+        {
+          "name": "libdxfrw_material_color_lexemes",
+          "status": "Passed    1.77 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    1.62 sec"
+        },
+        {
+          "name": "libdxfrw_shade_consumer_output",
+          "status": "Passed    0.84 sec"
+        },
+        {
+          "name": "libdxfrw_material_source_order",
+          "status": "Passed    1.02 sec"
+        },
+        {
+          "name": "libdxfrw_material_consumer_bindings",
+          "status": "Passed    1.12 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_custom_owners",
+          "status": "Passed    1.17 sec"
+        },
+        {
+          "name": "libdxfrw_layer_material_bindings",
+          "status": "Passed    1.02 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    0.55 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    0.89 sec"
+        },
+        {
+          "name": "libdxfrw_material_root_output_compatibility",
+          "status": "Passed    0.21 sec"
+        },
+        {
+          "name": "libdxfrw_generated_dictionary_source_metadata",
+          "status": "Passed    0.43 sec"
+        },
+        {
+          "name": "libdxfrw_named_resource_import_evidence",
+          "status": "Passed    0.31 sec"
+        },
+        {
+          "name": "libdxfrw_writer_primitives",
+          "status": "Passed    0.09 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_consumer_finalization",
+          "status": "Passed    0.22 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_extension_graph_limits",
+          "status": "Passed    0.24 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.18 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_material_text_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory_selftest",
+          "status": "Passed    0.06 sec"
+        },
+        {
+          "name": "libdxfrw_build_inventory",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "libdxfrw_material_raw_scalar_wire_controls",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_operation_admission",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "dwg2dxf_material_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.04 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_raw_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_named_resource_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dictionaryvar_transactions",
+          "status": "Passed    2.12 sec"
+        }
+      ],
+      "passed": 34,
+      "writerOutputPropertyExitCode": 0,
+      "independentBodyProbesPassed": 8,
+      "independentSelectedRoundTrips": 16,
+      "independentVariableEdits": 16,
+      "ctestSeconds": 23.75,
+      "logSha256": "e1b4c93a0942695e7f5b8b7717a7e80e23080471b1bbe645fde2d7ff2486cc5e",
+      "countersSha256": "d46dbfe07e9858ecb600918abc637778538dc9debe3cb33eec3b99774d58e353"
+    }
+  },
+  "retainedDevelopmentEvidence": [
+    {
+      "path": "build/rpp5gj-evidence/baseline-test.log",
+      "sha256": "7390ef98dd6f87be59f29c6b56a021cc9a276b79f2a9472caca78bf7995e14a3",
+      "observation": "New canonical typed value control fails despite an emitted file; old value remains. Separate baseline-observation.json records exact hashes and fields."
+    },
+    {
+      "path": "build/rpp5gj-evidence/final-owning.log",
+      "sha256": "7a375b3bbfbc862bd871ea4f1e9face1bd6e855ef6adcc305d7e0069b9ed44db",
+      "observation": "Literal spelling test initially used a generator that normalized numeric text. Corrected test writes literal source bytes; no production relaxation."
+    },
+    {
+      "path": "build/rpp5gj-evidence/corrected-owning.log",
+      "sha256": "9a2d8a55549a1a029878338be52b8b0a9d934bf93e0b30c5f444fbb359693e5b",
+      "observation": "Persistent allocation control aborts before the preparation try boundary."
+    },
+    {
+      "path": "build/rpp5gj-evidence/fault-backtrace-confirmed.log",
+      "sha256": "30ae6d1d3b780f1c875752987bd3f42bb2c4f3dbef72f116b6083adcbe82f73f",
+      "observation": "Direct LLDB stack confirms SIGABRT through noexcept prepareDxfDictionaryVars and the allocation probe."
+    },
+    {
+      "path": "build/rpp5gj-evidence/fault-fixed-owning.log",
+      "sha256": "b4c39091ce8a71ec80d71b7e2a92754c4e37e05f352b6523e7604b2e20ac9b49",
+      "observation": "After moving allocating provenance validation inside try, all owning and reached fault/retry controls pass."
+    },
+    {
+      "path": "build/rpp5gj-evidence/development-edited-peer/qualification.json",
+      "sha256": "69c76eb0ec82beef5fcb9cd6fe17b181cfecffac174da9a94f57deec2378e4ba",
+      "observation": "Initial checker normalizes Unicode only in ASCII; binary peer regular loader leaves Unicode escapes encoded, producing8/16 matches."
+    },
+    {
+      "path": "build/rpp5gj-evidence/corrected-edited-peer/qualification.json",
+      "sha256": "29d1ab2fe0c96f956288c9ccde40932c239268635852a70a306172d25ccbf859",
+      "observation": "Documented peer Unicode normalization once in both formats, ASCII-only caret decoding, yields16/16 edited matches."
+    }
+  ],
+  "limitations": [
+    "The callback baseline is immutable through the public adapter API; it is not an independent original producer certificate. Body edit transport and owning/independent decoding do not establish native setvar/getvar or arbitrary schema semantics.",
+    "Legacy pre-AC1021 canonical DXF variable bodies retain the existing raw-authoritative path, including its unresolved typed-edit/presence/codepage qualification. Legacy custom owners remain refused. Original common/source/version alternatives, ambiguous extra subclasses/body slots, opaque text semantic transcoding and arbitrary recursive document closure remain open.",
+    "Independent edited peer text contains UTF8, a literal caret, literal Unicode-escape-looking text and control character1. Peer regular-loader raw values alone are not decoded semantics: documented decode_dxf_unicode is applied once in both formats, and caret_decode only to ASCII. Native application consumption is NOT_RUN.",
+    "The independent MATERIAL recipe still selects specular method1 to isolate the previously recorded reused73 conflict. Full producer/material/renderer semantics and arbitrary source ordering remain unqualified.",
+    "SCALE/other named-resource body transactions, remaining MATERIAL/rendering/TABLE/document closure, native Linux GCC release, Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel, formal ABI/application and controlled RSS/performance remain open. Archive byte checks are not an extracted-source compile or distcheck."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "wholeDocumentExportQualified": false,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "All recipes are authored locally. Generated source/output drawings, independent packages and all derived payloads stay in ignored scratch space. No new drawing fixture or third-party implementation enters Git."
+}

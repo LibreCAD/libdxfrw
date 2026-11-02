@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer validation workflow and corpus-provenance crosswalk",
+  "mode": "Deeper/broader primary-source implementation-readiness research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Inspect an open-source DWG/DXF project's actual contributor validation workflow, beyond headline format support.",
+    "Distinguish fast tests, corpus diffs, mixed-toolchain conversion/reopen, and fuzz/sanitizer campaigns.",
+    "Refine the existing plan's evidence ladder and external self-unblocking behavior without adding routine expensive tests."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/AGENTS.md",
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/dxf-roundtrip.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+      ],
+      "revision": "Mutable upstream master documentation and scripts inspected 2026-10-20; no source commit or executable was pinned or run.",
+      "observed": "Contributor guidance prefers make check for normal changes and describes ASan as slow, with ODA File Converter audit/round-trip checks as a separate interoperability route. test-dxf.sh normalizes generated output and compares it to expected DXF when available. dxf-roundtrip.sh composes LibreDWG DWG-to-DXF, ODA File Converter DXF-to-DWG, and dwgread reopen. The manual explicitly enumerates families lacking test coverage; HACKING describes fuzz workflows and the need for DWG/DXF pairs when reverse-engineering unknown layouts.",
+      "limits": "These are process and coverage disclosures, not results for libdxfrw, normative format rules, or proof that a particular LibreDWG release passes each route. The converter round-trip is mixed-toolchain evidence and must be reported by stage. No peer binary, ODA converter, corpus drawing, or fuzz campaign was run."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan inspected and updated 2026-10-20.",
+      "observed": "The plan already requires focused generated fast tests, rare composed peer/native checks, no imported external fixtures, and a self-unblocking implementation queue. This pass makes those practices an explicit evidence ladder and clarifies that synthetic vectors cannot establish unknown producer semantics.",
+      "limits": "The update adds no local behavior, feature finding, test, fixture, dependency, or support evidence. J256, J260, J268, J284, J293, and J295 remain external-only and non-promoting."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06: distinguish class/opaque pass-through from tested semantic support and preserve test-coverage gaps explicitly.",
+      "PAR-07/S8: separate local generated vectors, producer-pair differential, mixed-toolchain round-trip stages, strict reopen, and consumer acceptance.",
+      "PAR-14: keep fast leaf validation separate from low-frequency fuzz/sanitizer campaigns, triggered by relevant parser-safety changes or scheduled integration checkpoints.",
+      "Implementation process: after each item update status/evidence and self-unblock to the next local task; unavailable external evidence defers only its claim."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-validation-workflow-corpus-provenance-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "fullSuitesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78,
+      "deferredExternalItems": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    }
+  }
+}

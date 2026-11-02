@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-xrecord-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical XRECORD identity, owner and payload output proof",
+  "status": "PHYSICAL_8_XRECORD_IDENTITIES_AND_PAYLOADS_READ_BACK",
+  "supportClaimEffect": "none",
+  "implementationCommit": "aa91ebcca7cbcd3a1e65a96d627eefe770d811aa",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "XRECORD",
+    "count": 8,
+    "fixturePolicy": "Existing local DWG input; no investigation DWG/DXF fixture was added."
+  },
+  "implementation": {
+    "change": "After DRW_XRecord::parseDwg has successfully consumed the bounded body and common handle streams, mark the common link tail validated for R2007+ (version > AC1018) before making the immutable source snapshot. Legacy inline-tail versions remain unqualified.",
+    "source": "src/drw_objects.cpp",
+    "generatedBoundary": "testOpaqueXRecordReplayGuards asserts the tail flag is set only for independently bounded R2007+ versions."
+  },
+  "operation": {
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "route": "Physical AC1024 DWG import; explicit-partial AC1024 ASCII and Binary DXF export; fresh typed DXF readback",
+    "result": "PASS for ASCII and Binary output",
+    "temporaryOutputPolicy": "The selector reads each exact output back before removing its unique temporary file. It does not retain output artifacts or calculate output hashes."
+  },
+  "identityAndFieldProof": {
+    "sourceToOutput": "All 8 source handles bind to unique staged OBJECTS identities; all staged identities are present exactly once in fresh readback.",
+    "ownerRole": "Each XRECORD has one source DICTIONARY owner and exactly one nonempty owner key; output verifies the remapped owner and that key points to the staged XRECORD identity.",
+    "commonFields": "Name, cloning flags, mapped owner, extension-dictionary handle, data-storage-binary-data presence, reactor handle sequence, source/synthesized ACAD_REACTORS and ACAD_XDICTIONARY application groups, other application data, and extended data are checked.",
+    "orderedPayload": "Typed values, ordered data entries, handle-value codes and mapped targets, raw-body state, cloning mode and exact coordinate-tuple presence are checked.",
+    "classRegistration": "Fixed XRECORD output has no custom XRECORD CLASS row.",
+    "recordCount": "8 source records and 8 unique output/readback records."
+  },
+  "failureAndRetry": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "A late source cloning-state mutation after OBJECTS emission refuses while preserving a pre-existing destination sentinel.",
+      "Restoring the original source state allows retry through the same adapter.",
+      "Corrected output receives the same fresh typed readback and identity/owner/payload checks."
+    ],
+    "diagnostics": "The expected mutation controls print the output-inspection and export-refusal diagnostics before reporting the successful encoding readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "adapterSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS: 8 source identities, owner keys, reference roles, ordered payloads, atomic refusal and same-adapter retry for both encodings."
+    },
+    "objectVectors": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests",
+      "result": "PASS."
+    },
+    "ownerGraphCompatibility": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_extension_dictionary_owner_graphs$' --output-on-failure",
+      "result": "PASS 1/1."
+    },
+    "fullSuites": "NOT RUN; focused validation only."
+  },
+  "bindings": {
+    "adapterTestExecutableSha256": "49d2bfb6fce0c29c56bc5865bc462a4c4d92a4a0168b8d6d5d6f4a0b6883b0b2",
+    "objectVectorExecutableSha256": "24f13da7d64162a4206de08ccc9a7abfc46f408d4b29bf062f5bd9b72d311b68",
+    "sourceSha256": {
+      "src/drw_objects.cpp": "915313f502fac6b059e5a708585413201ee5a852d178e7e143e6fd0d9288759a",
+      "tests/dwg2dxf_adapter_tests.cpp": "5aaa6b6139f669d0d6e415ce0e61d527f4e4bc97f8a519ba317ee1c853ea306e",
+      "tests/dwg_object_vectors_tests.cpp": "749b327569adfac56183ba762fab755110c9a9692458494366c61f404eb1db86"
+    }
+  },
+  "remaining": "The eight-record physical XRECORD owner/key/output/readback packet is complete. P4 strict-complete conversion remains blocked by the 228 opaque callback views and zero retained correlation frames in p4-ac1024-opaque-callback-census-2026-10-30.json. Select the eight physical DICTIONARYVAR callbacks as the next identity/field/output packet; prove actual emitted identity, owner/key role, typed fields, ASCII/Binary fresh readback, atomic refusal and corrected retry before closing that profile.",
+  "limitations": [
+    "This qualifies one physical AC1024 partial-output profile only; it does not admit strict complete conversion.",
+    "The physical census still has 228 opaque callback views and zero retained correlation frames; completeness predicates are unchanged.",
+    "No support claim, LibreCAD/LibreCAD_3 or FreeCAD qualification, native-platform, ABI/package, or 3D semantic qualification is promoted."
+  ]
+}

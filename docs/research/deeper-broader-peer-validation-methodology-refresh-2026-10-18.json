@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper and broader peer-validation methodology and evidence-cost refresh",
+  "mode": "primary-source web research and read-only local plan/test-owner inspection",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare test, fuzz, timeout, and diagnostic practices in LibreDWG, ezdxf, and ACadSharp",
+    "Map peer test practices to the existing fast local, scheduled hardening, optional peer, and native-consumer lanes",
+    "Refine implementation readiness without increasing per-slice validation cost or adding peer fixtures"
+  ],
+  "method": {
+    "kind": "Read current upstream project documentation/source and inspect local plan and CMake test ownership",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "CMakeLists.txt",
+      "tests/CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Upstream master documentation and source are mutable and describe project practices, not a pinned peer execution or conformance result. No peer corpus was downloaded or copied. Research refines validation lanes only; the local CTest crash recorded in the plan remains unattributed and is not resolved by this pass."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/llvmfuzz_standalone_data.sh"
+      ],
+      "revision": "mutable master docs and repository inventory reviewed 2026-10-18",
+      "observed": "The project exposes separate DXF checks, serial/parallel logging scripts, timeout guidance for large or hanging DWG inputs, dwgfuzz/LLVM fuzz frontends, and a separate fuzz setup. These define useful bounded validation lanes but do not establish any peer corpus result as libdxfrw conformance."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/setup.rst",
+      "revision": "mutable master setup documentation reviewed 2026-10-18",
+      "observed": "The documented test command covers separate tests and integration_tests. Documentation describes optional compiled C extensions and a source path that can run without them, so optional runtime profile is part of reproducibility."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs",
+        "https://github.com/DomCR/ACadSharp/discussions/520"
+      ],
+      "revision": "mutable master docs/examples and maintainer response reviewed 2026-10-18",
+      "observed": "Reader examples subscribe to OnNotification for warnings/information. The maintainer says the samples directory is used by the project test suite. A successful Read() without diagnostics and per-object dispositions is incomplete peer evidence; peer samples are not locally authored test fixtures."
+    },
+    {
+      "project": "Local libdxfrw",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "CMakeLists.txt",
+        "tests/CMakeLists.txt",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "revision": "working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-18",
+      "observed": "Existing plan and CMake target ownership already separate generated focused tests, owning CTest, compatibility builds, full-suite checkpoints, and optional peer/native evidence. This research consolidates the peer practices into those lanes; it does not require a new test owner or recurring external execution."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Clarifies that each local slice uses the existing strict touched target, focused generated selector, relevant compatibility target, and owning CTest; peer differential, stress/fuzz, and native checks remain scheduled/composed and diagnostic-rich. Missing external evidence is non-blocking for independent local work.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Continue the dependency-ready local queue without waiting for a peer build or remote corpus.",
+    "Use a generated local control and existing test owner for each changed path; add no peer/customer DWG/DXF fixture.",
+    "Per-slice validation remains strict touched target, focused selector, relevant compatibility target, and owning CTest.",
+    "At an optional peer checkpoint, pin artifact/runtime/profile and capture warnings, errors, recovery actions, and every source identity disposition.",
+    "Run large-corpus, fuzz, sanitizer, peer-matrix, and native platform checks only at the existing scheduled/composed gates, with bounded resources.",
+    "After each committed implementation slice, update status and next action and report progress; record unavailable external gates as non-blocking statuses."
+  ]
+}

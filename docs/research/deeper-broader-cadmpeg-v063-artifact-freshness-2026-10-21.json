@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "CADMPEG v0.6.3 artifact freshness and optional-gate readiness",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Refresh the exact optional CADMPEG release candidate after v0.6.2",
+    "Record immutable source-tag and selected platform artifact identities",
+    "Check whether the release announcement establishes any ACIS profile delta",
+    "Make the existing composed comparator gate self-unblocking and implementation-nonblocking"
+  ],
+  "sources": [
+    {
+      "project": "CADMPEG v0.6.3 official GitHub release",
+      "reference": "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.3",
+      "status": "official_release_page_reviewed_2026-10-21",
+      "observation": "The page marks v0.6.3 as latest, published 2026-10-21 04:50 UTC, and links source commit b504b8857432d3aa77e9539bfde1bb58d60ef93d. It lists prebuilt Apple Silicon macOS, Intel macOS, Windows x64, Linux ARM64, and Linux x64 archives with checksum links. The release notes contain no ACIS-specific capability change description."
+    },
+    {
+      "project": "CADMPEG v0.6.3 release assets and checksum endpoints",
+      "references": [
+        "https://github.com/cadmpeg/cadmpeg/releases/download/v0.6.3/cadmpeg-aarch64-apple-darwin.tar.xz",
+        "https://github.com/cadmpeg/cadmpeg/releases/download/v0.6.3/cadmpeg-aarch64-apple-darwin.tar.xz.sha256",
+        "https://github.com/cadmpeg/cadmpeg/releases/download/v0.6.3/cadmpeg-x86_64-pc-windows-msvc.zip.sha256",
+        "https://github.com/cadmpeg/cadmpeg/releases/download/v0.6.3/cadmpeg-aarch64-unknown-linux-gnu.tar.xz.sha256"
+      ],
+      "status": "release_asset_identity_and_checksums_recorded_2026-10-21",
+      "observedAssets": [
+        {
+          "platform": "Apple Silicon macOS",
+          "asset": "cadmpeg-aarch64-apple-darwin.tar.xz",
+          "sha256": "ae8b0215256de6d3046ed0f47e10a262d908d7f24f77b12bd54d02193932a676"
+        },
+        {
+          "platform": "Windows x64",
+          "asset": "cadmpeg-x86_64-pc-windows-msvc.zip",
+          "sha256": "7a5c10e3465f30bb5fc9da0d165f872617146a98c4dc04476decf658c5a6c10a"
+        },
+        {
+          "platform": "Linux ARM64",
+          "asset": "cadmpeg-aarch64-unknown-linux-gnu.tar.xz",
+          "sha256": "8512fb0519bbe945d2c4c6e7a98b85cc0f1fd5d0c72877742517a08472d8c6e1"
+        }
+      ],
+      "observation": "These are optional artifact identities, not locally computed hashes or runtime qualification. The repository work did not download or execute any archive."
+    },
+    {
+      "project": "CADMPEG v0.6.3 exact-tag profile documentation",
+      "references": [
+        "https://github.com/cadmpeg/cadmpeg/tree/b504b8857432d3aa77e9539bfde1bb58d60ef93d/docs"
+      ],
+      "status": "not_bound_to_binary_in_this_pass",
+      "observation": "The release page did not describe an ACIS-specific change, and the surfaced versioned package/API documentation could not be bound to this new release binary. Retain the prior evidence ceiling until the exact tag's SAT/ASM support and open-items documents are inspected during the optional checkpoint."
+    }
+  ],
+  "localAvailability": {
+    "platform": "Darwin arm64",
+    "commandsOnPath": {
+      "cadmpeg": false,
+      "cargo": false,
+      "rustc": false
+    },
+    "observation": "No comparator executable or Rust toolchain was available on PATH; none was installed or downloaded."
+  },
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "findingsAndTopLevelPlanCounts": "unchanged (143 / 78)",
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Updated only the optional CADMPEG artifact candidate and its one-time readiness path. v0.6.3 is not newly verified for ACIS profile coverage, semantic correctness, kernel independence, DWG/DXF/AcDs ownership, or native consumer acceptance.",
+    "nextImplementation": "Continue the local-ready queue. At the existing composed PAR-07/S8 checkpoint, inspect the exact tag profile, verify the platform archive checksum and executable identity, and compare only a locally generated ACIS 217/218 payload with independently authored expectations. If any identity/profile prerequisite is unavailable or unresolved, record NOT_QUALIFIED and immediately self-unblock to local work.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primaryReleasePageReviewed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cadmpeg-v063-artifact-freshness-2026-10-21.json"
+    ],
+    "limitations": "The official release page and asset identities were reviewed; a cache miss prevented reopening the checksum text files during this verification pass, so no independent re-download or recomputation was performed. No archive, source archive, CAD drawing, or peer package was downloaded. The exact v0.6.3 source profile and binary were not inspected or run."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on the two plan files; receipt parses as JSON)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

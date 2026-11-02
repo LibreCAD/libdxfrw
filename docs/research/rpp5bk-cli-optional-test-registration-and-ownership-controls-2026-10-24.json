@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bk",
+  "date": "2026-10-24",
+  "objective": "Implement the plan: resolve the tests-enabled/CLI-disabled build-readiness gap without losing standalone consumer/adapter coverage.",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "parentCommit": "ead15e15db3f0cf74b42ec4907ead5a1eea60c43",
+  "status": "CLI_OPTIONAL_REGISTRATION_AND_SOURCE_NOD_ROLE_REGRESSION_CONTROLS_VERIFIED",
+  "scope": {
+    "productionParserWriterApiOrWireChanged": false,
+    "configurationFix": "Guard actual CLI-only registrations with TARGET dwg2dxf; retain standalone version-policy, adapter, numeric, DIMSTYLE, parser and 2D/3D consumer gates.",
+    "guardedGroups": 6,
+    "sampleSplineCliGuard": true,
+    "dummyOrImportedConverterCreated": false,
+    "explicitCliControls": [
+      "LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_SAT_V1_RUNTIME_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_ACDS_RUNTIME_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_FAILURE_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_INSTALLED_3D_LINE_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_SHARED_INSTALLED_3D_LINE_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_AUTOMATIC_3D_LINE_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_AUTOCAD_POINT3D_CONTROL",
+      "LIBDXFRW_ENABLE_DWGADD_FREECAD_CONTROL",
+      "LIBDXFRW_ENABLE_ODAFILECONVERTER_FREECAD_CONTROL",
+      "LIBDXFRW_ENABLE_FREECAD_3DFACE_RUNTIME_CONTROL",
+      "LIBDXFRW_ENABLE_LIBREDWG_API_FREECAD_CONTROL"
+    ],
+    "explicitControlPolicy": "Fail before external tool/sample checks when explicitly requested without a CLI target; do not silently skip requested qualification.",
+    "defaultCohort": {
+      "baseline": 384,
+      "current": 385,
+      "existingNamesCommandsAndPropertiesUnchanged": 384,
+      "newTest": "libdxfrw_cli_optional_build",
+      "commandsUnavailableInBaselineOrCurrent": 0
+    },
+    "localMatrix": {
+      "cliOn": 385,
+      "cliOff": 349,
+      "converterDependentRemovals": 36,
+      "standaloneTargetsAndTestsRetained": true
+    },
+    "countBoundary": "Local CTest registrations include pre-existing sample filenames; the regression computes its delta dynamically. No unverified sample-read/CLI sample test is promoted by this inventory.",
+    "fixturePolicy": {
+      "newRepositoryDwgDxfFiles": 0,
+      "downloadedDrawings": 0,
+      "unrelatedUntrackedDrawingsExcluded": 17,
+      "runtimeScratchControlsAllowed": true
+    },
+    "remoteMutation": false
+  },
+  "staleRegressionResolved": {
+    "test": "libdxfrw_named_resource_import_evidence",
+    "baselineCliOnFailureReproduced": true,
+    "failure": "Old assertions required a selected source NOD code360 entry to normalize to350.",
+    "evidence": "RPP-5ao and existing src/libdxfrw.cpp generated-NOD source projection explicitly retain each selected source entry role. The mixed control's literal input reader already requires360.",
+    "correction": [
+      "Compare mixed output root codes against the inspected source360 codes, with child350/360 unchanged.",
+      "Require HardOwner public readback for the source360 NOD entry.",
+      "Keep all-hard source/output360 exact; add hard-owner flag and reciprocal owner readback.",
+      "Add a canonical source soft-owner350 output control to prevent universal hard-owner normalization."
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "body": "tests/dwg2dxf_adapter_tests.cpp: rootDictionaryVarWriterClosure",
+    "productionBehaviorChanged": false,
+    "qualificationBoundary": "Generated local projection/writer regression controls, not independent producer/consumer standards or whole-document qualification."
+  },
+  "validation": {
+    "build": {
+      "strictPolicy": "Existing -Werror/warning policy retained; no warning or timeout relaxation.",
+      "targets": [
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_block_owner_tests",
+        "libdxfrw_dimstyle_optional_handle_tests",
+        "libdxfrw_numeric_locale_tests",
+        "libdxfrw_dwg2dxf_version_tests",
+        "lc3_compat_check",
+        "libdxfrw_3d_consumer_probe"
+      ],
+      "freshStaticCliOff": "PASS",
+      "freshTreeHasNoConverterBinary": true,
+      "sharedCliOff": "PASS",
+      "asanCliOff": "PASS",
+      "existingNormalAndAsanCliOnConfigurationRestored": true
+    },
+    "registration": {
+      "makefiles": {
+        "result": "PASS",
+        "staticAndSharedPairs": true,
+        "explicitControlRefusals": 14,
+        "log": "/tmp/rpp5bk-matrix-tests.log"
+      },
+      "ninjaMultiConfigDebug": {
+        "result": "PASS",
+        "staticAndSharedPairs": true,
+        "explicitControlRefusals": 14,
+        "log": "/tmp/rpp5bk-multiconfig-matrix-tests.log"
+      },
+      "checks": [
+        "Exactly remove converter-path-dependent tests, not CLI-prefixed/labeled adapter tests.",
+        "Retain CTest command/properties where published, with selected standalone gates required.",
+        "Dependency and fixture setup closure.",
+        "One valid and two orphan dependency fault controls."
+      ],
+      "realDefaultCohortAudit": {
+        "result": "PASS",
+        "existingTestsWithExactCommandAndProperties": 384,
+        "log": "/tmp/rpp5bk-default-cohort-audit.log"
+      }
+    },
+    "finalFreshCliOffFast": {
+      "result": "PASS",
+      "passed": 78,
+      "total": 78,
+      "wallSeconds": 12.09,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_version_policy",
+        "libdxfrw_sortents_adapter",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_field_graph_export_refusal",
+        "libdxfrw_table_callback_owner_order",
+        "libdxfrw_tablestyle_nested_raw_net",
+        "libdxfrw_visual_style_import_evidence",
+        "dwg2dxf_visual_style_raw_capture_limits",
+        "dwg2dxf_dictionary_default_raw_capture_limits",
+        "dwg2dxf_dictionary_typed_capture_limits",
+        "dwg2dxf_dxf_class_typed_capture_limits",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "dwg2dxf_typed_entity_capture_limits",
+        "dwg2dxf_dictionary_default_typed_capture_limits",
+        "dwg2dxf_render_background_sun_raw_capture_limits",
+        "dwg2dxf_field_carrier_raw_capture_limits",
+        "dwg2dxf_sort_table_style_raw_capture_limits",
+        "dwg2dxf_render_settings_typed_capture_limits",
+        "dwg2dxf_sortents_typed_capture_limits",
+        "dwg2dxf_table_style_typed_capture_limits",
+        "dwg2dxf_cell_style_map_typed_capture_fail_closed",
+        "dwg2dxf_table_content_style_reference_census",
+        "dwg2dxf_table_base_style_id_dxf_refusal",
+        "libdxfrw_cellstylemap_dxf_writer",
+        "dwg2dxf_modeldoc_view_style_typed_capture_limits",
+        "dwg2dxf_field_carrier_typed_capture_limits",
+        "dwg2dxf_datalink_typed_capture_limits",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_material_typed_capture_limits",
+        "dwg2dxf_background_sun_typed_capture_limits",
+        "dwg2dxf_visual_style_typed_capture_limits",
+        "dwg2dxf_mline_style_typed_capture_limits",
+        "dwg2dxf_named_resource_typed_capture_limits",
+        "dwg2dxf_named_resource_raw_capture_limits",
+        "libdxfrw_dimension_picture_block_full_conversion",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_dictionary_default_adapter_roundtrip",
+        "libdxfrw_block_owners",
+        "dwg2dxf_datastorage_move_callback",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_modeler_geometry_move_callback",
+        "dwg2dxf_modeler_dxf_move_dispatch",
+        "dwg2dxf_dynamic_block_fail_closed",
+        "dwg2dxf_file_extension_case",
+        "dwg2dxf_mleader_fail_closed",
+        "dwg2dxf_named_object_callback_storage",
+        "dwg2dxf_field_dxf_multichunk_value",
+        "dwg2dxf_modeldoc_view_style_callbacks",
+        "dwg2dxf_acsh_history_capture_limits",
+        "dwg2dxf_acds_history_dwg_frame_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_raster_dwg_source_profile_eed",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_raw_dxf_entity_capture_limits",
+        "dwg2dxf_raw_dxf_section_capture_limits",
+        "dwg2dxf_plotsettings_capture_limits",
+        "libdxfrw_plotsettings_visualstyle_shade_reference",
+        "libdxfrw_render_settings_owner_order",
+        "dwg2dxf_evaluation_graph_capture_limits",
+        "dwg2dxf_dynamic_block_capture_limits",
+        "dwg2dxf_proxy_object_capture_limits",
+        "dwg2dxf_raw_dxf_object_list_node_accounting",
+        "dwg2dxf_associative_callback_contract",
+        "dwg2dxf_associative_strict_loss_gate",
+        "libdxfrw_3d_consumer_probe",
+        "libdxfrw_dimstyle_optional_handles",
+        "libdxfrw_numeric_locale",
+        "libdxfrw_numeric_process_locale",
+        "libdxfrw_adapter_build_context",
+        "libdxfrw_cli_optional_build"
+      ],
+      "log": "/tmp/rpp5bk-isolated-no-cli-fast-tests.log"
+    },
+    "finalDefaultCliOnFast": {
+      "result": "PASS",
+      "passed": 58,
+      "total": 58,
+      "wallSeconds": 34.74,
+      "parallelism": 3,
+      "cohortReceipt": "docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json",
+      "cohortField": "validation.fast.tests",
+      "additionalTests": [
+        "libdxfrw_cli_optional_build",
+        "libdxfrw_named_resource_import_evidence"
+      ],
+      "log": "/tmp/rpp5bk-final-default-fast-tests.log"
+    },
+    "asanCliOff": {
+      "result": "PASS",
+      "passed": 51,
+      "total": 51,
+      "wallSeconds": 55.02,
+      "parallelism": 3,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "cohortReceipt": "docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json",
+      "cohortField": "validation.asan.tests",
+      "additionalTests": [
+        "libdxfrw_cli_optional_build",
+        "libdxfrw_3d_consumer_probe",
+        "dwg2dxf_version_policy",
+        "libdxfrw_named_resource_import_evidence"
+      ],
+      "log": "/tmp/rpp5bk-asan-cli-off-checkpoint.log"
+    },
+    "sharedCliOff": {
+      "result": "PASS",
+      "passed": 7,
+      "total": 7,
+      "wallSeconds": 2.07,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_numeric_locale",
+        "libdxfrw_numeric_process_locale",
+        "libdxfrw_dimstyle_optional_handles",
+        "libdxfrw_block_owners",
+        "libdxfrw_3d_consumer_probe",
+        "dwg2dxf_version_policy",
+        "libdxfrw_named_resource_import_evidence"
+      ],
+      "log": "/tmp/rpp5bk-shared-no-cli-tests.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 48.16,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5bk-owning-tests.log"
+    },
+    "supersededRuns": [
+      {
+        "log": "/tmp/rpp5bk-no-cli-fast-tests.log",
+        "outcome": "77/78; exposed stale source NOD normalization expectation, independently reproduced with CLI enabled; corrected and rebuilt."
+      },
+      {
+        "log": "/tmp/rpp5bk-final-no-cli-fast-tests.log",
+        "outcome": "77/78; existing named-object callback test hit its10-second bound during heavily overlapping cohorts. All78 passed in the separate final rerun; no bound/selector/warning suppression."
+      }
+    ],
+    "timingBoundary": "Local shared-host observations; default/ASan/owning cohorts overlapped. CLI-off final rerun ran separately at parallelism3. Not performance claims or independent native qualification.",
+    "fullProjectSuite": "NOT_RUN",
+    "notRun": [
+      "UBSan",
+      "LSan",
+      "Native LibreCAD GUI qualification",
+      "Native Linux/Windows FreeCAD qualification",
+      "Independent external raster semantic qualification",
+      "Independent ACIS/ACDS semantic/kernel qualification"
+    ]
+  },
+  "planUpdate": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "section": "Implementation progress — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24)",
+    "supersedes": "RPP-5bj historical unchecked local tests-on/CLI-off follow-up list",
+    "commitBoundary": "Implementation, plan and capture-time receipt checkpointed together; actual local commit ID reported at handoff.",
+    "historicalReceipts": "Preserved unchanged"
+  },
+  "supportClaims": {
+    "promoted": false,
+    "strictAdmission": "CLOSED",
+    "broaderPlanComplete": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "next": [
+    "Independent source CLASSES/text and producer LAYER/codepage byte-order qualification with authoritative-spec/source-span bindings.",
+    "Full IMAGE/common-state, NOD/image-dictionary entry/owner semantics, unmodeled extensions and composed document closure.",
+    "Broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN, TABLE/extension, MATERIAL, warning-debt and integration queues."
+  ],
+  "references": [
+    {
+      "title": "Autodesk numerical DXF group-code reference: soft-owner350–359 versus hard-owner360–369",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "boundary": "Distinct reference-role meanings only; not independent acceptance evidence for the local dictionary projection."
+    },
+    {
+      "title": "Existing generated source NOD projection",
+      "path": "src/libdxfrw.cpp",
+      "function": "dxfRW::writeObjects",
+      "boundary": "No production edit in this slice."
+    },
+    {
+      "title": "Existing local source-role preservation contract",
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "section": "RPP-5ao generated dictionary source metadata"
+    }
+  ],
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "eaa696086c78ca7e1e854ac26002ce5abdf9b573dc70610658de3cca2252c821"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "7256f60b82f9c9cda88876b602dc55b01326f0ead7d0fd1cc9267e81482108d3"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "e062472ac48cf6d0a260efd984f5994f848271618f8f46aa3155bedcaeca01b7"
+    },
+    {
+      "path": "tests/cli_optional_build_tests.py",
+      "sha256": "0f2b80cb855e5634434c01ae7220787f552e77145628897bd33e6c377d8f1f7c"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "21ad925537910256828dae95cdb88895f3c0c11b4614eb187fba277c41f38a6b"
+    },
+    {
+      "path": "/tmp/rpp5bk-registration-inventory.txt",
+      "sha256": "bf41852ddd6bb0ceb39b50a73b1200b80897d34a2b937209292b2e185dca0b04"
+    },
+    {
+      "path": "/tmp/rpp5bk-baseline-tests.json",
+      "sha256": "5dbe2e206592de9b71058cf990354f34b763176af0e0b854e7df41fba0515c92"
+    },
+    {
+      "path": "/tmp/rpp5bk-default-tests.json",
+      "sha256": "3ed9996afa8ecf4e791f79f167f752fbefa995cfa005fbb3b2d782a49e49f54f"
+    },
+    {
+      "path": "/tmp/rpp5bk-no-cli-tests.json",
+      "sha256": "5d7444bd138a0ca249b46974dd5543ae54f4bf9bd3c5f2c0a813e96e550887f5"
+    },
+    {
+      "path": "/tmp/rpp5bk-default-cohort-audit.log",
+      "sha256": "212eb6f6b4bf0c0a1ec0d5f1a65b237e1af4b23defc53e61321a227ac84ca6bc"
+    },
+    {
+      "path": "/tmp/rpp5bk-matrix-tests.log",
+      "sha256": "d03fd3ddc4eb77c78c1cdf1303c281bd3ff576faa4b9c98af32928b691ba4a8b"
+    },
+    {
+      "path": "/tmp/rpp5bk-multiconfig-matrix-tests.log",
+      "sha256": "d03fd3ddc4eb77c78c1cdf1303c281bd3ff576faa4b9c98af32928b691ba4a8b"
+    },
+    {
+      "path": "/tmp/rpp5bk-no-cli-configure.log",
+      "sha256": "86e94b73f41b3b47c6c14f35cf1d98b6672da3b5b2fbd0794f992ce60d4bf81c"
+    },
+    {
+      "path": "/tmp/rpp5bk-no-cli-build.log",
+      "sha256": "d94183a4cc3b4c22d267a23346a790b1a9fb3188b69b0b60a6767185e1476527"
+    },
+    {
+      "path": "/tmp/rpp5bk-no-cli-corrected-build.log",
+      "sha256": "4142ad3861c342a25339b398fb5d5dae3a7381376383a2f825be1ac4209a32f0"
+    },
+    {
+      "path": "/tmp/rpp5bk-default-corrected-build.log",
+      "sha256": "4a2ba0c8d0f193e4d8d3432ae3a0437ac13b834419bd30139718f248b19edd98"
+    },
+    {
+      "path": "/tmp/rpp5bk-named-resource-cli-on-recheck.log",
+      "sha256": "1e4965340cd0ee7b8e3e4a242edd36d330f7d551368bb1cdaae0db0e25db500b"
+    },
+    {
+      "path": "/tmp/rpp5bk-named-resource-corrected.log",
+      "sha256": "6a2253490174ccb46ffdfc7d43d2d7f9b4b7ae478819810ef644d2bfe6a62579"
+    },
+    {
+      "path": "/tmp/rpp5bk-isolated-no-cli-fast-tests.log",
+      "sha256": "af7f5ad4a9f6c46328f274df5946cd0ca8b9430922274cd4b7b77925e78ced33"
+    },
+    {
+      "path": "/tmp/rpp5bk-final-default-fast-tests.log",
+      "sha256": "6dc4771ad772280290e6a11a60308081675a12eefa116685b98b5f5b6d5155d1"
+    },
+    {
+      "path": "/tmp/rpp5bk-owning-tests.log",
+      "sha256": "9f68b7fef35f2f50935043d9beb32a52810b9dcbce6f4a7aebdcd0aa5426c9da"
+    },
+    {
+      "path": "/tmp/rpp5bk-asan-cli-off-checkpoint.log",
+      "sha256": "00f6b8ef9a65c2c8f08332eaf13471a2ecb5ff6b17bb8f7c494410e8f24c8eb3"
+    },
+    {
+      "path": "/tmp/rpp5bk-shared-no-cli-configure.log",
+      "sha256": "e60ca1beaf4f24230007218074a21194deb1b4de00376c419409710d5f0c4e24"
+    },
+    {
+      "path": "/tmp/rpp5bk-shared-no-cli-build.log",
+      "sha256": "83fa1aec0c8ef64b3bd62e5ee7cd554b778cdc9ede72a831613306e904a96a6b"
+    },
+    {
+      "path": "/tmp/rpp5bk-shared-no-cli-tests.log",
+      "sha256": "ec52f5564beed8c5c758f046d762a387ad7f9cb11f4838f8a8b7d1b0fe06d81a"
+    },
+    {
+      "path": "/tmp/rpp5bk-no-cli-fast-tests.log",
+      "sha256": "a858db3c83efdd0f61671e4d7c734a20c4ab05857508956ab451ebe61c705bd7"
+    },
+    {
+      "path": "/tmp/rpp5bk-final-no-cli-fast-tests.log",
+      "sha256": "6af11ea3aa1bbf70c7226ce603c80b83716768ff7dad3b292b6aad90c3723bfb"
+    }
+  ]
+}

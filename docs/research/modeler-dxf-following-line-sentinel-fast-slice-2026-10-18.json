@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated following-LINE sentinel after long DXF modeler carrier",
+  "mode": "local generated fast-test hardening informed by peer failure-mode research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Assert post-carrier DXF entity framing remains aligned after multiple SAT text chunks",
+    "Combine a following-entity sentinel with exact opaque carrier-byte and chunk metadata readback",
+    "Do not imply the peer's dropped-final-SAT-block report is reproduced locally"
+  ],
+  "implementation": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--modeler-dxf-long-carrier",
+    "generatedRecords": [
+      {
+        "type": "3DSOLID",
+        "payloadBytes": 511,
+        "payloadTail": "FINAL-PAYLOAD",
+        "outputProfiles": ["ASCII AC1018", "Binary DXF AC1021"]
+      },
+      {
+        "type": "LINE",
+        "position": "immediately after the generated 3DSOLID",
+        "expectedCoordinates": [932.0, -7.0, 2.5, 945.0, -6.0, 3.5]
+      }
+    ],
+    "readbackAssertions": [
+      "3DSOLID carrier bytes, chunk count, offsets, group ordering, and byte-size limits pass first",
+      "Following LINE is observed after the 3DSOLID in callback order",
+      "All six following LINE coordinates match the generated sentinel"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-long-carrier",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-sat-v1-extraction",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "longCarrierSelectorPassed": true,
+    "satV1BoundarySelectorPassed": true,
+    "versionEncodingMatrixPassed": true,
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "owningCtestRun": false
+  },
+  "assessment": {
+    "newConfirmedProductionDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "claimBoundary": "Generated DXF record-alignment regression only; no SAT/SAB interpretation, AcDs ownership qualification, semantic geometry, native acceptance, or peer failure reproduction."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree contains extensive pre-existing user changes. The additional test and plan/receipt updates are additive; no unrelated path was staged or changed."
+  }
+}

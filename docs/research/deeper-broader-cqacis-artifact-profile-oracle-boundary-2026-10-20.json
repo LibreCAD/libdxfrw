@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "cq-acis exact artifact, profile, and semantic-oracle boundary",
+  "mode": "Primary-source release, profile, provenance, and lineage audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the already-admitted cq-acis candidate to an exact currently published artifact and source provenance.",
+    "Resolve its bounded ACIS/ASM profile matrix, particularly the BinaryFile8 limitation, before any optional comparison.",
+    "Separate parser/reference closure, shape-kernel validity, independent semantic expectations, and DWG/AcDs ownership evidence.",
+    "Audit the peer corpus policy and related Inventor tools for fixture, license, dependency, and evidence-lineage boundaries.",
+    "Refine existing PAR-07/S8 execution readiness without adding dependencies, tests, samples, or blocking implementation work."
+  ],
+  "sources": [
+    {
+      "project": "cq-acis 0.3.12 PyPI release and provenance",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889"
+      ],
+      "revision": "PyPI release published 2026-10-16; publishing attestation names source commit e05a8f470d2f6799277f7b7df467d2fc35625889; inspected 2026-10-20.",
+      "observed": "The project is MIT-licensed and PyPI provides provenance linking release artifacts to the source commit. The macOS ARM64 wheel cq_acis-0.3.12-cp310-abi3-macosx_11_0_arm64.whl has SHA-256 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5. The package requires Python >=3.11 and CadQuery >=2.8.",
+      "limits": "Artifact availability and publisher provenance do not establish installation, host compatibility, parser correctness, or successful geometry conversion. No artifact was downloaded or installed."
+    },
+    {
+      "project": "cq-acis pinned SAB/ASM profile and geometry scope",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md"
+      ],
+      "revision": "Source commit e05a8f470d2f6799277f7b7df467d2fc35625889, matching the PyPI attestation; inspected 2026-10-20.",
+      "observed": "The published profile table lists ACIS BinaryFile save version 21800 with limited native fixture coverage; selected ASM BinaryFile4 versions 22000, 22300, 22600, 22700, 22900, and 23200; and the same ASM versions for BinaryFile8 with synthetic framing coverage only and no validated native eight-byte fixture. Unknown records may remain raw; conversion supports a narrower documented geometry subset.",
+      "limits": "These project-authored admission claims do not apply to a payload unless its exact signature, save version, reference width, and active-record boundary match. No local DWG payload was run through cq-acis."
+    },
+    {
+      "project": "acis-core API and experimental SAB authoring",
+      "urls": [
+        "https://docs.rs/acis-core/0.3.11/acis_core/"
+      ],
+      "revision": "Published 0.3.11 API documentation; inspected 2026-10-20.",
+      "observed": "The API states that model construction checks references/source ranges, not B-rep validity or compatibility with a particular Inventor/ASM version. It documents experimental source-free SAB box authoring for a narrow Asm23200MetricBox profile.",
+      "limits": "A same-project writer/reader control cannot be the sole semantic oracle and does not represent general vendor-originated ACIS history or DWG/AcDs ownership."
+    },
+    {
+      "project": "cq-acis pinned test corpus policy",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/README.md",
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "revision": "Corpus policy pinned to source commit e05a8f470d2f6799277f7b7df467d2fc35625889; release description inspected 2026-10-20.",
+      "observed": "The project describes a pinned corpus of 25 artifacts (23 SAT, 2 SAB) sourced from NIST engineering-design models and ezdxf, with source commits/blob hashes, file hashes, and separate license notices. The corpus is excluded from Python distribution artifacts. The NIST notice itself cautions that third-party material may be present.",
+      "limits": "The peer's test set measures its own regression coverage; it is not independent expected-value evidence for libdxfrw. The plan's stricter fixture rule remains in force; no corpus files were fetched or copied."
+    },
+    {
+      "project": "Related Inventor parser routes",
+      "urls": [
+        "https://github.com/monozukuri-ai/inventor-kit",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py"
+      ],
+      "revision": "Mutable repository pages inspected 2026-10-20.",
+      "observed": "inventor-kit documents its pipeline through acis-core and cq-acis and identifies its current license as PolyForm Noncommercial 1.0.0. InventorLoader is a FreeCAD workbench using FreeCAD Part and ezdxf for its DXF carrier route; it is not a DWG/AcDs reader and shares the OCCT family for shape construction.",
+      "limits": "These related applications do not add an independent open-source kernel or an independent DWG/AcDs association route. InventorLoader source revision and FreeCAD/ezdxf runtime were not pinned or executed in this pass."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: pin cq-acis 0.3.12 as an optional exact-hash artifact candidate via its PyPI source attestation; no install or per-slice dependency.",
+      "PAR-07/S8: require an exact payload signature/save-format/reference-width match to cq-acis's narrow profile table before interpreting results; profile mismatch is NOT_APPLICABLE.",
+      "PAR-07/S8: distinguish reference closure, body-reachable record disposition, OCCT shape validity, independent analytic expectations, and outer DWG/AcDs owner/key association.",
+      "PAR-07/S8: treat acis-core source-free SAB authoring as experimental control generation only, and never count self-roundtrip as independent semantic evidence.",
+      "PAR-07/S8: retain the no-external-fixture policy despite peer corpus provenance; do not copy the 25-file cq-acis test corpus.",
+      "Candidate lineage inventory: inventor-kit shares acis-core/cq-acis and uses PolyForm Noncommercial licensing; InventorLoader is a FreeCAD/ezdxf route and not a DWG or independent-kernel witness."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cqacis-artifact-profile-oracle-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsOrPeerCorpusFilesDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added exact cq-acis 0.3.12 macOS ARM64 wheel identity and PyPI attested source commit for a reproducible optional composed-checkpoint run.",
+    "Made cq-acis ACIS BinaryFile 21800, selected ASM BinaryFile4, and synthetic-only BinaryFile8 profile limits explicit; separated them from CADMPEG 217/218 and from DWG AC code.",
+    "Clarified that acis-core reference closure and experimental source-free box authoring do not establish B-rep validity, native producer compatibility, or DWG/AcDs semantics.",
+    "Recorded cq-acis peer corpus provenance and explicitly prohibited importing/copying external corpus artifacts into this repository.",
+    "Excluded inventor-kit as an additional permissively licensed or independent route because it shares acis-core/cq-acis and is currently PolyForm Noncommercial; bounded InventorLoader to a FreeCAD/ezdxf route rather than an independent kernel or DWG parser.",
+    "Preserved fast implementation cadence, no new mandatory validation gate, no fixture/dependency changes, findings/subplan totals, and all six DEFERRED_EXTERNAL statuses."
+  ],
+  "limitations": [
+    "This was primary-source documentation and release metadata research only; no package, corpus file, DWG/DXF, or native drawing was downloaded.",
+    "No cq-acis, acis-core, CadQuery, OCCT, InventorLoader, FreeCAD, CADMPEG, or libdxfrw peer comparison was executed.",
+    "The PyPI attestation binds the published artifact to a source commit but does not qualify local installation or runtime behavior.",
+    "cq-acis has bounded profiles, documented shared format references, and an OCCT-family shape conversion route; no independent-kernel or full-format claim follows.",
+    "No evidence in this pass validates DWG section parsing, AcDs/DataStorage ownership, DXF serialization, LibreCAD/LibreCAD_3, or native Linux/Windows consumer behavior.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; receipt invariants validated with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

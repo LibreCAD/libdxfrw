@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF ACAD_TABLE cell-value variant-node admission",
+  "mode": "local implementation and generated fast verification",
+  "scope": [
+    "Charge each DXF ACAD_TABLE cell's accumulated typed text variant before its first materialization",
+    "Keep later chunks in the same cell value from double-counting one retained variant node",
+    "Prove aggregate exact-cap, one-under callback refusal, ResourceLimit, and same-facade retry"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.10",
+    "files": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "DRW_Table::parseCode charges the shared DXF typed-variant node budget immediately before the first DRW_CadValue::m_value string variant is materialized for cell text. Subsequent text chunks update that same retained variant without another node charge. Failure propagates through the existing typed-variant ResourceLimit boundary. The installed dxfRW budget comment names the selected ACAD_TABLE route.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "fixtureAdded": false,
+    "temporaryGeneratedInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-table-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/dxf-acad-table-cell-value-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_entities.cpp src/libdxfrw.h tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedTableSelector": "PASS: generated AC1027 ASCII baseline, exact aggregate cap, one-under TABLE callback refusal, ResourceLimit diagnostic, and same-facade retry",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.29 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "This is selected DXF typed-variant-node admission, not a parser allocation, capacity, memory, or RSS bound.",
+    "DWG TABLE/TABLECONTENT CadValue decoding and standalone TABLECONTENT objects do not pass through this DXF ACAD_TABLE parser path.",
+    "TABLE grid/vector capacity, public mutation, writer/projection/caller copies, and unrelated materializers remain outside this slice.",
+    "Controls are generated in memory; no external drawing was downloaded or committed.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

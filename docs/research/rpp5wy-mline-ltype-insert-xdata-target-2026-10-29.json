@@ -1,0 +1,111 @@
+{
+  "id": "RPP-5wy",
+  "title": "AC1027 MLINE LTYPE XDATA reference to a source-bound INSERT target",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "337fdf7fe7e43c4dd9576d369dd87fa8dfb291dd",
+  "implementation_commits": [
+    "337fdf7fe7e43c4dd9576d369dd87fa8dfb291dd"
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One source-bound code-1005 XDATA soft pointer in the EditDash LTYPE to a simple INSERT in model-space ENTITIES.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handle": "0xA902",
+      "source_target_owner": "0x201"
+    },
+    "insert_profile": {
+      "type": "INSERT",
+      "name": "AuthorityBlock",
+      "base_point": [3.5, -2.25, 7.75],
+      "scale": [2.0, 0.5, 1.5],
+      "rotation_degrees": 30.0,
+      "column_count": 1,
+      "row_count": 1,
+      "column_spacing": 0.0,
+      "row_spacing": 0.0,
+      "attributes": [],
+      "seqend": false
+    },
+    "referenced_definition": {
+      "name": "AuthorityBlock",
+      "source_block_record_handle": "0x203",
+      "source_owner_handle": "0x1",
+      "required_records": ["BLOCK_RECORD", "BLOCK", "ENDBLK"]
+    },
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output.",
+    "runtime_fixture": "The focused test authors the DXF source in a temporary directory and removes it; no test drawing was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "INSERT (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "relevant_rule": "Defines INSERT block name, insertion point, scale, rotation, array counts and spacing."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 is a soft-pointer handle and is translated when referenced objects are copied or inserted."
+      },
+      {
+        "title": "Nested BLOCK name and canonical MINSERT profile research",
+        "path": "docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json",
+        "relevant_rule": "Keeps block-name references in the BLOCK_RECORD name namespace and distinguishes simple INSERT from array and unsupported derived profiles."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector matches the physical INSERT group-2 name with the typed INSERT, validates the unique live entity and owner, and resolves the name to a uniquely captured BLOCK_RECORD plus matched BLOCK/ENDBLK source membership. It admits only a simple one-by-one INSERT without attributes or SEQEND.",
+    "output": "The finalizer checks the remapped INSERT identity and owner, emitted BLOCK_RECORD identity/owner, and source-to-output BLOCK and ENDBLK identities with the same emitted owner. The runtime test verifies the physical remapped XDATA handle, INSERT fields, BLOCK_RECORD name, BLOCK/ENDBLK membership and ownership, and fresh typed readback.",
+    "failure_retry": "For each of four input/output encoding pairs, removing the referenced INSERT target refuses export while preserving the destination; restoring the target succeeds on the same adapter. A separate ASCII case mutates the INSERT name after provider emission, verifies refusal and destination preservation, then restores the name and retries successfully.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 296,
+      "whole_focused_test_readbacks": 663,
+      "whole_focused_test_refusals": 367,
+      "whole_focused_test_retries": 367
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding": "Adds INSERT record/callback recognition and type admission to the existing LTYPE XDATA target collector, captures its referenced BLOCK_RECORD identity, and revalidates the source graph before publication.",
+    "output_identity": "Uses the writer's actual emitted-record inventory and source-entity bindings for BLOCK and ENDBLK; resolves the BLOCK_RECORD output by its source-bound name and verifies its physical TABLES identity and owner.",
+    "consumer_compatibility": "Changes only converter-private dx_iface state and callbacks; no public DRW_Interface virtual or installed model layout changed.",
+    "claim_boundary": "This is one selected AC1027 transport/source-identity/output/readback profile. It does not establish general INSERT, MINSERT, attribute, nested graph, native application or full-document support."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 17.98 seconds); the test asserts the aggregate profile, readback, refusal and retry counts above."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; no parser ownership or persistent state was added. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_source_sha256": "51dc371c64aaf5b183f84694e69d20404d84de98e41fd38124253aebf4d03220",
+      "implementation_header_sha256": "93884e582596b46e5de27121f39ee948247fae039f60b3d99942da125f2d575a",
+      "test_source_sha256": "79cd488edb4ef3cf73a38240c0a6477056dbd729a93308b5dcefe76a9e96576e",
+      "normal_executable_sha256": "494a24a6c0ee1deff37546c42b32c4db9634807713292fb3570142d341888ac5",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "focused_ctest_log_sha256": "1ddcb12788caceddc5e471fc1b332723b9dce197bc0b690369cc6aec03bdaa0a0",
+      "plan_sha256": "7d827ff7d09a00fca3326f7c9b1143fc44ef0fb131b53f1e80caa7a2dbee5db4"
+    }
+  },
+  "limits": [
+    "Only one AC1027 simple INSERT profile in model-space ENTITIES is qualified. INSERT targets in named BLOCKS, MINSERT arrays, attributes, SEQEND, other INSERT fields, target sets and versions remain open.",
+    "This evidence does not establish INSERT placement semantics, referenced-block recursive closure, native CAD acceptance or support-claim eligibility."
+  ],
+  "next": "Select one distinct code-1005 target type or source/output section profile from a current source witness; retain the same exact-output, readback, refusal, rollback and retry gates."
+}

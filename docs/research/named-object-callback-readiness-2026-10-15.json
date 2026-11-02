@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-named-object-callback-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "implementationCommit": "ed8d925b0109ca5ae7d6fb5855be783bd71f1d52",
+  "readinessCommit": "705bd89dd4be212e7c3f12f77cf82e680c55ef97",
+  "parentCommit": "20e4d04f3dc532ca3f0aadb975dfb4e81432385c",
+  "scope": "Close f.4a reset, malformed-default, callback-lifetime and following-record readiness checks; no emitter/graph qualification",
+  "cases": [
+    "A generated in-memory OBJECTS section delivers one complete DICTIONARYWDFLT and then a DICTIONARYVAR sentinel; both typed callbacks and the sentinel value are checked.",
+    "DICTIONARYWDFLT code-340 presence survives adapter storage, copy construction and copy assignment.",
+    "Reset clears the target object's default handle/completeness evidence without changing a previously parsed copy.",
+    "Missing and duplicate code-340 controls fail the read and deliver no DICTIONARYWDFLT callback.",
+    "The other eight named-object callback values are checked after the callback source objects leave scope; null MLEADERSTYLE is ignored without an extra row."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+    "focusedTestResult": "PASS 1/1; 0.22 seconds",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT RUN"
+  },
+  "sourceSha256": {
+    "tests/dwg2dxf_adapter_tests.cpp": "8ff2f3998bc9fc66de8aedffc001a1252b5c4df786af205bb94deb531e0dd15c"
+  },
+  "readiness": {
+    "f4aOwnedCallbackFamilies": 9,
+    "interfacePureVirtualsAdded": 0,
+    "resetAndMalformedPointerCoverage": "CLOSED",
+    "followingRecordCallback": "CLOSED",
+    "writerAndGraphClosure": "OPEN f.4b",
+    "composedFreeCADCheckpoint": "OPEN f.4c"
+  },
+  "boundaries": {
+    "drawingFixturesCommitted": 0,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

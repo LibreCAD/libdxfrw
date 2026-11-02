@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-viewport-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect physical AC1024 VIEWPORT callbacks to transactional output qualification",
+  "status": "TWO_VIEWPORT_CALLBACKS_QUALIFIED_STRICT_GATE_STILL_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "records": [
+      {
+        "record": "VIEWPORT",
+        "dwgObjectType": 34,
+        "handle": "0x28B",
+        "layout": "Layout1",
+        "projectedDxfStatus": 1,
+        "projectedDxfViewportId": 1
+      },
+      {
+        "record": "VIEWPORT",
+        "dwgObjectType": 34,
+        "handle": "0x290",
+        "layout": "Layout1",
+        "projectedDxfStatus": 2,
+        "projectedDxfViewportId": 2
+      }
+    ],
+    "typeEvidence": "The physical identity join is recorded in p5-ac1024-viewport-physical-output-readback-2026-10-31.json; ODA Open Design Specification 5.4.1 §20.4.38 identifies DWG VIEWPORT entity type 34. The implementation also verifies the retained source frame type/entity flags at runtime.",
+    "fixturePolicy": "Existing repository DWG only. No DWG or DXF fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The finalizer connects only the witnessed pair of type-34 entity callbacks to output qualification. It requires their current-generation retained source frames, unique typed paper-space VIEWPORT membership in the unique Layout1 viewport list, the expected adapter-projected group 68/69 values, the reciprocal LAYOUT/BLOCK_RECORD route, and one emitted source-bound VIEWPORT identity in the correct section with its mapped owner. The physical selector confirms complete typed field/dependency readback and the actual derived group 68/69 values.",
+    "scope": "Exact AC1024 witness profile only. Other type-34 profiles remain unresolved unless separately source-bound and qualified. This output-identity proof is not independent CAD semantic or consumer qualification."
+  },
+  "qualification": {
+    "before": 211,
+    "after": 213,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {"objectType": 34, "handle": "0x28B", "record": "VIEWPORT", "layout": "Layout1"},
+      {"objectType": 34, "handle": "0x290", "record": "VIEWPORT", "layout": "Layout1"}
+    ],
+    "remaining": 15,
+    "remainingBreakdown": {
+      "unnamedEntityType34": 0,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Still refuses before publication at 213/228. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes 213 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "Set VIEWPORT 0x28B viewHeight to positive infinity. ASCII and Binary writes refuse atomically and preserve the pre-existing destination sentinel and published qualification state.",
+    "retry": "Restore the original value and retry with the same adapter for each encoding. The exact type-34 qualification identities are present only after successful publication; fresh import confirms both selected viewport profiles.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary. Confirms opaque source-frame identity, complete typed field projection, paper-space container membership, extension DICTIONARY/XRECORD owner edges, derived 68/69 values, atomic refusal with unchanged qualification state, exact identity publication, and corrected same-adapter retry."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /private/tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/libdxfrw-p4-callback-census && /private/tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict conversion refused at 213/228 with no published identities, and the Legacy retry published 213 while leaving the 15 unresolved callbacks unqualified. Scratch source and executable stayed outside Git."
+    },
+    "fullSuites": "NOT RUN; touched warning-as-error build, physical selector, strict-gate CTest and source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect physical AC1024 type-34 VIEWPORT callbacks 0x28B and 0x290 to transactional source-bound output qualification, mapped owner/type checks and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Trace the 13 remaining standard-object type-42 and 2 type-79 callbacks through complete fields, owners/dependencies, staged output and fresh readback; qualify only identities closed in the same transaction.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "73065c166c9b2d5cb8aff2a21fea1f8771b7ee09e4ef61e0785106f0ade07727",
+    "dwg2dxf/dx_iface.h": "64d1e45a508fc756d4914adcb155e0a012c9ba1d00c9bd18c85cee9e89e2cb70",
+    "tests/dwg2dxf_adapter_tests.cpp": "473a21c05b5a09b0723a25f6de6a25ebf9d089bcc463b1ae6da93a0d708b04a3",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b78ccfedf103cfd338094c57a38f9e1dc5f9f74da7aeee6e7f56dfc30f1bd6d4"
+  }
+}

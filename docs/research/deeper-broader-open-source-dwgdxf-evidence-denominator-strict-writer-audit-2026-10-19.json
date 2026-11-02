@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Open-source DWG/DXF evidence-denominator and strict-writer audit",
+  "mode": "Primary-source project documentation and issue review; research-only plan refinement",
+  "scope": [
+    "Compare route/version/direction evidence across LibreDWG, ACadSharp, ACadRust, dwg-rs, and ezdxf.",
+    "Distinguish declared capability matrices from measured, corpus-bound outcomes and native acceptance.",
+    "Use writer and corpus failure reports to refine existing local peer-admission and composed-checkpoint gates.",
+    "Avoid duplicate findings, external fixtures, routine peer builds, and per-slice validation expansion."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, issue pages, and existing plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project scope pages are mutable and issue reports refer to specific historical builds or private drawings. No peer artifact was run and no issue drawing was independently reproduced. Conclusions refine evidence admission only and do not qualify local or peer support."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/README.md",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html"
+      ],
+      "revision": "Mutable README/manual reviewed 2026-10-19",
+      "observed": "The README documents skipped advanced R2010+ reader objects, DWG writer/version caveats, approximate conversion coverage, and a release build option that excludes unstable DWG features and unknown classes/versions.",
+      "evidenceCeiling": "Project declarations and build configuration clues; not measured parity or current binary behavior."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "revision": "Mutable direction/version matrix and issue pages reviewed 2026-10-19; #1277 identifies 3.7.16 and #1253 identifies base commit d867ef85a2d7006201db2168dd7e698e0dc45da8",
+      "observed": "The matrix separates DXF/DWG read/write and has no AC1021 DWG writer. Issue #1277 reports AC1032 no-op writer output that the same library can read but AutoCAD LT 2026 reportedly audits with 58/220 errors and removes 55/217 standalone MLeader context objects over two private drawings; the maintainer states this family needs a full refactor. Issue #1253 reports strict AutoCAD DXF rejection for output from a pinned older base, while the current plan already records that the reported HATCH group-47 shape does not match the mutable current sample inspected earlier.",
+      "evidenceCeiling": "Peer-specific issue leads and declared matrix only; no local reproduction, native run, or format rule is established."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable README/version matrix reviewed 2026-10-19",
+      "observed": "The README declares read/write across AC1009-AC1032 but explicitly qualifies AC1009 DWG fidelity as incomplete and says R12 DXF export is promoted to R13 or later.",
+      "evidenceCeiling": "Mutable declaration; exact release, requested/actual output version, corpus, and application wrappers must be bound separately."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable README empirical report dated 2026-08-30, reviewed 2026-10-19",
+      "observed": "The pre-alpha reader reports 19 files, 3,911 decoded, 525 skipped, and 9 errors overall, with one to three files per version. The report lists per-version counts and says the aggregate changed from 95.6% to 88.0% after adding nine files, illustrating that aggregates from different corpus sizes cannot be compared as a trend.",
+      "evidenceCeiling": "Small corpus and partial entity/object decoder coverage; useful reporting shape, not universal version or semantic support."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://ezdxf.readthedocs.io/en/stable/"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-19",
+      "observed": "Documentation lists ASCII/Binary DXF read/write versions and additional legacy read-only paths, states ezdxf is neither a DWG converter nor CAD kernel, describes structure-preserving third-party content handling with memory cost, and notes stress/audit drawings cannot be redistributed.",
+      "evidenceCeiling": "DXF route scope only; no peer run or DWG/3D semantic evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Tightens existing peer/composed gates to bind build flags and artifact identity, requested versus actual version, corpus provenance and denominator, per-record outcomes, strict independent reopen, and native audit separately. It does not add a peer dependency or local feature claim."
+  },
+  "implementationReadyChecks": [
+    "Freeze peer source/release, binary/package hash, build flags, command, operation, direction, requested/actual version, source/output hashes, corpus provenance, per-version file count, and decoded/skipped/errored/refused/unattempted counts.",
+    "For writer qualification, separate output structure, same-codec readback, independent strict-reader results, and native open/audit; unavailable native qualification is NOT_RUN, not a pass or blocker for unrelated implementation.",
+    "Admit a peer observation only for an exact version × direction × family × route overlap; treat issue reports and mutable matrices as LEAD_ONLY until pinned and tested.",
+    "Keep optional peer/native runs at the composed checkpoint; ordinary slices use focused generated controls, the touched target, owning CTest, and scoped diff checks.",
+    "Do not add external/customer drawings as fixtures. Use existing repository samples or bounded locally generated scratch inputs under the applicable corpus policy.",
+    "Do not infer 3D/B-rep semantics from opaque carrier retention, a broad format badge, or a downstream render."
+  ],
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-open-source-dwgdxf-evidence-denominator-strict-writer-audit-2026-10-19.json",
+      "jq empty docs/research/deeper-broader-open-source-dwgdxf-evidence-denominator-strict-writer-audit-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "9a4f073487e63724242824214c114b5a2d6d07abccca59389c62bf7a0f426158"
+}

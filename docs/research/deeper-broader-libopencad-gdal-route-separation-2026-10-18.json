@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "lib_opencad and GDAL DWG/DXF route separation",
+  "mode": "Broadened primary-source repository and documentation review; plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve the current declared version and evidence boundary of NextGIS lib_opencad.",
+    "Separate GDAL's lib_opencad-backed DWG route from its own DXF reader/writer route.",
+    "Refine the existing optional peer matrix without adding runtime dependencies, tests, or support claims."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project repositories and official driver documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "codeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Repository README/history and official GDAL documentation establish declared route and version boundaries only. No local or peer runtime behavior was tested. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "url": "https://github.com/nextgis-borsch/lib_opencad/blob/master/README.md",
+      "finding": "The current repository README says only DWG R2000 is supported.",
+      "evidenceClass": "project-declared version scope; not behavioral qualification"
+    },
+    {
+      "url": "https://github.com/nextgis-borsch/lib_opencad/commits/master",
+      "finding": "The visible repository history ends with a March 2023 commit and the repository has no published release listed.",
+      "evidenceClass": "repository freshness and release metadata"
+    },
+    {
+      "url": "https://github.com/nextgis-borsch/lib_opencad/tree/master/tests",
+      "finding": "The public test tree includes an r2000 sample-data directory; this does not establish comprehensive entity or version coverage.",
+      "evidenceClass": "test-tree inventory, not conformance evidence"
+    },
+    {
+      "url": "https://github.com/sandyre/libopencad",
+      "finding": "The predecessor identifies itself as abandoned and directs users to NextGIS; its old status table reports only R15 basic-geometry reading.",
+      "evidenceClass": "lineage and historical scope; not successor behavior"
+    },
+    {
+      "url": "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "finding": "GDAL says its read-only CAD/DWG driver uses lib_opencad and projects POINT, LINE, CIRCLE/ARC, and 3DFACE into OGR geometries.",
+      "evidenceClass": "official downstream route and declared projection"
+    },
+    {
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "finding": "GDAL's separate DXF driver reads recent ASCII DXF, reads Binary DXF beginning in GDAL 3.12, writes AutoCAD 2004 DXF, tessellates/projectively transforms several entities, and can expose raw ASM plus transform for AC1027+ solids without constructing B-rep geometry.",
+      "evidenceClass": "official DXF route contract and explicit projection boundary"
+    }
+  ],
+  "assessment": {
+    "newIndependentDwgParserFamily": 0,
+    "newLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newDependencies": 0,
+    "newTestsOrRegistrations": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Narrows the existing optional lib_opencad peer route to a project-declared AC1015/basic-geometry profile and makes explicit that GDAL CAD/DWG and GDAL DXF are different parser/operation routes. It adds no new implementation task, execution gate, support claim, or external-item transition."
+  },
+  "verification": {
+    "jsonParse": "passed with jq",
+    "planDiffCheck": "passed with git diff --check for the plan and receipt",
+    "researchOnly": true
+  },
+  "workingTree": "Extensively modified before this review. Plan update and receipt are unstaged and uncommitted; unrelated changes were preserved."
+}

@@ -1,0 +1,65 @@
+{
+  "slice": "RPP-5t",
+  "title": "AC1021 CELLSTYLEMAP DWG payload encoder",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "validate AC1021-only CELLSTYLEMAP payloads before output mutation",
+    "encode nested cell-style identities, content format, CMC fields, margins, and conditional borders",
+    "write common object handles before nested text-style and linetype hard pointers"
+  ],
+  "generated_controls": [
+    "generated AC1021 object frame encodes and parses title, custom data, and data styles",
+    "CMC RGB and text-style/linetype hard-pointer values round-trip",
+    "all six margin values and conditional border payloads round-trip",
+    "zero-edge border slots omit conditional payload",
+    "unsupported version and invalid unit type refuse before mutating body/string/handle buffers"
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "selector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --cellstylemap-dwg-encode-roundtrip",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dwg_encode_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 0.01
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally in memory"
+  },
+  "qualification_limits": {
+    "whole_object_dwg_writer": "NOT_IMPLEMENTED",
+    "rooted_table_style_graph_emission": "NOT_IMPLEMENTED",
+    "ac1024_plus_writer": "NOT_IMPLEMENTED",
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "src/drw_objects.h",
+    "src/drw_objects.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5t-cellstylemap-dwg-payload-encoder-fast-slice-2026-10-22.json"
+  ],
+  "next": "Add dynamic AcDbCellStyleMap class registration and full AC1021 object-frame writing, then close the rooted TABLESTYLE extension-dictionary graph route; keep later DWG versions and external qualification separate.",
+  "commit": "NONE"
+}

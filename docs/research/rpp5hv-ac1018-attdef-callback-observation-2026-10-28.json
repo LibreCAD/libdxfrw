@@ -1,0 +1,75 @@
+{
+  "schema": "ac1018-attdef-callback-observation-v1",
+  "date": "2026-10-28",
+  "codeCommit": "a5fda5ad37d37f0b132702c439e4b20ee868dc14",
+  "supportClaimsPromoted": false,
+  "scope": "Observational optional ATTDEF source callback only; adapter-owned AC1018 source/profile provenance remains gated. The locally authored source is a classic ATTDEF with Windows-1252 accented text and AcDbAttr XDATA.",
+  "bindings": {
+    "testSource": {
+      "path": "tests/attdef_source_tests.cpp",
+      "sha256": "1bc2822b035aa33a9b1a2ae5a554affa3cc95e84f0ddfe5c8aae8a49a4527fbb"
+    },
+    "testObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_attdef_source_tests.dir/attdef_source_tests.cpp.o",
+      "sha256": "6131866e1927b0267146309efec8dc5fb61dc8a97324872423ee4ba7e9fcbaa0"
+    },
+    "directLinkedBinary": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/attdef-legacy-baseline",
+      "sha256": "a96d6d93b330ff4786662724724bddb86749e098ff9b5b4c07f0199a92fbc029"
+    },
+    "library": {
+      "path": "build/libdxfrw.a",
+      "sha256": "ef08649d21441164a732d5b02dc8e61ecfc24ae9d36ee6d6088bacb159728c22"
+    },
+    "adapterObject": {
+      "sha256": "6f9beaa2a7971a2a6c66350cb573b943673f927fb4d7a99cd44c81c6f018de55",
+      "pathAtLink": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "note": "Digest recorded at the direct link checkpoint; this shared build object was later rebuilt by other work and no longer has this digest on disk."
+    },
+    "adapterSourceAtCommit": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "4fb6cb5c647a7eeacfc084c40ac159c43518867d2ffdaf18511e2fa1a25d17aa"
+    },
+    "adapterHeaderAtCommit": {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca"
+    },
+    "directRunLog": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/attdef-observation-baseline.log",
+      "sha256": "676d857ae27c00d074f7004e191b4b83f7c5226600abc6ca70b833d3e66f5143"
+    }
+  },
+  "validation": {
+    "kind": "normal standalone direct-link executable; not the earlier intermediate-adapter CTest run",
+    "command": [
+      "build/agent-attribute-profile/ac1018-readiness/attdef-legacy-baseline",
+      "--legacy-observation"
+    ],
+    "result": "passed",
+    "counts": {
+      "observedRecords": 8,
+      "physicalSpans": 136,
+      "optOuts": 8,
+      "malformedAndCorrectedRetries": 8
+    },
+    "dimensions": [
+      "ASCII and binary",
+      "BLOCKS and ENTITIES",
+      "extrusion disabled and enabled"
+    ],
+    "asan": "not run"
+  },
+  "observed": [
+    "Live callback context reports source AC1018, folded codec AC1015 and declared ANSI_1252. Windows-1252 authored accented text decodes to the expected UTF-8 selected text/prompt.",
+    "Capture and typed callbacks agree on a partial typed snapshot; APPID-name XDATA with two 1070 values is observed. An independent scalar walk checks original file bytes/spans, and ASCII raw spelling/binary raw placeholders are checked.",
+    "The production profile audit remains explicitly Revision-rejected at group 0. Opt-out preserves the selected typed snapshot, and malformed missing-height inputs suppress publication; corrected inputs succeed on the same reader."
+  ],
+  "nextMissingLayer": "Qualify full captured-raw typed values and replay, not the authored input row; compare complete decoder state/model and bind to independent original source before considering any adapter gate. Then independently prove block/ENTITIES owner provenance, APPID/LAYER dependencies, legacy codec/proxy rules, output and failure/retry.",
+  "limitations": [
+    "The typed snapshot is partial; the test does not prove full sameModel equality or decoder-state equivalence.",
+    "Replay consumes the authored input row, not captured raw groups; binary captured raw values are not all compared to physical fields.",
+    "Literal owner handles appear in the authored record but do not prove graph ownership, source closure or dependency resolution. No output is exercised or claimed.",
+    "Generated records are from scratch, not independent native-source witnesses. No native semantic claim, full-document closure, ASan result, or drawing fixture commit follows.",
+    "The initial CTest pass used an intermediate adapter object and is not used as the final evidence binding."
+  ]
+}

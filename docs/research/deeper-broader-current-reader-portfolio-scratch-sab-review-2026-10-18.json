@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader current reader portfolio and scratch SAB authoring review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh exact route boundaries for newly surfaced open-source DWG/DXF readers",
+    "Separate wrapper/application lineages from underlying parser implementations",
+    "Assess an experimental source-free SAB authoring API as an optional scratch-control source",
+    "Translate findings into non-blocking implementation-readiness guidance for the parity and 3D plans"
+  ],
+  "method": {
+    "kind": "Read current project READMEs, documentation, status tables, issue reports, and published crate docs",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Current repository pages and package documentation are project-authored capability/status evidence, not runtime qualification. No peer corpus or sample file was inspected. The experimental acis-core encoder only establishes a possible source for one generated SAB profile; it does not establish general ACIS compatibility, independent expected geometry, B-rep validity, or DWG/AcDs ownership. The local ODA v5.4.1 specification remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Current README/status reviewed 2026-10-18; project reports alpha.1 and an entity/object corpus measured 2026-08-30",
+      "observed": "The project describes an Apache-2.0 Rust DWG reader based on ODA Open Design Specification 5.4.1. It separates container/section and raw-object handling from alpha-quality entity decoding, reports 19 files total in its published version table with 525 skipped and 9 errored records, and does not provide a DWG writer. It is a separate implementation but not an independent normative source from this project because both use the same published specification."
+    },
+    {
+      "project": "ezdwg",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg"
+      ],
+      "revision": "Mutable main README/API reviewed 2026-10-18; no peer artifact installed or executed",
+      "observed": "The project documents a Rust-backed DWG reader, AC1015-only subset native DWG writer, and ezdxf-backed DXF export. Its read scope differs by AC version; the later-version native geometry route lists a limited common 2D subset and best-effort style/layer color resolution. It exposes strict export, skipped_by_type, and diagnostics as useful loss-report mechanisms."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Current README reviewed 2026-10-18; no peer artifact installed or executed",
+      "observed": "The project says DWG reads use LibreDWG via Rust FFI, DXF reads use the separate undxf crate, and output is JSON/SVG/PNG only. It is not a separate DWG codec or DWG/DXF writer route; only the undxf path can be counted as a separate DXF parser lineage."
+    },
+    {
+      "project": "acis-core and cq-acis",
+      "urls": [
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "revision": "docs.rs currently identifies acis-core 0.3.11; current cq-acis README reviewed 2026-10-18; no crate installed or executed",
+      "observed": "acis-core documents a bounded SAB/ASM reader, validated ACIS reference graph, and experimental source-free BoxSpec/SabEncoder for an Asm23200MetricBox profile. Its documentation explicitly distinguishes reference closure from B-rep validity and a specific Inventor/ASM version, and says its helper layer does not construct OCCT solids. cq-acis is an experimental selected-profile SAT/SAB reader and CadQuery/OpenCascade conversion route."
+    },
+    {
+      "project": "ezdxf and FreeCAD current route",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Stable ezdxf documentation and FreeCAD mutable main reviewed 2026-10-18; no package or application run",
+      "observed": "The stable ezdxf docs scope read/write to named DXF versions and separate ordinary reading, recovery, raw browsing, ACIS inspection, and limited copy/import support. FreeCAD's current importDWG source routes through a selected external converter and then the DXF importer. These are specific route capabilities, not whole-format or stock solid-semantic qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a narrow optional peer route matrix and a source-free, profile-specific SAB scratch-authoring possibility at the existing composed S8 gate. Wrapper lineages, native read/write direction, exact version scope, parser versus kernel evidence, and unsupported/loss reporting remain distinct. No required validation gate or local implementation step changed."
+  },
+  "implementationReadyChecks": [
+    "Use dwg-rs only for an exact implemented container/object-boundary question; keep per-file decoded, skipped, and errored record outcomes and never treat its aggregate ratio as semantic support.",
+    "Use ezdwg only for overlapping exact read features or its explicit fail-closed/loss reporting; record its DWG writer as AC1015-only and distinguish the ezdxf-backed DXF output route.",
+    "Count uncad DWG observations under the pinned LibreDWG lineage; only its undxf DXF path can be a separate parser route, and JSON/SVG/PNG output is consumer evidence only.",
+    "At the existing composed S8 gate only, optionally generate a profile-specific SAB through a pinned acis-core encoder into scratch; independently declare expected dimensions, placement, units, topology, and analytic measures.",
+    "Prove libdxfrw source entity identity and DWG AcDs owner/key/payload closure before any detached SAT/SAB conversion. Score raw bytes, ACIS parser result, B-rep validity, kernel lineage, units/transforms, and native acceptance separately.",
+    "Keep peers and native applications out of ordinary implementation slices; if version/profile/platform is unavailable, record NOT_RUN or NOT_QUALIFIED and continue local work.",
+    "Do not download or commit external DWG/DXF/SAT/SAB examples; generated controls remain in memory or scratch and do not become new fixtures.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; this research does not satisfy their external/platform or independent semantic evidence gates."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

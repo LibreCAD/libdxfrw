@@ -31,6 +31,7 @@
 #include "../handle_allocator.h"
 #include "dwgbufferw.h"
 #include "dwgutil.h"
+#include "dwgsafety.h"
 
 class DRW_TextCodec;
 class DRW_Entity;
@@ -51,6 +52,22 @@ struct DwgClassDefinition {
     std::int32_t m_maintenanceVersion {0};
     std::int32_t m_unknown1 {0};
     std::int32_t m_unknown2 {0};
+};
+
+struct DwgClassInstanceCountFailure {
+    enum class Kind : std::uint8_t {
+        None,
+        RawInstanceHandlesPending,
+        MissingClassDefinition,
+        UnemittedRegisteredHandle,
+        DeclaredCountMismatch,
+    };
+
+    Kind kind {Kind::None};
+    std::uint16_t classNum {0};
+    std::uint32_t handle {0};
+    std::int32_t declaredCount {-1};
+    std::uint32_t emittedCount {0};
 };
 
 /// Identity key for a raw class ordinal remap. Class numbers are file-local,
@@ -352,6 +369,11 @@ public:
     /// on success.
     virtual bool writeDwgObjects() = 0;
 
+    /// Complete object graphs whose dictionary entries depend on objects
+    /// emitted by the adapter's writeObjects() callback. Most writers have
+    /// no deferred objects and therefore complete this phase immediately.
+    virtual bool completeDeferredDwgObjects() { return true; }
+
     /// Emit the HANDLES (object map) section terminator.  v1 with
     /// zero entities just emits the empty-page terminator.
     virtual bool writeDwgHandles() = 0;
@@ -371,6 +393,13 @@ public:
     /// entity's `layerH.ref` and other type-specific fields before
     /// calling.  Returns true on success.
     virtual bool encodeEntity(DRW_Entity *ent) = 0;
+
+    /// Some writers retain a bounded checkpoint for the most recent
+    /// successful entity frame so a facade can expose single-entity rollback
+    /// without copying document-wide ledgers for every callback. Writers that
+    /// do not implement this contract keep the full compound-checkpoint path.
+    virtual bool supportsLastEntityWriteRollback() const { return false; }
+    virtual bool rollbackLastEntityWrite() { return false; }
 
     /// True when an entity EED/XDATA payload could not be represented without
     /// loss. dwgRW uses this sticky diagnostic to fail an export even if an
@@ -404,6 +433,14 @@ public:
                                 const DRW_Coord& basePoint,
                                 int insUnits = 0) = 0;
 
+    /// Define a block from retained BLOCK_RECORD metadata. Backends that do
+    /// not implement the metadata wire form fail closed instead of silently
+    /// degrading XREF state to an ordinary block.
+    virtual std::uint32_t defineBlock(const DRW_Block_Record& record) {
+        (void)record;
+        return 0;
+    }
+
     /// Select a previously defined user block as the owner for subsequently
     /// encoded entities. Calls may not nest and must be balanced by
     /// endBlockContent() before emitDeferredBlockControl().
@@ -426,11 +463,14 @@ public:
     /// so a later write cannot reuse a handle that escaped to the caller.
     struct CompoundWriteCheckpoint {
         std::size_t bufferSize {0};
+        std::uint64_t lastDwgObjectFrameGeneration {0};
         std::size_t objectMapSize {0};
         std::size_t modelSpaceEntityCount {0};
         std::size_t paperSpaceEntityCount {0};
         std::size_t modelSpaceInsertCount {0};
         std::size_t paperSpaceInsertCount {0};
+        std::size_t emittedLayoutAssociationCount {0};
+        std::size_t emittedLayoutDictionaryCount {0};
         std::vector<std::size_t> userBlockEntityCounts;
         std::vector<std::size_t> userBlockInsertCounts;
 
@@ -461,6 +501,15 @@ public:
         std::vector<DRW::DwgNamedObjectDictionaryEntry>
             emittedDwgNamedObjectDictionaryEntries;
         bool dwgNamedObjectDictionaryComplete {false};
+        std::uint32_t plotSettingsDictionaryHandle {0};
+        bool deferredPlotSettingsDictionary {false};
+        bool deferredPlotSettingsDictionaryEmitted {false};
+        std::size_t deferredPlotSettingsEntryCount {0};
+        std::vector<DRW::DwgNamedObjectDictionaryEntry>
+            emittedDwgGroupDictionaryEntries;
+        std::vector<DRW::DwgNamedObjectDictionaryEntry>
+            emittedDwgGroupFrames;
+        bool dwgGroupDictionaryComplete {false};
         std::vector<DRW::DwgBlockWriteRecord> emittedDwgBlockRecords;
         std::set<std::uint32_t> emittedDwgBlockEntityHandles;
         bool dwgBlockStructureComplete {false};
@@ -502,8 +551,25 @@ public:
         bool haveStandardDimstyle {false};
         std::vector<DRW::DwgNamedObjectDictionaryEntry>
             pendingDwgNamedObjectDictionaryEntries;
+        std::vector<DRW::DwgNamedObjectDictionaryEntry>
+            pendingDwgGroupDictionaryEntries;
         DRW::DwgObjectFrameProvenance pendingDwgObjectFrameProvenance;
         DRW::DwgObjectFrameProvenance currentDwgObjectFrameProvenance;
+    };
+
+    /// The class-instance and bounded append-only PlotSettings state for one
+    /// already-associated object handle. This keeps a failed fixed-frame
+    /// OBJECT rollback proportional to one class instance and one vector
+    /// length instead of copying every document-wide class map.
+    struct DwgClassInstanceCheckpoint {
+        std::uint32_t handle {0};
+        std::uint16_t classNumber {0};
+        bool pending {false};
+        bool emitted {false};
+        bool hasEmissionCount {false};
+        std::uint32_t emissionCount {0};
+        std::size_t deferredPlotSettingsEntryCount {0};
+        bool valid {false};
     };
 
     virtual CompoundWriteCheckpoint checkpointCompoundWrite() const {
@@ -560,6 +626,70 @@ public:
             checkpoint.currentDwgObjectFrameProvenance;
     }
 
+    /// Capture the small class-instance ledger entry for a known registered
+    /// handle. The checkpoint is intended for an immediately following
+    /// single-frame write and rollback, with no intervening writer operation.
+    DwgClassInstanceCheckpoint checkpointDwgClassInstance(
+        std::uint32_t handle) const {
+        DwgClassInstanceCheckpoint checkpoint;
+        const auto owner = m_dwgClassInstanceHandleOwners.find(handle);
+        if (handle == 0 || owner == m_dwgClassInstanceHandleOwners.end()
+            || owner->second == 0)
+            return checkpoint;
+
+        checkpoint.handle = handle;
+        checkpoint.classNumber = owner->second;
+        checkpoint.pending = m_rawClassInstanceHandles.count(
+            {owner->second, handle}) != 0;
+        checkpoint.emitted =
+            m_dwgClassInstanceEmittedHandles.count(handle) != 0;
+        const auto count = m_dwgClassInstanceEmissionCounts.find(owner->second);
+        checkpoint.hasEmissionCount =
+            count != m_dwgClassInstanceEmissionCounts.end();
+        if (checkpoint.hasEmissionCount)
+            checkpoint.emissionCount = count->second;
+        checkpoint.deferredPlotSettingsEntryCount =
+            compactDeferredPlotSettingsEntryCount();
+        checkpoint.valid = true;
+        return checkpoint;
+    }
+
+    /// Restore one registered handle's class ledger and compact deferred
+    /// PlotSettings append state after a failed frame. Other handles and class
+    /// definitions are untouched.
+    void rollbackDwgClassInstance(
+        const DwgClassInstanceCheckpoint& checkpoint) {
+        if (!checkpoint.valid || checkpoint.handle == 0)
+            return;
+
+        m_dwgClassInstanceHandleOwners.erase(checkpoint.handle);
+        m_rawClassInstanceHandles.erase(
+            {checkpoint.classNumber, checkpoint.handle});
+        m_dwgClassInstanceEmittedHandles.erase(checkpoint.handle);
+        m_dwgClassInstanceEmissionCounts.erase(checkpoint.classNumber);
+
+        m_dwgClassInstanceHandleOwners.emplace(
+            checkpoint.handle, checkpoint.classNumber);
+        if (checkpoint.pending)
+            m_rawClassInstanceHandles.emplace(
+                checkpoint.classNumber, checkpoint.handle);
+        if (checkpoint.emitted)
+            m_dwgClassInstanceEmittedHandles.emplace(checkpoint.handle);
+        if (checkpoint.hasEmissionCount)
+            m_dwgClassInstanceEmissionCounts.emplace(
+                checkpoint.classNumber, checkpoint.emissionCount);
+        rollbackCompactDeferredPlotSettingsEntries(
+            checkpoint.deferredPlotSettingsEntryCount);
+    }
+
+    /// Fixed-object rollback hook for bounded derived state updated only
+    /// after a successful object frame. The base writer has no such entries.
+    virtual std::size_t compactDeferredPlotSettingsEntryCount() const {
+        return 0;
+    }
+    virtual void rollbackCompactDeferredPlotSettingsEntries(
+        std::size_t) {}
+
     /// Bind provenance to the next object frame. The binding is consumed by
     /// beginObject() or raw replay and is therefore never inherited by an
     /// unrelated subsequent write.
@@ -608,10 +738,15 @@ public:
     }
 
     /// Patch the already-emitted HEADER field after all object handles have
-    /// been minted. The fixed four-byte H payload keeps section offsets stable.
+    /// been minted, then reseal its CRC before container packaging. The fixed
+    /// four-byte H payload can be unaligned but keeps section offsets stable.
     bool finalizeHeaderHandseed() {
         if (m_header == nullptr
             || m_headerHandseedBitOffset == DRW_Header::kInvalidDwgHandseedBitOffset)
+            return false;
+        std::size_t crcStart = 0;
+        std::size_t crcOffset = 0;
+        if (!headerSealingRange(crcStart, crcOffset))
             return false;
         std::uint32_t maxHandle = 0;
         if (!validateEmittedHandleMap(maxHandle)
@@ -631,6 +766,7 @@ public:
         if (!m_buf.patchRawBytesAtBit(m_headerHandseedBitOffset, bytes,
                                       sizeof(bytes)))
             return false;
+        m_buf.patchRawShort16(crcOffset, m_buf.crc16(0xC0C1u, crcStart, crcOffset));
         m_header->setHandSeed(seed);
         return true;
     }
@@ -894,6 +1030,41 @@ public:
         return registerTypedObjectClassRow<dwgTypedClassRowIndex("TableStyle")>(handle);
     }
 
+    bool registerCellStyleMapObjectClass(std::uint32_t handle = 0) {
+        DwgClassDefinition definition;
+        // CELLSTYLEMAP is an R2007+ custom class. Its DWG class ordinal is
+        // local to this CLASSES section, so allocate it instead of fixing an
+        // oType copied from a particular producer's file.
+        definition.m_classNum = nextFreeCustomClassNum();
+        definition.m_proxyFlag = 0x480; // DXF CLASS group 90: 1152.
+        definition.m_appName = "ObjectDBX Classes";
+        definition.m_className = "AcDbCellStyleMap";
+        definition.m_recordName = "CELLSTYLEMAP";
+        definition.m_entityFlagRaw = 0x1F3;
+        return definition.m_classNum >= 500
+            && registerTypedObjectClass(definition, handle);
+    }
+
+    bool registerTableContentObjectClass(std::uint32_t handle = 0) {
+        if (m_version != DRW::AC1021)
+            return false;
+        DwgClassDefinition definition;
+        definition.m_classNum = nextFreeCustomClassNum();
+        // ACadSharp's tracked sample_AC1021.dwg class trace supplies these
+        // identity/trailer fields; its ASCII DXF and ezdxf's table example
+        // independently carry the same proxy/app/class/record identity.
+        // The observed source ordinal is file-local and is not reused here.
+        definition.m_proxyFlag = 0x480;
+        definition.m_appName = "ObjectDBX Classes";
+        definition.m_className = "AcDbTableContent";
+        definition.m_recordName = "TABLECONTENT";
+        definition.m_entityFlagRaw = 0x1F3;
+        definition.m_dwgVersion = 25;
+        definition.m_maintenanceVersion = 21;
+        return definition.m_classNum >= 500
+            && registerTypedObjectClass(definition, handle);
+    }
+
     bool registerMaterialObjectClass(std::uint32_t handle = 0) {
         return registerTypedObjectClassRow<dwgTypedClassRowIndex("Material")>(handle);
     }
@@ -902,7 +1073,7 @@ public:
         return registerTypedObjectClassRow<dwgTypedClassRowIndex("DbColor")>(handle);
     }
 
-    bool registerPlotSettingsObjectClass(std::uint32_t handle = 0) {
+    virtual bool registerPlotSettingsObjectClass(std::uint32_t handle = 0) {
         DwgClassDefinition definition;
         definition.m_classNum = typedDwgClassNum(
             "AcDbPlotSettings", "PLOTSETTINGS", 0);
@@ -1331,17 +1502,42 @@ public:
     /// Verify that every declared custom-class instance was emitted exactly
     /// once.  This runs after OBJECTS, before the final file sections are
     /// assembled, so a failed object cannot leave stale CLASSES counts.
-    bool validateDwgClassInstanceCounts() const {
-        if (!m_rawClassInstanceHandles.empty())
+    bool validateDwgClassInstanceCounts(
+        DwgClassInstanceCountFailure* failure = nullptr) const {
+        if (failure != nullptr)
+            *failure = {};
+        if (!m_rawClassInstanceHandles.empty()) {
+            if (failure != nullptr) {
+                failure->kind =
+                    DwgClassInstanceCountFailure::Kind::RawInstanceHandlesPending;
+                failure->classNum = m_rawClassInstanceHandles.begin()->first;
+                failure->handle = m_rawClassInstanceHandles.begin()->second;
+            }
             return false;
+        }
         for (const auto& owner : m_dwgClassInstanceHandleOwners) {
             const DwgClassDefinition* definition =
                 findDwgClassDefinition(owner.second);
-            if (definition == nullptr || !isDwgClassEnabled(*definition))
+            if (definition == nullptr || !isDwgClassEnabled(*definition)) {
+                if (failure != nullptr) {
+                    failure->kind =
+                        DwgClassInstanceCountFailure::Kind::MissingClassDefinition;
+                    failure->classNum = owner.second;
+                    failure->handle = owner.first;
+                }
                 return false;
+            }
             if (m_rawClassInstanceHandles.count({owner.second, owner.first}) == 0
-                && m_dwgClassInstanceEmittedHandles.count(owner.first) == 0)
+                && m_dwgClassInstanceEmittedHandles.count(owner.first) == 0) {
+                if (failure != nullptr) {
+                    failure->kind =
+                        DwgClassInstanceCountFailure::Kind::UnemittedRegisteredHandle;
+                    failure->classNum = owner.second;
+                    failure->handle = owner.first;
+                    failure->declaredCount = definition->m_instanceCount;
+                }
                 return false;
+            }
         }
         for (const DwgClassDefinition& definition : m_dwgClassDefinitions) {
             if (!isDwgClassEnabled(definition))
@@ -1353,6 +1549,13 @@ public:
             if (definition.m_instanceCount < 0
                 || emitted != static_cast<std::uint32_t>(
                                   definition.m_instanceCount)) {
+                if (failure != nullptr) {
+                    failure->kind =
+                        DwgClassInstanceCountFailure::Kind::DeclaredCountMismatch;
+                    failure->classNum = definition.m_classNum;
+                    failure->declaredCount = definition.m_instanceCount;
+                    failure->emittedCount = emitted;
+                }
                 return false;
             }
         }
@@ -1464,6 +1667,13 @@ public:
         return false;
     }
 
+    /// Register one named GROUP as a child of ACAD_GROUP, distinct from
+    /// source-independent children of the physical NOD.
+    virtual bool registerDwgGroupDictionaryEntry(
+        const std::string&, std::uint32_t) {
+        return false;
+    }
+
     /// Return the physical Named Objects Dictionary receipt after the
     /// deferred OBJECTS-table phase has committed.
     virtual bool getEmittedDwgNamedObjectDictionaryEntries(
@@ -1522,14 +1732,67 @@ protected:
 
     /// Record the absolute buffer position of the header's fixed-width
     /// HANDSEED payload after a version-specific header writer emits it.
-    void recordHeaderHandseedOffset(std::uint32_t dataStartBit) {
+    bool recordHeaderHandseedOffset(std::uint64_t dataStartBit) {
         if (m_header == nullptr)
-            return;
+            return true;
         const std::uint32_t relative = m_header->dwgHandseedBitOffset();
         if (relative == DRW_Header::kInvalidDwgHandseedBitOffset
-            || relative > (std::numeric_limits<std::uint32_t>::max)() - dataStartBit)
-            return;
-        m_headerHandseedBitOffset = dataStartBit + relative;
+            || dataStartBit > (std::numeric_limits<std::uint32_t>::max)()
+            || relative > (std::numeric_limits<std::uint32_t>::max)()
+                              - dataStartBit)
+            return false;
+        m_headerHandseedBitOffset = static_cast<std::uint32_t>(
+            dataStartBit + relative);
+        m_headerDataStartBit = static_cast<std::uint32_t>(dataStartBit);
+        return true;
+    }
+
+    /// ODA v5.4.1 section 9: HEADER CRC covers RL and all declared data,
+    /// including any optional maintenance word, and precedes the end sentinel.
+    /// Use the writer's existing locator-0 range, not the accumulator's end:
+    /// CLASSES and object frames have already been appended at this stage.
+    bool headerSealingRange(std::size_t& crcStart, std::size_t& crcOffset) const {
+        const auto offset = m_sectionOffsets.find(0);
+        const auto size = m_sectionSizes.find(0);
+        const auto& data = m_buf.data();
+        if (!m_buf.isGood() || offset == m_sectionOffsets.end()
+            || size == m_sectionSizes.end() || size->second < 38u
+            || !dwgSafety::range(offset->second, size->second, data.size()))
+            return false;
+        std::uint64_t start = 0;
+        std::uint64_t payloadStart = 0;
+        std::uint64_t sectionEnd = 0;
+        if (!dwgSafety::add(offset->second, 16u, start)
+            || !dwgSafety::add(start, 4u, payloadStart)
+            || !dwgSafety::add(offset->second, size->second, sectionEnd))
+            return false;
+        const std::uint32_t declared = std::uint32_t(data[start])
+            | (std::uint32_t(data[start + 1u]) << 8u)
+            | (std::uint32_t(data[start + 2u]) << 16u)
+            | (std::uint32_t(data[start + 3u]) << 24u);
+        std::uint64_t end = 0;
+        std::uint64_t trailerEnd = 0;
+        if (!dwgSafety::add(payloadStart, declared, end)
+            || !dwgSafety::add(end, 18u, trailerEnd)
+            || trailerEnd != sectionEnd
+            || !std::equal(dwgSentinels::HEADER_BEGIN, dwgSentinels::HEADER_BEGIN + 16,
+                           data.data() + offset->second)
+            || !std::equal(dwgSentinels::HEADER_END, dwgSentinels::HEADER_END + 16,
+                           data.data() + end + 2u))
+            return false;
+        std::uint64_t firstDataBit = 0;
+        std::uint64_t crcBit = 0;
+        std::uint64_t patchEnd = 0;
+        if (!dwgSafety::multiply(payloadStart, 8u, firstDataBit)
+            || !dwgSafety::multiply(end, 8u, crcBit)
+            || !dwgSafety::add(m_headerHandseedBitOffset, 32u, patchEnd)
+            || m_headerDataStartBit < firstDataBit
+            || m_headerHandseedBitOffset < m_headerDataStartBit
+            || patchEnd > crcBit)
+            return false;
+        crcStart = static_cast<std::size_t>(start);
+        crcOffset = static_cast<std::size_t>(end);
+        return true;
     }
 
     bool sameDwgClassIdentity(const DwgClassDefinition& left,
@@ -1864,7 +2127,8 @@ protected:
     /// final flush copies to `m_stream` in one `write()` call.
     dwgBufferW m_buf;
 
-    /// Per-section start byte offsets, indexed by `secEnum::DWGSection`.
+    /// Per-section start byte offsets, indexed by legacy locator IDs
+    /// (`recno` in concrete writers), not secEnum::DWGSection values.
     /// Populated as each section begins emitting; consumed by `finalize()`
     /// to back-patch the file-header section locator records.
     std::map<int, std::uint32_t> m_sectionOffsets;
@@ -1875,6 +2139,8 @@ protected:
     std::ofstream *m_stream {nullptr};
     DRW_Header *m_header {nullptr};
     std::uint32_t m_headerHandseedBitOffset {
+        DRW_Header::kInvalidDwgHandseedBitOffset};
+    std::uint32_t m_headerDataStartBit {
         DRW_Header::kInvalidDwgHandseedBitOffset};
 
     /// Target write version.  Default AC1015 (R2000).  Subclasses for

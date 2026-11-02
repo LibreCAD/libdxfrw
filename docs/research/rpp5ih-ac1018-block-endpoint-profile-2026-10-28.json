@@ -1,0 +1,68 @@
+{
+  "schema": "ac1018-block-endpoint-source-profile-v1",
+  "date": "2026-10-28",
+  "codeCommit": "db5de9408581b70e9f56ef03b3e15b8fe07b4d5a",
+  "supportClaimsPromoted": false,
+  "scope": "Opt-in AC1018 BLOCK and ENDBLK source-field inventory, only the bounded evidenced endpoint grammar. Pairing, captured replay and source profile do not qualify owner targets, children, closure, output or native semantics.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Independent repository sample, native authoring not independently certified.",
+    "encoding": "ASCII AC1018, declared ANSI_1252",
+    "selected": "BLOCK 6F4 [73768,73898), ENDBLK 6F9 [74426,74491), both owner 6F2, block name MyBlock; original 12 and 5 fields respectively."
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "No opt-in block or ATTDEF source capture.",
+    "explicitOptIn": "BLOCK endpoints pair and replay; profiles complete with all 12/5 exact field and reference roles checked; context AC1018/AC1015 ANSI_1252 shared with ATTDEF 6F8, whose replay/profile complete. Reconciliation SourceMismatch; ATTDEF origin absent and rawTypedMatched false.",
+    "artifacts": "build/agent-attribute-profile/ac1018-block-profile/",
+    "probeSourceSha256": "bca2d0a30edeeaeea7c75e30e2ad70569eedd7b9e27d5e21e943958c6345623f",
+    "probeBinarySha256": "412ba31aa702d6c8825859263a4be4a91dfcf609b28f83b5c52a50f46be79ea1",
+    "stdoutSha256": "19c36dad854344c0a3f0f2aec05408867166db78e0ad9f3a3bd9e847d8c57b63",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "adapterObjectSha256": "6855fb035c20c9d3a27dee93dd6ee2b7dd08b54b174a3d5e6e2edbd39e7ceaa0",
+    "librarySha256": "9a7babaf49ef0f2c20392ffa6f7053303042482bd295f49147a9601d67c298a9"
+  },
+  "bindings": {
+    "profileSourceSha256": "2e360abe36c648581465d717267ff1cba15b70868ddfde334233273a0df0723d",
+    "testControlSha256": "0c46da0f99fee7f366204dc7141adea992e25e8468d9c552363ebd10140b8b2c",
+    "normalBinarySha256": "bc1dcc20bc86df32cdece19e1bbdf58bf9e5a091d09ece359b99e81314978697",
+    "priorOptInReceiptSha256": "bdbdc9d1f1959c398819ad93ec980cb1b6d9314e9ce42c9a6dad8355205f5279",
+    "note": "Original source probe used the prior normal adapter and library recorded above, with concurrent TABLE and MATERIAL changes at that time. The initial combined checkpoint reported 7/8 with a TABLE failure; TABLE was corrected, then final normal and ASan checkpoints passed 8/8 with concurrent TABLE and MATERIAL work later committed as 9dc1686d and 27fd83a0 before this BLOCK profile commit. Profile and control source hashes above match db5de940."
+  },
+  "validation": {
+    "normal": {
+      "result": "PASS 8/8 final focused cohort",
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "binarySha256": "bc1dcc20bc86df32cdece19e1bbdf58bf9e5a091d09ece359b99e81314978697",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "logSha256": "296be0d346d062f4bb42a6554043ceacf64780e57ac86b7879124af2dcd14193"
+    },
+    "asan": {
+      "result": "PASS 8/8 same focused cohort",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "attdefBlockBinarySha256": "9041dfa7c8cb3b5d881c48dc7d53edd87e3a44444275eb309bd32dc67d432ebb",
+      "librarySha256": "bd36b9bbbf30f4df0e6c631f4dfd88686556c329a560baf8d93f8839c49aa939",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "logSha256": "550062f1fefff3cd384da454eb7e9d1f098b7b06b50ae89be5931712f25678b7"
+    },
+    "controls": "Locally authored ASCII/binary profile ledgers and raw mutation, quota/retry controls, wrong types, identity/layer/name/duplicate and unsupported proxy/application/XDATA controls; modern malformed proxy variants also refused. Non-ASCII xref path is an authored control, not an independent original."
+  },
+  "limitations": [
+    "Default legacy source facet remains opt-out; an explicit opt-in can fail on reader capture quota or invalid input.",
+    "Legacy non-ASCII role names, proxy 92/160/310, application groups, XDATA and other unmodeled endpoint groups remain refused.",
+    "BLOCK_RECORD proof, original membership and delivery, compound ownership, APPID/LAYER targets, output admission and native semantics remain separately gated; no support claim is promoted.",
+    "No drawing fixtures were committed."
+  ]
+}

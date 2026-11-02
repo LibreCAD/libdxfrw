@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-linked-payload-loss-guard-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Prevent TABLECONTENT from claiming semantic completeness while linked-cell data or ATTDEF cell attributes are structurally consumed but not retained.",
+  "method": {
+    "kind": "Focused parser behavior change with generated in-memory object vectors",
+    "odaSectionsUsed": [
+      "20.4.96",
+      "20.4.97"
+    ],
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+        "result": "passed"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "passed",
+        "passed": 1,
+        "failed": 0
+      }
+    ],
+    "localFilesChanged": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/acad-tablecontent-linked-payload-loss-guard-fast-slice-2026-10-17.json"
+    ],
+    "evidenceRule": "Generated source-authored vectors exercise only the documented parser field profile encoded by this test; they do not establish producer compatibility, object dispatch completeness, consumer acceptance, or linked-graph round-trip support."
+  },
+  "vectors": [
+    {
+      "sourceVersion": "AC1021",
+      "route": "direct DRW_TableContentObject::parseDwg probe",
+      "generatedInMemory": true,
+      "payload": "linked-data flag, DATALINK handle, row/column metadata, and opaque unknown value",
+      "expected": "Structural parse succeeds and m_parseComplete is true, while m_semanticContentComplete is false."
+    },
+    {
+      "sourceVersion": "AC1021",
+      "route": "direct DRW_TableContentObject::parseDwg probe",
+      "generatedInMemory": true,
+      "payload": "one cell-content ATTDEF handle, text, and index tuple",
+      "expected": "Structural parse succeeds and m_parseComplete is true, while m_semanticContentComplete is false."
+    },
+    {
+      "sourceVersion": "AC1024",
+      "route": "inline TABLECONTENT in DRW_Table::parseDwg",
+      "payloads": [
+        "linked-data flag, DATALINK handle, row/column metadata, and opaque unknown value",
+        "one cell-content ATTDEF handle, text, and index tuple"
+      ],
+      "expected": "Outer TABLE prefix parses successfully; semantic completeness is false; partial columns/rows are not published; cursor remains at TABLECONTENT start."
+    }
+  ],
+  "implementation": {
+    "semanticCompleteness": "parseTableContent reports structural parsing separately from completeness; skipped linked-cell and ATTDEF payloads mark the result incomplete and emit a focused debug diagnostic.",
+    "fallback": "No adapter or writer code changed. The existing incomplete-table exclusion from semantic TABLE output and INSERT projection path remain unchanged.",
+    "publicModel": "DRW_TableContentObject exposes m_semanticContentComplete and reset clears it. This changes public class layout, so downstream consumers must rebuild; no DRW_Interface virtual was added."
+  },
+  "doesNotEstablish": [
+    "producer-authored linked TABLECONTENT acceptance",
+    "typed retention of DATALINK handle, BL93/BL94/BL96 values, or ATTDEF tuples",
+    "reference-closed DATALINK ownership, dispatch, DXF emission, or handle remapping",
+    "all AC1021 or AC1024+ TABLECONTENT profiles",
+    "native 2D or 3D consumer behavior"
+  ],
+  "planImpact": {
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextSlice": "7G.3d.3b typed linked-cell metadata and ATTDEF tuple retention, with bounds, reset/copy, and both AC1021/AC1024 generated vectors"
+  }
+}

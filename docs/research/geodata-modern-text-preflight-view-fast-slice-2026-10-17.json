@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-geodata-modern-text-preflight-view-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.37",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / GEODATA_TEXT_PREFLIGHT_COPY_SCOPED",
+  "objective": "Avoid identity-encoded string materialization in compatible AC1021+ GEODATA v1 width validation while preserving strict and legacy codepage behavior.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/geodata-modern-text-preflight-view-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "GEODATA v1 representable-text validation uses source byte length directly only for compatible modern DXF identity-UTF-8 output.",
+      "Strict-lossless and pre-AC1021 routes continue to materialize the selected encoded representation before enforcing the 255-byte limit.",
+      "Successful output field values and refusal-before-output behavior remain unchanged."
+    ],
+    "compatibility": "Internal writer path only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight-view",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated ASCII/Binary AC1021 compatible 255-byte acceptance and 256-byte refusal, with exact group-301 readback.",
+    "Generated ASCII/Binary AC1021 RequireLossless 255-byte acceptance and 256-byte refusal.",
+    "Generated AC1018 CP1252 case where 256 UTF-8 bytes (128 é scalars) encode to 128 bytes and fit the field limit.",
+    "Generated AC1018 256-byte ASCII case rejects without emitting a partial object."
+  ],
+  "limits": [
+    "No allocation-count, throughput, or peak-RSS measurement was run; copy avoidance is established by the gated source path and output-boundary controls.",
+    "The slice does not promote GEODATA semantic completeness or native-consumer behavior.",
+    "No full suite, peer runtime, native CAD application, or fuzz/sanitizer campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue auditing source-confirmed writer/projection materializations, then advance to the next bounded typed/raw-carrier owner. External qualification and caller post-callback mutation semantics do not block local implementation.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 typed same-version DXF view-style field overlay",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Serialize edits to modeled DetailViewStyle and SectionViewStyle fields into their captured same-version DXF records while retaining unmodeled groups and the existing graph/reference gates.",
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "writerShape": "The adapter copies the captured raw style record, overlays recognized existing groups using the current parseCode subclass/group/occurrence mappings, and sends the copy through writeRawDxfObject so existing handle remapping and version validation remain active.",
+    "rawPreservation": "Unchanged ASCII raw lexemes are retained. Changed mapped values update only their corresponding copied raw lexeme. Unknown groups remain ordered and unchanged. Binary output serializes the typed variants.",
+    "failClosedCases": [
+      "typed field changed from class default but no matching source group exists",
+      "malformed group value type or non-finite double for a mapped field",
+      "SectionViewStyle hatch-angle vector cardinality differs from captured angle groups or count marker",
+      "style raw identity, owner, or accepted object name does not match the typed record"
+    ],
+    "positiveControls": [
+      "ASCII DXF typed DetailViewStyle description, identifier height, and label-pattern edits survive same-version readback",
+      "ASCII DXF typed SectionViewStyle hatch-scale, hatch-pattern, and hatch-angle edits survive same-version readback",
+      "Binary DXF equivalents survive same-version readback",
+      "full ordered raw-group stream remains equal to expected output after handle normalization",
+      "opaque group-301 sentinel remains unchanged"
+    ],
+    "negativeControls": [
+      "adding a third SectionViewStyle hatch angle when the captured graph contains two refuses publication",
+      "editing a DetailViewStyle label pattern absent from its source groups refuses publication",
+      "both failures preserve a pre-existing output sentinel"
+    ],
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false,
+    "worktreeNote": "The checkout is broadly dirty and .git is read-only in this session. This slice remains uncommitted; unrelated pre-existing changes were preserved."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS",
+      "expectedMalformedInputDiagnostics": "The selector prints DXF format errors for intentionally malformed graph controls and exits successfully after confirming refusal behavior."
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "This proves generated same-version ASCII/Binary DXF serialization for modeled fields represented by existing groups, preservation of opaque groups, and fail-closed behavior for the tested cardinality/absent-field cases. It does not prove DWG-origin style output, cross-version translation, normative flag/unnamed-field meanings, native rendering, or consumer support.",
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-20"],
+    "newConfirmedFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingPAR138Work": [
+      "DWG-origin style-name and field decoding with producer/spec-backed mapping",
+      "insert and reorder source-missing typed fields instead of the current fail-closed rule",
+      "cross-version translation and version-specific style gates",
+      "native style rendering qualification",
+      "normative semantics for DetailViewStyle flags and unnamed SectionViewStyle booleans"
+    ]
+  }
+}

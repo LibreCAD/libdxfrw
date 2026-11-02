@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-visualstyle-source-profile-7g-3f-3c-1-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "8cb0a4537cfa455c3ff5b87b62ea5ae656355f7a",
+  "scope": "Implement structural admission for one complete AC1032 DWG-origin VisualStyle source capture; no serializer or output support claim",
+  "researchBasis": {
+    "peerAudit": "docs/research/broader-peer-capability-readiness-2026-10-15.json",
+    "classAndConsumerAudit": "docs/research/class-emission-contract-readiness-2026-10-15.json",
+    "keyBoundary": "Pinned ACadSharp writer skips VISUALSTYLE; public Autodesk DXF documentation does not define the complete 58-operation expansion; peer source cannot serve as a serializer oracle."
+  },
+  "implementation": {
+    "predicate": "dx_data::hasCompleteAc1032VisualStyleSourceProfile",
+    "requirements": [
+      "one successful VisualStyle import generation",
+      "DWG source and exact AC1032 source version",
+      "nonempty typed style set and no raw DXF carriers",
+      "decoded body with R2013b expansion",
+      "exactly 58 captured property companions and eight present modern CMC captures",
+      "source isolines captured, within representable policy bounds, and equal to the retained unclamped body value",
+      "extended-lighting model is nonnegative and fits a 16-bit word"
+    ],
+    "explicitly_not_proven": [
+      "captured values unchanged since import",
+      "58 source slots mapped to correct DXF groups",
+      "RGB/ACI or named-color serialization policy",
+      "VisualStyle dictionary and graph closure",
+      "successful DXF write/readback",
+      "LibreCAD, LibreCAD_3, FreeCAD, ACIS, or native CAD semantic support"
+    ],
+    "fixturePolicy": "Use only the already-tracked tests/fixtures/dwg/rtext_arctext.dwg; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "builds": {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_named_resource_import_evidence|libdxfrw_visual_style_import_evidence|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 3
+    },
+    "composedFreeCADFormTest": {
+      "test": "dwg2dxf_freecad_cli_compat",
+      "result": "FAIL; gate remains open",
+      "observed": "Conversion returned 1 on tracked rtext_arctext.dwg; diagnostic reported classesCrcMismatch=1 and integrity rows at offsets 16 and 773.",
+      "causalAssessment": "The new predicate is not called by the CLI and this slice changes neither dx_iface.cpp nor exporter behavior. The failure is recorded as independent/unresolved, not attributed to the classifier; no baseline run was available to establish whether it predates this slice.",
+      "policy": "Do not weaken the test or claim FreeCAD-form conversion success; investigate the reader/input integrity path in a separate bounded slice."
+    },
+    "fullSuite": "NOT RUN",
+    "nativeApplications": "NOT RUN",
+    "gitDiffCheck": "PASS"
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_data.h": "9f9134fa8c82c2e1184b8fa9e39a42a4051b99487abcb3ccdc8533e59a200515",
+    "tests/dwg2dxf_adapter_tests.cpp": "876a6c0d61a9aff2325514c4b8a36433536b886a2569d613388061e75865019f",
+    "tests/fixtures/dwg/rtext_arctext.dwg": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+  },
+  "nextImplementationSlice": "Freeze a trace-backed 58-slot source/output descriptor with per-slot evidence grades, then make an explicit CMC output policy before enabling typed serializer admission.",
+  "scopeBoundary": {
+    "newFixtures": 0,
+    "newCTestRegistrations": 0,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

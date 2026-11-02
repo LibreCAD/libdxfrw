@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-178 rightAttachment",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "c7fb5348f2772f6966bd3da2978d4aac55ae6067",
+  "scope": "One runtime-authored AC1027 DXF source with a root-reachable STANDARD MLEADERSTYLE record. It contains one group-178 INTEGER rightAttachment value 0 and one group-174 INTEGER leftAttachment value 0. The selected transaction changes only rightAttachment from 0 to 6; leftAttachment and all other encoded style values remain unchanged.",
+  "fieldEvidence": {
+    "groupCode": 178,
+    "field": "rightAttachment",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies code 178 as Text Right Attachment Type",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "valueDomainSource": "Autodesk AcTextAttachmentType enumeration values cover 0 through 8; the paired right-attachment property uses this enum",
+    "valueDomainUrl": "https://help.autodesk.com/cloudhelp/2023/JPN/AutoCAD-ActiveX/files/GUID-95D92244-7CC8-46A7-88AB-C5755EF779FE.htm",
+    "classification": "Authoritative Autodesk DXF field-role and attachment-enum domain corroboration plus authored adapter transaction evidence; not independent producer or native rendering acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain exactly one existing group-178 INTEGER corresponding to parsed rightAttachment. The target value must be within the documented enum range 0..8. rightAttachment must be the only changed typed payload field; identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-178 value in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. Missing/repeated group 178, conflicting raw changes, simultaneous edits, out-of-range enum values, unknown subclass grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "Inspect staged OBJECTS output against retained raw fields and mapped handles, then decode the emitted MLEADERSTYLE and require rightAttachment to equal 6 while leftAttachment remains 0. Fresh readback checks typed value and exactly one literal group-178 INTEGER value 6. Both source encodings are exercised, with same-format output and ASCII/binary cross-format output.",
+    "failureAndRetry": "Changing captured raw group 178 from 0 to 1 while typed rightAttachment requests 6 refuses and preserves a sentinel destination. Value 9 also refuses atomically. Restoring the original raw body leaves the caller's typed request intact and permits same-adapter retry. Exact output and fresh-readback checks pass after retry.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions or multiple changes on one record. DWG-origin writing is unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 174=0 and group 178=0 in the STANDARD source; ASCII and binary source files are generated locally from scratch at test runtime.",
+    "implementationCommit": "c7fb5348f2772f6966bd3da2978d4aac55ae6067",
+    "dwg2dxf/dx_iface.cpp": "0d0166e6a0943164edd6e3f572456b6781a4ca6ad0fc2984efad93b54f244a74",
+    "tests/dwg2dxf_adapter_tests.cpp": "993efbda8689c9c165310b49465596efaa2263bcc9cc2c2bfc28154957aacf6f",
+    "adapterTestExecutableSha256": "9a583476495557072d2a6dd6536c82f54d28e136d2e801ab04d8dac4b3a143a2"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "Configured build-gcc; CMake 4.4.4, Unix Makefiles, Apple Clang 21.0.0 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The authored group-178 profile proves exact output/readback for ASCII and binary sources, same-format and cross-format output, raw-conflict rollback, invalid enum refusal, and corrected same-adapter retry."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies one authored AC1027 right-attachment transaction only. It does not prove independent producer variation, native annotation placement/rendering, cross-version support, DWG editing, consumer acceptance or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a distinct current P2 source-backed geometry, schema or provider witness. Preserve the bounded enum range and AC1027-only admission."
+}

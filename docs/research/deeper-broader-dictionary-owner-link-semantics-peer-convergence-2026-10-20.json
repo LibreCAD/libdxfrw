@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Dictionary owner-link semantics and peer convergence",
+  "mode": "primary-source cross-check with local implementation/guard reconciliation",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "status": "normative-DICTIONARYVAR-owner-reference",
+      "observation": "DICTIONARYVAR group 330 identifies the ACDBVARIABLEDICTIONARY owner; its value and schema are separate fields."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "status": "normative-DICTIONARY-entry-reference",
+      "observation": "A DICTIONARY has an owner-object group 330 and entries represented by group-3 keys paired with group-350 soft-owner target handles."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+      "status": "normative-OBJECTS-order-and-owner-reference",
+      "observation": "The named object dictionary is always the first object in the OBJECTS section; later objects may be owned by it or by other objects."
+    },
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "status": "independent-implementation-lookup-cross-check",
+      "observation": "dwg_variable_dict locates AcDbVariableDictionary, resolves the requested dictionary entry, then verifies that the target fixed type is DICTIONARYVAR before returning its value. This corroborates traversal/type-check structure but is not format authority."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dictionary.py",
+      "status": "independent-DXF-object-graph-and-compatibility-cross-check",
+      "observation": "Dictionary linking sets the child object's owner to the dictionary handle and audits references to missing objects. The parser accepts both group 350 and 360 entry references. New dictionaries default to group 350, while loaded entry-code state is retained at dictionary level for serialization; comments describe 360 as observed in accepted files despite not being documented by the cited Autodesk DICTIONARY schema."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "LOCAL_STRICT_GRAPH_GUARD_AND_GENERATED_COMPATIBILITY_CONTROLS_VERIFIED",
+    "implementationSummary": "Confirmed the DICTIONARYVAR path is a graph of three distinct relations: NOD key to child dictionary, dictionary key/reference to target, and target group-330 owner back to the child dictionary. Production strict export rejects direct-NOD, duplicate-key, wrong-kind, missing-target, and wrong-owner routes. Generated ASCII/Binary controls exercise mixed 350/360 entry input and reorder subordinate objects while preserving the required first-record NOD. Existing parsing accepts both entry codes; libdxfrw emits group 350 for regenerated NOD entries and uses hardOwner to select group 350/360 for ordinary child dictionaries.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "generatedScratchControls": "Existing generated ASCII/Binary DXF controls; direct-NOD invalid topology is tested without persisting a fixture.",
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/root-dictionaryvar-canonical-nod-route-fast-slice-2026-10-20.json",
+      "docs/research/deeper-broader-dictionary-owner-link-semantics-peer-convergence-2026-10-20.json"
+    ],
+    "limitations": "Autodesk establishes the cited DXF schema. LibreDWG and ezdxf corroborate implementation patterns only. No real DWG-origin parser witness, external producer result, ACIS/AcDs result, or native LibreCAD/FreeCAD result is added. Group-360 entry acceptance remains compatibility evidence and is not a normative format rule; output code depends on each writer's behavior and, in libdxfrw, whether the record is emitted by the special NOD writer or ordinary child-dictionary writer. NOD-late files are not used as positive graph-order controls because Autodesk requires the NOD first."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 passed.",
+    "focusedCTest": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure passed (1/1); this exercises canonical ASCII/Binary route, direct-NOD refusal, owner mismatch, output-preservation, and corrected retry controls.",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure passed (1/1)."
+    ],
+    "scopedDiffCheck": "git diff --check passed for scoped implementation, test, plan, and receipt files.",
+    "jsonValidation": "jq empty passed for both research receipts.",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

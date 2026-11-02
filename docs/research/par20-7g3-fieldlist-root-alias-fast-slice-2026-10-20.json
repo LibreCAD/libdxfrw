@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 FIELDLIST NOD root alias refusal",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "finding": {
+    "source": "hasCompleteAutoCadFieldGraph() required exactly one canonical ACAD_FIELDLIST edge to the typed FIELDLIST object but did not reject an additional differently named NOD edge to that same object.",
+    "coverageGap": "The generated FIELD graph refusal matrix did not include same-target NOD aliasing for the direct FIELDLIST object.",
+    "scope": "FIELDLIST direct-object NOD root alias refusal only; the target is not a DICTIONARY and is intentionally not passed through the generic dictionary-root helper."
+  },
+  "implementation": [
+    "Extended hasCompleteAutoCadFieldGraph() to refuse a noncanonical NOD edge targeting the FIELDLIST handle.",
+    "Added an ACAD_FIELDLIST_ALIAS case to the existing generated complete/wrong-owner/missing-target FIELD graph matrix for ASCII and Binary.",
+    "The alias case must fail graph closure and preserve the seeded destination; no new executable or CTest was added."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests --parallel 2",
+    "focusedSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-graph-export-refusal (ASCII/Binary)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_field_graph_export_refusal$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "fullSuite": "NOT_RUN (generated fast slice)",
+    "externalPeerOrNativeConsumer": "NOT_RUN"
+  },
+  "scopeAccounting": {
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": true,
+    "supportClaimsPromoted": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "filesChanged": [
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/par20-7g3-fieldlist-root-alias-fast-slice-2026-10-20.json"
+  ],
+  "commitCreated": false,
+  "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

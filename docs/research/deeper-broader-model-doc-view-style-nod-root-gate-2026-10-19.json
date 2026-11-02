@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader model-document view-style route maturity and NOD-root output gate",
+  "mode": "Primary project source review and current worktree status reconciliation; plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Cross-check DETAILVIEWSTYLE and SECTIONVIEWSTYLE status against a separate DWG implementation and LibreCAD's bundled-fork inventories.",
+    "Determine whether type maturity or generated source inventories establish end-to-end root/object serialization.",
+    "Refine the existing same-version DXF raw-replay readiness gate around NOD keys, remapped targets, owners, and failure atomicity."
+  ],
+  "method": {
+    "kind": "Read-only web-source review plus local plan/worktree status cross-check",
+    "externalSourceCommitsPinned": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForThisResearchPass": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "LibreDWG master and LibreCAD master source pages are mutable. The LibreCAD inventory is a same-lineage source census and explicitly not byte-level conformance evidence. The local readback failure is recorded from the in-progress implementation worktree state; this research pass did not rerun it."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/encode.c#L3726-L3801",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "DETAILVIEWSTYLE and SECTIONVIEWSTYLE are listed as STABLE in the object-name registry and release notes. fixup_NOD() removes ACAD_<type> NOD entries only when is_type_stable(type) is false.",
+      "evidenceCeiling": "Mutable source-level classification and root-filtering policy only. It does not prove complete field decoding, serialized output correctness, whole-file validity, or native acceptance."
+    },
+    {
+      "project": "LibreCAD bundled libdxfrw fork",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+        "https://github.com/LibreCAD/libdxfrw/blob/master/LIBRECAD_DXFRW_UPGRADE_PLAN.md"
+      ],
+      "observed": "The generated inventory lists the style families as typed read/write routes but marks them fixture-needed, declares itself a deterministic source inventory rather than byte-level conformance, and reports zero validated fixed-object shells. The upgrade plan groups these styles with related model/section objects and calls for typed-plus-raw publication, class identity, and reference-graph closure.",
+      "evidenceCeiling": "Same libdxfrw lineage and planning/source inventory, not an independent implementation or runtime parity result."
+    }
+  ],
+  "localStatus": {
+    "existingOwner": "PAR-20/7G.3f.4b.2 DETAILVIEWSTYLE/SECTIONVIEWSTYLE capture, reference closure, and same-version DXF raw replay",
+    "observed": "The current generated replay attempt compiles, and readback contains style records plus remapped STYLE/LTYPE/BLOCK_RECORD targets, but the NOD contains only ACAD_GROUP=13 and lacks ACAD_DETAILVIEWSTYLE and ACAD_SECTIONVIEWSTYLE entries.",
+    "status": "INCOMPLETE_ROOTED_OUTPUT; prior in-progress selector failure; not rerun in this research pass"
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planEffect": "Keep the existing family slice scoped to same-version DXF. Require exact NOD key preservation, unique remapped target resolution, owner closure, unrelated-root retention, ordered raw payload replay, and transactional refusal controls before closing it. Preserve DWG-origin and cross-version refusal until separately qualified.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

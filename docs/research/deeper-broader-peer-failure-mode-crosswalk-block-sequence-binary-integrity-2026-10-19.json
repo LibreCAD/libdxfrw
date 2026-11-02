@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer failure-mode crosswalk: block sequence and binary integrity",
+  "base_revision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "Primary-source issue/specification review cross-checked against current local writer, adapter, tests, and plan",
+  "scope": [
+    "Reconcile current LibreDWG block omission and INSERT-sequence reports with libdxfrw's distinct writer route.",
+    "Refresh binary DXF width, block-owner, table-merge, spline, and MLEADER peer issue status against existing local plan owners.",
+    "Refine one compact generated ASCII/Binary implementation gate while preserving local-only fixture policy and fast validation cadence."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_committed": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "local_source_files_inspected": [
+      "src/libdxfrw.cpp: dxfRW::writeBlocks callback flow",
+      "src/intern/dxfwriter.cpp: Binary-DXF primitive-width validation",
+      "tests/block_owner_tests.cpp: consecutive named-block and INSERT/ATTRIB/SEQEND generated controls",
+      "tests/CMakeLists.txt: existing block-owner target and fast CTest registration",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-49/7G.3 and PAR-39/7X owners"
+    ],
+    "local_checks": [
+      "Compared the LibreDWG #1409 reported shared object-array cursor mutation with local callback-driven dxfRW::writeBlocks; no equivalent local cursor mechanism was found.",
+      "Confirmed local tests separately cover consecutive named blocks and block-owned INSERT/ATTRIB/SEQEND sequences, but the reviewed assertions do not combine an attribute-rich INSERT before adjacent anonymous and paper-space definitions with a table/body identity bijection.",
+      "Reconciled LibreDWG #1351's maintainer/reporter note that its `66=1` missing sequence case was fixed on named master commit 56a05f98.",
+      "Reconciled ACadRust #136 with local DxfValueKind primitive validation, NUL rejection, generated width guards, and LWPOLYLINE family coverage; exhaustive high-level call-site coverage remains owned by PAR-39/7X.",
+      "Reconciled ACadRust #133/#130/#134 and ACadSharp #1299/#1277 with existing owner, TABLE, auxiliary-record, SPLINE, and fail-closed MLEADER plan owners.",
+      "Updated the parity-plan top summary and appended a detailed implementation-readiness crosswalk; made no source, test, fixture, dependency, or support-claim change."
+    ],
+    "limitations": "Peer issues are route-, build-, and version-scoped reports, not format authorities or libdxfrw reproductions. LibreDWG issue #1409's trigger and recovery counts are reporter evidence. ACadRust candidate commits and issue comments do not establish current released behavior without pinned retest. ACadSharp #1299's attached drawing was not downloaded or inspected, and its spline diagnosis was not independently established. No local test was executed because this pass only refines the plan."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG issue #1409: block definitions omitted by shared cursor advancement",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "observed": "The issue reports ASCII and Binary-DXF block-body omission when the block scan loop index is also advanced across child objects; later comments describe named blocks, anonymous dimension blocks, paper-space bodies, and attribute-rich INSERTs as relevant shapes.",
+      "evidence_ceiling": "Peer-specific writer failure; not the same implementation mechanism as libdxfrw and not a local defect reproduction."
+    },
+    {
+      "name": "LibreDWG current mutable DXF block writer source",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/out_dxf.c",
+      "observed": "The issue points to the block scan passing its loop index into the block writer; exact current behavior is mutable-source evidence and should be pinned before any peer execution.",
+      "evidence_ceiling": "Source-location corroboration only; no peer source was cloned or built."
+    },
+    {
+      "name": "Autodesk BLOCKS section contract",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-9DDFC343-6C87-4AF8-B3B9-77E0AB5A3031.htm",
+      "observed": "The BLOCKS section contains block definitions and each definition's entities; its entities occur between BLOCK and ENDBLK markers.",
+      "evidence_ceiling": "Structural DXF contract; does not qualify DWG source-reader retention or application rendering."
+    },
+    {
+      "name": "Autodesk BLOCKS group-code example",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A3E4F1D3-79C9-489C-B7EC-3924DA7F25C9.htm",
+      "observed": "The published example shows BLOCK, its body records, ENDBLK, and the BLOCKS section boundary.",
+      "evidence_ceiling": "Wire-structure reference only."
+    },
+    {
+      "name": "Autodesk INSERT group 66 reference",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "observed": "Group 66 value 1 signals that ATTRIB records follow the INSERT and are terminated by SEQEND.",
+      "evidence_ceiling": "Wire-sequence rule only; not a complete DWG attribute-graph qualification."
+    },
+    {
+      "name": "Autodesk SEQEND reference",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm",
+      "observed": "SEQEND marks the end of an INSERT's attribute sequence when the INSERT indicates attributes follow.",
+      "evidence_ceiling": "Wire-sequence rule only."
+    },
+    {
+      "name": "LibreDWG issue #1351: INSERT attribute sequence output",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1351",
+      "observed": "A later issue comment records the reproduction fixed on named LibreDWG master commit 56a05f98, with ATTRIB and SEQEND emitted in the comparison.",
+      "evidence_ceiling": "Named peer master observation, not a current libdxfrw bug or independent support result."
+    },
+    {
+      "name": "ACadRust issue #136: Binary-DXF group widths and embedded NUL",
+      "url": "https://github.com/hakanaktt/acadrust/issues/136",
+      "observed": "The issue reports 60 hard-coded numeric writer call sites across 15 group codes in ACadRust 0.6.4, same-codec readback accepting malformed output, and a separate NUL-string framing concern.",
+      "evidence_ceiling": "Peer release-specific report; local validation remains determined by Autodesk's group-code table and raw-byte tests."
+    },
+    {
+      "name": "ACadRust issue #133: non-null orphan owner rehoming",
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "observed": "The report describes erased anonymous dimension-block children rehomed into model space and notes a proposed commit awaiting a corpus recheck.",
+      "evidence_ceiling": "Private-corpus peer report and candidate fix; no local DWG reproduction."
+    },
+    {
+      "name": "ACadRust issue #130: merged TABLE cells and suppression flags",
+      "url": "https://github.com/hakanaktt/acadrust/issues/130",
+      "observed": "The issue separates merged-range-to-cell-span projection from DWG table-style flags versus DXF suppression booleans, and links candidate fixes requesting test confirmation.",
+      "evidence_ceiling": "Peer representation issue; local coverage is already owned by 7G.3d and remains non-native."
+    },
+    {
+      "name": "ACadSharp issue #1299: DWG-to-DXF spline report",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "observed": "The report names ACadSharp 3.8.0, an attached AutoCAD DWG and produced DXF, and downstream GDAL rejection; no independent spline arrays or curve diagnosis are provided in the issue body.",
+      "evidence_ceiling": "Peer conversion report; no file was downloaded and no libdxfrw defect is inferred."
+    },
+    {
+      "name": "ACadSharp issue #1277: standalone MLEADER context writer audit failure",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "observed": "The issue reports same-reader round-trip success but AutoCAD LT AUDIT errors and dropped standalone annotative MLEADER contexts; maintainer says a larger MLEADER refactor is required.",
+      "evidence_ceiling": "Peer-specific native writer failure; useful evidence that self-roundtrip is insufficient, not a libdxfrw semantic result."
+    }
+  ],
+  "plan_effect": {
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "existing_subplan_readiness_refined": "PAR-49/7G.3 block-body and INSERT sequence controls",
+    "findings": 134,
+    "top_level_subplans": 76,
+    "implementation_order_changed": false,
+    "validation_cadence_changed": false,
+    "fixture_policy_changed": false,
+    "new_fixture_or_ctest": false,
+    "production_code_changed": false,
+    "support_claims_promoted": false,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

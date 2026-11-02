@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader source-generated ACIS SAB control and live 3D queue reconciliation",
+  "mode": "primary-source research and local plan/source inventory only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck the open-source DWG/DXF peer routes relevant to valid AC1032 SAB authoring, carrier transfer, and 3D consumer claims",
+    "Compare peer reports with the current MESH and AcDs test owners to remove completed work from the live 3D queue",
+    "Define a source-authored, bounded valid-SAB regression that does not require proprietary or downloaded drawings",
+    "Keep independent parser/kernel, FreeCAD platform, and support-claim evidence separate from local carrier tests"
+  ],
+  "method": {
+    "kind": "Read-only review of public primary repository issues, project documentation, current local plan entries, and source-generated test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Public issue reports are peer-specific and were not reproduced. Current project documentation is mutable. The proposed valid-SAB control is a plan item only; no SAB/DXF/DWG was generated or parsed in this research pass."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "revision": "open issue reviewed 2026-10-17",
+      "observed": "The reporter supplies a no-proprietary-file AC1032 DXF recipe that creates a REGION with a 5,489-byte SAB body via ezdxf, then reports that LibreDWG conversion keeps the entity but loses the SAB/AcDs carrier. A separate confidential R2018 observation is reporter-only and was not downloaded or independently reproduced."
+    },
+    {
+      "project": "LibreDWG NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "mutable master reviewed 2026-10-17",
+      "observed": "The current published release notes continue to describe AcDsPrototype_1b as incomplete and characterize newer R2013+ SAB extraction as brute-force. This is a project limitation statement, not a complete audit of current source or a normative AcDs contract."
+    },
+    {
+      "project": "ezdxf ACIS API documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "revision": "stable documentation labeled ezdxf 1.4.5, reviewed 2026-10-17",
+      "observed": "body_from_mesh creates a polyhedral ACIS Body from MeshBuilder input, classifies a mesh as closed when each edge has two adjacent faces, and merges coincident vertices. The documentation says R2013+ DXF uses SAB while R2000-R2010 uses SAT. This is an authoring/control route for the selected mesh profile, not proof of general ACIS semantics."
+    },
+    {
+      "project": "ACadSharp issue #1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue reviewed 2026-10-17",
+      "observed": "The report describes silent omission of 3DSOLID/REGION entities during DWG-to-DXF writing, including blocks whose only contents are solids. It is a peer-reported failure shape, not evidence of a libdxfrw defect."
+    },
+    {
+      "project": "ACadSharp PR #1240",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "revision": "open PR state reviewed 2026-10-17; no deployment shown",
+      "observed": "The proposed ACIS entity writer remains unmerged/undeployed. It is not a released writer, qualified runtime, or independent positive control."
+    },
+    {
+      "project": "FreeCAD issue #18454 and importer preferences",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "revision": "maintainer response and current documentation reviewed 2026-10-17",
+      "observed": "A FreeCAD maintainer says stock FreeCAD cannot read the proprietary ACIS blob in DXF; current DWG documentation describes external converter choices. This narrows stock-consumer applicability and does not establish libdxfrw carrier correctness or exclude a separately named plugin/modeler route."
+    },
+    {
+      "project": "Local source and tests",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The current status table marks explicit MESH property-override wire/readback as committed; generated DataStorage threshold and two-page blob01 controls are directly runnable through --datastorage-page-boundaries. Existing ACIS graph tests predominantly use synthetic records/markers; they do not yet substitute for an authored, valid AC1032 SAB body with independently declared analytic expectations."
+    }
+  ],
+  "assessment": {
+    "peerFailureUse": "Use LibreDWG #1411 and ACadSharp #1195 as negative test shapes for silent payload/entity loss and block-nested omission. Do not transfer peer defects to libdxfrw without a local source-bound reproduction.",
+    "validSabControl": "Add one bounded synthetic control authored from locally specified closed rectangular-prism meshes. For dimensions 2x3x5 at minimum (11,-7,3) and 1x4x2 at minimum (-13,9,4), independently record respective maxima (13,-4,8) and (-12,13,6), centers (12,-5.5,5.5) and (-12.5,11,5), surface areas 62 and 28, and volumes 30 and 8 before encoding. The control exercises the current DXF->AC1032 DWG->DXF carrier path and per-entity AcDs association; it does not establish general ACIS support.",
+    "evidenceLanes": "Report exact carrier/hash and entity-to-AcDs association separately from bare-stream parsing, B-rep validity/metrics, and named native consumer acceptance. Treat ezdxf readback as structural evidence, not a sole semantic oracle. cq-acis/OCCT shares kernel lineage with FreeCAD and is not an independent-kernel vote.",
+    "implementationSpeed": "The old MESH override and AcDs page-chain queue entries are complete. Continue with the source-generated valid-SAB control using focused existing targets; do not add ezdxf or peers to CMake/CI/per-slice validation, and do not wait on unavailable external runtimes."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "staleQueueEntriesCorrected": [
+      "MESH property-override wire/readback control: complete",
+      "AcDs direct/blob and two-page blob01 control: complete as structural framing coverage"
+    ],
+    "nextReady3DSlice": "Locally source-authored AC1032 valid-SAB carrier and entity-to-AcDs end-to-end regression; plan-only in this pass",
+    "implementationOrderExpanded": false,
+    "validationFrequencyChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-source-generated-acis-sab-control-live-3d-queue-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-source-generated-acis-sab-control-live-3d-queue-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

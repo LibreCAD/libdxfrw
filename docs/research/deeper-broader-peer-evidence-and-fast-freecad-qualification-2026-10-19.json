@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer evidence boundaries and fast FreeCAD native qualification",
+  "mode": "Primary-source documentation, source, and issue/PR review",
+  "scope": [
+    "Reconcile open-source DWG/DXF library claims by operation and version.",
+    "Check whether FreeCAD native qualification has a faster supported headless C++ importer route.",
+    "Refine implementation readiness without adding fixtures, dependencies, or per-slice external tests."
+  ],
+  "method": {
+    "kind": "Public project manuals, source pages, issue and pull-request records",
+    "peer_executables_run": false,
+    "freecad_installed_or_run": false,
+    "drawings_downloaded": 0,
+    "issue_attachments_downloaded": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "tests_changed": false,
+    "full_suite_run": false,
+    "limitations": "The findings describe public source/documentation and reported issue evidence only. No packaged FreeCAD build was checked for the merged fix, no local native import was performed, and no peer output was compared."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG manual, decoding and encoding sections",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "reviewed": "2026-10-19",
+      "observed": "The manual distinguishes broad DWG reading from writing and states R2007 writing is unavailable while R2010-R2018 writing still fails CRC/audit checks. Project-level and release-level writer descriptions vary, requiring exact artifact and operation pins."
+    },
+    {
+      "name": "ACadSharp README/version matrix",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "reviewed": "2026-10-19",
+      "observed": "The advertised matrix separates DXF/DWG reader and writer support by AC version; it lists AC1021 DWG read but not DWG write. Matrix entries remain project claims until exact runtime and semantic behavior are observed."
+    },
+    {
+      "name": "ACadSharp open spline report",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "reviewed": "2026-10-19",
+      "observed": "The report names ACadSharp 3.8.0 and a DWG-to-DXF spline failure chain through GDAL. It is a peer failure report, not a local reproduction or normative spline rule."
+    },
+    {
+      "name": "ACadSharp open annotative MLEADER writer report",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "reviewed": "2026-10-19",
+      "observed": "The report says a no-op AC1032 round trip reopened by ACadSharp was rejected by AutoCAD LT audit and lost standalone annotation context objects. It reinforces that same-reader reopen is not independent/native acceptance."
+    },
+    {
+      "name": "ezdxf entity exporter, XREF loader, and audit docs",
+      "url": "https://github.com/mozman/ezdxf",
+      "reviewed": "2026-10-19",
+      "observed": "The exporter documents that a target-version override does not convert unsupported features and may ignore them. The XREF loader explicitly supports only a subset and ignores unsupported records; audit/recovery is structural diagnosis rather than full feature-preserving conversion proof."
+    },
+    {
+      "name": "FreeCAD importDWG.py current source",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "reviewed": "2026-10-19",
+      "observed": "The DWG route converts to an intermediate DXF and calls the DXF importer. Automatic converter selection can try LibreDWG, ODA, and QCAD; DWGConversion=1 selects the LibreDWG branch, and the converter executable is resolved from the configured parameter or PATH."
+    },
+    {
+      "name": "FreeCAD issue #20195",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/20195",
+      "reviewed": "2026-10-19",
+      "observed": "A non-GUI DXF import failure was reported for a 1.0.0 build; the issue was closed after a fix PR. It is not evidence that every packaged build or all headless paths work."
+    },
+    {
+      "name": "FreeCAD merged PR #20328",
+      "url": "https://github.com/FreeCAD/FreeCAD/pull/20328",
+      "reviewed": "2026-10-19",
+      "observed": "Merged as commit 0986dad on 2025-03-31. The change fixes non-GUI C++ DXF importer handling of the Layer View object and adds a regression test. Use only as a build-preflight criterion; no target FreeCAD binary was tested."
+    },
+    {
+      "name": "FreeCAD headless and DXF documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Headless_FreeCAD.md",
+      "reviewed": "2026-10-19",
+      "observed": "Headless mode exposes App document objects but does not create GUI documents or view providers; consequently it can qualify document/object data but not GUI rendering or view-provider behavior."
+    },
+    {
+      "name": "LibreCAD_3 DWG support policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "reviewed": "2026-10-19",
+      "observed": "LibreCAD_3 keeps DWG import opt-in/read-only and makes writer exposure conditional on promoted write claims, external reopen evidence, and a project decision. It is a downstream policy reference and shares libdxfrw lineage, so it is not an independent codec vote."
+    }
+  ],
+  "plan_effect": {
+    "peer_comparison": "Keep LibreDWG, ACadSharp, and ezdxf comparisons pinned to exact operation/version and capture loss/diagnostic evidence; do not treat project matrices, audits, or self-reopens as semantic acceptance.",
+    "freecad_fast_route": "Use a pinned FreeCADCmd build containing or verifying the 0986dad non-GUI C++ importer fix, set DWGConversion=1, and configure the exact local dwg2dxf executable. Hash and inspect the intermediate DXF before importer results. If the exact headless path is unavailable, mark it NOT_RUN and use the existing GUI checkpoint.",
+    "freecad_evidence_scope": "Headless checks cover App document objects and measurable geometry only. One GUI user-facing Open smoke per required platform remains necessary if that UI path is claimed. Stock FreeCAD DXF import does not qualify embedded ACIS/SAT semantic support.",
+    "validation_cadence": "Keep generated fast selectors per implementation slice; batch optional/native FreeCAD checks at the existing composed checkpoint. No full suite or peer install was added per slice.",
+    "implementation_change": "Plan-only readiness refinement. No implementation defect, new top-level finding/subplan, dependency, fixture, or support promotion was added.",
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repository_state": "Only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this research receipt were edited by this pass in a broadly dirty shared worktree; nothing was staged or committed."
+}

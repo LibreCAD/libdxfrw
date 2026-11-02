@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-scale-physical-output-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical SCALE source-to-output and file-readback proof",
+  "status": "PHYSICAL_17_SCALE_IDENTITIES_FIELDS_AND_OUTPUT_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "0a8ebf7e",
+  "scope": {
+    "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "sourceVersion": "AC1024",
+    "outputProfile": "AC1024 DWG SCALE typed profile emitted as AC1024/2010 ASCII DXF",
+    "profileAdmission": "Seventeen complete typed SCALE records selected by the unique ACAD_SCALELIST dictionary; each has the dictionary as owner and unique reactor, positive finite paper/drawing units, and no extension dictionary, EED, app data, data-storage payload or common-link tail. The rooted scale dictionary has no unsupported common payload."
+  },
+  "sourceToOutput": {
+    "sourceRecords": 17,
+    "stagedReadbackRecords": 17,
+    "sourceHandles": [
+      "18B", "19F", "1A0", "1A1", "1A2", "1A3", "1A4", "1A5",
+      "1A6", "1A7", "1A8", "1A9", "1AA", "1AB", "1AC", "1AD", "B7"
+    ],
+    "outputHandleMapping": "Identity for all 17 records; duplicate or ambiguous mapping refused.",
+    "ownerDictionary": {
+      "handle": "B6",
+      "parentNod": "C",
+      "dictionaryReactor": "C",
+      "scaleOwnerAndReactor": "B6"
+    },
+    "dictionaryMembership": "All 17 ordered ACAD_SCALELIST keys and target handles were compared against fresh DXF readback. Keys are preserved independently of SCALE descriptions.",
+    "fields": "Staged inspection and fresh readback compared each identity, owner, reactor, flag, name, paper units, drawing units and unit-scale field. Ordered raw DXF scalar carriers and decoded typed models both matched."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "6438bf846642a7f217bba90d57d5e6aea402fc122ba130988d011faea98ce73c",
+      "adapterTestSha256": "518b1129bcd97d58d63a9b22a468a5f1b05bde4ee08e3b8c82b0ac6c29def660"
+    },
+    "physicalOutput": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/scale-physical-proof.dxf",
+      "result": "PASS; inspector reported source-records=17 and staged-readback-records=17 with identity, rooted dictionary, owner/reactor and field checks.",
+      "outputPath": "/private/tmp/scale-physical-proof.dxf",
+      "outputSha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f",
+      "debugLogPath": "/private/tmp/scale-physical-proof.log",
+      "debugLogSha256": "00cf87a1b77bbbc2f7924eefe88ae464706bb346900ad5bc75b6f6cbcb31800d"
+    },
+    "freshPhysicalFileReadbackAndRetry": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg /private/tmp/scale-physical-proof.dxf",
+      "result": "PASS. Reimported the physical DWG and output DXF; verified 17 typed/raw records, dictionary key order and membership, owner/reactor links and exact fields. A late source mutation was refused, the prior destination sentinel was preserved, then the corrected source exported and read back successfully on the same adapter.",
+      "executableSha256": "518b1129bcd97d58d63a9b22a468a5f1b05bde4ee08e3b8c82b0ac6c29def660"
+    },
+    "existingNamedResourceTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "FAIL before reaching its SCALE branch: the direct-NOD DICTIONARYVAR control expected the canonical-owner failure but received extension-object graph validation. This selector is not a SCALE-specific control and does not invalidate the passing physical SCALE selector; investigate separately before treating the combined selector as green."
+    },
+    "fullSuites": "NOT RUN; physical source/output proof and one focused same-adapter mutation/refusal/retry selector were used."
+  },
+  "fixturePolicy": "Reused the existing local AC1024 DWG witness. DXF output and logs remain in /private/tmp; no investigation DWG/DXF fixture was added or committed.",
+  "limitations": [
+    "Physical conversion used explicit partial-DWG-read mode; this does not establish complete-document conversion or native-consumer qualification.",
+    "The strict-complete gate remains closed: the census reports 228 opaque callbacks and zero retained correlation frames.",
+    "This profile result does not promote format support claims or close P4."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "AC1024 physical SCALE source-to-output binding, staged inspection, fresh DXF readback and late-mutation rollback/retry.",
+    "nextCandidate": "AC1024 physical ACDBASSOCVARIABLE source/output identity proof; its bounded suffix is decoded and a direct record encoder exists, while document graph routing/output closure remain open.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "b406e0528525b92616d9779a02746a264b46d569dfd140e5b75bc3bcdb384b39",
+    "dwg2dxf/dx_iface.h": "014c7478490c87debde52c7ad748d67f0e789eb73eaf9594345f287fcfd0fc05",
+    "dwg2dxf/dx_standard_output.h": "bc0bae8771fc32a2f19a7db123ac7ffa999d0183809ca42bfe57b9785a2aaf55",
+    "tests/dwg2dxf_adapter_tests.cpp": "22a6da8f8406d8db8435119bdb76beedf29ea07f81f178c05d71a4ea34ddefa3"
+  },
+  "worktreeState": "Implementation and focused selector are committed as 0a8ebf7e; the plan and receipt update are committed separately."
+}

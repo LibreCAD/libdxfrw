@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw-dxf-emitted-inventory-parseback-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_ASCII_BINARY_INVENTORY_PARITY_PASSES",
+  "scope": "Compare all opt-in writer record identities captured during finalization with identities parsed back from the exact published output bytes for the existing generated full dx_iface write control.",
+  "implementation": {
+    "productionFormatBehaviorChanged": false,
+    "testOnlyInventorySnapshot": true,
+    "internalWriterAccessorAdded": "recordInventoryName",
+    "newFixtureAdded": false,
+    "newTestRegistrationAdded": false,
+    "newDependencyAdded": false
+  },
+  "testProcedure": {
+    "capturePhase": "finalizeDxfWrite before atomic publication",
+    "outputSource": "the exact file published by dxfRW::write",
+    "binarySignatureValidatedAndSkipped": true,
+    "parsedFields": [
+      "first group-5 or group-105 handle after each primary record marker",
+      "normalized record type",
+      "containing SECTION"
+    ],
+    "comparison": "sorted complete vector equality by handle, record type and section",
+    "duplicateReadbackHandlesRejected": true,
+    "encodings": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "generatedEntitiesInclude": [
+      "BLOCK body",
+      "source LINE"
+    ]
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage|dwg2dxf_hatch_tangents_ascii_cli|dwg2dxf_hatch_tangents_binary_cli)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "externalPeerOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "b506545ddc2fc01631d6abecedaa7ea7b5d6056654dc04fbf0cc50e7744d2126"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "7843cb6d8fa4485641e3d659cc18309406e378bed8827a2609c14a174958468f"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "the opt-in bounded ledger agrees with the local reader's complete record-handle/type/section inventory for this generated full-write source model in ASCII and binary",
+      "the binary DXF signature is present and the reader begins at the correct two-byte group-code boundary",
+      "the same test path retains a source LINE plus a generated BLOCK identity"
+    ],
+    "doesNotEstablish": [
+      "independent third-party reader agreement",
+      "complete route coverage for all raw, typed, generated, table, block or section writers",
+      "complete owner/source-set or semantic graph-edge closure",
+      "FIELD/FIELDLIST wire semantics or FIELD serializer support",
+      "external CAD/native semantic support"
+    ]
+  },
+  "nextReadyAction": "Extend emitted-set verification to owner/source sets on admitted routes; keep FIELD edge typing and producer wire-contract gates closed until independent producer evidence qualifies them.",
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "Touched test and internal-writer files contain unrelated pre-existing workspace changes."
+  }
+}

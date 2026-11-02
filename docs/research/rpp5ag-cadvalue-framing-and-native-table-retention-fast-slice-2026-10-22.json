@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ag",
+  "date": "2026-10-22",
+  "state": "implemented_uncommitted",
+  "baselineHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "authority": {
+    "dwgLayout": "ODA Open Design Specification v5.4.1 section 20.4.99; page 241 visually reviewed",
+    "specificationSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "unitApiCorroboration": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_UnitType.html",
+    "unitApiEvidenceCeiling": "Autodesk names Currency 0x10 and Percentage 0x20. This is not a DWG layout specification or admission of additional typed wire profiles."
+  },
+  "corrections": {
+    "explicitDataType": "Always consume and emit the data-type BL. Do not infer 512 or omit the type from flags.",
+    "payloadPresence": "R2007+ payload is suppressed only by mask 0x01. Flag 0x02 retains a payload, including a CadValue object-ID handle slot.",
+    "nativeWriterAdmission": "Flags 0..3 only, known value kinds, empty values without populated payload/handle/raw state; opaque scalar carriers refused.",
+    "dxfField": "Same version-aware payload-presence rule; reject populated empty values and scalar raw-data carriers before output. General type 512 remains refused without a defined DXF projection.",
+    "r21StringCarrier": "Only the observed AC1021 flags-4/6 type-4 profile reads BL byte count plus exact body bytes. Even nonempty UTF-16LE is display-decoded. Empty/odd payloads remain binary. All profiles remain semantically incomplete and are refused by typed native writing.",
+    "tableUnits": "All bounded unit BL values are retained without changing the following TV/TV grammar. Only ODA-listed 0/1/2/4/8 units can be semantically complete or typed-written. AC1024 still withholds incomplete inline content atomically.",
+    "historicalEvidenceSuperseded": [
+      "Generated profiles that omitted type 512 or used flag 1 for populated general values",
+      "The prior TABLE unit-domain receipt's claim that an out-of-list unit must invalidate the complete TABLECONTENT frame"
+    ]
+  },
+  "sourceProbe": {
+    "sourceRepository": "https://github.com/DomCR/ACadSharp",
+    "sourceCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "dwg": "samples/sample_AC1021.dwg",
+    "dwgSha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+    "dxf": "samples/sample_AC1021_ascii.dxf",
+    "dxfSha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+    "artifactUse": "Read in place; no external drawing copied or committed. Paired ASCII is scalar/profile corroboration, not an exact handle-preserving semantic equivalence proof.",
+    "previousObjectParseFailures": 3,
+    "currentObjectParseFailures": 1,
+    "currentTableContentParseFailures": 0,
+    "repairedTableContentHandles": ["F11", "747"],
+    "observedCustomChecksum": {"flags": 2, "dataType": 2, "values": [21385, 7783]},
+    "observedExtendedUnits": [
+      {"unit": 32, "value": 35, "format": "%lu2%pr2%ps[,%]", "display": "35.00%"},
+      {"unit": 16, "value": 100, "format": "%lu2%pr2%ps[$,]", "display": "$100.00"}
+    ],
+    "remainingFailedObject": {"handle": "D63", "record": "ACDBPERSSUBENTMANAGER", "fileLocalType": 549, "typeIsNotGlobalConstant": true},
+    "entityParseFailures": 0,
+    "classesCrcMismatch": 0,
+    "reader21Ac1021CrcMismatch": 29,
+    "conversionExit": 1,
+    "exportRefusal": "GROUP callback capture or ACAD_GROUP name resolution incomplete",
+    "trace": "/tmp/libdxfrw-table-cadvalue-verified.mMqnpY/trace.log",
+    "traceSha256": "8350f0e65f3a5a58aea3c220353004e39be041bcfdc76e0d8d0c9fae1e3d13af",
+    "qualification": "No successful whole-drawing conversion, native acceptance, or complete TABLE semantic claim"
+  },
+  "generatedControls": {
+    "fieldTablePayloadFlagTypeVersionCases": 48,
+    "literalChecksumCases": 1,
+    "nativeStringAsciiCases": 2,
+    "nativeStringEmptyOddUnicodeCases": 6,
+    "nativeStringNegativeOversizedCountCases": 4,
+    "tableUnitCases": 26,
+    "dxfFieldScalarFlagCases": 8,
+    "fixturePolicy": "Runtime-generated from scratch; no persistent drawing fixture added"
+  },
+  "remainingManagerInvestigation": {
+    "behaviorChanged": false,
+    "debugCursorMarkersAdded": true,
+    "sourceHandle": "D63",
+    "sourceBodyStartBit": 87,
+    "sourceBodyLimitBit": 152,
+    "sourceBitLongs": [2, 0, 2, 4, 0, 2, 3, 4],
+    "lastDecodedBit": 151,
+    "failedRead": "A further BL subentity-vector count cannot fit in the single remaining string-presence bit; the bounded read correctly refuses it.",
+    "pairedDxf": "The same D63 handle has exactly those eight group-90 values, owner C and reactor C.",
+    "independentRead": {
+      "tool": "LibreDWG dwgread 0.14",
+      "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -O minJSON -o <temporary>/source.json <ACadSharp>/samples/sample_AC1021.dwg",
+      "exit": 0,
+      "jsonSha256": "95bb817d9c251ad28de4c761f8a4dbe3845d5a87ac94c7dedbdbeb293742011c",
+      "observations": "Class version 2, unknown 0/2, numassocsteps 4, numassocsubents 0, steps [3,4], empty subents; common owner/reactor C.",
+      "evidenceCeiling": "Does not establish whether the peer consumes the string-presence/handle bits for the absent final count. Do not copy permissive parsing or infer an optional-tail rule from a green peer exit."
+    },
+    "cursorTraceSha256": "32ab957896c1d4887f11f104f623e8f512f51502546cdbc3fdfd32514a0201e2",
+    "specification": "ODA section 20.1 common object footer/handle boundary reviewed, including page 104 visually; no persistent-manager body grammar established by that chapter.",
+    "next": "Establish a source-backed omitted-empty-vector profile, explicit prefix-completeness and raw-validation disposition, and generated negative boundary controls before changing parser acceptance. Keep the observed typed failure visible meanwhile."
+  },
+  "validation": {
+    "strictTargets": ["dwg2dxf", "libdxfrw_dwg_object_vectors_tests", "libdxfrw_wave1_tests", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg2dxf_adapter_tests", "lc3_compat_check"],
+    "focusedCohort": {
+      "passed": 7,
+      "failed": 0,
+      "seconds": 1.46,
+      "tests": [
+        "libdxfrw_acad_field_writer_candidate",
+        "libdxfrw_table_content_dwg_object_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_table_cell_unit_type_domain",
+        "libdxfrw_cadvalue_payload_presence",
+        "libdxfrw_table_callback_owner_order",
+        "dwg2dxf_table_base_style_id_dxf_refusal"
+      ]
+    },
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeConsumersRun": false
+  },
+  "supportClaimsPromoted": 0,
+  "publicLayoutChangedByThisSlice": false,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Investigate the remaining source ACDBPERSSUBENTMANAGER shell failure without guessing its body; continue legacy TABLE entity/extension graph writing separately.",
+  "worktree": "Uncommitted and unstaged over pre-existing overlapping changes"
+}

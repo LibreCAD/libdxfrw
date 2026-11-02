@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-deeper-broader-dxf-peer-route-and-peer-report-reconciliation-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile DXF-only peer route contracts and current report state against existing explicit-geometry, ACIS-carrier, polyface-wire and peer-admission owners.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan/test inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "implementationChanged": false,
+    "sources": [
+      "https://github.com/haplokuon/netDxf",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/ixmilia/dxf-rs/issues/96",
+      "https://github.com/ixmilia/dxf-rs",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/DrunkOnJava/dwg-rs#verification"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing netDxf/IxMilia/dxf-rs peer scopes and generated polyface progress",
+      "DWG_DXF_3D_SUPPORT_PLAN.md current 3D support rollup",
+      "tests/dxf_fixture_tests.cpp direct ASCII/binary polyface VERTEX group-70 assertions"
+    ],
+    "evidenceRule": "Peer READMEs and issues establish only their stated route, version, artifact and self-reported status. Class presence, self-roundtrip, aggregate percentages and open issue reports do not qualify libdxfrw or native consumer semantics."
+  },
+  "evidence": [
+    {
+      "topic": "Archived netDxf is an explicit-DXF peer, not an ACIS peer",
+      "observed": "The archived README advertises ASCII/binary DXF R2000-R2018 and lists explicit mesh/PFACE and 3DFACE entities, while explicitly saying REGION, SURFACE and 3DSOLID depend on undocumented proprietary data and cannot be read.",
+      "doesNotEstablish": [
+        "current maintained release behavior",
+        "DWG reading or writing",
+        "ACIS or AcDs carrier/semantic support",
+        "native application acceptance for this repository's output"
+      ],
+      "planUse": "Retain as historical optional explicit-geometry comparator only; never count its SOLID/Mesh naming as modeler-solid support."
+    },
+    {
+      "topic": "IxMilia typed class/version surface is narrower than native writer acceptance",
+      "observed": "The README describes DXF/DXB read/write and R10-R2014 support with named entity exceptions and warns AutoCAD may reject output for typed 3DSOLID/BODY/REGION and other classes; it also notes required-field and R13 caveats.",
+      "doesNotEstablish": [
+        "a current native acceptance run",
+        "ACIS payload semantics",
+        "uniform support for all entities across R10-R2014"
+      ],
+      "planUse": "Keep parse, typed model, serialization, reopen and native acceptance as distinct comparator outcomes."
+    },
+    {
+      "topic": "dxf-rs polyface flag issue remains open but local raw-wire test covers the claimed failure class",
+      "observed": "Issue #96 remains open and reports VERTEX group 70 changing from in-memory 192 to serialized 128. The local generated test asserts literal ASCII and binary VERTEX role values 192,192,192,128 plus parent type, order, signed face indices and zero terminator behavior.",
+      "doesNotEstablish": [
+        "the current dxf-rs artifact still exhibits the report",
+        "any analogous defect in libdxfrw",
+        "DWG VERTEX flag behavior"
+      ],
+      "planUse": "Do not duplicate the local test or use a peer readback as a substitute for direct wire inspection."
+    },
+    {
+      "topic": "dwg-rs report denominator correction",
+      "observed": "The current table totals 3911 decoded + 525 skipped + 9 errors = 4445 records; 3911/4445 rounds to 88.0%. The AC1032 row is 776 decoded, 57 skipped, 9 errored, yielding 92.2%. The README explains its prior 95.6% used a smaller ten-file set, but a later verification paragraph still cites 90.3% aggregate and 85.9% AC1032, inconsistent with the current table.",
+      "doesNotEstablish": [
+        "semantic completeness",
+        "a matched comparison against libdxfrw's corpus",
+        "a pinned peer source or executable result"
+      ],
+      "planUse": "Describe the table as internally arithmetical and the verification paragraph as stale/conflicting; only exact per-version/per-family outcomes over identical inputs may be compared."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

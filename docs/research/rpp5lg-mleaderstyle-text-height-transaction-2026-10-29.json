@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 selected AC1027 MLEADERSTYLE text-height transaction",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "eb3850a073c420bdd4d02fbc899b654c122bcc6b",
+  "scope": "One runtime-authored AC1027 DXF source with two root-reachable MLEADERSTYLE records. STANDARD has one existing group-45 textHeight value 1.25 and an opaque group-302 tag; SECONDARY is unchanged. Supports a standalone typed textHeight change from 1.25 to 4.5 on STANDARD.",
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain one finite DOUBLE group 45 within exactly one AcDbMLeaderStyle subclass. textHeight must be the only changed typed payload field; table-entry identity, common fields, handles, application data, extension data and all other encoded style fields must match the source. Raw edits conflicting with a typed transaction refuse.",
+    "projection": "Replace only the existing physical group-45 value in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. A missing or repeated group 45, unknown subclass grammar, non-AC1027 route, other typed edit or malformed value remains outside this transaction.",
+    "outputAndReadback": "Inspect the staged OBJECTS body against every retained raw field and mapped handle, then decode the emitted MLEADERSTYLE and require group-45 textHeight to equal the planned value. Fresh readback checks the NOD root, owner dictionary edge, both styles, CLASSES instance count, four referenced STYLE/LTYPE/BLOCK_RECORD roles and the emitted opaque group-302 tag.",
+    "failureAndRetry": "An edited raw group 45 that differs from its immutable baseline refuses while preserving a sentinel destination. Restoring the raw body permits same-adapter retry. A late typed textHeight mutation after preflight also refuses without replacing the destination; restoring the requested value permits same-adapter retry. The selector checks both source encodings and both target encodings, including ASCII→binary and binary→ASCII.",
+    "compatibility": "Untouched MLEADERSTYLE records keep the existing raw replay route. Transactions are not admitted for other source or target versions. The typed DWG-origin writer and existing fail-closed behavior remain unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp, with two root dictionary entries, existing typed references, STANDARD group 45=1.25, SECONDARY with default textHeight, and distinct group-302 opaque tags; ASCII and binary inputs are generated from scratch.",
+    "implementationCommit": "eb3850a073c420bdd4d02fbc899b654c122bcc6b",
+    "dwg2dxf/dx_iface.cpp": "15067acd1bf1d2aa12bf8c4eeffb7235fb7734ee3de51320c5d4c670bdcc7247",
+    "dwg2dxf/dx_iface.h": "ad5679c36e73ce329abc9887177b7cc05c1e869a30440edc1a02777239b1eeb6",
+    "dwg2dxf/dx_data.h": "b5adca2b0d90f72eb6d2a5888dea8981999fffc363f84c0c63df52f7f2ae5086",
+    "tests/dwg2dxf_adapter_tests.cpp": "0771e4d5239c59528fa3b88784435aebab0070864c813da30e5ebc9b88b248c5",
+    "tests/CMakeLists.txt": "5b0e837836fd333243a024772c8bed4ce64bbaca495628f1b7345bc79379f461",
+    "adapterObjectSha256": "4054f9546db6ad84d1f6f9f9e4964daa41e3475f6ff890dea34e84ea91a90596",
+    "testExecutableSha256": "753a89debc86daf96d7f62f1807f621a86b5c34ed54a5fb42d7cb08cacbaaa95"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Ninja, Clang with -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "Both source encodings and both output encodings passed; rooted identity, class count, typed references, literal group 45, opaque group 302, raw-conflict rollback, late-mutation rollback and corrected retries were checked."
+    },
+    "compatibilitySelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build -R '^dwg2dxf_mleader_fail_closed$' --output-on-failure"
+    },
+    "broadNamedResourceSelector": {
+      "result": "FAIL_ON_BASELINE",
+      "command": "ctest --test-dir build -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "detail": "The selector fails at the existing MLINE code-340 redundant-name recovery case (prepareDxfMLineConsumers). Rebuilding and running the same selector with the four touched tracked files restored to HEAD reproduced the same failure; this is not evidence against the selected MLEADERSTYLE slice."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "This receipt qualifies a selected adapter transaction and emitted DXF field only. It does not prove native text-height meaning, annotation appearance, producer validity, cross-version support, DWG editing, full MLEADERSTYLE schemas, complete document closure or consumer acceptance.",
+    "Contexts, defaults, repeated/absent fields, CMC fields, unknown extensions, other source versions, standalone edits to other typed fields, and source-version/native annotation evidence remain open. No support claim is promoted; the support ledger remains closed."
+  ],
+  "next": "Select one current source-backed P2 geometry, schema or provider witness. Keep this MLEADERSTYLE receipt limited to group 45 and retain all unqualified fields on their existing route."
+}

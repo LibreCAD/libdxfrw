@@ -1,0 +1,77 @@
+{
+  "schema": "ac1018-block-record-optin-adapter-replay-v1",
+  "date": "2026-10-28",
+  "codeCommit": "2eafb1211c180bd38b89f2f50c2f875e66423917",
+  "supportClaimsPromoted": false,
+  "scope": "Explicit opt-in AC1018 BLOCK_RECORD structural callback pairing and bounded adapter-owned captured-field replay. Diagnostic replay flag is separate from rawTypedMatched and StructuralAudit.bodyMatched; it does not qualify unknown fields, ownership, output or native semantics.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Independent repository sample; native authoring not independently certified.",
+    "selected": "ASCII AC1018 BLOCK_RECORD 6F2 [30381,30685), owner 1, 20 groups, MyBlock; XDICT 6F3, explicit null layout, BLKREFS 704, two XDATA APPIDs."
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "Existing raw/model capture remains, structural input absent and rawTypedMatched false.",
+    "explicitOptIn": "Source/typed pair and captured-field replay true using shared raw/model and captured AC1018/AC1015 ANSI_1252 context; rawTypedMatched false, structural bodyMatched/originBound false.",
+    "artifacts": "build/agent-attribute-profile/ac1018-block-record-adapter/",
+    "probeSourceSha256": "e7bfe0a9a05d15984123a52ea5a351360e7a689960ea48959ad8a7c6389c7fd9",
+    "probeBinarySha256": "a4798bd57562e852f4d3cb6f0ccf5278e46c7dcd088566b44df5d5187628e9ea",
+    "stdoutSha256": "e588950c3bc1c9fe67daaa7ca91f71954ea3e9bf908d04c24884b2c7e280f9ad",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "adapterObjectSha256": "c917494f704c174f52b2d1372245dc0858c2e270c48ceb22fbdd769ec17799b3",
+    "librarySha256": "c5eb2bceb5f5179abbf0a3fd9bc78181ffcaf2c75523622f56f14f2dfc3bd91e"
+  },
+  "bindings": {
+    "adapterSourceSha256": "8cf014e90601287de2a0b67a6eb0cf9b1d754cfcd86af32ff13b4f960673e741",
+    "adapterHeaderSha256": "750dffa89abeaa256eba61b210dc2ecdb07d6fc56d8274b0cf6e4ce4106f1ba1",
+    "dataHeaderSha256": "5a71346b49c5c91cf0f0cb2f8b01b4be22e8c73830859dbc8bc87d73479869f4",
+    "testDriverSha256": "670ff04d0f75333311f20fb25afde038e1aacc4d4ea5d0e62ffa0079baf0a348",
+    "testControlSha256": "99c082ce73a6939c9d2451963cec1804587db4b41728821e8e4c218033e6f176",
+    "normalBinarySha256": "a6fb5f608861489051d335fce2f30cf2cf2ecd1b30b1ee6217974969edc439b8",
+    "chronology": "The focused builds included concurrent TABLE changes that were subsequently committed as 071a5940 before this packet commit. The original source probe is bound to the actual normal adapter and library objects above."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_legacy_adapter_capture",
+      "libdxfrw_block_legacy_capture",
+      "libdxfrw_block_record_legacy_observation",
+      "libdxfrw_block_record_legacy_adapter",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_legacy_merge",
+      "libdxfrw_table_original_inputs"
+    ],
+    "normal": {
+      "result": "PASS 9/9",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "0873ee527b7fe454fd12325ddfb1d107d461c6b24a2b9a013bb6599f51136cf2"
+    },
+    "asan": {
+      "result": "PASS 9/9",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "testBinarySha256": "c3c8aa16d4808848ebccae88c4bcf1e68f3b8cabe2115c44ad8385e26354d58b",
+      "librarySha256": "9c7875f6da64e60a08f9b33ce5df70c033c6e40c35173f222f35e88ba9db415e",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "f83c6b97bca9492cc87dbf8e4bd67f1be32292d60a5fa3602911a49133a0ace5"
+    },
+    "adapterControls": {
+      "optIn": 2,
+      "defaultOptOut": 2,
+      "rawModelContextSelectionCorruptions": 8,
+      "structuralBudgetBoundaries": 6,
+      "correctedRetries": 14,
+      "unmodeledFieldsRemainUnqualified": 2
+    },
+    "note": "Locally authored ASCII/binary controls include non-ASCII CP1252 XDATA; these focused checks are not a full suite."
+  },
+  "limitations": [
+    "Default legacy BLOCK_RECORD raw/model capture already existed; the additional structural/replay budget is opt-in through existing BLOCK-source selection. Selection exceptions and exhausted opt-in structural budgets leave replay unqualified.",
+    "Strict complete physical field grammar, XDATA and APPID/LAYER role/target validation, original identity census, BLOCK/compound membership and graph/output qualification remain separate. A tolerated unknown field can replay successfully but cannot gain authority.",
+    "Changing private adapter data layout requires rebuilding the dwg2dxf adapter and dependents; no public DRW_Interface virtual is added. No native CAD semantic or complete-document claim is made.",
+    "No drawing fixtures were committed."
+  ]
+}

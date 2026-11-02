@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c borrowed group-310 hex and direct byte decode",
+  "mode": "generated ASCII/Binary focused implementation slice",
+  "scope": [
+    "Avoid owned hex-string copies and decoded staging buffers for DXF group-310 raw proxy/ACIS data",
+    "Preserve existing byte ordering, chunk lengths/offsets, and resource admission",
+    "Keep append and chunk publication rollback-safe"
+  ],
+  "evidence": {
+    "localSource": {
+      "files": [
+        "src/intern/dxfreader.h",
+        "src/drw_entities.cpp",
+        "tests/hardening_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "finding": "Group-310 raw consumers previously materialized getString() output and staged decoded bytes in a second string/vector before copying into the final payload. Binary readers already expose a canonical hex spelling in the current strData record."
+    }
+  },
+  "changes": {
+    "production": [
+      "The common proxy-graphics path borrows getStringView() and decodes directly into proxyGraphics.",
+      "ModelerGeometry and SURFACE group-310 paths borrow getStringView() and decode directly into their final payload vectors.",
+      "Added a vector append overload for direct hex-to-byte decoding with size checks, one destination reserve, and rollback on malformed input or unexpected exceptions.",
+      "Updated the string append helper to decode directly into its destination with rollback; ACIS payload paths reserve chunk metadata before appending and restore the previous payload size if chunk publication fails."
+    ],
+    "generatedTests": [
+      "Existing generated ASCII/Binary ACIS carrier retained-budget controls verify Surface/Modeler payload bytes, chunk ranges, exact/under-cap admission, callback refusal, and same-facade retry.",
+      "Existing modeler text direct-append and writer chunk-boundary controls were rerun.",
+      "The owning DXF fixture CTest was rerun for proxy/opaque and ACIS DXF behavior."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror; compatibility target succeeds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-direct-append",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-acis-carrier-retained-budget",
+        "result": "PASS (generated ASCII/Binary carrier controls)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS (1/1; 4.29 s)"
+      },
+      {
+        "command": "git diff --check -- src/intern/dxfreader.h src/drw_entities.cpp tests/hardening_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "Group-310 proxy, modeler, and Surface destinations receive identical byte sequences without owned intermediate hex or decoded payload buffers; generated controls verify carrier/chunk behavior and the owning DXF fixture suite passes.",
+    "unresolved": [
+      "Continue the exact-source 7S.2c retained-owner, parser staging, typed-projection scratch, and writer-copy audit",
+      "Associative-action class-specific value grammar",
+      "Remaining HATCH C5 producer behavior and C4/C6-C8 semantics",
+      "Three AC1024 sample object failures and separate CLASSES CRC attribution",
+      "Remaining DWG/version-specific typed semantics",
+      "Native FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the locally evidenced 7S.2c audit; select the next behavior-bearing semantic or resource-safety gap independently of external gates."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

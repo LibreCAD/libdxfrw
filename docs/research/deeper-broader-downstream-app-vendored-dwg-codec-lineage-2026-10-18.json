@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader downstream app routes and vendored DWG codec lineage",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly surfaced open-source CAD applications for DWG/DXF parser and writer lineage",
+    "Distinguish a downstream consumer using a patched vendored codec from an independent parser or an upstream test run",
+    "Reconcile current CADCraft DWG claims with its dated file-format gap inventory",
+    "Update the plan without adding required gates, fixtures, dependencies, findings, or support claims"
+  ],
+  "method": {
+    "kind": "Read official project repositories, README, build integration, and gap documentation",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "serviceRequests": 0,
+    "drawingsUploaded": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "Mutable project pages were reviewed on 2026-10-18; exact source commits and binaries were not captured or executed. CADCraft's gap inventory is dated and self-reported. GoSurvey's CMake comments identify a modified vendored LibreDWG tree, but its full patch was not audited. No behavioral or semantic support conclusion is inferred."
+  },
+  "sources": [
+    {
+      "project": "GoSurvey README and license statement",
+      "url": "https://github.com/chetjones003/GoSurvey/blob/master/README.md",
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The project describes a Windows survey CAD application with DWG/DXF exchange and states GPL-3.0-or-later licensing because of LibreDWG linkage."
+    },
+    {
+      "project": "GoSurvey CMake dependency integration",
+      "url": "https://github.com/chetjones003/GoSurvey/blob/master/CMakeLists.txt",
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The build compiles a local static copy identified as upstream LibreDWG tag 0.14 plus GoSurvey changes, and states that upstream's own CMake probes, programs, and tests are not used."
+    },
+    {
+      "project": "CADCraft README",
+      "url": "https://github.com/cadcraft-app/cadcraft/blob/main/README.md",
+      "revision": "Mutable main page reviewed 2026-10-18",
+      "observed": "The README advertises DWG R13-R2018 read/write through the ACadRust library."
+    },
+    {
+      "project": "CADCraft file-format gaps inventory",
+      "url": "https://github.com/cadcraft-app/cadcraft/blob/main/docs/gaps.md",
+      "revision": "Mutable main page; document says reviewed 2026-10-10 and updated 2026-10-11",
+      "observed": "The dated self-report lists unknown-content preservation, real-file corpus, and AutoCAD acceptance as alpha blockers; it reports 36 synthetic file tests and no AutoCAD verification at that review date."
+    },
+    {
+      "project": "dwg-rs",
+      "url": "https://github.com/DrunkOnJava/dwg-rs",
+      "revision": "Mutable main README reviewed 2026-10-18",
+      "observed": "The project remains explicitly pre-alpha, separates container/object parsing from incomplete entity decoders, and describes experimental writers without external CAD acceptance."
+    },
+    {
+      "project": "ezdwg",
+      "url": "https://github.com/monozukuri-ai/ezdwg",
+      "revision": "Mutable main README/API reviewed 2026-10-18",
+      "observed": "The project documents a narrow modern-version native 2D decode profile, an AC1015 subset writer, and ezdxf-backed DXF export."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "comparatorAdmissionClarification": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Classify GoSurvey as an optional patched-LibreDWG-derived consumer and CADCraft as an ACadRust-lineage application with dated self-reported qualification gaps. Neither is an independent parser or semantic-solid oracle; do not add mandatory execution or change the implementation/validation queue."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "Only the parity plan and this research receipt were changed. The shared worktree has extensive existing local changes; no other files were touched."
+  }
+}

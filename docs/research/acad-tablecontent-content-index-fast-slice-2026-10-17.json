@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-content-index-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Implement the PAR-126 model relation between block-cell ATTDEF overrides and their owning cell-content ordinal while retaining the narrow output profile.",
+  "method": {
+    "kind": "Local model/parser/writer implementation with generated AC1021, AC1024, ASCII DXF and binary DXF controls",
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+        "result": "passed",
+        "passed": 2,
+        "failed": 0
+      }
+    ],
+    "localFilesChanged": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/acad-tablecontent-content-index-fast-slice-2026-10-17.json"
+    ],
+    "evidenceRule": "Generated vectors verify local parser model association and fail-closed writer admission only; they are not producer interoperability, independent semantics, or complete TABLE support evidence."
+  },
+  "implementation": {
+    "model": "DRW_TableCellAttribute now has m_contentIndex in addition to m_index; m_index remains the ATTDEF tuple ordinal.",
+    "dwgParser": "parseTableCell stores the enclosing content-loop ordinal with each ATTDEF tuple.",
+    "dxfParser": "The ACAD_TABLE group-179 attribute count captures the current cell-content slot; group-331 tuples retain the slot, and attributes from multiple contents are accumulated instead of clearing prior tuples. If no content exists, the parser uses UINT32_MAX and marks the snapshot incomplete.",
+    "writerBoundary": "The current one-content DXF TABLE writer and dwg2dxf adapter preflight require m_contentIndex == 0 for emitted block-cell attributes.",
+    "compatibility": "Public DRW_TableCellAttribute layout changed; downstream consumers must rebuild. No DRW_Interface virtual was added."
+  },
+  "controls": [
+    {
+      "route": "AC1021 standalone TABLECONTENT parser",
+      "payload": "One scalar value content followed by a block content in slot 1 with one ATTDEF tuple (ATTDEF index 0).",
+      "assertions": [
+        "Content order and block handle are retained.",
+        "The ATTDEF tuple retains m_contentIndex=1 separately from m_index=0.",
+        "Existing one-content attribute control retains default m_contentIndex=0 and copy preserves it."
+      ]
+    },
+    {
+      "route": "AC1024 inline TABLE parser",
+      "payload": "Generated two-content cell with an ATTDEF-bearing later block content.",
+      "assertions": [
+        "The validated TABLE prefix is retained.",
+        "The incomplete semantic grid remains unpublished and the committed cursor remains at TABLECONTENT start."
+      ],
+      "limitation": "Inline content is intentionally not published when any cell attribute is present, so this vector does not directly inspect m_contentIndex."
+    },
+    {
+      "route": "ACAD_TABLE DXF ASCII and binary parsers",
+      "payload": "Cell value content in slot 0 followed by block content in slot 1 with a single ATTDEF override.",
+      "assertions": [
+        "Both encodings retain the two content records in order.",
+        "The ATTDEF handle/text remain associated with m_contentIndex=1 and m_index=0."
+      ]
+    },
+    {
+      "route": "malformed ACAD_TABLE DXF parser input",
+      "payload": "ATTDEF group 179/331 appears before any cell content has been established.",
+      "assertions": [
+        "The table is marked semantically incomplete.",
+        "The retained tuple uses UINT32_MAX for an unassociated content slot rather than defaulting to slot zero."
+      ]
+    },
+    {
+      "route": "ASCII and binary DXF TABLE writer preflight",
+      "assertions": [
+        "A one-content block cell with a nonzero content index is refused before output publication.",
+        "The existing single-content content-index-zero attribute route remains readable and writable."
+      ]
+    }
+  ],
+  "doesNotEstablish": [
+    "producer-authored multi-content DWG/DXF conformance",
+    "the semantic interpretation of the ODA ATTDEF index beyond preserving it independently from content position",
+    "multi-content DXF TABLE writing",
+    "AC1024 inline public semantic retention of attribute-bearing grids",
+    "DATALINK object dispatch, ownership, range consistency, or external spreadsheet refresh",
+    "native CAD behavior or all-version TABLE parity"
+  ],
+  "planImpact": {
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextSlice": "Producer-backed TABLECONTENT/DATALINK owner, linked-range metadata and reference census; then atomic DATALINK object routing."
+  }
+}

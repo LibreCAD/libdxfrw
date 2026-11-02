@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 BLOCK_RECORD source-name uniqueness",
+  "date": "2026-10-28",
+  "codeCommit": "96497ab9b2acaaa4f8d46f2c3bf2aa1031364aeb",
+  "scope": "Private on-demand census of the complete authenticated original BLOCK_RECORD table for the selected ASCII INSERT/source relation. Establishes only that the selected source name appears exactly once under explicit ASCII case folding.",
+  "contract": {
+    "operation": "Require the prior same-import BLOCK_RECORD/331/INSERT source relation; bind and census every original BLOCK_RECORD in the single selected TABLES section, comparing source ordinal/boundary, owner TABLE, self identity, subclass and outer group-2 name. Reject unrecognized selected-table rows, foreign-scope BLOCK_RECORDs, invalid/non-ASCII names and target-name duplicates.",
+    "resource": "Precharge both the previous source join and this census under separate conservative halves of the work and byte limits; failed quota or malformed evidence returns false without mutating captured data.",
+    "unqualified": "Native name collation, name validity outside the admitted ASCII profile, BLOCK target resolution, XDICTIONARY/APPID/LAYER graph, output and support claims."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "46f4b745ff0fc5bb2aaa841c3e04ac70798d819a1c8e7e68dde2a881162126b4",
+    "adapterHeaderSha256": "323907902249a3d783f77fd2af268114ce3c2e2ee285b077f4e631f4074db35d",
+    "testSourceSha256": "07573d593b21fa2c8573c06b7282857ece528f6c2609828fafec65a5dd330776",
+    "normalAdapterObjectSha256": "6fcd3cfc43c55fa003cd7fd30a014e598e6067f131889d335431a09a075adf94",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "normalTestExecutableSha256": "49696385c4625eeeba58fdb5153a9fa25e540f5ea7848d6f3a8e0c9674a6377a",
+    "asanAdapterObjectSha256": "c166de4df28fbb5880c04a2ae470aab9aaec622c9059a8ab85e57a699ccf4aba",
+    "asanLibrarySha256": "470a3cf789dabd460281880b22933e335a60e01b8eb58281ff27aeb012d29e57",
+    "asanTestExecutableSha256": "4519b067b51c3e749b27ce6b04f2f852409445aa23c1c05f7ef69dca7998f1c4"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII/binary: exact and case-fold duplicate names, an unrelated invalid or non-ASCII name, foreign-scope BLOCK_RECORD, context faults, exact/one-under work and memory quotas, and corrected retries. The real parser rejects the constructed unknown selected-table row with duplicate-looking name at import; a separate owner-consistent synthetic census fault exercises the unknown-row refusal branch while the prior relation passes. It is not an independently accepted physical unknown-row source.",
+    "chronology": "Final shared normal/ASan ran frozen code committed above; independent original and duplicate probes were refreshed against the rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p4-block-name/peer.json",
+    "reportSha256": "db40ccc104bb20397cb139a3a904f19f8265a3c4e00f499d46656d83fbad7282",
+    "reportScriptSha256": "9453e201601dcf180f483f51caaa13b928bd854eae3a800d496bde5e1d3748e8",
+    "probeSha256": "6ecdc4d64fdceb40b7a7a0fddb360f1be8b07dc806e382ab86c0d7790710ff02",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "originalSourceSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "derivedSourceSha256": "ab0478a862d102ebb42e690cd1725ab1f4de4a3ed88ea5e765a278a747fd1981",
+    "derivation": "Locally change only an unrelated original BLOCK_RECORD group-2 name my_block_v2 to myblock.",
+    "originalStdoutSha256": "0c559ad00fcafc74fa753e56973576d0c66fb2abc5d603113dfc9cda847a65a9",
+    "duplicateStdoutSha256": "4934baedd4a03ab838302f9a5c4e486efd7264ba41316c47ca304413fcdd82c3",
+    "observations": "Independent pre-setup TABLES projection counts 27 original BLOCK_RECORDs and one ASCII-folded MyBlock; the local derivative has two. Actual source probe reports relation=1/unique=1 on original and relation=1/unique=0 on the duplicate."
+  },
+  "limitations": [
+    "The comparison is an explicitly limited ASCII policy, not a native AutoCAD name-collation certificate. Unknown or non-ASCII source names fail closed.",
+    "Source-name uniqueness does not resolve a BLOCK target or prove graph closure, output or producer/native semantics. The independent sample and derivative are not committed."
+  ]
+}

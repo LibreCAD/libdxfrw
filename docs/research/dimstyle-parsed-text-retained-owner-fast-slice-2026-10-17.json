@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DIMSTYLE parsed-text retained owners",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Charge all seven DIMSTYLE DXF string destinations to the shared retained-text lease",
+    "Preserve code aliases, reserve-before-replacement behavior, and DIMSTYLE copy/move/reset ownership"
+  ],
+  "implementation": {
+    "planItem": "7S.2c.d.17.31",
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fields": {
+      "dimpost": [3],
+      "dimapost": [4],
+      "dimblk": [5, 342],
+      "dimblk1": [6, 343],
+      "dimblk2": [7, 344],
+      "dimtxsty": [340],
+      "dimldrblk": [341]
+    },
+    "change": "DIMSTYLE parseCode routes each text field and alias through the existing shared table-entry replacement lease. The private counter array is copied with shared ownership, reset clears it before base lease release, and custom move operations transfer the strings without duplicate copies.",
+    "replacementAdmittedBeforeAssignment": true,
+    "publicApiChanged": false,
+    "installedHeaderChanged": true,
+    "publicClassLayoutChanged": true,
+    "downstreamRebuildRequired": true,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimstyle-text-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/dimstyle-parsed-text-retained-owner-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimstyle-parsed-text-retained-owner-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedSelector": "PASS: ASCII and Binary direct parser plus full DIMSTYLE TABLES callback-refusal, exact retry, and sentinel routes",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.28 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "The generated controls establish local logical retained-byte accounting and lifecycle behavior, not allocator capacity or RSS bounds.",
+    "Handle-shaped DIMSTYLE reference values in generated controls are used for parser/retention coverage; no independent reference-graph or semantic-support claim is made.",
+    "The shared worktree is broadly dirty; this verified slice is uncommitted."
+  ]
+}

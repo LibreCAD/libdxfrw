@@ -1,0 +1,51 @@
+{
+  "schema": "material-producer-field-role-research-v1",
+  "date": "2026-10-28",
+  "sourceCommit": "faaacba7584733108c76adc8dcb619a07263e3b6",
+  "state": "PRODUCER_FIELD_CODE_DEFECT_CONFIRMED; FOCUSED_REGRESSION_PENDING",
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "role": "Diffuse mapper projection is73; specular color method is76."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "role": "Distinct field roles corroborated; projection1..4 and color method0..1."
+    }
+  ],
+  "producer": {
+    "name": "ezdxf",
+    "version": "1.4.5",
+    "module": "build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/material.py",
+    "moduleSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+    "defect": "entities/material.py defines specular_color_method as DXFAttr(73,default=0), rather than76."
+  },
+  "retainedEvidence": {
+    "r2004Source": "build/rpp5gk-evidence/development-peer/legacy-AC1018-cp1252-asc.dxf",
+    "r2004Sha256": "10c4f983aedfd7e1dc6096c4eda4ee03f24d60b9e8b7135bacc035c4e5353251",
+    "sourceNotCommitted": true,
+    "trace": "build/rpp5gk-evidence/peer-read-trace.log",
+    "traceSha256": "7cd534c89902d61d7b62d7327381248d902eeb5272204229dad475f7ba9905ed",
+    "traceSourceVersion": "AC1015; independently retained source artifact also confirms same field-code defect on AC1018.",
+    "firstDivergence": "ByBlock MATERIAL handle1F: diffuse73=1,74=1,75=1,gloss44\u22480.5,then intended specular73=0. Current parser refuses invalid projection0."
+  },
+  "disposition": {
+    "parserProjectionValidation": "Keep current73 range and role. Do not guess specular semantics by physical position.",
+    "peerSpecularValueOneWorkaround": "Avoids immediate invalid projection but still has wrong field role; not specular transport qualification.",
+    "separateNormalMapDebt": "Default source has later42/72/3/73/74/75 Normal Map set without464/465 or preceding complete refraction matrix. Correcting only specular73to76 cannot qualify this full-body profile.",
+    "versionScope": "Existing canonical MATERIAL write profile is AC1018+; do not infer a legal AC1015 native profile from this source."
+  },
+  "nextActions": [
+    "In the existing MATERIAL selector, author one distinct canonical73=3/76=0 pair with surrounding sentinels and exact typed/output checks.",
+    "Use its otherwise-identical incorrect specular73=0 form as a negative source; verify refusal, unchanged destination and corrected retry.",
+    "Treat authored corrections as separately named inputs; preserve original failure and classify absent/ambiguous Normal Map roles independently."
+  ],
+  "qualification": {
+    "newConverterRuns": false,
+    "newNativeRuns": false,
+    "defaultMaterialProfileQualified": false,
+    "wholeDocumentExportQualified": false,
+    "supportClaimsPromoted": false
+  },
+  "fixturePolicy": "Metadata/hashes only. Retained generated drawings remain untracked scratch."
+}

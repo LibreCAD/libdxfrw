@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader ACadSharp Prototype_1b reader merge and FreeCAD DWG/3D route refresh",
+  "mode": "primary-source web research and local implementation-readiness reconciliation",
+  "scope": [
+    "Refresh ACadSharp Prototype_1b/DataStorage reader and PR status after earlier open-proposal snapshots",
+    "Recheck LibreDWG AcDs limitations as a peer route",
+    "Reconcile current FreeCAD documented DWG conversion and 3D import routes",
+    "Convert new evidence into bounded, optional implementation-ready checks"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localCodeInspection": [
+      "src/drw_datastorage.cpp: segmentIndexEntryCount is bounded by segment/section bytes and indexed segments validate headers and ranges",
+      "tests/dwg_reader_matrix_tests.cpp: existing generated DataIndex-order and Blob01-chain owners are present; explicit stale-secondary-segidx coverage requires confirmation"
+    ],
+    "limitations": "The ACadSharp release tag ancestry and v3.7.1 built artifact were not inspected directly; PR discussion corpus results are peer-reported, not reproduced. FreeCAD route documentation is not a platform runtime result. The exact ODA path in AGENTS.md was absent; the available local copy with a '(1)' filename suffix was reviewed (SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7) and §24 was cross-checked against the official public PDF URL."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1, §24, public PDF reviewed 2026-10-20",
+      "observed": "The document specifies the DataStorage segment index, DataIndex rows, object-handle-bearing record headers, direct payload and Blob01-page paths, and notes that schema-search data may be ignored for reading.",
+      "limits": "The PDF was read from the official online URL because the local AGENTS.md path was unavailable; no downloaded copy or checksum was added to the repository."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/pull/1156",
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.1"
+      ],
+      "revision": "PR #1154 merged 2026-07-28; v3.7.1 release tag d7dc111 dated 2026-08-18; release ancestry not directly verified",
+      "observed": "The merged reader parses the DWG Prototype_1b section using segment/index/data structures and blob pages. PR #1156 was closed after its author reported end-to-end R2013+ entity payload recovery via DataStorage. The PR discussion reports that after a payload-anchor correction, 3,715 referenced payload handles matched by hash across a 423-file corpus; it also records a stale segment-index overflow on an intermediate reader branch.",
+      "limits": "The corpus results are comments, not independently reproduced. The peer’s release source/runtime was not built, and no external drawing was acquired. Parser coverage does not establish ACIS validity, kernel semantics, writer interoperability, or native CAD acceptance."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "Issue #1411 remained open on 2026-10-20 and names LibreDWG 0.14.8593/source 8a1ae764",
+      "observed": "The issue reports R2013+ ACIS payload loss while entity records survive DWG-to-DXF conversion. The current source route must be evaluated by exact version and full AcDs record/entity association rather than by entity counts or section/signature scanning alone.",
+      "limits": "The report was not reproduced. Current mutable source presence does not qualify a released conversion path or establish a local libdxfrw defect."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable main-branch documentation and source pages reviewed 2026-10-20",
+      "observed": "Stock DWG import converts to DXF and then invokes a selected DXF importer; the current guide identifies CADExchanger separately as the available path for 3D DWG work.",
+      "limits": "Documentation is not Linux/Windows runtime evidence. Converter, selected importer, output version, entity dispositions, and any separate 3D route must be tested and reported independently."
+    },
+    {
+      "project": "ACadSharp DXF writer issue",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "revision": "Open issue report against ACadSharp 3.4.9; later v3.7.1 release exists",
+      "observed": "The issue reports 3DSOLID/REGION omission in a specific old DXF writer version.",
+      "limits": "The report does not prove the later release has the same behavior or that it is fixed."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Update ACadSharp from an open Prototype_1b proposal to a candidate merged/released structured DWG reader, subject to exact tag/source verification and one optional pinned structural comparison. Keep the LibreDWG issue as version-specific non-oracle evidence. Split FreeCAD stock DWG-to-DXF-to-import qualification from any separate 3D-DWG/CADExchanger workflow. Consider one generated stale-secondary-segidx safety test only if current fast owners do not already exercise it. No local parser defect or support promotion."
+  },
+  "implementationReadyChecks": [
+    "Verify that the exact ACadSharp release source includes merged PR #1154 and inspect the public DataStorage-to-ModelerGeometry payload path before selecting it as a peer.",
+    "Pin release/source SHA, runtime, options, input hash, and strict completion result; compare record identity, index, handle, complete pages, payload hash, owner join, and per-object disposition.",
+    "If the generated local fast tests lack stale secondary segment-index coverage, add one bounded scratch-generated case only after establishing expected disposition from the authoritative section contract; run only its owning selector and CTest.",
+    "For FreeCAD, bind each platform to exact converter executable and selected DXF importer; capture arguments, process diagnostics/return code, output hash/version, and per-source-entity outcome.",
+    "Keep stock FreeCAD 2D/explicit-entity acceptance separate from any commercial CADExchanger 3D route, ACIS kernel semantics, and DWG AcDs payload proof.",
+    "If any optional peer or platform profile cannot be pinned cheaply, record NOT_QUALIFIED once and self-unblock without adding a dependency, fixture, full-suite gate, or support claim."
+  ],
+  "validation": {
+    "planDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md — passed",
+    "receiptJsonValidation": "jq empty docs/research/deeper-broader-acds-peer-freshness-freecad-route-2026-10-20.json — passed",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no staging or commit performed."
+  }
+}

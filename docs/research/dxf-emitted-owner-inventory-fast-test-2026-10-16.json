@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-dxf-emitted-owner-inventory-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "HATCH_OWNER_IDENTITY_AND_LOCAL_READBACK_PARITY_PASS",
+  "scope": "Capture first post-self-identity group-330 ownership in the bounded DXF output ledger, preserve it across write checkpoints, and require expected owner identity for HATCH boundary publication.",
+  "implementation": {
+    "ledgerCapturesFirstPostIdentityGroup330": true,
+    "ownerMetadataCheckpointRollback": true,
+    "ownerAwareFinalizationQueryAdded": true,
+    "existingFourArgumentQueryPreserved": true,
+    "hatchPublicationChecksExpectedModelPaperOrNamedBlockOwner": true,
+    "fieldAndTableGroup344RemainFailClosed": true,
+    "productionDwgParserChanged": false,
+    "newFixtureAdded": false,
+    "newTestRegistrationAdded": false,
+    "newDependencyAdded": false
+  },
+  "generatedControls": {
+    "modelspaceOwnerAccepted": true,
+    "namedBlockOwnerAccepted": true,
+    "mismatchedOwnerRejected": true,
+    "nestedCheckpointRollbackRestoresOwner": true,
+    "asciiAndBinaryExactOutputReadbackCompareOwner": true
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage|dwg2dxf_hatch_tangents_ascii_cli|dwg2dxf_hatch_tangents_binary_cli)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "externalPeerOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "932a45ffb7d0427e116c51c99654164807edd322ce46e7c0fa398dedf5b77751"
+    },
+    {
+      "path": "src/intern/dxfwriter.cpp",
+      "sha256": "1d97f3964f996b292a3d0a678d9d49abf43b82e212d106b2d433bc5f61acc304"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "5c0fc3167d1b02ed5c522131adb63d01fb8950fbf907881d1db67746991669ef"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "4807d810ea6f02408952bb477ac1b442fdaa892fb093ea24ebc06c30480afb2b"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "a2b4a54ddd66f19f9f393194920c133f908e32fba758c28ed2c2fef967cf674a"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "ee36c6f85aa7c01c1e9fd537ec4fe10f288c7a36233f797c245dcceb2691f5da"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "the bounded writer ledger captures first post-self-identity group-330 ownership for generated records",
+      "checkpoint rollback restores the active record owner metadata",
+      "the HATCH publication route checks exact output record identity and expected model/paper or named-block owner",
+      "local ledger owner identities match first group-330 owners parsed from the exact generated ASCII and binary outputs"
+    ],
+    "doesNotEstablish": [
+      "complete source-owned emitted sets across every typed, raw, generated, table, block, and section route",
+      "general semantic graph-edge closure",
+      "FIELD/FIELDLIST or TABLE group-344 serializer support or wire semantics",
+      "independent third-party reader agreement",
+      "external CAD/native semantic support"
+    ]
+  },
+  "nextReadyAction": "Extend source-set and owner closure across additional already-admitted output routes while retaining FIELD edge-type and producer wire-contract gates.",
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "Touched source and test files contain unrelated pre-existing workspace changes."
+  }
+}

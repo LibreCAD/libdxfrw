@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03 unassigned DXF ranges and binary raw-width refusal",
+  "mode": "Source-backed local classifier and writer fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The shared worktree was already broadly dirty. This slice updates the DXF classifier and binary string sink, extends generated tests, and records progress; nothing was staged or committed.",
+    "changedFiles": [
+      "src/intern/dxfcode.h",
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par03-dxf-150-159-180-209-unknown-binary-raw-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "primarySources": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ],
+    "finding": "The cited Autodesk value-type and numerical references do not assign general types to 150-159 or 180-209. This does not exclude private or contextual producer uses; no binary width is inferred from adjacent ranges."
+  },
+  "implementation": {
+    "change": "The standalone classifier marks 150-159 and 180-209 Unknown; the explicit LibreCadMasterLegacy profile retains the previous string interpretation. Binary DXF writeRawString no longer emits unknown codes as guessed NUL-terminated strings. Existing standalone 80-89 unknown handling and code-1009 string handling remain covered.",
+    "assertions": [
+      "Boundary type decisions cover 149/150/159/160 and 179/180/209/210.",
+      "ASCII readers retain opaque spellings for representative codes in both unknown spans.",
+      "Standalone binary readers and both typed/raw binary string writers refuse unknown widths.",
+      "The explicit legacy profile writes and reads historical string values at codes 150, 180, and 209.",
+      "Known string values remain available through the binary raw-string API."
+    ],
+    "claimBoundary": "This resolves only these classifier/writer width decisions. It does not complete the full PAR-03 code-by-code/context audit or establish broad DXF interoperability or format support. Codes 240-259 and the standalone 260-269 interpretation remain open for separate evidence-led review."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_code_type_boundaries|hardening|wave1)$' --output-on-failure",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dxfcode.h src/intern/dxfwriter.cpp src/intern/dxfwriter.h tests/wave1_tests.cpp tests/hardening_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": true,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue the evidence-led PAR-03 audit for the 240-259 contextual callers and the standalone 260-269 assignment; preserve explicit legacy behavior and do not infer binary widths."
+}

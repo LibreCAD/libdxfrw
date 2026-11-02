@@ -1,0 +1,157 @@
+{
+  "schema": "ac1018-table-merge-and-border-research-v1",
+  "date": "2026-10-28",
+  "status": "RESEARCH_OPEN_NO_CLAIM_PROMOTION",
+  "supportClaimsPromoted": false,
+  "scope": "Investigate witnessed AC1018 TABLE 528 merge geometry and omitted cell-level top-border visibility; no implementation or native semantic claim.",
+  "sources": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "pinnedRevision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "asciiDxf": {
+      "path": "samples/sample_AC1018_ascii.dxf",
+      "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798"
+    },
+    "binaryDxf": {
+      "path": "samples/sample_AC1018_binary.dxf",
+      "sha256": "d659b8e7964eb30700660eea34454696bbbfc927726c3417d93df8776e88e225"
+    },
+    "dwg": {
+      "path": "samples/sample_AC1018.dwg",
+      "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866"
+    },
+    "custody": "Existing external repository samples used read-only; file naming, handle and selected field agreement do not establish common save state or native producer."
+  },
+  "authority": {
+    "oda": {
+      "path": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+      "section": "20.4.96.1, printed pages 230\u2013231",
+      "observed": "For DWG up to R21, 175 and 176 represent horizontal and vertical counts of merged cells; 173 indicates a cell merged with another. The text does not explicitly establish anchor-versus-covered polarity. A 0x04000 override has a top visibility BS field, where 1 is visible. Shared/virtual edge properties require the adjacent-cell context. No omitted-DXF-289 default is specified here."
+    },
+    "autodeskDxf": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "autodesk2008": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2008.pdf",
+    "autodeskDistinction": "The TABLE DXF reference identifies a cell-level 289 visibility flag without an omitted default. Its default of 1 for 284\u2013289 is explicitly table-entity-level; it does not establish the cell-level default."
+  },
+  "mergePattern": {
+    "record": "TABLE 528, 7 rows \u00d7 3 columns",
+    "rawSelectedCells": [
+      {
+        "row": 0,
+        "column": 0,
+        "173": 0,
+        "175": 3,
+        "176": 1,
+        "text": "Table sample"
+      },
+      {
+        "row": 0,
+        "columns": [
+          1,
+          2
+        ],
+        "173": 1,
+        "175": 1,
+        "176": 1,
+        "text": ""
+      },
+      {
+        "row": 4,
+        "column": 0,
+        "173": 0,
+        "175": 3,
+        "176": 2,
+        "text": "This table will be imported as an           Insert entity"
+      },
+      {
+        "positions": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "173": 1,
+        "175": 1,
+        "176": 1,
+        "text": ""
+      }
+    ],
+    "inference": "The physical pattern suggests two rectangular anchor/covered relationships. The pattern alone and ODA wording do not establish the producer\u2019s merge polarity or native geometry.",
+    "typedProbe": {
+      "source": "build/table-border-study/merge-probe.cpp",
+      "sourceSha256": "1d3487a5b4d26f01ca1ac2c0a0010cf5aadc261518ba2ff66ef49b8d2d76ec41",
+      "binarySha256": "da90553e22140190657bdff5b06f8c03a6550616032590e56170812195bcac2f",
+      "linkedLibrarySha256": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a",
+      "adapterObjectSha256": "21b41b3367dcf770ad85fadc9f7c332ab34fa8b7a61fb83c85e44c8fe74a5df7",
+      "result": "Original ASCII DXF imports with semanticComplete=false and seven 1\u00d71 m_mergedRanges at the covered-cell positions; it does not publish the two suggested rectangles. Writer preflight rejects unmerged spans greater than one, so the source anchor is refused instead of silently normalized."
+    }
+  },
+  "borderVisibility": {
+    "sourceCell": "TABLE 528, zero-based cell 18, original ASCII bytes [196600,196740)",
+    "groups": {
+      "171": 1,
+      "172": 1,
+      "173": 0,
+      "175": 1,
+      "176": 1,
+      "177": 17504,
+      "178": 0,
+      "140": 4.0,
+      "279": 40,
+      "69": 63,
+      "289": "absent"
+    },
+    "flagMeaning": "0x4460 includes text height, top-border color, top-border lineweight and top-border visibility according to the ODA DWG flag table. The color value is retained as a 16-bit DXF group; do not infer full RGB semantics.",
+    "copyProbe": {
+      "sourceSha256": "8b3cf33e41b8d8e3505e2db7b2323bf2908507e03516142068b24243f710b72f",
+      "binarySha256": "0b19d24297ae243dc84cd6493a3180cab5f1d4f2742500bc9f58deecbf65b25f",
+      "result": "Both original DXF encodings yield selected typed cell mask=17504, height=4, top weight=40, top color=63 and current library default top visible=true. Copied into an otherwise exportable authored 1\u00d71 table, the full profile is atomically refused; changing mask to 0x20 and clearing the two border fields succeeds on the same exporter. This is a selected copied-cell diagnostic, not a full original output."
+    },
+    "pairReadback": {
+      "probeSourceSha256": "b9ca07a00815642bb4223f84ad9edf53b266e3378596064e471e137484a948ec",
+      "probeExecutableSha256": "c0576cd2385fc667de687859d4b379a300ec967f5ce9e7fd510a84d5cb48b184",
+      "acadsharpDllSha256": "af70f56159e627879b9acc6a6c72ae28fc2fe8b636e5e5d08eb5f75e516c4da6",
+      "log": "build/table-border-study/acadsharp-observation.log",
+      "logSha256": "b4042b9f91d913b58b086139b0657f7aaa6f3bbaf4e0b6c6f14d41dd207aae14",
+      "result": "Ordinary ACadSharp reads of the paired-named DWG and ASCII DXF report the same handle, 7\u00d73 shape, and selected text, edge and merge-span values. For cell 18, its DWG read reports top-invisible=true; its DXF read reports false, but that DXF reader ignores 289 and returns its own default. Its DWG visibility branch wrongly tests the 0x400 lineweight flag rather than 0x4000; both bits are set in the corresponding DXF profile, but independent raw-bit and common-save-state proof remain missing."
+    },
+    "libredwg": {
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "toolSha256": "a121e27bb855f58758745d9466a804a6b23088bf79804246968472753f805d26",
+      "jsonSha256": "4ed51503eb2450fc3930495513b802b3b421c8196a2b6087a56ef80d770d0563",
+      "result": "dwgread reports process success but represents DWG handle 528 as UNKNOWN_OBJ; it does not decode cell visibility."
+    },
+    "experimentalTrace": {
+      "sourceSha256": "d689fac4228fb3c2c7f5fd18ab4c5ca7d6f65a37f591b77023d94e3127869001",
+      "binarySha256": "de8d82707857f17709aa6f5372303c72b4f697d3672c9ad3284f8660345dbb9b",
+      "logSha256": "f92c0a49f0e79c6ce44b5c34be18cf2f466139ae1f575eabd3a557d345c549fc",
+      "result": "A scratch-only instrumented reader observes mask 0x40020 at the first DWG table cell, which the production unknown-bit guard refuses. An intentionally guard-bypassed diagnostic reaches cell 12 but reports invalid visibility 256 and does not reliably reach cell 18; it is likely desynchronized and is not a raw visibility proof. No production guard was modified."
+    }
+  },
+  "nextActions": [
+    "Bind independent source evidence for anchor/covered polarity and grid topology, then implement bounded grid-level merge reconstruction and output verification with overlap, bounds and rollback controls; retain current refusal until qualified.",
+    "Obtain independent cell-level 289 absence semantics or preserve original field presence through source-bound output. Do not replace an omitted source 289 with explicit 1 based only on an in-memory default.",
+    "Continue other witnessed ready local TABLE or document profiles without waiting for this native evidence."
+  ],
+  "limitations": [
+    "No inference here promotes a support or native rendering claim.",
+    "The paired sample names and selected matching fields do not prove a common unmodified save state.",
+    "Unknown flags and scratch guard bypass are not qualified DWG decoding.",
+    "No external DWG/DXF fixtures or scratch outputs are committed."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "ac1015-dictionary-default-output-2026-11-01",
+  "scope": "qualify only the AC1015 Normal/PLACEHOLDER dictionary-default graph to AC1024 DXF; no broad DWG or 3D support claim",
+  "input": {
+    "recipe": "tests/fixtures/dwg/ac1015_3d_polyline_freecad_control.dwgadd",
+    "recipe_sha256": "81df81c3b44b28236795c23f40d87f4230882bbd923aac69a0c5949d4ae6a235",
+    "generated_input": "/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg",
+    "generated_dwg_sha256": "9d2222640e73f9ce9ef54a7f0c91712d2524894ef49c7c81cf3bfaba99e4b92d",
+    "generated_binary_committed": false,
+    "source_version": "AC1015",
+    "dictionary_with_default_handle": "0x0e",
+    "placeholder_handle": "0x0f",
+    "named_object_dictionary_handle": "0x0c"
+  },
+  "change": {
+    "source_profile": "AC1015 was added to the exact dictionary-default snapshot capture and unchanged-source allowlists. AC1024 remains the required DXF target.",
+    "proof_preserved": "The existing proof still requires one exact typed DICTIONARYWDFLT, one fixed type 80 PLACEHOLDER, the unique ACAD_PLOTSTYLENAME NOD edge, Normal default-entry roles, exact owners/reactors, emitted identities, and fresh readback.",
+    "rollback_test": "The physical adapter harness corrupts the PLACEHOLDER reactor edge, confirms output refusal leaves a sentinel destination and qualification state unchanged, restores the edge, retries on the same adapter, and reads back ASCII and binary DXF."
+  },
+  "validation": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg'",
+    "result": "PASS",
+    "readback": "ASCII and binary output pass; source dictionary and placeholder callbacks are both qualified.",
+    "strict_conversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg' -y -d -v2010 '/private/tmp/libdxfrw-freecad-p8/3d-polyline-ac1015-step2.dxf'",
+      "result": "EXPECTED_REFUSAL",
+      "qualification_before": "0/10",
+      "qualification_after": "2/10",
+      "log": "/private/tmp/libdxfrw-freecad-p8/3d-polyline-ac1015-step2.log",
+      "reason": "Eight other opaque source callbacks remain unqualified; strict completeness continues to reject output."
+    }
+  },
+  "fixture_policy": "No DWG/DXF binary was added to the repository. The input was generated from the locally authored recipe and remained in /private/tmp.",
+  "support_claim": "EXPERIMENTAL; this graph-family result does not promote a DWG/DXF support claim or qualify FreeCAD 3D consumption."
+}

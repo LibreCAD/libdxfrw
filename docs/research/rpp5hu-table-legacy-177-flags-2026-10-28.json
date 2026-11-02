@@ -1,0 +1,285 @@
+{
+  "schema": "table-legacy-177-flags-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "supportClaimsPromoted": false,
+  "codeBaseCommit": "f6a7f6ab57b72110255692ba402786f0d55ca1cc",
+  "codeBindingNote": "The production and test source files matched codeCommit when this receipt was finalized.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "lastFileCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "format": "ASCII DXF AC1018",
+    "codepage": "ANSI_1252",
+    "sampleCustody": "repository sample; original native producer not independently established"
+  },
+  "failureBeforeChange": {
+    "record": "ACAD_TABLE",
+    "handle": "528",
+    "recordByteRange": [
+      184186,
+      196976
+    ],
+    "firstFailure": {
+      "code": 177,
+      "value": -4384,
+      "recordGroupIndex": 249,
+      "byteRange": [
+        195950,
+        195961
+      ]
+    },
+    "nextSameValue": {
+      "recordGroupIndex": 296,
+      "byteRange": [
+        196476,
+        196487
+      ]
+    },
+    "result": "BAD_CODE_PARSED (14), `code-parsed`; source error no offset. Scratch instrumented libdxfrw identifies this as the first parser rejection.",
+    "traceSource": "build/agent-attribute-profile/ac1018-readiness/libdxfrw-trace.cpp",
+    "traceSourceSha256": "acf93ea891704f00f9ed02159a126e8c2c669b3c0d1f7be90e45a1ec24d73d14",
+    "traceBinarySha256": "20eef0744411847f1b0c9afab42256cdf736e215b287010c497266c1bb9223c8"
+  },
+  "formatAndPeers": {
+    "autodeskTable": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "autodeskGroupTypes": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "documented": "177 = pre-2007 cell override flag; codes 170\u2013179 carry a 16-bit integer. Specification text does not resolve each flag bit or native behavior.",
+    "libredwg": {
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "specPath": "src/dwg2.spec",
+      "specSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "field": "SUB_FIELD_CAST(cell,cell_flag_override, BS, BL, 177) pre-2007",
+      "headerPath": "include/dwg.h",
+      "headerSha256": "592a651e211023ba63588b7891acdbbb03868ca86afd7423e63601160e615ded",
+      "types": "BITCODE_BS and BITCODE_RS uint16_t; BITCODE_BL uint32_t",
+      "dxfReaderPath": "src/in_dxf.c",
+      "dxfReaderSha256": "e52609c4762ca71940b4c8b778501e9b9e47deb13111c0379e1ab4c1043eb144",
+      "reader": "dxf_read_rs returns BITCODE_RS on ASCII and binary"
+    },
+    "acadsharp": {
+      "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "source": "src/ACadSharp/Entities/TableEntity.Cell.OverrideFlags.cs",
+      "sha256": "810d91c7963a7fb3506bc00542025ecbd0178868cbab8cba0e862a5f6daa7795",
+      "observation": "RightVisibility flag uses 0x8000."
+    },
+    "mapping": {
+      "signed": -4384,
+      "unsigned16": 61152,
+      "hex": "0xEEE0",
+      "wrongSignExtended32": "0xFFFFEEE0"
+    }
+  },
+  "productionChange": "Read code 177 in the signed/unsigned 16-bit range and store the low 16-bit flag pattern in the 32-bit field; reject ASCII spellings outside that carrier domain.",
+  "productionBindings": {
+    "entitiesSource": {
+      "path": "src/drw_entities.cpp",
+      "sha256": "146e636fa3f4b7d703813b75cc016006b69e3a048d25a22a1a9da6695772c506"
+    },
+    "testSource": {
+      "path": "tests/table_content_dxf_tests.cpp",
+      "sha256": "05aab75150b280ebf0206762a6160188251fc3be2147de5dcdec64bfd51c30c1"
+    },
+    "testRegistry": {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "eeb963ca1ade86ce430d026e5eb3f77dae70fdf56c2277681107c831e6888f3a"
+    },
+    "normalLibrary": {
+      "path": "build/libdxfrw.a",
+      "sha256": "bc7586ae3b5fb64810bb4b6690d1a1ce59c523efddc51fdc81560fb94f4c0db4"
+    },
+    "normalTestBinary": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "b2c953bdc37819972a4239482c054c7fb1982112231a77342e5b80f476eadd0c"
+    },
+    "normalAdapterObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "6f9beaa2a7971a2a6c66350cb573b943673f927fb4d7a99cd44c81c6f018de55"
+    },
+    "originalSampleProbeSource": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/cell-probe.cpp",
+      "sha256": "31ed9a3b2662a180f9c2870d4a1f21503a17a11b7eeea653e9c52bfe386e005d"
+    },
+    "originalSampleProbeBinary": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/cell-probe-current",
+      "sha256": "9732e94825bc0b77f2b6c17661d23864cb9b9bec4b3d8274d76306d29a754062"
+    },
+    "originalSampleProbeStdout": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/production-cell.stdout",
+      "sha256": "9a02ea7572bb2742db5b859f1083d477c9acd27ba789ba3a484cd3d136bf9769"
+    }
+  },
+  "originalSampleProbe": {
+    "result": "Imported the unmodified original with current normal production objects and inspected 7 rows / 21 cell override values.",
+    "observations": [
+      {
+        "stage": "table-528",
+        "rows": 7,
+        "cells": [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          26223,
+          26208,
+          61152,
+          26208,
+          26208,
+          61152,
+          17504,
+          32,
+          32
+        ]
+      },
+      {
+        "stage": "original-import",
+        "definitionHandle": 1784,
+        "definitionOwner": 1778,
+        "definitionBase": [
+          0,
+          0,
+          0
+        ],
+        "definitionLock": 0,
+        "definitionType": 1,
+        "definitionVersion": 0,
+        "definitionXdata": 3,
+        "parentHandle": 1796,
+        "childHandle": 1797,
+        "childOwner": 1796,
+        "childBase": [
+          920.6796266627232,
+          16.35285377389053,
+          0
+        ],
+        "childLock": 0,
+        "childVersion": 0,
+        "childType": 1,
+        "childXdata": 3,
+        "footerHandle": 1798,
+        "footerOwner": 1796
+      },
+      {
+        "stage": "original-proof",
+        "definitionPair": 0,
+        "definitionReplay": 0,
+        "definitionProfileReason": 0,
+        "definitionRejectedGroup": 0,
+        "selectedCompounds": 0,
+        "compoundModeled": 0,
+        "compoundProfiles": 0,
+        "compoundSpace": 0,
+        "compoundState": -1,
+        "childProfileReason": -1,
+        "childRejectedGroup": 0
+      },
+      {
+        "stage": "source-model-after-both-exports",
+        "definitionHandle": 1784,
+        "definitionOwner": 1778,
+        "definitionBase": [
+          0,
+          0,
+          0
+        ],
+        "definitionLock": 0,
+        "definitionType": 1,
+        "definitionVersion": 0,
+        "definitionXdata": 3,
+        "parentHandle": 1796,
+        "childHandle": 1797,
+        "childOwner": 1796,
+        "childBase": [
+          920.6796266627232,
+          16.35285377389053,
+          0
+        ],
+        "childLock": 0,
+        "childVersion": 0,
+        "childType": 1,
+        "childXdata": 3,
+        "footerHandle": 1798,
+        "footerOwner": 1796
+      }
+    ],
+    "note": "Source-profile capture and compound proofs below AC1021 are gated and were not established by this probe."
+  },
+  "peerEvidence": {
+    "report": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/peer-observe.json",
+      "sha256": "c1acb4890150b7d015ac0c4ab3958ea61cd163a4b9bf8ee9cb749655fe27e062"
+    },
+    "script": {
+      "path": "build/agent-attribute-profile/ac1018-readiness/peer-observe.py",
+      "sha256": "fe88bd3954e54e92699babd3e77d2fd82eb7faf78d7493d83b3efe5988985f3c"
+    },
+    "version": "ezdxf 1.4.5",
+    "tableValues": "Independent peer retained TABLE as raw AcadTableBlockContent; the exact 21 original group-177 values agree with the production projection after low-16-bit mapping. It did not decode native cell flag semantics.",
+    "selectedCompatibleOutputs": [
+      {
+        "path": "build/agent-attribute-profile/ac1018-readiness/receipt-output-asc.dxf",
+        "sha256": "2959512ba660f8e5c424c9567b2ad2d7a61d404fbda3ca855f60cc21403d4f94"
+      },
+      {
+        "path": "build/agent-attribute-profile/ac1018-readiness/receipt-output-bin.dxf",
+        "sha256": "778bb607f4dc829f50454b7b86321cf852edc026c2c6d85c9c80ca5cf9518aab"
+      }
+    ],
+    "outputNote": "Output hashes match the earlier peer-inspected selected-model outputs. These copied ATTDEF/ATTRIB values are supporting transport observations and do not qualify TABLE or complete-document export."
+  },
+  "validation": {
+    "normal": {
+      "result": "passed",
+      "selectors": [
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_override_177",
+        "libdxfrw_table_content_source_proof"
+      ],
+      "log": {
+        "path": "build/Testing/Temporary/LastTest.log",
+        "sha256": "52d39131ccf05a10f6cf9cfd0c876826b3d797035f5af901e760b9ae3f3a0f38"
+      },
+      "focusedCounts": {
+        "imports": 16,
+        "refusals": 56,
+        "retries": 58,
+        "zeroNonzeroResetCounterfactuals": 56
+      }
+    },
+    "asan": {
+      "result": "passed",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "log": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+        "sha256": "86247a83a0272a30ed19941fb9044bfaa4bce11e2054c971916e3e02c717dd13"
+      },
+      "testBinary": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+        "sha256": "74a9d11db5f1ad4f6bf5d8b5ce360b03db15430bd6350b58c5ac1ccf15789dcb"
+      },
+      "library": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+        "sha256": "1e702f028dcd7e8f97e7b7edf81addeca2e2258133792ee1cfec8c98c61ca18f"
+      }
+    },
+    "counterfactual": "For each nonzero imported bit pattern, a separately fully authored TABLE with mask zero exports and reads back; changing only its mask to the selected nonzero pattern refuses without changing destination or caller, then resetting to zero permits the same writer to succeed. This establishes the current writer boundary; it does not prove support for writing those masks."
+  },
+  "limitations": [
+    "The independent original is repository-custodied; its native authoring provenance and native CAD semantic behavior are not established.",
+    "ezdxf exposes raw TABLE data, not an independent semantic interpretation of cell flags; no native application rendering or full-document write qualification is claimed.",
+    "Current TABLE output deliberately refuses nonzero legacy override flags; this is import and safe-refusal behavior, not round-trip support for nonzero flags.",
+    "The attribute source-profile, enclosing block and ENTITIES/compound capture gates remain closed below AC1021; the selected sample does not qualify those paths.",
+    "No full-suite result is asserted and no external or generated drawing fixture is committed."
+  ],
+  "codeCommit": "fbe37afce2ef53342ffd2629184dc95f2434609c"
+}

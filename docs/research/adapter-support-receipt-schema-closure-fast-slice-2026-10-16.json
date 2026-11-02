@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "kind": "local-implementation-fast-slice",
+  "planSection": "7F.1b / 7AG typed receipt bridge",
+  "repositoryHead": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "finding": "The builder emitted content-bound adapterSupportInputs in modern configIdentity receipts, but the strict runner exact-key schemas rejected that field.",
+  "change": {
+    "file": "tools/run_qualified_differential_v2.py",
+    "sha256": "0effd67a36d1d6158132f0ff957f2ec23c0966f7b8007f0ea86f69a9faf23bb5",
+    "details": [
+      "Admit adapterSupportInputs only as an additive field on six already-recognized modern config-input shapes.",
+      "Keep the frozen legacy input shape unchanged and reject the new field when attached to it.",
+      "Validate exact row keys, normalized relative POSIX paths, lowercase SHA-256, and unique logical and snapshot paths.",
+      "Require target and standalone receipts to agree on logical path and content digest while allowing side-specific snapshot paths."
+    ]
+  },
+  "planFile": {
+    "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "f2c9e21d938c96584c751de967c5f293aa6aa504e460ceb0a879077abeac06f9"
+  },
+  "validation": [
+    {
+      "command": "python3 -m py_compile tools/run_qualified_differential_v2.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 tools/run_qualified_differential_v2.py --self-test",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 tools/build_semantic_adapter.py --self-test",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- tools/run_qualified_differential_v2.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "notEstablished": [
+    "No fresh paired target/standalone artifacts were built or qualified by the runner.",
+    "The effective compiler-driver/profile gate remains open.",
+    "No library behavior, external support claim, or J disposition changed.",
+    "No external or DWG/DXF fixture was added."
+  ],
+  "externalOnlyItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

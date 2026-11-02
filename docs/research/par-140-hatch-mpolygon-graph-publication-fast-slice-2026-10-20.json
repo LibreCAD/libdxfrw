@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-140 HATCH and MPOLYGON boundary graph publication",
+  "mode": "implementation progress; generated fast validation",
+  "finding": {
+    "id": "PAR-140",
+    "subplan": "7N.4",
+    "composedOwner": "7F.1",
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "researchCrosswalk": {
+    "odaDwgAuthority": "Per-path BL counts and following soft-pointer references are defined by ODA v5.4.1; use raw stream checks rather than a self-roundtrip alone.",
+    "autodeskDxfSemantics": "HATCH and MPOLYGON share path group 97/330 references, but MPOLYGON group 71 is solid-fill state, not HATCH associativity.",
+    "peerBoundary": "LibreDWG and ezdxf support per-path structure as implementation evidence; neither peer nor local graph closure proves native associative recomputation."
+  },
+  "sources": [
+    {
+      "name": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "role": "Normative DWG layout for per-path counts and soft-pointer reference stream."
+    },
+    {
+      "name": "Autodesk HATCH Boundary Path Data",
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "role": "DXF group-97 source-object count and group-330 object-reference mapping."
+    },
+    {
+      "name": "Autodesk AutoCAD 2014 DXF reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2014_pdf_dxf_reference_enu.pdf",
+      "role": "Versioned HATCH/MPOLYGON field semantics; group 71 differs for MPOLYGON."
+    },
+    {
+      "name": "LibreDWG ChangeLog",
+      "url": "https://gitlab.com/LibreDWG/LibreDWG/-/blob/master/ChangeLog",
+      "role": "Independent implementation history records a path-local group-97 parsing correction; peer evidence only."
+    },
+    {
+      "name": "ezdxf HATCH tutorial and reference",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/hatch.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/hatch.html"
+      ],
+      "role": "Independent DXF library explicitly bounds retained association handles from native association maintenance/validation."
+    }
+  ],
+  "localFinding": "The graph planner selected MPOLYGON and its targets, but final DXF record-identity validation whitelisted HATCH and rejected the valid MPOLYGON publication.",
+  "changes": [
+    {
+      "file": "dwg2dxf/dx_iface.cpp",
+      "summary": "Include MPOLYGON in HATCH boundary graph gathering, entity inventory, and final MPOLYGON DXF record-identity validation."
+    },
+    {
+      "file": "tests/hatch_reference_tests.cpp",
+      "summary": "Run the existing 16 identity/owner mutation negatives for both HATCH and MPOLYGON, and exercise MPOLYGON positive graph publication plus missing-target/no-replacement controls for ASCII and Binary DXF."
+    },
+    {
+      "file": "CMakeLists.txt",
+      "summary": "Register the --hatch-references graph selector as a dedicated narrow fast CTest."
+    },
+    {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "summary": "Keep generated AC1018/AC1024 HATCH and MPOLYGON readback plus DWG-to-ASCII/Binary-DXF and imported-DXF-to-version-matched-DWG roundtrips, exact path-reference/target remapping, following-entity sentinels, and source-model identity restoration."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "summary": "Refine 7N.4/7F.1 readiness, record the MPOLYGON identity failure and passing graph composition slice, and preserve unqualified route boundaries."
+    }
+  ],
+  "controls": {
+    "positive": [
+      "MPOLYGON and HATCH graph publication with three generated boundary targets",
+      "AC1018 and AC1024 generated DWG readback with path counts 2/0/1",
+      "DWG-to-ASCII and DWG-to-Binary DXF path-reference roundtrip with remapped handles",
+      "ASCII/Binary DXF import to version-matched DWG write/readback for HATCH and MPOLYGON with newly assigned DWG target handles",
+      "Source DXF entity handles, owner handles, and per-path reference lists are restored after DWG serialization"
+    ],
+    "negative": [
+      "Missing MPOLYGON target refuses publication and preserves a pre-existing destination in ASCII and Binary DXF",
+      "The same 16 duplicate/ambiguous/owner/identity mutations reject for both HATCH and MPOLYGON"
+    ],
+    "semanticBoundaries": [
+      "MPOLYGON group 71 remains solid-fill state, not HATCH associativity",
+      "Graph closure does not establish geometric path agreement or native edit/recompute behavior",
+      "Generated codec roundtrip is not independent native consumer qualification"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelectors": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-boundary-references",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+        "result": "PASS"
+      }
+    ],
+    "narrowCTests": {
+    "command": "ctest --test-dir build-gcc -R '^dwg_hatch_dwg_boundary_references$|^dwg_hatch_reference_graph$|^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "summary": "3/3 passed; focused boundary-reference, graph mutation, and DXF fixture gates"
+    },
+    "fullSuite": "NOT_RUN",
+    "commit": "NOT_CREATED",
+    "peerExecutable": "NOT_RUN",
+    "nativeApplication": "NOT_RUN",
+    "libreCADConsumer": "NOT_RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "remainingBoundaries": [
+    "Geometric boundary agreement and native associative edit/recompute remain external consumer semantics, not codec graph-closure claims.",
+    "The LibreCAD bundled fork still needs its explicit port and consumer compile/readback."
+  ],
+  "externalOnlyItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Compatible MTEXT scalar view fast slice",
+  "mode": "local implementation and focused verification",
+  "scope": [
+    "Remove one temporary source std::string per scalar in compatible-mode MTEXT encoding",
+    "Preserve AC1018 legacy-codepage ASCII and Binary output behavior",
+    "Keep the change internal to dxfWriter with no public layout/API change"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "Changed internal dxfWriter::fromUtf8String() to accept std::string_view; its encoder and strict conversion path already consume views.",
+      "Compatible writeUtf8MTextChunks() now forwards each scalar substring view directly instead of constructing a temporary std::string.",
+      "Added generated ASCII/Binary AC1018 ANSI_932 MTEXT controls for an exact 249-byte boundary chunk, CP932 bytes 93 FA, continuation/final groups, and semantic readback."
+    ],
+    "limitations": [
+      "Encoded scalar output strings and destination chunk storage remain allocated.",
+      "Strict-mode scalar temporaries and other writer/projection copies remain separate work.",
+      "This is not an allocator-capacity, peak-RSS, or full conversion performance claim."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "git diff --check -- src/intern/dxfwriter.h src/intern/dxfwriter.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "build": "PASS",
+      "focusedSelector": "PASS: strict wire=40, strict chunks=40, compatible MTEXT=2, framing/profile/failure controls passed",
+      "owningCTest": "PASS: libdxfrw_gbk_codepage 1/1 in 0.59s",
+      "scopedDiffCheck": "PASS",
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "queueReordered": false,
+    "validationFrequencyChanged": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "gitMetadataWritable": false,
+    "committed": false,
+    "note": "The shared worktree contains broad pre-existing changes; no unrelated files were staged or committed."
+  }
+}

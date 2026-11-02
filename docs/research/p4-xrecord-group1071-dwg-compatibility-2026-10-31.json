@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-xrecord-group1071-dwg-compatibility-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Source-scoped DWG XRECORD group 1071 compatibility transport",
+  "status": "DWG_ORIGIN_COMPATIBILITY_TRANSPORT_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "format": "DWG",
+    "record": {
+      "type": "XRECORD",
+      "handle": "0x121F",
+      "ownerDictionary": "0x121E",
+      "dictionaryKey": "16",
+      "orderedValues": [
+        [1071, 135625452],
+        [1071, 184556386],
+        [70, 25],
+        [70, 104],
+        [10, [0.0, 0.0, 0.0]],
+        [1, "ARCH D"]
+      ]
+    },
+    "fixturePolicy": "The pre-existing worktree sample was read in place and was not staged or added. No DWG/DXF fixture was added to the repository; generated JSON and DXF outputs remain in /private/tmp."
+  },
+  "schemaEvidence": {
+    "classification": "Group 1071 is outside the documented standard XRECORD application-data group-code domain. The compatibility route transports the observed source code and Int32 values unchanged; it does not reinterpret them as XDATA or remap them to group 90.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html"
+    ]
+  },
+  "implementation": {
+    "route": "The converter opts into the compatibility writer only for selected XRECORDs from a DWG source when sourceVersion equals targetVersion, the version is AC1021 or later, and the ordered data contains group 1071. The ordinary writeXRecord API keeps the standard domain check. The explicit compatibility writer additionally requires group 1071 values to be Int32 and rejects pre-AC1021 targets.",
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfcode.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_standard_output.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "noSemanticInterpretation": true
+  },
+  "peerProducerObservation": {
+    "tool": "LibreDWG 0.14",
+    "readCommand": "dwgread -O JSON tests/samples/AC1024/title_block-arch.dwg",
+    "writerCommand": "dwg2dxf -y --as r2010 -o /private/tmp/libredwg-title-block-arch.dxf tests/samples/AC1024/title_block-arch.dwg",
+    "writerOutputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+    "observation": "LibreDWG JSON read reports the source XRECORD's exact six ordered values. LibreDWG's DWG-to-DXF output contains the same two group 1071 Int32 values and remaining four values under XRECORD handle 121F. LibreDWG reports unrelated unsupported-profile warnings while producing this file.",
+    "qualificationLimit": "Peer emission is correlated producer behavior, not native AutoCAD/ODA acceptance, independent semantic meaning, or a DXF-to-DWG acceptance result."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 4",
+        "result": "PASS with configured warning-as-error build"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+        "result": "PASS after extending the ordered-value assertion to the complete six-value physical source payload"
+      }
+    ],
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_xrecord_dwg_group_1071_compatibility$' --output-on-failure",
+      "result": "PASS, 1/1; 0.55 seconds",
+      "coverage": "ASCII and Binary. The standard writer rejects group 1071 and preserves a destination sentinel. The explicit path rejects a non-Int32 value and an AC1018 target, preserving the sentinel. Corrected AC1024 attempts on the same adapter succeed; fresh import checks all six ordered values, including the zero point."
+    },
+    "physicalSourceCheckpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -v2010 /private/tmp/title-block-arch-1071-final.dxf",
+      "result": "Expected strict-conversion failure after passing XRECORD 0x121F: R24 TABLESTYLE cell style is outside the witnessed title/header/data profile.",
+      "exitCode": 1,
+      "generatedOutputPublished": false
+    },
+    "persistentTestFixturesAdded": false
+  },
+  "limitations": [
+    "The observed group 1071 values remain application-defined; their semantic meaning is not established.",
+    "No native AutoCAD/ODA acceptance or DXF-to-DWG reimport acceptance is established.",
+    "The physical drawing remains blocked at TABLESTYLE before dynamic-block graph output qualification.",
+    "This receipt does not promote any DWG/DXF support claim."
+  ],
+  "sourceHashesSha256": {
+    "src/libdxfrw.h": "4590a49ffb935fcc9d608b7682e024fe8f01ef1c19c2a5930465e27ffdf4165c",
+    "src/libdxfrw.cpp": "63093125c19d00ff367b51834f74d3705b86d2c433d1516ebc363d8755fe72da",
+    "dwg2dxf/dx_iface.h": "a242a67010496783eca7b68cc62f517115837a6aeb7da5d6a27b89173607a8fc",
+    "src/intern/dxfcode.h": "0f451a3f713b4a166a0884ce8cc73b301ddc87fe3aed1180c6865e98d41c41fa",
+    "dwg2dxf/dx_standard_output.h": "63691b7c6cc669bb75684ce7a1b91189d06a0d7c9e029af8df6ee2a34b88ae3f",
+    "tests/dwg2dxf_adapter_tests.cpp": "d79b0ce51fac3ef0c73fa274c4113cb2bd409b65eadff64f88a44ab2da967299",
+    "tests/CMakeLists.txt": "d009bc95b5167a8a7fed2ee0ec4845307a3e788b1fdef66042d0b007e2e4164e"
+  }
+}

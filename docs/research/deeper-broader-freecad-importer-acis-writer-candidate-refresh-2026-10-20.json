@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader FreeCAD importer-scope and ACIS-writer candidate refresh",
+  "mode": "primary-source web research and read-only local plan/source reconciliation",
+  "scope": [
+    "Recheck FreeCAD's current DXF importer routes, documented entity scopes, and stock ACIS/SAT limitation",
+    "Recheck the disposition of FreeCAD issue #28905 and the ACadSharp ACIS writer candidates #1150 and #1240",
+    "Reconcile those findings with local modeler DXF syntax tests and refine only the existing PAR-07/S8 composed gate"
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD documentation",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "status": "project_documentation_reviewed_2026-10-20",
+      "observation": "The documentation describes separate C++ and legacy Python DXF importers, both supporting R12 onward but with different listed entity scopes; the C++ importer omits text/dimensions/attributes inside blocks, the legacy importer lists 3DFACE, and stock FreeCAD cannot read ACIS/SAT solids. DWG is converted externally to DXF before the selected importer reads it.",
+      "limits": "Documentation is a route description, not runtime evidence for a specific future build or selected importer configuration."
+    },
+    {
+      "project": "FreeCAD issue #28905",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD/issues/28905"
+      ],
+      "status": "closed_by_reporter_2026-04-21",
+      "observation": "The report initially described mirrored blocks in a pinned development build; the reporter later closed it after concluding the supplied DXF was corrupted.",
+      "limits": "The issue does not establish valid-file INSERT transform semantics or a libdxfrw defect; its attachment was not downloaded or admitted as a fixture."
+    },
+    {
+      "project": "ACadSharp ACIS writer work",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "status": "issue_and_pull_request_pages_reviewed_2026-10-20",
+      "observation": "Issue #1195 reports silent modeler-entity omission in a named older package. PR #1150 remains open and undeployed; its discussion says it conflicts with the later ACDS/ACIS refactor and reports a repeated-group-310 readback issue, while the maintainer prefers a schema-driven writer. Separate PR #1240 remains open and is not a released positive route.",
+      "limits": "Candidate branch descriptions and author-reported TrueView checks were not reproduced, are not normative format authority, and do not establish current released behavior."
+    },
+    {
+      "project": "Local libdxfrw modeler DXF route",
+      "references": [
+        "src/libdxfrw.cpp",
+        "tests/modeler_dxf_writer_matrix_tests.cpp"
+      ],
+      "status": "read_only_source_and_test_inspection_2026-10-20",
+      "observation": "The generated ASCII/Binary modeler matrix enumerates AC1015, AC1018, AC1021, AC1024, and AC1027 and asserts ordered modeler groups/chunks plus the versioned 3DSOLID history pair.",
+      "limits": "No local build/test ran in this pass. Generated syntax coverage does not establish native acceptance, DXF-wide support, or ACIS semantic correctness."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Refined the existing PAR-07/S8 native-consumer gate to pin the FreeCAD build, importer backend, converter identity, and per-source-entity disposition; ACIS/SAT remains an expected unsupported stock-FreeCAD route and cannot be used as a B-rep semantic result. Reconciled open ACadSharp writer proposals as design leads only and noted already-present local generated versioned syntax coverage.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-freecad-importer-acis-writer-candidate-refresh-2026-10-20.json"
+    ],
+    "limitations": "Project documentation and issue/PR discussion establish only declared route scope and reported candidate status. No peer artifact was built/run, no FreeCAD build was tested, and the reported malformed/real-world drawings were not downloaded or inspected."
+  },
+  "validation": {
+    "jsonValidation": "PENDING",
+    "scopedDiffCheck": "PENDING",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the worktree has extensive pre-existing user changes and Git metadata is read-only in this session."
+  }
+}

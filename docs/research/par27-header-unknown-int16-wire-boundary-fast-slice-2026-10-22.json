@@ -1,0 +1,31 @@
+{
+  "id": "par27-header-unknown-int16-wire-boundary",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Exercise the signed minimum and full 16-bit wire-pattern boundary for retained unknown DXF HEADER scalar variables in ASCII and Binary DXF.",
+    "Verify encoding-specific decode results survive same-encoding round-trip without changing shared Int16 writer/reader semantics.",
+    "Verify caller-provided values below and above the accepted two-byte range are refused by HEADER preflight."
+  ],
+  "implementation": {
+    "files_changed": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-header-unknown-int16-wire-boundary-fast-slice-2026-10-22.json"
+    ],
+    "tests": [
+      "Generated ASCII/Binary unknown HEADER vectors cover -32768 and 65535; Binary DXF reads the 0xFFFF pattern as -1, while ASCII retains 65535.",
+      "Same-encoding write/readback preserves each observed value; preflight rejects -32769 and 65536."
+    ]
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_header_unknown_variable_roundtrip$' --output-on-failure: PASS (1/1)",
+    "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "limitations": [
+    "Generated local wire-boundary coverage only; no production behavior, persistent drawing fixture, producer/native acceptance, or support claim changed.",
+    "The broad shared worktree remains uncommitted and unstaged."
+  ]
+}

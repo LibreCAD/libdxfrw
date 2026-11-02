@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-vertical-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative vertical-constraint node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_FOCUSED_VALIDATED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode only the witnessed AC1024 version-0 AcVerticalConstraint body; preserve unsupported versions and incomplete nodes/groups raw, and retain strict document-level refusal until associative graph output/readback is complete.",
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "The pinned reader groups AcVerticalConstraint with parallel/horizontal constraints. For the legacy inline version-0 profile it reads owner ID (BL), implied (B), and datum-line node index (BL); only AcParallelConstraint omits the index. The profile reads no node-specific handle."
+  },
+  "semanticReferences": {
+    "autodeskClass": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcVerticalConstraint.html",
+      "meaning": "AcVerticalConstraint derives from AcParallelConstraint and represents a vertical constraint on one constrained line in its owning AcDbAssoc2dConstraintGroup."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "result": "The ODA v5.4.1 text has no class-specific AcVerticalConstraint body layout. Its bit-stream primitive definitions apply; the class-specific order below is established by the pinned reader and two physical AC1024 witnesses."
+    }
+  },
+  "sourceProfiles": [
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "groupHandle": "1F2C",
+      "nodeId": 122,
+      "body": {
+        "startBit": 434,
+        "ownerId": 0,
+        "implied": false,
+        "datumLineIndex": 69,
+        "endBit": 447
+      },
+      "handleStream": {
+        "startBit": 89481,
+        "endBit": 89481,
+        "nodeSpecificHandle": false
+      },
+      "boundaryConfirmation": "The next AcDistanceConstraint node (ID 172) decodes; the enclosing version-0 group completes at 174/174 nodes."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "groupHandle": "777",
+      "nodeId": 840,
+      "body": {
+        "startBit": 382,
+        "ownerId": 0,
+        "implied": false,
+        "datumLineIndex": 838,
+        "endBit": 419
+      },
+      "handleStream": {
+        "startBit": 87846,
+        "endBit": 87846,
+        "nodeSpecificHandle": false
+      },
+      "boundaryConfirmation": "The next AcDistanceConstraint node (ID 849) decodes, and the group advances through 131/147 nodes before the next unsupported AcConstrainedRigidSet node (ID 768)."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "profile": "Version-0 inline AC1024 only: owner ID, implied flag, datum-line index; active flag absent; no node handle consumed. DataKind::Vertical is appended to preserve existing enum values.",
+    "failureBehavior": "A truncated/missing datum-line index leaves this node untyped and the associative group partial; the following object is recovered. Other group versions remain on the existing raw path.",
+    "generatedControls": [
+      "A valid generated version-0 node references a generated datum line, then an implicit point; the implicit point dependency proves handle-stream alignment.",
+      "A missing datum-line index stays raw/partial and the following object is recovered."
+    ],
+    "outputBehavior": "No graph serialization was added. Strict export still refuses with dwg-associative-graph-not-serialized; no DXF is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with AddressSanitizer"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "architecturalNormalAndAsan": {
+      "normalLog": "/private/tmp/vertical-arch-final.log",
+      "asanLog": "/private/tmp/vertical-arch-asan.log",
+      "bothLogSha256": "f81fdad600973ac7ac9a89effc2b4ef76ab1e173377d17a67855f98007c6267f",
+      "result": "Identical logs; node 122 decodes, group completes 174/174, export is refused by the existing graph-not-serialized gate, and no DXF is created."
+    },
+    "civilNormalAndAsan": {
+      "normalLog": "/private/tmp/vertical-civil-final.log",
+      "asanLog": "/private/tmp/vertical-civil-asan.log",
+      "bothLogSha256": "d8e490b6f2e25014fb05bf8b781a7397843e1ab2836f5d1820650cfbc138aae5",
+      "result": "Identical logs; node 840 and later VerticalConstraint profiles decode, then node 768 remains raw as AcConstrainedRigidSet; export is refused and no DXF is created."
+    },
+    "sanitizerDiagnostics": "None in either ASan source run.",
+    "diffCheck": "PASS"
+  },
+  "nextAction": "Probe AC1024 AcConstrainedRigidSet node 768 in the civil witness; establish the class body/handle profile and independent corroboration before implementation.",
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "6f07aafa2c1bd16f25738cfecd59ce4f56b630c6bfe1bbb6015d8d4c0dfa9bd1",
+    "src/drw_objects.h": "208d586b27ffb97316b9ca0a8a5c5051607d2ffe448cfa693199463d704b4cf7",
+    "tests/associative_constraint_group_test_helpers.h": "cee1cfe0e4d136299dc631aeaf501cc3e6fcf007bca695392f6de88bb1c11357",
+    "tests/dwg_reader_matrix_tests.cpp": "a0be0ef0d522a5a32496d20b196c73be4ebe4c63b72d31bc76fa52a653e4e358",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "40a7761c17b03c5f97e9cfa7345a496d651808ad1796d0f6cdb8e638124be353",
+    "build/dwg2dxf/dwg2dxf": "85b54c2016424d80b122e15f8be469f3932988f7dec9b3f2d2ac12b41197b7fc",
+    "build/libdxfrw_dwg_reader_matrix_tests": "bda485aacb68880f21be913db11ffe2d823287845e069bd56914a4d4cfc1751c",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "751bc811b5a15ee2ee01a4e7e2047c29e3b15e8716f06e5da4f9335e477388ea",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "7fb7f7ce2ac7e775b958fff27b51e99252587fb6b8a02e4715aa20e00d355961"
+  }
+}

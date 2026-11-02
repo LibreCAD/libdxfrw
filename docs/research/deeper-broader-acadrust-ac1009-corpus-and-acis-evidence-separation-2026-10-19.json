@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ACadRust AC1009 corpus and ACIS evidence separation",
+  "mode": "Primary-source open-source repository, issue, API documentation, and test-source review",
+  "scope": [
+    "Refresh ACadRust current DWG/DXF version and ACIS declarations",
+    "Reconcile AC1009 private-corpus reporter retest and generated AutoCAD audit evidence",
+    "Distinguish AcDs/SAB transport tests from decoded B-rep and native geometry qualification",
+    "Update the existing PAR-07/S8 comparator readiness without changing implementation order or validation cadence",
+    "Cross-check ezdxf's DXF ACIS carrier surface and the stock FreeCAD ACIS boundary"
+  ],
+  "sources": [
+    {
+      "name": "ACadRust current README",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The mutable main README identifies package version 0.6.5, advertises DWG/DXF R12-R2018+ read/write and SAT/SAB parsing/writing with B-rep topology, and explicitly says AC1009 DWG fidelity is incomplete and R12 DXF export is promoted to R13+. These are project declarations, not a local test result."
+    },
+    {
+      "name": "ACadRust AC1009 support note and issue #110",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/src/docs/ac1009_support.md",
+        "https://github.com/hakanaktt/acadrust/issues/110"
+      ],
+      "observed": "Issue #110 records an initial failure on seven private AC1009 drawings. The listed fixes include commit 3c7f53d (read additional legacy ACIS bodies correctly). The reporter later said upstream matched their fork with no new regressions and roughly 2,000 private drawings passed, including AC1009; the corpus remains unavailable and the issue is open. The report provides no per-body semantic or native geometry result for the ACIS fix. The support note documents generated BricsCAD AC1009 source/resave checks that reportedly opened in AutoCAD 2027 and passed AUDIT without repairs; the drawing binaries are generated on demand and are not checked in. This is stronger project-reported route evidence than a version badge, but remains not independently reproduced here and does not establish exhaustive AC1009 conformance."
+    },
+    {
+      "name": "ACadRust ACIS published API",
+      "urls": [
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/index.html"
+      ],
+      "observed": "The inspected published page identifies ACadRust 0.6.4 while mutable main identifies 0.6.5. It documents SAT 400-600, SAT 700, and SAT 21800+ profiles and a SAB reader that converts binary payload to a SatDocument. This mismatch requires exact package/source artifact alignment before an optional peer run."
+    },
+    {
+      "name": "ACadRust generated round-trip tests",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "The tests fabricate marker/terminator SAB bytes for AcDs pairing checks. A separate locally generated planar cube test writes and re-reads through ACadRust's own DWG codec and asserts ACIS data and has_ds_data presence; those checks establish payload transport/linking, not parsed cube topology, a modeling-kernel validity result, or native CAD acceptance."
+    },
+    {
+      "name": "ezdxf ACIS entity documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/body.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observed": "The docs expose SAT/SAB payload properties and state that ezdxf has only very limited ACIS support; creation of ACIS data requires an external library. This admits a narrow DXF-carrier differential, not an ACIS geometry-kernel claim."
+    },
+    {
+      "name": "FreeCAD stock DXF documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The current documentation says embedded ACIS/SAT solids are not read by stock FreeCAD. The DWG-to-DXF converter/importer workflow and the optional 3D ACIS route remain separate; this is not a runtime result for a particular local FreeCAD build."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing PAR-07/S8 peer ledger, not the implementation queue: ACadRust AC1009 read and AutoCAD-audited generated write evidence receive route-scoped project-reported grades, while the private corpus and exact artifact remain unverified locally. ACadRust ACIS/SAB tests remain transport/self-consistency evidence unless an exact artifact is independently compared against a pre-authored analytic manifest. The FreeCAD ACIS gate remains separate and unmet."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "planSha256": "568276ac5363d90cbd3726d9f3654f7580361ea962a081007c3db8ed449051c9",
+    "documentationValidation": "jq empty on receipt passed; git diff --check on plan and receipt passed",
+    "limitations": "ACadRust's approximately 2,000-file corpus is private and its reported retest was not reproduced. The generated AutoCAD audit is documented by the project but was not run in this environment. The docs.rs page and mutable main README identify different versions. No ACIS parser, B-rep kernel, native CAD consumer, or optional peer artifact was executed, and no DWG/DXF/ACIS support claim is promoted."
+  }
+}

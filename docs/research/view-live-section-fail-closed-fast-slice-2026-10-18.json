@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VIEW code-334 LiveSection fail-closed export and no-UCS compatibility fast slice",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain fail-closed behavior for nonzero VIEW code-334 when its target/owner graph is not represented in DXF export",
+    "Verify parser retention, transactional refusal, same-adapter corrected retry, and direct-writer refusal for ASCII and Binary DXF",
+    "Resolve no-UCS orthographic-field validation against the conditional VIEW group-72/79 DXF contract",
+    "Keep the slice DXF-only and avoid persistent test drawings, new registrations, broad suites, and support promotion"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Adapter preflight and direct VIEW writer continue to reject a nonzero LiveSection handle. Their UCS checks now treat group 79 as conditional on hasUCS/group 72, avoiding rejection of the model's legacy ucsOrthoType=1 default when no UCS is associated; nonzero named/base UCS references without hasUCS remain rejected.",
+    "testControls": [
+      "Generated ASCII and Binary AC1027 VIEW with explicit code72=0 and code334=0x777 parses and retains the LiveSection handle.",
+      "Adapter export of the nonzero LiveSection edge fails while preserving a pre-existing destination.",
+      "Clearing only the unsupported LiveSection handle allows the same adapter/data to export and re-import successfully.",
+      "Raw output scan verifies group72=0, no code334, and no inapplicable code79.",
+      "Direct low-level writer refuses a nonzero LiveSection edge atomically in ASCII and Binary DXF."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "publicLayoutChanged": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build/libdxfrw_dxf_fixture_tests --view-live-section-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --ucs-orthographic-options"
+    ],
+    "focusedResults": [
+      "VIEW code-334 LiveSection fail-closed export: PASS",
+      "UCS orthographic DXF option tuples: PASS; the selector printed expected reader diagnostics for negative malformed controls"
+    ],
+    "gitDiffCheckPassed": true,
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "evidence": [
+    {
+      "source": "Autodesk VIEW DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "observed": "Group 72 indicates whether a UCS is associated. The UCS group-code subsection states that groups 110/120/130, 111/121/131, 112/122/132, 79, 146, 345, and 346 appear only when group 72 is 1. Group 334 is an optional soft pointer to a LiveSection object."
+    },
+    {
+      "source": "Local source and generated controls",
+      "observed": "DRW_View::reset initializes hasUCS=false and ucsOrthoType=1. The generated DXF controls exercise the valid no-UCS case and the unsupported nonzero LiveSection case without modifying DWG serialization."
+    }
+  ],
+  "assessment": {
+    "confirmedPlanGapClosed": "Nonzero VIEW code-334 DXF export now remains fail-closed at adapter and direct-writer boundaries with atomic refusal coverage and corrected retry coverage.",
+    "newConfirmedLocalDefectFixed": 1,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "limitations": "The slice does not retain or serialize LiveSection objects/owners and does not qualify target class, native VIEW behavior, or 3D semantics. The full fixture CTest and full suite were not run; earlier broad fixture runner failures remain unattributed. The shared working tree remains broadly modified and uncommitted."
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-10-18",
+  "kind": "deeper-broader-peer-research",
+  "title": "DIMENSION flag peer status and independent DWG reader test gap",
+  "scope": "Refresh CADCraft issue #1094 and proposed PR #1096, compare the peer test design with the existing libdxfrw DIMENSION wire tests, and identify any implementation-ready plan delta without changing code or promoting support.",
+  "method": {
+    "kind": "Primary-source peer issue/PR review plus local source/test audit",
+    "sourcesOpened": [
+      "https://github.com/storytold/cadcraft/issues/1094",
+      "https://github.com/storytold/cadcraft/pull/1096",
+      "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "local ODA Open Design Specification v5.4.1, section 20.4.22 (as previously cited in the plan)",
+      "tests/dwg_local_roundtrip_tests.cpp: encodedCommonDimensionFlagMatches and dwgCommonDimensionFlagsMatch",
+      "src/drw_entities.cpp: DRW_Dimension::parseDwg and DRW_Dimension::encodeDwgDimBase",
+      "https://github.com/storytold/cadcraft/issues/1209",
+      "https://github.com/storytold/cadcraft/issues/544",
+      "https://github.com/storytold/cadcraft/pull/638",
+      "https://github.com/storytold/cadcraft/pull/643"
+    ],
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "drawingsDownloaded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "CADCraft #1094 is a reporter's AutoCAD 2026 observation. PR #1096 is open/unmerged/undeployed at retrieval; its proposed code and test results are contributor-reported and belong to an ACadRust-derived application bridge. Local source inspection confirms the ODA mapping, but current generated DWG tests assert writer output rather than independently supplied parser input."
+  },
+  "evidence": [
+    {
+      "topic": "CADCraft report and proposed correction",
+      "sources": [
+        "https://github.com/storytold/cadcraft/issues/1094",
+        "https://github.com/storytold/cadcraft/pull/1096"
+      ],
+      "observed": "Issue #1094 reports that CADCraft 0.6.2 produced DWG dimensions that AutoCAD 2026 interpreted as user-positioned when the DXF output was default-positioned, with bit 32 also absent. Open PR #1096 proposes mapping both bits in read and write directions. Its author describes raw-byte controls for home/moved linear, aligned, radius, and angular dimensions, a mutation check, and macOS Apple-silicon validation. The PR page showed no reviews and no deployments.",
+      "doesNotEstablish": [
+        "a libdxfrw defect",
+        "released or deployed CADCraft behavior",
+        "an independent parser lineage relative to ACadRust/OpenCADStudio",
+        "native application acceptance performed for this research pass"
+      ],
+      "planUse": "Use as confirmation of the need for raw-wire-first mapping tests and as a test-design reference only."
+    },
+    {
+      "topic": "Existing libdxfrw coverage and uncovered direction",
+      "sources": [
+        "docs/research/dimension-dxf-wire-flags-fast-slice-2026-10-16.json",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "src/drw_entities.cpp"
+      ],
+      "observed": "The existing generated lane checks DXF group-70 bit 32/128 before parseback and reads the emitted DWG Flags 1 RC independently for AC1018, AC1021, and AC1024 across four bit combinations and multiple subtypes. Source inspection shows the parser's inverse mapping, but the local test does not feed an independently authored raw Flags 1 byte to DRW_Dimension::parseDwg.",
+      "planUse": "Add one parser-direction, literal/raw-field control to the existing dimension test owner, with version-correct framing, explicit expected mapping, exact cursor consumption, and a following-object sentinel. Do not duplicate the existing writer matrix."
+    },
+    {
+      "topic": "Neighboring CADCraft issue deduplication",
+      "sources": [
+        "https://github.com/storytold/cadcraft/issues/1209",
+        "https://github.com/storytold/cadcraft/issues/544",
+        "https://github.com/storytold/cadcraft/pull/638",
+        "https://github.com/storytold/cadcraft/pull/643"
+      ],
+      "observed": "The unitless INSUNITS default issue and the HATCH expansion/render-resource issue are distinct from DIMENSION flag semantics and already have unit-presence and consumer-render owners in the plan.",
+      "planUse": "Retain existing owners; add no duplicate issue, PAR row, dependency, renderer run, or implementation branch."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "persistentFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "When the existing dimension test owner is next touched, build a minimal parser-only DWG common-entity/DIMENSION input whose Flags 1 byte is independently set from the production encoder.",
+      "Check DWG Flags 1 bits 0/1 against DXF group-70 bits 128/32 at the existing AC1018, AC1021, and AC1024 layout boundaries.",
+      "Assert exact body consumption and a following-object sentinel; if independent framing cannot be achieved with the current seam, first factor a small literal-frame builder.",
+      "Keep strict touched-target build, focused dimension selector, and owning CTest as the per-slice validation; reserve AutoCAD edit/regeneration for the composed native gate."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "scopedDiffCheckPassed": true,
+    "testsRun": false,
+    "peerOrNativeRun": false,
+    "externalFilesDownloaded": 0
+  }
+}

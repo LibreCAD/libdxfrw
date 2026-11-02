@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-18",
+  "owner": "PAR-05/7AR source text storage × target DXF version",
+  "slice": "Generated AC1018 TV / AC1021 TU primitive and entity characterization into complete AC1027 ASCII DXF",
+  "status": "implemented_locally_uncommitted",
+  "scope": {
+    "source_versions": ["AC1018", "AC1021"],
+    "target_version": "AC1027",
+    "source_storage": ["TV / CP8", "TU / UTF-16LE"],
+    "primitive_source_paths_are_complete_dwgs": false,
+    "entity_source_paths_are_complete_runtime_generated_dwgs": true,
+    "target_is_complete_dxf_document_for_entity_integration": true,
+    "field_scopes_exercised": ["generic variable-text field primitive", "TEXT entity", "MTEXT entity"],
+    "field_scopes_not_exercised": ["XRECORD object"]
+  },
+  "observations": [
+    {
+      "case": "BMP U+03A9",
+      "expected_source_wire": "Independent test-local bit writer checks version-specific string length and payload, terminal unit, and following 0xA7 byte.",
+      "typed_tv": "prefix Ω suffix",
+      "typed_tu": "prefix Ω suffix",
+      "target_wire": "AC1027 UTF-8 physical value bytes match literal expected bytes.",
+      "following_sentinel": "DXF group 2 AFTER-TEXT is present and decoded after group 1."
+    },
+    {
+      "case": "literal \\U+0041 spelling",
+      "typed_tv": "literal A suffix",
+      "typed_tu": "literal \\U+0041 suffix",
+      "target_wire": "Each typed source value is serialized with exact expected AC1027 bytes; TU literal backslash is CIF-quoted and read back without recursive expansion.",
+      "interpretation": "Observed behavior only; no universal escape policy is selected."
+    },
+    {
+      "case": "literal \\U+D800 spelling",
+      "typed_tv": "literal \\U+D800 suffix",
+      "typed_tu": "literal \\U+D800 suffix",
+      "target_wire": "Literal backslash is quoted; resulting value remains valid UTF-8 text.",
+      "interpretation": "This is not a malformed UTF-8 source-byte test; invalid UTF-8 is covered by existing strict-writer tests."
+    },
+    {
+      "case": "complete locally generated AC1018 and AC1021 DWG entity paths",
+      "entities": ["TEXT", "MTEXT", "following LINE"],
+      "target": "Each source imports through dx_iface and strictly exports to a complete AC1027 ASCII DXF.",
+      "checks": ["Exact physical TEXT/MTEXT group values", "Record ordering", "$ACADVER=AC1027", "Terminal group-0 EOF", "DXF re-imported typed values", "Following LINE geometry and exactly three modelspace entities"],
+      "interpretation": "Local writer/reader integration only, not independent producer or native-consumer qualification."
+    }
+  ],
+  "tests": {
+    "target": "libdxfrw_gbk_codepage_tests",
+    "selectors": ["--dwg-tv-tu-target-matrix", "--dwg-tv-tu-entity-integration"],
+    "ctest": "libdxfrw_gbk_codepage",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests -j2",
+      "./build-gcc/libdxfrw_gbk_codepage_tests --dwg-tv-tu-target-matrix",
+      "./build-gcc/libdxfrw_gbk_codepage_tests --dwg-tv-tu-entity-integration",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure"
+    ],
+    "result": "pass"
+  },
+  "artifacts": {
+    "persistent_drawing_fixture_added": false,
+    "runtime_generated_dwg_dxf_files_cleaned_up": true,
+    "new_ctest_registered": false,
+    "dependency_added": false,
+    "peer_or_native_runtime_run": false,
+    "full_suite_run": false
+  },
+  "remaining_boundaries": [
+    "No XRECORD object string path is tested by this slice.",
+    "The complete-DWG test uses libdxfrw's own writer and reader; no independent external parser/native consumer result is asserted.",
+    "TV/TU literal escape interpretation remains field- and consumer-specific; this characterization does not resolve it."
+  ],
+  "plan_state": {
+    "findings": 130,
+    "top_level_subplans": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claim_promoted": false
+  }
+}

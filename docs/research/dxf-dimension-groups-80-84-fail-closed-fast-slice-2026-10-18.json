@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DIMENSION groups 80-84 fail-closed fast slice",
+  "mode": "implementation progress and evidence boundary",
+  "scope": [
+    "Close the local ASCII/Binary output asymmetry for nonzero DIMENSION groups 80-84 without inventing a DXF type contract",
+    "Protect output destination integrity and same-writer retry behavior with generated in-memory controls",
+    "Update PAR-39/7X.6 readiness while preserving unresolved producer/profile and consumer-acceptance gates"
+  ],
+  "sources": [
+    {
+      "title": "Autodesk Group Code Value Types Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "The published general type table assigns 60-79 as 16-bit and 90-99 as 32-bit but does not assign 80-89; absence does not rule out an undocumented or vendor-specific profile."
+    },
+    {
+      "title": "Autodesk Common Dimension Group Codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "finding": "The published common DIMENSION fields omit groups 80-84; this is not proof that no producer extension exists."
+    },
+    {
+      "title": "ezdxf Dimension entity source",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimension.py",
+      "finding": "The independent common typed DIMENSION schema omits these codes; comparator evidence only, not normative exclusion."
+    },
+    {
+      "title": "Local source and generated regression control",
+      "localPaths": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+      "finding": "src/libdxfrw.cpp now refuses nonzero values for the five model fields before emission; tests/wave1_tests.cpp checks all fields in ASCII and Binary, untouched destination prefix, corrected retry, and following-record sentinel."
+    }
+  ],
+  "localAudit": {
+    "productionFile": "src/libdxfrw.cpp",
+    "testFile": "tests/wave1_tests.cpp",
+    "fields": [
+      {"groupCode": 80, "field": "tolZero"},
+      {"groupCode": 81, "field": "altTolDecimals"},
+      {"groupCode": 82, "field": "altZero"},
+      {"groupCode": 83, "field": "altTolZero"},
+      {"groupCode": 84, "field": "textMove"}
+    ],
+    "behavior": "Fail closed before writing bytes when any listed field is nonzero; retain public model values and leave the global group-code classifier unchanged.",
+    "diagnosticCode": "dimension-group-80-84-unqualified",
+    "classification": "Local caller/classifier mismatch is contained for writes; semantics, producer profile, and correct typed/raw preservation behavior remain unresolved."
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-39",
+    "updatedSubplan": "7X.6",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ledger": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "validation": {
+    "strictBuild": "PASS: cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focusedTest": "PASS: build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+    "owningCTest": "PASS: libdxfrw_wave1 (1/1)",
+    "consumerCompatibilityTarget": "PASS: cmake --build build-gcc --target lc3_compat_check -j4",
+    "diffCheck": "PASS: git diff --check on src/libdxfrw.cpp, tests/wave1_tests.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "fullSuite": "NOT_RUN",
+    "peerOrNativeRun": "NOT_RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "remainingGates": [
+    "Find an already-admitted source sample or authoritative producer/profile contract showing whether and how nonzero groups 80-84 are emitted.",
+    "Do not add a version/entity-scoped typed encoding until independent bytes and producer or strict-consumer acceptance support it.",
+    "Decide whether known source values can be preserved with established framing; otherwise retain explicit fail-closed behavior."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "supportClaimsPromoted": 0,
+  "worktree": "Broadly modified shared worktree; no unrelated changes staged or committed."
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FreeCAD effective import options and text-scale calibration",
+  "mode": "Primary-source web research and plan-only consumer-gate refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the existing native FreeCAD DXF consumer lane against current source, API, documentation, and a current confirmed issue.",
+    "Determine whether requested importer options alone are sufficient evidence for text-property parity.",
+    "Add a fast, implementation-ready calibration at the existing composed native checkpoint without expanding routine test frequency."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD Import.readDXF binding",
+      "revision": "Mutable main branch reviewed 2026-10-20; no immutable source commit resolved",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/AppImportPy.cpp"
+      ],
+      "observed": "The direct binding accepts a filename and optional document name, ignore_errors Boolean, and option_source string. Source defaults ignore_errors to true, constructs the C++ DXF reader, supplies options, reads and recomputes the document, and returns importer statistics.",
+      "evidenceCeiling": "Source/API inspection, not an executed result from an installed FreeCAD build. The GUI/Open/Insert route may have different error handling and must be recorded separately."
+    },
+    {
+      "project": "FreeCAD ImpExpDxfRead implementation",
+      "revision": "Mutable main branch reviewed 2026-10-20; no immutable source commit resolved",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "observed": "The C++ reader uses an explicit option-source path and records import settings, including text/dimension import, manual scaling, layouts, hidden blocks, layers, and colors, in its statistics structure.",
+      "evidenceCeiling": "The returned/requested configuration improves run reproducibility but cannot establish correctness of imported text properties; capture the resulting document object's actual values."
+    },
+    {
+      "project": "FreeCAD issue #30043",
+      "revision": "Issue reviewed 2026-10-20; mutable issue state",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/30043"
+      ],
+      "observed": "The issue remains open and carries a confirmed label. The reporter describes C++ DXF import applying the Draft Scale Multiplier to file-authored TEXT height on FreeCAD 1.1.1 and a 1.2 development build, and expects the TEXT height from DXF to remain unchanged.",
+      "evidenceCeiling": "Confirmed peer report only; not reproduced in this worktree, not a normative DXF rule, and not evidence of a libdxfrw defect. The issue attachment was not downloaded."
+    },
+    {
+      "project": "FreeCAD DXF importer documentation",
+      "revision": "Mutable documentation main branch reviewed 2026-10-20",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observed": "The docs describe distinct C++ and legacy Python DXF importers with different feature profiles and state that stock FreeCAD does not read embedded ACIS/SAT solids.",
+      "evidenceCeiling": "Documentation bounds candidate routes; it is not a pinned runtime qualification and provides no ACIS/B-rep semantic evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: native FreeCAD qualification should capture requested and effective importer settings, returned statistics, and resulting object properties; add a generated known-height TEXT calibration only when text is in the declared consumer profile."
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "At the existing composed native FreeCAD checkpoint, pin the application/backend/error policy/option source; record requested preferences and returned statistics when available; and inspect the imported TEXT height and placement against an independent source manifest. Treat a mismatch confined to the consumer importer as a consumer limitation, not a libdxfrw failure. Keep the legacy Python importer separate and keep all ACIS/AcDs semantic gates unchanged."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation, source, and issue review; local plan-only update",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-freecad-effective-import-options-text-scale-calibration-2026-10-20.json"
+    ],
+    "limitations": "FreeCAD source, issue state, and documentation are mutable and were not pinned to an immutable commit or executed here. The issue report motivates a calibration but does not prove behavior on every current build or profile."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq schema, counts, deferred-item keys, and method-boundary assertions)",
+    "planDiffCheck": "PASS (git diff --check on plan and research receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

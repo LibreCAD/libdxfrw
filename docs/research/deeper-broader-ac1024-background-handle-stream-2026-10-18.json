@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1024 SkyBackground object-handle stream correction",
+  "mode": "ODA-first specification review, same-sample LibreDWG peer triangulation, local implementation and focused verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Correct the attribution of the local AC1024 type-535 failure cluster",
+    "Research object-specific handle ordering using ODA and independent project evidence",
+    "Correct IBL and Skylight Background handle-stream read/write placement",
+    "Add generated-from-scratch AC1024 vectors and recheck the exact local sample",
+    "Keep unrelated failures and external qualification gates separate"
+  ],
+  "method": {
+    "authoritativeSpecification": "Open Design Alliance Open Design Specification for .dwg files v5.4.1, section 20.1 Common non-entity object format",
+    "peer": "LibreDWG 0.14 executable already installed at /opt/homebrew/bin/dwgread; same local input read-only",
+    "peerExecutableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localBuildRun": true,
+    "localTestsRun": true,
+    "fullSuiteRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "localSample": {
+    "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "version": "AC1024",
+    "before": {
+      "executableSha256": "3560092e1ab1649b5c41d0d9f2d5e011859e0102c95638a91733f79322e59e99",
+      "traceSha256": "8d5a2bbfb9ba16a2b42ec4b7271d24cef3819cbf6b5e71b686f999a9a6e5c183",
+      "exitStatus": 1,
+      "objectParseFailures": 13,
+      "type535Failures": 11,
+      "otherFailures": [
+        { "type": 528, "handle": 559, "class": "AcDbBlockLookupAction / BLOCKLOOKUPACTION" },
+        { "type": 515, "handle": 363, "class": "ACDBPERSSUBENTMANAGER / PERSUBENTMGR" }
+      ],
+      "type535Class": "AcDbSkyBackground / SKYLIGHT_BACKGROUND",
+      "reportedObjectDataHandleBoundaryBits": 58,
+      "classTableCrc": "warn-only mismatch",
+      "semanticCoverage": "partial-observed"
+    },
+    "after": {
+      "executableSha256": "70dbcc0270239c158b7458d5c345a190a58c03e8be5608bd43887605bbaf1a96",
+      "tracePath": "/private/tmp/libdxfrw-sky-background-par133-after.log",
+      "traceSha256": "5fa0ca58381044942447f773fe8cc44543d4255c5d75e8229deacf3e37428ebc",
+      "exitStatus": 1,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "semanticCoverage": "partial-observed",
+      "type535Failures": 0,
+      "otherFailures": [
+        { "type": 528, "handle": 559, "class": "AcDbBlockLookupAction / BLOCKLOOKUPACTION" },
+        { "type": 515, "handle": 363, "class": "ACDBPERSSUBENTMANAGER / PERSUBENTMGR" }
+      ],
+      "conversion": "still refused because coverage is partial",
+      "classTableCrc": "warn-only mismatch unchanged"
+    }
+  },
+  "peerObservation": {
+    "version": "LibreDWG 0.14",
+    "inputSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "exitStatus": 0,
+    "jsonPath": "/private/tmp/sun-and-sky-libredwg.json",
+    "jsonSha256": "927532c12a638243569383294047109c142d242240dc05279e15e1f5b87454c9",
+    "logPath": "/private/tmp/sun-and-sky-libredwg.log",
+    "logSha256": "84984955cf8808c10122433cc943554ff67a9f2a08b09575a03c41c94b49eddb",
+    "decodedSkyBackgroundCount": 11,
+    "semanticFieldObserved": "sunid handle references",
+    "residualObjects": [
+      {
+        "type": 528,
+        "handle": 559,
+        "class": "AcDbBlockLookupAction / BLOCKLOOKUPACTION",
+        "peerDiagnostic": "bit_read_TU buffer overflow at 2869.3 + 17664 > 9114",
+        "peerJsonDisposition": "partial prefix plus 72873 unknown body bits; not full semantic validation",
+        "odaExactNameSearch": "no BLOCKLOOKUPACTION or dynamic-block layout term found in local v5.4.1 text extraction; search miss is not proof no alias/cross-reference exists"
+      },
+      {
+        "type": 515,
+        "handle": 363,
+        "class": "ACDBPERSSUBENTMANAGER / PERSUBENTMGR",
+        "peerDiagnostic": "bit_read_RC buffer overflow; implausible subentity count requires 17051908 bits when 7 bits remain",
+        "peerDisposition": "record identity/owner/size surfaced but subentity semantics not validated",
+        "existingPlanRoute": "PAR-06 unsupported/debugging disposition; LibreDWG issue #1398 leaves candidate ordering unresolved"
+      }
+    ],
+    "limit": "Peer output corroborates class identity and reference values but is not the wire-order authority; ODA section 20.1 is."
+  },
+  "wireEvidence": {
+    "odaSection": "20.1 Common non-entity object format",
+    "relevantRule": "The handle stream begins with parent soft-pointer, reactor soft-pointers, optional xdictionary hard-owner, then object-specific handles.",
+    "autodeskSemanticSources": [
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSkyBackground__setSunId_AcDbObjectId.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_IBLBackground_SecondaryBackground.html",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbIBLBackground.html"
+    ],
+    "additionalCrossProjectSources": [
+      "https://github.com/LibreDWG/libredwg/issues/1398",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec"
+    ],
+    "conclusion": "The Sky sun and IBL secondary-background are object references. The local parser/writer had consumed/emitted them in the data body; they now follow common object handles in the bounded handle stream."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-ac1024-background-handle-stream-2026-10-18.json"
+    ],
+    "generatedTests": [
+      "AC1024 IBL_BACKGROUND owner/reactor/class-handle ordering and readback",
+      "AC1024 SKYLIGHT_BACKGROUND owner/reactor/class-handle ordering and readback",
+      "IBL detached string/body fields remain separate from handles"
+    ],
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --background-object-handle-stream",
+    "focusedSelectorResult": "PASS",
+    "objectVectorBinaryResult": "PASS",
+    "ctests": {
+      "libdxfrw_dwg_object_vectors": "PASS",
+      "libdxfrw_dwg_local_roundtrip": "PASS"
+    },
+    "roundtripVersions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "gitDiffCheck": "PASS"
+  },
+  "assessment": {
+    "priorAttributionCorrected": "Type 535 is AcDbSkyBackground / SKYLIGHT_BACKGROUND, not ACSH_HISTORY_CLASS.",
+    "localDefect": "Confirmed and corrected for IBL and Skylight class-specific handles.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotalsBefore": { "findings": 133, "topLevelSubplans": 76 },
+    "planTotalsAfter": { "findings": 133, "topLevelSubplans": 76 },
+    "remainingConversionBlockers": "Type 528 BLOCKLOOKUPACTION is a local/peer partial-body decoding gap without a confirmed wire grammar; route it through the existing dynamic-block evidence gate. Type 515 PERSUBENTMGR matches PAR-06 and peer issue #1398's unresolved layout. Strict CLI conversion still refuses partial coverage.",
+    "limitations": "One user-local AC1024 sample is not a general producer/version qualification. Generated roundtrip tests are local codec checks. LibreDWG 0.14 is independent semantic corroboration, not an ODA substitute. The BLOCKLOOKUPACTION ODA name search is only a search miss. No global Background or DWG support claim is promoted."
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing uncommitted changes in the touched source, test, and plan files. No unrelated changes were staged or committed.",
+    "temporaryPeerAndSampleArtifactsRemainOutsideRepository": true
+  }
+}

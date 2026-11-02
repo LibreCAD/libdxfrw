@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research.source-release-inventory.v1",
+  "date": "2026-10-28",
+  "code_commit": "8e8aac02",
+  "finding": "The tracked dxfentitiesauth.h and four legacy converter headers were absent from canonical CMake and generated source-release inventories; new tracked tests were also missing from the release list.",
+  "repair": "Classified the five headers in the canonical inventories and regenerated Automake and source-release lists from tracked files.",
+  "inventory_sha256": {
+    "libdxfrw_sources.cmake": "270070f6b0f7fb64d887cb603232c357a6a7bfb6c0c23387e748b18184d7d950",
+    "dwg2dxf/source-files.cmake": "06ac735cdd47809d7a4599fcf2ce81119ed536620bf75c879e3bf3bff5bfb4d2",
+    "src/source-files.am": "44a8c9b40fa97b1100c821786716b26f3a3f67bcdb53f652fc6144713238c51d",
+    "dwg2dxf/source-files.am": "3e40af88f2288dd940014c6f799e9bc42efa7fb8ea78ee9f8743f0ae13d06907",
+    "source-release-files.am": "8e6461b2e0ed3809040e5634298a365823bc471b41caa6c399c09d9199ff3c01",
+    "source-release-files.txt": "1b72a047217a9281b34a94420b86e0924ca80997f76f3f57f0e68c8789ec9cdf"
+  },
+  "validation": {
+    "inventory_check": "PASS: 620 tracked release inputs",
+    "inventory_self_test": "PASS: 18 refusal controls and archive policy checks",
+    "source_only_copy": "PASS: copied only source-release-files.txt entries to a directory without Git; inventory check and CMake dwg2dxf target build passed on macOS ARM64 with AppleClang 21",
+    "source_copy": "/private/tmp/libdxfrw-release-check.ukOu5E/source",
+    "executable_sha256": "0daaf6d14ad5d2d14e42a68c804ba27a4783d20310a6b7047e1ffe84523d4844",
+    "cmake_policy_override": "CMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "note": "BUILD_TESTING was supplied but not consumed by this project; the explicit dwg2dxf target was built."
+  },
+  "limits": [
+    "The source-only copy is not a generated release archive or distcheck.",
+    "Linux and Windows builds, shared-library and ABI qualification remain open.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

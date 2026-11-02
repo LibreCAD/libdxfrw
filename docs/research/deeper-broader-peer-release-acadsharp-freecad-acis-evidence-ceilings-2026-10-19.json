@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer release accuracy, ACadSharp failure shapes, and FreeCAD/ACIS evidence ceilings",
+  "mode": "Read-only primary-source research and local-plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck LibreDWG release-versus-historical NEWS attribution, current writer caveats, and the build-scoped AcDs/SAB issue report.",
+    "Refresh ACadSharp's version/direction matrix and current parser, writer, TABLE, MLEADER, VERTEX, EED, and MTEXT issue shapes.",
+    "Verify FreeCAD's converter/importer path and stock ACIS limitations, plus ezdxf's ACIS API and semantic ceilings.",
+    "Map evidence to existing libdxfrw owners and make the optional comparison/native gates implementation-ready without increasing per-slice cost."
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG NEWS 0.14.1 / 0.14 and historical v0.11 section",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "evidence": "0.14.1 documents parser/security changes and a final inline-SAT-block DXF export fix; 0.14 documents R2004 DWG writing and R2007 fallback to R2010. The AcDsPrototype_1b incomplete/brute-force SAB wording is under the historical v0.11 (2020) heading."
+    },
+    {
+      "name": "LibreDWG README and issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "evidence": "The README's broad writer guidance is not aligned with every release note. Issue #1411 reports R2013+ AcDs/SAB loss for the named 0.14.8593 build; this is not a run against current master."
+    },
+    {
+      "name": "ACadSharp compatibility matrix and open issues",
+      "url": "https://github.com/DomCR/ACadSharp/issues",
+      "evidence": "Directional version declarations and issue-specific reports include repeated DXF recursion (#1281), EED size narrowing (#1282), VERTEX subtype marker (#1279), default TABLE CadValue (#1264), MLEADER context roundtrip (#1277), and frame-only AC1032 MTEXT rejection (#1297)."
+    },
+    {
+      "name": "FreeCAD Draft DXF and DWG import documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "evidence": "DWG uses an external converter followed by a selected DXF importer. Importer backends have different documented coverage, and stock DXF import does not read embedded ACIS solids."
+    },
+    {
+      "name": "ezdxf ACIS API, FAQ, and authoring guide",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "evidence": "SAT/SAB APIs cover documented profiles and mesh-origin creation, but ACIS support is limited; unsupported nodes may be lost, and flat-face mesh projection loses curved boundaries."
+    }
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-release-acadsharp-freecad-acis-evidence-ceilings-2026-10-19.json"
+    ],
+    "limitations": "Mutable upstream pages and reporter/maintainer statements establish declared scope and issue-specific claims, not runtime results for a current artifact. No peer artifact, external geometry, or native consumer was executed."
+  },
+  "localCrosswalk": {
+    "LibreDWG": "Correct release attribution; preserve #1411 as REPORTED_AT_0.14.8593 / NOT_RETESTED; exact release/source/build and operation binding remain mandatory.",
+    "ACadSharp": {
+      "1281": "Existing iterative parser-progress and repeated-record controls.",
+      "1282": "Existing EED length/splitting boundaries; do not copy the peer's signed-short threshold.",
+      "1279": "Existing parent-role-aware classic POLYLINE/VERTEX behavior; no generic subtype repair.",
+      "1264": "Existing 7G.3d TABLECONTENT typed-value and reference owner.",
+      "1277": "Existing DWG object-context and owner-closure route; peer no-op corruption is not a local defect.",
+      "1297": "Existing versioned MTEXT writer and strict whole-file/native acceptance route."
+    },
+    "FreeCAD": "Native Linux/Windows qualification remains converter plus intermediate-DXF plus pinned importer; score only its supported 2D/explicit-entity subset. Stock ACIS import is UNSUPPORTED_CONSUMER, not a semantic result.",
+    "ezdxf": "Optional exact-profile carrier/tag comparator only; not arbitrary ACIS round-trip, B-rep semantics, or a DWG reader."
+  },
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-07/S8 peer provenance and staged modeler evidence",
+      "PAR-14/PAR-26 parser progress, bounds, and EED lengths",
+      "legacy POLYLINE/VERTEX compound-record handling",
+      "7G.3d TABLECONTENT value/reference completeness",
+      "MLEADER context-object graph and versioned writer output",
+      "MTEXT versioned serialization and native-writer gate",
+      "FreeCAD converter/importer platform qualification"
+    ],
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "planSha256": "d198431ef4f92290c5a7b1e3e05ee1ffb714a2b38d0edc160698977e771a9c78"
+  }
+}

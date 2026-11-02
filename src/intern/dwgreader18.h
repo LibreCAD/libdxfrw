@@ -50,6 +50,7 @@ public:
     bool readMetaData() override;
     bool readFileHeader() override;
     bool readDwgHeader(DRW_Header& hdr) override;
+    bool readDwgTemplate(DRW_Header& hdr) override;
     bool readDwgClasses() override;
     bool readDwgHandles() override;
     bool readDwgTables(DRW_Header& hdr) override;
@@ -104,9 +105,11 @@ protected:
         std::uint64_t pageId = 0, bool hasPageId = false,
         std::uint64_t pageOffset = 0, bool hasPageOffset = false); //called: Section page map: 0x41630e3b
     bool parseDataPage(const dwgSectionInfo &si/*, std::uint8_t *dData*/); //called ???: Section map: 0x4163003b
-    bool parseDataPage(const dwgSectionInfo& si,
-                       std::unique_ptr<std::uint8_t[]>& sectionData,
-                       std::uint64_t& sectionSize);
+    //! Virtual so section-capture tests can supply decoded page bytes without
+    //! constructing a complete physical DWG page stream.
+    virtual bool parseDataPage(const dwgSectionInfo& si,
+                               std::unique_ptr<std::uint8_t[]>& sectionData,
+                               std::uint64_t& sectionSize);
     /// Decode the R2004 global page map. Negative record IDs describe unused
     /// gaps and advance the file address, but are never page-map entries.
     static bool parseSectionPageMap(

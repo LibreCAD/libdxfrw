@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader cross-peer evidence-routing matrix",
+  "mode": "Primary-source web research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Consolidate current open-source DWG/DXF route boundaries into an implementation-ready question-to-peer admission matrix.",
+    "Separate container validation, typed DWG decoding, DWG writing, DXF parsing/writing, OGR projection, and downstream application routes.",
+    "Preserve the fast local validation path and keep peer/native qualifications optional and non-blocking."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Mutable master manual accessed 2026-10-20; no executable or immutable commit pinned",
+      "observed": "The manual describes broad but ongoing coverage, identifies R2007 DWG writing as unsupported, says R2010-R2018 writing still fails CRC/audit checks, and lists enabled-but-unstable and broken/undertested object families. It also states the project came out of QCAD Community Edition code.",
+      "limits": "Project documentation is not an exact-release runtime result, conformance oracle, or evidence of current code reuse with libdxfrw."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "revision": "Mutable master pages accessed 2026-10-20; no package or commit executed",
+      "observed": "The current matrix lists distinct DXF/DWG read/write operations. DWG reading is advertised through AC1021, while DWG writing is not advertised at AC1021; the matrix provides no per-entity denominator. The reader example exposes notifications.",
+      "limits": "Version/operation checkmarks are self-described route availability, not semantic or release-level test results."
+    },
+    {
+      "project": "ezdxf and ODA File Converter integration",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/odafc.rst"
+      ],
+      "revision": "Mutable master pages accessed 2026-10-20; no package or converter executed",
+      "observed": "ezdxf documents versioned ASCII/Binary DXF support. Its DWG add-on invokes the separately installed ODA File Converter, so that route is not an ezdxf DWG codec.",
+      "limits": "No runtime, DXF, DWG, audit, recovery, or conversion was executed. Any future ODA-backed observation needs its own executable identity and output version."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "urls": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "revision": "Mutable master file accessed 2026-10-20; document content is dated 2018; no GDAL build executed",
+      "observed": "The known-issues file lists unsupported entity types and selected Z/OCS/style/projection gaps, including MESH, MPOLYGON, RAY, TABLE, TOLERANCE, XLINE, MLINESTYLE, and MULTILEADER limitations.",
+      "limits": "The old limitation list must be checked against the exact current source/build before relying on it; OGR output is a projection, not a lossless drawing graph."
+    },
+    {
+      "project": "QCAD/dxflib provenance",
+      "urls": [
+        "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Mutable project sources accessed 2026-10-20; source similarity was not audited",
+      "observed": "QCAD describes its DXF module as based on dxflib; LibreDWG documents historical QCAD Community Edition code ancestry.",
+      "limits": "This supports only a provenance caution and does not prove current code sharing between the live projects or establish their relative correctness."
+    },
+    {
+      "project": "Existing local plan and qualification policy",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/3D_SUPPORT_STATUS.md"
+      ],
+      "revision": "Shared local worktree inspected 2026-10-20",
+      "observed": "Existing subplans already distinguish local generated tests, per-route peer evidence, and composed external/native qualification. This update consolidates admission/selection criteria without changing their sequence.",
+      "limits": "No new local implementation result or support claim follows from documentary research."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07: select an exact route-matched peer only for a named open question at the composed checkpoint",
+      "PAR-14: retain focused local validation and do not introduce per-slice peer or full-suite requirements",
+      "Consumer qualification: separate file-library evidence from OGR projection and native application behavior"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a question-to-route matrix distinguishing DWG structure, DWG semantic reading, DWG writing, DXF read/write, geospatial projection, and application routes.",
+    "Made exact operation/version/entity matching, source/runtime identity, strict-versus-recovery mode, per-source dispositions, and independently declared expected values explicit for optional peer use.",
+    "Added a stop rule: broad peer discovery ends here unless a later implementation slice reveals a concrete unresolved route question; missing peer availability does not block local implementation.",
+    "Reaffirmed that all testing drawings must be existing repository fixtures or locally generated from scratch; external peer fixtures and mutated external corpus files are not to be committed."
+  ],
+  "limitations": [
+    "The cited repository pages are mutable and generally were not pinned to immutable commits or release artifacts in this pass.",
+    "No peer tool was executed, no parser output was compared, and no native application accepted any generated file.",
+    "Peer documentation establishes only the route classifications and stated limitations recorded here; it is not format authority or a reproduced support result."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan; upgrade-plan validator passed)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

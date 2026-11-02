@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-65/7AM.4",
+  "related_owner": "PAR-65",
+  "slice": "Legacy DWG BLOCK_RECORD XREF index retention",
+  "status": "implemented_locally_uncommitted",
+  "problem": "The AC1012-AC1018 BLOCK_RECORD parser consumed xrefindex+1 but discarded it; its diagnostic cast to int16_t also misrepresented high-bit unsigned values.",
+  "spec_evidence": {
+    "source": "Open Design Specification for .dwg files v5.4.1, §20.4.52, pp. 164-165",
+    "contract": "The pre-R2007 BLOCK_HEADER body carries a BS xrefindex+1 field separately from XREF reference/dependent flags. The encoded zero value represents no index; later versions have a different resolved-state body field."
+  },
+  "implementation": {
+    "owner": "DRW_Block_Record::parseDwg",
+    "changes": [
+      "Retain the decoded zero-based index on DRW_Block_Record; use -1 when encoded as zero or when the version has no legacy index field.",
+      "Remove the signed 16-bit diagnostic conversion so values above INT16_MAX remain unsigned and intact.",
+      "Generate AC1015/AC1018 BLOCK_RECORD wire data in memory and parse XREF flags, overlay state, path, and typed-link alignment through the production parser."
+    ],
+    "publicApiChange": "Additive DRW_Block_Record data member; the class layout changes and downstream binaries must be rebuilt. No DRW_Interface virtual or existing dwgRW::defineBlock overload changed.",
+    "dwgWriterImplemented": false,
+    "fixture_or_registration": "No DWG/DXF fixture file was added; one fast generated-data CTest registration was added."
+  },
+  "regression": {
+    "generatedCases": [
+      "Encoded xrefindex+1 zero maps to the absent-index sentinel -1.",
+      "Encoded value 42 maps to semantic index 41.",
+      "Encoded value 32769 maps to semantic index 32768 without signed-short truncation.",
+      "Non-overlay and overlaid XREFs retain dependent/loaded flags and the relative path remains aligned with typed block links."
+    ],
+    "expected": "The parser retains the index and existing flags/path/links without opening or resolving the external drawing."
+  },
+  "validation": {
+    "strict_target": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --block-record-xref-index",
+      "result": "PASS"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_dwg_block_record_xref_index|libdxfrw_block_owners' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "diff_check": {
+      "command": "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "full_suite": "NOT_RUN"
+  },
+  "fixture_policy": "The test constructs generated AC1015 and AC1018 bitstreams in memory; no downloaded, customer-provided, or newly committed DWG/DXF fixture is used.",
+  "evidence_ceiling": "Local parser/model retention only. DWG XREF writing, DXF-origin metadata composition, external-file availability, independent peer semantics, and native CAD acceptance remain unqualified; this slice promotes no support claim.",
+  "next_unresolved": "Add a non-pure XREF metadata submission route, then implement the versioned BLOCK_HEADER writer vectors and verify them with an independent bit walker plus the production reader.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree; only the local XREF-index parser/model slice, its generated focused test, plan progress, and receipt were changed for this slice. Nothing was staged or committed."
+}

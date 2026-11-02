@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.1 DIMASSOC documented DXF osnap fields",
+  "mode": "local implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain documented main-object osnap subentity and GS-marker values",
+    "Retain near parameter, complete WCS point tuple, and last-point flag",
+    "Preserve exact field presence and reject duplicate or incomplete typed state",
+    "Keep XREF/intersection reference edges guarded until remapping is modeled",
+    "Prevent DXF-only osnap details from being silently encoded as DWG"
+  ],
+  "sources": [
+    {
+      "title": "Autodesk DIMASSOC (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "finding": "The primary DXF group table defines 73 as main-object SubentType, 91 as its GsMarker, 40 as the Near-Osnap geometry parameter, 10/20/30 as the WCS osnap point, 75 as hasLastPointRef, and separately identifies XREF/intersection reference groups 301/302/332 and intersection subentity/marker groups 74/92."
+    },
+    {
+      "title": "Repository-pinned ODA Open Design Specification v5.4.1",
+      "url": "file:/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files%20(1).pdf",
+      "finding": "The locally available PDF scan did not expose a DIMASSOC body prescription beyond its custom-class listing; this slice changes no DWG parser or body bytes. The DXF-only new fields are explicitly refused by the DWG encoder pending a DWG layout witness."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DRW_DimensionAssociationOsnapRef now records optional main-object subentity type, GS marker, Near parameter, WCS point, last-point flag, and parser component-presence bits. DXF parsing preserves these fields and detects duplicate/incomplete state; the writer validates numeric domains and emits the documented fields in order. Intersection osnap types 6/11 remain unsafe because the intersection edge is not represented. The DWG encoder rejects any newly represented DXF detail before emitting bytes.",
+    "dwgByteLayoutChanged": false,
+    "publicLayoutChanged": true,
+    "abiCompatibilityClaimed": false,
+    "downstreamRebuildRequired": true,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "limitations": "XREF handle strings 301/302, intersection handle 332, and intersection fields 74/92 are not represented or relocated and remain loss-guarded. This does not implement live associative updates, complete DIMASSOC support, or DWG DIMASSOC layout semantics."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_hardening_tests libdxfrw_wave1_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-documented-scalar-fields",
+        "result": "passed; ASCII/Binary value round-trip, presence, copy/assignment, incomplete-point refusal, intersection-type guard, and DWG-encoder no-publication control"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-unsupported-detail",
+        "result": "passed; remaining XREF/intersection fields, unknown class/subclass/body data, orphan fields, and typed-write refusal"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dimassoc-graph-closure",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --integer-valued-boolean-wire-kinds",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "passed 1/1"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimassoc-dxf-documented-osnap-fields-fast-slice-2026-10-17.json",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/dimassoc-dxf-documented-osnap-fields-fast-slice-2026-10-17.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "subplan": "7AA.1",
+    "status": "PARTIAL_LOCAL_DXF_IMPLEMENTATION",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

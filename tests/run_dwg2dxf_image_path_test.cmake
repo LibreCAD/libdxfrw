@@ -80,6 +80,61 @@ foreach(_output IN ITEMS "${_first}" "${_second}")
     endif()
 endforeach()
 
+if(DEFINED BINARY_GENERATE_MODE AND NOT "${BINARY_GENERATE_MODE}" STREQUAL "")
+    if(NOT DEFINED BINARY_VERIFY_MODE OR NOT DEFINED BINARY_CONVERSION_OPTIONS)
+        message(FATAL_ERROR
+            "BINARY_VERIFY_MODE and BINARY_CONVERSION_OPTIONS are required with BINARY_GENERATE_MODE")
+    endif()
+    set(_binary_input "${_test_root}/${CASE_NAME} binary source.dxf")
+    set(_binary_first "${_test_root}/${CASE_NAME} binary first pass.dxf")
+    set(_binary_second "${_test_root}/${CASE_NAME} binary second pass.dxf")
+    execute_process(
+        COMMAND "${ADAPTER_TEST}" "${BINARY_GENERATE_MODE}" "${_binary_input}"
+        RESULT_VARIABLE _binary_generate_result
+        OUTPUT_VARIABLE _binary_generate_stdout
+        ERROR_VARIABLE _binary_generate_stderr
+        TIMEOUT 10
+    )
+    if(NOT "${_binary_generate_result}" STREQUAL "0")
+        message(FATAL_ERROR
+            "Could not create Binary DXF adapter control (${_binary_generate_result}).\n"
+            "${_binary_generate_stdout}\n${_binary_generate_stderr}\nEvidence: ${_test_root}")
+    endif()
+
+    foreach(_input_output_pair IN ITEMS
+            "${_binary_input}|${_binary_first}"
+            "${_binary_first}|${_binary_second}")
+        string(REPLACE "|" ";" _input_output_list "${_input_output_pair}")
+        list(GET _input_output_list 0 _binary_source)
+        list(GET _input_output_list 1 _binary_output)
+        execute_process(
+            COMMAND "${DWG2DXF}" "${_binary_source}" -o "${_binary_output}"
+                ${BINARY_CONVERSION_OPTIONS}
+            RESULT_VARIABLE _binary_convert_result
+            OUTPUT_VARIABLE _binary_convert_stdout
+            ERROR_VARIABLE _binary_convert_stderr
+            TIMEOUT 10
+        )
+        if(NOT "${_binary_convert_result}" STREQUAL "0")
+            message(FATAL_ERROR
+                "Binary DXF exact-argv adapter conversion failed (${_binary_convert_result}).\n"
+                "${_binary_convert_stdout}\n${_binary_convert_stderr}\nEvidence: ${_test_root}")
+        endif()
+        execute_process(
+            COMMAND "${ADAPTER_TEST}" "${BINARY_VERIFY_MODE}" "${_binary_output}"
+            RESULT_VARIABLE _binary_verify_result
+            OUTPUT_VARIABLE _binary_verify_stdout
+            ERROR_VARIABLE _binary_verify_stderr
+            TIMEOUT 10
+        )
+        if(NOT "${_binary_verify_result}" STREQUAL "0")
+            message(FATAL_ERROR
+                "Binary DXF adapter read-back failed for ${_binary_output} (${_binary_verify_result}).\n"
+                "${_binary_verify_stdout}\n${_binary_verify_stderr}\nEvidence: ${_test_root}")
+        endif()
+    endforeach()
+endif()
+
 if(DEFINED NEGATIVE_MODE AND NOT "${NEGATIVE_MODE}" STREQUAL "")
     set(_negative_output "${_test_root}/${CASE_NAME} unsupported AC1014.dxf")
     execute_process(

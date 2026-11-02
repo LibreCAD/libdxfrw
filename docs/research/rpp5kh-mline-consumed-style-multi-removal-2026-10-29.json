@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kh selected 4-to-2 middle-element removal from a consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "5b9fe5c1bc2d0a118207136fe82d2f1eb6434272",
+  "scope": "Extends the selected AC1027 open, uncut, unfilled MLINE projection to remove the two middle elements from one source-bound four-element style. The exact retained tuples are the first and last source elements. Each consumer's per-vertex parameter pairs are remapped to those ordered survivors and recomputed against the target style and justification. This is selected output/geometry evidence, not native CAD semantic qualification or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the MLINESTYLE element count; group 74 gives the repeated parameter count per element at each vertex; group 41 carries those parameters; group 75/42 carry area-fill parameter counts and values. The first group-41 value is the distance along the miter vector to the element path intersection."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries each MLINESTYLE element offset; the selected projection is limited to style flag 2."
+    }
+  ],
+  "contract": {
+    "admission": "The original MLINESTYLE body, dictionary/provider graph and each ordinary MLINE consumer must be source-bound. The source has exactly four elements and the target exactly two. Every style-level field must be unchanged, and each target element must equal one full original tuple (offset, color roles, linetype identity and associated indexes/handles). The survivors must form one unique ordered subsequence; this profile retains source indices 0 and 3. The selected route requires AC1027, style flag 2, equal start/end angles, and open/unfilled/uncut consumers whose original MLINE element count is four. All other counts, schemas, flags, angles and carriers remain refused.",
+    "geometry": "Each selected MLINE has at least two vertices, positive finite scale, justification 1 or 2, unit extrusion, source-consistent WCS positions/directions/miters, exactly two group-41 parameters for each of the four source elements, zero second parameters and no group-42 fill values. Every source parameter is revalidated. The target first parameters are recomputed for the two retained offsets using target justification shift; the corresponding second parameters follow their source survivor. Group 73 and each vertex's per-element parameter arrays are reduced to two without changing geometry or mutating caller models.",
+    "identityAndOutput": "The MLINE retains its redundant group-2 name and group-340 style reference. Output proof checks one MLINESTYLE with group-71 count 2, exact retained group-49 offsets, ACI colors and linetypes; each MLINE has group-73 count 2, six group-74 values of 2, twelve group-41 values, six group-75 values of 0 and no group 42. Fresh import verifies both style tuples, array arity, WCS positions/directions/miters, scale, justification and extrusion for model-space and named-block consumers.",
+    "failureAndRetry": "An unsupported style flag refuses before publication while preserving destination and caller state; correcting the flag permits same-adapter retry. A 4-to-3 count boundary is deliberately not admitted by this slice and refuses atomically. A late live-consumer parameter mutation after entity staging refuses before publication; restoring the caller snapshot permits a same-adapter retry. Successful output is reopened for semantic field readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. ASCII/binary input and output remain supported. All drawings are authored at runtime from scratch and removed after success; no DWG/DXF fixture was committed.",
+    "limits": "Evidence covers AC1027 ASCII and binary sources crossed with ASCII and binary output; one four-element style reduced to the exact first-and-last survivor subsequence; flags 2 and equal angles; open, unfilled, uncut ordinary MLINEs; one model-space and one named-block consumer; three vertices; center and bottom justification; and two extrusion planes. It does not qualify other removal positions/counts, one-to-zero, other style edits, other versions/carriers/schemas, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "styleAndConsumerProfile": "Runtime-authored style offsets are [1.25, -0.75, -1.25, -2.0], element ACI colors are [1, 3, 4, 5], and linetypes are [ByLayer, Continuous, ByLayer, Continuous]. The selected target is [1.25, -2.0] with colors [1, 5] and linetypes [ByLayer, Continuous]. Model-space and named-block MLINE consumers exercise center and bottom justification, three vertices, and distinct extrusion planes.",
+    "failureAndRetry": "Four successful source/output combinations and eight successful output readbacks; two invalid-flag refusals preserve destination/caller state and succeed after same-adapter correction; two 4-to-3 boundary refusals preserve destination/caller state; two late-consumer mutation refusals preserve the destination and succeed after caller restoration and same-adapter retry."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf",
+        "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests dwg2dxf"
+      ]
+    },
+    "affectedNormalCohort": {
+      "result": "PASS",
+      "summary": "8/8 current-source selectors: MLINE style body transactions, style authority, consumed offset projection, retarget offset projection, one-element append, two-element append, two-element-source removal and four-to-two multi-element removal",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(style_body_transactions|style_authority|consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_removal|consumed_style_multi_removal)$' --output-on-failure"
+    },
+    "affectedAsanCohort": {
+      "result": "PASS",
+      "summary": "6/6 current-source projection selectors: consumed offset, retarget offset, one-element append, two-element append, two-element-source removal and four-to-two multi-element removal",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_(consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_removal|consumed_style_multi_removal)$' --output-on-failure"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "f93098abd7259e860cb9d4e06b0b8d15df9e9b84d6d3a7c786cf62a08e829e3b",
+    "tests/CMakeLists.txt": "4a088f2c70a25248e65c0f116f49be5513b552d07f20a357c736c289b322cad6",
+    "tests/dxf_fixture_tests.cpp": "85c66a79bd3265c7d3bd839645c5bd07f18c7c04e2eff30a0e7d9ac2d501271a"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "9d66c2179d54a4c614f17b3163092ea9958376f8d7bdab559220a83c72759d78",
+    "asanLibdxfrwDxfFixtureTests": "b2cd09d9e27bbde81832a4115da62e0e94affe83b15264765efdd9f913bbd3b4",
+    "normalDwg2dxf": "af1ff9eb46348bbebce826015d17ccbfd9d5b7b21154e2dcb344dcc60317adca",
+    "asanDwg2dxf": "c116e5a925ecefcca3d5ed7be16c332b4dc3f44991f4274098211d0fa65b95a6"
+  },
+  "next": "Use the generated four-element AC1027 source and the recorded 4-to-3 refusal as the next exact consumed-style witness. Qualify removal of one element at each source position with source-bound unique survivor mapping, exact output/readback, rollback and retry controls. Keep other source counts, append cardinalities, retargets, earlier versions, carriers, schemas, native semantics and support claims open."
+}

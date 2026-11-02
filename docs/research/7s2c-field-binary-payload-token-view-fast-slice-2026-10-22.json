@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c FIELD binary payload token view",
+  "scope": "Avoid copying the current group-310 token while parsing a typed FIELD CadValue binary payload.",
+  "files": {
+    "src/libdxfrw.cpp": "8f86d14bb10b65db1cf30a1f4ead51bd32481ab7edddcb96c8b1f07d42944444",
+    "tests/dwg2dxf_adapter_tests.cpp": "552265d90a6bd7bfe3ac51976b526347db015a334e1d2fce79edbed3e689dcec"
+  },
+  "evidence": {
+    "lifetime": "appendDxfHexChunk accepts std::string_view and consumes it synchronously into the final byte vector; getStringView is valid until the next readRec and is not retained.",
+    "generatedControls": "The named-object callback control now parses a FIELD child CadValue type 8 with group 310 A1B2C3D4 in ASCII and generated Binary DXF. It verifies declared size 4, exact m_rawData and typed binary value, and the following DICTIONARYVAR sentinel.",
+    "rawCarrier": "The independent FIELD raw-carrier capture occurs before typed parsing and remains unchanged, preserving ordered raw representation."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; LibreCAD compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS (1/1; 0.52 s)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "selfUnblockingContinuation": "Continue exact-source 7S.2c ownership and staging audits using focused generated controls and owning CTests. Full suites remain at planned checkpoints; no ownership-only slice promotes semantic or native support claims."
+}

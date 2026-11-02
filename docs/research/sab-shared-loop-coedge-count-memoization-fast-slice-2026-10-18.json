@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-sab-shared-loop-coedge-count-memoization-fast-slice-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.3/S3.7 per-extraction memoization of shared loop coedge counts",
+  "scope": "Avoid rescanning an immutable source loop's coedge ring when several faces reference it, without deduplicating per-face projected loop output or changing cycle reporting.",
+  "implementation": {
+    "productionFilesChanged": [
+      "src/drw_acis.cpp"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "planFileChanged": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "cacheLifetime": "One extractAcisWireframeImpl invocation; local to the immutable model projection.",
+    "cacheKey": "Source loop node index.",
+    "accounting": "One maxOutputItems unit is reserved before each new map entry; per-face output rows and cycle guards keep their existing charges. This bounds item count, not allocator bytes or RSS.",
+    "allocationFailure": "std::bad_alloc continues through the existing allocationFailure outcome path.",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "controls": {
+    "source": "Generated in-memory ACIS 21800 SAB controls; no fixture file.",
+    "fourByFour": {
+      "faces": 4,
+      "sharedLoops": 4,
+      "coedgesPerRing": 4,
+      "assertions": [
+        "Every face retains all four loop rows in source order.",
+        "Each face retains the same source loop node identities.",
+        "Every projected row retains coedgeCount 4.",
+        "Extraction work is below four times the equivalent one-face control, while remaining greater due to per-face output traversal."
+      ]
+    },
+    "eightByEight": "Existing shared-cycle projection and work-bound control remains passing.",
+    "budgetBoundary": "Existing exact maxExtractionWorkUnits admission and one-under ResourceLimit controls remain passing."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "PASS",
+    "focusedCTest": "libdxfrw_graph_preservation: 1/1 passed (0.56 s)",
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": [
+    "This optimizes repeated structural coedge-count scans only; it does not suppress legitimate per-face loop output.",
+    "The work counter is deterministic work evidence, not a wall-clock benchmark.",
+    "The item budget does not bound std::map allocator bytes, allocator metadata, or RSS.",
+    "This does not validate a complete B-rep, ACIS semantics, a DWG/DXF producer, a native consumer, or general 3D support."
+  ],
+  "supportEvidence": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "promoted": false
+  },
+  "worktree": {
+    "broadPreexistingChangesPreserved": true,
+    "committed": false,
+    "staged": false,
+    "reason": "The shared worktree has broad pre-existing modifications in the same source, test, and plan files; the slice cannot be safely committed without including unrelated work."
+  }
+}

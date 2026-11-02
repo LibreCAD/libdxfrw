@@ -1,0 +1,79 @@
+{
+  "id": "RPP-5ur",
+  "title": "MLINE-referenced simple LTYPE with one XDATA entity-handle reference",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "aaf01997",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_provider": {
+      "type": "LINE",
+      "source_handle": "0xA900",
+      "source_section": "ENTITIES",
+      "source_owner": "0x201",
+      "source_owner_name": "*Model_Space"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1005, "value": "A900", "role": "soft-pointer entity handle" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical LTYPE XDATA, its captured code-1005 object-ID role, complete ENTITIES source/delivery spans, parser addLine event, observed DRW_Line, unique live LINE, source owner and non-collision identity entry all bind the same source handle. The raw and typed XDATA handle values must agree.",
+    "output": "The selected handle is preallocated before LTYPE emission and remapped through the entity identity map. Staged output checks exact LTYPE XDATA order/value, one emitted LINE identity in ENTITIES, its remapped model-space BLOCK_RECORD owner, and a fresh import whose typed 1005 value names that LINE.",
+    "failure_retry": "Removing the target LINE refuses export and preserves the destination sentinel; restoring the LINE succeeds on the same adapter. A late LINE-handle mutation after APPID emission also refuses atomically; restoring the source handle succeeds on the same adapter.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 6,
+      "selected_refusals_with_destination_preservation": 2,
+      "selected_same_adapter_retries": 2,
+      "whole_focused_test_profiles": 48,
+      "whole_focused_test_readbacks": 102,
+      "whole_focused_test_refusals": 54,
+      "whole_focused_test_retries": 54
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_ltype_appid_xdata|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_mixed_segments|libdxfrw_mline_ltype_referenced_flags|libdxfrw_mline_style_xdata|libdxfrw_mline_style_body_transactions)$' --output-on-failure",
+    "focused_result": "PASS (6/6)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=48; readbacks=102; refusals=54; retries=54",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This receipt covers one code-1005 handle to one typed LINE in ENTITIES, owned by model space, in one selected AC1027 simple-LTYPE XDATA profile under one bare APPID. Other target record types/sections, multiple handles, other XDATA compositions, additional APPID groups/metadata, LTYPE schemas and versions remain unqualified.",
+    "The receipt proves transport and identity remapping only. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure or broader LTYPE provider support."
+  ]
+}

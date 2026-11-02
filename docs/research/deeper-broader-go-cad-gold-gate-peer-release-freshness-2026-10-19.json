@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Go-CAD gold-gate audit, unverified issue leads, and peer-release freshness",
+  "mode": "Primary-source research and local source/plan crosswalk; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the publicly visible go-cad gold-comparison helpers for denominator and opt-in behavior without generalizing their behavior to the entire claimed strict-gate suite.",
+    "Separate go-cad issue #1's large-file DWG and zero-handle DXF reports from reproduced local defects.",
+    "Refresh ACadSharp formal release and open ACIS-related PR status, and distinguish LibreDWG NEWS release status from the current nightly artifact.",
+    "Translate the evidence into an optional, exact-profile peer checkpoint and concrete readiness checks without adding a test lane, dependency, fixture, or support claim."
+  ],
+  "sources": [
+    {
+      "project": "unitedrhino/go-cad",
+      "urls": [
+        "https://github.com/unitedrhino/go-cad/blob/main/README_en.md",
+        "https://raw.githubusercontent.com/unitedrhino/go-cad/main/gold_convergence_test.go",
+        "https://github.com/unitedrhino/go-cad/issues/1"
+      ],
+      "revision": "Mutable main, README, and issue pages reviewed 2026-10-19; no immutable source commit or runtime artifact was pinned.",
+      "observed": "README self-reports 37 DWG drawings, 34 strict hard-gated, 62 value rows, 59/59 DXF cases, and a 147-file reliability corpus; it explicitly excludes ACIS kernel/geometry reconstruction. The reviewed optional gold helpers are environment-gated. TestGoldLineMatch excludes missing handles from its match/total success predicate, TestGoldAllEntitiesMatch skips missing/wrong-type handles before incrementing total, and TestGoldLayerColors excludes absent handles from total. The full claimed 62-gate suite was not audited. Open issue #1 alleges >=18 MB R2004-family failures and zero table handles in DXF output, but the reviewed body has no attached sample or reproducible trace; the reports are unverified and not libdxfrw findings."
+    },
+    {
+      "project": "DomCR/ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Release and PR pages reviewed 2026-10-19; latest formal release v3.8.0 is signed at short commit 3a1c66b; PR #1150 and #1174 display Open.",
+      "observed": "v3.7.16 (Sep 18, 2026) includes the listed DXF reader/writer refactor; v3.8.0 (Sep 21, 2026) is listed latest and its release note lists InternalsVisibleTo. Open #1150 discussion identifies a schema-driven writer as desired rather than raw storage replay and reports a last-group-310 ACDSDATA readback issue after refactoring; these open-branch comments are not released capability or independent runtime evidence."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases"
+      ],
+      "revision": "NEWS and releases page reviewed 2026-10-19; releases page top Windows nightly 0.14.8612 points to short commit f860b0f.",
+      "observed": "NEWS records version 0.14.1 dated 2026-07-25; the GitHub releases page currently leads with pre-release Windows nightly 0.14.8612 dated 2026-10-13. Treat the release and nightly as distinct artifacts."
+    }
+  ],
+  "localEvidence": [
+    "tests/wave1_tests.cpp:1328-1354 — existing raw-DXF tests reject missing, zero, and duplicate self handles.",
+    "tests/wave1_tests.cpp:3943 — existing record inventory check rejects duplicate emitted handles.",
+    "src/libdxfrw.cpp — normal table-record allocation uses the local nonzero DXF handle allocator; route-wide writer qualification remains separate.",
+    "src/intern/dwgreader18.cpp:214-216, 304-308, 597, 896 — existing R2004+ system-page, section-capacity/logical-size, and page-map paths provide the local owner crosswalk if a large-file report is reproduced.",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing external evidence tiers, R2004+ page/section bounds, owner closure, and composed native/semantic gates."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds optional-peer denominator qualification, unverified go-cad issue leads, and current release identity to the plan; improves implementation readiness without promoting capability or adding external prerequisites."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local source/plan audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalSampleDownloads": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-go-cad-gold-gate-peer-release-freshness-2026-10-19.json"
+    ],
+    "limitations": "The go-cad README and main-branch source are mutable and were not pinned or executed. Only the reviewed gold helper source was audited, not all 62 claimed strict gates. Issue #1 is a reporter statement without a reproduced input in the reviewed body. Release/PR status is a point-in-time observation, not runtime qualification."
+  },
+  "implementationReadyChecks": [
+    "Keep go-cad optional and question-specific; pin exact source commit, toolchain, build flags, binary/package and input hashes before any comparator run.",
+    "Use an independently authored expected identity/value manifest and compare expected/observed unions; report missing, extra, wrong-type, skipped, unsupported, parse-error, and value-mismatch outcomes separately.",
+    "Do not treat the README's 62 strict rows as audited by this source review or use the opt-in gold helper's intersection percentage as full-presence coverage.",
+    "For any DXF writer qualification, strict-reopen emitted ASCII/Binary output independently as applicable and check nonzero unique handles plus owner/reference closure; existing raw-input handle tests do not qualify every output route.",
+    "Investigate go-cad issue #1 only if a local supported path reproduces it; capture the exact AC version, first failing stage, page/section geometry, and bounded trace, then use generated in-memory boundary controls and ODA-led reconciliation without importing peer thresholds/opcodes as facts.",
+    "Keep raw ACIS/AcDs carrier retention, owner association, independent parsing, native open/regeneration, and analytic B-rep semantics separate; go-cad's stated lack of a kernel cannot satisfy semantic evidence.",
+    "Keep ACadSharp v3.8.0 released behavior separate from open #1150/#1174 branches and LibreDWG 0.14.1 release evidence separate from 0.14.8612 nightly; no ordinary dependency, peer install, CI lane, or full-suite cadence change."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-go-cad-gold-gate-peer-release-freshness-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-go-cad-gold-gate-peer-release-freshness-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "207337e302904fa810533084a03c85b340991a9967321882ff9cdd72c959199f"
+}

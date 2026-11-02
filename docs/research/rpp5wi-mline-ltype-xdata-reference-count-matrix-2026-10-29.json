@@ -1,0 +1,83 @@
+{
+  "id": "RPP-5wi",
+  "title": "MLINE LTYPE XDATA code-1005 reference-count matrix, six through sixteen",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILES",
+  "implementation_commit": "14890cc4f4aaed0ab5bd2bf68ceadb2d2ac6006b",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Every count from six through sixteen was exercised across both source encodings and both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "reference_counts": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "entity_providers": "Each count uses the corresponding prefix of sixteen unique generated source LINE handles (A900, A902–A910), each in ENTITIES and owned by model space. Distinct start-X coordinates identify the expected target for each ordered reference.",
+    "xdata_order": "One group 1001 APPID name, one group 1000 string payload, followed by the exact count of ordered group 1005 soft-pointer handles."
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "For each count, generated physical XDATA order, typed import, source handles, APPID fields/owner, LINE identities and model-space ownership are checked. The source witness data is generated from scratch per count.",
+    "output": "For every count and ASCII/binary input/output pair, staged output verifies each group-1005 handle maps to its unique emitted LINE. Fresh typed readback checks exact ordered references, APPID and string payload, target identities and owner roles.",
+    "failure_retry": "For each count, the final target is removed under all four encoding pairs; export refuses and preserves the destination, then succeeds on the same adapter after the target is restored. A separate late handle mutation/refusal and corrected same-adapter retry is exercised for every count on ASCII input/output.",
+    "counts": {
+      "selected_positive_profiles": 44,
+      "selected_successful_readbacks_including_retries": 99,
+      "selected_refusals_with_destination_preservation": 55,
+      "selected_same_adapter_retries": 55,
+      "whole_focused_test_profiles": 144,
+      "whole_focused_test_readbacks": 317,
+      "whole_focused_test_refusals": 173,
+      "whole_focused_test_retries": 173
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 8.49 seconds)"
+    },
+    "normal_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+      "result": "PASS (profiles=144; readbacks=317; refusals=173; retries=173)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes runtime-generated test coverage only and does not modify production ownership, allocation, lifetime or parser behavior.",
+    "source_bindings": {
+      "test_source_sha256": "e932fb64718de9dbc11ad22e55e900fbece2b973a9d4960f7b891ce191e76046",
+      "normal_executable_sha256": "2f732797bdef928e08d1aae9d6f76cf97f7a81a4756f6a4e46fede6757c13361",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies selected reference counts six through sixteen for one AC1027 simple-LTYPE XDATA composition targeting model-space LINEs. Counts seventeen and above, other target types/sections, other XDATA compositions, versions and application meanings remain unqualified.",
+    "The evidence is selected transport and identity proof only; it does not establish complete recursive document closure, native MLINE rendering or broader format support."
+  ],
+  "next": "Select a source-backed P2 target role or other XDATA layout; preserve explicit boundaries for counts beyond sixteen and all untested consumers."
+}

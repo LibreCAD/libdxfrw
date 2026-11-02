@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jw MLINE root/child dictionary carrier geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "61320e0768e86199dbb6b50bc7ab9e3abc17af10",
+  "scope": "Connects the selected AC1027 root named-object dictionary and child ACAD_MLINESTYLE dictionary source/live proofs to AC1021+ MLINESTYLE geometry-edit export preflight and repeats both checks during adapter finalization. This selected source-profile guard is not complete document closure or complete staged-output authentication; it does not enable consumed geometry or promote support claims.",
+  "contract": {
+    "selection": "Runs only for selected whole-source or legacy-identity observation when a modern MLINESTYLE geometry transaction is present. The source/live proofs require the complete admitted profile and fail closed otherwise. Ordinary unobserved export routes retain their previous behavior.",
+    "preflight": "The child ACAD_MLINESTYLE dictionary proof composes the root DICTIONARY proof. Root ACAD_MLINESTYLE entry drift and child style-entry drift are each rejected before destination publication.",
+    "finalization": "Adapter finalization repeats the LAYER and root/child dictionary proofs after writer callbacks. A test consumer changes a child entry handle immediately before base finalization; export refusal leaves the destination sentinel untouched.",
+    "failureAndRetry": "Preflight root/child refusal preserves the mutated caller entry, destination sentinel and edited style offset. The test finalizer restores its injected child entry after base finalization rejects. Retrying on the same adapter succeeds. Readback follows the unique root ACAD_MLINESTYLE entry to its unique child dictionary and verifies every selected child entry resolves to the correspondingly named MLINESTYLE; the writer may remap dictionary handles.",
+    "compatibility": "Uses existing private source/live proof methods and adds no public API or LibreCAD callback changes. Existing MLINESTYLE transaction and non-opt-in route tests pass.",
+    "limits": "The gate covers only the selected root/child dictionary relation and selected AC1027 profile. It does not qualify other object carriers, all dictionary shapes, unknown metadata, hostile subclasses, all staged sections, or complete document closure. The readback control proves only this selected relation. Generated CLASSES and final HANDSEED, TABLES, BLOCKS, ENTITIES, OBJECTS and other carrier output still need independent output-bound checks. Consumed geometry and other refused operations remain disabled."
+  },
+  "controls": {
+    "profiles": 4,
+    "matrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary DXF output"
+    ],
+    "rootEntryPreflightRefusals": 4,
+    "childEntryPreflightRefusals": 4,
+    "finalizationChildMutationRefusals": 4,
+    "destinationSentinelsPreserved": 12,
+    "sameAdapterCorrectedRetries": 4,
+    "readbacks": 4,
+    "readbackChecks": "Unique ACAD_MLINESTYLE root entry; unique referenced child dictionary; selected child entry set preserved and each entry handle resolves to a MLINESTYLE with the same name; selected style offset remains edited.",
+    "sourceConstruction": "The selected AC1027 DXF profile is authored in the test and binary input is encoded locally. Root/child mutations and finalization-time mutation are generated in memory. Temporary files are removed. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests -j4"
+    },
+    "asanBuild": {
+      "result": "PASS",
+      "command": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_no_raw_sections_tests -j4"
+    },
+    "directNormal": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-dictionary-carrier-geometry-guard",
+      "summary": "profiles=4, root-refusals=4, child-refusals=4, late-refusals=4, retries=4, readbacks=4"
+    },
+    "directAsan": {
+      "result": "PASS",
+      "command": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_mline_source_dependency_tests --mline-dictionary-carrier-geometry-guard",
+      "summary": "profiles=4, root-refusals=4, child-refusals=4, late-refusals=4, retries=4, readbacks=4"
+    },
+    "normalCohort": {
+      "result": "PASS",
+      "count": "10/10",
+      "seconds": 29.48,
+      "command": "ctest --test-dir build -R 'libdxfrw_(no_raw_sections|mline_style_body_transactions|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_dictionary_carrier_geometry_guard|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "asanCohort": {
+      "result": "PASS",
+      "count": "13/13",
+      "seconds": 1.73,
+      "sanitizer": "AddressSanitizer-instrumented targets; ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+      "note": "The cohort passed before final root/child readback uniqueness assertions were added; the exact final selector then passed in both normal and ASan builds."
+    },
+    "diffCheck": "PASS (git diff --check and git diff --cached --check before code commit; JSON parsed with python3 -m json.tool)"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "4e40883d76c92574f6bea3416f6b0fabed7b5445d98369929d18349e848397cd",
+    "dwg2dxf/dx_iface.h": "6cfc6c6c6b8ff569f3c94fca5c9f99c4ee4b612384e5ff66756cc6b5a213c2fb",
+    "tests/CMakeLists.txt": "61e40b7c7cb6e6151d38548ec76b80e8fff72c2c44efa2c7a547cc093a478ccb",
+    "tests/dxf_mline_source_dependency_tests.cpp": "2967c823aede300c60368fd3bbb5758cbf6103cf3650407107087ceb6d04b0c5"
+  },
+  "binaryBindings": {
+    "normalMlineSourceDependencyTests": "6e29eebe1e3abc7c543b449725f742d4ee53d98cfd19aef642b87666e19cdc4a",
+    "normalDxfFixtureTests": "d6b0a52921dae37d0bb0086007028406890ad9cf739eabc8c58c0eed68c2df39",
+    "asanMlineSourceDependencyTests": "2da66ccf7cbe3de5269f6d4b657f103b902c9e0f60ea1705ec00ba07476cc8fd"
+  },
+  "next": "Add source/live protection for the next exact carrier profile, then authenticate actual staged output, including generated CLASSES and the final HANDSEED backpatch. Keep consumed geometry refused until all affected references and emitted geometry are independently proved."
+}

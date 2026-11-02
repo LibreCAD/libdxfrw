@@ -11,38 +11,67 @@ AC_PROG_CXX
 AC_PROG_CC
 AM_PROG_AR
 LT_INIT
-AC_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
 
-#
-# Libtool library revision control info
-# See the libtool documentation under the heading "Libtool's versioning
-# system" in order to understand the meaning of these fields
-#
-# Here are a set of rules to help you update your library version
-# information:
-#
-#  1. Start with version information of `0:0:0' for each libtool library.
-#  2. Update the version information only immediately before a public
-#     release of your software. More frequent updates are unnecessary, and
-#     only guarantee that the current interface number gets larger faster.
-#  3. If the library source code has changed at all since the last update,
-#     then increment revision (`c:r:a' becomes `c:r+1:a').
-#  4. If any interfaces have been added, removed, or changed since the last
-#     update, increment current, and set revision to 0.
-#  5. If any interfaces have been added since the last public release, then
-#     increment age.
-#  6. If any interfaces have been removed since the last public release,
-#     then set age to 0.
-#
-#AGE.CURRENT.REVISION
-LIBRARY_CURRENT=6
-LIBRARY_REVISION=3
-LIBRARY_AGE=0
+# Match the public ABI major used by CMake's SOVERSION.
+LIBDXFRW_ABI_MAJOR=2
+AC_SUBST([LIBDXFRW_ABI_MAJOR])
 
-AC_SUBST(LIBRARY_CURRENT)dnl
-AC_SUBST(LIBRARY_REVISION)dnl
-AC_SUBST(LIBRARY_AGE)dnl
+# Check the required language/library without running target executables.
+AC_LANG_PUSH([C++])
+LIBDXFRW_ENTITY_WARNING_FLAGS=
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if !defined(__GNUC__) || defined(__clang__)
+#error not the GNU C++ compiler
+#endif]], [[]])], [LIBDXFRW_ENTITY_WARNING_FLAGS=-Wno-extra])
+AC_SUBST([LIBDXFRW_ENTITY_WARNING_FLAGS])
+CXXFLAGS="$CXXFLAGS -std=c++17"
+AC_MSG_CHECKING([for C++17 and the filesystem library])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <filesystem>
+#include <optional>
+#include <string_view>
+#if __cplusplus < 201703L
+#error C++17 is required
+#endif]], [[std::optional<std::string_view> name("libdxfrw");
+std::filesystem::path path(*name); return path.empty();]])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_FAILURE([a C++17 compiler and standard library with filesystem support are required])])
+
+PTHREAD_CFLAGS=
+PTHREAD_LIBS=
+libdxfrw_saved_cxxflags=$CXXFLAGS
+libdxfrw_saved_libs=$LIBS
+libdxfrw_threads=no
+AC_MSG_CHECKING([for C++ threads])
+for libdxfrw_thread_option in pthread none library; do
+    PTHREAD_CFLAGS=
+    PTHREAD_LIBS=
+    AS_CASE([$libdxfrw_thread_option],
+        [pthread], [PTHREAD_CFLAGS=-pthread; PTHREAD_LIBS=-pthread],
+        [library], [PTHREAD_LIBS=-lpthread])
+    CXXFLAGS="$libdxfrw_saved_cxxflags $PTHREAD_CFLAGS -Werror"
+    LIBS="$PTHREAD_LIBS $libdxfrw_saved_libs"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <thread>
+#include <mutex>]], [[std::mutex mutex; mutex.lock(); mutex.unlock();
+std::thread thread([] {}); thread.join();]])], [libdxfrw_threads=yes; break])
+done
+CXXFLAGS=$libdxfrw_saved_cxxflags
+LIBS=$libdxfrw_saved_libs
+AS_IF([test "$libdxfrw_threads" != yes], [AC_MSG_FAILURE([C++ thread support is required])])
+AC_MSG_RESULT([$libdxfrw_threads $PTHREAD_CFLAGS $PTHREAD_LIBS])
+AC_SUBST([PTHREAD_CFLAGS])
+AC_SUBST([PTHREAD_LIBS])
+
+COREFOUNDATION_LIBS=
+AS_CASE([$host_os], [darwin*], [
+    COREFOUNDATION_LIBS="-framework CoreFoundation"
+    LIBS="$COREFOUNDATION_LIBS $libdxfrw_saved_libs"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <CoreFoundation/CoreFoundation.h>]],
+        [[CFStringRef value = CFStringCreateWithCString(nullptr, "libdxfrw", kCFStringEncodingUTF8); CFRelease(value);]])],
+        [], [AC_MSG_FAILURE([CoreFoundation is required for the macOS converter])])
+    LIBS=$libdxfrw_saved_libs
+])
+AC_SUBST([COREFOUNDATION_LIBS])
+AC_LANG_POP([C++])
 
 # Checks for libraries.
 
@@ -63,6 +92,6 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	dwg2dxf/Makefile
-	libdxfrw${LIBRARY_AGE}.pc:libdxfrw.pc.in
+	libdxfrw.pc:libdxfrw-autotools.pc.in
 	])
 AC_OUTPUT

@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-peer failure-domain and artifact-acceptance crosswalk",
+  "mode": "Primary-source web research and read-only local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh peer status and technical details for incomplete DXF output, malformed text framing, missing block bodies, and omitted ACIS payloads.",
+    "Separate peer issue statements, proposed unmerged patches, local generated control coverage, and normative format evidence.",
+    "Refine existing route-acceptance sequencing without creating routine peer-build, full-suite, fixture, or support gates."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue and PR pages reviewed 2026-10-20",
+      "observed": "#1355 reports exit-success with a truncated DXF. The still-open #1360 PR corrects its author's earlier root-cause hypothesis: an invalid modular-character read in handle-map processing was accepted as data; its narrow resynchronization proposal restores the reported sample, while the author says silent-success reporting remains unfixed. #1408 is a complex CR-bearing TEXT/MTEXT report whose simple bare-CR reproducer reportedly passes. #1409 reports skipped block bodies from a helper advancing its caller's object-array index and includes a proposed patch. #1411 reports retained modeler entity shells with missing AcDs/SAB payload in a named 0.14.8593 route. These are peer-specific, unmerged/unreproduced evidence, not libdxfrw findings."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Issue and PR pages reviewed 2026-10-20",
+      "observed": "Issue #1195 reports that ACadSharp 3.4.9 reads DWG 3DSOLID/REGION entities but its DXF writer omits them, including solids inside otherwise-present blocks. PR #1240 is still open in the reviewed page. No customer drawing was downloaded or run."
+    }
+  ],
+  "localEvidence": [
+    "tests/wave1_tests.cpp::testDxfWriterControlCharacterFraming checks transactional ASCII CR/LF refusal and rollback, plus Binary value framing and a following-record sentinel.",
+    "tests/block_owner_tests.cpp and the PAR-49 generated ownership controls check block-body/owner identity and closure; this pass did not rerun them.",
+    "tests/modeler_dxf_writer_matrix_tests.cpp contains generated modeler-carrier writer controls; those controls do not establish arbitrary ACIS B-rep semantics.",
+    "src/intern/dwg_dxf_output_transaction.cpp, tests/dwg2dxf_cli_contract_tests.py, and tools/run_independent_dxf.py provide existing output-publication and independent-DXF validation routes.",
+    "Existing plan sections already assign source/output identity and modeler-payload evidence to PAR-06, PAR-07/S8, PAR-14, PAR-20, and PAR-49."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06 output completion and per-source disposition",
+      "PAR-07/S8 composed route acceptance and modeler evidence separation",
+      "PAR-14 parser error provenance and bounded recovery evidence",
+      "PAR-20 object graph/owner evidence",
+      "PAR-49 block/layout owner-to-body identity"
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "testCommandsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Record that LibreDWG PR #1360 is open and that its author corrected the initial #1355 root-cause diagnosis; do not treat the proposal as merged or transfer its heuristic.",
+    "Keep decode status, output publication/completion, strict DXF syntax, owner-level identity, and ACIS payload/semantic evidence as distinct acceptance stages.",
+    "Reuse the existing generated CR/LF, block-owner, modeler-carrier, transaction, and strict-DXF controls; run composed validation only at the existing route/family checkpoint.",
+    "Keep issue reports as failure-shape leads and preserve the six J items as DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "limitations": [
+    "Peer behaviors were reviewed from issue/PR pages only; peer builds and executables were not run.",
+    "PR #1360 and the ACadSharp PR #1240 are proposals, not merged/released behavior in this evidence snapshot.",
+    "No peer/customer drawings were downloaded, including the confidential sample mentioned by LibreDWG #1411.",
+    "Local source/test mapping was read-only and no test command was run."
+  ]
+}

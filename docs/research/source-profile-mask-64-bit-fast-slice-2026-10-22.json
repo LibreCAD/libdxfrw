@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 source-profile mask capacity extension",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "ce46bac8978cce55832aab6adbf3a9e9b173de7ce4579059240c637000043289",
+  "scope": {
+    "change": "Widened source-profile bit masks and strict admission recomputation from uint32_t to uint64_t; preserved existing DxfTextSourceProfile enum values and exact-source allowlist.",
+    "guard": "Profile Count must remain less than 64; bit 63 is outside the profile domain and is covered as corrupted evidence.",
+    "testedEvidence": "Per-profile call counters reconstruct the exact 64-bit mask; exact-source admission rejects a forged bit-63 mask as EvidenceUnavailable.",
+    "newProfileAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false,
+    "fixturesAdded": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_5_codepage$' --output-on-failure",
+      "result": "PASS (1/1; includes profile partition and bit-63 refusal)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- touched implementation/test files",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ce46bac8978cce55832aab6adbf3a9e9b173de7ce4579059240c637000043289",
+    "src/drw_base.h": "80c79a967fb1efc67a32ea4af7a517feb29548fd30b80f8494d1345f522d42a7",
+    "dwg2dxf/dx_iface.cpp": "56eb84e3ef2cbe1ebda18e2f99d2427d3261bef8dbff279c3c1c7e01db8b3012",
+    "tests/gbk_codepage_tests.cpp": "050c4a19a24577fb52dfdb6206af83370c2f05d42f9021443d1f6060d358c8e5"
+  },
+  "evidenceLimits": [
+    "This slice changes observation capacity only; it does not add code-page support, alter admission, or qualify a producer/native consumer.",
+    "The public observation structure size changes and dependent binaries must rebuild.",
+    "No full format suite, external CAD application, peer runtime, or persistent fixture was used."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

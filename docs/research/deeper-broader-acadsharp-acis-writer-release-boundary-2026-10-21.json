@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACadSharp ACIS reader release versus proposed writer boundary",
+  "mode": "Broader primary-source freshness review and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "The repository already contained broad uncommitted changes. This pass changed only the parity plan and this research receipt; no production or test source was edited.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadsharp-acis-writer-release-boundary-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "DomCR/ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "sourcePin": "GitHub release and pull-request pages as viewed 2026-10-21; no package, source checkout, or executable was run.",
+      "sourceClaims": [
+        "Release v3.6.51, dated 2026-07-29, lists merged ACIS reader PR #1139 and full Prototype_1b reader PR #1154. v3.8.0 is the latest release listed when reviewed; its visible changes do not claim an ACIS writer.",
+        "PR #1150 remains open. Its author reported opening R2000, R2004, R2007, R2010, and R2013 outputs in DWG TrueView in both formats, except R2007 DWG which the peer writer did not support. This is author-reported branch testing, not independently reproduced release evidence.",
+        "In an Oct. 1 comment, the #1150 author reported that schema refactoring changed the DWG reader path and that DXF ACDSDATA readback on the changed path kept only the last group-310 chunk. The maintainer said the writer should be redesigned to reconstruct the structured schema rather than merely pass through raw storage data, and asked that #1150 remain as a reference.",
+        "PR #1240 remains open and its description lists #1174 as a dependency. The #1150 author said #1174 was 'in', while the current #1174 page still displays Open. This discrepancy is recorded rather than resolved by inference."
+      ],
+      "disposition": "Admit a pinned release only as an optional reader/structural-carrier comparator after verifying the exact package source and required APIs. Do not admit the unmerged writer branches as support evidence. Preserve the multi-chunk group-310 observation as a branch-specific reported risk, not a defect claim about the released reader. Any future writer test must bind an exact release/commit and inspect multiple ordered group-310 chunks, entity-to-key association, payload hashes, and independent reopen as separate evidence."
+    }
+  ],
+  "planChanges": [
+    "Clarified that ACadSharp's released ACIS/Prototype_1b read support is not a released writer capability.",
+    "Recorded #1150's limited author-reported TrueView matrix and explicit missing R2007 DWG output without treating it as independently qualified support.",
+    "Recorded the branch-specific multi-chunk group-310 readback risk and maintainer's structured-schema writer direction; require future pinned implementation checks rather than treating the stale branch as current behavior.",
+    "Added an implementation self-unblock rule: continue local PAR-144 work and fast selectors without waiting on ACadSharp's writer proposals."
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 versioned ACIS carriers, association, semantic, and consumer evidence",
+      "PAR-144 optional composed structural peer checkpoint"
+    ],
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "implementationReadinessRefined": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This pass reviewed public release and PR pages only. The reported TrueView matrix and group-310 regression were not independently reproduced; PR status fields were inconsistent with a comment, so no merge state was inferred. No peer runtime, downloaded drawing, local test, or native CAD application was used. No external fixture was added."
+}

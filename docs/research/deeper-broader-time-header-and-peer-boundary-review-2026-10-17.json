@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw-deeper-broader-time-header-and-peer-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Refresh open-source DWG/DXF peer evidence and audit local drawing-date/time header conversion for an uncovered boundedness risk; update the implementation plan without changing code or support claims.",
+  "method": {
+    "kind": "Primary documentation, current public peer status, and local worktree source/test inspection",
+    "testsRun": false,
+    "implementationChanged": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localWorktreeWasDirty": true,
+    "observedSourceFiles": {
+      "src/drw_header.cpp": "c99dc93a51ffab388accb3940d0f9a7ce1d421784e1774ab4cf873271e62134d",
+      "src/intern/dwgwriter15.cpp": "a17e1cac46ceb32d2041bea49f21322b2f6325ba1e6be26c2848cf661ff8ab21",
+      "src/intern/dwgwriter18.cpp": "49939fc6a6499c7844a6d047e2af9b6db3d47ebbfb06804c067d80f4f8ee01f0",
+      "src/intern/dxfreader.cpp": "9b8e372869cd41e5024b6e8db55bb46c7462fd6e49b9cd731cb56a16f0140c30"
+    },
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6942BAF3-095F-4217-9F61-6931975D3A64.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-Core/files/GUID-E29DC24D-4899-4D45-A104-50703E451684.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-Core/files/GUID-6C01D280-2906-469B-B087-49594C2FA66B.htm",
+      "https://github.com/LibreDWG/libredwg/pull/1369",
+      "https://github.com/LibreDWG/libredwg/milestone/23",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf (local user-provided copy, pages 75–76 extracted)"
+    ],
+    "localInspection": [
+      "src/intern/dxfreader.cpp: dxfReaderAscii::readDouble accepts finite values without domain-specific date/time bounds",
+      "src/drw_header.cpp: readJulianDate and splitTimeVar convert four HEADER variables between doubles and signed 32-bit day/millisecond pairs",
+      "src/intern/dwgwriter15.cpp and src/intern/dwgwriter18.cpp: duplicated splitAuxDate helpers encode TDCREATE/TDUPDATE in auxiliary headers",
+      "tests: no direct generated boundary coverage found for these four date/time variables or the duplicate auxiliary-header conversion"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ODA DWG header field inventory",
+      "observed": "The local user-provided ODA v5.4.1 PDF copy was found under the suffix (1). Its extracted pages 75–76 identify TDCREATE/TDUPDATE as Julian-day plus milliseconds-into-day pairs, and TDINDWG/TDUSRTIMER as days plus milliseconds-into-day pairs. The ODA reference remains the authority for exact DWG layout and version behavior.",
+      "doesNotEstablish": [
+        "all legal numeric ranges, negative-value policy, or every version-specific precision rule",
+        "that local worktree conversion matches all producer profiles"
+      ]
+    },
+    {
+      "topic": "Autodesk DXF/system-variable semantics",
+      "observed": "Autodesk documents TDCREATE/TDUPDATE as wall-clock date values and TDINDWG/TDUSRTIMER as elapsed time values, each represented by day plus fractional day in DXF; separate system-variable documentation notes second-only precision in AutoCAD 2017+ versus millisecond precision in earlier releases.",
+      "doesNotEstablish": [
+        "DWG binary encoding or producer-specific rounding for all target versions",
+        "permission to normalize, truncate, or rewrite caller-supplied timestamps"
+      ]
+    },
+    {
+      "topic": "LibreDWG peer evidence",
+      "observed": "Open PR #1369 reports inconsistent TIMEBLL/TIMERLL-to-real projections across LibreDWG code paths and proposes correcting the Julian-day fraction. The PR states its binary writer uses the day/millisecond pair rather than the derived double; it remains peer work, not an executed current-release comparison.",
+      "doesNotEstablish": [
+        "a corresponding libdxfrw arithmetic defect",
+        "that the PR is merged or released",
+        "an ODA byte-layout exception"
+      ]
+    },
+    {
+      "topic": "Local narrowing and failure boundary",
+      "observed": "The ASCII DXF numeric reader rejects non-finite doubles, but it accepts finite values without timestamp-specific day bounds. The local split helpers call floor/round and cast the integral day to int32 without an explicit range check; the code has separate duplicate helpers for the primary HEADER and AC1015+/modern auxiliary headers. No direct test coverage for this conversion was found.",
+      "doesNotEstablish": [
+        "a reproduced crash, sanitizer finding, or native-file failure",
+        "the exact legal range until the matching ODA section is read"
+      ]
+    },
+    {
+      "topic": "Comparator roles and project boundary",
+      "observed": "GDAL documents binary DXF reading from 3.12, but its OGR projection tessellates many curves, excludes some OCS/elevation cases, and exposes modern ASM as raw data rather than solid geometry. ACadSharp v3.8.0 is a signed release, while its newest issue reports post-release behavior; open-source peers remain operation/version/feature scoped. These peer facts reinforce existing evidence lanes and add no new support result.",
+      "doesNotEstablish": [
+        "full DXF semantic round-trip coverage from GDAL",
+        "independent ACIS/B-rep semantics from raw ASM exposure",
+        "that an open issue describes current released behavior"
+      ]
+    }
+  ],
+  "planImpact": {
+    "newFindings": 1,
+    "newTopLevelSubplans": 0,
+    "nestedSubstepsAdded": 1,
+    "implementationOrderChanged": true,
+    "orderReason": "Prioritize a small header-value input-safety check before the next broader UCS writer slice; finish the relevant ODA v5.4.1 variable/version context review, then implement only checked conversion and focused tests.",
+    "existingOwnersReinforced": [
+      "PAR-14 untrusted numeric/range conversion safety",
+      "7BE bounded DWG HEADER validation and transactional publication",
+      "version × operation × feature × consumer comparator matrix",
+      "GDAL binary-DXF and raw-ASM projection limitations"
+    ],
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": {
+    "odaLocalReferenceAvailable": true,
+    "odaHeaderFieldInventoryRead": true,
+    "odaFullVariableAndVersionContextRead": false,
+    "officialOdaPdfFetchCompleted": false,
+    "peerPackagesBuiltOrRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false
+  }
+}

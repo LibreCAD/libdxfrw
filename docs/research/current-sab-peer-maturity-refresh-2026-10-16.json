@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-current-sab-peer-maturity-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Refresh the independent SAB comparator and distinguish its current geometry-transfer claims from DWG AcDs extraction, complete 3D support, and renderer output.",
+  "method": {
+    "kind": "Primary project documentation, source metadata, and published package API review",
+    "repositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "GitHub main and current API documentation are mutable. The reviewed main workspace declares version 0.6.0 while the plan's prior reference was the separately published 0.6.1 crate; a future run must pin and identify one exact artifact.",
+    "evidenceRule": "A peer's implementation claims can identify a candidate and test profile. They do not establish local output correctness, cross-reader independence, DWG/AcDs correctness, native application acceptance, or complete ACIS support."
+  },
+  "evidence": [
+    {
+      "topic": "cadmpeg current-main SAB geometry-transfer profile",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+        "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/"
+      ],
+      "observed": "Current main still scores bare ASM/ACIS SAT/SAB at L1, but its profile describes extra connected B-rep transfer and validation for ACIS save-format majors 217 and 218. It retains unknown records and blocks geometry transfer when no supported carrier is decoded. Its open items limit active-carrier ownership and identify unsupported save-format bands. The current workspace manifest says 0.6.0, distinct from the already-referenced published 0.6.1 crate.",
+      "doesNotEstablish": [
+        "that mutable main and the published 0.6.1 crate have the same code or test evidence",
+        "a DWG or AcDb:AcDsPrototype_1b reader",
+        "correct entity-handle-to-DataStorage record association",
+        "complete ACIS/ASM carrier-family or history coverage",
+        "a native CAD application's acceptance",
+        "an independent geometric-kernel lineage or runtime semantic result"
+      ],
+      "planUse": "Promote cadmpeg from a parser-only research lead to a potential independently implemented direct-SAB graph/geometry-transfer comparator for exact, pinned 217/218 inputs. Require source/API review, exact build and feature identity, complete scoped body/reference closure, independent known-shape invariants, and a runnable tool already available in the chosen environment. Keep it optional and composed; it cannot close DWG/AcDs or kernel/native gates by itself."
+    },
+    {
+      "topic": "mlightcad modeler presentation remains a wireframe/fallback path",
+      "sources": [
+        "https://mlightcad.com/realdwg-web/classes/_mlightcad_data-model.AcDb3dSolid.html",
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+        "https://github.com/mlightcad/libredwg-web/blob/master/NEWS"
+      ],
+      "observed": "The published AcDb3dSolid API exposes raw SAB/ASM bytes and describes geometry caches as best-effort wireframe or fallback point/bounding-box data, explicitly not full B-rep tessellation. The associated DWG web/viewer path is documented as LibreDWG-derived, and its release history says R2013+ AcDs SAB extraction was not reliable and could use brute-force marker scanning.",
+      "doesNotEstablish": [
+        "an independent DWG parser lineage from LibreDWG",
+        "correct DataStorage record-to-entity mapping",
+        "complete tessellation, closed topology, analytic measures, or B-rep semantics",
+        "current runtime behavior for any unpinned package or application build"
+      ],
+      "planUse": "Keep mlightcad as a useful raw-carrier/wireframe availability probe only. Count it in the LibreDWG family, record fallback versus full-lift disposition, and never treat visible wireframe, point-derived extents, or SAB presence as a semantic shape pass."
+    },
+    {
+      "topic": "CAD consumer scopes remain split",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "FreeCAD's maintainer distinguishes explicit DXF entities from opaque ACIS blobs and says stock FreeCAD cannot read the latter as solids. GDAL's modern DXF extensible mode can expose raw ASM bytes plus a transform but does not decode them into OGR solid geometry. Autodesk's published 3DSOLID field table identifies legacy proprietary modeler data and the history handle, not the modern DWG AcDs section layout or ACIS semantics.",
+      "doesNotEstablish": [
+        "stock FreeCAD acceptance of modern ACIS/AcDs geometry",
+        "GDAL B-rep interpretation or DWG reading",
+        "modern AcDs layout from the DXF group-code table"
+      ],
+      "planUse": "Keep FreeCAD as a pinned converter-to-DXF-to-importer 2D/explicit-geometry consumer gate; use GDAL only for optional raw carrier/transform observations; use ODA v5.4.1 for DWG bytes. Do not make these routes substitute for direct SAB semantics."
+    }
+  ],
+  "implementationReadinessUpdates": [
+    "At the existing composed 3D checkpoint, first finish local bounded AcDs page/index decoding and unique entity/owner/payload closure. Then optionally pass the exact extracted SAB bytes—not the DWG container—to one pinned cadmpeg build.",
+    "Use a locally authored or already-permitted direct stream with independently known analytic geometry. Record source hash, raw ACIS header/version, peer revision/package, CLI/features, decode diagnostics, transferred/unknown carriers, connected body counts, bounds, units, centroid/area/volume where exposed, and all tolerances.",
+    "Require a curved analytic case in addition to a flat polyhedron before describing the result as more than narrow profile evidence. Any unknown carrier, unresolved ownership/reference, recovery path, dropped-history branch, or fallback geometry blocks the corresponding semantic assertion.",
+    "Do not use cadmpeg's overall L1 label to erase its documented subset geometry-transfer capability, and do not use its subset claim to promote general ACIS support. Classify it as a candidate independent implementation, not yet an independently qualified kernel.",
+    "Do not install Rust, cadmpeg, OCCT ACIS components, or other peers as part of per-slice work. If the exact optional peer is unavailable, record NOT RUN and continue local implementation; retain native Linux/Windows FreeCAD and independent semantic evidence gates.",
+    "Preserve existing 2D LibreCAD and LibreCAD_3 compatibility gates and do not commit externally sourced DWG/DXF/SAT/SAB fixtures."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "newLocalFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

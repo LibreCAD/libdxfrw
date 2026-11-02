@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mleaderstyle-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical MLEADERSTYLE source-to-output and file-readback proof",
+  "status": "PHYSICAL_2_MLEADERSTYLE_IDENTITIES_FIELDS_ROLES_AND_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "1c67b2d29a893ef1406b278ece764983745c475d",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MLEADERSTYLE / AcDbMLeaderStyle",
+    "recordCount": 2
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Added an immutable source snapshot for selected DWG-origin MLEADERSTYLE records. Finalization now rejects edits, deletion, duplication, or source-generation changes after OBJECTS emission. Added a physical source selector that binds both source identities and ACAD_MLEADERSTYLE dictionary keys to emitted records, compares represented body/string fields, verifies mapped parent/reactor roles and LTYPE/BLOCK_RECORD/STYLE target roles, checks the MLEADERSTYLE CLASS count, and freshly imports ASCII and Binary output.",
+    "failureBehavior": "A late source-field mutation after OBJECTS emission is refused while preserving a preexisting destination sentinel. Owner-key alias and missing-key mutations are refused. Restoring the source permits corrected retry on the same adapter for both encodings.",
+    "fixturePolicy": "Reused the existing local AC1024 DWG witness. The selector uses temporary output files and adds no DWG/DXF fixture."
+  },
+  "outputProof": {
+    "sourceToOutput": {
+      "identities": 2,
+      "dictionaryRoute": "The unique NOD ACAD_MLEADERSTYLE entry resolves to a complete owner dictionary. Both source handles have unique owner keys and no dictionary aliases.",
+      "fields": "Typed body and string streams match for both source records. Common identity, type, name, flags, parent, extension-dictionary state and reactor links match. Reactor EED is checked as the emitted ACAD_REACTORS group.",
+      "references": "Each non-null group 340, 341, 342 and 343 reference resolves after readback to a unique record of the required LTYPE, BLOCK_RECORD, STYLE or BLOCK_RECORD role, respectively, with the same source target name.",
+      "classTable": "Exactly one MLEADERSTYLE/AcDbMLeaderStyle CLASS row is present with instanceCount 2."
+    },
+    "freshReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary output, including source identity, typed fields, owner/key membership, reference roles, mutation refusal, destination preservation and corrected retry."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "47b7701806fcfc9aa026851603cbb1fb399f076895c41ec5092b8c631ec78e6f",
+      "adapterTestSha256": "5ae1ef4afc605242013c90593ba760daa71372ee2cf5dae31e02f36f21e2ac2d"
+    },
+    "focusedCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_boolean_source_domain|libdxfrw_mleaderstyle_integer_source_domains|libdxfrw_mleaderstyle_duplicate_singleton_fields)$' --output-on-failure",
+      "result": "PASS 3/3."
+    },
+    "neighboringGeneratedWriterCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "result": "FAIL before MLEADERSTYLE output: extension-object graph preflight reports 'Layer TABLE control identity or LAYER membership is incomplete' for the generated DXF input. This test does not exercise the physical DWG selector."
+    },
+    "fullSuites": "NOT_RUN; focused physical and field-domain selectors were used."
+  },
+  "limitations": [
+    "The physical output proof uses explicit partial DWG-read policy; it does not establish complete-document conversion or consumer semantics.",
+    "The strict-complete gate remains closed: the AC1024 census still reports 228 opaque callback views and zero retained correlation frames.",
+    "MLEADER entity output and unsupported MLEADERSTYLE fields remain refused. No support claims are promoted.",
+    "The generated writer-closure CTest failure remains visible and needs its LAYER TABLE control preflight issue resolved separately."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Physical qualification of both AC1024 MLEADERSTYLE records, owner/key identities, represented fields, reference roles, ASCII/Binary readback, refusal and retry.",
+    "nextAction": "Qualify the 54 physical AC1024 ACDBASSOCGEOMDEPENDENCY identities and their source-backed fields/action/owner/reference roles in emitted output and fresh readback.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "91dba51caab7ef7ca83560c7aadee33f61552d830a15cee8f795b52b0665e883",
+    "dwg2dxf/dx_iface.h": "355c5f0520d00e333e13edd17af5c21cc0ac8bdf44f53179ec5d178a947e9f30",
+    "tests/dwg2dxf_adapter_tests.cpp": "e2c755c04504a6e0268e2fd2d2ccd8436521c270136418f47040c7b3d71af121"
+  }
+}

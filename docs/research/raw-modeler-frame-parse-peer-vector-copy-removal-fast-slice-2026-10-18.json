@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Raw modeler parse-peer vector-copy removal fast slice",
+  "mode": "local implementation and focused fast verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove the redundant semantic-peer raw-frame vector copy after the existing raw-frame equality preflight",
+    "Preserve all semantic model comparisons, AcDs finalization checks, ownership checks, and refusal behavior"
+  ],
+  "method": {
+    "productionFilesChanged": [
+      "src/intern/dwgwriter15.cpp"
+    ],
+    "testSourceChangedForThisSlice": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "The change removes the parsed-peer copy but retains a mutable source-frame copy at this point in history. No allocation/RSS benchmark, peer execution, or native CAD qualification was performed."
+  },
+  "implementation": {
+    "changed": "Removed assigning object.m_rawBytes into the parsed DRW_ModelerGeometry peer and removed the subsequent equality check against that identical copied vector.",
+    "preserved": [
+      "Typed modeler raw-frame equality preflight",
+      "Raw-frame parse and semantic field checks",
+      "Body/object size checks",
+      "Exact AcDs finalization and payload checks",
+      "Owner, marker, and orphan refusals"
+    ],
+    "allocationClaim": "Avoids one redundant full-frame vector allocation/copy per raw-modeler replay; no wall-time or RSS improvement is claimed."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "git diff --check -- src/intern/dwgwriter15.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/raw-modeler-frame-parse-peer-vector-copy-removal-fast-slice-2026-10-18.json"
+    ],
+    "results": {
+      "build": "passed",
+      "focusedSelector": "passed",
+      "owningCTest": "passed (1/1)",
+      "scopedDiffCheck": "passed",
+      "fullSuite": "not run",
+      "peerOrNativeRun": "not run"
+    },
+    "receiptJsonValidation": "passed"
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktree": "Uncommitted shared worktree; staging and commit were not attempted."
+  }
+}

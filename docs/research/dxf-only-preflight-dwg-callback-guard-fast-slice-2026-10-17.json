@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-dxf-only-preflight-dwg-callback-guard-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Prevent DXF target preallocation from running through the shared dx_iface header callback during DWG output.",
+  "rootCause": "dx_iface::writeHeader is shared by dxfRW and dwgRW. The DXF LEADER preflight treated a null dxfW in the DWG callback as a planning failure and called dxfW->writeLeader(nullptr), causing a null dereference.",
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.h",
+    "change": "Guarded HATCH and LEADER handle preallocation with dxfW != nullptr; retained common header copying for DWG output.",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "cmake --build /private/tmp/libdxfrw-reader-asan.CWTmkU --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "ASAN_OPTIONS=detect_leaks=0 /private/tmp/libdxfrw-reader-asan.CWTmkU/libdxfrw_dwg_reader_matrix_tests"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "owningCTest": "passed: 1/1",
+      "asanExecutable": "passed without sanitizer report; expected malformed-input diagnostic was followed by DWG reader matrix tests: PASS",
+      "fullSuite": "not run"
+    }
+  },
+  "qualification": {
+    "newSupportClaims": 0,
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+  }
+}

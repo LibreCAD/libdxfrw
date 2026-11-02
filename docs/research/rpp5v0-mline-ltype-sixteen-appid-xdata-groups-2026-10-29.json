@@ -1,0 +1,89 @@
+{
+  "id": "RPP-5v0",
+  "title": "MLINE-referenced simple LTYPE with sixteen ordered APPID XDATA groups",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "2ce114dd2c1e8336e12173ed06c39fec2d1e69ab",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_providers": [
+      {"name":"MLINE_LTYPE_XDATA","source_handle":"0x1F1","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_2","source_handle":"0x1F2","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_3","source_handle":"0x1F3","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_4","source_handle":"0x1F4","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_5","source_handle":"0x1F5","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_6","source_handle":"0x1F6","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_7","source_handle":"0x1F7","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_8","source_handle":"0x1F8","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_9","source_handle":"0xD102","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_10","source_handle":"0xD103","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_11","source_handle":"0xD104","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_12","source_handle":"0xD105","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_13","source_handle":"0xD106","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_14","source_handle":"0xD107","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_15","source_handle":"0xD108","source_owner":"0x1F0","flags":0},
+      {"name":"MLINE_LTYPE_XDATA_16","source_handle":"0xD109","source_owner":"0x1F0","flags":0}
+    ],
+    "xdata": "Sixteen ordered group-1001 APPID names, each immediately followed by its distinct group-1000 payload. Names 1–8 use the retained named payloads from RPP-5uz; names 9–16 use provider-<index>-owned-xdata."
+  },
+  "implementation": {
+    "change": "Removed the per-LTYPE eight-provider admission cap and fixed eight-slot arrays. APPID reference slots are dynamically sized after item-work and retained-byte admission; unchanged-state duplicate detection covers all canonical provider names. The effective upper bounds remain the existing global item/work and retained-byte budgets.",
+    "preserved_contract": "No public API or DRW_Interface virtual changes. This qualifies one selected AC1027 simple-LTYPE XDATA profile only; provider metadata, other payload compositions and application meaning remain unqualified."
+  },
+  "proof": {
+    "source": "The generated source contains sixteen distinct bare APPID records, each owned by APPID table 0x1F0, with unique handles and exact ordered group-1001/group-1000 pairs on EditDash. Typed import verifies all sixteen providers and extData entries.",
+    "output": "All four ASCII/binary input/output combinations verify exact physical XDATA sequence, each emitted APPID record's qualified fields and owner, fresh typed readback of all sixteen pairs, and the retained LTYPE/provider source bindings.",
+    "failure_retry": "Removing provider 16 refuses export and preserves the destination in each of the four encoding combinations; restoring it succeeds on the same adapter. A late mutation of provider 16 after APPID emission refuses atomically; restoring its name succeeds on the same adapter with exact output/readback and all source bindings intact.",
+    "counts": {
+      "sixteen_provider_positive_profiles": 4,
+      "sixteen_provider_successful_readbacks_including_retries": 9,
+      "sixteen_provider_atomic_refusals": 5,
+      "sixteen_provider_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 84,
+      "whole_focused_test_readbacks": 183,
+      "whole_focused_test_refusals": 100,
+      "whole_focused_test_retries": 99
+    }
+  },
+  "validation": {
+    "normal_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "normal_focused_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "normal_focused_result": "PASS (profiles=84; readbacks=183; refusals=100; retries=99)",
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "asan_focused_command": "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "asan_focused_result": "PASS",
+    "asan_note": "This platform's sanitizer runtime aborts when detect_leaks=1 is requested; the selector passed with halt_on_error=1 and no leak-detection option.",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "commit": "2ce114dd2c1e8336e12173ed06c39fec2d1e69ab",
+      "adapter_sha256": "57dd2e96dc6e5309124cc11b7c059a3350c954f3313fea24ca9ba602efd69f6c",
+      "test_source_sha256": "991f918e783870c8f1e2f7626ba6c067d6887547d2a3b2124dea8af1903c5b6c",
+      "normal_executable_sha256": "4d3f65242ca76891a9271bcfb709d27b1ea99364b1c607f2ebc92e5af7e67512",
+      "asan_executable_sha256": "2edb5caa1513906dc19fc45942461c28aea6dea6c8822af26fc69e9ac2e11b8b",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    },
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "The evidence qualifies sixteen distinct bare APPID providers, each followed by one group-1000 string, in one AC1027 simple-LTYPE XDATA profile. Seventeen-or-more providers, metadata-bearing providers, other payload orders/compositions, LTYPE schemas, versions and application meaning remain unqualified.",
+    "This proves selected transport and source/output identity only. It does not establish MLINE rendering, recursive document closure or general format support."
+  ],
+  "next": "Select the next current distinguishing P2 geometry/schema witness or alternate LTYPE provider profile. Keep higher provider counts, metadata, other payload compositions and native rendering distinct; do not reopen the fixed-count implementation task."
+}

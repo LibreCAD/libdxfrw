@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5as",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "XRECORD_COMMON_XDATA_FIXED_BOUNDED_OUTPUT_ALLOCATION_SWEEPS_PASS_STRICT_SOURCE_QUALIFICATION_OPEN",
+  "predecessor": "docs/research/rpp5ar-source-text-decode-issues-and-tu-boundaries-fast-slice-2026-10-23.json",
+  "implemented": [
+    "DXF XRECORD first trailing group1001 switches from ordered application payload to common extData, retaining base-parser grammar/leases; later ordinary body fields refuse.",
+    "One shared application-code envelope 1..369 except self handles5/105 guards compatibility values, ordered entries and fallback handle vectors before emission.",
+    "R14 nonzero cloning policy refuses instead of being silently omitted; representable zero and leading application280 retain versioned behavior.",
+    "Physical staged-byte shape and typed modeled comparison distinguish payload/common XDATA; source EED bytes compare to one exact hex chunk without decoded copies, concatenation or metadata waiver.",
+    "Native rooted XRECORD common-EED recipe uses actual NOD membership and public APPID registration; source/application/EED channels stay owned separately.",
+    "Bounded executable-local allocation sweeps cover inspection, adapter finalization/indexes and GROUP planning, atomic refusal and corrected same-adapter retry.",
+    "Existing arbitrary-handle test retains 390/480 through raw/app-data/section routes, explicitly rejects the original mixed typed-XRECORD payload, and preserves valid320-369 typed arbitrary/reference checks."
+  ],
+  "research": [
+    {
+      "title": "Autodesk XRECORD DXF schema",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "usedFor": "Normal non-XDATA application range and self-handle exclusions"
+    },
+    {
+      "title": "Autodesk ObjectARX DXF group codes for Xrecords",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+      "usedFor": "Application value families versus common XDATA"
+    },
+    {
+      "title": "Autodesk common nongraphical object codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "usedFor": "Common object metadata remains a distinct channel"
+    },
+    {
+      "title": "ezdxf XRecord loader",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfobj.py",
+      "usedFor": "Independent design cross-check of versioned header/subclass payload handling; mutable source, not a pinned/runtime peer result"
+    },
+    {
+      "title": "ezdxf ExtendedTags partitioner",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/lldxf/extendedtags.py",
+      "usedFor": "Independent design cross-check of common XDATA versus subclass partitioning; mutable source, not support qualification"
+    }
+  ],
+  "controls": {
+    "publicVersionEncodingCells": 14,
+    "publicDeepCopyAndReemission": true,
+    "applicationDomainRefusalRetryCells": 60,
+    "r14CloningRefusalRetryCells": 6,
+    "latePayloadAfterXdataMalformedInputs": 2,
+    "wireComparisonCells": 192,
+    "binaryHexLiteralControls": 7,
+    "nativeRootedEedSourceTargetEncodingCells": 24,
+    "modernFourModeledFactsCells": 16,
+    "legacyZeroModeledFactsCells": 8,
+    "nativeDefaultStrictSentinelRefusals": 24,
+    "allocationInjectedRefusals": 126,
+    "allocationCorrectedRetries": 126,
+    "allocationSweeps": [
+      {
+        "phase": "Inspection",
+        "binary": false,
+        "refused": 52,
+        "completed": true
+      },
+      {
+        "phase": "AdapterFinalization",
+        "binary": false,
+        "refused": 5,
+        "completed": true
+      },
+      {
+        "phase": "GroupPlan",
+        "binary": false,
+        "refused": 6,
+        "completed": true
+      },
+      {
+        "phase": "Inspection",
+        "binary": true,
+        "refused": 52,
+        "completed": true
+      },
+      {
+        "phase": "AdapterFinalization",
+        "binary": true,
+        "refused": 5,
+        "completed": true
+      },
+      {
+        "phase": "GroupPlan",
+        "binary": true,
+        "refused": 6,
+        "completed": true
+      }
+    ]
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 20,
+      "failed": 0,
+      "seconds": 0.92,
+      "fastLabeled": 20,
+      "tests": [
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_standard_object_identities",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_text_decode_issue_accumulation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_associative_strict_loss_gate",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_associative_callback_contract",
+        "libdxfrw_standard_dwg_output_allocation"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 2.21,
+      "options": "halt_on_error=1",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "tests": [
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation"
+      ]
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 9,
+      "scope": "Affected Wave1/native-roundtrip/DXF aggregates, not full project suite",
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ]
+    },
+    "literalSelectors": {
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 1.42,
+      "tests": [
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed"
+      ]
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror",
+      "translationUnits": [
+        "src/libdxfrw.cpp",
+        "src/drw_objects.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ]
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dxf_fixture_tests",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_hardening_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ]
+    },
+    "scopedWhitespace": "PASS"
+  },
+  "allocationScope": {
+    "recipe": "Four standard source records, one GROUP/member join, one rooted XRECORD containing text/reference/binary; scratch-authored AC1021",
+    "arming": "Private executable-local friend wraps the installed inspector, instruments adapter finalization, or invokes production GROUP planner at the normal post-HEADER-input point; no runtime/public allocation hook.",
+    "guarantees": [
+      "Old destination preserved",
+      "Tentative output facts retracted",
+      "Import source models/evidence unchanged",
+      "Opaque retention increment remains zero",
+      "Same-adapter corrected retry obtains four finalized published modeled facts"
+    ],
+    "limitations": [
+      "Recipe/build-specific observed positions, not hardcoded CI counts or exhaustive all-graph bounds.",
+      "Adapter finalization includes source-model checks plus the final dictionary/GROUP index.",
+      "Adapter constructs a codec per export: no same-codec allocation-replay qualification claimed.",
+      "ASan is not LeakSanitizer or a process-wide allocator proof."
+    ]
+  },
+  "evidenceCeiling": {
+    "sourceSchemaAndEedDecoderProfiles": "OPEN",
+    "groupMetadataClosure": "OPEN",
+    "sourceImageAliases": "OPEN",
+    "strictCompanionAdmission": "CLOSED",
+    "importOpaqueRetentionIncrement": 0,
+    "supportPromotion": false,
+    "fixtureFilesAdded": 0,
+    "newVirtualCallbacks": 0,
+    "sourceConsumerRebuildRequired": true,
+    "binaryAbiPromise": false
+  },
+  "remainingLocal": [
+    "Per-value source EED decoder/profile evidence; ODA section28 before reader changes",
+    "Legacy TV normalization and XRECORD per-value codepage/RC-versus-RS questions",
+    "Binary chunk segmentation and conservative speculative decoding observations",
+    "GROUP extension/reactor graph target-kind and reciprocal-owner closure",
+    "Source-image alias qualification; CMC/layer-ID exclusions remain",
+    "Strict per-attempt source-bound companion admission and composed integrity/refusal/retry controls",
+    "Previously traced three AC1024 visualization sample failures/eight frames and independent SUN export closure",
+    "Legacy TABLE entity/extension integration and separate AC1024+ inline authoring"
+  ],
+  "historicalCorpusStatus": {
+    "receipt": "docs/research/rpp5ar-source-text-decode-issues-and-tu-boundaries-fast-slice-2026-10-23.json",
+    "rerunThisSlice": false,
+    "openFailures": 3,
+    "qualification": "Previous TU-only comparison is not a complete baseline comparison for this XRECORD change."
+  },
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer",
+    "Native FreeCAD Linux/Windows",
+    "Independent runtime DXF semantic peer for this slice (default host Python lacks ezdxf)",
+    "Independent ACIS/ACDS semantic/kernel qualification",
+    "New external drawing/producer qualification"
+  ],
+  "limitations": [
+    "The six-TU strict claim excludes pre-existing extra-strict Wave1 keyword-macro and fixture unused-helper probes; normal target builds still pass without disabling warnings.",
+    "Modeled correspondence does not certify every source EED decoder/profile or complete raw source semantics.",
+    "No commit, push, PR mutation or support promotion."
+  ],
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "76995bd5c24b45e48b1a3c677a1d64809fe52edd8120e27e5c735bbf50b45cfa"
+    },
+    {
+      "path": "src/drw_objects.h",
+      "sha256": "48962c47560a7f9bb2563f529e3ce710c30ee2e5790245026699b920d368857d"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "063f1bea9fa1afc1420e0af6e5acfb9c8bfdadeee1bd2ebc04d483ecb94be7a5"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "7e5bd247c9f2d0c3e2d203b5571c3a6c95df850d1f7c440717f877bcc51cf21f"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "02c91cf41bb80a9d1539ea9065d006231d5550c1a715367a22f828523ad1691b"
+    },
+    {
+      "path": "src/intern/dxfcode.h",
+      "sha256": "8701d86db7d71f54781515e884f97f8d675d953bbf9fe226f4e880249667954a"
+    },
+    {
+      "path": "src/drw_base.h",
+      "sha256": "4f192a65a670d42c90f9f54550b884a5eef2fe712ec77bdca82ab9a0eff607fc"
+    },
+    {
+      "path": "dwg2dxf/dx_standard_output.h",
+      "sha256": "ce9c9572c427b123f244ebb97926c5d5172c29d61954244bd2cda0b178acecf1"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "c126edd12d8a275b3296224076f5ae83d28d6793c8084cd6c8674e8188582ac7"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "87bfe5856de48b812aecebd48dae7c636a980d9b127a008498505a96ba0fb74d"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1265613bbb3f0b143144c185bb35f75dcf1f55ad9c1914d300b0101835fe226e"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "e13c2678adf83f10829105db6e48d6e77f2749acb8272c4f989aa382b5f07c00"
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "sha256": "97346d8db9bdb6c1fea1d4aa2192224b6373912e373585808727b4b014ef59e9"
+    },
+    {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "sha256": "08e263626d2cc9d15ed1f498eae7245a10ccb97bfcfee60f43137109d44bd689"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "a80452a9fa2766e0c2612dc693caf543d632c0bd692355578004bd3ee333f000"
+    },
+    {
+      "path": "tests/hardening_tests.cpp",
+      "sha256": "6a4e5a9086bb96aa532c45c491aedde4a5af244d69979e14911a2740f112b6dc"
+    },
+    {
+      "path": "tests/lc3_compat_check.cpp",
+      "sha256": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad"
+    },
+    {
+      "path": "tests/xrecord_test_helpers.h",
+      "sha256": "7cba9a7a3f425ffc76f56b36c36af7a4503ff55471f592352f272f0a771bc8f5"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "126970af06f86d67b9b2cbd497041b669ff246c8d5dcf25098e01a294807c25a"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "d6159ed79b82e68e30a024091a33761f93bac4ff6e471dc69dcb69cfb81e7160"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "f70aeef42c490a2915a327ecb8fb331076297f2f03a54728c7c54b34b9f49cac"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "79681d4f9ac60dcfecca9337873cc08d705fb10ea7da615b01a43c322b1af889"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "60d7b74d1abf8325dbf1ffcb426d3081357835feec7b06871bdd5c63a3998de2"
+    },
+    {
+      "path": "build/libdxfrw_hardening_tests",
+      "sha256": "a3be7ae9054191c735ac43992ab76acc6fd234aaea3f89d61561dd659f68613e"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "f736aee97473b039212793c64ba33b72385f359c9df39e1b839872e8be1a5093"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "84b418fef31cc5e6eb1307aec5082398d3575e4d01bc55dc28c7a837d23589d3"
+    },
+    {
+      "path": "build/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o",
+      "sha256": "f0703751fca25e71023d978e750991f5c6a55f0fce823979051837af8039df46"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_wave1_tests",
+      "sha256": "701b6a5dac059dacc8274b3ed58611653ff57fc7d50ac9b28e78378d38abecb4"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dxf_fixture_tests",
+      "sha256": "9c87b913f2fee5c52d3160fec7d99a4f2b22d22c5af63aa95d1ba3b093d4cb2f"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "bc1fbd5d37c50d89832d943906dc500b31c4fd693ccabd3afa225efd98f7a21c"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "b26fd393fa4bcc84c3a1eaa15371e7d1f011185c711212dfa29debd4394096ef"
+    },
+    {
+      "path": "/tmp/rpp5as-fast-ctest.log",
+      "sha256": "e76f08d0eaf9dc1c09c89909f3a39389561556f1dbf77488e7469f3b3af2d13d"
+    },
+    {
+      "path": "/tmp/rpp5as-asan-ctest.log",
+      "sha256": "0867314c16085bab9a54618284bd9623719b333655723dc9bece1b7ad5ad9710"
+    },
+    {
+      "path": "/tmp/rpp5as-owning-ctest.log",
+      "sha256": "511fc548fc2c0b66ae95d03d20178b3f8e014aece8054aa116073b8aafc8c976"
+    },
+    {
+      "path": "/tmp/rpp5as-literals.log",
+      "sha256": "0bdb83b3b9773380ee0995043373e7c5ff8ac97327ff1c70d8d3914c30c9fe2c"
+    }
+  ]
+}

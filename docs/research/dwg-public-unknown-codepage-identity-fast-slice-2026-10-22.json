@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 public DWG codepage identity",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "034d24d07b84327ec70258d5e897b4f43e157279088be660c14473048ec01869",
+  "scope": {
+    "change": "Expose the raw DWG source codepage id, field presence, and codec recognition through dwgRW and deprecated dwgR; keep the existing fallback unchanged and log unsupported ids in debug traces.",
+    "normalDwG2dxfWarning": "Not implemented; converter-facing unsupported-id reporting remains open.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "wireBehaviorChanged": false,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 4",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_codepage_snapshot$' --output-on-failure",
+      "result": "PASS (1/1; 0.35 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(gbk_codepage|dwg_codepage_snapshot)$' --output-on-failure",
+      "result": "PASS (2/2; 1.26 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/libdwgr.h src/libdwgr.cpp src/intern/dwgreader.cpp tests/gbk_codepage_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "4dcf6a97c4f05bf22308dd673c4bef98eb8eadbb8c0d337a01ec22713c076cb5",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "034d24d07b84327ec70258d5e897b4f43e157279088be660c14473048ec01869",
+    "src/intern/dwgreader.cpp": "5c8bbf11bf6be965958d28c527eef5cfa9e439f470612ab51d531409739493f3",
+    "src/libdwgr.cpp": "00d38912fa1363493403d914246e25b3b826f45f247624268d68d6f5a4993517",
+    "src/libdwgr.h": "87bf617527db64dc170d31cf84c7cae296a3ff51876c1a049ef51348134fecb3",
+    "tests/gbk_codepage_tests.cpp": "3d82fbdccf9343e8f9c6f20bfaab49d5668a8d9c058d6278a7aa1f7c4ca30f2e"
+  },
+  "evidenceLimits": [
+    "Generated unit controls exercise public snapshot copying for unsupported and absent envelope fields; the recognized public path uses an already-admitted repository fixture.",
+    "The debug warning is emitted only when tracing is enabled. The normal dwg2dxf informational output still does not expose unsupported source ids.",
+    "No full suite, sanitizer, external peer, native CAD application, or independent codepage producer was used.",
+    "The public dwgRW object layout changed; downstream consumers must rebuild with the updated library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; shared worktree is broadly dirty and unstaged"
+}

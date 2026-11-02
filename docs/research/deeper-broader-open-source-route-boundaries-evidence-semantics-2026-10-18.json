@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Open-source DWG/DXF route boundaries and evidence semantics",
+  "mode": "Primary project documentation review; plan refinement only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare documented route boundaries in ezdxf, GDAL DXF, QCAD dxflib, and LibreDWG",
+    "Refine peer/native observation records so strict parse, recovery, projection, preservation, writing, and acceptance cannot collapse into one result",
+    "Preserve existing implementation order, reduced local validation cadence, fixture policy, and external-only evidence status"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisPass": false,
+    "testCodeChangedThisPass": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Documentation describes different routes and maturity levels; it is not a reproduced runtime comparison or exhaustive repository survey. Mutable upstream master pages are not release-bound. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/linear_dimension.rst"
+      ],
+      "revision": "Mutable master documentation/source reviewed 2026-10-18",
+      "observed": "The docs distinguish direct DXF read/write from XREF/import and renderer routes. Direct support covers named ASCII/Binary DXF versions and third-party content retention; the entity exporter ignores unsupported version features rather than converting versions. XREF import has a narrower supported copyable/transformable subset and ignores ACAD_TABLE, unknown raw-only entities/objects, and some document features. Drawing docs disclaim 3D and ACIS rendering."
+    },
+    {
+      "project": "OSGeo GDAL DXF driver",
+      "urls": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The driver's known-issues list identifies unsupported entity types, absent 3D/OCS paths for selected entities, heuristic HATCH fill handling, missing MLINESTYLE semantics, and outline-only WIPEOUT handling. This is a projection-specific boundary, not a complete DXF codec claim."
+    },
+    {
+      "project": "QCAD dxflib",
+      "urls": [
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/doc/dxflib/2.5/classref/class_d_l___dxf.html",
+        "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox"
+      ],
+      "revision": "Official dxflib 2.5 documentation and mutable QCAD master module description reviewed 2026-10-18",
+      "observed": "dxflib sends supported parsed entities/resources through callbacks into consumer-defined code and does not own or retain a complete document model. Useful only for callback-visible fields and a matching version/operation."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/libredwg.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Mutable master README/manual/spec and public fuzz-repository metadata reviewed 2026-10-18",
+      "observed": "The README and package spec express different DWG-writer ceilings. The manual describes distinct fuzz input/output modes and an external campaign repository; target existence and mutable maturity prose do not establish executed coverage or semantic correctness."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "planImpact": "Refines the optional comparator protocol with exact route/mode provenance, strict-versus-recovery separation, per-source disposition, explicit coverage denominators, and a local-reproduction threshold before adding findings. It does not alter the current implementation queue, fast-slice validation cadence, or fixture admission policy."
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-open-source-route-boundaries-evidence-semantics-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-open-source-route-boundaries-evidence-semantics-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0
+  }
+}

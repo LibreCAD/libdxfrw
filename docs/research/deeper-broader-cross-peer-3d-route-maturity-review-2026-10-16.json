@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw-deeper-broader-cross-peer-3d-route-maturity-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh route-specific public evidence across LibreDWG, ACadSharp, GDAL, and ezdxf; distinguish format transport, explicit geometry projection, ACIS carrier retention, B-rep interpretation, and native acceptance.",
+  "method": {
+    "kind": "Primary project documentation, release-note, issue, and pull-request state review",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Public docs and peer reports establish published route boundaries and release/issue state only. No peer runtime was reproduced. LibreDWG issue #1411 names an older build and must not be generalized to 0.14.1; ACadSharp issue #1195 names 3.4.9 and must not be generalized to v3.8.0. No libdxfrw defect or support claim was established."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG inline SAT export and separate AcDs route",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": [
+        "LibreDWG 0.14.1 release notes report an off-by-one fix that had dropped the last SAT block on DXF export.",
+        "The same release notes report a 3DSOLID block-size bounds fix and additional DWG/DXF malformed-input and security fixes.",
+        "Issue #1411 remains open and describes loss of the separate R2013+ AcDs/SAB route in the reporter's specifically pinned 0.14.8593 build at commit 8a1ae764, with a generated AC1032 DXF route and a separate confidential R2018 example."
+      ],
+      "doesNotEstablish": [
+        "that LibreDWG 0.14.1 still loses the #1411 payload",
+        "that an inline SAT block fix supports AcDs structure or linkage",
+        "that any peer result is evidence for libdxfrw without a local reproducer"
+      ],
+      "planUse": "Keep inline SAT and DWG AcDs cases distinct. Retain last-chunk, exact length/count, bounds, sentinel, and handle-to-AcDs closure controls in their existing owners. Recheck only against an immutable peer build when useful."
+    },
+    {
+      "topic": "ACadSharp released capability versus proposed ACIS writer work",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": [
+        "The latest listed v3.8.0 release is signed and its listed change is InternalsVisibleTo for the ACadSharp.Formats assembly.",
+        "Issue #1195 reports silent 3DSOLID/REGION omission by the 3.4.9 DWG-to-DXF writer, including solid-only blocks.",
+        "PR #1240 remains open and undeployed and depends on separate ACDS/ACIS schema work."
+      ],
+      "doesNotEstablish": [
+        "the current v3.8.0 runtime behavior for the issue's files or family",
+        "released ACIS DXF writer support from an open PR",
+        "a libdxfrw defect from a peer writer's omission"
+      ],
+      "planUse": "Keep ACadSharp as an exact-pin structural comparator only for demonstrated routes. Preserve per-handle/type/block output inventories and INSERT target closure; keep its open PR out of release capability claims."
+    },
+    {
+      "topic": "GDAL DXF parsing, projection, and raw ASM boundary",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": [
+        "GDAL documentation says Binary DXF reading starts in GDAL 3.12 and that its DXF writer emits AutoCAD 2004 format.",
+        "The driver projects selected explicit entities to OGR geometries, maps polyface meshes to polyhedral surfaces, and tessellates curves.",
+        "By default, it skips 3DSOLID, REGION, BODY, and SURFACE; AC1027+ 3D_EXTENSIBLE_MODE can expose raw ASMData and a 12-value affine ASMTransform without interpreting the shape.",
+        "The docs identify a no-option ogr2ogr binary-to-ASCII direct translation path, which is not itself a semantic reader result."
+      ],
+      "doesNotEstablish": [
+        "full CAD graph, exact curve, hatch appearance, or arbitrary entity fidelity",
+        "ACIS B-rep interpretation, DWG parsing, or AcDs linkage",
+        "that Binary DXF parsing and raw ASM extraction compose in every build"
+      ],
+      "planUse": "Keep optional explicit-geometry, raw-carrier, and syntax/transcode observations separate. Use the actual DXF driver/API with pinned build/options for a parse result; never count direct conversion as parsing."
+    },
+    {
+      "topic": "ezdxf ACIS generated-mesh and projection transformations",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": [
+        "The current stable docs say mesh_from_body returns only flat polygonal faces; curved surfaces require a geometry kernel and are lost in that projection.",
+        "body_from_mesh creates a solid or shell based on edge adjacency and automatically merges coincident vertices.",
+        "The API routes SAT versus SAB based on DXF target generation."
+      ],
+      "doesNotEstablish": [
+        "arbitrary ACIS schema coverage or independent producer semantics",
+        "that mesh vertex counts survive body generation unchanged",
+        "curved analytic B-rep correctness from mesh projection or same-library readback"
+      ],
+      "planUse": "Keep ezdxf pinned and schema-bounded. For generated SAT/SAB witnesses, assert against an independently authored analytic manifest and record merge/profile settings, body closure, and unsupported data rather than treating source mesh vertex counts as topology proof."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-07 ACIS semantic evidence",
+      "S8 carrier/AcDs association and output retention",
+      "7AG peer admission",
+      "existing SAT/DXF carrier writer and framing tests"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue narrow local implementation slices and fast generated validation; do not add peer execution to the per-slice loop.",
+      "For carrier framing edits, include final-chunk, exact-byte/length, bounds, and following-record controls in the existing test owner.",
+      "At the composed DXF checkpoint only, use a pinned GDAL driver read/API call if already available; separate ASCII/Binary DXF and raw ASM/transform from projection and direct transcode.",
+      "At the composed ACIS checkpoint only, compare pinned ezdxf parser results and any eligible semantic reader against independent known-shape expectations; do not equate mesh projection with curved B-rep semantics.",
+      "For DWG AcDs changes, follow the local ODA specification and verify entity-handle/key/owner/prototype-to-payload association independently of an external shape result.",
+      "Keep peer/platform unavailability as NOT_RUN and continue implementation.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

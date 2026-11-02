@@ -1,0 +1,8439 @@
+{
+  "receiptVersion": 1,
+  "phase": "P5",
+  "title": "AC1024 architectural dynamic-block source-edge census",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "fixtureCommittedByThisWork": false
+  },
+  "method": {
+    "tool": "libdxfrw_dwg2dxf_adapter_tests --dynamic-block-source-graph-census",
+    "operation": "Current AC1024 typed import; census of graph nodes/edges, typed references, ownership, XDATA symbols, retained source frames, EvalExpr/element versions, and parameter-dependency body fields.",
+    "fixturePolicy": "The local DWG is not committed by this work; no DWG/DXF fixture was added.",
+    "sha256Verified": true
+  },
+  "rootSummary": [
+    {
+      "handle": "0x1155",
+      "ownerDictionary": "0x1146",
+      "nodes": 19,
+      "edges": 14,
+      "allExpressionTargetsUniqueAndTyped": true
+    },
+    {
+      "handle": "0x110F",
+      "ownerDictionary": "0x110E",
+      "nodes": 38,
+      "edges": 43,
+      "allExpressionTargetsUniqueAndTyped": true
+    }
+  ],
+  "edgeCounts": {
+    "dynamicObjects": 65,
+    "fullyDecodedBodies": 65,
+    "retainedDynamicSourceFrames": 65,
+    "graphNodes": 57,
+    "graphEdges": 57,
+    "actionIndexReferences": 26,
+    "actionIndexReferencesMappedOneToOneToNodeId": 26,
+    "actionDependencyHandles": 75,
+    "constraintDependencyHandles": 2,
+    "actionHandleReferences": 8,
+    "visibilityBlockHandles": 11,
+    "visibilityStateBlockHandles": 19,
+    "visibilityStateParameterHandles": 105,
+    "dynamicObjectReactors": 8,
+    "graphOwnerDictionaries": 2,
+    "nestedAssociativeNetworkDictionaries": 1,
+    "dynamicOwnerSortEntsTables": 2,
+    "parameterDependencyBodies": 6,
+    "constraintAssociativeDependencyRecords": 6,
+    "xdataGroups": 2,
+    "unresolvedOrAmbiguousTypedReferences": 0
+  },
+  "dynamicClassCounts": {
+    "ACDB_DYNAMICBLOCKPROXYNODE": 1,
+    "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION": 2,
+    "BLOCKALIGNMENTGRIP": 2,
+    "BLOCKALIGNMENTPARAMETER": 2,
+    "BLOCKBASEPOINTPARAMETER": 1,
+    "BLOCKFLIPACTION": 3,
+    "BLOCKFLIPGRIP": 3,
+    "BLOCKFLIPPARAMETER": 3,
+    "BLOCKGRIPLOCATIONCOMPONENT": 23,
+    "BLOCKHORIZONTALCONSTRAINTPARAMETER": 1,
+    "BLOCKLINEARGRIP": 4,
+    "BLOCKLINEARPARAMETER": 2,
+    "BLOCKMOVEACTION": 2,
+    "BLOCKPARAMDEPENDENCYBODY": 6,
+    "BLOCKSCALEACTION": 1,
+    "BLOCKSTRETCHACTION": 6,
+    "BLOCKVERTICALCONSTRAINTPARAMETER": 1,
+    "BLOCKVISIBILITYGRIP": 1,
+    "BLOCKVISIBILITYPARAMETER": 1
+  },
+  "ownerDictionaries": [
+    {
+      "dictionary": "0x110E",
+      "blockRecord": "0x110D",
+      "blockName": "Door - Imperial",
+      "hardOwner": 1,
+      "cloning": 1,
+      "reactors": [],
+      "xDictionary": "0x0",
+      "entries": [
+        {
+          "key": "ACAD_ENHANCEDBLOCK",
+          "target": {
+            "handle": "0x110F",
+            "target": "EVALUATION_GRAPH@0x110F"
+          }
+        },
+        {
+          "key": "ACAD_SORTENTS",
+          "target": {
+            "handle": "0x1BB9",
+            "target": "SORTENTSTABLE@0x1BB9"
+          }
+        },
+        {
+          "key": "AcDbDynamicBlockRoundTripPurgePreventer",
+          "target": {
+            "handle": "0x1137",
+            "target": "DYNAMIC:ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION@0x1137"
+          }
+        }
+      ]
+    },
+    {
+      "dictionary": "0x1146",
+      "blockRecord": "0x1145",
+      "blockName": "Window - Imperial",
+      "hardOwner": 1,
+      "cloning": 1,
+      "reactors": [],
+      "xDictionary": "0x0",
+      "entries": [
+        {
+          "key": "ACAD_ASSOCNETWORK",
+          "target": {
+            "handle": "0x1147",
+            "target": "DICTIONARY@0x1147"
+          }
+        },
+        {
+          "key": "ACAD_ENHANCEDBLOCK",
+          "target": {
+            "handle": "0x1155",
+            "target": "EVALUATION_GRAPH@0x1155"
+          }
+        },
+        {
+          "key": "ACAD_SORTENTS",
+          "target": {
+            "handle": "0x1BBA",
+            "target": "SORTENTSTABLE@0x1BBA"
+          }
+        },
+        {
+          "key": "AcDbDynamicBlockRoundTripPurgePreventer",
+          "target": {
+            "handle": "0x116A",
+            "target": "DYNAMIC:ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION@0x116A"
+          }
+        }
+      ]
+    }
+  ],
+  "nestedDictionaries": [
+    {
+      "parent": "0x1146",
+      "key": "ACAD_ASSOCNETWORK",
+      "dictionary": "0x1147",
+      "owner": "0x1146",
+      "reactors": [
+        "0x1146"
+      ],
+      "entries": [
+        {
+          "key": "ACAD_ASSOCNETWORK",
+          "target": {
+            "handle": "0x1148",
+            "target": "ASSOCIATIVE:ACDBASSOCNETWORK@0x1148"
+          }
+        }
+      ]
+    }
+  ],
+  "sortEntsTables": [
+    {
+      "handle": "0x1BBA",
+      "owner": {
+        "handle": "0x1146",
+        "target": "DICTIONARY@0x1146"
+      },
+      "blockOwner": {
+        "handle": "0x1145",
+        "target": "BLOCK_RECORD:Window - Imperial@0x1145"
+      },
+      "reactors": [
+        {
+          "handle": "0x1146",
+          "target": "DICTIONARY@0x1146"
+        }
+      ],
+      "entries": []
+    },
+    {
+      "handle": "0x1BB9",
+      "owner": {
+        "handle": "0x110E",
+        "target": "DICTIONARY@0x110E"
+      },
+      "blockOwner": {
+        "handle": "0x110D",
+        "target": "BLOCK_RECORD:Door - Imperial@0x110D"
+      },
+      "reactors": [
+        {
+          "handle": "0x110E",
+          "target": "DICTIONARY@0x110E"
+        }
+      ],
+      "entries": []
+    }
+  ],
+  "constraintAssociativeDependencyTargets": [
+    {
+      "handle": "0x2087",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x207F",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x207F"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x2088",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x2088"
+      },
+      "dependencyNode": null,
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    },
+    {
+      "handle": "0x2081",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x207F",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x207F"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x2082",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x2082"
+      },
+      "dependencyNode": null,
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    },
+    {
+      "handle": "0x202E",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x2026",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x2026"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x202F",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x202F"
+      },
+      "dependencyNode": {
+        "handle": "0x2087",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2087"
+      },
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    },
+    {
+      "handle": "0x2028",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x2026",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x2026"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x2029",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x2029"
+      },
+      "dependencyNode": {
+        "handle": "0x2081",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2081"
+      },
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    },
+    {
+      "handle": "0x1151",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x1149",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x1149"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x1152",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x1152"
+      },
+      "dependencyNode": {
+        "handle": "0x202E",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x202E"
+      },
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    },
+    {
+      "handle": "0x114B",
+      "record": "ACDBASSOCDEPENDENCY",
+      "owner": {
+        "handle": "0x1149",
+        "target": "ASSOCIATIVE:ACDBASSOC2DCONSTRAINTGROUP@0x1149"
+      },
+      "reactors": [],
+      "owningNetwork": null,
+      "actionBody": null,
+      "dependencyBody": {
+        "handle": "0x114C",
+        "target": "DYNAMIC:BLOCKPARAMDEPENDENCYBODY@0x114C"
+      },
+      "dependencyNode": {
+        "handle": "0x2028",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2028"
+      },
+      "readWrite": [
+        false,
+        true
+      ],
+      "dependencies": [],
+      "actions": []
+    }
+  ],
+  "xdataEvidence": [
+    {
+      "sourceHandle": "0x1156",
+      "record": "BLOCKFLIPPARAMETER",
+      "code": 1001,
+      "type": 0,
+      "string": "ACAUTHENVIRON",
+      "symbolTargets": [
+        {
+          "table": "APPID",
+          "name": "ACAUTHENVIRON",
+          "handle": "0x10D4"
+        }
+      ]
+    },
+    {
+      "sourceHandle": "0x1156",
+      "record": "BLOCKFLIPPARAMETER",
+      "code": 1010,
+      "type": 4,
+      "point": [
+        1.1316127095806177,
+        1.8683872904193823,
+        0
+      ]
+    }
+  ],
+  "graphs": [
+    {
+      "handle": "0x1155",
+      "ownerDictionary": "0x1146",
+      "reactors": [
+        "0x1146"
+      ],
+      "values": [
+        230,
+        230
+      ],
+      "nodes": [
+        {
+          "index": 0,
+          "flags": 32,
+          "nextNodeIndex": 120,
+          "expression": {
+            "handle": "0x1156",
+            "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1156"
+          },
+          "data": [
+            3,
+            3,
+            0,
+            4
+          ]
+        },
+        {
+          "index": 1,
+          "flags": 32,
+          "nextNodeIndex": 128,
+          "expression": {
+            "handle": "0x1157",
+            "target": "DYNAMIC:BLOCKFLIPGRIP@0x1157"
+          },
+          "data": [
+            -1,
+            -1,
+            3,
+            3
+          ]
+        },
+        {
+          "index": 2,
+          "flags": 32,
+          "nextNodeIndex": 136,
+          "expression": {
+            "handle": "0x1158",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1158"
+          },
+          "data": [
+            2,
+            2,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 3,
+          "flags": 32,
+          "nextNodeIndex": 144,
+          "expression": {
+            "handle": "0x1159",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1159"
+          },
+          "data": [
+            0,
+            0,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 4,
+          "flags": 32,
+          "nextNodeIndex": 152,
+          "expression": {
+            "handle": "0x115A",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x115A"
+          },
+          "data": [
+            1,
+            1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 5,
+          "flags": 32,
+          "nextNodeIndex": 184,
+          "expression": {
+            "handle": "0x115B",
+            "target": "DYNAMIC:BLOCKFLIPACTION@0x115B"
+          },
+          "data": [
+            4,
+            4,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 6,
+          "flags": 32,
+          "nextNodeIndex": 192,
+          "expression": {
+            "handle": "0x115C",
+            "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x115C"
+          },
+          "data": [
+            5,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "index": 7,
+          "flags": 32,
+          "nextNodeIndex": 200,
+          "expression": {
+            "handle": "0x115D",
+            "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x115D"
+          },
+          "data": [
+            -1,
+            -1,
+            5,
+            5
+          ]
+        },
+        {
+          "index": 8,
+          "flags": 32,
+          "nextNodeIndex": 208,
+          "expression": {
+            "handle": "0x115E",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x115E"
+          },
+          "data": [
+            6,
+            6,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 9,
+          "flags": 32,
+          "nextNodeIndex": 216,
+          "expression": {
+            "handle": "0x115F",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x115F"
+          },
+          "data": [
+            7,
+            7,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 10,
+          "flags": 32,
+          "nextNodeIndex": 222,
+          "expression": {
+            "handle": "0x1160",
+            "target": "DYNAMIC:BLOCKVERTICALCONSTRAINTPARAMETER@0x1160"
+          },
+          "data": [
+            10,
+            10,
+            8,
+            9
+          ]
+        },
+        {
+          "index": 11,
+          "flags": 32,
+          "nextNodeIndex": 223,
+          "expression": {
+            "handle": "0x1161",
+            "target": "DYNAMIC:BLOCKLINEARGRIP@0x1161"
+          },
+          "data": [
+            -1,
+            -1,
+            10,
+            10
+          ]
+        },
+        {
+          "index": 12,
+          "flags": 32,
+          "nextNodeIndex": 224,
+          "expression": {
+            "handle": "0x1162",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1162"
+          },
+          "data": [
+            8,
+            8,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 13,
+          "flags": 32,
+          "nextNodeIndex": 225,
+          "expression": {
+            "handle": "0x1163",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1163"
+          },
+          "data": [
+            9,
+            9,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 14,
+          "flags": 32,
+          "nextNodeIndex": 226,
+          "expression": {
+            "handle": "0x1164",
+            "target": "DYNAMIC:ACDB_DYNAMICBLOCKPROXYNODE@0x1164"
+          },
+          "data": [
+            -1,
+            -1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 15,
+          "flags": 32,
+          "nextNodeIndex": 227,
+          "expression": {
+            "handle": "0x1165",
+            "target": "DYNAMIC:BLOCKHORIZONTALCONSTRAINTPARAMETER@0x1165"
+          },
+          "data": [
+            13,
+            13,
+            11,
+            12
+          ]
+        },
+        {
+          "index": 16,
+          "flags": 32,
+          "nextNodeIndex": 228,
+          "expression": {
+            "handle": "0x1166",
+            "target": "DYNAMIC:BLOCKLINEARGRIP@0x1166"
+          },
+          "data": [
+            -1,
+            -1,
+            13,
+            13
+          ]
+        },
+        {
+          "index": 17,
+          "flags": 32,
+          "nextNodeIndex": 229,
+          "expression": {
+            "handle": "0x1167",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1167"
+          },
+          "data": [
+            11,
+            11,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 18,
+          "flags": 32,
+          "nextNodeIndex": 230,
+          "expression": {
+            "handle": "0x1168",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1168"
+          },
+          "data": [
+            12,
+            12,
+            -1,
+            -1
+          ]
+        }
+      ],
+      "edges": [
+        [
+          0,
+          0,
+          1,
+          0,
+          3,
+          -1,
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1,
+          0,
+          4,
+          -1,
+          -1,
+          0,
+          2,
+          -1
+        ],
+        [
+          2,
+          0,
+          1,
+          0,
+          2,
+          -1,
+          -1,
+          1,
+          4,
+          -1
+        ],
+        [
+          3,
+          0,
+          1,
+          1,
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          4,
+          0,
+          4,
+          0,
+          5,
+          -1,
+          -1,
+          2,
+          -1,
+          -1
+        ],
+        [
+          5,
+          0,
+          1,
+          7,
+          6,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          6,
+          0,
+          1,
+          6,
+          8,
+          -1,
+          -1,
+          -1,
+          7,
+          -1
+        ],
+        [
+          7,
+          0,
+          1,
+          6,
+          9,
+          -1,
+          -1,
+          6,
+          -1,
+          -1
+        ],
+        [
+          8,
+          0,
+          1,
+          10,
+          12,
+          -1,
+          -1,
+          -1,
+          9,
+          -1
+        ],
+        [
+          9,
+          0,
+          1,
+          10,
+          13,
+          -1,
+          -1,
+          8,
+          -1,
+          -1
+        ],
+        [
+          10,
+          0,
+          2,
+          11,
+          10,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          11,
+          0,
+          1,
+          15,
+          17,
+          -1,
+          -1,
+          -1,
+          12,
+          -1
+        ],
+        [
+          12,
+          0,
+          1,
+          15,
+          18,
+          -1,
+          -1,
+          11,
+          -1,
+          -1
+        ],
+        [
+          13,
+          0,
+          2,
+          16,
+          15,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ]
+      ],
+      "sourceFrame": {
+        "type": 517,
+        "record": "ACAD_EVALUATION_GRAPH",
+        "class": "AcDbEvalGraph",
+        "parent": "0x1146"
+      }
+    },
+    {
+      "handle": "0x110F",
+      "ownerDictionary": "0x110E",
+      "reactors": [
+        "0x110E"
+      ],
+      "values": [
+        79,
+        79
+      ],
+      "nodes": [
+        {
+          "index": 0,
+          "flags": 32,
+          "nextNodeIndex": 1,
+          "expression": {
+            "handle": "0x1110",
+            "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+          },
+          "data": [
+            2,
+            2,
+            0,
+            27
+          ]
+        },
+        {
+          "index": 1,
+          "flags": 32,
+          "nextNodeIndex": 2,
+          "expression": {
+            "handle": "0x1111",
+            "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+          },
+          "data": [
+            -1,
+            -1,
+            2,
+            2
+          ]
+        },
+        {
+          "index": 2,
+          "flags": 32,
+          "nextNodeIndex": 3,
+          "expression": {
+            "handle": "0x1112",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1112"
+          },
+          "data": [
+            0,
+            0,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 3,
+          "flags": 32,
+          "nextNodeIndex": 4,
+          "expression": {
+            "handle": "0x1113",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1113"
+          },
+          "data": [
+            1,
+            1,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 4,
+          "flags": 32,
+          "nextNodeIndex": 8,
+          "expression": {
+            "handle": "0x1114",
+            "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+          },
+          "data": [
+            5,
+            5,
+            3,
+            28
+          ]
+        },
+        {
+          "index": 5,
+          "flags": 32,
+          "nextNodeIndex": 9,
+          "expression": {
+            "handle": "0x1115",
+            "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+          },
+          "data": [
+            -1,
+            -1,
+            5,
+            5
+          ]
+        },
+        {
+          "index": 6,
+          "flags": 32,
+          "nextNodeIndex": 10,
+          "expression": {
+            "handle": "0x1116",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1116"
+          },
+          "data": [
+            3,
+            3,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 7,
+          "flags": 32,
+          "nextNodeIndex": 11,
+          "expression": {
+            "handle": "0x1117",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1117"
+          },
+          "data": [
+            4,
+            4,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 8,
+          "flags": 32,
+          "nextNodeIndex": 26,
+          "expression": {
+            "handle": "0x1118",
+            "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+          },
+          "data": [
+            9,
+            9,
+            6,
+            29
+          ]
+        },
+        {
+          "index": 9,
+          "flags": 32,
+          "nextNodeIndex": 27,
+          "expression": {
+            "handle": "0x1119",
+            "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+          },
+          "data": [
+            -1,
+            -1,
+            9,
+            9
+          ]
+        },
+        {
+          "index": 10,
+          "flags": 32,
+          "nextNodeIndex": 28,
+          "expression": {
+            "handle": "0x111A",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x111A"
+          },
+          "data": [
+            8,
+            8,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 11,
+          "flags": 32,
+          "nextNodeIndex": 29,
+          "expression": {
+            "handle": "0x111B",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x111B"
+          },
+          "data": [
+            6,
+            6,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 12,
+          "flags": 32,
+          "nextNodeIndex": 30,
+          "expression": {
+            "handle": "0x111C",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x111C"
+          },
+          "data": [
+            7,
+            7,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 13,
+          "flags": 32,
+          "nextNodeIndex": 31,
+          "expression": {
+            "handle": "0x111D",
+            "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+          },
+          "data": [
+            16,
+            16,
+            13,
+            30
+          ]
+        },
+        {
+          "index": 14,
+          "flags": 32,
+          "nextNodeIndex": 46,
+          "expression": {
+            "handle": "0x111E",
+            "target": "DYNAMIC:BLOCKVISIBILITYPARAMETER@0x111E"
+          },
+          "data": [
+            10,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "index": 15,
+          "flags": 32,
+          "nextNodeIndex": 47,
+          "expression": {
+            "handle": "0x111F",
+            "target": "DYNAMIC:BLOCKVISIBILITYGRIP@0x111F"
+          },
+          "data": [
+            -1,
+            -1,
+            10,
+            10
+          ]
+        },
+        {
+          "index": 16,
+          "flags": 32,
+          "nextNodeIndex": 48,
+          "expression": {
+            "handle": "0x1120",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1120"
+          },
+          "data": [
+            11,
+            11,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 17,
+          "flags": 32,
+          "nextNodeIndex": 49,
+          "expression": {
+            "handle": "0x1121",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1121"
+          },
+          "data": [
+            12,
+            12,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 18,
+          "flags": 32,
+          "nextNodeIndex": 50,
+          "expression": {
+            "handle": "0x1122",
+            "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+          },
+          "data": [
+            -1,
+            -1,
+            16,
+            16
+          ]
+        },
+        {
+          "index": 19,
+          "flags": 32,
+          "nextNodeIndex": 51,
+          "expression": {
+            "handle": "0x1123",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1123"
+          },
+          "data": [
+            15,
+            15,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 20,
+          "flags": 32,
+          "nextNodeIndex": 52,
+          "expression": {
+            "handle": "0x1124",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1124"
+          },
+          "data": [
+            13,
+            13,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 21,
+          "flags": 32,
+          "nextNodeIndex": 53,
+          "expression": {
+            "handle": "0x1125",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1125"
+          },
+          "data": [
+            14,
+            14,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 22,
+          "flags": 32,
+          "nextNodeIndex": 54,
+          "expression": {
+            "handle": "0x1126",
+            "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+          },
+          "data": [
+            17,
+            17,
+            18,
+            19
+          ]
+        },
+        {
+          "index": 23,
+          "flags": 32,
+          "nextNodeIndex": 55,
+          "expression": {
+            "handle": "0x1127",
+            "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+          },
+          "data": [
+            -1,
+            -1,
+            17,
+            17
+          ]
+        },
+        {
+          "index": 24,
+          "flags": 32,
+          "nextNodeIndex": 56,
+          "expression": {
+            "handle": "0x1128",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1128"
+          },
+          "data": [
+            18,
+            18,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 25,
+          "flags": 32,
+          "nextNodeIndex": 57,
+          "expression": {
+            "handle": "0x1129",
+            "target": "DYNAMIC:BLOCKGRIPLOCATIONCOMPONENT@0x1129"
+          },
+          "data": [
+            19,
+            19,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 26,
+          "flags": 32,
+          "nextNodeIndex": 65,
+          "expression": {
+            "handle": "0x112A",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+          },
+          "data": [
+            20,
+            38,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 27,
+          "flags": 32,
+          "nextNodeIndex": 66,
+          "expression": {
+            "handle": "0x112B",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+          },
+          "data": [
+            21,
+            39,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 28,
+          "flags": 32,
+          "nextNodeIndex": 67,
+          "expression": {
+            "handle": "0x112C",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+          },
+          "data": [
+            22,
+            40,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 29,
+          "flags": 32,
+          "nextNodeIndex": 68,
+          "expression": {
+            "handle": "0x112D",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+          },
+          "data": [
+            23,
+            41,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 30,
+          "flags": 32,
+          "nextNodeIndex": 69,
+          "expression": {
+            "handle": "0x112E",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+          },
+          "data": [
+            24,
+            42,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 31,
+          "flags": 32,
+          "nextNodeIndex": 70,
+          "expression": {
+            "handle": "0x112F",
+            "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+          },
+          "data": [
+            25,
+            25,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 32,
+          "flags": 32,
+          "nextNodeIndex": 72,
+          "expression": {
+            "handle": "0x1130",
+            "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+          },
+          "data": [
+            26,
+            26,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 33,
+          "flags": 32,
+          "nextNodeIndex": 74,
+          "expression": {
+            "handle": "0x1131",
+            "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+          },
+          "data": [
+            27,
+            27,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 34,
+          "flags": 32,
+          "nextNodeIndex": 75,
+          "expression": {
+            "handle": "0x1132",
+            "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+          },
+          "data": [
+            28,
+            28,
+            -1,
+            -1
+          ]
+        },
+        {
+          "index": 35,
+          "flags": 32,
+          "nextNodeIndex": 76,
+          "expression": {
+            "handle": "0x1133",
+            "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+          },
+          "data": [
+            29,
+            29,
+            31,
+            36
+          ]
+        },
+        {
+          "index": 36,
+          "flags": 32,
+          "nextNodeIndex": 77,
+          "expression": {
+            "handle": "0x1134",
+            "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+          },
+          "data": [
+            30,
+            30,
+            37,
+            42
+          ]
+        },
+        {
+          "index": 37,
+          "flags": 32,
+          "nextNodeIndex": 79,
+          "expression": {
+            "handle": "0x1135",
+            "target": "DYNAMIC:BLOCKBASEPOINTPARAMETER@0x1135"
+          },
+          "data": [
+            31,
+            37,
+            -1,
+            -1
+          ]
+        }
+      ],
+      "edges": [
+        [
+          0,
+          0,
+          1,
+          0,
+          2,
+          -1,
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1,
+          0,
+          3,
+          -1,
+          -1,
+          0,
+          20,
+          -1
+        ],
+        [
+          2,
+          0,
+          2,
+          1,
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          3,
+          0,
+          1,
+          4,
+          6,
+          -1,
+          -1,
+          -1,
+          4,
+          -1
+        ],
+        [
+          4,
+          0,
+          1,
+          4,
+          7,
+          -1,
+          -1,
+          3,
+          26,
+          -1
+        ],
+        [
+          5,
+          0,
+          2,
+          5,
+          4,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          6,
+          0,
+          1,
+          8,
+          11,
+          -1,
+          -1,
+          -1,
+          7,
+          -1
+        ],
+        [
+          7,
+          0,
+          1,
+          8,
+          12,
+          -1,
+          -1,
+          6,
+          8,
+          -1
+        ],
+        [
+          8,
+          0,
+          1,
+          8,
+          10,
+          -1,
+          -1,
+          7,
+          29,
+          -1
+        ],
+        [
+          9,
+          0,
+          1,
+          9,
+          8,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          10,
+          0,
+          1,
+          15,
+          14,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          11,
+          0,
+          1,
+          14,
+          16,
+          -1,
+          -1,
+          -1,
+          12,
+          -1
+        ],
+        [
+          12,
+          0,
+          1,
+          14,
+          17,
+          -1,
+          -1,
+          11,
+          -1,
+          -1
+        ],
+        [
+          13,
+          0,
+          1,
+          13,
+          20,
+          -1,
+          -1,
+          -1,
+          14,
+          -1
+        ],
+        [
+          14,
+          0,
+          1,
+          13,
+          21,
+          -1,
+          -1,
+          13,
+          15,
+          -1
+        ],
+        [
+          15,
+          0,
+          1,
+          13,
+          19,
+          -1,
+          -1,
+          14,
+          30,
+          -1
+        ],
+        [
+          16,
+          0,
+          1,
+          18,
+          13,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          17,
+          0,
+          1,
+          23,
+          22,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        [
+          18,
+          0,
+          1,
+          22,
+          24,
+          -1,
+          -1,
+          -1,
+          19,
+          -1
+        ],
+        [
+          19,
+          0,
+          1,
+          22,
+          25,
+          -1,
+          -1,
+          18,
+          -1,
+          -1
+        ],
+        [
+          20,
+          0,
+          2,
+          0,
+          26,
+          -1,
+          32,
+          1,
+          21,
+          -1
+        ],
+        [
+          21,
+          0,
+          2,
+          0,
+          27,
+          -1,
+          33,
+          20,
+          22,
+          -1
+        ],
+        [
+          22,
+          0,
+          2,
+          0,
+          28,
+          -1,
+          34,
+          21,
+          23,
+          -1
+        ],
+        [
+          23,
+          0,
+          2,
+          0,
+          29,
+          -1,
+          35,
+          22,
+          24,
+          -1
+        ],
+        [
+          24,
+          0,
+          2,
+          0,
+          30,
+          -1,
+          36,
+          23,
+          25,
+          -1
+        ],
+        [
+          25,
+          0,
+          5,
+          0,
+          31,
+          -1,
+          -1,
+          24,
+          27,
+          -1
+        ],
+        [
+          26,
+          0,
+          2,
+          4,
+          32,
+          -1,
+          -1,
+          4,
+          28,
+          -1
+        ],
+        [
+          27,
+          0,
+          2,
+          0,
+          33,
+          -1,
+          -1,
+          25,
+          -1,
+          -1
+        ],
+        [
+          28,
+          0,
+          2,
+          4,
+          34,
+          -1,
+          -1,
+          26,
+          -1,
+          -1
+        ],
+        [
+          29,
+          0,
+          4,
+          8,
+          35,
+          -1,
+          -1,
+          8,
+          -1,
+          -1
+        ],
+        [
+          30,
+          0,
+          4,
+          13,
+          36,
+          -1,
+          -1,
+          15,
+          -1,
+          -1
+        ],
+        [
+          31,
+          0,
+          1,
+          35,
+          37,
+          -1,
+          37,
+          -1,
+          32,
+          -1
+        ],
+        [
+          32,
+          0,
+          1,
+          35,
+          26,
+          20,
+          38,
+          31,
+          33,
+          -1
+        ],
+        [
+          33,
+          0,
+          1,
+          35,
+          27,
+          21,
+          39,
+          32,
+          34,
+          -1
+        ],
+        [
+          34,
+          0,
+          1,
+          35,
+          28,
+          22,
+          40,
+          33,
+          35,
+          -1
+        ],
+        [
+          35,
+          0,
+          1,
+          35,
+          29,
+          23,
+          41,
+          34,
+          36,
+          -1
+        ],
+        [
+          36,
+          0,
+          1,
+          35,
+          30,
+          24,
+          42,
+          35,
+          -1,
+          -1
+        ],
+        [
+          37,
+          0,
+          1,
+          36,
+          37,
+          31,
+          -1,
+          -1,
+          38,
+          -1
+        ],
+        [
+          38,
+          0,
+          1,
+          36,
+          26,
+          32,
+          -1,
+          37,
+          39,
+          -1
+        ],
+        [
+          39,
+          0,
+          1,
+          36,
+          27,
+          33,
+          -1,
+          38,
+          40,
+          -1
+        ],
+        [
+          40,
+          0,
+          1,
+          36,
+          28,
+          34,
+          -1,
+          39,
+          41,
+          -1
+        ],
+        [
+          41,
+          0,
+          1,
+          36,
+          29,
+          35,
+          -1,
+          40,
+          42,
+          -1
+        ],
+        [
+          42,
+          0,
+          1,
+          36,
+          30,
+          36,
+          -1,
+          41,
+          -1,
+          -1
+        ]
+      ],
+      "sourceFrame": {
+        "type": 517,
+        "record": "ACAD_EVALUATION_GRAPH",
+        "class": "AcDbEvalGraph",
+        "parent": "0x110E"
+      }
+    }
+  ],
+  "dynamicObjects": [
+    {
+      "handle": "0x115D",
+      "record": "BLOCKALIGNMENTGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 200,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 534,
+        "record": "BLOCKALIGNMENTGRIP",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1127",
+      "record": "BLOCKALIGNMENTGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 55,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 534,
+        "record": "BLOCKALIGNMENTGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x115C",
+      "record": "BLOCKALIGNMENTPARAMETER",
+      "kind": 13,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 192,
+      "parentId": 4294967295,
+      "element": "Alignment",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          6,
+          7.347638122934264e-16,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 533,
+        "record": "BLOCKALIGNMENTPARAMETER",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1126",
+      "record": "BLOCKALIGNMENTPARAMETER",
+      "kind": 13,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 54,
+      "parentId": 4294967295,
+      "element": "Alignment",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          -1.7763568394002505e-15,
+          0
+        ],
+        "second": [
+          15,
+          -1.7763568394002505e-15,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 533,
+        "record": "BLOCKALIGNMENTPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1135",
+      "record": "BLOCKBASEPOINTPARAMETER",
+      "kind": 7,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 79,
+      "parentId": 4294967295,
+      "element": "Base Point",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 538,
+        "record": "BLOCKBASEPOINTPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x115B",
+      "record": "BLOCKFLIPACTION",
+      "kind": 26,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 184,
+      "parentId": 4294967295,
+      "element": "Flip Window",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x116E",
+          "target": "ENTITY:24:owner=4421@0x116E"
+        },
+        {
+          "handle": "0x116D",
+          "target": "ENTITY:24:owner=4421@0x116D"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        8.5,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 537,
+        "record": "BLOCKFLIPACTION",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1134",
+      "record": "BLOCKFLIPACTION",
+      "kind": 26,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 77,
+      "parentId": 4294967295,
+      "element": "FlipSwing",
+      "eed1071": 0,
+      "actionIndexes": [
+        79,
+        65,
+        66,
+        67,
+        68,
+        69,
+        1,
+        8,
+        26,
+        46,
+        54
+      ],
+      "actionIndexTargets": [
+        {
+          "actionIndex": 79,
+          "nodeIds": [
+            {
+              "index": 37,
+              "nextNodeIndex": 79,
+              "targetNodeId": 79,
+              "record": "BLOCKBASEPOINTPARAMETER",
+              "expression": {
+                "handle": "0x1135",
+                "target": "DYNAMIC:BLOCKBASEPOINTPARAMETER@0x1135"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 65,
+          "nodeIds": [
+            {
+              "index": 26,
+              "nextNodeIndex": 65,
+              "targetNodeId": 65,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112A",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 66,
+          "nodeIds": [
+            {
+              "index": 27,
+              "nextNodeIndex": 66,
+              "targetNodeId": 66,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112B",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 67,
+          "nodeIds": [
+            {
+              "index": 28,
+              "nextNodeIndex": 67,
+              "targetNodeId": 67,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112C",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 68,
+          "nodeIds": [
+            {
+              "index": 29,
+              "nextNodeIndex": 68,
+              "targetNodeId": 68,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112D",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 69,
+          "nodeIds": [
+            {
+              "index": 30,
+              "nextNodeIndex": 69,
+              "targetNodeId": 69,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112E",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 1,
+          "nodeIds": [
+            {
+              "index": 0,
+              "nextNodeIndex": 1,
+              "targetNodeId": 1,
+              "record": "BLOCKLINEARPARAMETER",
+              "expression": {
+                "handle": "0x1110",
+                "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 8,
+          "nodeIds": [
+            {
+              "index": 4,
+              "nextNodeIndex": 8,
+              "targetNodeId": 8,
+              "record": "BLOCKLINEARPARAMETER",
+              "expression": {
+                "handle": "0x1114",
+                "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 26,
+          "nodeIds": [
+            {
+              "index": 8,
+              "nextNodeIndex": 26,
+              "targetNodeId": 26,
+              "record": "BLOCKFLIPPARAMETER",
+              "expression": {
+                "handle": "0x1118",
+                "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 46,
+          "nodeIds": [
+            {
+              "index": 14,
+              "nextNodeIndex": 46,
+              "targetNodeId": 46,
+              "record": "BLOCKVISIBILITYPARAMETER",
+              "expression": {
+                "handle": "0x111E",
+                "target": "DYNAMIC:BLOCKVISIBILITYPARAMETER@0x111E"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 54,
+          "nodeIds": [
+            {
+              "index": 22,
+              "nextNodeIndex": 54,
+              "targetNodeId": 54,
+              "record": "BLOCKALIGNMENTPARAMETER",
+              "expression": {
+                "handle": "0x1126",
+                "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "handle": "0x1127",
+          "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+        },
+        {
+          "handle": "0x1126",
+          "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+        },
+        {
+          "handle": "0x1122",
+          "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+        },
+        {
+          "handle": "0x111F",
+          "target": "DYNAMIC:BLOCKVISIBILITYGRIP@0x111F"
+        },
+        {
+          "handle": "0x111E",
+          "target": "DYNAMIC:BLOCKVISIBILITYPARAMETER@0x111E"
+        },
+        {
+          "handle": "0x1118",
+          "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+        },
+        {
+          "handle": "0x1115",
+          "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+        },
+        {
+          "handle": "0x1114",
+          "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+        },
+        {
+          "handle": "0x1111",
+          "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+        },
+        {
+          "handle": "0x1110",
+          "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        },
+        {
+          "handle": "0x1142",
+          "target": "ENTITY:24:owner=4365@0x1142"
+        },
+        {
+          "handle": "0x1141",
+          "target": "ENTITY:2:owner=4365@0x1141"
+        },
+        {
+          "handle": "0x1140",
+          "target": "ENTITY:2:owner=4365@0x1140"
+        },
+        {
+          "handle": "0x113F",
+          "target": "ENTITY:2:owner=4365@0x113F"
+        },
+        {
+          "handle": "0x113E",
+          "target": "ENTITY:2:owner=4365@0x113E"
+        },
+        {
+          "handle": "0x113D",
+          "target": "ENTITY:25:owner=4365@0x113D"
+        },
+        {
+          "handle": "0x113C",
+          "target": "ENTITY:25:owner=4365@0x113C"
+        },
+        {
+          "handle": "0x113B",
+          "target": "ENTITY:25:owner=4365@0x113B"
+        },
+        {
+          "handle": "0x113A",
+          "target": "ENTITY:25:owner=4365@0x113A"
+        },
+        {
+          "handle": "0x1139",
+          "target": "ENTITY:25:owner=4365@0x1139"
+        },
+        {
+          "handle": "0x112E",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+        },
+        {
+          "handle": "0x112D",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+        },
+        {
+          "handle": "0x112C",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+        },
+        {
+          "handle": "0x112B",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+        },
+        {
+          "handle": "0x112A",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+        },
+        {
+          "handle": "0x1135",
+          "target": "DYNAMIC:BLOCKBASEPOINTPARAMETER@0x1135"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        35,
+        -20.000000000000004,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 537,
+        "record": "BLOCKFLIPACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1133",
+      "record": "BLOCKFLIPACTION",
+      "kind": 26,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 76,
+      "parentId": 4294967295,
+      "element": "FlipHinge",
+      "eed1071": 0,
+      "actionIndexes": [
+        79,
+        65,
+        66,
+        67,
+        68,
+        69,
+        1,
+        8,
+        31,
+        46,
+        54
+      ],
+      "actionIndexTargets": [
+        {
+          "actionIndex": 79,
+          "nodeIds": [
+            {
+              "index": 37,
+              "nextNodeIndex": 79,
+              "targetNodeId": 79,
+              "record": "BLOCKBASEPOINTPARAMETER",
+              "expression": {
+                "handle": "0x1135",
+                "target": "DYNAMIC:BLOCKBASEPOINTPARAMETER@0x1135"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 65,
+          "nodeIds": [
+            {
+              "index": 26,
+              "nextNodeIndex": 65,
+              "targetNodeId": 65,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112A",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 66,
+          "nodeIds": [
+            {
+              "index": 27,
+              "nextNodeIndex": 66,
+              "targetNodeId": 66,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112B",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 67,
+          "nodeIds": [
+            {
+              "index": 28,
+              "nextNodeIndex": 67,
+              "targetNodeId": 67,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112C",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 68,
+          "nodeIds": [
+            {
+              "index": 29,
+              "nextNodeIndex": 68,
+              "targetNodeId": 68,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112D",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 69,
+          "nodeIds": [
+            {
+              "index": 30,
+              "nextNodeIndex": 69,
+              "targetNodeId": 69,
+              "record": "BLOCKSTRETCHACTION",
+              "expression": {
+                "handle": "0x112E",
+                "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 1,
+          "nodeIds": [
+            {
+              "index": 0,
+              "nextNodeIndex": 1,
+              "targetNodeId": 1,
+              "record": "BLOCKLINEARPARAMETER",
+              "expression": {
+                "handle": "0x1110",
+                "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 8,
+          "nodeIds": [
+            {
+              "index": 4,
+              "nextNodeIndex": 8,
+              "targetNodeId": 8,
+              "record": "BLOCKLINEARPARAMETER",
+              "expression": {
+                "handle": "0x1114",
+                "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 31,
+          "nodeIds": [
+            {
+              "index": 13,
+              "nextNodeIndex": 31,
+              "targetNodeId": 31,
+              "record": "BLOCKFLIPPARAMETER",
+              "expression": {
+                "handle": "0x111D",
+                "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 46,
+          "nodeIds": [
+            {
+              "index": 14,
+              "nextNodeIndex": 46,
+              "targetNodeId": 46,
+              "record": "BLOCKVISIBILITYPARAMETER",
+              "expression": {
+                "handle": "0x111E",
+                "target": "DYNAMIC:BLOCKVISIBILITYPARAMETER@0x111E"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 54,
+          "nodeIds": [
+            {
+              "index": 22,
+              "nextNodeIndex": 54,
+              "targetNodeId": 54,
+              "record": "BLOCKALIGNMENTPARAMETER",
+              "expression": {
+                "handle": "0x1126",
+                "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "handle": "0x1127",
+          "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+        },
+        {
+          "handle": "0x1126",
+          "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+        },
+        {
+          "handle": "0x1122",
+          "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+        },
+        {
+          "handle": "0x111F",
+          "target": "DYNAMIC:BLOCKVISIBILITYGRIP@0x111F"
+        },
+        {
+          "handle": "0x111E",
+          "target": "DYNAMIC:BLOCKVISIBILITYPARAMETER@0x111E"
+        },
+        {
+          "handle": "0x111D",
+          "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+        },
+        {
+          "handle": "0x1115",
+          "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+        },
+        {
+          "handle": "0x1114",
+          "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+        },
+        {
+          "handle": "0x1111",
+          "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+        },
+        {
+          "handle": "0x1110",
+          "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        },
+        {
+          "handle": "0x1142",
+          "target": "ENTITY:24:owner=4365@0x1142"
+        },
+        {
+          "handle": "0x1141",
+          "target": "ENTITY:2:owner=4365@0x1141"
+        },
+        {
+          "handle": "0x1140",
+          "target": "ENTITY:2:owner=4365@0x1140"
+        },
+        {
+          "handle": "0x113F",
+          "target": "ENTITY:2:owner=4365@0x113F"
+        },
+        {
+          "handle": "0x113E",
+          "target": "ENTITY:2:owner=4365@0x113E"
+        },
+        {
+          "handle": "0x113D",
+          "target": "ENTITY:25:owner=4365@0x113D"
+        },
+        {
+          "handle": "0x113C",
+          "target": "ENTITY:25:owner=4365@0x113C"
+        },
+        {
+          "handle": "0x113B",
+          "target": "ENTITY:25:owner=4365@0x113B"
+        },
+        {
+          "handle": "0x113A",
+          "target": "ENTITY:25:owner=4365@0x113A"
+        },
+        {
+          "handle": "0x1139",
+          "target": "ENTITY:25:owner=4365@0x1139"
+        },
+        {
+          "handle": "0x112E",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+        },
+        {
+          "handle": "0x112D",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+        },
+        {
+          "handle": "0x112C",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+        },
+        {
+          "handle": "0x112B",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+        },
+        {
+          "handle": "0x112A",
+          "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+        },
+        {
+          "handle": "0x1135",
+          "target": "DYNAMIC:BLOCKBASEPOINTPARAMETER@0x1135"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        35,
+        -14.999999999999996,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 537,
+        "record": "BLOCKFLIPACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1157",
+      "record": "BLOCKFLIPGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 128,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 530,
+        "record": "BLOCKFLIPGRIP",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1122",
+      "record": "BLOCKFLIPGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 50,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 530,
+        "record": "BLOCKFLIPGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1119",
+      "record": "BLOCKFLIPGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 27,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 530,
+        "record": "BLOCKFLIPGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1156",
+      "record": "BLOCKFLIPPARAMETER",
+      "kind": 9,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 120,
+      "parentId": 4294967295,
+      "element": "Flip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          3,
+          0
+        ],
+        "second": [
+          0,
+          6,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 529,
+        "record": "BLOCKFLIPPARAMETER",
+        "parent": "0x1155"
+      },
+      "xdata": [
+        {
+          "code": 1001,
+          "type": 0,
+          "string": "ACAUTHENVIRON",
+          "symbolTargets": [
+            {
+              "table": "APPID",
+              "name": "ACAUTHENVIRON",
+              "handle": "0x10D4"
+            }
+          ]
+        },
+        {
+          "code": 1010,
+          "type": 4,
+          "point": [
+            1.1316127095806177,
+            1.8683872904193823,
+            0
+          ]
+        }
+      ],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x111D",
+      "record": "BLOCKFLIPPARAMETER",
+      "kind": 9,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 31,
+      "parentId": 4294967295,
+      "element": "swing",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          15,
+          -2.5,
+          0
+        ],
+        "second": [
+          0,
+          -2.5,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 529,
+        "record": "BLOCKFLIPPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1118",
+      "record": "BLOCKFLIPPARAMETER",
+      "kind": 9,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 26,
+      "parentId": 4294967295,
+      "element": "hinge",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          15,
+          -12.5,
+          0
+        ],
+        "second": [
+          15.000000000000002,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 529,
+        "record": "BLOCKFLIPPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1168",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 230,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1167",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 229,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1163",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 225,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1162",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 224,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x115F",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 216,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x115E",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 208,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x115A",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 152,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1159",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 144,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1158",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 136,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1129",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 57,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1128",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 56,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1125",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 53,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1124",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 52,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1123",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 51,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1121",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 49,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1120",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 48,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x111C",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 30,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x111B",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 29,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x111A",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 28,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1117",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 11,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1116",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 10,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1113",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 4,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1112",
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "kind": 3,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 3,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 520,
+        "record": "BLOCKGRIPLOCATIONCOMPONENT",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1165",
+      "record": "BLOCKHORIZONTALCONSTRAINTPARAMETER",
+      "kind": 16,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [
+        {
+          "handle": "0x1151",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x1151"
+        },
+        {
+          "handle": "0x202E",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x202E"
+        },
+        {
+          "handle": "0x2087",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2087"
+        }
+      ],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 227,
+      "parentId": 4294967295,
+      "element": "W",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": {
+        "handle": "0x1151",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x1151"
+      },
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          -2,
+          0
+        ],
+        "second": [
+          36,
+          -2,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 548,
+        "record": "BLOCKHORIZONTALCONSTRAINTPARAMETER",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1166",
+      "record": "BLOCKLINEARGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 228,
+      "parentId": 4294967295,
+      "element": "End Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 528,
+        "record": "BLOCKLINEARGRIP",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1161",
+      "record": "BLOCKLINEARGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 223,
+      "parentId": 4294967295,
+      "element": "End Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 528,
+        "record": "BLOCKLINEARGRIP",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1115",
+      "record": "BLOCKLINEARGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 9,
+      "parentId": 4294967295,
+      "element": "End Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 528,
+        "record": "BLOCKLINEARGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1111",
+      "record": "BLOCKLINEARGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 2,
+      "parentId": 4294967295,
+      "element": "End Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 528,
+        "record": "BLOCKLINEARGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1114",
+      "record": "BLOCKLINEARPARAMETER",
+      "kind": 11,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 8,
+      "parentId": 4294967295,
+      "element": "wall",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          -5,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 527,
+        "record": "BLOCKLINEARPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1110",
+      "record": "BLOCKLINEARPARAMETER",
+      "kind": 11,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 1,
+      "parentId": 4294967295,
+      "element": "doorsize",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          30,
+          -1.7763568394002505e-15,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 527,
+        "record": "BLOCKLINEARPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1132",
+      "record": "BLOCKMOVEACTION",
+      "kind": 23,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 75,
+      "parentId": 4294967295,
+      "element": "MoveSwing",
+      "eed1071": 0,
+      "actionIndexes": [
+        31
+      ],
+      "actionIndexTargets": [
+        {
+          "actionIndex": 31,
+          "nodeIds": [
+            {
+              "index": 13,
+              "nextNodeIndex": 31,
+              "targetNodeId": 31,
+              "record": "BLOCKFLIPPARAMETER",
+              "expression": {
+                "handle": "0x111D",
+                "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "handle": "0x111D",
+          "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+        },
+        {
+          "handle": "0x1122",
+          "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        45,
+        -20,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 521,
+        "record": "BLOCKMOVEACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1131",
+      "record": "BLOCKMOVEACTION",
+      "kind": 23,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 74,
+      "parentId": 4294967295,
+      "element": "MoveHinge",
+      "eed1071": 0,
+      "actionIndexes": [
+        26
+      ],
+      "actionIndexTargets": [
+        {
+          "actionIndex": 26,
+          "nodeIds": [
+            {
+              "index": 8,
+              "nextNodeIndex": 26,
+              "targetNodeId": 26,
+              "record": "BLOCKFLIPPARAMETER",
+              "expression": {
+                "handle": "0x1118",
+                "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "handle": "0x1118",
+          "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+        },
+        {
+          "handle": "0x1119",
+          "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        45,
+        -15,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 521,
+        "record": "BLOCKMOVEACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x2088",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x2087",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2087"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x2087"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=3'-6\"",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x2082",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x2081",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2081"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x2081"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=6\"",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x202F",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x202E",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x202E"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x202E"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=5'-0\"",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x2029",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x2028",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2028"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x2028"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=6\"",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x1152",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x1151",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x1151"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x1151"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "W=36.0000",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x114C",
+      "record": "BLOCKPARAMDEPENDENCYBODY",
+      "kind": 31,
+      "owner": {
+        "handle": "0x114B",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x114B"
+      },
+      "reactors": [],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 543,
+        "record": "BLOCKPARAMDEPENDENCYBODY",
+        "parent": "0x114B"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0,
+      "parameterDependencyBody": {
+        "adbVersion": 1,
+        "dimensionBaseVersion": 1,
+        "name": "H=4.0000",
+        "classVersion": 0
+      }
+    },
+    {
+      "handle": "0x112F",
+      "record": "BLOCKSCALEACTION",
+      "kind": 24,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 70,
+      "parentId": 4294967295,
+      "element": "ScaleArc",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x1141",
+          "target": "ENTITY:2:owner=4365@0x1141"
+        },
+        {
+          "handle": "0x1140",
+          "target": "ENTITY:2:owner=4365@0x1140"
+        },
+        {
+          "handle": "0x113F",
+          "target": "ENTITY:2:owner=4365@0x113F"
+        },
+        {
+          "handle": "0x113E",
+          "target": "ENTITY:2:owner=4365@0x113E"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        45,
+        -5,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 536,
+        "record": "BLOCKSCALEACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1130",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 72,
+      "parentId": 4294967295,
+      "element": "Stretch",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        },
+        {
+          "handle": "0x1142",
+          "target": "ENTITY:24:owner=4365@0x1142"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x1142",
+          "target": "ENTITY:24:owner=4365@0x1142"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          31,
+          -4,
+          0
+        ],
+        [
+          -1,
+          -6,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45,
+        -10,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x112E",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 69,
+      "parentId": 4294967295,
+      "element": "Stretch90",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x113D",
+          "target": "ENTITY:25:owner=4365@0x113D"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x113D",
+          "target": "ENTITY:25:owner=4365@0x113D"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          3,
+          32.5,
+          0
+        ],
+        [
+          -2,
+          27,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45.00000000000001,
+        29.948914838437805,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x112D",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 68,
+      "parentId": 4294967295,
+      "element": "Stretch60",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x113C",
+          "target": "ENTITY:25:owner=4365@0x113C"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x113C",
+          "target": "ENTITY:25:owner=4365@0x113C"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          18.5,
+          27.5,
+          0
+        ],
+        [
+          12.5,
+          22.5,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45.00000000000001,
+        25.06152106586386,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x112C",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 67,
+      "parentId": 4294967295,
+      "element": "Stretch45",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x113B",
+          "target": "ENTITY:25:owner=4365@0x113B"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x113B",
+          "target": "ENTITY:25:owner=4365@0x113B"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          24.5,
+          23,
+          0
+        ],
+        [
+          19,
+          17.5,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45,
+        19.975766568519965,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x112B",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 66,
+      "parentId": 4294967295,
+      "element": "Stretch30",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [
+        {
+          "handle": "0x113A",
+          "target": "ENTITY:25:owner=4365@0x113A"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x113A",
+          "target": "ENTITY:25:owner=4365@0x113A"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          29,
+          16,
+          0
+        ],
+        [
+          24,
+          10.5,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45,
+        13.458912962596134,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x112A",
+      "record": "BLOCKSTRETCHACTION",
+      "kind": 25,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 65,
+      "parentId": 4294967295,
+      "element": "Stretch0",
+      "eed1071": 0,
+      "actionIndexes": [
+        31,
+        54
+      ],
+      "actionIndexTargets": [
+        {
+          "actionIndex": 31,
+          "nodeIds": [
+            {
+              "index": 13,
+              "nextNodeIndex": 31,
+              "targetNodeId": 31,
+              "record": "BLOCKFLIPPARAMETER",
+              "expression": {
+                "handle": "0x111D",
+                "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+              }
+            }
+          ]
+        },
+        {
+          "actionIndex": 54,
+          "nodeIds": [
+            {
+              "index": 22,
+              "nextNodeIndex": 54,
+              "targetNodeId": 54,
+              "record": "BLOCKALIGNMENTPARAMETER",
+              "expression": {
+                "handle": "0x1126",
+                "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+              }
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "handle": "0x1126",
+          "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+        },
+        {
+          "handle": "0x111D",
+          "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+        },
+        {
+          "handle": "0x1111",
+          "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        },
+        {
+          "handle": "0x1139",
+          "target": "ENTITY:25:owner=4365@0x1139"
+        }
+      ],
+      "constraintDependency": null,
+      "handleReferences": [
+        {
+          "handle": "0x1139",
+          "target": "ENTITY:25:owner=4365@0x1139"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        }
+      ],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [
+        [
+          34.5,
+          4.5,
+          0
+        ],
+        [
+          26,
+          -6.5,
+          0
+        ]
+      ],
+      "displayLocation": [
+        45,
+        -1.7763568394002505e-15,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 535,
+        "record": "BLOCKSTRETCHACTION",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1160",
+      "record": "BLOCKVERTICALCONSTRAINTPARAMETER",
+      "kind": 17,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [
+        {
+          "handle": "0x114B",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x114B"
+        },
+        {
+          "handle": "0x2028",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2028"
+        },
+        {
+          "handle": "0x2081",
+          "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x2081"
+        }
+      ],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 222,
+      "parentId": 4294967295,
+      "element": "H",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": {
+        "handle": "0x114B",
+        "target": "ASSOCIATIVE:ACDBASSOCDEPENDENCY@0x114B"
+      },
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          -4,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 546,
+        "record": "BLOCKVERTICALCONSTRAINTPARAMETER",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x111F",
+      "record": "BLOCKVISIBILITYGRIP",
+      "kind": 4,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 47,
+      "parentId": 4294967295,
+      "element": "Grip",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 532,
+        "record": "BLOCKVISIBILITYGRIP",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x111E",
+      "record": "BLOCKVISIBILITYPARAMETER",
+      "kind": 22,
+      "owner": {
+        "handle": "0x110F",
+        "target": "EVALUATION_GRAPH@0x110F"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 46,
+      "parentId": 4294967295,
+      "element": "Visibility State",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [
+        {
+          "handle": "0x1139",
+          "target": "ENTITY:25:owner=4365@0x1139"
+        },
+        {
+          "handle": "0x113A",
+          "target": "ENTITY:25:owner=4365@0x113A"
+        },
+        {
+          "handle": "0x113B",
+          "target": "ENTITY:25:owner=4365@0x113B"
+        },
+        {
+          "handle": "0x113C",
+          "target": "ENTITY:25:owner=4365@0x113C"
+        },
+        {
+          "handle": "0x113D",
+          "target": "ENTITY:25:owner=4365@0x113D"
+        },
+        {
+          "handle": "0x113E",
+          "target": "ENTITY:2:owner=4365@0x113E"
+        },
+        {
+          "handle": "0x113F",
+          "target": "ENTITY:2:owner=4365@0x113F"
+        },
+        {
+          "handle": "0x1140",
+          "target": "ENTITY:2:owner=4365@0x1140"
+        },
+        {
+          "handle": "0x1141",
+          "target": "ENTITY:2:owner=4365@0x1141"
+        },
+        {
+          "handle": "0x1142",
+          "target": "ENTITY:24:owner=4365@0x1142"
+        },
+        {
+          "handle": "0x1143",
+          "target": "ENTITY:24:owner=4365@0x1143"
+        }
+      ],
+      "visibilityStates": [
+        {
+          "name": "Open 30º",
+          "blocks": [
+            {
+              "handle": "0x113A",
+              "target": "ENTITY:25:owner=4365@0x113A"
+            },
+            {
+              "handle": "0x1141",
+              "target": "ENTITY:2:owner=4365@0x1141"
+            },
+            {
+              "handle": "0x1142",
+              "target": "ENTITY:24:owner=4365@0x1142"
+            },
+            {
+              "handle": "0x1143",
+              "target": "ENTITY:24:owner=4365@0x1143"
+            }
+          ],
+          "parameters": [
+            {
+              "handle": "0x1110",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+            },
+            {
+              "handle": "0x1111",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+            },
+            {
+              "handle": "0x1114",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+            },
+            {
+              "handle": "0x1115",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+            },
+            {
+              "handle": "0x1118",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+            },
+            {
+              "handle": "0x1119",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+            },
+            {
+              "handle": "0x111D",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+            },
+            {
+              "handle": "0x1122",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+            },
+            {
+              "handle": "0x1126",
+              "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+            },
+            {
+              "handle": "0x1127",
+              "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+            },
+            {
+              "handle": "0x112A",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+            },
+            {
+              "handle": "0x112B",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+            },
+            {
+              "handle": "0x112C",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+            },
+            {
+              "handle": "0x112D",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+            },
+            {
+              "handle": "0x112E",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+            },
+            {
+              "handle": "0x112F",
+              "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+            },
+            {
+              "handle": "0x1130",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+            },
+            {
+              "handle": "0x1131",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+            },
+            {
+              "handle": "0x1132",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+            },
+            {
+              "handle": "0x1133",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+            },
+            {
+              "handle": "0x1134",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+            }
+          ]
+        },
+        {
+          "name": "Open 45º",
+          "blocks": [
+            {
+              "handle": "0x113B",
+              "target": "ENTITY:25:owner=4365@0x113B"
+            },
+            {
+              "handle": "0x1140",
+              "target": "ENTITY:2:owner=4365@0x1140"
+            },
+            {
+              "handle": "0x1142",
+              "target": "ENTITY:24:owner=4365@0x1142"
+            },
+            {
+              "handle": "0x1143",
+              "target": "ENTITY:24:owner=4365@0x1143"
+            }
+          ],
+          "parameters": [
+            {
+              "handle": "0x1110",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+            },
+            {
+              "handle": "0x1111",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+            },
+            {
+              "handle": "0x1114",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+            },
+            {
+              "handle": "0x1115",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+            },
+            {
+              "handle": "0x1118",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+            },
+            {
+              "handle": "0x1119",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+            },
+            {
+              "handle": "0x111D",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+            },
+            {
+              "handle": "0x1122",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+            },
+            {
+              "handle": "0x1126",
+              "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+            },
+            {
+              "handle": "0x1127",
+              "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+            },
+            {
+              "handle": "0x112A",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+            },
+            {
+              "handle": "0x112B",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+            },
+            {
+              "handle": "0x112C",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+            },
+            {
+              "handle": "0x112D",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+            },
+            {
+              "handle": "0x112E",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+            },
+            {
+              "handle": "0x112F",
+              "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+            },
+            {
+              "handle": "0x1130",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+            },
+            {
+              "handle": "0x1131",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+            },
+            {
+              "handle": "0x1132",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+            },
+            {
+              "handle": "0x1133",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+            },
+            {
+              "handle": "0x1134",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+            }
+          ]
+        },
+        {
+          "name": "Open 60º",
+          "blocks": [
+            {
+              "handle": "0x113C",
+              "target": "ENTITY:25:owner=4365@0x113C"
+            },
+            {
+              "handle": "0x113F",
+              "target": "ENTITY:2:owner=4365@0x113F"
+            },
+            {
+              "handle": "0x1142",
+              "target": "ENTITY:24:owner=4365@0x1142"
+            },
+            {
+              "handle": "0x1143",
+              "target": "ENTITY:24:owner=4365@0x1143"
+            }
+          ],
+          "parameters": [
+            {
+              "handle": "0x1110",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+            },
+            {
+              "handle": "0x1111",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+            },
+            {
+              "handle": "0x1114",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+            },
+            {
+              "handle": "0x1115",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+            },
+            {
+              "handle": "0x1118",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+            },
+            {
+              "handle": "0x1119",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+            },
+            {
+              "handle": "0x111D",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+            },
+            {
+              "handle": "0x1122",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+            },
+            {
+              "handle": "0x1126",
+              "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+            },
+            {
+              "handle": "0x1127",
+              "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+            },
+            {
+              "handle": "0x112A",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+            },
+            {
+              "handle": "0x112B",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+            },
+            {
+              "handle": "0x112C",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+            },
+            {
+              "handle": "0x112D",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+            },
+            {
+              "handle": "0x112E",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+            },
+            {
+              "handle": "0x112F",
+              "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+            },
+            {
+              "handle": "0x1130",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+            },
+            {
+              "handle": "0x1131",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+            },
+            {
+              "handle": "0x1132",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+            },
+            {
+              "handle": "0x1133",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+            },
+            {
+              "handle": "0x1134",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+            }
+          ]
+        },
+        {
+          "name": "Open 90º",
+          "blocks": [
+            {
+              "handle": "0x113D",
+              "target": "ENTITY:25:owner=4365@0x113D"
+            },
+            {
+              "handle": "0x1142",
+              "target": "ENTITY:24:owner=4365@0x1142"
+            },
+            {
+              "handle": "0x1143",
+              "target": "ENTITY:24:owner=4365@0x1143"
+            },
+            {
+              "handle": "0x113E",
+              "target": "ENTITY:2:owner=4365@0x113E"
+            }
+          ],
+          "parameters": [
+            {
+              "handle": "0x1110",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+            },
+            {
+              "handle": "0x1111",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+            },
+            {
+              "handle": "0x1114",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+            },
+            {
+              "handle": "0x1115",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+            },
+            {
+              "handle": "0x1118",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+            },
+            {
+              "handle": "0x1119",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+            },
+            {
+              "handle": "0x111D",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+            },
+            {
+              "handle": "0x1122",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+            },
+            {
+              "handle": "0x1126",
+              "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+            },
+            {
+              "handle": "0x1127",
+              "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+            },
+            {
+              "handle": "0x112A",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+            },
+            {
+              "handle": "0x112B",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+            },
+            {
+              "handle": "0x112C",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+            },
+            {
+              "handle": "0x112D",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+            },
+            {
+              "handle": "0x112E",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+            },
+            {
+              "handle": "0x112F",
+              "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+            },
+            {
+              "handle": "0x1130",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+            },
+            {
+              "handle": "0x1131",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+            },
+            {
+              "handle": "0x1132",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+            },
+            {
+              "handle": "0x1133",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+            },
+            {
+              "handle": "0x1134",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+            }
+          ]
+        },
+        {
+          "name": "Closed",
+          "blocks": [
+            {
+              "handle": "0x1139",
+              "target": "ENTITY:25:owner=4365@0x1139"
+            },
+            {
+              "handle": "0x1142",
+              "target": "ENTITY:24:owner=4365@0x1142"
+            },
+            {
+              "handle": "0x1143",
+              "target": "ENTITY:24:owner=4365@0x1143"
+            }
+          ],
+          "parameters": [
+            {
+              "handle": "0x1110",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1110"
+            },
+            {
+              "handle": "0x1111",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1111"
+            },
+            {
+              "handle": "0x1114",
+              "target": "DYNAMIC:BLOCKLINEARPARAMETER@0x1114"
+            },
+            {
+              "handle": "0x1115",
+              "target": "DYNAMIC:BLOCKLINEARGRIP@0x1115"
+            },
+            {
+              "handle": "0x1118",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x1118"
+            },
+            {
+              "handle": "0x1119",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1119"
+            },
+            {
+              "handle": "0x111D",
+              "target": "DYNAMIC:BLOCKFLIPPARAMETER@0x111D"
+            },
+            {
+              "handle": "0x1122",
+              "target": "DYNAMIC:BLOCKFLIPGRIP@0x1122"
+            },
+            {
+              "handle": "0x1126",
+              "target": "DYNAMIC:BLOCKALIGNMENTPARAMETER@0x1126"
+            },
+            {
+              "handle": "0x1127",
+              "target": "DYNAMIC:BLOCKALIGNMENTGRIP@0x1127"
+            },
+            {
+              "handle": "0x112A",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112A"
+            },
+            {
+              "handle": "0x112B",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112B"
+            },
+            {
+              "handle": "0x112C",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112C"
+            },
+            {
+              "handle": "0x112D",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112D"
+            },
+            {
+              "handle": "0x112E",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x112E"
+            },
+            {
+              "handle": "0x112F",
+              "target": "DYNAMIC:BLOCKSCALEACTION@0x112F"
+            },
+            {
+              "handle": "0x1130",
+              "target": "DYNAMIC:BLOCKSTRETCHACTION@0x1130"
+            },
+            {
+              "handle": "0x1131",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1131"
+            },
+            {
+              "handle": "0x1132",
+              "target": "DYNAMIC:BLOCKMOVEACTION@0x1132"
+            },
+            {
+              "handle": "0x1133",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1133"
+            },
+            {
+              "handle": "0x1134",
+              "target": "DYNAMIC:BLOCKFLIPACTION@0x1134"
+            }
+          ]
+        }
+      ],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          -5,
+          15,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 531,
+        "record": "BLOCKVISIBILITYPARAMETER",
+        "parent": "0x110F"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 29,
+      "elementMinor": 2
+    },
+    {
+      "handle": "0x1164",
+      "record": "ACDB_DYNAMICBLOCKPROXYNODE",
+      "kind": 2,
+      "owner": {
+        "handle": "0x1155",
+        "target": "EVALUATION_GRAPH@0x1155"
+      },
+      "reactors": [],
+      "evalExpr": true,
+      "bodyDecoded": true,
+      "nodeId": 226,
+      "parentId": 4294967295,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 547,
+        "record": "ACDB_DYNAMICBLOCKPROXYNODE",
+        "parent": "0x1155"
+      },
+      "xdata": [],
+      "major": 29,
+      "minor": 2,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x116A",
+      "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+      "kind": 1,
+      "owner": {
+        "handle": "0x1146",
+        "target": "DICTIONARY@0x1146"
+      },
+      "reactors": [
+        {
+          "handle": "0x1146",
+          "target": "DICTIONARY@0x1146"
+        }
+      ],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 522,
+        "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+        "parent": "0x1146"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0
+    },
+    {
+      "handle": "0x1137",
+      "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+      "kind": 1,
+      "owner": {
+        "handle": "0x110E",
+        "target": "DICTIONARY@0x110E"
+      },
+      "reactors": [
+        {
+          "handle": "0x110E",
+          "target": "DICTIONARY@0x110E"
+        }
+      ],
+      "evalExpr": false,
+      "bodyDecoded": true,
+      "nodeId": 0,
+      "parentId": 0,
+      "element": "",
+      "eed1071": 0,
+      "actionIndexes": [],
+      "actionIndexTargets": [],
+      "dependencies": [],
+      "constraintDependency": null,
+      "handleReferences": [],
+      "visibilityBlocks": [],
+      "visibilityStates": [],
+      "stretchPoints": [],
+      "displayLocation": [
+        0,
+        0,
+        0
+      ],
+      "parameterPoints": {
+        "definition": [
+          0,
+          0,
+          0
+        ],
+        "first": [
+          0,
+          0,
+          0
+        ],
+        "second": [
+          0,
+          0,
+          0
+        ],
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "basePoint": [
+          0,
+          0,
+          0
+        ],
+        "scaleOffset": [
+          0,
+          0,
+          0
+        ],
+        "scaleBasePoint": [
+          0,
+          0,
+          0
+        ]
+      },
+      "sourceFrame": {
+        "type": 522,
+        "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+        "parent": "0x110E"
+      },
+      "xdata": [],
+      "major": 0,
+      "minor": 0,
+      "elementMajor": 0,
+      "elementMinor": 0
+    }
+  ],
+  "outputQualification": {
+    "strictCompleteConversion": false,
+    "stagedIdentityAndFieldInspection": false,
+    "freshReadbackQualified": false,
+    "nativeDynamicBlockSemanticsQualified": false,
+    "supportClaimsPromoted": false
+  },
+  "interpretation": [
+    "This establishes the exact current-code source edge and identity census for both graph roots only.",
+    "Action-index matches are observed one-to-one against referenced dynamic objects m_nodeId values in this input; this is not native action semantics qualification.",
+    "The XDATA APPID name resolves to APPID handle 0x10D4; no code-1003 layer XDATA was observed on these 65 dynamic objects.",
+    "No output, fresh DXF readback, native consumer, or support claim is qualified by this receipt."
+  ],
+  "planAction": "Source census complete. Both graphs have retained AC1024 AcDbEvalGraph frames (observed oType 517); the proxy-node and BLOCKPARAMDEPENDENCYBODY adapter projections are implemented and compile, with downstream exact writer controls passing. Next bind both owner routes and all 65 dynamic objects, then inspect staged identities, references and complete output. Keep the 511 Title_Block observation profile-specific; do not generalize it to this source."
+}

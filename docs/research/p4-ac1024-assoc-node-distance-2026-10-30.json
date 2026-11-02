@@ -1,0 +1,161 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-distance-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative distance-constraint node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 AcDistanceConstraint body, both hard-pointer dependencies, and the conditional distance vector while preserving unsupported variants and strict document-level refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "readerModelVersion": 2,
+    "serializedNodeIndex": 49,
+    "nodeId": 77,
+    "connections": [70, 75]
+  },
+  "sourceProfile": {
+    "independentLayoutSource": {
+      "repository": "https://github.com/hakanaktt/acadrust",
+      "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+      "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+      "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+      "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+      "layout": "ACDISTANCECONSTRAINT calls read_explicit_constraint(reader, legacy), then reads direction_type as a raw byte and a 3BD distance only when direction_type is nonzero. The legacy source profile omits the active bit."
+    },
+    "localRawProbe": {
+      "method": "Forked body and handle streams at the unknown node boundary, read the source-matched fields transactionally, and did not commit probe positions.",
+      "body": {
+        "startBit": 6985,
+        "ownerId": 0,
+        "implied": false,
+        "activeBitPresent": false,
+        "directionType": 1,
+        "distance": [1.0, 0.0, 0.0],
+        "endBit": 7002
+      },
+      "handles": [
+        {
+          "field": "valueDependency",
+          "code": 5,
+          "size": 2,
+          "reference": 1210,
+          "startBit": 218436,
+          "endBit": 218460
+        },
+        {
+          "field": "dimensionDependency",
+          "code": 5,
+          "size": 2,
+          "reference": 1211,
+          "startBit": 218460,
+          "endBit": 218484
+        }
+      ],
+      "diagnosticLogSha256": "7d452daa178f747d246cd7006719b1f4f959735aa1fae54866ae3091ef810e39",
+      "interpretation": "ODA v5.4.1 defines code 5 as a hard pointer. Both observed fields are non-null code-5 references; the implementation retains other roles and null-reference variants raw."
+    },
+    "independentTargetInspection": {
+      "reader": "LibreDWG dwgread 0.14",
+      "command": "dwgread -O JSON /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "outputPath": "/private/tmp/distance-libredwg.json",
+      "outputSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "targets": [
+        {
+          "handle": 1210,
+          "object": "ASSOCVALUEDEPENDENCY",
+          "dxfname": "ACDBASSOCVALUEDEPENDENCY",
+          "type": 520,
+          "ownerhandle": [12, 1, 143, 1067]
+        },
+        {
+          "handle": 1211,
+          "object": "ASSOCDEPENDENCY",
+          "dxfname": "ACDBASSOCDEPENDENCY",
+          "type": 521,
+          "ownerhandle": [12, 1, 144, 1067]
+        }
+      ],
+      "limitation": "This independent read confirms the target object records and their owners. It does not decode the associative node's class-specific body or qualify consumer meaning."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "Bit Codes and Data Definitions, page 7: B, BL, RC and 3BD primitive identities.",
+        "Handle References, page 16: code 5 is a hard pointer."
+      ]
+    },
+    "limitations": [
+      "The decoder accepts only the witnessed pair of non-null code-5 dependencies; unsupported role/null variants remain raw.",
+      "The real source reaches AcConstrainedCircle node 17 after this Distance node; Circle and later node bodies remain unsupported.",
+      "Full associative closure, DXF serialization, readback and consumer meaning remain unqualified; this receipt has no support-claim effect."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "Owner ID and implied flag; active flag explicitly absent.",
+      "Value-dependency and dimension-dependency field presence, handle code and 64-bit reference.",
+      "Direction type and a separate presence flag plus 3BD vector only when direction type is nonzero."
+    ],
+    "failureBehavior": "Independent generated controls give each dependency a wrong code separately; each profile remains raw and recovers the following OBJECT. A zero direction type completes with no distance field.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "generatedControls": [
+      "The exact observed non-null code-5/code-5 pair decodes handles 1210 and 1211, owner/implied fields, direction type 1 and vector (1,0,0).",
+      "Wrong value-dependency and wrong dimension-dependency roles each remain raw without committing the forked handle stream; the following object is recovered.",
+      "Direction type zero consumes no 3BD payload and stores hasDistance=false independently of its zero-initialized coordinate."
+    ],
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/distance-final.dxf",
+      "result": "Trace decodes AcDistanceConstraint 77 with both dependencies and the observed distance, then stops at AcConstrainedCircle 17. Expected strict refusal; no DXF was created.",
+      "logSha256": "991e6ff9616fa95b3efef0adc33dae9332a38953bd6ca53dbd0cd6cf1dc79fb2"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/distance-final-asan.dxf",
+      "result": "Same Distance decoding and Circle boundary; no AddressSanitizer diagnostic and no DXF output.",
+      "logSha256": "991e6ff9616fa95b3efef0adc33dae9332a38953bd6ca53dbd0cd6cf1dc79fb2"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "b9aee726c1233872f8e317f31b75ed30788cde2643812e2f8638a67d6faa1b4b",
+    "src/drw_objects.h": "b356c01a8f16d493e5b7e3c4c5b1ddcd884b0fe60247e230878e00ba769d14e7",
+    "tests/associative_constraint_group_test_helpers.h": "1d95110318f7c81f858e00eceaca7362bf40fdf1751f1f4c1f6f10a64146d6a1",
+    "tests/dwg_reader_matrix_tests.cpp": "e758dc6535f83fd194d63e5aa8bdc3afda29cbaa2beb49baee97f605fddf7d22",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7139d06cd8a7568d08b70c987fff765bf217257a4e5ca71de3955b6380248100",
+    "build/dwg2dxf/dwg2dxf": "65fcdd2fb018a0b4e0521bfd6b0a27ba68c845daa9770608dde52d184ae97c7d",
+    "build/libdxfrw_dwg_reader_matrix_tests": "4f0e6726bb66abfbfe8b36c8a5597d6cf1db0e627638bea16d18914b31a8f3ac",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "d44201d8b44412029a9cb3e3f21aec6b2e0bd3fd00900d0257639aca587968b0",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "6e1fab77acdde0f627bd0dc6760f297e884a5f3350958d8a3f094799a67b9ac6"
+  },
+  "nextAction": "Implement source-matched AcConstrainedCircle node 17; confirm its handle role and exact AC1024 inline body span, including that the reserved double is absent."
+}

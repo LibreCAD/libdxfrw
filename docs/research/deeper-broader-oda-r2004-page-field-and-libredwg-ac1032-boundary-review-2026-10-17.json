@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw-deeper-broader-oda-r2004-page-field-and-libredwg-ac1032-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Reconcile ODA R2004 page-field semantics, LibreDWG's current AC1032 trailing-page report and proposed fix, and libdxfrw's production reader/test seam; update existing plan owners without declaring an unverified local defect.",
+  "method": {
+    "kind": "Authoritative ODA PDF sections 4.5-4.7, current primary peer issue/PR, read-only local source and test audit",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/LibreDWG/libredwg/issues/1294",
+      "https://github.com/LibreDWG/libredwg/pull/1358",
+      "https://github.com/DomCR/ACadSharp/issues/1281"
+    ],
+    "externalFilesDownloadedOrRun": false,
+    "peerBuiltOrRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "The ODA document is the normative source for the local DWG wire-format audit. LibreDWG and ACadSharp issue/PR text are peer reports and proposed-branch evidence only. Static local field-role comparison identifies a high-priority candidate mismatch; no runtime reproduction or local defect declaration is made."
+  },
+  "evidence": [
+    {
+      "topic": "ODA R2004 section and page fields are distinct quantities",
+      "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["4.5", "4.6", "4.7"],
+      "observed": [
+        "The section description separately stores logical section Size, count of pages actually written, and Max Decompressed Size per page; zero-only pages can be omitted and represented by start-offset gaps.",
+        "The global SectionPageMap page size and masked data-page header field at offset 0x0C are physical file extents. The masked header's Data size at 0x08 is the stored payload length/checksum span; for compressed pages it is compressed bytes, and for uncompressed pages it is the full padded page image.",
+        "The final stored page is physically padded to a full page, but only min(page-size, section-size minus logical start offset) bytes are part of the logical section. Page-map array order/start offsets determine positioning; physical page bounds and logical section bounds must not be conflated."
+      ],
+      "confidence": "Authoritative format specification; the section and masked page-header records are explicit, while real-file conformance still needs a local generated control."
+    },
+    {
+      "topic": "Candidate local R2004+ page-header field-role mismatch and missing direct coverage",
+      "localSources": [
+        "src/intern/dwgreader18.cpp: dwgReader18::parseDataPage",
+        "src/intern/dwgreader.h: dwgPageInfo and dwgSectionInfo",
+        "src/intern/dwgsafety.h: sectionBufferCapacity",
+        "tests/dwg_reader_matrix_tests.cpp: test-reader parseDataPage override",
+        "tests/hardening_tests.cpp: sectionBufferCapacity arithmetic checks"
+      ],
+      "observed": [
+        "The R2004+ production path reads masked-header offset 0x0C into pi.uSize, logs it as decompressed page size, compares it to decodedPageCap, and for compressed==1 requires cSize==uSize.",
+        "ODA §4.6 identifies offset 0x0C as physical Page Size, while offset 0x08 is Data size; dwgPageInfo's header comment currently scopes uSize to R2007/reader21.",
+        "The global page map supplies physical page extent in pi.size, but the reviewed production path does not directly assert that the masked-header physical Page Size matches that map extent.",
+        "Existing sectionBufferCapacity tests validate arithmetic only. The existing reader-matrix test subclass overrides parseDataPage and supplies decoded bytes, so it does not execute the production R2004+ page parser."
+      ],
+      "disposition": "HIGH_PRIORITY_AUDIT_CANDIDATE_NOT_CONFIRMED_DEFECT",
+      "planAction": "Under existing PAR-14/7BE, create a source-generated test that reaches the production parseDataPage implementation and gives distinct values to physical extent, stored payload size, per-section page capacity, total logical section size, and final-page padding. First verify the local version/page-map path against ODA; only then decide whether field naming, validation, or decode bounds need a production fix."
+    },
+    {
+      "topic": "LibreDWG AC1032 compressed-section failure and proposed fix status",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1294",
+        "https://github.com/LibreDWG/libredwg/pull/1358"
+      ],
+      "observed": [
+        "Issue #1294 now describes four AC1032 failures from varied drawing histories and one passing control; a public reproducer and two additional public files were reported, while another failing file remained confidential.",
+        "The PR author attributes the peer failure to allocating from a page-count estimate that can undershoot declared decompressed section size and to using a section-wide maximum rather than the page's actual remaining span in the final-page guard.",
+        "The reporter says its public samples matched ODA File Converter 25.6 after the proposed patch; the original reporter also reported their own file changing from zero to 83,917 objects and no output changes on 91 other files in a 92-file set.",
+        "As retrieved on 2026-10-17, PR #1358 remains open and carries the cla_needed label. The issue author reports success with the patch, but the change is unmerged/unreleased peer evidence, not current-master or package capability."
+      ],
+      "planAction": "Use only as a failure-shape lead. Do not download/vendor its DWGs or transplant peer field meanings. Test the same classes of physical/logical boundary with locally authored in-memory page records and the ODA-defined local layout. Keep this distinct from LibreDWG #1355 handle-map and converter-finalization reports."
+    },
+    {
+      "topic": "Independent DXF parser hostile-run signal already owned by local tests",
+      "source": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "observed": "The still-open ACadSharp report describes recursive processing for long comment runs, repeated XDATA application blocks, and consecutive IMAGE/WIPEOUT clip groups, with ASCII and Binary paths sharing some recursive helpers. It is a peer-specific failure, not a local defect or a format maximum.",
+      "planAction": "Retain the existing PAR-14/PAR-26/7BA/7S hostile-run controls and their no-recursion/forward-progress assertions; this review does not add duplicate stress cases or copy peer crash thresholds."
+    }
+  ],
+  "implementationReadyDelta": {
+    "existingOwnersOnly": true,
+    "priority": "Resolve the ODA-to-local R2004 page field-role audit before any peer-inspired production edit; keep it as one bounded fast slice under PAR-14/7BE.",
+    "testMatrix": [
+      "compressed and uncompressed page forms with deliberately distinct physical Page Size and stored Data size",
+      "one full page plus a short final logical page whose stored page includes full-page padding",
+      "section logical size and max decompressed page size with checked rounded allocation",
+      "an omitted zero-page/start-offset gap if the local map parser supports that profile",
+      "map/header physical-extent mismatch, truncated payload, checksum failure, and a following-page or section sentinel"
+    ],
+    "assertions": [
+      "only the logical section prefix is published; padding is not exposed to consumers",
+      "physical map/header extent and stored payload bounds are validated independently",
+      "no partial section publication on failure and same-reader retry remains safe",
+      "the selected parser version and actual production parseDataPage path are exercised"
+    ],
+    "validation": "Use source-generated in-memory data in the existing DWG reader-matrix/hardening owners; strict -Werror build, focused selector, compatibility check, owning CTest, receipt JSON validation, and scoped diff check only. Keep full suites/sanitizers at their existing composed checkpoint.",
+    "fixturePolicy": "No external DWG/DXF fixture. Do not download the LibreDWG attachment. Use only an in-memory authored control or locally-from-scratch scratch artifact if a file-backed API is unavoidable.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelImplementationSubplans": 72
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "scopedDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

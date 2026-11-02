@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader ACadRust issues 135 and 136 plus local wire-route audit",
+  "mode": "primary-source peer research and read-only local source inventory",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the ACadRust issue inventory beyond the earlier #130/#132/#134 screen",
+    "Compare the AC1024 AcDbAssocGeomDependency report to the existing bounded local DWG object parser",
+    "Compare the binary-DXF width report to local low-level writer methods, typed routes, call sites, and tests",
+    "Update implementation readiness without speculative DWG changes or new support claims"
+  ],
+  "method": {
+    "kind": "Read-only review of public peer issue pages, Autodesk DXF type reference, local source and test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "localInventory": {
+      "typedIntegerWriterCallLinesInSrcLibdxfrwCpp": 667,
+      "obviousLiteralMismatchInIssueListed16And32BitCodeDirections": false,
+      "dynamicCallSitesAndAllProfilesExhaustivelyAudited": false,
+      "independentRawBinaryWidthScannerFound": false,
+      "boundedAssociativeGeomDependencyParserFound": true
+    },
+    "limitations": "ACadRust issue #135 does not provide its DWGs and labels its proposed subentity layout as a hypothesis. The configured ODA specification file was not present at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf, so no DWG byte-layout conclusion is made. The local literal scan is a readiness inventory, not an exhaustive type-check of all dynamic/versioned writers or a reproduced binary-DXF defect."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/135",
+      "revision": "open issue body/activity reviewed 2026-10-17; report names 0.6.3, 0.6.4 and main a1a216d",
+      "observed": "The report describes AC1024 AcDbAssocGeomDependency truncation in 0.6.4, garbage decoded fields in 0.6.3, and main retaining the object only as Unknown while DXF output omits it. The author labels the shorter persistent-subentity body interpretation a hypothesis, gives no shareable drawings, and notes the ODA Converter DXF export omits these objects. This is not an independently confirmed grammar or local reproduction."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/136",
+      "revision": "open issue body reviewed 2026-10-17; report names 0.6.4 DxfWriter::new_binary",
+      "observed": "The report alleges 60 fixed-width writer calls across 15 DXF group codes with mismatched value widths, says its own reader accepts its output, and identifies a separate embedded-NUL XDATA concern. These are peer reports, not libdxfrw test results."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "revision": "current online group-code value-types table reviewed 2026-10-17",
+      "observed": "The reference maps 60-79 and 170-179 to 16-bit integers, 90-99 to 32-bit integers, 160-169 to 64-bit integers, and 290-299 to Boolean flags. It is the independent expected-type matrix for the proposed binary-DXF writer audit."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/lldxf/tagwriter.py",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "BinaryTagWriter maps group codes through explicit BYTES, INT16, INT32, INT64, DOUBLE, and binary-data sets before serializing the value. This is an architecture comparator, not an independent parser vote."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/issues/1412 and https://github.com/mozman/ezdxf/pull/1418",
+      "revision": "issue #1412 and merged PR #1418 reviewed 2026-10-17; fix merged 2026-10-02",
+      "observed": "A reported binary proxy-graphic path supplied hex text where the binary chunk writer expected bytes. PR #1418 merged a raw-chunk protocol fix. This is a distinct feature-specific defect from integer width mismatch and confirms that scalar-width validation alone cannot qualify all binary payload routes."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "upstream documentation reviewed 2026-10-17",
+      "observed": "LibreDWG supports binary DXF (DXFB), but its documentation says reading, writing, and roundtripping DXFB are not much tested. Do not treat successful LibreDWG DXFB output or self-read as the sole correctness oracle."
+    },
+    {
+      "project": "Local libdxfrw source inventory",
+      "url": "src/intern/dxfwriter.cpp; src/intern/dxfwriter.h; src/libdxfrw.cpp; src/drw_objects.cpp; tests/dxf_fixture_tests.cpp; tests/writer_primitives_tests.cpp",
+      "revision": "working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The binary writer serializes the width selected by writeInt16/32/64; writeBool emits one byte. Generic typed-variant paths classify the group code, but hand-written typed model writers select methods at call sites. A bounded literal scan found no obvious wrong-direction fixed call for the peer's listed 16/32-bit group families; all dynamic codes, profiles, and output modes were not exhaustively audited. DRW_AssociativeObject has a bounded typed ACDBASSOCGEOMDEPENDENCY path, but its exact grammar was not revalidated against the unavailable ODA PDF or a shared producer sample."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "peerIssueUse": "Issue #135 is an evidence-gated DWG parser audit signal; issue #136 motivates a local typed-writer census and independent wire oracle but does not itself establish a libdxfrw defect.",
+    "dwgDisposition": "Do not alter ACDBASSOCGEOMDEPENDENCY layout from the peer's hypothesis. Read the ODA spec and require versioned body/string/handle byte evidence with following-object alignment before implementation.",
+    "binaryDxfDisposition": "Continue a focused call-site audit in the existing writer lane. Compare requested method type to Autodesk's group-code value type, validate literal and dynamic codes, inspect raw binary output independently, and fail mismatches atomically rather than silently retyping values. ezdxf's explicit code-type sets are an implementation comparator; neither its past binary payload defect nor LibreDWG's lightly tested DXFB lane makes either peer a golden oracle.",
+    "supportClaimsPromoted": false
+  },
+  "planImpact": {
+    "updatedSections": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: ACadRust #135/#136 cross-route review and focused writer audit readiness",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: classify the new reports as non-3D evidence"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep current local implementation moving; peer screening is not a prerequisite or dependency installation request.",
+    "Audit typed binary-DXF writer call sites against an explicit group-code type table, including dynamic codes and target-version profiles.",
+    "Add generated ASCII/binary controls in an existing test owner and scan raw bytes independently through EOF and a following-record sentinel.",
+    "If a mismatch is found, reject it before publication and fix only the owning serializer; if not, preserve the audit as regression coverage without a new support claim.",
+    "Before any DWG object-layout edit, obtain/read the authoritative ODA specification and a versioned source sample or independent byte trace."
+  ],
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE angle-retarget projection with cap-suppression flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "6733c11403f8298edc9bb5167c1bd35ca46d7995",
+  "scope": "Permit the selected AC1027 angle-retarget projection for open MLINE consumers whose group-71 flags preserve the has-vertices bit and optionally set documented start/end-cap suppression bits. The target MLINESTYLE changes from 90/90 to 60/120 degrees; consumer geometry is projected while the original group-71 flags remain unchanged.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": {
+      "value1": "Has at least one vertex",
+      "value2": "Closed",
+      "value4": "Suppress start caps",
+      "value8": "Suppress end caps"
+    },
+    "group41": "Element parameters describe per-element segment intersections, starts and cuts. Cap suppression is carried separately in group 71.",
+    "interpretation": "The projection preserves group-71 cap flags while recalculating endpoint miters and group-41 values. The separation of these documented fields supports this selected transport; native cap rendering is not independently verified."
+  },
+  "contract": {
+    "admission": "For the angle-retarget path only, group 71 must contain the has-vertices bit, must not contain the closed bit, and may contain only the documented cap-suppression bits. Selected values are 5 (suppress start), 9 (suppress end), and 13 (suppress both). Closed value 3 and unknown-bit value 17 refuse. Any non-1 group-71 value remains refused by offset-only, append and removal projection paths until separately qualified.",
+    "projection": "Preserve the input MLINE entity flags and style identity fields. Recompute endpoint miter directions and group-41 first parameters for the target 60/120-degree style while retaining source positions, baseline directions, per-element tails and empty area-fill parameter lists.",
+    "outputAndReadback": "Runtime-authored AC1027 sources cover flags 5, 9 and 13 across ASCII/binary input and output (12 positive combinations). Physical output checks group 71, style references, endpoint group 13 and group-41 values for the ENTITIES and BLOCKS consumers; fresh typed readback checks the same flags, geometry and target style.",
+    "failureAndRetry": "Closed and unknown flag profiles each refuse while preserving a destination sentinel; the same writer succeeds with a corrected flags-13 source. A late consumer-parameter mutation on the flags-13 profile also refuses atomically and succeeds on the same adapter after restoring caller state.",
+    "compatibility": "The change is limited to AC1027 DXF angle-retarget projection. The prior flags-1 projection path is unchanged. Other versions, offset-only changes, appends, removals, closed MLINE projection and native rendering remain outside this qualification."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "retargetRecipe in tests/dxf_fixture_tests.cpp writes all MLINE and MLINESTYLE source records at runtime to temporary files. No drawing fixture is committed.",
+    "implementationCommit": "6733c11403f8298edc9bb5167c1bd35ca46d7995",
+    "dwg2dxf/dx_iface.cpp": "7758bf34204ad083ce9884f604711053626e1f75910f49836e1d4631d4f829ca",
+    "tests/dxf_fixture_tests.cpp": "e8bbb047026421898109aadc092bd825d97822ac6ac5b3861cb68d0a60d9d9d9",
+    "tests/CMakeLists.txt": "919b0c5256194df750a2d3c85789c313ddf8c20cf4765998077428f64b0e0b66",
+    "fixtureTestExecutableSha256": "0d3bff9a946608d51f2dd0b5e65db6a7f807e3094e9cf6e270d1b4ac9bea814e",
+    "dwg2dxfExecutableSha256": "c62f83ffa303b53636cfa4eab5f3dbadda3acd8332514e9cbad468322253e197",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_angle_projection$' --output-on-failure",
+      "summary": "1/1 passed in 0.92s; added 12 positive cap-flag encoding profiles, 2 closed/unknown-bit refusals, 2 correction retries, and one late-mutation refusal with same-adapter retry. Existing angle, offset/angle composition, flags-only refusal and retry cases also pass."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds no allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "Only AC1027 and the selected three-vertex, two-consumer angle-retarget profile are covered.",
+    "The documented flag and parameter fields are preserved and read back, but native cap appearance and rendered geometry are not qualified.",
+    "Offset-only projection, appends, removals, other flags, other versions, complete-document closure and support claims remain outside this receipt."
+  ],
+  "next": "Qualify the currently refused AC1027 group-340 offset-only retarget for one selected cap-suppression flag profile; retain exact output/readback, closed/unknown refusal and same-adapter retry controls."
+}

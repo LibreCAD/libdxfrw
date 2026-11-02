@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 MLEADERSTYLE key and OBJECTS identity closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the generated two-style MLEADERSTYLE round-trip for unique root identity and OBJECTS handles.",
+    "Require one ACAD_MLEADERSTYLE root key, owner-0 NOD identity, and unique nonempty handles throughout OBJECTS.",
+    "Preserve exact typed/raw style, owner, class, reference, and local serializer-order assertions."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "The MLEADERSTYLE rooted-readback predicate counts ACAD_MLEADERSTYLE keys and checks NOD owner zero; its emitted OBJECTS scan rejects missing or duplicate handles.",
+    "reason": "The previous first-match root lookup and record-position checks left duplicate NOD entries, a nonzero NOD owner, and unrelated OBJECTS handle collisions undetected.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1; 0.42 sec; ASCII and Binary)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "newPersistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

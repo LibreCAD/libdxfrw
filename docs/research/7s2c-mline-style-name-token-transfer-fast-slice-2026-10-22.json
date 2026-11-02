@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c MLINE style-name token transfer",
+  "scope": "Remove the intermediate getString() copy for retained DXF MLINE style names while preserving raw spelling, ownership, and replacement-budget behavior.",
+  "files": {
+    "CMakeLists.txt": "3a0bb1f19fbdbba814c4993bf493bd342eebab6a0e325d9a4e7d72c297978891",
+    "src/drw_entities.cpp": "1b3079d2b171d01fe1ec611d42720fd5aab2b75710fa58c5b1748f118c0d5286",
+    "tests/hardening_tests.cpp": "7e7d4a0878cd11bc75885e326e97a3bd6761a327fdca1c05ed064ae945726b48",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b32b8767dde4fb0c18bf18890a942e6bf2487d7c4c7452af5a17aab33bea6021"
+  },
+  "evidence": {
+    "sourceAudit": "DRW_MLine::parseCode group 2 retains the source style-name spelling and is not a semantic-decoding group in takeString(). Direct token transfer therefore preserves the parser contract while avoiding an owned temporary copy.",
+    "generatedControls": "The owner-budget test generates ASCII and Binary DXF in memory and verifies repeated replacement to DIMNAME, empty current token after each parse, final retained-byte count, copy/assignment and reset lease lifetime, and one-byte-under refusal preserving OLD and its charge.",
+    "noPersistentFixture": "Both wire encodings are generated in memory; no persistent fixture was added."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-mline-style-name-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_mline_style_name_owner_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    {
+      "command": "shasum -a 256 CMakeLists.txt src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS; hashes recorded in files"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue exact-source retained-value ownership work where takeString() preserves the field's raw/semantic contract. Keep DWG parsing fail-closed absent normative or traceable class-frame evidence."
+}

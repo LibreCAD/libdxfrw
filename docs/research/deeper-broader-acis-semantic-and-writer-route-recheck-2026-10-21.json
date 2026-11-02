@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-acis-semantic-and-writer-route-recheck-v1",
+  "date": "2026-10-21",
+  "title": "ACIS semantic-reader and DWG-to-DXF writer route recheck",
+  "repository": "LibreCAD/libdxfrw",
+  "status": "research_only",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "researchKind": "Read-only primary-source web review",
+    "reviewedAt": "2026-10-21",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadOrGeometryKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/CadQuery/cadquery",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+    ],
+    "evidenceRule": "Published peer capabilities and issue reports are candidate-route or failure-shape evidence only. They do not establish libdxfrw conformance, exact carrier ownership, complete source disposition, native acceptance, or support promotion."
+  },
+  "evidence": [
+    {
+      "topic": "CADMPEG exact release and supported ACIS profile",
+      "observed": "The v0.6.2 release is tagged at 7bcc95276548de4e4876894b9a650a84ea9c4d6d and publishes platform-specific archives including Apple Silicon macOS, Linux, and Windows. Its format documentation keeps bare SAT/SAB at overall L1 while describing a profile-scoped connected-B-rep extra for ACIS save-format majors 217 and 218. The documented proof bar includes real files in the declared envelope, source-byte disposition, explicit machine-readable losses, determinism, generated re-decode, geometry/topology validity, and fuzzing. The score is not a claim of general ACIS support.",
+      "planUse": "Upgrade the existing optional comparator candidate from a generic future route to one exact v0.6.2 release-artifact check at the existing composed checkpoint. Verify the selected platform archive against its release checksum, capture CLI version and artifact digest, and admit only the exact ACIS BinaryFile profile actually observed in the payload. A profile mismatch is NOT_QUALIFIED, not a coercion or support expansion."
+    },
+    {
+      "topic": "Reader, model, and kernel independence",
+      "observed": "CADMPEG documents a separate Rust codec/model route and connected-B-rep checks, but this read-only pass did not execute the binary or complete an exact-tag dependency/kernel lineage audit. cq-acis explicitly converts through CadQuery/OpenCascade, and CadQuery identifies OCCT as its geometry kernel; FreeCAD's Part geometry route is also OCCT-based. Those routes can provide a separately implemented parser plus shared-kernel comparison, not an independent-kernel vote.",
+      "planUse": "Keep parser/model interpretation, B-rep validity, independent-kernel agreement, outer DWG/AcDs ownership, and native application import as separate result fields. Before counting CADMPEG as a distinct kernel, audit the exact tagged source and runtime dependencies; until then call it a pinned parser/neutral-model and documented B-rep comparator only. Do not count cq-acis, InventorLoader, CadQuery, and FreeCAD as multiple independent kernels."
+    },
+    {
+      "topic": "ACadSharp DWG-to-DXF solid loss boundary",
+      "observed": "As of this review, ACadSharp issue #1195 remains open and reports that version 3.4.9 omitted 252 3DSOLID records in one drawing and 51 3DSOLID plus 3 REGION records in another, including solid-only block definitions. Linked PR #1240 remains open, depends on #1174, and proposes ACIS-bearing entity writer support; it is not a released or independently validated result.",
+      "planUse": "Retain the existing composed entity-inventory/owner/block gate and make its expected outcome explicit: every source solid/region must be emitted, reported as a loss, or refused; include blocks whose only members are modeler entities. Raw carrier re-emission can close a transport gap but cannot establish ACIS semantics or valid geometry. Treat the peer issue as a risk pattern, not a local libdxfrw defect."
+    },
+    {
+      "topic": "Current local work and plan scope",
+      "observed": "The latest generated S3.7c slices cover parser-fed complex graph structure, five declared owner mismatches, invalid-reference failures, profile refusal, and resource-limit refusal. These are local structural controls and do not supply an authentic semantically valid ACIS B-rep sample for the external comparator.",
+      "planUse": "Do not force the generated negative-control SAB into a semantic reader test. Use only an already locally possessed, owner-closed, exact-profile payload with independently known geometry; otherwise record NO_PROFILE_MATCH or NO_ADMITTED_SAMPLE and continue local work. No new persistent fixture, dependency, routine full suite, finding, or top-level subplan is justified by this research."
+    }
+  ],
+  "implementationReadiness": [
+    "At the existing composed checkpoint only, resolve the exact locally available payload and confirm its signature, profile word, width, and source owner/key before invoking an external reader.",
+    "Verify and record the official v0.6.2 platform archive checksum, binary SHA-256, CLI-reported version, host OS/architecture, exact arguments, exit status, and structured output. Do not install or download a peer package as part of a fast implementation slice.",
+    "Compare per-owner raw payload hash, parsed/rooted record coverage, unknown/unsupported loss report, body count, analytic topology, units, bounds, area/volume, and transform against independently authored expectations; preserve raw and semantic comparisons separately.",
+    "If any required profile, output, owner mapping, or independent expectation is unavailable, record the precise NOT_QUALIFIED reason and self-unblock to the next local plan item.",
+    "Keep a separate writer acceptance row for exact entity/block inventory, raw group-1/group-3 reconstruction, history-reference separation, explicit loss notification/refusal, and strict readback. No record-count-only result qualifies a solid."
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "existingComposedGateMadeMoreSpecific": true,
+    "newTestsOrTestRegistration": false,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "No CADMPEG or ACadSharp executable was run; no source archive was fetched or installed.",
+    "No external DWG, DXF, or SAB file was downloaded or committed.",
+    "CADMPEG's documented 217/218 profile and B-rep checks are peer claims pending exact-artifact execution and local comparison.",
+    "The ACadSharp issue and PR are current only as observed on the review date and do not prove a libdxfrw defect.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and cannot promote support claims."
+  ]
+}

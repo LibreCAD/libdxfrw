@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G unused $CMLSTYLE header closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Exercise a scratch-generated AC1014 DXF with $CMLSTYLE=STANDARD but no MLINE entity or rooted MLINESTYLE object.",
+    "Verify ASCII and Binary import/export preserves the unused header name without synthesizing a style graph.",
+    "Keep this local wire/readback result separate from FreeCAD or native-consumer acceptance."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Added generateUnusedCurrentMLineStyleControl and extended rootMLineStyleWriterClosure with AC1014 ASCII/Binary import, strict export, and readback assertions for the header-only current style name.",
+    "reason": "The existing MLINESTYLE route covered valid rooted styles and malformed actual MLINE references, but had no explicit disposition for an unused $CMLSTYLE name without a style dictionary.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --named-resource-import-evidence /tmp/libdxfrw-mline-unused-check-20261020",
+      "result": "PASS (generated AC1014 ASCII and Binary controls; no repository sample argument)"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1; 0.15 sec; uses only its pre-existing repository DWG sample)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

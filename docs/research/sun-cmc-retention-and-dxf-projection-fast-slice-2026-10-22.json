@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 SUN CMC retention and documented DXF projection guard",
+  "mode": "generated AC1024 DWG object-vector and ASCII/Binary DXF fast slice",
+  "scope": [
+    "Retain source CMC method, RGB, flags, reserved index, and optional strings for SUN DWG colors",
+    "Replay representable C0-C3 CMC metadata using SUN's detached string stream",
+    "Refuse invalid or unsupported CMC values before DWG output",
+    "Constrain SUN DXF color output to the documented group-63 scalar projection and refuse lossy state"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor"],
+      "finding": "ODA specifies the generic R2004+ CMC envelope: reserved BS index, packed BL method/value, RC flags, and optional color-name/book TV strings. The reviewed local ODA copy contains no SUN-specific object field layout; this slice preserves the existing SUN field order and changes only CMC capture/replay."
+    },
+    "autodeskSunDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB191D89-9302-45E4-9904-108AB418FAE1.htm",
+      "finding": "The SUN DXF reference lists group 63 as the color field and does not list group 421 or CMC name/book fields."
+    },
+    "autodeskForeground": {
+      "methodUrl": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ColorMethod.html",
+      "aciUrl": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ACIcolorMethod.html",
+      "predicateUrl": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html",
+      "finding": "Autodesk identifies 0xC5 as kForeground, ACI foreground as 7, and the isForeground predicate as true for either kForeground or kByACI with kACIForeground. This supports the narrowly scoped SUN group-63 scalar projection, not DWG C5 producer payload claims."
+    },
+    "localCode": {
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "src/intern/dwgwriter15.cpp",
+        "src/libdxfrw.cpp"
+      ],
+      "finding": "DRW_Sun previously retained only scalar/truecolor fields, its DWG writer did not accept a detached string buffer, and its DXF writer emitted group 421 despite the SUN-specific Autodesk DXF table not listing that field."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append SUN CMC provenance and normalized name/book state; parse bounded DWG CMC method, flags, reserved index, RGB, and optional strings.",
+      "Pass the detached DWG string buffer into the SUN encoder; validate metadata and write supported C0-C3 CMC with the existing method-aware writer.",
+      "Refuse nonrepresentable SUN DXF colors before record publication and emit only documented group 63; keep parsing group 421 for compatibility but refuse typed rewrite when it is present."
+    ],
+    "testFiles": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "focusedSelectors": [
+      "--sun-cmc-retention",
+      "--sun-cmc-dxf-projection"
+    ],
+    "focusedCtests": [
+      "libdxfrw_sun_cmc_retention",
+      "libdxfrw_sun_cmc_dxf_projection",
+      "libdxfrw_dwg_object_vectors"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "DRW_Sun has appended public CMC fields and its encoder adds a defaulted detached-string-buffer parameter. Source callers using the old arity remain compatible; the public class layout/signature changes and downstream binaries must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireWalk": "An independent AC1024 cursor decodes C0-C3 reserved index, method/value, flags, optional strings, and subsequent SUN intensity/shadow fields.",
+    "parserRetention": "Production parsing checks normalized scalar/RGB, method, flags, index, names/books, parent handle, and trailing SUN fields. An injected C5 method mutation checks retained identity without claiming producer semantics.",
+    "lifecycle": "Copy, assignment, and reset retain or clear the appended CMC state.",
+    "failClosed": "Generated DWG writes reject C5, unsupported methods, malformed flags/index, and missing detached storage for flagged-empty names before output. ASCII and Binary DXF controls admit documented scalar mappings and reject RGB, optional CMC names/flags, invalid metadata, unsupported methods, and the nonstandard group-421 state before publishing bytes."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests dwg2dxf lc3_compat_check -j4",
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dwg_object_vectors_tests --sun-cmc-retention",
+      "build-gcc/libdxfrw_wave1_tests --sun-cmc-dxf-projection",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_sun_cmc_retention|libdxfrw_sun_cmc_dxf_projection|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+      "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp src/intern/dwgwriter15.cpp src/libdxfrw.cpp tests/dwg_object_vectors_tests.cpp tests/wave1_tests.cpp"
+    ],
+    "focusedResults": [
+      "PASS",
+      "PASS",
+      "PASS (3/3; 0.10 sec)",
+      "PASS"
+    ]
+  },
+  "evidenceLimits": [
+    "Generated vectors establish local wire/parser/writer consistency, not independent DWG producer semantics for SUN CMC values.",
+    "The C5 mutation verifies source-method retention and fail-closed DWG rewrite only; it does not qualify C5 payload or optional-name behavior from an independent producer.",
+    "No persistent fixture, external producer, native CAD application, independent semantic route, full suite, or platform qualification was run.",
+    "No support claim was promoted. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree remains broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the remaining PAR-134 scalar-only CMC caller and class-specific DXF projection audit. Keep unqualified methods and C4/C6-C8 payload semantics evidence-gated, then resume exact-source PAR-03/PAR-04 associative-action context classification without guessing payload widths. Keep native FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantic evidence, and the six DEFERRED_EXTERNAL J gates separate from local generated evidence."
+}

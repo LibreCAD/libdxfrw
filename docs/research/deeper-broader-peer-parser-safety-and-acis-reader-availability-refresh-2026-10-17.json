@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-parser-safety-and-acis-reader-availability-refresh-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh the status and evidence boundaries for the BRL-CAD explicit-PFACE consumer route, its proposed parser-safety patch, and currently surfaced open-source/commercial ACIS reader routes; update existing readiness gates only.",
+  "method": {
+    "kind": "Current public source/documentation review plus local source/test and plan inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "malformedInputSentToPeer": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "diffReviewedOrBuilt": false,
+    "limitations": "BRL-CAD issue/PR descriptions are report-level evidence; this pass did not review PR #245's actual diff or reproduce the reported failure. CAD Assistant product documentation establishes a vendor route boundary, not behavior of this host's prior failed attempt. Peer source claims were not runtime-validated."
+  },
+  "sources": [
+    {
+      "project": "BRL-CAD",
+      "url": "https://github.com/BRL-CAD/brlcad/issues/228",
+      "observed": "The public issue page still shows the reported dxf-g POLYFACE face-index out-of-bounds read as open. The report is not independently reproduced here and does not establish a libdxfrw defect."
+    },
+    {
+      "project": "BRL-CAD",
+      "url": "https://github.com/BRL-CAD/brlcad/pull/245",
+      "observed": "The public PR page still shows the proposed fix as open/unmerged. Its description claims lower and upper pool bounds and skipping invalid faces; the actual diff was not reviewed or built. Require a merged immutable revision and inspect signed-index, visibility, zero-terminator, conversion-overflow, and actual-pool behavior before peer use."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "observed": "The existing PFACE contract uses signed one-based indices; negative signs encode invisible edges and the first zero ends the active face-index sequence."
+    },
+    {
+      "project": "Open CASCADE",
+      "url": "https://www.opencascade.com/products/cad-assistant/",
+      "observed": "CAD Assistant lists ACIS SAT/SAB import through commercial XDE components and restricts export/conversion of models imported through those commercial components. This is not an open-source OCCT-core translator or a redistributable dependency."
+    },
+    {
+      "project": "Open CASCADE",
+      "url": "https://www.opencascade.com/open-cascade-platform-components-are-updated-2/",
+      "observed": "The vendor's component notice places ACIS Import among Open CASCADE Platform added-value components accessed through Customer Corner."
+    },
+    {
+      "project": "CADKernel",
+      "url": "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "observed": "The detailed SAT/SAB support row remains unsupported/planned despite broader project format headlines. No source build/runtime was attempted."
+    },
+    {
+      "project": "OpenCADKernel",
+      "url": "https://github.com/HakanSeven12/opencadkernel",
+      "observed": "The project describes an early ACIS-to-B-rep route and relies on the ACadRust-derived OpenCAD codec lineage; it is an optional future kernel comparison, not an independent container parser."
+    }
+  ],
+  "localEvidence": {
+    "filesInspected": [
+      "src/drw_entities.cpp: DRW_Polyline::validatePolyfaceDxf",
+      "tests/dwg_local_roundtrip_tests.cpp: runDxfPolyfaceCompletedPool",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-37/7V and S8 route entries"
+    ],
+    "observed": "The existing local guard widens signed indices, validates against actual coordinate children, and the generated ASCII/Binary test owner covers negative visibility, zero termination, advisory-count mismatch, ordering, out-of-range indices, and INT16_MIN. Tests were not executed during this research pass."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "readiness": [
+      "Do not use BRL-CAD dxf-g for malformed PFACE controls while the reported issue is unresolved and PR #245 remains unmerged/unreviewed.",
+      "If the local PFACE implementation changes, reuse the existing focused test owner; do not duplicate tests or promote B-rep support.",
+      "Treat OCCT commercial ACIS import as optional and separately licensed; do not add it to the open-source peer matrix or build graph.",
+      "Keep OpenCADKernel optional and conditional on an exact supported operation; local implementation continues without that external gate."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "scopedGitDiffCheck": true,
+    "testsRun": false,
+    "peerBuildsOrRuns": false,
+    "malformedPeerExecution": false,
+    "downloads": 0,
+    "fixtures": 0,
+    "dependencies": 0
+  }
+}

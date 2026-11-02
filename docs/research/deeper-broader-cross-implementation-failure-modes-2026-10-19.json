@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-implementation feature and failure-mode review",
+  "mode": "Current primary-source review plus local source, test-owner, and plan audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare local modeler/ACIS carrier paths with independent DWG and DXF implementations.",
+    "Reassess feature-matrix and class-maturity claims against object-level failure reports and documented unsupported paths.",
+    "Refine comparator independence, loss accounting, and implementation-ready gates without expanding feature claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source review and local source/test/plan reconciliation",
+    "sources": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "localEvidence": [
+      "src/libdxfrw.cpp modeler-geometry DXF writer",
+      "dwg2dxf/dx_iface.cpp typed entity dispatch and output-loss reporting",
+      "tests/modeler_dxf_writer_matrix_tests.cpp and tests/modeler_sat_dxf_compare.cpp",
+      "Existing PAR-07/S8, PAR-138, LibreDWG/ACadSharp lineage, ezdxf, FreeCAD, and ACIS evidence sections in DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "limitations": "GitHub README/manual/issue pages are mutable and were not pinned to commits or executed artifacts in this pass. ACadSharp issue #1195 is a reporter account for its named peer route, not a local reproduction. LibreDWG's README, NEWS, and manual contain release/build-scoped claims and maturity categories; they do not qualify an arbitrary current-master artifact. ezdxf documentation scopes its own DXF and rendering/import routes. No source finding, support claim, native result, or universal format limit was inferred from peer statements."
+  },
+  "observations": {
+    "libreDwg": {
+      "route": "Independent DWG implementation candidate with DXF conversion, broad version routing, and class-level stable/unstable/debugging/unhandled distinctions.",
+      "riskEvidence": "Project documentation notes that advanced R2010+ objects can be skipped, later DWG writing has reported CRC limitations, some types lack test coverage, and historical R2013+ AcDs extraction was incomplete/brute-force.",
+      "useBoundary": "Pin exact source, built artifact, options, version, direction, object, warnings, unknown/skipped disposition, and carrier bytes. A version claim or class maturity label does not prove object completeness, B-rep semantics, or native acceptance."
+    },
+    "acadSharp": {
+      "route": "Independent DWG/DXF reader-writer candidate with a directional version matrix; its published matrix omits AC1021 DWG writing.",
+      "riskEvidence": "Open #1195 reports 3DSOLID/REGION shells read from DWG but silently omitted in DXF output, without payload or loss notification; current issue index includes additional peer-specific parser/writer failure reports.",
+      "useBoundary": "Treat version cells as routing only. Compare local identity, owner, block membership, typed shell, inline payload, AcDs records/keys/owners, emitted disposition, independent readback, and native outcome as separate fields. Peer thresholds are not format limits."
+    },
+    "ezdxf": {
+      "route": "Independent DXF model/read-write and bounded ACIS carrier inspection; not a DWG reader or general ACIS kernel.",
+      "riskEvidence": "XREF import ignores unsupported entities including ACAD_TABLE; documented renderer projects 3D into XY and does not render ACIS; ACIS payload authoring requires an external library.",
+      "useBoundary": "Use only for a pinned DXF syntax/carrier question; record ignored objects and options. Do not treat transfer, rendering, or raw payload inspection as whole-document preservation or B-rep semantics."
+    },
+    "localModelerRoute": {
+      "route": "Typed modeler entity dispatch plus profile-guarded raw SAT/SAB and AcDs-related carrier handling, with fail-closed refusal for unqualified target combinations.",
+      "existingOwners": [
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "tests/modeler_sat_dxf_compare.cpp",
+        "PAR-07/S8 and existing FreeCAD composed consumer gates"
+      ],
+      "evidenceCeiling": "Local structure and carrier tests do not establish arbitrary ACIS validity, every AcDs join, editable 3D geometry, or native CAD acceptance."
+    },
+    "lineage": {
+      "deduplication": "UnCAD's DWG route shares LibreDWG; ACadRust-based applications share a parser lineage; LibreCAD's bundled libdxfrw is a related fork. cq-acis has a distinct parser but uses the OpenCascade kernel family shared with FreeCAD.",
+      "consequence": "Count distinct parser and geometry-kernel routes rather than wrappers/products, and do not let one route qualify another route's extraction, carrier association, semantics, or application acceptance."
+    }
+  },
+  "planEffect": {
+    "existingOwners": [
+      "PAR-07/S8",
+      "PAR-138",
+      "existing LibreDWG, ACadSharp, ezdxf, ACIS, and FreeCAD comparator gates"
+    ],
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "nextLocalSlice": "PAR-138 typed ASCII/Binary DXF serialization of DetailViewStyle/SectionViewStyle dictionary graph",
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "peerBuildsOrRuns": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

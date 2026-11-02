@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Current ACIS peer-route readiness and carrier-versus-semantics evidence",
+  "mode": "Targeted primary-source refresh and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck current official ezdxf ACIS inspection, creation, and XREF-transfer scope",
+    "Recheck linked ACadSharp #1195, #1240, and #1150 status and implementation discussion",
+    "Compare LibreDWG's broad coverage headline with its named limitations",
+    "Determine whether any evidence exposes an unowned local finding or changes the 3D implementation order"
+  ],
+  "sources": [
+    {
+      "project": "ezdxf",
+      "revision": "Mutable documentation pages reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "observed": "The launcher guide documents raw SAT/SAB browsing/export and the DXF version boundary (SAT for R2000-R2010, SAB for R2013+). The authoring guide says ACIS payload creation requires an external library. XREF documentation says ACIS-based entities are supported but limits transfer to copyable/transformable DXF entities and says unsupported entities/features may be ignored.",
+      "evidenceCeiling": "Documentation of exact DXF operations only. It does not establish a DWG codec, a general ACIS kernel, arbitrary opaque preservation, or B-rep semantic validity."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "Issue #1195, open PR #1240, and open PR #1150 reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "Issue #1195 reports 3DSOLID/REGION shells read from DWG but omitted by the DXF writer. Linked PR #1240 remains open and undeployed, depends on the ACIS schema refactor, and its visible implementation description adds ModelerGeometry serialization to DwgObjectWriter, which is not proof of the reported DXF writer fix. PR #1150 also remains open; it proposes version-specific SAT/SAB routes, but the October discussion reports conflict with the refactored reader and retention of only the final ACDSDATA group-310 chunk. The maintainer says the raw replay direction is not the desired final writer design.",
+      "evidenceCeiling": "Issue and pull-request discussion is version/branch scoped and partly author reported. It is not deployed peer behavior, a validated local bug, or an implementation to copy without independent specification review."
+    },
+    {
+      "project": "LibreDWG",
+      "revision": "Current mutable manual and NEWS for release 0.14.1 reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The manual advertises broad approximate DWG coverage while enumerating unstable/undertested and unhandled object families and incomplete write routes; NEWS describes ongoing modern AcDs/SAB work.",
+      "evidenceCeiling": "Repository-wide coverage estimates do not prove a specific version, object family, or read/write direction."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing PAR-07/S8 peer and ACIS-carrier gate: differentiate raw carrier inspection, XREF copying, DWG-to-DXF emission, direct DWG writing, and B-rep semantics; require exact route/version and multi-chunk/owner evidence. No new local implementation slice is justified."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review and local plan/source crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedByThisResearchPass": false,
+    "testCodeChangedByThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-current-acis-peer-route-readiness-2026-10-19.json"
+    ],
+    "limitations": "Mutable upstream pages and author/maintainer reports were not independently reproduced. No peer artifact, drawing, kernel, or native application was executed."
+  },
+  "validation": {
+    "localTestsRunForResearch": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "cf87afd4322a8f4932a79c67914555aeb1288121395dd15295cae47194ccf53b"
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-134 AC1024 HATCH detached-string malformed-input control",
+  "mode": "generated local fast test slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already broadly dirty. This receipt records only the local test/plan slice and does not claim a clean checkout at baselineCommit.",
+  "scope": [
+    "Exercise valid and malformed AC1024 HATCH detached-string streams in memory.",
+    "Verify a complete gradient name is parsed before the truncated second string payload is rejected.",
+    "Verify transactional cursor/model rollback and physical following-sentinel preservation without a committed DWG/DXF fixture."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/hatch-gradient-ac1024-detached-string-fast-slice-2026-10-18.json"
+    ],
+    "productionCodeChanged": false,
+    "publicApiChanged": false,
+    "fixtureFilesAdded": 0,
+    "CTestRegistrationsAdded": 0,
+    "testVector": "A valid locally encoded AC1024 HATCH stream and a malformed stream whose detached UCS area contains the complete LINEAR gradient name followed by a length-one text with missing payload bytes.",
+    "assertions": [
+      "Valid AC1024 parse yields LINEAR, SOLID, both gradient stops, and advances to the encoded handle boundary.",
+      "Malformed parse fails after the first string, leaves source cursor at bit zero, clears partially populated HATCH gradient/name state, and leaves the following 0xA5 sentinel physically intact."
+    ]
+  },
+  "verification": {
+    "commands": [
+      "cmake --build /private/tmp/libdxfrw-par134.UC9s7I/build --target libdxfrw_dwg_local_roundtrip -j4",
+      "/private/tmp/libdxfrw-par134.UC9s7I/build/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+      "ctest --test-dir /private/tmp/libdxfrw-par134.UC9s7I/build -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "jq empty docs/research/hatch-gradient-ac1024-detached-string-fast-slice-2026-10-18.json docs/research/deeper-broader-current-open-source-route-evidence-refresh-2026-10-18.json",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/hatch-gradient-ac1024-detached-string-fast-slice-2026-10-18.json docs/research/deeper-broader-current-open-source-route-evidence-refresh-2026-10-18.json"
+    ],
+    "strictTargetBuild": "passed",
+    "focusedSelector": "passed",
+    "owningCTest": {
+      "name": "libdxfrw_dwg_local_roundtrip",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 3.17
+    },
+    "receiptJsonSyntaxCheck": "passed",
+    "scopedDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "assessment": {
+    "planOwner": "PAR-134 / 7Q",
+    "ownerStatus": "AC1024 detached-string malformed-input control implemented; overall PAR-134 remains partial.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remaining": [
+      "Named/book HATCH CMC string continuation and mapping remain unqualified.",
+      "Other CMC methods and broader HATCH/MPOLYGON semantics remain unqualified.",
+      "Independent producer, native consumer, and 3D/ACIS qualification remain separate."
+    ]
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "No files were staged or committed because the shared worktree contains broad pre-existing user changes, including overlapping edits to the test and plan files."
+  }
+}

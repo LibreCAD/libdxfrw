@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source ACIS reader, kernel, and artifact-lineage refresh",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This research pass edited only the two plan documents and added this receipt; no prior or unrelated work was staged or committed.",
+    "changedFiles": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-acis-reader-kernel-lineage-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "CADMPEG / cadmpeg-asm",
+      "references": [
+        "https://github.com/cadmpeg/cadmpeg/releases",
+        "https://docs.rs/crate/cadmpeg-asm/latest",
+        "https://docs.rs/cadmpeg-asm/latest/cadmpeg_asm/",
+        "https://docs.rs/cadmpeg-asm/latest/cadmpeg_asm/brep/"
+      ],
+      "observation": "The docs.rs crate listing identifies cadmpeg-asm 0.6.1, while nested module pages served in this review still identified as 0.5.5. The documented route frames bare ASM BinaryFile4/BinaryFile8 and ACIS BinaryFile majors 217/218 and transfers supported records to a neutral B-rep representation. It does not read DWG/DXF containers or establish AcDs entity/key ownership.",
+      "planDisposition": "Bind CLI release, source tag, Cargo.lock, exact crate versions/features, and binary hash before any optional composed-checkpoint run. Do not equate a CLI release version with component-crate docs or assume a major/header label proves compatibility with Autodesk-modified 20800+ payloads."
+    },
+    {
+      "project": "acis-core / cq-acis",
+      "references": [
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "observation": "acis-core documents typed/raw model validation and reference closure but explicitly not B-rep validity or solid construction. cq-acis converts only its documented experimental SAT/SAB profile and geometry subset through CadQuery/OCCT; unsupported body-reachable records cause conversion refusal. This shares OCCT kernel lineage with FreeCAD Part.",
+      "planDisposition": "Optional exact-profile parser-plus-shape route only. Require artifact/dependency identity, complete body-reachable disposition, units/tolerances, shape validity, and independently authored analytic expectations. Do not count it as an independent-kernel vote or outer DWG/AcDs reader."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "references": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://www.occt3d.com/components/acis-exchange/"
+      ],
+      "observation": "The vendor identifies ACIS SAT/SAB import-export as a commercial component separate from the open-source OCCT core.",
+      "planDisposition": "Do not infer a stock OCCT/FreeCAD ACIS reader. An already-authorized commercial route remains optional and license-bound, and its shape output is OCCT-family evidence rather than an independent-kernel result."
+    },
+    {
+      "project": "OpenCADKernel / ACadRust family",
+      "references": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadkernel/tree/main/src"
+      ],
+      "observation": "OpenCADKernel labels itself early, says most operations are not written, and describes its ACIS layer through opencadcodec in the ACadRust/OpenCADStudio codec family.",
+      "planDisposition": "Candidate/not qualified. Revisit only after a pinned build demonstrates exercised ACIS lifting, complete admitted-body disposition, and analytic-solid tests. It cannot supply an independent outer DWG/AcDs parse."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "Current documentation describes distinct C++ and optional legacy DXF importers, says embedded binary ACIS/SAT solids cannot currently be read, and routes DWG through an external converter to DXF followed by the selected DXF importer.",
+      "planDisposition": "Use only for pinned native converter/2D/explicit-entity consumer checks. Record platform, converter, backend/preferences, and imported dispositions; do not qualify ACIS semantics."
+    },
+    {
+      "project": "LibreDWG / ACadSharp current peer evidence",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/DomCR/ACadSharp/issues/1038",
+        "https://github.com/DomCR/ACadSharp/pull/1067",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1321"
+      ],
+      "observation": "LibreDWG 0.14.1 NEWS records fixes for the final SAT block on 3DSOLID/REGION DXF export and SubDMesh Binary-DXF import. ACadSharp #1038 is closed and linked #1067 is listed in the v3.6.12 release history; the evolving issue includes both a caller clone/setup cause and a later writer defect for a from-scratch MESH. Current peer reports #1195, #1297, #1299, and #1321 describe distinct version/input-specific modeler omission, whole-file acceptance, spline conversion, and TABLE failure shapes.",
+      "planDisposition": "Retain peer reports as exact-route audit prompts only. Existing local fast owners already cover modeler continuation/cardinality, MESH, analytic spline expectations, whole-file gates, per-source block disposition, and PAR-126 TABLE fail-closed behavior. Add no duplicate issue-title tests or peer dependency."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: bind exact reader, crate, kernel, and CLI artifacts separately; distinguish parser closure, neutral-model transfer, shape validity, analytic expectations, AcDs association, and native consumer acceptance",
+      "Existing modeler DXF continuation and ASCII/Binary MESH owners: peer-reported final-chunk and binary-import defects are already covered; no duplicate test",
+      "Existing SPLINE, whole-file acceptance, modeler source-disposition, and PAR-126 TABLE owners: map current peer reports without importing customer drawings"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "Continue dependency-ready local work and reuse existing generated fast owners; treat peer issue reports as prompts, not a missing-test list.",
+      "At the existing composed PAR-07/S8 checkpoint only, select one concrete question and bind exact archive/wheel, source tag/commit, lockfile, component versions/features, runtime, and output hashes.",
+      "Admit only an exact header/dialect-matched bare SAT/SAB payload; report framing, body-reachable records, unsupported/loss accounting, neutral-model transfer, shape validity, and independent analytic metrics separately.",
+      "Keep outer DWG/DXF section extraction, handle-to-AcDs-key association, serializer preservation, and native application acceptance as independent gates.",
+      "If source/artifact/profile or platform is unavailable, record NOT_RUN/NOT_QUALIFIED and self-unblock to the next local item; do not add routine peer dependencies or full-suite runs per slice.",
+      "After implementation slices, update the owning plan/receipt, run the fast owner test, and report progress after commit."
+    ],
+    "supportBoundary": "No parser pass, neutral B-rep graph, shared OCCT shape, peer issue closure, container check, or writer return promotes arbitrary ACIS, DWG AcDs association, kernel-independent geometry, FreeCAD 3D solid support, platform qualification, or any J item."
+  },
+  "limitations": "Primary-source documentation and current peer issue/release pages were reviewed online. No peer source/runtime was installed or executed, no CAD application was run, and no external drawing/corpus file was fetched. The research does not establish artifact-to-source equivalence for CADMPEG components; the plan therefore requires exact identity resolution before any optional run.",
+  "validation": {
+    "jsonValidation": "PASS",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

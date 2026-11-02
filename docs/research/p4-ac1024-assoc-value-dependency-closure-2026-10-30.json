@@ -1,0 +1,157 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-value-dependency-closure-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative value-dependency closure",
+  "status": "OBSERVED_AC1024_VALUE_DEPENDENCY_GRAPH_AUDITED_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Resolve source-matched ACDBASSOCVALUEDEPENDENCY dep_on targets, direct owner routes, network membership, persistent-reactor backlinks, and reciprocal readdep/node chains for three AC1024 witnesses. The audit preserves field labels and checks graph consistency without assigning additional application meaning.",
+  "independentReader": {
+    "name": "LibreDWG dwgread",
+    "version": "0.14",
+    "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceFields": "/Users/dli/dev/libredwg/include/dwg.h Dwg_Object_ASSOCVALUEDEPENDENCY embeds Dwg_Object_ASSOCDEPENDENCY fields; the peer JSON exposes dep_on, readdep, node, ownerhandle, and reactor references.",
+    "projectionMethod": "Index LibreDWG OBJECTS by absolute handle. For each ASSOCVALUEDEPENDENCY, resolve dep_on to ASSOCVARIABLE, locate its owner as either an ASSOC2DCONSTRAINTGROUP or ASSOCVARIABLE, compare their owning network, require the target variable's reactor list to contain the dependency once, and check every non-null readdep/node target for type, reciprocal edge, same dep_on variable, and same network.",
+    "limitation": "LibreDWG's independent source projection corroborates these profiles only; it does not qualify local DXF serialization or consumer semantics."
+  },
+  "sourceProfiles": [
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "localAudit": {
+        "logPath": "/private/tmp/value-dep-audit-civil.log",
+        "logSha256": "3a9d8b4b73f738d6ddd420822022d5c41c85ee5bafac5115dd1cb16fa23e8edd",
+        "valueDependencyRecords": 21,
+        "depOnTargetsVerified": 21,
+        "ownerRoutesVerified": 21,
+        "groupActionEdgesVerified": 17,
+        "variableOwnerEdgesVerified": 4,
+        "sameNetworkEdgesVerified": 21,
+        "reactorBacklinksVerified": 21,
+        "readdepAndNodeReferences": 8,
+        "linkTargetsVerified": 8,
+        "reciprocalLinksVerified": 8,
+        "sameDepOnTargetsVerified": 8,
+        "sameNetworkLinksVerified": 8,
+        "closureComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/private/tmp/civil-assoc-dependency.json",
+        "jsonSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+        "valueDependencyRecords": 21,
+        "depOnTargetClassCounts": {"ASSOCVARIABLE": 21},
+        "ownerClassCounts": {"ASSOC2DCONSTRAINTGROUP": 17, "ASSOCVARIABLE": 4},
+        "sameNetworkEdges": 21,
+        "reactorBacklinks": 21,
+        "readdepReferences": 4,
+        "nodeReferences": 4,
+        "reciprocalSameDepOnSameNetworkLinks": 8
+      }
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "localAudit": {
+        "logPath": "/private/tmp/value-dep-audit-architectural.log",
+        "logSha256": "81a9cf24989a1f817d00a0156676f75db6f0ccc171d49383885c130f6505ba0b",
+        "valueDependencyRecords": 26,
+        "depOnTargetsVerified": 26,
+        "ownerRoutesVerified": 26,
+        "groupActionEdgesVerified": 20,
+        "variableOwnerEdgesVerified": 6,
+        "sameNetworkEdgesVerified": 26,
+        "reactorBacklinksVerified": 26,
+        "readdepAndNodeReferences": 12,
+        "linkTargetsVerified": 12,
+        "reciprocalLinksVerified": 12,
+        "sameDepOnTargetsVerified": 12,
+        "sameNetworkLinksVerified": 12,
+        "closureComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/private/tmp/architectural-assoc-dependency.json",
+        "jsonSha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f",
+        "valueDependencyRecords": 26,
+        "depOnTargetClassCounts": {"ASSOCVARIABLE": 26},
+        "ownerClassCounts": {"ASSOC2DCONSTRAINTGROUP": 20, "ASSOCVARIABLE": 6},
+        "sameNetworkEdges": 26,
+        "reactorBacklinks": 26,
+        "readdepReferences": 6,
+        "nodeReferences": 6,
+        "reciprocalSameDepOnSameNetworkLinks": 12
+      }
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation fixture; not staged or committed.",
+      "localAudit": {
+        "logPath": "/private/tmp/value-dep-audit-mechanical.log",
+        "logSha256": "cfcebb8eee321f9d5dbce5b6f4673a1f161f7cedbdddbc99c48cba3bd21ef439",
+        "valueDependencyRecords": 30,
+        "depOnTargetsVerified": 30,
+        "ownerRoutesVerified": 30,
+        "groupActionEdgesVerified": 17,
+        "variableOwnerEdgesVerified": 13,
+        "sameNetworkEdgesVerified": 30,
+        "reactorBacklinksVerified": 30,
+        "readdepAndNodeReferences": 26,
+        "linkTargetsVerified": 26,
+        "reciprocalLinksVerified": 26,
+        "sameDepOnTargetsVerified": 26,
+        "sameNetworkLinksVerified": 26,
+        "closureComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "jsonSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "valueDependencyRecords": 30,
+        "depOnTargetClassCounts": {"ASSOCVARIABLE": 30},
+        "ownerClassCounts": {"ASSOC2DCONSTRAINTGROUP": 17, "ASSOCVARIABLE": 13},
+        "sameNetworkEdges": 30,
+        "reactorBacklinks": 30,
+        "readdepReferences": 13,
+        "nodeReferences": 13,
+        "reciprocalSameDepOnSameNetworkLinks": 26
+      }
+    }
+  ],
+  "implementation": {
+    "files": ["dwg2dxf/dx_data.h", "dwg2dxf/dx_iface.cpp"],
+    "behavior": "The bounded AC1024 audit indexes action and constraint-group list membership once, then resolves every value dependency's dep_on target, direct group-or-variable owner route, shared network, and single target reactor backlink. Non-null readdep/node links must resolve to another complete value dependency with the same dep_on variable and network and the reciprocal opposite link. Unknown owner/target types, duplicate memberships, missing edges, or exceeded work bounds leave closure false.",
+    "strictOutput": "Unchanged. Associative DWG output remains refused until complete graph serialization and readback are implemented.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "runtime": {
+      "command": "build/dwg2dxf/dwg2dxf <source.dwg> -y -d -v2010 <temporary-output.dxf>",
+      "result": "All 77 value-dependency records and all 46 non-null readdep/node links closed across the three source imports. Each import retained strict graph-serialization refusal; no DXF output was created."
+    },
+    "diffCheck": "PASS",
+    "automatedTestSuites": "Not run; the focused -Werror build, three source imports, and independent source projections were used for this graph-closure slice."
+  },
+  "limitations": [
+    "Coverage is limited to these three AC1024 value-dependency profiles, not every AC1024 file or other DWG versions.",
+    "Nonempty action-body, direct action dependency, and owned-parameter profiles remain unqualified.",
+    "Generic ACDBASSOCDEPENDENCY dep_on routes, including entity and block-parameter targets, and other associative descendants remain open.",
+    "Associative DXF serialization, handle remapping, readback, and native consumer semantics remain unqualified.",
+    "The local mechanical DWG and all generated scratch outputs remain uncommitted."
+  ],
+  "nextAction": "Audit generic ACDBASSOCDEPENDENCY dep_on targets to physical dimension entities and block-parameter objects, including source owner context and persistent-reactor backlinks; then continue remaining recursive closure before implementing complete-graph serialization.",
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "561c771a06dc251e9c4c9a3ed0db7cd72dbd580dfa4451999c54638d9f5d6c12",
+    "dwg2dxf/dx_iface.cpp": "7c3f2d67a9fa7a9b0f6c4016a70c8e5283c33cb51b33393d18c5968f0da4f294",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c058bb2d5f355ef436291fe8d39be5f9e651ae05ffedc5d16332510709b528d1",
+    "build/dwg2dxf/dwg2dxf": "d92b5a0cf77d4d28b184d1aa58ade58e60fcd9a288720917a56780bb5ed1afd6"
+  }
+}

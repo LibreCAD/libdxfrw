@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader KumCAD downstream route and LibreDWG/OCCT lineage review",
+  "mode": "primary-source project documentation review and local plan crosswalk",
+  "scope": [
+    "Screen an additional open-source CAD application route for independent DWG/DXF implementation evidence",
+    "Separate KumCAD's DWG codec dependency from its own application and 3D-modeling features",
+    "Determine whether the route adds a new implementation finding or only an optional consumer qualification cell",
+    "Refine the existing plan without adding build dependencies, fixtures, or routine test burden"
+  ],
+  "method": {
+    "kind": "Read project README, DWG import/export instructions, build/test and platform statements, then reconcile against existing peer-lineage and consumer qualification owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Evidence is project-authored mutable README content, not an immutable revision, binary inspection, execution, or interoperability result. The README identifies LibreDWG 0.13.3 as its optional DWG route and describes an unrelated OpenCascade-backed 3D modeling feature, but the exact runtime linkage and any DWG modeler-geometry import path were not audited. No app or kernel was run."
+  },
+  "sources": [
+    {
+      "project": "todorw/KumCAD",
+      "urls": [
+        "https://github.com/todorw/KumCAD",
+        "https://github.com/todorw/KumCAD#dwg-importexport-optional",
+        "https://github.com/todorw/KumCAD#building",
+        "https://github.com/todorw/KumCAD#platform-support"
+      ],
+      "revision": "Mutable main README accessed 2026-10-18; no immutable commit selected",
+      "observed": "The README describes a C++20/Qt 6 CAD application with optional DWG import/export through LibreDWG, gives a LibreDWG 0.13.3 build recipe, and says Save As writes DWG R2000. It describes the OpenCascade-backed 3D modeler as a separate application window. It calls the project young and not production-tested and says physical macOS packaging is not verified.",
+      "limits": "No code route, linked library, build, output file, test corpus, or solid-import behavior was independently inspected or executed. An OCCT-backed modeler is not evidence of DWG 3DSOLID/REGION/BODY or AcDs/SAB import."
+    },
+    {
+      "project": "Existing libdxfrw peer and consumer plan",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/FreeCAD/FreeCAD"
+      ],
+      "revision": "Existing local plan reviewed as stored on 2026-10-18",
+      "observed": "The local plan already pins parser lineage and scope separately for LibreDWG, ACadSharp, ezdwg, ft_model, and FreeCAD, and has composed consumer gates for exact route/platform outcomes.",
+      "limits": "This research did not re-execute any existing peer or native application gate and does not change any local support status."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newWatchlistRoutes": [
+      "KumCAD — optional downstream 2D application smoke only; LibreDWG-correlated DWG codec; separate OCCT modeling feature is not an ACIS import witness"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Use KumCAD only if a named downstream 2D acceptance question remains after the required FreeCAD route. Pin full app build and exact LibreDWG dependency, independently author expected entities/owners/values, capture requested and actual output versions plus hashes and diagnostics, and independently reopen output. Exclude it from routine testing and from independent parser, current LibreDWG release, ACIS/AcDs, B-rep, and macOS-native evidence.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The checkout contains extensive pre-existing user changes. This pass edited only the research plan and added this receipt; no other changes were staged or committed."
+  }
+}

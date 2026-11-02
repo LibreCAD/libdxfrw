@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-shared-owner-xdata-writer-range-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.25",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / XDATA_POINTER_ARRAY_REMOVED",
+  "objective": "Remove the temporary raw-pointer array created when writing XDATA from shared_ptr-backed entity/table storage, while retaining complete preflight before output.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Both vector<DRW_Variant*> and vector<shared_ptr<DRW_Variant>> use the same templated non-owning validation/emission range.",
+      "The shared-pointer path no longer allocates/reserves/fills a second vector of raw pointers.",
+      "Complete value validation, XDATA group/APPID validation, and target text-encoding preflight still happen before the first EED write.",
+      "No public class layout change."
+    ]
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selectors": [
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --xdata-writer-validation",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --reference-resolver-appdata",
+        "result": "PASS"
+      }
+    ],
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "limits": [
+    "Removes only the redundant shared-owner pointer array; it does not account for encoded text, binary-hex, APPID working-set allocations, allocator capacity, or peak RSS.",
+    "No full suite, peer runtime, native CAD application, or fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

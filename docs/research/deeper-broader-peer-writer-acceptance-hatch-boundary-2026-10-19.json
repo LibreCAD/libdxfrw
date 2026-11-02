@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "kind": "research-only-plan-update",
+  "date": "2026-10-19",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Broader open-source writer/read-acceptance review and local wire/test crosswalk, with a focused unresolved HATCH group-47 derived-zero profile. No code or test changes.",
+  "sources": [
+    "https://github.com/LibreDWG/libredwg",
+    "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+    "https://github.com/DomCR/ACadSharp",
+    "https://github.com/DomCR/ACadSharp/issues/1195",
+    "https://github.com/DomCR/ACadSharp/issues/1253",
+    "https://github.com/hakanaktt/acadrust",
+    "https://github.com/hakanaktt/acadrust#development",
+    "https://ezdxf.readthedocs.io/en/stable/acis.html",
+    "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "https://images.autodesk.com/adsk/files/autocad_2012_pdf_dxf-reference_enu.pdf"
+  ],
+  "crosswalk": [
+    {
+      "peer": "ACadSharp #1253",
+      "finding": "A reported AutoCAD 2027 strict DXF rejection on AC1024 output; the Sep-23 comment says an AutoCAD-saved sample has group 47 on derived HATCH paths (92=7) and TrueView asks for group 47 when it is removed. The comment does not disclose the numeric pixel-size value.",
+      "local_owner": "src/libdxfrw.cpp writeHatch; tests/hatch_reference_tests.cpp --hatch-pixel-presence",
+      "disposition": "Current source only emits group 47 for nonzero pixelSize; the local generated test has an associative 92=7 zero case and expects absence. Whether that contradicts the reported artifact depends on its undisclosed numeric value. The current mutable upstream sample inspected previously does not contain the reported 92=7 path, and the issue comment did not bind historical sample/output hashes. Treat as PROFILE_CONFLICT / REPRODUCTION_REQUIRED, not a confirmed defect."
+    },
+    {
+      "peer": "ACadSharp #1253 CLASS and DIMSTYLE portions",
+      "finding": "The report identifies an invalid CLASS 92/93 sequence and missing AC1024 DIMSTYLE table-header fields.",
+      "local_owner": "src/drw_classes.cpp DRW_Class::write; src/libdxfrw.cpp writeTables; tests/dxf_fixture_tests.cpp DIMSTYLE header census",
+      "disposition": "Local CLASS writer emits the expected ordered modern fields without 92/93. AC1024 DIMSTYLE header code 71 and per-row 340 references are already asserted by generated tests; no duplicate change is planned."
+    },
+    {
+      "peer": "ACadSharp #1195",
+      "finding": "The reporter describes silent 3DSOLID/REGION DXF loss, including nested solid-only blocks and INSERT instances, on ACadSharp 3.4.9.",
+      "local_owner": "Existing PAR-59/PAR-07 modeler output disposition, block/INSERT closure, and transactional refusal owners",
+      "disposition": "Already represented in the plan. Issue and unmerged writer branch are not released peer capability evidence and do not establish a libdxfrw defect."
+    },
+    {
+      "peer": "OpenCADStudio #1078",
+      "finding": "A no-op DWG writer route reportedly required AutoCAD RECOVER and lost layouts/graph data despite passing project tests; maintainer later reported source/output semantic and AcDs comparisons after a fix.",
+      "local_owner": "Existing composed independent-reader/native-audit and source-identity/owner closure gates",
+      "disposition": "Reinforces separation of unit/same-codec tests from native audit and semantic disposition. Peer-authored report not independently rerun."
+    },
+    {
+      "peer": "LibreDWG, ACadRust, ezdxf",
+      "finding": "Their public disclosures separate class maturity, read/write direction, ignored missing-sample tests, and bounded ACIS behavior.",
+      "local_owner": "Existing peer intake/evidence ledger and ACIS carrier-versus-semantics gates",
+      "disposition": "Track declared support, evaluated/test-run status, partial/recovered outcomes, native acceptance, graph closure, carrier retention, and geometry as separate columns. No claim promotion."
+    }
+  ],
+  "plan_delta": {
+    "new_confirmed_findings": 0,
+    "new_top_level_subplans": 0,
+    "conditional_resolution": "Pin historical ACadSharp #1253 DWG/AutoCAD-DXF source pair and hashes; if unavailable, record NOT_RESOLVED_EXTERNAL and continue. If confirmed, update only the existing generated HATCH selector and justified HATCH predicate; keep MPOLYGON separate.",
+    "finding_count_after": 137,
+    "top_level_subplan_count_after": 77,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claim_promoted": false
+  },
+  "verification": {
+    "local_source_test_inventory_only": true,
+    "build_run": false,
+    "test_run": false,
+    "peer_executable_run": false,
+    "native_cad_run": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "commit_attempted": false
+  }
+}

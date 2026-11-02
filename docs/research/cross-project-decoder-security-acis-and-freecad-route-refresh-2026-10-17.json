@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Cross-project decoder security, ACIS profile, and FreeCAD route refresh",
+  "mode": "primary-source upstream documentation and source review",
+  "scope": [
+    "Map current LibreDWG malformed-input and preservation fixes to existing local hardening owners",
+    "Clarify ezdxf ACIS carrier and flat-polyhedron profile boundaries",
+    "Verify the current FreeCAD DWG converter-to-DXF-to-importer composition",
+    "Confirm the availability boundary of OCCT ACIS exchange components",
+    "Improve implementation readiness without adding peer work to fast slices"
+  ],
+  "method": {
+    "kind": "Read-only review of upstream release notes, project documentation, and source",
+    "peerPackagesDownloaded": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Mutable upstream documentation/source was reviewed without pinning a FreeCAD build or running any converter/importer/kernel. Upstream release-note reports are test-shape leads, not local findings. Feature and licensing statements require exact artifact/build qualification before use."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "Published NEWS reviewed 2026-10-17; includes 0.14.1 dated 2026-07-25",
+      "observed": "The release notes report fixes involving decompression/page bounds and overflow, a 3DSOLID SAT block-size check, non-finite MLINESTYLE angles causing an unbounded loop, final SAT-block loss, and HATCH path/rational-spline behavior. DWG writer notes distinguish unsupported direct R2007 output and CRC/audit failures in R2010-R2018. These are upstream observations only."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "revision": "Stable ACIS API documentation reviewed 2026-10-17",
+      "observed": "The API requires an ACIS DXF entity bound to a valid R2000+ document, describes SAT for R2000-R2010 and SAB for R2013+, and scopes its initial geometry objective to flat polyhedra. Vertex-based bounds are exact only for straight-edged flat polyhedra, not curved geometry. No local peer runtime was run."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+      "revision": "Stable layout/entity-constructor documentation reviewed 2026-10-17",
+      "observed": "The documentation exposes BODY, REGION, 3DSOLID and R2007+ surface entity constructors and requires ACIS SAT/SAB payloads. API availability is not proof of semantic completeness."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "Mutable main-branch source reviewed 2026-10-17",
+      "observed": "The DWG open path converts to DXF and then calls importDXF.open. The converter selector includes LibreDWG, ODA and QCAD. The LibreDWG branch waits for process completion but checks output path existence rather than subprocess return status before returning the path. The source was not executed."
+    },
+    {
+      "project": "FreeCAD Documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "Mutable main-branch documentation reviewed 2026-10-17",
+      "observed": "The guide describes DWG handling via an external converter to DXF, followed by the standard DXF importer, and warns that LibreDWG lacks support for some DWG entities."
+    },
+    {
+      "project": "FreeCAD Documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "revision": "Mutable main-branch documentation reviewed 2026-10-17",
+      "observed": "The guide states FreeCAD does not directly read/write DWG, uses external converters, and offers both native C++ and legacy Python DXF backends with differing feature coverage."
+    },
+    {
+      "project": "Open CASCADE Technology components",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "revision": "Mutable main-branch catalog reviewed 2026-10-17",
+      "observed": "The repository describes itself as a public preview/documentation hub for commercial OCCT extensions and lists ACIS SAT/SAB import-export under exchange components. This does not establish availability in the open-source OCCT core or any local FreeCAD build."
+    },
+    {
+      "project": "libdxfrw local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "Shared worktree plan reviewed 2026-10-17",
+      "observed": "The new crosswalk reuses current resource hardening, numeric validation, ACIS carrier, HATCH/spline, and FreeCAD consumer owners; it adds no finding, subplan, route, fixture, or support claim."
+    }
+  ],
+  "assessment": {
+    "crossProjectBoundary": "Keep DWG parsing, DXF parsing, recovery, writer acceptance, ACIS carrier preservation, mesh projection, B-rep construction, and FreeCAD converter/importer outcomes as distinct evidence lanes.",
+    "implementationCrosswalk": "Use upstream malformed-length/overflow and non-finite-loop reports as narrowly scoped test-shape leads only when the corresponding local path is touched. Reuse the plan's existing controls and schedule composed external/fuzz/native checks at the existing checkpoint.",
+    "consumerQualification": "Force and attest the converter and importer route; capture process status, logs, fresh output hash and version, graph/identity disposition, and resulting document semantics. A successful output-path check is not sufficient evidence.",
+    "semantic3d": "An ACIS API, flat mesh, visible scene, or OCCT-backed application does not establish arbitrary SAT/SAB decoding or exact-solid semantics. Pin any optional proprietary component/license and require an independently authored analytic expectation."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/cross-project-decoder-security-acis-and-freecad-route-refresh-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/cross-project-decoder-security-acis-and-freecad-route-refresh-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

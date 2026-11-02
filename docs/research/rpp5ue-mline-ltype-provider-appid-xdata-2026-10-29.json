@@ -1,0 +1,46 @@
+{
+  "id": "RPP-5ue",
+  "title": "MLINE-referenced LTYPE APPID and XDATA provider",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "79cf053e",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated MLINE authority recipe; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": "MLINE_LTYPE_XDATA, source APPID handle 0x1F1, owned by the source APPID table at 0x1F0; flags 0 and no optional metadata.",
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" }
+    ]
+  },
+  "proof": {
+    "source": "Physical source fields and fresh read show the exact ordered LTYPE XDATA pair and one APPID provider. Import-time resource origin, raw/typed equality, the LTYPE AppIdName role, and APPID name lookup bind the dependency.",
+    "output": "The staged TABLES inspector requires one selected APPID row in table 9 with owner 9, exact common fields and decoded model equality. It checks the selected LTYPE physical body and XDATA order, decoded LTYPE equality, unique names/handles, and fresh readback of the APPID and payload.",
+    "failure_retry": "Removing the source APPID from the live model refuses export and preserves the destination sentinel; restoring it succeeds on the same adapter. A late APPID-name mutation after its writer callback also refuses without replacing the destination; restoring the source name permits same-adapter retry.",
+    "counts": {
+      "positive_profiles": 4,
+      "successful_readbacks": 9,
+      "refusals_with_destination_preservation": 5,
+      "same_adapter_retries": 5
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "build_result": "PASS",
+    "selector": "libdxfrw_mline_ltype_appid_xdata",
+    "focused_command": "ctest --test-dir build-gcc -R 'libdxfrw_mline_ltype_appid_xdata|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_reverse_shape_text|libdxfrw_mline_style_xdata' --output-on-failure",
+    "focused_result": "PASS (4/4)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "positive profiles 4; readbacks 9; refusals 5; retries 5",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This is one selected AC1027 transport profile: exactly one 1001 APPID followed by one 1000 string, with a bare source-bound APPID provider. Other XDATA group codes, multiple APPID groups, APPID metadata, other LTYPE schemas, versions and native semantics remain unqualified.",
+    "The receipt does not establish native XDATA application behavior, MLINE rendering, recursive document closure, or broader LTYPE provider support."
+  ]
+}

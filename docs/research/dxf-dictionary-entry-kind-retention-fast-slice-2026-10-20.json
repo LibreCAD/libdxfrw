@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF DICTIONARY per-entry handle-code retention",
+  "mode": "Local implementation and generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Retain group 350/360 independently per parsed DICTIONARY key/handle pair.",
+    "Use retained codes in the direct and registered named-dictionary writer paths while preserving legacy fallback for unspecified entries.",
+    "Exercise ASCII and Binary inputs/outputs, both flag-280 values, reversed key order, copy/assignment, and typed readback in an existing selector.",
+    "Record the ABI-version decision and release-time check without adding a persistent drawing fixture or a new CTest target."
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h::DRW_Dictionary::Entry::DxfHandleCode",
+      "src/drw_objects.cpp::DRW_Dictionary::parseCode",
+      "src/drw_objects.cpp::DRW_Dictionary::hasCompleteDxfEntries",
+      "src/libdxfrw.cpp::dictionaryEntryCode",
+      "src/libdxfrw.cpp::dxfRW::writeDictionary",
+      "src/libdxfrw.cpp::dxfRW::writeObjects named-dictionary path",
+      "tests/dxf_fixture_tests.cpp::testDictionaryKeyAdmission",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Parsed 350 and 360 codes are stored with their individual key/handle entries.",
+      "Copy construction and assignment preserve the code as part of the entry value.",
+      "Direct and registered named DICTIONARY writers replay parsed codes per entry.",
+      "Newly constructed and DWG-origin entries use Unspecified and keep the existing hardOwner-derived output policy.",
+      "Generated NOD entries remain on their separate group-350 path.",
+      "DICTIONARYWDFLT writer remains on its object-specific group-350 output grammar."
+    ],
+    "generatedCases": [
+      "ASCII source and output",
+      "Binary source and output",
+      "flag 280 equal to zero and one",
+      "(Alpha,350),(Beta,360) and reversed (Beta,360),(Alpha,350) order",
+      "literal output key/code/handle tuples for direct and named-dictionary writers",
+      "typed readback of the same targets and generated SCALE objects"
+    ],
+    "fixturePolicy": "Controls are generated in the system temporary directory and removed by test cleanup; no test drawing is committed."
+  },
+  "abiDecision": {
+    "publicLayoutChanged": true,
+    "projectVersion": "2.0.0",
+    "soversion": 2,
+    "versionBumpedInThisSlice": false,
+    "evidence": [
+      "Local Git tag list has no 2.0.0 tag.",
+      "The official GitHub releases page reports no releases at https://github.com/LibreCAD/libdxfrw/releases."
+    ],
+    "decision": "Keep the repository's intended 2.0.0 development boundary; recheck external package registries before publishing. If a distributed ABI-2 artifact exists, apply release-time ABI/SOVERSION policy before publishing. Rebuild consumers against the new public header.",
+    "limits": [
+      "No external package-registry inventory or installed old-binary compatibility test was run.",
+      "The version decision is not evidence that old binary consumers are compatible."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --dictionary-key-admission",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --dictionary-with-default-writer",
+        "result": "PASS"
+      }
+    ],
+    "diffCheck": {
+      "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "newCTestTargets": 0,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false,
+    "commitStatus": "Not created; Git metadata is read-only in this workspace."
+  },
+  "assessment": {
+    "perEntryTypedCodeRetentionImplemented": true,
+    "directWriterOutputVerified": true,
+    "namedDictionaryWriterOutputVerified": true,
+    "typedGraphReadbackVerified": true,
+    "nativeConsumerSemanticsVerified": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: retain parsed dictionary entry codes per key independently of flag 280.",
+      "PAR-20/7G: compare local literal tag fidelity separately from normalized peer graph semantics.",
+      "PAR-20/7G: keep NOD, FIELDLIST, extension-dictionary ACAD_FIELD, and FIELD-internal references as separate routes."
+    ],
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

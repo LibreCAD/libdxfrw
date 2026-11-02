@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "7F.1b schema-3 differential manifest selection",
+  "planItem": "7F.1b / typed result and runner migration",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktreeState": "Shared worktree contains overlapping modifications; this slice is uncommitted and unstaged",
+  "changes": [
+    {
+      "path": "metadata/qualified-differential-v2.json",
+      "sha256": "4f91eda7fcb3b415cd46cc4b4c88d126265ed677abb1eaa5f772d8bf76b444b7",
+      "summary": "Select manifest schema 3, adapter result schema 3, and normalization report schema 2."
+    },
+    {
+      "path": "tools/run_qualified_differential_v2.py",
+      "sha256": "c56ea0bd02aa5feaf1aa18bd0844a0e9be80e24ca8e7addbe2898e6fc59d6021",
+      "summary": "Make the runner self-test validate the checked-in schema-3 manifest and derive an exact schema-2 compatibility variant by removing only the schema-3 selectors."
+    }
+  ],
+  "validation": [
+    {
+      "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 -m py_compile tools/run_qualified_differential_v2.py",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/semantic-adapter-target-profile-check/.../libdxfrw_semantic_adapter_target --self-test",
+      "result": "PASS; exit code 0"
+    },
+    {
+      "command": "build-gcc/semantic-adapter-profile-check/.../libdxfrw_semantic_adapter_standalone --self-test",
+      "result": "PASS; exit code 0"
+    },
+    {
+      "command": "jq summary of metadata/qualified-differential-v2.json",
+      "result": "PASS; manifest schema=3, adapterResultSchema=3, normalizationSchema=2, existing target lock and one expected-failure rule preserved"
+    },
+    {
+      "command": "git diff --check -- metadata/qualified-differential-v2.json tools/run_qualified_differential_v2.py",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "This selects typed observation output for future differential runs; it does not execute or qualify a target/standalone pair.",
+    "The current build receipts remain advisory under direct-options-only compile evidence, so the live pair remains ineligible.",
+    "No DWG/DXF fixture, production parser behavior, dependency, CTest registration, peer/native result, or support claim was added."
+  ],
+  "result": {
+    "findingCount": 135,
+    "topLevelSubplanCount": 77,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": false
+  }
+}

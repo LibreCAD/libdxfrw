@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer-fix validity and exact local regression owners",
+  "mode": "Primary-source web review and local source/test inventory",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Re-audit current open-source peer issue claims at their exact source/version/operation boundaries.",
+    "Validate whether candidate peer fixes were actually measured and whether the local equivalent is already covered.",
+    "Refine implementation readiness without adding duplicate tests or porting unverified peer behavior.",
+    "Preserve the fast local validation queue and non-promoting external gates."
+  ],
+  "method": {
+    "kind": "Read-only web review plus local plan/source/test inventory",
+    "peer_repositories_cloned_or_built": false,
+    "peer_packages_installed_or_run": false,
+    "native_cad_applications_or_kernels_run": false,
+    "external_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "production_code_changed": false,
+    "test_code_changed": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "limitations": "Peer issue measurements, private drawings, and claimed cross-reader comparisons remain reporter-authored and were not independently reproduced. No peer source revision or executable artifact was built. Local source/test inventory establishes existing generated coverage, not external interoperability or native CAD acceptance."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1415",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1415",
+      "revision": "Open issue; accessed 2026-10-20; mutable issue page",
+      "observed": "The reporter corrected an initial guard-preserve-index proposal after measuring byte-identical output on 184 drawings. The issue says the R2004+ stored short is vestigial for the route; CMC method 0xC3 carries ACI in the packed low byte, whereas method 0xC2 is true color. Reverse palette lookup can change an indexed ACI and can yield an invalid DXF group 62 for an RGB value whose blue byte is zero. The later method-based candidate and its reported corpus measurements were not independently run here.",
+      "evidence_ceiling": "Detailed peer defect report and reporter-measured patch outcome; not an independent local finding or normative format source."
+    },
+    {
+      "project": "Local CMC generated controls",
+      "urls": [
+        "tests/dxf_fixture_tests.cpp::testLayerDxfColorPolicy",
+        "src/drw_objects.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md (PAR-134/7Q and PAR-52/7AE)"
+      ],
+      "revision": "Current shared worktree inspected 2026-10-20",
+      "observed": "The existing local generated route checks C2 0xC200A600, C3 ACI 104 (0xC3000068, a palette-collision case), and C3 ACI 255 through AC1024/AC1032 DWG and ASCII/Binary DXF group 62/420 export and readback. HATCH gradient CMC controls belong to a separate field owner.",
+      "evidence_ceiling": "Source and test inventory only; no local test was run in this research pass. It does not establish native acceptance, every CMC-bearing field, or arbitrary RGB fallback policy."
+    },
+    {
+      "project": "LibreDWG issue #1414",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+      "revision": "Open issue; accessed 2026-10-20; mutable issue page",
+      "observed": "The report leaves VALUE_TV versus VALUE_TU escape expansion unresolved and separates source storage, target DXF version, and field semantics. It warns that broad escape expansion can touch opaque XRECORD values and that lone-surrogate conversion can produce invalid UTF-8.",
+      "evidence_ceiling": "Unresolved peer behavior question; neither its suggested patch nor output counts define target DXF semantics."
+    },
+    {
+      "project": "LibreDWG issue #1413 and Autodesk DXF OBJECTS contract",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+        "tests/dxf_fixture_tests.cpp::testNodRootOrdering"
+      ],
+      "revision": "Issue and Autodesk reference accessed 2026-10-20; local generated test source inspected",
+      "observed": "The peer report distinguishes a lower-handle owned DICTIONARY from the actual NOD. Autodesk identifies the DXF root by its first OBJECTS position; the local generated test covers positional NOD ordering with non-monotonic handles. DWG root identity remains a separate decoded-header-handle path.",
+      "evidence_ceiling": "Peer report plus primary DXF format documentation and local test inventory; no peer conversion was run."
+    },
+    {
+      "project": "ACadSharp issues #1281 and #1297",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "tests/hardening_tests.cpp::testRepeatedDxfRecordRobustness"
+      ],
+      "revision": "Open issue pages accessed 2026-10-20; local generated test source inspected",
+      "observed": "#1281 describes recursive stack growth on repeated comments, XDATA app blocks, and WIPEOUT clip groups; local generated hardening coverage already exercises these shapes with continuity checks. #1297 describes an AC1032 whole-file native rejection after the author reported a matching MTEXT body, without identifying a proven root cause.",
+      "evidence_ceiling": "Version-specific peer reports; local test inventory is not a peer rerun or native-consumer result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-52/7AE, PAR-66/7AN, and PAR-134/7Q: use CMC method as the color-form discriminator; retain C3 ACI, C2 RGB, and fallback display/index policy separately. Existing generated collision controls own the local test route.",
+      "PAR-05/7AR: keep TV/TU source representation, target DXF version, semantic text field, literal escape-looking spelling, and invalid-surrogate policy as separate axes; do not globally expand escape-looking bytes.",
+      "PAR-06/PAR-49: keep DXF positional NOD selection distinct from DWG header-resolved root identity and per-object owner closure.",
+      "PAR-14/7BE: reuse the generated repeated-record robustness owner and keep peer stress counts non-normative.",
+      "PAR-19/29 and PAR-07/S8: whole-file native acceptance remains distinct from entity-body encoding and same-codec reopen."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Recorded that LibreDWG #1415's initially suggested preserve-index guard was measured by the reporter to be a no-op; the later method-specific C3-versus-C2 rule is a peer lead, not a patch to port blindly.",
+    "Mapped the reported CMC collision to already-present local generated C2/C3 controls and named the focused test owner to prevent duplicate tests.",
+    "Reaffirmed unresolved TV/TU escape semantics, the separate DXF-position versus DWG-header NOD identity contracts, bounded repeated-record handling, and whole-file versus entity-body acceptance boundaries.",
+    "Kept the implementation order, focused validation cadence, plan inventory, and all six external qualification statuses unchanged."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

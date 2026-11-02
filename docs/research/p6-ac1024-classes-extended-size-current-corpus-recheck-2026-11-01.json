@@ -1,0 +1,160 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-classes-extended-size-current-corpus-recheck-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Recheck AC1024 CLASSES extended-size and string-footer paths against current code",
+  "status": "NO_CLASSES_FAILURE_REPRODUCED_IN_CURRENT_LOCAL_AC1024_CORPUS",
+  "supportClaimEffect": "none",
+  "scope": "Reader-stage recheck only. The historical local note about AC1024 CLASSES high-size/string-footer failures was not reproduced by the samples available at this checkout.",
+  "formatAuthority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "10.2 R18+",
+    "printedPage": 87,
+    "relevantRule": "The class section has an RL size, followed for AC1024 maintenance versions greater than 3 by an optional RL described as an unknown high-size word. R2007+ class strings are in a separate string stream."
+  },
+  "binding": {
+    "commit": "2fa4c41b",
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "executableSha256": "85e349d019ea0087dbffe276927b6072cf76deda89c1d1ab2a7ec9289e2141e4",
+    "sourceSha256": {
+      "src/intern/dwgreader18.cpp": "27e6b5a33139d2c309fc799333715c01f9a5c3fe6cb5429b019e7c3109bbe055",
+      "src/intern/dwgreader.cpp": "3d0bdac8e5f866a7691d21523459dca4029caed7f768ed54fa8ac05ee5a71743",
+      "tests/dwg_reader_matrix_tests.cpp": "9a69867ab3c9907a74f089df889d3087db1f4c4dbfa11037e2cf93eaae262540"
+    }
+  },
+  "corpus": {
+    "sourceRoot": "/Users/dli/doc/dwg",
+    "ac1024SampleCount": 9,
+    "commandTemplate": "build-gcc/dwg2dxf/dwg2dxf <source> -y -d -v2010 <scratch-output>",
+    "result": "All nine DWG read operations report operationSucceeded=true and legacyError=0; each trace reaches dwgReader24::readDwgClasses END. Four samples enter the optional AC1024 maintenance-version >3 high-size branch and report high-size word 0.",
+    "samples": [
+      {
+        "name": "architectural_example-imperial.dwg",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": false,
+        "observedHighSizeWord": null,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-9.log",
+        "traceSha256": "5af9dc5c81762d1a81a1d034211e99c6ca77533f3555ad6c2796b5e1b43d832a"
+      },
+      {
+        "name": "civil_example-imperial.dwg",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": false,
+        "observedHighSizeWord": null,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-13.log",
+        "traceSha256": "20bdfa015cf81d3bb6f81e03d8d0cc2fa3202b041b1b8b321e730c0e863a29d1"
+      },
+      {
+        "name": "mechanical_example-imperial.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": false,
+        "observedHighSizeWord": null,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-17.log",
+        "traceSha256": "ea91285b97ac4bb165b71b29e89b6dea932bb75834297b41efebc0d5fa2ab8b1"
+      },
+      {
+        "name": "title_block-arch.dwg",
+        "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": false,
+        "observedHighSizeWord": null,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-22.log",
+        "traceSha256": "5f5abbd39ac680f212b814132d1f6b80159d720cb344003f6e5fae033ba952b2"
+      },
+      {
+        "name": "title_block-iso.dwg",
+        "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "path": "/Users/dli/doc/dwg/title_block-iso.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": false,
+        "observedHighSizeWord": null,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-23.log",
+        "traceSha256": "4eef896f4bb8e2b83a2f5849a7a01a21dada02f7fc2339f67038e2312a47c8ca"
+      },
+      {
+        "name": "visualization_-_aerial.dwg",
+        "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": true,
+        "observedHighSizeWord": 0,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-25.log",
+        "traceSha256": "023bb5b861372eb616970a880d7b02c770b91d1925a414d0b8c28a0cc1061cfc"
+      },
+      {
+        "name": "visualization_-_condominium_with_skylight.dwg",
+        "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "path": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": true,
+        "observedHighSizeWord": 0,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-26.log",
+        "traceSha256": "754a09a9883f3a635177f9ee4bf39fba1e339d0101f986cfbfe2e887a419230c"
+      },
+      {
+        "name": "visualization_-_conference_room.dwg",
+        "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": true,
+        "observedHighSizeWord": 0,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-27.log",
+        "traceSha256": "f2cf1145dc9f6e4894165a7f98563d4ce0293fe57ecca07a6d0b96959f926ff0"
+      },
+      {
+        "name": "visualization_-_sun_and_sky_demo.dwg",
+        "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+        "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+        "classReaderReachedEnd": true,
+        "dwgReadOperationSucceeded": true,
+        "legacyError": 0,
+        "optionalHighSizeBranch": true,
+        "observedHighSizeWord": 0,
+        "traceScratchPath": "/private/tmp/libdxfrw-ac1024-class-probe-28.log",
+        "traceSha256": "6a8bcb4dc6a0987bc63e2c5d2b3bbf98beb66913076e47ceac3ae9fd2f449962"
+      }
+    ]
+  },
+  "syntheticFooterControl": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "selector": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_r2007_class_string_footer$'",
+    "result": "PASS, 1/1 in 0.44 seconds. Tests the high-bit encoded string-size form, the unextended form, unaligned bit offsets, malformed/truncated bounds, and atomic cursor/output preservation using locally authored bytes; no drawing fixture is involved.",
+    "testExecutableSha256": "c1d7c31bb36e5c3548e71425f23039ec945f99b822b9ad3ed3348b618177d2ae"
+  },
+  "limitations": [
+    "The exact six failing AutoCAD 2010 RTM files described by the older note were not present as a separate named corpus; this recheck covers the nine AC1024 DWGs currently under the local source root.",
+    "The optional high-size words observed in the four local maintenance-version >3 files are zero; this does not prove handling of a nonzero high-size value or multi-gigabyte section.",
+    "Several complete DWG-to-DXF runs fail later at unrelated strict output, dynamic-block, or record gates. Those outcomes are outside CLASSES parsing and do not count as parser failures or successful whole-source conversions.",
+    "Passing these inputs does not establish full AC1024 reader coverage or promote format support claims."
+  ],
+  "planImpact": {
+    "completedOrStaleLead": "Do not reopen the former local AC1024 CLASSES high-size/string-footer hypothesis without a source that reproduces it against current code. The current nine-file corpus and synthetic footer selector pass.",
+    "remaining": "P6 remains open for other source- and consumer-backed DWG version/schema/semantic failures reproduced against current code."
+  },
+  "fixturesAdded": 0,
+  "fullSuites": "NOT RUN; focused synthetic footer selector and nine existing local AC1024 reader traces only."
+}

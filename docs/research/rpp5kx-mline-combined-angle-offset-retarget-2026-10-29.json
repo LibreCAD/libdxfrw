@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kx selected combined angle-and-offset MLINE retarget projection",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "7676606dfea478c3f6ff86d8b8d8824a8ca474b1",
+  "evidenceCommit": "7676606dfea478c3f6ff86d8b8d8824a8ca474b1",
+  "scope": "Extends the existing source-bound AC1027 open, uncut, unfilled MLINE retarget projection to one profile where the target MLINESTYLE changes both start/end angles and element offsets. It reuses the existing endpoint miter and first group-41 parameter projection. The receipt proves one exact source/output profile only; other numeric combinations and native CAD semantics remain unqualified.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Groups 49, 51 and 52 encode element offsets and start/end angles; group 70 contains documented style flags. The reference does not prescribe the adapter's geometry projection."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 is the MLINESTYLE pointer; group 13 records vertex miter directions; group 41 records per-element segment parameters, whose first value is the miter-distance to the line-element path intersection. Group 2 is redundant and must not be changed independently."
+    }
+  ],
+  "contract": {
+    "admission": "AC1027 source and output. The selected source style is flags=2 with two elements, offsets [1.25,-0.75], and angles 90/90 degrees. The target changes offsets to [1.5,-1.25] and angles to 60/120 degrees while keeping flags and element count. Both source-bound MLINE consumers are retargeted to the target through group 340; their redundant group-2 names stay unchanged. The admitted MLINE profiles are open, uncut, unfilled, three-vertex, positive finite scale, center/bottom justification, with valid source directions, miters and parameter arrays.",
+    "projection": "The implementation recognizes a coupled projection when the target has known flags, equal flags and arity, and finite angles. It derives changed endpoint miter vectors from the target angles and recomputes each first group-41 distance using the target offset and target justification minimum. The source profile validates existing geometry and parameters against the original style before projecting. The selected bottom-justified consumer has a changed minimum offset, so its justification shift is exercised.",
+    "identityAndOutput": "Across ASCII/binary source and output combinations, the receipt checks target MLINESTYLE group 70, groups 49/51/52, output ownership and identity; MLINE group 340 points to the emitted target while group 2 remains original; each emitted group-13 miter and group-41 value matches independently calculated expected values. Fresh import verifies the two style bodies and both consumers' handles, unchanged redundant names, geometry, miter vectors, parameters and empty fill arrays.",
+    "failureAndRetry": "For both output encodings, changing the target flags from 2 to 0 refuses before publication and preserves destination/caller state; restoring flags permits same-adapter retry. For both output encodings, a late consumer parameter mutation after entity emission refuses without publication; restoring the caller snapshot permits same-adapter retry.",
+    "compatibility": "No public API or DRW_Interface virtual changes. The regression creates its source DXF at runtime and uses temporary outputs; no fixture file is committed. Existing angle-only and offset-only projections continue to pass their focused selectors.",
+    "limits": "Evidence covers only AC1027, flags 2, equal two-element arity, source offsets [1.25,-0.75], target offsets [1.5,-1.25], source angles 90/90, target angles 60/120, and the exact source-bound open/uncut/unfilled consumer profiles. Other angle/offset values, other combinations, flag or arity differences, cuts, closures, fills, other carriers or versions, native CAD rendering, complete document closure, and support claims remain unqualified."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "observedCombinedControls": "profiles=4; readbacks=8; flagRefusals=2; lateMutationRefusals=2; sameAdapterRetries=4",
+    "standaloneRegressionControls": "The same focused selector retains the 90/90-to-60/120 angle-only profiles, refusals and retries. The offset-only retarget selector also passes."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2"
+      ]
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "summary": "Both affected retarget projection selectors passed.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_(angle|offset)_projection$' --output-on-failure"
+    },
+    "observedAngleSelector": "angle-only profiles=4; readbacks=8; refusals=2; late=2; retries=4; combined profiles=4; readbacks=8; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "12cd9a28c4ca61711082773f32d12ad1a81f2386527b717ba0869f9832ab1fd6",
+    "tests/dxf_fixture_tests.cpp": "fe80445931d0a0d7407788bdec9f69d39b7845948eccce6b7ed896a965b7f650"
+  },
+  "next": "Select a distinct source-backed MLINE retarget witness outside the exact coupled angle/offset profile. Consider changed flags or element arity only with an independently justified expected effect on consumer geometry and emitted fields. Keep unsupported profiles atomically refused if the missing semantic layer cannot be proved."
+}

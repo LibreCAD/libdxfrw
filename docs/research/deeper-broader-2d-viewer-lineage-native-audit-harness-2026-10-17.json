@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw-deeper-broader-2d-viewer-lineage-native-audit-harness-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Screen newly surfaced downstream 2D viewer and current OpenCADStudio automation/acceptance documentation; refine only existing consumer-evidence and peer-lineage rules.",
+  "method": {
+    "kind": "Primary-source public repository and documentation review with local plan reconciliation",
+    "sourceRevisionsPinned": false,
+    "repositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "convertersRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/SedatTelli/cadze",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://github.com/seaflower205/Sea-DXF-Core"
+    ],
+    "evidenceBoundary": "Mutable project documentation establishes declared route composition and test-harness shape only. No artifact, codec behavior, output, native acceptance result, or geometry semantic result was independently reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "Cadze is a LibreDWG-backed 2D downstream path, not an independent DWG parser",
+      "source": "https://github.com/SedatTelli/cadze",
+      "observed": [
+        "The repository describes its DXF input as using dxf-parser.",
+        "The documented DWG route invokes dwg2dxf/LibreDWG as a separate process, then reads the resulting DXF.",
+        "The public repository page identifies an MIT license and describes a WebGL2 2D viewer/editor projection.",
+        "The README does not establish a pinned release, complete object/owner graph, DWG/DXF writer round-trip contract, or ACIS/AcDs semantics."
+      ],
+      "doesNotEstablish": [
+        "A second DWG parser lineage independent from LibreDWG",
+        "Complete DXF preservation or a strict entity/object inventory",
+        "3D mesh, ACIS, AcDs, B-rep, or native CAD acceptance"
+      ],
+      "planUse": "Only an optional downstream 2D projection observation if a named consumer question requires it. Bind DWG results to LibreDWG lineage and DXF parsing to dxf-parser; do not add a routine peer build or infer writer behavior from the UI."
+    },
+    {
+      "topic": "OpenCADStudio documents separate self-reopen and external native-audit steps",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+      "observed": [
+        "save_verified is documented to write an explicit format/version, reopen through the same application, compare an entity manifest, check version and raw DXF handles, report loss, and return a hash.",
+        "The docs separately describe a Windows reference-CAD console script that opens generated DWGs and runs AUDIT without repairs, retaining per-version logs.",
+        "OpenCADStudio is already classified in the plan as ACadRust-related; the documented self-reopen route is therefore correlated with its own codec lineage."
+      ],
+      "doesNotEstablish": [
+        "That either script has passed on a pinned application build",
+        "Independent parser evidence from same-application reopen",
+        "FreeCAD platform qualification or independent ACIS/AcDs semantic evidence"
+      ],
+      "planUse": "At the existing composed writer checkpoint, store application self-reopen and separately executed reference-CAD audit as distinct outcomes. If used, pin application/build and codec/kernel revisions, input/output hashes, target version, loss list, audit log, errors, repairs/deletions, and timeout."
+    },
+    {
+      "topic": "No eligibility boundary changed for CADKernel or Sea-DXF Core",
+      "sources": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats",
+        "https://github.com/seaflower205/Sea-DXF-Core"
+      ],
+      "observed": [
+        "CADKernel's detailed format matrix continues to mark SAT/SAB unsupported; general format-count claims do not make it an ACIS route.",
+        "Sea-DXF Core's project statements reserve rights and say public visibility grants no permission to use or redistribute the source."
+      ],
+      "doesNotEstablish": [
+        "Implementation behavior for either project",
+        "An open-source peer eligibility change or any result applicable to libdxfrw"
+      ],
+      "planUse": "Retain CADKernel's ACIS exclusion and Sea-DXF Core's license-based exclusion; do not clone, build, run, copy, or derive implementation material from the excluded project."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newPeerGateAdded": false,
+    "newCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 129,
+    "topLevelImplementationSubplans": 72,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local fast implementation slices without waiting for optional peer or consumer runtimes.",
+      "At the existing composed checkpoint only, distinguish downstream projection, same-application reopen, and independent native audit as separate evidence roles.",
+      "Keep LibreDWG and dxf-parser route lineage visible if Cadze is ever used for a named 2D consumer question.",
+      "Keep FreeCAD Linux/Windows qualification and independent ACIS/AcDs semantic evidence unchanged."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "codeChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "notes": "The receipt parsed with jq, the plan passed scoped git diff --check, and the receipt has no trailing whitespace. No local test, peer runtime, or native application was run."
+  }
+}

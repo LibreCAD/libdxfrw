@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-imagedef-dictionary-key-borrowed-basename-view-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.45",
+  "scope": "Remove a temporary filename-basename allocation from IMAGEDEF dictionary emission while preserving generated ASCII/Binary DXF key semantics.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "IMAGEDEF group-3 dictionary keys are emitted from a string_view over the basename range rather than a temporary std::string from substr(). Both slash separators, final-extension stripping, a filename without an extension, and a dot before the basename retain the previous substring result.",
+    "publicApiChanged": false,
+    "publicLayoutChanged": false,
+    "callbackContractChanged": false,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --image-adjustment-admission",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/imagedef-dictionary-key-borrowed-basename-view-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "generatedControls": {
+      "asciiPath": "virtual.folder\\nested/adjustment.control.png",
+      "asciiExpectedDictionaryGroup3": "adjustment.control",
+      "binaryPath": "virtual.folder\\nested/adjustment_control",
+      "binaryExpectedDictionaryGroup3": "adjustment_control",
+      "linkAssertion": "The selected DICTIONARY record has group 350 matching the emitted IMAGEDEF group-5 handle.",
+      "outputFiles": "Existing test-owned temporary DXF path; removed by test cleanup.",
+      "externalInputsDownloaded": 0
+    },
+    "fullSuiteRun": false,
+    "allocatorCountMeasured": false,
+    "peakRssMeasured": false,
+    "throughputMeasured": false,
+    "gitDiffCheckPassed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingDirtyChangesPreserved": true,
+    "committed": false,
+    "reason": "The shared checkout contains broad unrelated modifications and Git metadata is read-only."
+  }
+}

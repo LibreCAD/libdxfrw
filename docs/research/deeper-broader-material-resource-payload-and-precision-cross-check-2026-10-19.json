@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader MATERIAL resource and payload completeness; numeric precision cross-check",
+  "mode": "Official DXF schema, current open-source project source/release review, and local read-only source/test audit",
+  "scope": [
+    "Reconcile the active MATERIAL implementation slice against Autodesk's DXF object and reference schema.",
+    "Compare material record modeling/output patterns and evidence limits in ezdxf, ACadSharp, and LibreDWG.",
+    "Check whether the peer-reported ASCII floating-point precision failure exposes a duplicate local gap.",
+    "Turn the existing PAR-20/7G.3f.4b.2 material work into short, dependency-ordered implementation slices."
+  ],
+  "method": {
+    "kind": "Read-only review of current primary documentation/source/release pages and local source/tests",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer source and release notes are operation-specific implementation evidence, not native interoperability results. The review did not execute a peer or material renderer. DWG-origin visual-material conversion still requires the ODA DWG object layout and authorized producer/sample evidence before implementation claims."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF schema",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "observed": "MATERIAL is a rich OBJECTS record owned through the NOD ACAD_MATERIAL entry; entity group 347 is a material hard-pointer. The material schema includes ordered map/color/matrix data and contextual group-code reuse.",
+      "evidenceCeiling": "Normative DXF record layout and reference roles; it does not define the local adapter's lossless storage or native rendering result."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/material.py",
+        "https://github.com/mozman/ezdxf",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "The material implementation models and emits fields in contextual groups and handles mapper matrices separately from the ordered DXF tag stream; ezdxf is useful as a DXF record-level comparator but does not provide general ACIS geometry semantics.",
+      "evidenceCeiling": "Mutable DXF implementation source and project scope declarations; no pinned runtime, local input run, or native CAD acceptance was performed."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Entity.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Tests/IO/WriterSingleObjectTests.cs",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "The v3.6.35 release notes include merged PR #1084 material write support; the current entity model maps group 347 to a Material object reference and the generated writer test list includes SingleMaterial. A separate open 3DSOLID/REGION DXF-writer report concerns ACIS carrier output, not MATERIAL records.",
+      "evidenceCeiling": "Project/release source and synthetic test declaration, not external application acceptance or proof of every MATERIAL payload field."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in"
+      ],
+      "observed": "The current class registry labels MATERIAL UNSTABLE.",
+      "evidenceCeiling": "A project maturity label, not a normative schema, exact profile failure, or universal implementation claim."
+    },
+    {
+      "project": "ACadSharp ASCII precision issue / local numeric path",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1179",
+        "https://github.com/DomCR/ACadSharp/pull/1186",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "ACadSharp #1179 documented a 15-significant-digit ASCII output failure; #1186 merged a configurable precision change into ACadSharp master on 2026-08-18. Local DxfNumeric uses max_digits10, and numeric_locale_tests already covers the reported coordinate pair, adjacent doubles, signed zero, subnormal/extreme values, and ASCII file-level readback.",
+      "evidenceCeiling": "Peer issue/fix history does not establish the behavior of every released ACadSharp artifact. Local source and test presence establish existing coverage, not a new test execution in this research pass."
+    }
+  ],
+  "localAudit": {
+    "pathsReviewed": [
+      "src/drw_objects.cpp: DRW_Material::parseCode and parseDwg",
+      "src/drw_objects.h: DRW_Material model and opaque DWG tail contract",
+      "src/libdxfrw.cpp: dxfRW::processMaterial, dxfRW::writeMaterial, and common group-347 remap",
+      "dwg2dxf/dx_data.h: typed material collection and absence of rawMaterials",
+      "dwg2dxf/dx_iface.h: typed addMaterial callback",
+      "dwg2dxf/dx_iface.cpp: addRawDxfObject routing and ACAD_MATERIAL helper paths",
+      "src/intern/dxfnumber.h: DxfNumeric::formatDouble",
+      "tests/numeric_locale_tests.cpp: exact-double ASCII writer/readback tests",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-20/7G.3f.4b.2 progress"
+    ],
+    "confirmedState": "dxfRW::processMaterial already captures ordered raw groups and emits both the typed DRW_Material callback and raw DXF callback in one pass. Typed MATERIAL parsing/writing covers name and description only. The default adapter retains typed materials but addRawDxfObject has no MATERIAL route, so its raw callback is dropped at the application boundary. Modern opaque DWG material tail bytes are version-bound wire data, not a DXF visual-field representation. Entity group-347 remapping is implemented/tested but does not prove target record emission or NOD closure.",
+    "commentMismatch": "No stale capture comment was established: the parser does emit a raw carrier. The missing route is in dx_iface/dx_data, so implement adapter retention and avoid changing the already-correct same-pass parser capture.",
+    "precisionControl": "Local ASCII format uses std::numeric_limits<double>::max_digits10 and existing tests cover the ACadSharp #1179 example and exact file readback. No duplicate implementation or test is justified by this peer report."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "existingConfirmedGapReconfirmed": "MATERIAL group-347 identity is fixed; full ordered DXF payload retention and ACAD_MATERIAL root/owner closure remain open in existing PAR-20/7G.3f.4b.2.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-20/7G.3f.4b.2",
+    "planEffect": "Specify ordered slices: reuse existing one-pass raw+typed DXF callbacks by adding bounded adapter retention/provenance; exact root/owner/347 closure with remap and output preflight; complete ordered DXF-origin payload replay; keep DWG-origin cross-format material fields gated on ODA/sample-backed mapping; test via existing generated DXF test owner.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "generatedFixtureFilesAdded": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

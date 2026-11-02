@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "SAB 21800 sphere-surface analytic parameter projection",
+  "mode": "Generated local S3.7c fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly dirty. This slice changes ACIS projection code, its graph-preservation regression, and plan/receipt documentation. Nothing was staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab-21800-sphere-surface-parameters-fast-slice-2026-10-21.json"
+    ]
+  },
+  "research": {
+    "source": "ACadRust published SatSphereSurface typed-record documentation",
+    "url": "https://docs.rs/acadrust/latest/acadrust/entities/acis/types/struct.SatSphereSurface.html",
+    "observedLayout": "center, radius, U direction, pole direction",
+    "evidenceCeiling": "Peer format documentation guides this bounded 21800 interpretation. It is not ODA normative guidance, an independently produced semantic oracle, or native consumer qualification."
+  },
+  "implementation": {
+    "fixturePolicy": "Generated in-memory SAB 21800 controls only; no persistent DWG, DXF, or SAB fixture was added.",
+    "change": "Project sphere-surface center, signed radius, U direction, and pole direction into DRW_AcisFace; allow the recognized type through rooted traversal and validate all projected numeric fields for finiteness.",
+    "fieldMapping": {
+      "center": "DRW_AcisFace::p0",
+      "poleDirection": "DRW_AcisFace::p1",
+      "uDirection": "DRW_AcisFace::p2 with hasUDir=true",
+      "signedRadius": "DRW_AcisFace::majorRadius, the legacy shared radius slot"
+    },
+    "assertions": [
+      "A generated SAB 21800 sphere-surface parses and projects through the rooted-body path.",
+      "Center, signed radius, U direction, and pole direction match the generated source fields.",
+      "The projected report does not claim B-rep validity.",
+      "A parser-fed NaN radius refuses with InvalidModel and clears prior output transactionally."
+    ],
+    "claimBoundary": "Analytic parameter projection only. No sphere boundary construction, tessellation, B-rep validity, producer conformance, external semantic support, or native consumer support is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.17s)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp src/drw_acis.h tests/graph_preservation_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": true,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue the next dependency-ready local S3.7c/PAR-07 slice; do not wait for external or native semantic qualification."
+}

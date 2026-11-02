@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-modeler-payload-status-api-fast-slice-v1",
+  "date": "2026-10-16",
+  "scope": "Expose and fast-test a computed classification of modeler carrier evidence without interpreting ACIS syntax or changing DRW_ModelerGeometry object layout.",
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/semantic_differential_adapter.cpp"
+    ],
+    "productionBehaviorChanged": false,
+    "dataMembersAdded": false,
+    "virtualCallbacksAdded": false,
+    "semanticAdapterCompatibility": "The adapter adds modelerPayloadStatus when detected with SFINAE and records the field as excluded for an older API without the accessor.",
+    "statuses": [
+      {
+        "name": "Unknown",
+        "meaning": "No exposed payload bytes or expectation evidence."
+      },
+      {
+        "name": "ExplicitlyEmpty",
+        "meaning": "The DWG empty indicator is set and no contradictory carrier/expectation evidence is exposed."
+      },
+      {
+        "name": "CarrierBytesPresent",
+        "meaning": "Nonempty extracted DWG ACIS bytes, linked DataStorage bytes, or a bounded DXF group 1/3/310 payload chunk is present."
+      },
+      {
+        "name": "ExpectedButUnavailable",
+        "meaning": "A modeler/DataStorage flag or record indicates expected data, but no recognized carrier bytes are available; retained DWG frame bytes do not count as ACIS payload."
+      },
+      {
+        "name": "Contradictory",
+        "meaning": "Explicitly-empty state conflicts with expected or recognized carrier data."
+      }
+    ],
+    "generatedCoverage": [
+      "All five statuses",
+      "Bounded DXF payload chunk accepted and out-of-bounds chunk ignored",
+      "Extracted inline and linked DataStorage byte carriers",
+      "Retained DWG frame with expected-but-unavailable payload",
+      "Semantic adapter populated, empty, and unavailable observations"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4",
+      "ctest --test-dir build-gcc -R 'libdxfrw_(dwg_local_roundtrip|semantic_adapter_selftest)' --output-on-failure",
+      "python3 -B tools/build_semantic_adapter.py --self-test",
+      "git diff --check"
+    ],
+    "strictBuild": "PASS",
+    "focusedCTest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 3.18
+    },
+    "semanticAdapterSelfTest": "PASS",
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "externalPeerOrNativeRuntimeRun": false
+  },
+  "limitations": [
+    "Carrier status does not validate SAT/SAB grammar, owner association correctness, topology, or geometric semantics.",
+    "A present byte carrier is not proof of a complete or supported source solid.",
+    "No fixtures, dependencies, CTest registrations, or support claims were added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

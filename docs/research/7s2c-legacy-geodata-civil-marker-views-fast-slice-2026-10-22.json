@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c legacy GEODATA Civil-marker views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Compare version-1 GEODATA Civil block sentinels through the current raw string-token view rather than materialize temporary UTF-8 strings.",
+    "routes": [
+      "DRW_GeoData::parseCode group 3 CIVIC3D_DATA_BEGIN",
+      "DRW_GeoData::parseCode group 4 CIVIC3D_DATA_END"
+    ],
+    "lifetime": "The non-owning begin-marker view and end-marker comparison are consumed synchronously before another readRec() invalidates the token.",
+    "behavior": "Exact ASCII marker state routing is unchanged. Generated 32-KiB lookalikes do not activate or terminate the legacy Civil block.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-civil-marker-views",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_civil_marker_views$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "compatibility_build": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "compatibility_build_result": "PASS",
+    "coverage": "Generated ASCII/Binary legacy GEODATA parser controls validate exact begin/end routing and both 32-KiB nonmatching marker cases.",
+    "diff_check": "PASS (CMakeLists.txt, src/drw_objects.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue auditing exact-source fixed structural-token paths for temporary string materialization; verify raw versus decoded semantics and version gates, and continue local work independently of external qualification."
+}

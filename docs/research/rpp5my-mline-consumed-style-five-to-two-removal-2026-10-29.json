@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5my five-element consumed MLINE style to each two-element survivor pair",
+  "date": "2026-10-29",
+  "status": "SELECTED_SURVIVOR_PROFILE_QUALIFIED",
+  "codeCommit": "9a47a896",
+  "scope": "Qualifies the selected AC1027 removal from a five-element consumed MLINESTYLE to two elements for all ten ordered survivor pairs. It confirms this exact ordered-survivor projection and transaction path, not arbitrary MLINE edits or document support.",
+  "contract": {
+    "sourceStyle": {
+      "elementCount": 5,
+      "offsets": [1.25, -0.75, -1.25, -2.0, -2.5],
+      "aciColors": [1, 3, 4, 5, 6],
+      "linetypes": ["ByLayer", "Continuous", "ByLayer", "Continuous", "ByLayer"]
+    },
+    "operation": "Enumerate all C(5,2)=10 source-index pairs, retain each pair in order, and remove the other three tuples. Reproject dependent MLINE arrays against the target style minimum and preserve source identity.",
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "consumers": "Two source-bound open, uncut, unfilled MLINE consumers: one in model space and one in a named block, under the two admitted justifications.",
+    "outputAndReadback": "For every survivor pair verify exact ordered groups 49/62/6, MLINESTYLE group 71, consumer group 73, group 340 identity, group 74/group 41/group 75 arrays, recomputed target-minimum parameters, and fresh style/consumer readback.",
+    "failureAndRetry": "Unsupported flags are refused for ASCII and binary output without replacing sentinel destinations or mutating the caller; restoring flags succeeds on the same adapter. A late live-consumer parameter mutation is refused without replacing output; restoring the source snapshot succeeds on the same adapter."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_(single_from_(four|five)|two_from_five)_removal$' -j3 --output-on-failure",
+      "fiveToTwoResult": "PASS: all ten survivor pairs × four source/output encodings, with refusal/rollback/retry and late-consumer mutation/retry controls.",
+      "regressions": "PASS: prior four-to-one and five-to-one profiles through the shared subset harness."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "9a47a896",
+    "tests/CMakeLists.txt": "323d2a397fd517a66a1836ec7f36877874b81140",
+    "tests/dxf_fixture_tests.cpp": "00712dcbf99b5afb2c874379904ae1f9f76724c7",
+    "testExecutableSha256": "3b398a3edc314f850a0ee87c0389c6065ecfe1616a297076b30eb0dec236391c",
+    "fixturePolicy": "DXF files are generated at runtime and removed after success. No testing DWG/DXF fixtures were committed."
+  },
+  "limits": [
+    "Only this five-element AC1027 to two-element ordered-removal profile and its generated tuple recipe are qualified.",
+    "Other removal targets/source counts, flags, geometry, versions, carriers, native semantics and full-document closure remain open.",
+    "No DWG, independent-kernel, platform or 3D support claim is promoted."
+  ],
+  "next": "Continue the five-element removal family to another target count or select the planned exact count-71/alternate geometry witness; bind each exact result, output/readback and transaction controls before expanding support claims."
+}

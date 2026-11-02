@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-geometry-prefix-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 constraint node names, envelopes and geometrical class prefix",
+  "status": "FIRST_CLASS_FAMILY_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "baseCommit": "0f34321c",
+  "scope": "Decode bounded detached class names, inline node IDs/connections and the witnessed version-0 plain geometrical constraint class body; preserve unsupported class data and following nodes as raw.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "nextNodeId": 523,
+    "serializedNodeCount": 399,
+    "independentReader": "acadrust 5b58ed25bf300867d041f6801aee2e4bc0f89733"
+  },
+  "odaSpecification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "result": "Searches for ACDBASSOC2DCONSTRAINTGROUP, AcDbAssoc2dConstraintGroup and ConstraintGroupNode found no class-specific body layout. ODA remains the authority for generic DWG primitives; the witnessed class profile is peer/runtime evidence only."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "nodeFields": [
+      "Detached UTF-16 class name, capped at 256 code units before decoding.",
+      "Node ID and bounded connection count/vector.",
+      "For the witnessed plain geometrical constraint family: owner ID and implied bit.",
+      "Version-0 active-bit absence is explicit; no active value is synthesized."
+    ],
+    "plainGeometricalClasses": [
+      "AcCenterPointConstraint",
+      "AcColinearConstraint",
+      "AcConcentricConstraint",
+      "AcEqualCurvatureConstraint",
+      "AcEqualDistanceConstraint",
+      "AcEqualHelpParameterConstraint",
+      "AcEqualLengthConstraint",
+      "AcEqualRadiusConstraint",
+      "AcFixedConstraint",
+      "AcMidPointConstraint",
+      "AcNormalConstraint",
+      "AcPerpendicularConstraint",
+      "AcPointCoincidenceConstraint",
+      "AcPointCurveConstraint",
+      "AcSymmetricConstraint",
+      "AcTangentConstraint"
+    ],
+    "unknownBehavior": "Retain the bounded node envelope where available, mark class data unparsed, and stop before the unknown class body; keep the remaining object raw/unvalidated.",
+    "realSourceObservation": "The actual sample decoded four node envelopes: three geometrical class bodies (first AcEqualLengthConstraint, last AcPointCurveConstraint) and the next AcConstrainedImplicitPoint envelope. The remaining 395 serialized nodes and that unsupported class body remain raw; nodesParsed=false.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "generatedControls": [
+    "Version-2 empty group and version-0 empty group.",
+    "One version-0 AcEqualLengthConstraint with exact ID, connection vector, owner, implied flag and absent active flag.",
+    "Unknown class preserves its common envelope and following object.",
+    "257-code-unit class name is rejected before class-body allocation/consumption.",
+    "Negative next-node seed, over-bound action/node counts and version-2 nonzero-seed registry boundary."
+  ],
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-ac1024-node-semantic-slice.dxf",
+      "result": "Expected strict refusal; trace reports 523/399, four decoded envelopes, three typed geometrical nodes, then dwg-associative-graph-not-serialized. No output file.",
+      "logSha256": "2e4e1a3b2297a53be7bb60ce3aa638e6e3c77bceaf85468acb6a5dedac033661"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-ac1024-node-semantic-slice-asan.dxf",
+      "result": "Same strict refusal and trace; no AddressSanitizer diagnostic and no output file.",
+      "logSha256": "2e4e1a3b2297a53be7bb60ce3aa638e6e3c77bceaf85468acb6a5dedac033661"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "69faf83557a4ec393faed8e9cb8a27c32be31dec270399b907c1033cbaf30c41",
+    "src/drw_objects.h": "0253eacb9becc3812375e8760f2a2c1eb8c703590c3396f3c58ea3c7cd7cdd48",
+    "tests/associative_constraint_group_test_helpers.h": "ddad6036d1c8babd124dd7b5f764a4e302513bee8cd493f90d20355bb44dc6e6",
+    "tests/dwg_reader_matrix_tests.cpp": "aa518907272bdd3ebfaf3c06a9010f2c07ff45e84038e976000931efbad5a934",
+    "build/dwg2dxf/dwg2dxf": "e79eca6af3d5eb067b8ec77d0748184d704ef420b3736b42eb41aa51977d2824",
+    "build/libdxfrw_dwg_reader_matrix_tests": "665571b181b83ded6e7c0f07e81af6085f81c290c95d364d64ae3770857bded8",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "71c99786c9f22644dc05cde698a9314844104ebcadae935d1ef605d9456f8773",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "e0c83642699dbe848af87fcd5a7d6e714d706bd20ed03db5737b12f1881632dd"
+  },
+  "nextAction": "Implement AcConstrainedImplicitPoint using source-matched body and handle-stream boundaries, then continue the exact source-order node classes while keeping unsupported tails raw."
+}

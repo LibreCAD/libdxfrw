@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader Aetheris STEP consumer and kernel-route refresh",
+  "mode": "primary-source release/documentation review and local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Revisit the historical Aetheris candidate disposition after Preview 3 appeared",
+    "Separate bounded STEP AP242 import from DWG/DXF/SAT/SAB parsing and AcDs ownership",
+    "Check platform, source-lineage, kernel-independence, and license constraints",
+    "Add only a conditional composed-checkpoint evaluation recipe"
+  ],
+  "method": {
+    "kind": "Read-only review of project README, release notes, supported-feature matrix, license, and existing local research plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-route-closure-and-stop-rule-2026-10-16.json"
+    ],
+    "limitations": "Aetheris sources are project-authored and mostly on mutable master. The exact Preview 3 source commit, release archive/checksum, dependency graph, STEP reader implementation, and kernel lineage were not resolved or audited. No runtime or geometry control was exercised."
+  },
+  "sources": [
+    {
+      "project": "Aetheris",
+      "urls": [
+        "https://github.com/yuechen-li-dev/Aetheris",
+        "https://github.com/yuechen-li-dev/Aetheris/blob/master/docs/public/reference/release-notes.md",
+        "https://github.com/yuechen-li-dev/Aetheris/blob/master/docs/public/reference/supported-features.md"
+      ],
+      "revision": "Preview 3 release claims and mutable master documentation reviewed 2026-10-18; exact source commit not pinned",
+      "observed": "Preview 3 documents bounded single-body STEP AP242 import/export and parser-backed sphere/cone/torus routes. The support matrix excludes general containment and multi-root bodies from native-part promises; release notes identify imported-containment and source-unit-preservation limitations. The release bundle is qualified only for Windows x64. The project describes a .NET kernel but this pass did not establish implementation/dependency independence from OCCT. No DWG, DXF, SAT, SAB, or AcDs input route was established."
+    },
+    {
+      "project": "Aetheris license and third-party assets",
+      "urls": [
+        "https://github.com/yuechen-li-dev/Aetheris/blob/master/LICENSE",
+        "https://github.com/yuechen-li-dev/Aetheris/blob/master/THIRD_PARTY_NOTICES.md"
+      ],
+      "revision": "Mutable master license/notice reviewed 2026-10-18",
+      "observed": "Repository identifies AGPL-3.0 and separate third-party asset provenance. This pass did not inspect the bundled assets or offer legal advice. No code, package, release binary, or test model was acquired."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Supersedes the older statement that Aetheris had no relevant reader by adding a conditional STEP-consumer candidate for an already-planned composed checkpoint. It remains unqualified and does not fill DWG/DXF, ACIS/AcDs, native FreeCAD, or independent-kernel evidence gaps. No implementation queue or validation cadence change.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not install/build Aetheris during a normal implementation slice; consider it only if a specific existing composed semantic-evidence cell needs a STEP consumer.",
+    "Pin Preview 3 archive checksum, source commit, runtime, invocation, and exact STEP profile; audit source/dependencies before calling it an independent kernel.",
+    "Use only a locally authored asymmetric single-body control and explicit units/transforms; do not use Aetheris or its corpus as a source-DWG/ACIS fixture.",
+    "Require documented diagnostics and independent analytic expectations; imported source-unit or containment ambiguity is non-passing until resolved.",
+    "Keep parser, producer, STEP artifact, kernel, AcDs owner join, native FreeCAD, and platform qualification as separate evidence cells.",
+    "Do not copy/vendor code or add an Aetheris dependency; do not promote J256, J260, J268, J284, J293, or J295 from documentation alone."
+  ],
+  "validation": {
+    "receiptJsonValidation": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

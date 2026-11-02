@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "LibreDWG AcDs reader-source, release, and writer boundary",
+  "mode": "deeper/broader primary-source research and plan refinement; bounded local oracle calibration attempted",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG issue #1411's pinned release report with current master source.",
+    "Separate AcDs section reading, writer availability, exact SAB profile, and semantic geometry evidence.",
+    "Attempt a bounded binary-DXF oracle control using only generated scratch artifacts."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "finding": "The issue report pins the observed R2013+ AcDs/SAB loss to LibreDWG 0.14.8593 at 8a1ae764 and provides a reproducible ezdxf-generated R2018 DXF recipe plus a separate confidential DWG report.",
+      "evidenceClass": "release-specific peer bug report; not independently reproduced here"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "finding": "Current master contains read_2007_section_acds() and dispatches it from R2007+ metadata processing; this establishes source-visible reader code, not the behavior of the reported release or a successful run.",
+      "evidenceClass": "mutable current-source implementation inspection"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+      "finding": "The schema reader parses AcDs indexes/schemas, scans the section data for ACIS BinaryFile spans, and associates extracted spans through the queued 3DSOLID handle list. Some segment bodies are explicitly warned as unhandled; no encoder block is present in the inspected file.",
+      "evidenceClass": "mutable source-level structural-reader inspection; not semantic or writer qualification"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/Makefile.am",
+      "finding": "The current build source list leaves encode_r2007.c commented out, consistent with the narrower DWG writer scope described by the project documentation.",
+      "evidenceClass": "mutable build configuration inspection"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "finding": "Project tool documentation says current dxf2dwg/dwgwrite does not write R2007 DWG, distinguishing broad read coverage from narrower writer capability.",
+      "evidenceClass": "project-published tool scope; no peer executable was run"
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "finding": "ezdxf documents SAT for DXF R2000-R2010 and SAB for R2013+, while its mesh projection is limited to flat polygonal faces and is not a general ACIS kernel.",
+      "evidenceClass": "peer DXF profile documentation and explicit semantic limit"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "finding": "The visible ACadRust helper manufactures an ASM BinaryFile marker envelope and its planar-body DWG test uses the same library writer and reader; these are not interchangeable with LibreDWG's ACIS BinaryFile scan or independent semantic acceptance.",
+      "evidenceClass": "peer self-test source inspection; mutable main branch"
+    }
+  ],
+  "assessment": {
+    "issue1411": "Keep as a negative report for the pinned 0.14.8593 route. Current master has a reader code path, so the broad present-tense claim that LibreDWG has no AcDs reader is stale for inspected master source; whether the reported release bug is fixed is unverified.",
+    "readerWriterBoundary": "Current source supplies structural AcDs parsing and SAB extraction code, but the inspected AcDs schema contains no encoder path and project build/docs do not establish a modern R2013+ DWG writer. Do not use LibreDWG as a positive modern AcDs writer candidate without new source and artifact evidence.",
+    "profileBoundary": "Keep ACIS BinaryFile, ASM BinaryFile, ACIS 21800, and version-specific SAT/SAB carrier paths separately named and tested.",
+    "localOracleCalibration": "LibreDWG dxfwrite produced a binary scratch DXF but emitted duplicate-handle and unknown-MATERIAL warnings. ODA File Converter 27.1.0 aborted during macOS Cocoa/pasteboard initialization before readback. Calibration outcome is NOT_RUN; no defect or support claim follows."
+  },
+  "planUpdate": [
+    "Bind peer observations to exact release/commit, build configuration, platform, format version, conversion direction, input hash/provenance, diagnostics, and per-record output disposition.",
+    "Treat current LibreDWG master as an optional structural reader comparison only; compare section framing, segment/index/key association, owner handle, payload length/hash, and semantics in separate stages.",
+    "Do not port scan-and-queue logic without ODA/spec/sample evidence and a local ownership/identity audit; retain the existing owner-keyed local AcDs route.",
+    "Keep the generated issue reproducer scratch-only; require a distinct producer and pre-authored expected manifest for positive modern DWG semantic qualification.",
+    "At the existing composed validation checkpoint only, mark unavailable ODA/native routes NOT_RUN and continue the next dependency-ready local implementation slice."
+  ],
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "verification": {
+    "planDiffReview": "passed targeted review of the newly added summary, issue #1411 row correction, appended research section, and 3D-plan summary",
+    "receiptJsonParse": "passed with jq empty",
+    "markdownDiffCheck": "passed git diff --check for the two edited plan files",
+    "codeTests": "not applicable; no source or test code changed",
+    "externalExecution": "attempted only in scratch; dxfwrite warnings and ODA startup abort prevented an oracle result"
+  },
+  "workingTree": "Broad user changes were already present. This research slice intentionally changes only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, DWG_DXF_3D_SUPPORT_PLAN.md, and this receipt; nothing was staged or committed. Temporary generated controls remain outside the repository under /private/tmp."
+}

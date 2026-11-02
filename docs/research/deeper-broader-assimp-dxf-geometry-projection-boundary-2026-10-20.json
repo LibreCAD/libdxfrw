@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Assimp DXF geometry-projection boundary",
+  "mode": "Primary-source cross-project research and implementation-plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the DWG/DXF open-source comparison to include a 3D scene importer, distinguishing mesh projection from CAD-document semantics.",
+    "Review Assimp's pinned DXF loader, relevant issue history, release notes, Autodesk's explicit 3DFACE contract, and GDAL's separate raw-ASM DXF route.",
+    "Refine PAR-07/S8 comparator selection without adding a local finding, runtime dependency, test, fixture, or support claim."
+  ],
+  "sources": [
+    {
+      "project": "Assimp",
+      "urls": [
+        "https://github.com/assimp/assimp/releases/tag/v6.0.5",
+        "https://github.com/assimp/assimp/blob/v6.0.5/code/AssetLib/DXF/DXFLoader.cpp",
+        "https://github.com/assimp/assimp/blob/v6.0.5/doc/Fileformats.md",
+        "https://github.com/assimp/assimp/issues/2645",
+        "https://github.com/assimp/assimp/issues/3286",
+        "https://github.com/assimp/assimp/issues/5422",
+        "https://github.com/assimp/assimp/pull/5426",
+        "https://github.com/orgs/assimp/discussions/6213"
+      ],
+      "revision": "v6.0.5 release, short source commit 392a658, and its DXFLoader.cpp inspected 2026-10-20; issue pages and later release history inspected the same day. No executable/package was installed or run.",
+      "observed": "The pinned loader projects a bounded DXF subset into aiScene meshes. It handles POLYLINE, INSERT, 3DFACE/LINE/3DLINE and selected POINT records, and explicitly skips INSERT nested within a BLOCK. There is no DXF 3DSOLID/REGION/BODY/SURFACE modeler-carrier parser in the inspected source. Issue #2645 remains an open feature request for the separate filled DXF SOLID entity; #3286 remains an open report about missing geometry in a multilayer input. Historical 3DFACE INSERT-placement issue #5422 was closed, and fix #5426 is named in v6.0.1 release notes, before v6.0.5.",
+      "limits": "Issue text is not a reproduction against v6.0.5. A release note does not prove a binary's behavior. Assimp is a scene/mesh projection, not a lossless DXF document model, DXF writer, DWG parser, ACIS/AcDs parser, or general B-rep oracle. Mutable master is not substituted for the pinned release source."
+    },
+    {
+      "project": "Autodesk and GDAL",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Public documentation inspected 2026-10-20; no GDAL runtime or external drawing used.",
+      "observed": "Autodesk documents 3DFACE WCS corner values and invisible-edge flags. GDAL's AC1027+ DXF_3D_EXTENSIBLE_MODE exposes raw ASM data and transform rather than converting that carrier into OGR geometry.",
+      "limits": "The Autodesk entity table is normative only for its documented DXF fields. GDAL raw ASM transport does not establish ACIS/ASM parsing, topology, or semantic validity."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Existing PAR-07/S8 evidence gates and DXF geometry test owners inspected 2026-10-20.",
+      "observed": "Added Assimp as an optional generated-explicit-geometry scene-projection comparator and specified what it may and may not score. Existing local ASCII/Binary tests remain primary; external CAD/modeler routes remain separate.",
+      "limits": "No local code/test/fixture/dependency changed. The generated comparator procedure is conditional and not a required platform gate."
+    }
+  ],
+  "assessment": {
+    "newEligibleDwGPeerLineages": 0,
+    "newOptionalDxfProjectionCandidates": 1,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: use Assimp only as an optional, pinned DXF-to-scene geometry projection comparator for generated explicit entities; compare expected vertices/faces and transforms, not document identity or round-trip completeness.",
+      "PAR-07/S8: separate explicit polygon/face projection from ACIS/ASM carrier extraction, ACIS parser profile, B-rep validity, independently authored topology/analytic expectations, and native consumer acceptance.",
+      "PAR-07/S8: record entity omissions, unsupported classes, nested block references, and transforms explicitly; do not treat peer issue text or an old fix note as a current binary result."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-assimp-dxf-geometry-projection-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a pinned Assimp v6.0.5 peer-scope row: optional mesh/scene geometry projection only, with explicit omissions and loss of CAD identity/relationships.",
+    "Separated planar DXF SOLID from ACIS 3DSOLID/REGION/BODY/SURFACE to avoid a misleading shared name and support claim.",
+    "Added a minimized generated-input procedure for 3DFACE, POLYLINE/POLYFACE and bounded INSERT-transform comparisons, with independent analytic expectations and no stored external fixtures.",
+    "Kept local fast tests primary, peers optional at composed checkpoints, validation cadence unchanged, and all six external items deferred."
+  ],
+  "limitations": [
+    "Assimp's issue reports #2645 and #3286 are unresolved issue-level evidence, not reproduced behavior for v6.0.5.",
+    "The release page exposes source commit only as short hash 392a658; no release executable hash was collected because no artifact was run.",
+    "No Assimp/GDAL executable, CAD application, ACIS kernel, external drawing, or test corpus was used or downloaded.",
+    "No local test or build was run because this was a research-only plan refinement.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "planUpdaterCheck": "NOT_APPLICABLE (upgrade-plan ledger checker does not validate the parity research plan)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only update in a broadly dirty shared worktree; no commit was requested."
+  }
+}

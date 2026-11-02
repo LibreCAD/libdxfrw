@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACIS reader ecosystem and independent-semantics boundary",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Search for open-source ACIS SAT/SAB readers beyond DWG/DXF peer libraries",
+    "Separate parser independence from geometry-kernel and consumer independence",
+    "Refine existing ACIS/AcDs and FreeCAD evidence gates without adding per-slice work",
+    "Preserve external fixture provenance and licensing constraints"
+  ],
+  "sources": [
+    {
+      "project": "Open CASCADE Technology",
+      "reference": "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+      "status": "official_project_format_and_component_boundary",
+      "observation": "The project lists its open-source core exchange formats separately from commercial extensions, including ACIS SAT/SAB and DXF. An unmodified open-source OCCT installation must not be assumed to parse ACIS; exact component/runtime availability and license must be recorded."
+    },
+    {
+      "project": "cq-acis",
+      "reference": "https://github.com/monozukuri-ai/cq-acis",
+      "status": "experimental_open_source_reader_documentation",
+      "observation": "The README documents an experimental SAT/SAB parser and bounded geometry conversion. The profile documentation lists SAT 105/400/600/700, ACIS BinaryFile 21800 and selected ASM BinaryFile4 versions 22000/22300/22600/22700/22900/23200; it explicitly warns that accepted versions do not imply all geometry layouts are supported. Output geometry uses CadQuery/OCCT, so it supplies parser diversity but not an independent B-rep-kernel verdict from FreeCAD."
+    },
+    {
+      "project": "cq-acis corpus documentation",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/README.md",
+      "status": "pinned-upstream-test-corpus-and-license-policy",
+      "observation": "The repository documents source commit/blob pins, generated hashes, NIST and ezdxf corpus sources with separate notices, deterministic fetch, and a rule against unclear redistribution. This is provenance guidance only; no corpus was fetched or reused."
+    },
+    {
+      "project": "InventorLoader",
+      "reference": "https://github.com/jmplonka/InventorLoader",
+      "status": "open-source-FreeCAD-add-on-with-custom-ACIS-reader",
+      "observation": "The add-on documents SAT/SAB and DXF modeler import, no export, and geometry limitations. Its source includes a custom AcisReader and native-part/STEP conversion paths. Source inspection shows unresolved references may be assigned null at one linking site, so this cannot be treated as a strict parser oracle without diagnostic instrumentation and complete reference-closure checks. Its geometry construction uses FreeCAD/Part and therefore shares the OCCT kernel family with FreeCAD."
+    },
+    {
+      "project": "FreeCAD source architecture",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/The_FreeCAD_source_code.md",
+      "status": "project-maintained-kernel-architecture-documentation",
+      "observation": "FreeCAD documentation identifies OCCT as the solid-geometry kernel used to create/manage solid geometry."
+    },
+    {
+      "project": "CadQuery kernel documentation",
+      "reference": "https://github.com/CadQuery/cadquery/blob/master/doc/primer.rst",
+      "status": "project-maintained-kernel-documentation",
+      "observation": "CadQuery documents that it is based on the OpenCascade kernel, establishing shared-kernel limitations for cq-acis geometry outputs compared with FreeCAD."
+    },
+    {
+      "project": "ezdxf ACIS browser and entity documentation",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "status": "project-maintained-raw-inspection-scope",
+      "observation": "The documented browse-acis path inspects and exports raw SAT/SAB content; it is not a B-rep reconstruction result."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added two experimental open-source ACIS-reader candidates to the existing comparator map, distinguished independent parsing from independent geometry kernels, required exact profile/revision/provenance and reference-closure checks, and kept the official/native ACIS route as semantic evidence. No support or defect claim follows from documentation alone.",
+    "nextImplementation": "Continue the local implementation queue. Run any candidate ACIS-reader comparison only at the existing composed external-evidence checkpoint, with pinned profiles and scratch/already-admitted data; do not add a dependency, test, or per-slice blocker.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-reader-ecosystem-independent-semantics-boundary-2026-10-20.json"
+    ],
+    "limitations": "Research used mutable project-maintained GitHub pages and source listings; no peer code was cloned, built, or run, and no external sample was downloaded. cq-acis is experimental and profile-bounded. InventorLoader's published prerequisites may not match current FreeCAD platforms and its parser route requires runtime verification. The report does not qualify libdxfrw, resolve external-only gates, or establish geometry semantics."
+  },
+  "validation": {
+    "planEdit": "Added a source-backed ACIS-reader ecosystem crosswalk and bounded composed-gate recipe; did not add a finding, subplan, implementation blocker, or per-slice validation requirement.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; trailing-whitespace audit passed for plan and untracked receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

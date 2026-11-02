@@ -1,0 +1,88 @@
+{
+  "id": "RPP-5wf",
+  "title": "MLINE-referenced LTYPE with ordered multi-chunk binary XDATA",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d1d8a37d1723463c0905b9b1dc325595952b9731",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE, APPID and reference records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "xdata_profiles": [
+      {
+        "chunks": [
+          { "hex_bytes": "AA repeated 127 times", "byte_count": 127 },
+          { "hex_bytes": "5A", "byte_count": 1 }
+        ],
+        "purpose": "Exercise the documented maximum 127-byte group-1004 chunk followed by a second chunk."
+      },
+      {
+        "chunks": [
+          { "hex_bytes": "00A5", "byte_count": 2 },
+          { "hex_bytes": "7FFF12", "byte_count": 3 },
+          { "hex_bytes": "34CDEF", "byte_count": 3 }
+        ],
+        "purpose": "Distinguish ordered chunk boundaries and exact 2/3/3-byte payload preservation."
+      }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "About Extended Data (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "relevant_rule": "XDATA group 1004 carries binary data in chunks of at most 127 bytes; ASCII DXF represents the bytes as hexadecimal digits."
+  },
+  "proof": {
+    "source": "Generated ASCII/binary input is checked as physical ordered 1001/1004 groups and freshly imported typed XDATA; each typed chunk must match its authored source chunk exactly.",
+    "output": "The staged output proof checks exact group order, chunk count and hex bytes, APPID provider fields/owner, and fresh typed readback for each source/output encoding pair.",
+    "failure_retry": "For each profile and encoding pair, removing the required APPID provider refuses without replacing a destination sentinel; restoring the provider succeeds on the same adapter and rechecks exact physical and typed output.",
+    "counts": {
+      "this_slice_positive_profiles": 8,
+      "this_slice_successful_readbacks": 16,
+      "this_slice_refusals_with_destination_preservation": 8,
+      "this_slice_same_adapter_retries": 8,
+      "full_selector_positive_profiles": 96,
+      "full_selector_successful_readbacks": 209,
+      "full_selector_refusals": 113,
+      "full_selector_retries": 113
+    }
+  },
+  "validation": {
+    "focused_build": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focused_selector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "summary": "1/1 passed in 5.56s"
+    },
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=96; readbacks=209; refusals=113; retries=113",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes generated test profiles and does not modify production allocation, ownership, lifetime or parser behavior."
+  },
+  "source_bindings": {
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls::runTemporary",
+    "test_source_sha256": "53cad289f5d2ed434bc4008b50745e11d444fa807127fd8bf41bd1ffe77bed37",
+    "test_executable_sha256": "cf0ebf1565ddb7537f63dabd7c46ab64ab2a8962363ffa2329365d2068c385a0",
+    "cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "limits": [
+    "The two exact selected chunk layouts are qualified. Alternate byte values, chunk counts/orderings and chunk-boundary compositions remain unqualified.",
+    "Malformed hex, odd-length payloads, and a single 128-byte group-1004 chunk are not tested by this slice.",
+    "The receipt proves selected field transport and retry behavior only; it does not establish application-specific XDATA meaning, native MLINE rendering, recursive document closure, broader LTYPE support or a format-support claim."
+  ],
+  "next": "Select a new current P2 source witness and name its missing parser/model, origin join, dependency role or independent semantic evidence before changing code."
+}

@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-project issue lineage and local-gate reconciliation",
+  "mode": "primary-source web research, local source/test audit, and one existing-harness fast-slice update",
+  "scope": [
+    "Refresh open-source DWG/DXF peer issue reports across parsing, writing, graph closure, strings, and 3D carriers",
+    "Separate peer issue claims from normative format evidence and local defect reproduction",
+    "Reconcile reports with existing local tests and implementation owners",
+    "Strengthen the existing DWG sample harness terminal group-0 EOF check without adding a test registration"
+  ],
+  "method": {
+    "kind": "Primary-source issue/spec review and local read-only audit, followed by a bounded CMake harness edit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/run_dwg_read_test.cmake",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "src/intern/dxfwriter.cpp",
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "limitations": "Peer issue bodies are reporter-authored, version-specific evidence, not local reproductions or normative rules. No external DWG/DXF was downloaded or independently executed. Selected sample CTests returned from the converter-exit check before reaching the new terminal-EOF assertion."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue reports",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "revision": "current issue pages reviewed 2026-10-18",
+      "observed": "Reports separate string framing/uninitialized tails, block traversal loss, wrong NOD selection, AcDs/SAB omission, unresolved TV/TU escape interpretation, and CMC ACI/RGB index handling. #1412 links fixes on mutable master but remains open; issue state is not tagged-release proof."
+    },
+    {
+      "project": "ACadSharp issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1180",
+        "https://github.com/DomCR/ACadSharp/issues/1250",
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "revision": "current issue pages reviewed 2026-10-18",
+      "observed": "Reports cover aggregate INSERT-count confounding, LEADER annotation dimensions, ARC/ELLIPSE transform behavior, and a strict AutoCAD writer rejection attributed to CLASSES/HATCH/DIMSTYLE fields. These remain route/version-specific reports."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm"
+      ],
+      "revision": "official HATCH boundary-path and ATTDEF tables reviewed 2026-10-18",
+      "observed": "HATCH line-edge group 21 is the endpoint Y coordinate; ATTDEF group 2 is the attribute tag string. These references support local value classification but do not resolve unrelated HATCH group-47 or DIMSTYLE table-subclass writer claims."
+    },
+    {
+      "project": "Local libdxfrw implementation and tests",
+      "urls": [],
+      "revision": "current shared worktree inspected and focused harness edit made 2026-10-18",
+      "observed": "Existing generated controls cover zero HATCH line-edge Y, hash-bearing ATTDEF tags, embedded-MTEXT preservation/refusal, block-body ownership, NOD root ordering, and corrected CMC method distinctions. tests/run_dwg_read_test.cmake previously accepted any occurrence of EOF; it now requires terminal group-0 EOF after CRLF normalization."
+    }
+  ],
+  "assessment": {
+    "newLocalDefectConfirmed": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "existingOwnersRefined": [
+      "PAR-49: require terminal group-0 EOF in the existing sample harness; retain required-section, complete-disposition, and truthful-status checks at composed gates",
+      "PAR-05/7AR: generated source-DWG TV/TU to one target-DXF characterization, field-scoped across ordinary text, MTEXT, and XRECORD",
+      "PAR-20/7G and PAR-49/7G: retain exact NOD root identity and BLOCK child-owner/body closure; aggregate counts do not prove either",
+      "S8/J256/J260/J268/J284/J293/J295: keep carrier, association, independent-read, and semantic-solid gates separate"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep peer issue results tied to exact release/commit, operation, format version, and converter route.",
+    "Run the existing terminal-EOF sample CTest only after a selected sample conversion reaches the structural output checks; current selected samples stop earlier with dwg2dxf status 1.",
+    "Use generated source TV/TU controls and inspect original bytes, typed values, target DXF bytes, UTF-8 validity, field scope, and following-record alignment independently.",
+    "Do not resolve ACadSharp HATCH-47 or DIMSTYLE-header candidates without exact producer/version ordered tags and strict consumer acceptance.",
+    "Keep all six external-only J items deferred and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonValidation": true,
+    "dwg2dxfTargetBuild": "PASS",
+    "cmakeTerminalEofRegexControl": "PASS: space-padded group-0 EOF with CRLF accepted; EOF followed by another record rejected",
+    "selectedCtests": [
+      {
+        "name": "dwg_read_AC1024_title_block-iso_v2010",
+        "result": "BLOCKED_BEFORE_NEW_ASSERTION",
+        "reason": "dwg2dxf returned 1 at the earlier conversion-status check"
+      },
+      {
+        "name": "dwg_read_AC1024_architectural_example-imperial_v2010",
+        "result": "BLOCKED_BEFORE_NEW_ASSERTION",
+        "reason": "dwg2dxf returned 1 at the earlier conversion-status check with partial-observed semantic coverage"
+      },
+      {
+        "name": "dwg_read_AC1024_mechanical_example-imperial_v2010",
+        "result": "BLOCKED_BEFORE_NEW_ASSERTION",
+        "reason": "dwg2dxf returned 1 at the earlier conversion-status check with partial-observed semantic coverage"
+      },
+      {
+        "name": "dwg_read_AC1021_lineweights_v2010",
+        "result": "BLOCKED_BEFORE_NEW_ASSERTION",
+        "reason": "dwg2dxf returned 1 at the earlier conversion-status check with AC1021 integrity observations"
+      }
+    ],
+    "fullSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

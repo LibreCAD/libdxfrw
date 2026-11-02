@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libdxfrw
+Description: C++ library to read and write DXF and DWG files
+Version: @PACKAGE_VERSION@
+Libs: -L"${libdir}" -ldxfrw
+Libs.private: @PTHREAD_LIBS@
+Cflags: -I"${includedir}/libdxfrw" @PTHREAD_CFLAGS@

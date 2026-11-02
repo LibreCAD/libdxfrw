@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-272/273 attachment enums",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "5ad8a58497be36e4681d0cf43c38b730102cece3",
+  "scope": "Runtime-authored AC1027 ASCII and binary sources each contain a root-reachable STANDARD MLEADERSTYLE with one group-272 bottomAttachment=9 and one group-273 topAttachment=9. Separate transactions change group 272 or 273 from Center=9 to Underline-and-Center=10 or Overline-and-Center=10. No second style field changes.",
+  "fieldEvidence": {
+    "fields": [
+      {
+        "groupCode": 272,
+        "field": "bottomAttachment",
+        "valueDomain": {
+          "9": "Center",
+          "10": "Underline and Center"
+        }
+      },
+      {
+        "groupCode": 273,
+        "field": "topAttachment",
+        "valueDomain": {
+          "9": "Center",
+          "10": "Overline and Center"
+        }
+      }
+    ],
+    "fieldRoleAndDomainSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies group 272 as bottom text attachment direction with 9=Center and 10=Underline and Center; group 273 as top text attachment direction with 9=Center and 10=Overline and Center",
+    "fieldRoleAndDomainUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "classification": "Authoritative Autodesk DXF field-role/value-domain evidence plus authored adapter transactions; not independent producer, native text layout or consumer semantic acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. Each style must be reachable through the validated ACAD_MLEADERSTYLE dictionary, match its captured raw body and immutable baseline, and contain exactly one existing INTEGER field for the selected group. Only that selected typed payload field may differ. Groups 272 and 273 admit exactly 9 or 10; 8, 11 and all other values are refused.",
+    "projection": "Replace only the selected existing group-272 or group-273 value in a copy of the captured body. Preserve other field order and opaque groups. Missing/repeated fields, conflicting raw changes, simultaneous edits, other values, unknown subclass grammar and non-AC1027 routes remain outside the transaction.",
+    "outputAndReadback": "Separate table-driven cases exercise group 272 and group 273 with ASCII and binary sources, same-format and opposite-format output. Each checks one exact emitted INTEGER field with value 10 and fresh typed readback of its corresponding field. Both source/output encoding directions are covered.",
+    "failureAndRetry": "For each field, a raw/typed conflict refuses and preserves a sentinel destination. Values 8 and 11 are each refused with the sentinel intact. Restoring the captured raw group and setting the requested value 10 allows same-adapter retry and exact readback.",
+    "compatibility": "Untouched MLEADERSTYLE records retain raw replay. Transactions remain one field per record and AC1027-only. The expanded enum cohort also retests lower and upper invalid values for the previously admitted control enums. DWG-origin writing, native attachment rendering and complete document support are unchanged."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits groups 271=0, 272=9 and 273=9 in the STANDARD style; generated inputs/outputs are temporary and created from scratch.",
+    "implementationCommit": "5ad8a58497be36e4681d0cf43c38b730102cece3",
+    "dwg2dxf/dx_iface.cpp": "09702d98fbef6d20d323f6f6bc3c0c4da5626e10ba3fdefd977a8b80180be45c",
+    "tests/dwg2dxf_adapter_tests.cpp": "f20e028752b7b4e1e4c600f4f42304c637f71813ca98137452e97335e8961321",
+    "adapterTestExecutableSha256": "723262a8d69c4f38566f8a19e1a200796095fdf21f4942b17321366a54bb5238"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang version 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. Selected groups 272 and 273 cover 9→10, refusal of 8 and 11, raw-conflict rollback, same-adapter retry, exact emitted field, typed readback and cross-format output. The expanded enum cohort passed all controls."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies only the selected group-272 and group-273 transactions on authored AC1027 sources. It does not establish native text layout, independent producer variation, earlier/later version behavior, DWG editing, other MLEADERSTYLE fields or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a distinct remaining MLEADERSTYLE integer, string or handle field profile, or a source-backed P2 geometry/provider witness; bind exact source, output, rollback and retry before extending admission."
+}

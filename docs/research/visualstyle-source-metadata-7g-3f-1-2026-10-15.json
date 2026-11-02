@@ -1,0 +1,278 @@
+{
+  "schema": "libdxfrw-scoped-implementation-acceptance-v1",
+  "date": "2026-10-15",
+  "planSlice": "7G.3f.1",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "baseline": "6c5666cceb8e5d7a4e9eba41ffb8a7800f84770c",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Own and preserve VISUALSTYLE property/CMC source metadata through the DWG codec without changing fresh-authored bytes or legacy scalar views. Prerequisite only; no typed DXF serializer, DWG NOD publication or full CLI9d acceptance.",
+  "qualificationEligible": false,
+  "implementation": {
+    "api": "Appended DRW_VisualStyleColor/DRW_VisualStyleEncoding owned fields on DRW_VisualStyleBody; source-compatible rebuilding, no callback or ABI claim",
+    "parser": "Existing order/width/version dispatch unchanged; capture 28/58 BS companions,5/8 complete CMC prefixes/decoded names, and original modern isolines before historical clamp. Bounded helper checks and fail/reset remain authoritative.",
+    "encoder": "Preflight exact/allowed counts, stale source metadata, target capacity, name/flags coherence, modern-to-legacy CMC and unchanged clamped view before body/string/handle writes. Retained CMC replay only when scalar unchanged; explicit scalar/same-value replacement is documented.28-to58 retains prefix and prior default additional fields.",
+    "consumerDefaults": "No change to LibreCAD/LC3 ordinary tolerant reads, projection or optional callbacks. Public class layout requires rebuild."
+  },
+  "permanentControls": {
+    "objectVectors": "AC1024/AC1027/AC1032 authored literal property/kind sequence; nonconstant BS including FFFF,8 CMC methods/indexes,RGB white/black,C8,named/book UTF8,common owner/reactor/xDict; exact component-body/string/handle bits. This vector is not a valid-producer semantic claim.",
+    "negativesAndLifecycle": "Four metadata refusals per version, expansion downgrade, explicit changed/same-value color replacement, copy/reset, truncated final companion and corrected same-object retry, source6001 retained with5000 view and atomic refusal then explicit3 retry.",
+    "upgrade": "AC1024-toAC1027 retains all28 source operations and owned colors/names while adding30 default operations; complete58/8 decoded profile.",
+    "trackedReader": "Existing four-file matrix adds72 captured complete modern style profiles and Flat raw white/black/C8/operation-zero controls; ordinary tracked LINE-only control remains style-free. No fixture or registration added."
+  },
+  "sourceAcceptance": {
+    "defaultVersions": 6,
+    "defaultByteIdentical": true,
+    "defaults": [
+      {
+        "version": 13,
+        "bodyBits": 356,
+        "body": "439111519055531517d4d516531140101a8000000000000e83f000000000000340fd07a901aaea903801035540",
+        "stringBits": 0,
+        "strings": "",
+        "handleBits": 32,
+        "handles": "42a20000"
+      },
+      {
+        "version": 14,
+        "bodyBits": 566,
+        "body": "439111519055531517d4d516531140101a8000000000000e83f000000000000340fd0701c00030c02a404010000c3008000000c100ab00000030002a90300c00030c020040d550",
+        "stringBits": 0,
+        "strings": "",
+        "handleBits": 32,
+        "handles": "42a20000"
+      },
+      {
+        "version": 15,
+        "bodyBits": 446,
+        "body": "406a0000000000003a0fc000000000000d03f41c070000c300a90100400030c0200000030402ac000000c000aa40c030000c300801035550",
+        "stringBits": 234,
+        "strings": "43910011401180104015401300150017c014c01500164013001140000000",
+        "handleBits": 32,
+        "handles": "42a20000"
+      },
+      {
+        "version": 16,
+        "bodyBits": 566,
+        "body": "4050255550000000000001d07f0000000000001a07f20e038000618055480802000186014000000608055555800000180015555206018000618055481ca89a9999999999e93fa8",
+        "stringBits": 234,
+        "strings": "43910011401180104015401300150017c014c01500164013001140000000",
+        "handleBits": 32,
+        "handles": "42a20000"
+      },
+      {
+        "version": 17,
+        "bodyBits": 862,
+        "body": "4050255550000000000001d07f0000000000001a07f20e038000618055480802000186014000000608055555800000180015555206018000618055481ca89a9999999999e93fa9249249555540000006080555000000182012aaa5500000018201554a8000000000000f43f8",
+        "stringBits": 236,
+        "strings": "43910011401180104015401300150017c014c01500164013001140000020",
+        "handleBits": 32,
+        "handles": "42a20000"
+      },
+      {
+        "version": 18,
+        "bodyBits": 862,
+        "body": "4050255550000000000001d07f0000000000001a07f20e038000618055480802000186014000000608055555800000180015555206018000618055481ca89a9999999999e93fa9249249555540000006080555000000182012aaa5500000018201554a8000000000000f43f8",
+        "stringBits": 236,
+        "strings": "43910011401180104015401300150017c014c01500164013001140000020",
+        "handleBits": 32,
+        "handles": "42a20000"
+      }
+    ],
+    "trackedRows": [
+      {
+        "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+        "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "peerSha256": "3dfd7797e92bb05bd3603fb6edaee511b02104d14d203a4464d642d87566199f",
+        "styles": 24,
+        "companions": 1392,
+        "colors": 192,
+        "exactRawPrefixes": true,
+        "sourceIsolines": true,
+        "peerIndexIsNotRaw": 114,
+        "observationsSha256": "16f83aa37722e09f953c7ced45e78e88eace03b2b5891341ab832c938d23a8c7"
+      },
+      {
+        "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+        "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "peerSha256": "b1ed4ce8e0cbb12badd89208f80d9a1f4908410046470b6c756f4f9d7202349e",
+        "styles": 24,
+        "companions": 1392,
+        "colors": 192,
+        "exactRawPrefixes": true,
+        "sourceIsolines": true,
+        "peerIndexIsNotRaw": 114,
+        "observationsSha256": "16f83aa37722e09f953c7ced45e78e88eace03b2b5891341ab832c938d23a8c7"
+      },
+      {
+        "source": "tests/fixtures/dwg/large_radial.dwg",
+        "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "peerSha256": "0e074d8f8462fb00733a263ad6c34096c2055eb810edc9459f88f6b0433f6ec4",
+        "styles": 24,
+        "companions": 1392,
+        "colors": 192,
+        "exactRawPrefixes": true,
+        "sourceIsolines": true,
+        "peerIndexIsNotRaw": 114,
+        "observationsSha256": "16f83aa37722e09f953c7ced45e78e88eace03b2b5891341ab832c938d23a8c7"
+      }
+    ],
+    "qualificationEligible": false,
+    "artifacts": {
+      "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default-parent": "2e0c94163f585ba2730cc442eccebdc695bcfae97a74c89907b50c327f2115f0",
+      "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default-current": "00b1dd9b25645720075497a9c3aed7bb08d94915ab352163757fa6daa55273c0",
+      "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/read_probe": "45439e7a36d2f2ca57407e18624ea1914e6bc54b2199d51528e7e3635481610e",
+      "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/parent-libdxfrw-asan.a": "007f0fc9deb689cfca430a01a470e45e126bb169c0359c0c4d4f23c10cb1291f",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "ec8ca630b2f2de51a8ba7ec294b70023b387bfac10740d9d6c2a87a95a47308a"
+    },
+    "recipe": "\"\"\"Focused source-metadata and fresh-authored default-byte acceptance.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\n\nsys.path.insert(0, \"/Users/dli/dev/libdxfrw/tools\")\nfrom bounded_process import run_bounded\n\nroot = Path(__file__).resolve().parent\nrepo = Path(\"/Users/dli/dev/libdxfrw\")\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ndef command(argv, cap=262144):\n    result = run_bounded(argv, timeout=10, output_limit=cap)\n    assert result.returncode == 0, (argv, result.returncode, result.stderr)\n    return json.loads(result.stdout)\n\nparent = command([str(root / \"default-parent\")])\ncurrent = command([str(root / \"default-current\")])\nassert parent == current and len(parent) == 6\nkeys = [\"face_lighting_model\", \"face_lighting_quality\", \"face_color_mode\",\n        \"face_modifier\", \"face_opacity\", \"face_specular\", \"face_mono_color\",\n        \"edge_model\", \"edge_style\", \"edge_intersection_color\", \"edge_obscured_color\",\n        \"edge_obscured_ltype\", \"edge_intersection_ltype\", \"edge_crease_angle\",\n        \"edge_modifier\", \"edge_color\", \"edge_opacity\", \"edge_width\", \"edge_overhang\",\n        \"edge_jitter\", \"edge_silhouette_color\", \"edge_silhouette_width\", \"edge_halo_gap\",\n        \"edge_isolines\", \"edge_do_hide_precision\", \"display_settings\", \"display_brightness\",\n        \"display_shadow_type\"]\nkeys += [f\"b_prop{x:02x}\" for x in range(0x1c, 0x25)]\nkeys += [\"bl_prop25\", \"bd_prop26\", \"bd_prop27\", \"bl_prop28\", \"c_prop29\", \"bl_prop2a\",\n         \"bl_prop2b\", \"c_prop2c\", \"b_prop2d\", \"bl_prop2e\", \"bl_prop2f\", \"bl_prop30\",\n         \"b_prop31\", \"bl_prop32\", \"c_prop33\", \"bd_prop34\", \"edge_wiggle\", \"strokes\",\n         \"b_prop37\", \"bd_prop38\", \"bd_prop39\"]\ncolors = [\"face_mono_color\", \"edge_intersection_color\", \"edge_obscured_color\",\n          \"edge_color\", \"edge_silhouette_color\", \"c_prop29\", \"c_prop2c\", \"c_prop33\"]\nrows = []\nfor stem in (\"rtext_arctext\", \"mpolygon_solid\", \"large_radial\"):\n    source = repo / f\"tests/fixtures/dwg/{stem}.dwg\"\n    peer_path = Path(f\"/private/tmp/libdxfrw-broader-boundaries.eCaIDz/{stem}-peer.json\")\n    peer = json.loads(peer_path.read_text())\n    expected = {o[\"handle\"][2]: o for o in peer[\"OBJECTS\"] if o.get(\"object\") == \"VISUALSTYLE\"}\n    actual = command([str(root / \"read_probe\"), str(source)])\n    assert len(actual) == len(expected) == 24\n    assert {o[\"handle\"] for o in actual} == set(expected)\n    peer_index_differences = 0\n    for style in actual:\n        oracle = expected[style[\"handle\"]]\n        assert bytes.fromhex(style[\"descriptionHex\"]).decode() == oracle[\"description\"]\n        assert style[\"companions\"] == [oracle.get(key + \"_int\", 0) for key in keys]\n        assert len(style[\"colors\"]) == 8\n        for color, key in zip(style[\"colors\"], colors):\n            # The peer's JSON index is an interpreted/fallback color, not\n            # the source CMC BS. ODA2.11 specifies zero; each witnessed raw\n            # prefix is zero even where the peer presents ACI7/256/etc.\n            assert color[\"index\"] == 0, (stem, key, color)\n            peer_index_differences += color[\"index\"] != oracle[key].get(\"index\", 0)\n            assert color[\"rgb\"] == int(oracle[key][\"rgb\"], 16)\n            assert color[\"flags\"] == 0 and color[\"nameHex\"] == color[\"bookHex\"] == \"\"\n        assert style[\"sourceIsolines\"] == oracle[\"edge_isolines\"]\n    rows.append(dict(source=str(source.relative_to(repo)), sourceSha256=digest(source),\n                     peerSha256=digest(peer_path), styles=len(actual), companions=24 * 58,\n                     colors=24 * 8, exactRawPrefixes=True, sourceIsolines=True,\n                     peerIndexIsNotRaw=peer_index_differences,\n                     observationsSha256=hashlib.sha256(json.dumps(actual, sort_keys=True).encode()).hexdigest()))\n\nprint(json.dumps(dict(defaultVersions=6, defaultByteIdentical=True,\n                      defaults=parent, trackedRows=rows, qualificationEligible=False,\n                      artifacts={str(path): digest(path) for path in\n                                 (root / \"default-parent\", root / \"default-current\",\n                                  root / \"read_probe\", root / \"parent-libdxfrw-asan.a\",\n                                  repo / \"build/libdxfrw.a\")},\n                      recipe=Path(__file__).read_text())))\n"
+  },
+  "defaultParentBinding": {
+    "fullParentCheckoutClaimed": false,
+    "sourceSnapshot": "git archive 6c5666c src | tar -x -C /private/tmp/libdxfrw-visualstyle-wire.z2FWew/parent",
+    "frozenArchiveSha256": "007f0fc9deb689cfca430a01a470e45e126bb169c0359c0c4d4f23c10cb1291f",
+    "verifiedGitBlobs": {
+      "src/drw_objects.h": "cdef9daeac4ce256f0fb3958b7e13783a517170e",
+      "src/drw_objects.cpp": "d6fae8e75652e8778c229791bad324c7685f8175"
+    },
+    "comparison": "Identical authored probe, ABI-correct separate parent/current headers and archives. Six component streams/bit counts equal; no source metadata present. Parent archive instrumented; current core uninstrumented, not a sanitizer qualification by this comparison."
+  },
+  "correction": {
+    "initialFailure": "Scratch acceptance compared raw CMC short to peer JSON index and rejected faceMonoColor0 vs peer7. A new permanent test initially had that same incorrect premise; corrected before final successful build/run.",
+    "finding": "All576 captured raw CMC shorts are0, as ODA2.11 prescribes;342 interpreted peer indices differ. Raw RGB words and4,176 companions match the retained separately hash-bound peer fields.",
+    "action": "No production parser/encoder change was made to force peer fallback indices into the source. Corrected only new expectations and documented the distinction; frozen research receipt retains original peer JSON fields."
+  },
+  "commands": [
+    "cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_local_roundtrip lc3_compat_check -j4",
+    "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -I. -Idwg2dxf -DLIBDXFRW_READER_FIXTURE_DIR='\"/Users/dli/dev/libdxfrw/tests/fixtures/dwg\"' -fsyntax-only src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp tests/dwg_reader_matrix_tests.cpp",
+    "ctest --test-dir build -R '^libdxfrw_dwg_(object_vectors|reader_matrix|local_roundtrip)$' --output-on-failure --output-junit /private/tmp/libdxfrw-visualstyle-wire.z2FWew/focused.xml",
+    "cmake --build /private/tmp/libdxfrw-hatch-asan.Nc6BqC --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests -j4",
+    "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir /private/tmp/libdxfrw-hatch-asan.Nc6BqC -R '^libdxfrw_dwg_(object_vectors|reader_matrix)$' --output-on-failure --output-junit /private/tmp/libdxfrw-visualstyle-wire.z2FWew/sanitizer.xml",
+    "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 python3 -B /private/tmp/libdxfrw-visualstyle-wire.z2FWew/acceptance.py"
+  ],
+  "focusedJUnit": [
+    {
+      "path": "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/focused.xml",
+      "sha256": "6bff978205e7323594eaeaf207ddb84d441a34ab4b5f95ce36cb4a09e396dd32",
+      "suite": {
+        "name": "(empty)",
+        "tests": "3",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "4",
+        "timestamp": "2026-10-15T18:16:54"
+      },
+      "tests": [
+        {
+          "name": "libdxfrw_dwg_local_roundtrip",
+          "classname": "libdxfrw_dwg_local_roundtrip",
+          "time": "2.84284",
+          "status": "run"
+        },
+        {
+          "name": "libdxfrw_dwg_reader_matrix",
+          "classname": "libdxfrw_dwg_reader_matrix",
+          "time": "1.5758",
+          "status": "run"
+        },
+        {
+          "name": "libdxfrw_dwg_object_vectors",
+          "classname": "libdxfrw_dwg_object_vectors",
+          "time": "0.148449",
+          "status": "run"
+        }
+      ]
+    },
+    {
+      "path": "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/sanitizer.xml",
+      "sha256": "e1a3aedba8c000697b3e5d0ac58c2bc448005e06d45d5914ce86ba94245c94fb",
+      "suite": {
+        "name": "(empty)",
+        "tests": "2",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "1",
+        "timestamp": "2026-10-15T18:18:52"
+      },
+      "tests": [
+        {
+          "name": "libdxfrw_dwg_reader_matrix",
+          "classname": "libdxfrw_dwg_reader_matrix",
+          "time": "1.2848",
+          "status": "run"
+        },
+        {
+          "name": "libdxfrw_dwg_object_vectors",
+          "classname": "libdxfrw_dwg_object_vectors",
+          "time": "0.211758",
+          "status": "run"
+        }
+      ]
+    }
+  ],
+  "sourceAndArtifactSha256": {
+    "src/drw_objects.h": "003f7f5db5a152267d69285486800106a2dc27bac168809d23b9c6998e3f125d",
+    "src/drw_objects.cpp": "5a5a4e0600f15ab7da91eed1aa655fb96112e36c98f0cec68be63ecbe062b477",
+    "tests/dwg_object_vectors_tests.cpp": "ce006b4b8c364ffea43e94842a4f432fd05ea5057bc4f72ee94a18c8c37ace87",
+    "tests/dwg_reader_matrix_tests.cpp": "deab6d2f6aea0676e5f11075ceb46dd16f50ccc7d32c1ad0decdf139bc5f83f7",
+    "build/libdxfrw.a": "ec8ca630b2f2de51a8ba7ec294b70023b387bfac10740d9d6c2a87a95a47308a",
+    "build/libdxfrw_dwg_object_vectors_tests": "2d34da65484911e4d0d36b28ad1740b1834afe57302c4f24ee55eed249dd6977",
+    "build/libdxfrw_dwg_reader_matrix_tests": "aff70954cfb58172945d943aed0486967921eb4d272d244d02b895e1cc4e839e",
+    "build/libdxfrw_dwg_local_roundtrip": "66ba5814f0b162bd7899150c885b108692ae16a4fe859ffdb0c937c72385cc78",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a": "bd85b7449b47cda7b6e0689418fe246d37cb4e650b0ad7dc8c480befba5b1a74",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_dwg_object_vectors_tests": "8a0d11014c35594c08df45241b7204d553faa0a4334142699d61195b675ed804",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_dwg_reader_matrix_tests": "975307b55ae6d52343f27d08bc5922a42d4a1abe21e14b7f065e67f4c5f2f658",
+    "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/acceptance.py": "e05dfbc218d3a9d3b497995302bda564e036e7b7710b8f66e504579ecf5a3e02",
+    "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default_probe.cpp": "f80c257d3ef303da940f9d49b8fba0eef894dfff9a9b53585710611b6a71f299",
+    "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/read_probe.cpp": "0e841bd2a98a41d9627600e697a3362bc4f1073e04a495a3bd33cdafbd1bab3e"
+  },
+  "authoritativePdf": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "version": "5.4.1",
+    "readPages": [
+      14,
+      103,
+      104,
+      105,
+      106,
+      107
+    ],
+    "renderedReviewedPages": [
+      104
+    ],
+    "scope": "CMC/common-object bounds; VISUALSTYLE full field order is inherited, not specified by this PDF"
+  },
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "notEstablished": [
+    "Whole CLI9d acceptance",
+    "Typed DWG-toDXF VISUALSTYLE writer",
+    "DWG NOD root identity callback",
+    "Named/unknown color DXF target mappings",
+    "Downgrade round-trip-property graph lifecycle",
+    "Native Linux/Windows FreeCAD",
+    "Independent known-dimension ACIS/AcDs semantics",
+    "All-family/all-version support",
+    "Binary ABI"
+  ],
+  "noNewDrawingFixtures": true,
+  "noNewCTestRegistration": true,
+  "noFullSuiteRun": true,
+  "next": "7G.3f.2 validated HEADER NOD identity and single root callback, then f.3 serializer/f.4 closure.",
+  "scratchDirectory": "/private/tmp/libdxfrw-visualstyle-wire.z2FWew"
+}

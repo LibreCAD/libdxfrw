@@ -34,8 +34,35 @@ namespace DRW {
 //! documents may raise it explicitly through dxfRW::setDxfReadRecordBudget().
 constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
 
+//! Aggregate logical bytes consumed by one DXF read operation, including
+//! group delimiters/codes, fixed-width values, binary chunks and the binary
+//! DXF sentinel. This is a resource ceiling, not a file-format maximum;
+//! callers with larger documents may raise it through dxfRW.
+constexpr std::size_t kDefaultDxfReadInputByteBudget = 1024u * 1024u * 1024u;
+
+//! Deterministic source-byte visits admitted by instrumented DXF decoding.
+//! This is cumulative work accounting, not elapsed time or a format maximum.
+constexpr std::size_t kDefaultDxfReadDecodeWorkBudget =
+    1024u * 1024u * 1024u;
+
+//! Aggregate entity/DRW_TableEntry-base XDATA DRW_Variant slots per read.
+//! This is a caller-raiseable resource ceiling, not a format maximum.
+constexpr std::size_t kDefaultDxfReadTypedVariantNodeBudget = 1024u * 1024u;
+
+//! Aggregate logical bytes retained by one DXF read operation. This includes
+//! library-owned snapshots/copies, not caller-owned input or allocated capacity.
+constexpr std::size_t kDefaultDxfReadRetainedByteBudget =
+    1024u * 1024u * 1024u;
+
+//! Raw bytes before one ASCII LF or binary string NUL, including ASCII CR.
+//! This is a caller-raiseable acquisition ceiling, not a DXF format maximum
+//! or a bound on string capacity, retained copies or stream-buffer read-ahead.
+constexpr std::size_t kDefaultDxfReadTokenByteBudget = 1024u * 1024u;
+
 //! Maximum number of DXF 102 application-group pairs staged per record.
 constexpr std::size_t kMaxDxfApplicationGroupPairs = 65536;
+//! Maximum number of group-code/value pairs retained by one raw DXF record.
+constexpr std::size_t kMaxDxfRawRecordGroups = 65536u;
 //! Maximum nesting depth accepted inside one DXF 102 application group.
 constexpr int kMaxDxfApplicationGroupNesting = 64;
 //! Maximum aggregate size of one DXF binary payload assembled from chunks.

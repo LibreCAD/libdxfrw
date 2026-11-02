@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c DXF entity-boundary token ownership transfer",
+  "scope": "Move each DXF code-0 record-name token into the persistent nextentity parser staging field instead of copying it.",
+  "files": {
+    "CMakeLists.txt": "41321583825a18b6f4520cc8dab5c7f78e092e59dcc10c2179bf156da1f094fc",
+    "src/libdxfrw.cpp": "bebc1fb3a910205787a2bc0cffa74fd5fbdd4a3db6f9ea11d6ab1cdf8942eabf",
+    "tests/hardening_tests.cpp": "201db9324f111e1cc7cd4230460a88ffe09491624f1ff4e8722b6b4e07c44636",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "663469a511ecbb1e1689f3d9aa1728581e9444e5f22f59260793eaa61a63cca2"
+  },
+  "evidence": {
+    "sourceAudit": "setEntityBoundary stores each group-0 name in nextentity and later classification/dispatch uses that persistent member after further reader operations. No later logic needs the current reader string token; code-0 receives no semantic conversion through getString().",
+    "generatedControls": "In-memory ASCII and Binary records LINE then ENDSEC are fed through setEntityBoundary. Assertions verify NextEntity/EndSection classification, staged keyword persistence, and empty reader string views after both transfers.",
+    "noPersistentFixture": "The Binary DXF stream is generated with dxfWriterBinary and both encodings remain in memory."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-entity-boundary-token-transfer",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_entity_boundary_token_transfer$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue the exact-source parser-staging ownership audit where later parse steps no longer need the current reader token. Preserve raw versus semantic decoding contracts; keep each generated validation fast and focused."
+}

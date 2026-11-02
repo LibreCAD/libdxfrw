@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bq",
+  "date": "2026-10-24",
+  "parentCommit": "0c9df6eebd580ccccedc2f738392c99faf0ba117",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "LOCAL_R2007_PLUS_CLASSES_TEXT_PADDING_DEFECT_FIXED_ALL_SIX_SCRATCH_IMPORTS_JOINED_QUALIFICATION_PENDING",
+  "research": {
+    "pdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "version": "ODA Open Design Specification v5.4.1",
+      "completePagesRead": [54, 55, 86, 87, 88, 104],
+      "renderedPagesInspected": [54, 87],
+      "chapters": ["5.8", "10.1", "10.2", "20.1"],
+      "boundary": "Separate text stream and backward length/presence footer; BS versus BL and other source-profile discrepancies remain explicit, not universally resolved by this fix",
+      "modified": false
+    },
+    "primaryPeers": [
+      {"url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgMergedStreamWriter.cs", "finding": "Uses actual text bit positions for stream merging and restores exact boundary after flushing backing bytes"},
+      {"url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgClassesWriter.cs", "finding": "Delegates merged-stream finalization before sealing section length and CRC"}
+    ],
+    "peerCodeCopied": false,
+    "universalSourceProfileSelected": false
+  },
+  "before": {
+    "log": "/tmp/rpp5bq-before.log",
+    "actualCallbackBytes": true,
+    "sourceReportBoundedByExistingCaptureBudget": true,
+    "ordinaryScratch": [
+      {"revision": 2007, "records": 65, "dataCursor": 4436, "dataEnd": 4440, "stringCursor": 48262, "stringEnd": 48264, "BSAndBLFailure": "Record"},
+      {"revision": 2010, "records": 65, "dataCursor": 4436, "dataEnd": 4440, "stringCursor": 48262, "stringEnd": 48264, "BSAndBLFailure": "Record"},
+      {"revision": 2013, "records": 65, "dataCursor": 4468, "dataEnd": 4472, "stringCursor": 48278, "stringEnd": 48280, "BSAndBLFailure": "Record"}
+    ],
+    "customDefinitionScratch": [
+      {"revision": 2007, "records": 65, "dataCursor": 4444, "dataEnd": 4448, "stringCursor": 48478, "stringEnd": 48480},
+      {"revision": 2010, "records": 65, "dataCursor": 4444, "dataEnd": 4448, "stringCursor": 48478, "stringEnd": 48480},
+      {"revision": 2013, "records": 65, "dataCursor": 4476, "dataEnd": 4480, "stringCursor": 48494, "stringEnd": 48496}
+    ],
+    "R2018DiagnosticBoundary": "The logged low-maintenance/no-high-word candidate refuses Header; the high-word alternative is separate. RPP-5bp records zero complete candidates overall; after the shared writer fix actual R2018 source joins pass.",
+    "crcNotReachedInRecordFailure": true,
+    "rootCause": "classStrings.alignToByte followed by size()*8 advertises storage padding as Unicode text bits"
+  },
+  "implementation": {
+    "function": "dwgWriter24::writeDwgClasses",
+    "inheritedRevisions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "textLength": "classStrings.bitCount(), not rounded byte capacity",
+    "copy": "Whole bytes plus at most seven remaining bits; no new text snapshot or per-bit full-stream traversal",
+    "footer": "Exact short/extended bit length at the text boundary; empty stream has false presence flag and no synthetic length word",
+    "preserved": ["Existing scalar alignment", "High-size and size-counting conventions", "Final byte alignment", "CRC and tail sealing"],
+    "productionObserverChanged": false,
+    "readerGrammarOrDispatchChanged": false,
+    "installedAPIOrDRWInterfaceVtableChanged": false,
+    "admissionPolicyOrIssueWaiversChanged": false,
+    "headerObjectStringAssemblerQualifiedOrChanged": false
+  },
+  "controls": {
+    "productionSectionMatrix": {"cases": 128, "revisions": [2007, 2010, 2013, 2018], "classCounts": [0, 1, 2, 3, 4, 5, 6, 7], "nameLengths": [1, 254, 255, 700], "emptyCases": 16, "shortFooters": 44, "extendedFooters": 68, "textFooterBitAlignments": [0, 2, 4, 6], "metadata": {"proxy": 7, "wasProxy": true, "version": 257, "maintenance": 329, "unknown1": 41, "unknown2": 73}, "checks": ["Independent complete scalar/text framing", "Exact expected TU bit lengths including BS256 and terminal NUL", "Short/extended/absent footer widths", "All row identities, names and metadata", "CRC mutation refused"], "nativeProducerQualificationClaim": false},
+    "independentPaddingControls": {"addedPositive": 24, "addedRefusals": 24, "extraDeclaredTextBits": [2, 4, 6], "malformedCrcStillValid": true, "productionObserverWeakened": false},
+    "independentSectionTotals": {"positive": 1791, "refusedOrTruncated": 10480, "batchSingle": 480},
+    "actualScratchContainerRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "afterRasterFrames": {"FixedType": 6, "Joined": 18, "TableUnavailable": 0},
+    "customClassesStillCarryClassEnvelope": true,
+    "actualCallbackContradictoryImports": 66,
+    "atomicAsciiBinaryClassRefusalAndCorrectedSourceRetries": 132,
+    "freshImportsRecoveringOnSameAdapter": 66,
+    "existingCompatibleProjectionReadbacks": 12,
+    "existingWireRefusalRetries": 32,
+    "existingDependencyNameSourceRefusalRetries": 18,
+    "largeOwningSection": {"formerRoundedTextBits": 536312, "exactTextBits": 536310, "records": 829, "completeScalarAndTextConsumptionNowRequired": true, "originalIndependentLengthFooterCrcChecksRetained": true},
+    "logs": ["/tmp/rpp5bq-after.log", "/tmp/rpp5bq-boundary-controls.log", "/tmp/rpp5bq-independent-controls.log"]
+  },
+  "validation": {
+    "build": {"result": "PASS", "strictWarnings": true, "warningSuppression": false, "affectedStaticConsumersRelinked": true, "logs": ["/tmp/rpp5bq-final-build.log", "/tmp/rpp5bq-boundary-build.log", "/tmp/rpp5bq-include-build.log", "/tmp/rpp5bq-owning-assertion-build.log"]},
+    "focused": {"result": "PASS", "passed": 10, "total": 10, "wallSeconds": 2.74, "parallelism": 3, "tests": ["libdxfrw_writer_version_matrix", "libdxfrw_class_source_join", "libdxfrw_dwg_class_source", "libdxfrw_class_section_independent_wire", "libdxfrw_class_dwg_independent_wire", "libdxfrw_dwg_r2007_class_string_footer", "libdxfrw_raster_dwg_independent_wire", "dwg2dxf_raster_dwg_source_profile_eed", "dwg2dxf_selected_raster_reactor_metadata", "dwg2dxf_generated_image_dictionary_source_identity"], "log": "/tmp/rpp5bq-fast-tests.log"},
+    "owning": {"result": "PASS_AFTER_STALE_ASSERTION_STRENGTHENED", "finalPassingUniqueCheckpoints": 5, "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"], "initial": {"passed": 4, "total": 5, "wallSeconds": 9.42, "failure": "AC1024 expected the former byte-rounded536312 bits", "log": "/tmp/rpp5bq-owning-before-assertion-update.log"}, "repair": {"passed": 1, "total": 1, "wallSeconds": 5.48, "test": "libdxfrw_dwg_local_roundtrip", "change": "Require536310 bits and independent full consumption through829 rows, not just an updated constant", "log": "/tmp/rpp5bq-owning-repaired.log"}, "unchangedPassingCheckpointsNotRerun": true},
+    "readerConsumers": {"result": "PASS", "passed": 4, "total": 4, "wallSeconds": 1.84, "parallelism": 3, "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"], "log": "/tmp/rpp5bq-compat-tests.log"},
+    "asan": {"result": "PASS", "passed": 4, "total": 4, "wallSeconds": 6.18, "options": "halt_on_error=1:detect_leaks=0", "tests": ["libdxfrw_writer_version_matrix", "libdxfrw_class_section_independent_wire", "libdxfrw_dwg_class_source", "dwg2dxf_raster_dwg_source_profile_eed"], "buildLogs": ["/tmp/rpp5bq-asan-build.log", "/tmp/rpp5bq-asan-include-build.log"], "log": "/tmp/rpp5bq-asan-tests.log"},
+    "standaloneAsanUbsan": {"result": "PASS", "standard": "C++14", "test": "Complete-section wire controls", "log": "/tmp/rpp5bq-combined-sanitizer.log"},
+    "libreCAD3CompileGate": "PASS",
+    "heavyOwningCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "externalPlatformSemanticOrThroughputQualificationClaim": false
+  },
+  "next": [
+    "Actual-import unavailable-table, class-role alias and multi-import history integration before admission-policy changes",
+    "Keep source-profile, body/path/EED text, output field/reference and full IMAGE/common-state qualification separate",
+    "External-producer AC1024/AC1032 profiles and independent >=256 producer semantics remain unqualified by current local scratch files",
+    "Sparse native cardinality reproduction before changing max-class-minus499 loops",
+    "Carry forward NOD/document, LAYER/codepage, APPID/LAYER/XRECORD and broader dependencies; separate header/object stream assembler is not qualified by this fix"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

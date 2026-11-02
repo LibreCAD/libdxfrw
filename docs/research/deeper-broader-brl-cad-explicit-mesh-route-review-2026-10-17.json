@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-deeper-broader-brl-cad-explicit-mesh-route-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Screen BRL-CAD's DXF converters as an optional independent consumer for explicit faceted geometry, reconcile current and legacy published converter scope, and record safety and claim boundaries.",
+  "method": {
+    "kind": "Primary-source project documentation and issue/PR status review reconciled with existing plan owners",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+      "https://brl-cad.github.io/docs/tutorials/converting/chapter5.html",
+      "https://brlcad.org/w/images/5/5f/Geometry_Conversions.pdf",
+      "https://github.com/BRL-CAD/brlcad/issues/228",
+      "https://github.com/BRL-CAD/brlcad/issues",
+      "https://github.com/BRL-CAD/brlcad/pulls"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing BRL-CAD POLYFACE issue and PAR-37/7V boundaries",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing explicit-geometry and composed-consumer checkpoints"
+    ],
+    "evidenceBoundary": "Documentation establishes only a candidate converter route and declared semantics. Current and legacy DXF entity scope is not reconciled by a pinned executable. Issue #228 is a BRL-CAD peer report, not a libdxfrw defect or a security audit of any local code. No peer runtime or native qualification occurred."
+  },
+  "evidence": [
+    {
+      "topic": "BRL-CAD provides a potentially useful explicit-facet consumer route",
+      "sources": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter5.html"
+      ],
+      "observed": [
+        "The current conversion tutorial describes polygons and meshes importing as BOT primitives and each DXF layer as a region.",
+        "The import route documents missing DXF units defaulting to millimeters and provides scale and tolerance options; the documented default tolerance is 0.005 mm.",
+        "The export route documents 3DFACE as the default and a -p option for POLYFACE MESH output."
+      ],
+      "doesNotEstablish": [
+        "exact entity coverage for a current pinned BRL-CAD build",
+        "preservation of per-entity handles, blocks, attributes, or owner graphs",
+        "ACIS/SAT/SAB parsing, DWG/AcDs reading, analytic curved surfaces, or B-rep identity",
+        "FreeCAD, LibreCAD, or AutoCAD acceptance"
+      ],
+      "planUse": "Keep as an optional composed-checkpoint candidate for generated explicit 3D facet/mesh controls only. Pin the tool build and options, and compare measured facets, bounds, orientation/closure, and analytic volume with an independently authored manifest."
+    },
+    {
+      "topic": "Published DXF importer scope is inconsistent across documentation generations",
+      "sources": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+        "https://brlcad.org/w/images/5/5f/Geometry_Conversions.pdf"
+      ],
+      "observed": [
+        "The older conversion guide says dxf-g predates ACIS in DXF, does not support ACIS, and converts only 3DFACES and 3DMESH.",
+        "The current tutorial describes polygon and mesh conversion more broadly but does not provide the same exact entity-by-entity matrix."
+      ],
+      "planUse": "Before scoring any family, run a single pinned-build smoke check on locally generated 3DFACE, 3DMESH, and POLYLINE/PFACE inputs separately; keep undocumented or rejected families out of the result denominator."
+    },
+    {
+      "topic": "BRL-CAD dxf-g is not admitted as a hostile-input safety oracle",
+      "sources": [
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/issues",
+        "https://github.com/BRL-CAD/brlcad/pulls"
+      ],
+      "observed": [
+        "The current issue index lists issue #228, a report of out-of-bounds access in dxf-g from attacker-controlled POLYLINE face indices.",
+        "A proposed guard in PR #245 was previously inspected; its lower-bound rule is not a replacement for the signed face-index semantics in the authoritative DXF contract and existing local PAR-37/7V controls.",
+        "Issue or PR presence does not establish a release fix or a matching defect in libdxfrw."
+      ],
+      "planUse": "Never feed hostile/adversarial drawings to this candidate or count it as a secure-parser pass. If used, use only small valid locally generated controls with in-range positive face references, keep the run optional, and retain local negative/sentinel polyface coverage."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "PAR-37",
+      "7V",
+      "S5",
+      "S8"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "mandatoryPeerGateAdded": false,
+    "optionalPeerCandidateRecorded": true,
+    "testRegistrationAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "Continue the current local implementation queue; do not wait for BRL-CAD availability or run it on every slice.",
+    "At the existing composed explicit-geometry checkpoint only, consider one pinned BRL-CAD smoke run if an appropriate build is already available.",
+    "Generate valid controls from scratch in a disposable location; pin input hashes, tool version, command, units, scale, tolerance, warnings, output mapping, and measured geometry.",
+    "Keep any result limited to the observed explicit faceted geometry route; it does not qualify entity/owner preservation, DWG, ACIS/AcDs, B-rep semantics, or native downstream applications.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw-deeper-broader-explicit-mesh-topology-and-geometry-evidence-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the 3D implementation plan from ACIS/B-rep qualification to explicit DXF MESH, legacy POLYLINE mesh, and polyface semantics; distinguish wire/topology fidelity, subdivision evaluation, and closed-solid validation.",
+  "method": {
+    "kind": "Primary Autodesk DXF references, upstream mesh-library documentation, and read-only local source/test cross-check",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "https://ezdxf.readthedocs.io/en/stable/tutorials/polyface.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+      "https://doc.cgal.org/6.2/Polygon_mesh_processing/index.html",
+      "https://github.com/elalish/manifold"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesOrKernelsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localRuntimeTestsRun": false,
+    "localFilesReviewed": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceBoundary": "Autodesk defines DXF entity framing and field semantics. Peer-library docs establish only those projects' stated topology assumptions and conversion limits; no peer runtime or native consumer was tested. Local source inspection was against the existing dirty worktree and is not an independent build/test result. ODA v5.4.1 remains authoritative for DWG byte layouts."
+  },
+  "evidence": [
+    {
+      "topic": "Subdivision MESH, classic POLYLINE mesh, and polyface are distinct representations",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/polyface.html"
+      ],
+      "observed": [
+        "Autodesk defines MESH/AcDbSubDMesh using a subdivision level, level-0 vertices, face-list, edges, crease values, and sub-entity property overrides.",
+        "Autodesk defines legacy POLYLINE mesh and polyface through POLYLINE mode flags and child VERTEX records; polyface face records are limited to four indices and use signed indices for edge visibility.",
+        "ezdxf documents n-gons for MESH but only triangles/quadrilaterals for polyface; its conversion helpers triangulate MESH n-gons for polyface/3DFACE and warn that concave n-gons may not convert correctly."
+      ],
+      "doesNotEstablish": [
+        "that every n-gon is planar or that triangulation preserves a non-planar face's geometry",
+        "evaluated subdivision-surface geometry from the stored level-0 cage",
+        "DWG AcDbSubDMesh byte layout or valid older-version acceptance"
+      ],
+      "planUse": "Do not use POLYLINE/polyface or 3DFACE tessellation as a silent MESH fallback. Keep native record identity, cage topology, crease/override fields, and any derived tessellation as separately reported outcomes."
+    },
+    {
+      "topic": "A valid mesh record does not imply a closed or manifold solid",
+      "sources": [
+        "https://doc.cgal.org/6.2/Polygon_mesh_processing/index.html",
+        "https://github.com/elalish/manifold"
+      ],
+      "observed": [
+        "CGAL's polygon-mesh documentation allows boundaries and describes its polygon mesh algorithms as operating on a 2-manifold topology; its listed geometry checks include self-intersection, orientation, connected components, area, and volume operations.",
+        "The Manifold library describes a manifold triangle mesh as a solid representation, reports an error for imported non-manifold meshes, and separately documents repair/merge capabilities.",
+        "The available independent kernels therefore have input-domain preconditions that are narrower than a DXF MESH or polyface codec's obligation to retain its supplied control topology."
+      ],
+      "doesNotEstablish": [
+        "that arbitrary DXF MESH input is a solid, closed, manifold, oriented, or non-self-intersecting",
+        "that a repair, winding correction, triangulation, or successful kernel import preserves source topology",
+        "an independent DWG/DXF parser or ACIS/B-rep validation route"
+      ],
+      "planUse": "Keep parser/writer topology fidelity separate from optional geometry-kernel results. Run volume checks only for controls whose independently authored expected model is explicitly a closed solid; preserve repair/fallback status and reject repaired output as proof of lossless input topology."
+    },
+    {
+      "topic": "Current local MESH implementation boundary and least-cost next validation",
+      "sources": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": [
+        "The local DRW_Mesh model carries base-cage vertices/faces/edges, crease values, and DXF property-override metadata; the DXF writer emits the documented field families and version-specific MESH/SUBDIVISION record profile.",
+        "The local DWG encoder emits only the base-cage layout and rejects nonempty propertyOverrides because no verified DWG mapping is available; this remains an intentional fail-closed boundary.",
+        "The existing generated DXF wire test checks raw schema plus typed readback for a small triangle control, but no test or runtime was run during this research pass and this does not independently validate evaluated subdivision geometry or a closed volume."
+      ],
+      "planUse": "Extend existing fast owners with generated controls that distinguish an open boundary surface, an n-gon/base cage, and a closed analytic mesh; assert record identity, exact indices/order, creases/overrides, and source-to-output disposition. Keep volume/topology-kernel use optional and composed-gate-only. Do not alter the DWG fail-closed override policy absent authoritative layout evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "refinesExistingOwners": [
+      "S5 explicit 3D geometry family matrix",
+      "S2/S3 MESH and DWG custom-class evidence gates",
+      "S8 consumer and independent semantic qualification",
+      "PAR-07 peer admission and evidence normalization"
+    ],
+    "fastLocalSequence": [
+      "Keep touched-target ASCII/binary wire and typed-readback tests as the per-slice gate; no new external tool is required.",
+      "Within the existing MESH/polyface test owner, use runtime-generated controls for open-surface, n-gon, and closed-simplex/cube cases; assert literal wire fields and typed topology before any projection.",
+      "For a closed generated control only, compare independently authored bounds/area/volume and closedness. An optional pinned Manifold or CGAL run belongs only at the composed checkpoint and must report rejects, repairs, orientation changes, and omissions.",
+      "Keep MESH subdivision evaluation, DWG MESH encoding, ACIS/B-rep semantics, and native application acceptance as later independent rows; no fallback representation may promote another row."
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "planDelta": {
+    "filesChanged": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-explicit-mesh-topology-and-geometry-evidence-review-2026-10-16.json"
+    ],
+    "validation": "Receipt JSON validation and git diff whitespace validation only; no local tests or build were run for this research-only update.",
+    "fullSuiteRun": false
+  }
+}

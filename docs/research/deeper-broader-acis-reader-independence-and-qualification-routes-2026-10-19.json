@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS reader independence and executable qualification routes",
+  "mode": "Primary-source product/documentation review, published peer-reader scope review, and reconciliation with existing local qualification receipts; plan-only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktreeState": "Dirty shared worktree; preserved all existing changes; no production or test code modified",
+  "questions": [
+    "Does the selected official macOS ARM64 CAD Assistant package provide an executable independent ACIS-reader route, and what are its kernel, license, and result-output boundaries?",
+    "Which open-source readers can decode the exact ACIS carrier as distinct parser implementations, and which can establish shape semantics or kernel validity?",
+    "What identity and ownership evidence is still needed to join a standalone SAB result back to its DWG/AcDs source?"
+  ],
+  "sources": [
+    {
+      "name": "Open CASCADE CAD Assistant product page",
+      "url": "https://www.opencascade.com/products/cad-assistant/",
+      "observed": "Vendor docs list SAT/SAB import through commercial OCCT XDE components, state that the free CAD Assistant app permits this import while disallowing model export/conversion, expose selected part area/volume/centroid properties, and currently point to version 1.6.0 dated 2021. The page's previous 1.5.0 entry explicitly lists macOS ARM64; exact architecture must be established from the artifact actually tested."
+    },
+    {
+      "name": "Open CASCADE commercial components preview and announcement",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "observed": "ACIS SAT/SAB exchange is a commercial component, not a standard open-source OCCT codec. CAD Assistant is a distinct ACIS reader from libdxfrw but its shape construction is in the OCCT kernel family, which is shared with FreeCAD."
+    },
+    {
+      "name": "cq-acis project and acis-core API",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://docs.rs/acis-core/latest/acis_core/"
+      ],
+      "observed": "The project calls itself experimental, documents bounded SAT/SAB/ASM profiles, retains unsupported records, and converts supported geometry through CadQuery/OCCT. acis-core validates reference closure and source ranges but does not construct OCCT solids; it is part of the same cq-acis parser/model lineage, not a second independent parser vote. The test corpus is excluded from Python packages and has separate license notices."
+    },
+    {
+      "name": "cadmpeg-codec-sat published documentation and architecture",
+      "urls": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md"
+      ],
+      "observed": "The published 0.6.1 crate describes a read-only bare-stream decoder that transfers supported geometry into neutral IR, reports losses/unknown records, and verifies Spatial ACIS bands 217/218. It does not parse the DWG/DXF container, write SAT/SAB, or supply a CAD kernel. Treat the package's own coverage claims as scope documentation, not correctness evidence."
+    },
+    {
+      "name": "Existing local qualification record",
+      "path": "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "observed": "The existing record says one hash-pinned SAB attempt with official CAD Assistant ended in a transfer error without geometry or metrics, and the downloaded app bundle failed strict code-signature verification. This is inconclusive and does not establish an invalid SAB; the package must pass integrity review before another launch. Existing witness-generation and exact AcDs linkage requirements remain in force."
+    }
+  ],
+  "planChanges": [
+    "Separate parser independence, kernel independence, native-app acceptance, and output observability into distinct evidence columns.",
+    "Treat CAD Assistant as an optional OCCT-family black-box reader with import-only access; integrity and exact package architecture/version must be verified before execution.",
+    "Admit one exact-pinned cq-acis route per documented profile; do not count acis-core as another parser and review corpus licensing before use.",
+    "Use cadmpeg-codec-sat only as an exact-profile read-only parser/neutral-geometry cross-check, capturing its full loss report and independently expected measures.",
+    "Require the DWG entity-to-AcDs schema/index/key-to-exact-SAB-hash join separately; no standalone reader can establish that container association.",
+    "Keep BricsCAD/Ansys as optional independent-kernel candidates subject to exact profile, license, and measurable output qualification; unavailable external lanes self-unblock to the local implementation queue."
+  ],
+  "result": {
+    "confirmedLocalDefect": false,
+    "newFinding": false,
+    "newSubplan": false,
+    "codeOrTestChanges": false,
+    "fixtureOrDependencyAdded": false,
+    "externalExecutionPerformed": false,
+    "supportClaimsPromoted": false,
+    "findingAndSubplanCounts": "135/77 unchanged",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

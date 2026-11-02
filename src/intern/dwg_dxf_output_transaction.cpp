@@ -23,9 +23,12 @@
 
 #include "dwg_dxf_output_transaction.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
+#include <limits>
 #include <random>
 #include <string>
 
@@ -38,12 +41,27 @@
 #else
 #  include <fcntl.h>
 #  include <sys/stat.h>
+#  include <sys/types.h>
 #  include <unistd.h>
+#endif
+
+#if !defined(_WIN32)
+namespace {
+const char* temporaryFileName(const std::filesystem::path& path) noexcept {
+    const auto& native = path.native();
+    const auto slash = native.find_last_of('/');
+    return native.c_str() + (slash == std::string::npos ? 0u : slash + 1u);
+}
+}
 #endif
 
 DwgDxfOutputTransaction::DwgDxfOutputTransaction(
     const std::string& target, std::ios::openmode mode)
-    : m_target(std::filesystem::u8path(target)), m_mode(mode) {}
+    : m_target(std::filesystem::u8path(target)),
+      m_targetName(m_target.filename()), m_directory(m_target.parent_path()),
+      m_mode(mode) {
+    if (m_directory.empty()) m_directory = ".";
+}
 
 DwgDxfOutputTransaction::~DwgDxfOutputTransaction() {
     if (!m_committed)
@@ -58,15 +76,15 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     if (m_target.empty())
         return false;
 
-    const std::filesystem::path directory =
-        m_target.parent_path().empty() ? std::filesystem::path(".")
-                                       : m_target.parent_path();
+    const auto& directory = m_directory;
     // Keep the basename native (UTF-16 on Windows); append only ASCII suffixes.
-    const std::filesystem::path name = m_target.filename();
+    const auto& name = m_targetName;
     if (name.empty())
         return false;
 
 #if defined(_WIN32)
+    if (!captureTargetSnapshot())
+        return false;
     std::random_device random;
     for (std::uint32_t attempt = 0; attempt != 128; ++attempt) {
         m_temporary = directory / name;
@@ -74,7 +92,7 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
                        + std::to_string(random()) + "-" + std::to_string(attempt);
         int descriptor = -1;
         if (_wsopen_s(&descriptor, m_temporary.c_str(),
-                      _O_CREAT | _O_EXCL | _O_WRONLY | _O_BINARY,
+                      _O_CREAT | _O_EXCL | _O_RDWR | _O_BINARY,
                       _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0
             || descriptor < 0)
             continue;
@@ -104,23 +122,9 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     // would get to choose the permissions of somebody else's saved drawing.
     // Only a regular file has a mode worth inheriting: for anything else the
     // published file is treated as new.
-    struct stat existing {};
-    const std::filesystem::path targetName = m_target.filename();
-    const int targetFlags =
-#  if defined(AT_SYMLINK_NOFOLLOW)
-        AT_SYMLINK_NOFOLLOW;
-#  else
-        0;
-#  endif
-    if (!targetName.empty()
-        && ::fstatat(m_directoryDescriptor, targetName.c_str(), &existing,
-                     targetFlags) == 0
-        && S_ISREG(existing.st_mode)) {
-        // Permission bits only.  setuid, setgid and the sticky bit are not
-        // carried onto what is a newly created inode, possibly with a
-        // different owner -- replacing a file must not hand its privileges to
-        // the replacement.
-        m_targetMode = static_cast<int>(existing.st_mode & 0777);
+    if (!captureTargetSnapshot()) {
+        closeDirectoryDescriptor();
+        return false;
     }
 
     // Create the temporary the same way the Windows branch above does, rather
@@ -190,6 +194,193 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     return false;
 }
 
+bool DwgDxfOutputTransaction::captureTargetSnapshot() noexcept {
+    if (m_target.empty() || m_targetName.empty())
+        return false;
+#if defined(_WIN32)
+    const HANDLE targetHandle = CreateFileW(
+        m_target.c_str(), FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
+            | FILE_FLAG_OPEN_REPARSE_POINT,
+        nullptr);
+    if (targetHandle == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        if (error != ERROR_FILE_NOT_FOUND && error != ERROR_PATH_NOT_FOUND)
+            return false;
+        m_targetSnapshot = TargetSnapshot {};
+        m_targetSnapshot.captured = true;
+        return true;
+    }
+    BY_HANDLE_FILE_INFORMATION information {};
+    const bool ok = GetFileInformationByHandle(targetHandle, &information) != 0;
+    CloseHandle(targetHandle);
+    if (!ok)
+        return false;
+
+    ULARGE_INTEGER modified {};
+    modified.HighPart = information.ftLastWriteTime.dwHighDateTime;
+    modified.LowPart = information.ftLastWriteTime.dwLowDateTime;
+    ULARGE_INTEGER created {};
+    created.HighPart = information.ftCreationTime.dwHighDateTime;
+    created.LowPart = information.ftCreationTime.dwLowDateTime;
+    m_targetSnapshot.captured = true;
+    m_targetSnapshot.exists = true;
+    m_targetSnapshot.device = information.dwVolumeSerialNumber;
+    m_targetSnapshot.file =
+        (static_cast<std::uint64_t>(information.nFileIndexHigh) << 32u)
+        | information.nFileIndexLow;
+    m_targetSnapshot.size =
+        (static_cast<std::uint64_t>(information.nFileSizeHigh) << 32u)
+        | information.nFileSizeLow;
+    m_targetSnapshot.modifiedSeconds = modified.QuadPart;
+    m_targetSnapshot.changedSeconds = created.QuadPart;
+    m_targetSnapshot.type = information.dwFileAttributes;
+    return true;
+#else
+    if (m_directoryDescriptor < 0)
+        return false;
+    struct stat targetStatus {};
+    const auto& targetName = m_targetName;
+    const int flags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
+    if (::fstatat(m_directoryDescriptor, targetName.c_str(), &targetStatus,
+                  flags) != 0) {
+        if (errno != ENOENT)
+            return false;
+        m_targetSnapshot = TargetSnapshot {};
+        m_targetSnapshot.captured = true;
+        m_targetMode = -1;
+        return true;
+    }
+#  if defined(__APPLE__)
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtimespec.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctimespec.tv_nsec);
+#  else
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtim.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctim.tv_nsec);
+#  endif
+    m_targetSnapshot.captured = true;
+    m_targetSnapshot.exists = true;
+    m_targetSnapshot.device = static_cast<std::uint64_t>(targetStatus.st_dev);
+    m_targetSnapshot.file = static_cast<std::uint64_t>(targetStatus.st_ino);
+    m_targetSnapshot.size = static_cast<std::uint64_t>(targetStatus.st_size);
+    m_targetSnapshot.modifiedSeconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtime);
+    m_targetSnapshot.modifiedSubseconds = modifiedSubseconds;
+    m_targetSnapshot.changedSeconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctime);
+    m_targetSnapshot.changedSubseconds = changedSubseconds;
+    m_targetSnapshot.type = static_cast<std::uint32_t>(targetStatus.st_mode);
+    if (S_ISREG(targetStatus.st_mode)) {
+        // Permission bits only.  setuid, setgid and the sticky bit are not
+        // carried onto what is a newly created inode, possibly with a
+        // different owner -- replacing a file must not hand its privileges to
+        // the replacement.
+        m_targetMode = static_cast<int>(targetStatus.st_mode & 0777);
+    } else {
+        m_targetMode = -1;
+    }
+    return true;
+#endif
+}
+
+bool DwgDxfOutputTransaction::targetSnapshotMatches() const noexcept {
+    if (!m_targetSnapshot.captured || m_target.empty())
+        return false;
+#if defined(_WIN32)
+    const HANDLE targetHandle = CreateFileW(
+        m_target.c_str(), FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
+            | FILE_FLAG_OPEN_REPARSE_POINT,
+        nullptr);
+    if (targetHandle == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        return !m_targetSnapshot.exists
+            && (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
+    }
+    if (!m_targetSnapshot.exists) {
+        CloseHandle(targetHandle);
+        return false;
+    }
+    BY_HANDLE_FILE_INFORMATION information {};
+    const bool ok = GetFileInformationByHandle(targetHandle, &information) != 0;
+    CloseHandle(targetHandle);
+    if (!ok)
+        return false;
+    ULARGE_INTEGER modified {};
+    modified.HighPart = information.ftLastWriteTime.dwHighDateTime;
+    modified.LowPart = information.ftLastWriteTime.dwLowDateTime;
+    ULARGE_INTEGER created {};
+    created.HighPart = information.ftCreationTime.dwHighDateTime;
+    created.LowPart = information.ftCreationTime.dwLowDateTime;
+    const std::uint64_t file =
+        (static_cast<std::uint64_t>(information.nFileIndexHigh) << 32u)
+        | information.nFileIndexLow;
+    const std::uint64_t size =
+        (static_cast<std::uint64_t>(information.nFileSizeHigh) << 32u)
+        | information.nFileSizeLow;
+    return information.dwVolumeSerialNumber == m_targetSnapshot.device
+        && file == m_targetSnapshot.file && size == m_targetSnapshot.size
+        && modified.QuadPart == m_targetSnapshot.modifiedSeconds
+        && created.QuadPart == m_targetSnapshot.changedSeconds
+        && information.dwFileAttributes == m_targetSnapshot.type;
+#else
+    if (m_directoryDescriptor < 0)
+        return false;
+    struct stat targetStatus {};
+    const auto& targetName = m_targetName;
+    const int flags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
+    if (::fstatat(m_directoryDescriptor, targetName.c_str(), &targetStatus,
+                  flags) != 0) {
+        return !m_targetSnapshot.exists && errno == ENOENT;
+    }
+    if (!m_targetSnapshot.exists)
+        return false;
+#  if defined(__APPLE__)
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtimespec.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctimespec.tv_nsec);
+#  else
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtim.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctim.tv_nsec);
+#  endif
+    return static_cast<std::uint64_t>(targetStatus.st_dev)
+               == m_targetSnapshot.device
+        && static_cast<std::uint64_t>(targetStatus.st_ino)
+               == m_targetSnapshot.file
+        && static_cast<std::uint64_t>(targetStatus.st_size)
+               == m_targetSnapshot.size
+        && static_cast<std::uint64_t>(targetStatus.st_mtime)
+               == m_targetSnapshot.modifiedSeconds
+        && modifiedSubseconds == m_targetSnapshot.modifiedSubseconds
+        && static_cast<std::uint64_t>(targetStatus.st_ctime)
+               == m_targetSnapshot.changedSeconds
+        && changedSubseconds == m_targetSnapshot.changedSubseconds
+        && static_cast<std::uint32_t>(targetStatus.st_mode)
+               == m_targetSnapshot.type;
+#endif
+}
+
 bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
     if (m_exclusiveDescriptor < 0 || m_temporary.empty())
         return false;
@@ -226,8 +417,8 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
     };
     struct stat pathStatus {
     };
-    const std::filesystem::path temporaryName = m_temporary.filename();
-    if (m_directoryDescriptor < 0 || temporaryName.empty())
+    const char* temporaryName = temporaryFileName(m_temporary);
+    if (m_directoryDescriptor < 0 || *temporaryName == '\0')
         return false;
     // Resolve the temporary name relative to the directory descriptor that
     // created it.  This remains valid when the parent directory is renamed,
@@ -240,7 +431,7 @@ bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
         0;
 #  endif
     return ::fstat(m_exclusiveDescriptor, &descriptorStatus) == 0
-           && ::fstatat(m_directoryDescriptor, temporaryName.c_str(),
+           && ::fstatat(m_directoryDescriptor, temporaryName,
                         &pathStatus, flags) == 0
            && descriptorStatus.st_dev == pathStatus.st_dev
            && descriptorStatus.st_ino == pathStatus.st_ino;
@@ -255,9 +446,7 @@ bool DwgDxfOutputTransaction::directoryIdentityMatchesPath() const noexcept {
 #else
     if (m_directoryDescriptor < 0 || m_target.empty())
         return false;
-    const std::filesystem::path directory =
-        m_target.parent_path().empty() ? std::filesystem::path(".")
-                                       : m_target.parent_path();
+    const auto& directory = m_directory;
     struct stat descriptorStatus {
     };
     struct stat pathStatus {
@@ -341,6 +530,59 @@ bool DwgDxfOutputTransaction::open() {
     return true;
 }
 
+bool DwgDxfOutputTransaction::verifyRange(
+    std::streamoff offset, std::string_view expected) {
+    if (!m_stream.is_open() || m_exclusiveDescriptor < 0 || offset < 0
+        || expected.size() > static_cast<std::uintmax_t>(
+               (std::numeric_limits<std::streamoff>::max)() - offset))
+        return false;
+    m_stream.flush();
+    if (!m_stream.good())
+        return false;
+    if (expected.empty()) {
+        const std::streampos current = m_stream.tellp();
+        return current != std::streampos(-1)
+            && static_cast<std::streamoff>(current) == offset;
+    }
+
+    char buffer[4096];
+    std::size_t compared = 0;
+    while (compared < expected.size()) {
+        const std::size_t count = (std::min)(
+            sizeof(buffer), expected.size() - compared);
+        std::size_t readTotal = 0;
+        while (readTotal < count) {
+#if defined(_WIN32)
+            const auto position = offset
+                + static_cast<std::streamoff>(compared + readTotal);
+            if (_lseeki64(m_exclusiveDescriptor, position, SEEK_SET)
+                != position)
+                return false;
+            const int readCount = _read(m_exclusiveDescriptor,
+                buffer + readTotal, static_cast<unsigned int>(count - readTotal));
+#else
+            const auto requestedPosition = offset
+                + static_cast<std::streamoff>(compared + readTotal);
+            const auto position = static_cast<off_t>(requestedPosition);
+            if (position < 0
+                || static_cast<std::streamoff>(position) != requestedPosition)
+                return false;
+            const ssize_t readCount = ::pread(m_exclusiveDescriptor,
+                buffer + readTotal, count - readTotal, position);
+#endif
+            if (readCount < 0 && errno == EINTR)
+                continue;
+            if (readCount <= 0)
+                return false;
+            readTotal += static_cast<std::size_t>(readCount);
+        }
+        if (std::memcmp(buffer, expected.data() + compared, count) != 0)
+            return false;
+        compared += count;
+    }
+    return true;
+}
+
 bool DwgDxfOutputTransaction::publish() {
 #if defined(_WIN32)
     return MoveFileExW(m_temporary.c_str(), m_target.c_str(),
@@ -360,9 +602,9 @@ bool DwgDxfOutputTransaction::publish() {
     if (m_targetMode >= 0 && m_exclusiveDescriptor >= 0)
         ::fchmod(m_exclusiveDescriptor, static_cast<mode_t>(m_targetMode));
 
-    const std::filesystem::path temporaryName = m_temporary.filename();
-    const std::filesystem::path targetName = m_target.filename();
-    return ::renameat(m_directoryDescriptor, temporaryName.c_str(),
+    const char* temporaryName = temporaryFileName(m_temporary);
+    const auto& targetName = m_targetName;
+    return ::renameat(m_directoryDescriptor, temporaryName,
                       m_directoryDescriptor, targetName.c_str()) == 0;
 #endif
 }
@@ -375,7 +617,8 @@ bool DwgDxfOutputTransaction::commit() {
         abort();
         return false;
     }
-    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()) {
+    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()
+        || !targetSnapshotMatches()) {
         abort();
         return false;
     }
@@ -415,7 +658,7 @@ bool DwgDxfOutputTransaction::commit() {
     }
 #else
     if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()
-        || !publish()) {
+        || !targetSnapshotMatches() || !publish()) {
         abort();
         return false;
     }
@@ -447,9 +690,9 @@ void DwgDxfOutputTransaction::abort() noexcept {
         }
 #else
         if (owned && m_directoryDescriptor >= 0) {
-            const std::filesystem::path temporaryName = m_temporary.filename();
-            if (!temporaryName.empty())
-                (void)::unlinkat(m_directoryDescriptor, temporaryName.c_str(),
+            const char* temporaryName = temporaryFileName(m_temporary);
+            if (*temporaryName != '\0')
+                (void)::unlinkat(m_directoryDescriptor, temporaryName,
                                  0);
         }
 #endif

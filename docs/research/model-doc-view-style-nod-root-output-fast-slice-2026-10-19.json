@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle same-version DXF NOD-root replay fast slice",
+  "mode": "Generated structural implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "baseCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Admit typed DETAILVIEWSTYLE and SECTIONVIEWSTYLE records as unique named-object-dictionary targets during strict DXF export root construction.",
+    "Require each root target to have NOD ownership and the corresponding rooted extension-graph queue membership.",
+    "Verify generated same-version ASCII/Binary replay, NOD root keys, remapped references, and cross-version refusal."
+  ],
+  "method": {
+    "kind": "Local source change with generated scratch-only ASCII/Binary DXFs",
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "gitMetadataWritable": false
+  },
+  "change": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "summary": "Added DETAILVIEWSTYLE and SECTIONVIEWSTYLE typed target census, queued-child checks, and NOD-owner closure to the existing root-entry admission logic. The established root writer then emits each source key with the remapped target handle.",
+    "behavior": "Strict same-version DXF export no longer drops valid view-style NOD entries while emitting their raw records. Unresolved/wrong-kind roots remain fail-closed; cross-version output remains refused."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS",
+      "coverage": "Generated ASCII and Binary DXF capture, invalid reference refusal, cross-version sentinel preservation, same-version replay, NOD key readback, remapped style/resource target closure."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-model-doc-view-style-nod-root-gate-2026-10-19.json dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "assessment": {
+    "sliceStatus": "ROOTED_SAME_VERSION_DXF_STRUCTURAL_REPLAY_PASS",
+    "stillUnqualified": [
+      "Exact ordered raw-group equivalence after handle normalization",
+      "DWG-origin style serialization",
+      "Cross-version style projection",
+      "Producer-backed DWG binary style field layout",
+      "Native view rendering and consumer acceptance"
+    ],
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "supportClaimPromoted": false,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktreeState": "Uncommitted; no staging or commit attempted."
+  }
+}

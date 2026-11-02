@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ACadSharp ACDSDATA candidate-branch regression and writer scope",
+  "mode": "primary-source research only",
+  "scope": [
+    "Refresh current ACadSharp ACDS/ACIS pull-request states",
+    "Trace the dependency and implementation scope of the candidate ModelerGeometry writer",
+    "Refine the peer-screening gate without promoting candidate code to released support"
+  ],
+  "method": {
+    "kind": "Read-only review of GitHub pull-request records and existing local plan/test owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "researchLocalTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "The PR #1174 regression is a reviewer-reported focused test result, not independently reproduced. No pull-request branch was checked out, and no linked customer or issue attachment was fetched. PR states and commit lists are mutable and were reviewed on 2026-10-19."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1174",
+      "revision": "open PR record and conversation reviewed 2026-10-19; two commits listed",
+      "observed": "The open schema/storage refactor introduces CadFileDataStorage and embedded AcdsRecord handling. An Aug 12 reviewer comment reports 10 ACDS tests passing while DxfAcdsDataSectionTests.ReadAcdsDataAttachesAcisPayloadToOwnerEntity fails because readAcdsRecord throws NotImplementedException; the commenter reports post-2013 DXF payload loss on the branch compared with master."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "revision": "open PR record and commit listing reviewed 2026-10-19; three commits listed",
+      "observed": "The unreviewed, undeployed ACIS writer PR depends on #1174 and links issue #1195. Its current commit listing includes detailed DwgObjectWriter ModelerGeometry serialization for ACIS data, wireframes, silhouettes, geometry properties, version checks, and warnings for unsupported binary data; this is candidate-source intent, not merged or released support."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue record reviewed 2026-10-19",
+      "observed": "The open issue is explicitly against ACadSharp 3.4.9 and reports two interior-design DWGs: 252 3DSOLID entities become zero in DXF in one file, and 51 3DSOLID plus 3 REGION become zero in another, including solid-only block definitions whose INSERTs then render empty. The reporter says LibreDWG census confirmed source entities. Customer drawings are not attached. This is reporter-attributed, version/direction-specific evidence, not an independently reproduced result, current-release behavior, or a libdxfrw reproducer; the issue links candidate PR #1240."
+    }
+  ],
+  "plan_effect": {
+    "newLocalFinding": false,
+    "newTopLevelSubplan": false,
+    "localImplementationChange": false,
+    "supportClaimsPromoted": false,
+    "findingSubplanTotals": "134/76 unchanged",
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

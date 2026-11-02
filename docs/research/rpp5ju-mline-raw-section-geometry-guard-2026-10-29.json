@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5ju MLINE raw-section geometry guard integration",
+  "date": "2026-10-29",
+  "codeCommit": "6a6df7570a16c7b5271c25fae8ca5535c02defcf",
+  "scope": "Connects the existing dxfRW no-raw-section replay guard to AC1021+ DXF MLINESTYLE geometry transactions. Evidence is the selected AC1027 profile. Geometry-changing export now requires the transient codec no-raw receipt at adapter finalization. This is a no-raw-section admission profile; it does not enable consumed geometry or promote support claims.",
+  "contract": {
+    "selection": "The adapter selects the guard when the source is DXF, source and target named-resource versions are AC1021+, and a captured MLINESTYLE transaction has a geometryChanged field. Earlier-version raw-only transport is unaffected.",
+    "codecBoundary": "Before writing, the adapter enables dxfRW's existing no-raw-section policy. The codec refuses nonempty raw sections at their actual replay boundary and verifies the section vector is still empty after the finalization callback. The adapter also requires the transient no-raw receipt during its own finalizer.",
+    "failureAndRetry": "A caller-added opaque raw section carrying a group-340 value for the edited style causes atomic export refusal. The destination sentinel, caller's style edit and raw-section container remain intact. Removing the section allows same-adapter retry; readback retains the edited unused-style offset and contains no raw section.",
+    "compatibility": "Uses an existing dxfRW API; adds only a private dx_iface helper. The guard is selected only for AC1021+ DXF MLINESTYLE geometry-change transactions. Pre-AC1021 raw-only transport and exports without such a geometry transaction remain on their existing path.",
+    "limits": "The codec guard refuses any raw section, not just sections with a matching group 340. This deliberately limits the selected profile to documents without opaque sections. It does not inspect or authenticate generated CLASSES, HEADER/HANDSEED, TABLES, BLOCKS, ENTITIES, OBJECTS or other staged content; it is not a complete dependency graph or emitted-geometry proof. Consumed offset edits remain refused."
+  },
+  "controls": {
+    "profiles": 4,
+    "matrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary output"
+    ],
+    "rawSectionGeometryEditRefusals": 4,
+    "destinationSentinelPreserved": 4,
+    "callerStyleEditPreserved": 4,
+    "callerRawSectionPreserved": 4,
+    "sameAdapterCorrectedRetries": 4,
+    "readbacks": 4,
+    "readbackChecks": "Selected style retains the edited offset and the removed opaque section is absent.",
+    "sourceConstruction": "The AC1027 source text is authored in the test and encoded locally as ASCII and binary DXF. The opaque CUSTOM_DEPENDENCY section is built in memory from scratch. All temporary files are cleaned up. No drawing fixture was added to Git."
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "normal": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4",
+      "asan": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4"
+    },
+    "normal": {
+      "result": "PASS",
+      "count": "11/11",
+      "seconds": 1.21,
+      "includes": [
+        "libdxfrw_no_raw_sections",
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_mline_style_body_source_live",
+        "libdxfrw_mline_deleted_consumer_geometry_guard",
+        "libdxfrw_mline_raw_section_geometry_guard",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "11/11",
+      "seconds": 0.81,
+      "sanitizer": "AddressSanitizer-instrumented targets",
+      "includes": [
+        "libdxfrw_no_raw_sections",
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_mline_style_body_source_live",
+        "libdxfrw_mline_deleted_consumer_geometry_guard",
+        "libdxfrw_mline_raw_section_geometry_guard",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "directSelector": "PASS: profiles=4, refusals=4, retries=4, readbacks=4.",
+    "transactionSelector": {
+      "result": "PASS",
+      "selector": "build/libdxfrw_dxf_fixture_tests --mline-style-body-transactions",
+      "summary": "profiles=8; readbacks=567; refusals=140; retries=328; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=24; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1"
+    },
+    "repositoryChecks": {
+      "diffCheck": "PASS (git diff --check)",
+      "fixtureAdmission": "PASS (0 fixture index candidates checked)",
+      "buildInventory": "PASS (631 released files)",
+      "buildInventorySelfTest": "PASS (18 refusal controls)"
+    }
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "a96d718627ab09527bc8a39c16d7ac0062908da59a848b46964803a51e9a4dd3",
+    "dwg2dxf/dx_iface.h": "de9f333cd0c8d0864061e671f988aa5c38f929005904bb94efe37f2654d5fe10",
+    "tests/CMakeLists.txt": "bbf395687aab8ceaca5d30d56853bce35ff8b398c614573e60e172e626c3a256",
+    "tests/dxf_mline_source_dependency_tests.cpp": "d33f987ad38d5d4596fa77dfdd4cc0231448c3aa4e3cfa903a48690ee76bd54d"
+  },
+  "binaryBindings": {
+    "normalMlineTest": "11647801fa952e4269a268c7c32992a31fa4f4519f697d43f48254591cc4a230",
+    "normalDxfFixtureTest": "ca99a00b795e8b709ab125af042c07ec25b9cb3ffe303e36a86b52146a8d8a0f",
+    "normalWholeSourceTest": "44be49992f96b0f142b738c2c3318d46239233f2d982ae14afbafa44928d11b7",
+    "normalLegacyRelationTest": "d72d029ff8f36ac835481d5b1a8fc200d93b2a21ea5560fe597dd6427a75635a",
+    "normalNoRawSectionsTest": "307390547fb6065a5a2c7c358c219a9221235a6be3545d8b857ca726fc6aac0a",
+    "asanMlineTest": "c91d7b78de343d072664ee4857cf0b816091264bae392ab6b1439b1854583974",
+    "asanDxfFixtureTest": "1771e87a45a13c37095237ba0ecd1eca91c5fd57405b6005a968ccd772373819",
+    "asanWholeSourceTest": "3c9d6eee97544b851bbe3dfde410c25bb8f6aad29a71c2d0957aaa98c9c71bae",
+    "asanLegacyRelationTest": "e8776e7a488878904630f8e5dc506bf9d4bfd510816cc0b7b7ce5176b384d3d7",
+    "asanNoRawSectionsTest": "ef5b869606175e6c6140d649bfb45300a4f135635e21bfbc2f02372db4ca4920"
+  },
+  "next": "Bind LAYER application scopes and every other admitted live carrier to original MLINESTYLE references, then authenticate final staged sections including generated CLASSES and the HANDSEED backpatch. Obtain independent emitted-geometry evidence before enabling consumed offset edits; keep unsupported opaque/version/native profiles refused."
+}

@@ -1,0 +1,114 @@
+{
+  "schema": "ac1018-attdef-optin-adapter-capture-v1",
+  "date": "2026-10-28",
+  "codeCommit": "e13373c8d2a080ad88405c7965b29024ebc47049",
+  "supportClaimsPromoted": false,
+  "scope": "Explicit derived-adapter opt-in to existing optional ATTDEF source facet for AC1018. The adapter default remains opt-out and no new fields or virtuals are added. The optional capture is bounded and establishes only raw/typed pair and captured-field replay.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample, native authoring history not independently certified.",
+    "selected": "classic ATTDEF 6F8 owned by 6F2; 17 groups; ASCII AC1018, declared ANSI_1252; XDATA 1001 AcDbAttr, 1070 values 0 and 1"
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "typed selected definition imported; no raw source, paired model or replay",
+    "explicitOptIn": "raw and model retained; pair/replay true, mismatch false; raw 17 groups; source AC1018, codec AC1015, declared ANSI_1252, ASCII",
+    "gate": "profile Revision (reason 2) at group 0; origin absent and rawTyped authority false",
+    "comparison": "Default and opted-in selected typed models compare equal via dxfAttdef::Decoder::sameModel for this source.",
+    "source": {
+      "path": "build/agent-attribute-profile/ac1018-adapter/probe.cpp",
+      "sha256": "cd56630208c26030ba8c827b2f3bf00059ec49a34950c616173fe80b5c73c26e"
+    },
+    "binary": {
+      "path": "build/agent-attribute-profile/ac1018-adapter/probe",
+      "sha256": "efaf4f2a1c0e385e98e2a356eecc97547fb03945d31217c103d108c58f2e6e7d"
+    },
+    "stdout": {
+      "path": "build/agent-attribute-profile/ac1018-adapter/run.stdout",
+      "sha256": "700609b8e6b95fe19aa5746aeeae5bcd18cec192d5d6bc4e17c18dd28a0815ea"
+    },
+    "stderr": {
+      "path": "build/agent-attribute-profile/ac1018-adapter/run.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "adapterObjectAtProbe": {
+      "pathAtLink": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "cd3a6a8692ebdcdbe42f59e51a268df0b857e22ed27952b041946b05ef9d01e3"
+    },
+    "libraryAtProbe": {
+      "pathAtLink": "build/libdxfrw.a",
+      "sha256": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a"
+    }
+  },
+  "bindings": {
+    "adapterSourceAtCommit": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "0a58c1fe78c921e41c0b630e6de712bc877e9a4b88048320925129dfa60cbc12"
+    },
+    "testSourceAtCommit": {
+      "path": "tests/attdef_source_tests.cpp",
+      "sha256": "2c3b873c0eeb9253da3822b7484cb23a442003bf43189edac039d4ebd68d8c40"
+    },
+    "testRegistryAtCommit": {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "d6d6d40e307fd27d8bc729141b5f4716d81b9dc0f870a8f721b7996c94e66d52"
+    },
+    "normalTestBinary": {
+      "path": "build/tests/libdxfrw_attdef_source_tests",
+      "sha256": "f2f0249cf43f8192f083346740891b16c469299f7851794e191f42663eb4caf0"
+    },
+    "asanTestBinary": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+      "sha256": "7280f67b248908c886d87851c5ae992a75df203b6ce6ea21da967f6ecdf2a8a5"
+    },
+    "previousCapturedReplayReceipt": {
+      "path": "docs/research/rpp5ia-ac1018-attdef-captured-replay-2026-10-28.json",
+      "sha256": "41f6e5d3bb00f5525993292eb9f3c3abd38dfb101b5ef779f4c8113c19d50523"
+    },
+    "note": "Shared adapter/source files may subsequently change as other slices continue; commit hashes and at-link observations identify this packet."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_legacy_observation",
+      "libdxfrw_attdef_legacy_adapter_capture"
+    ],
+    "normal": {
+      "result": "passed 3/3",
+      "lastTestLog": {
+        "path": "build/Testing/Temporary/LastTest.log",
+        "sha256": "90c1c3b32c7eb5e54e8436ea33a5a5c470cc0c03b926cd372f4ce98a69f7d6fe"
+      }
+    },
+    "asan": {
+      "result": "passed 3/3",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "lastTestLog": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+        "sha256": "192fddd15bb47c4c6b0995906553c5974636763505dab8d9ee9429e7bf7d6bab"
+      },
+      "binary": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+        "sha256": "7280f67b248908c886d87851c5ae992a75df203b6ce6ea21da967f6ecdf2a8a5"
+      }
+    },
+    "adapterCaptureSelectorCounts": {
+      "captures": 4,
+      "defaultOptOut": 4,
+      "mutations": 12,
+      "proofQuotas": 4,
+      "retries": 16
+    },
+    "scope": "Focused selectors only, not a full suite."
+  },
+  "limitations": [
+    "Default legacy adapters do not request capture. A derived opt-in may fail the read on reader-level raw-capture quota, allocation or invalid input; no guarantee of transparent fallback is made. Adapter-level proof-budget failure is tested as an incomplete proof with usable typed import.",
+    "The AC1018 source-profile audit remains Revision-rejected; BLOCK/ENTITIES original capture, compound provenance, owner/APPID/LAYER dependency graph and output admission are not qualified.",
+    "The independent original selected record contains only ASCII text; non-ASCII Windows-1252 and binary coverage comes from locally authored controls. Native CAD semantic/rendering and complete-document conversion remain unproven.",
+    "No external or generated drawing fixture was committed."
+  ]
+}

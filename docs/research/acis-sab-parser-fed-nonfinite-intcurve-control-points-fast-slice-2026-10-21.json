@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-intcurve-control-points-v1",
+  "observedAt": "2026-10-21",
+  "title": "Generated SAB intcurve control-point finite-value refusal fast slice",
+  "evidenceKind": "local generated regression test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "container": "ACIS BinaryFile",
+    "version": 21800,
+    "fixtureOrigin": "generated in memory and serialized by the test",
+    "record": "intcurve-curve",
+    "subtype": "nubs",
+    "controlPoints": 2,
+    "ownerPointerCount": 1,
+    "reachableThrough": "rooted body to second edge to curve"
+  },
+  "mutations": {
+    "coordinates": ["point0.x", "point0.y", "point0.z", "point1.x", "point1.y", "point1.z"],
+    "values": ["NaN", "+infinity", "-infinity"],
+    "caseCount": 18
+  },
+  "resultForEveryCoordinateValuePair": {
+    "parseAndModel": "pass",
+    "rootedProjection": "refused as InvalidModel",
+    "failedNode": "owning body",
+    "output": "cleared transactionally"
+  },
+  "testHelperChange": "The local generated SAB serializer now emits nested EntityType tag/length/string values, allowing the nubs subtype record to reach the actual SAB parser. This is test-only support.",
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+    "buildResult": "PASS",
+    "directTest": "build/libdxfrw_graph_preservation_tests",
+    "directTestResult": "PASS",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctestResult": "PASS (1/1)"
+  },
+  "nonClaims": [
+    "No production parser defect was found.",
+    "No NURBS evaluation, curve semantics, topology, or geometry-support claim is established.",
+    "No persistent CAD fixture, test registration, peer/native run, or full-suite run was added."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

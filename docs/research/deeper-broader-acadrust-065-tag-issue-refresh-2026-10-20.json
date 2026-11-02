@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader ACadRust 0.6.5 tag and issue-state refresh",
+  "mode": "primary-source web research and local plan reconciliation",
+  "scope": [
+    "Refresh the ACadRust comparator from the previously reviewed 0.6.4 release to the current 0.6.5 tag",
+    "Check current peer issue reports for AC1014 producer compatibility, Binary DXF width/framing, owner disposition, and bounded record behavior",
+    "Separate same-codec roundtrip coverage, release-note claims, downstream consumers, and independent semantic/native evidence",
+    "Update implementation readiness without adding per-slice peer runs or validation cost"
+  ],
+  "method": {
+    "kind": "Read-only review of project-owned release, issue, source, and test pages; reconciled against current plan owners",
+    "reviewDate": "2026-10-20",
+    "releaseTag": "v0.6.5",
+    "releasePageAbbreviatedCommit": "289a616",
+    "fullCommitResolved": true,
+    "fullCommit": "289a616da6c68518218594aa80802cbe7fa71309",
+    "crateArchiveChecksumResolved": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "planImpact": {
+      "newFinding": false,
+      "newTopLevelSubplan": false,
+      "findings": 141,
+      "topLevelSubplans": 78,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+      "supportClaimPromoted": false,
+      "validationCadenceChanged": false,
+      "fixturePolicyChanged": false
+    },
+    "limitations": "The AC1014 issue page body could not be retrieved; only its visible issue-index title was used. Public release/source/issue pages are mutable unless pinned. The peer's private customer corpus was unavailable. No peer behavior was reproduced, and no result is attributed to libdxfrw. ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+      "status": "latest_tagged_release_page",
+      "revision": "v0.6.5; release page displays abbreviated source 289a616",
+      "observation": "Release page claims DXF/DWG support through modern versions including a new AC1009/R12 route, reports crate tests and WebAssembly/package checks, and says tests requiring unavailable external DWG/SAT files are ignored. The preceding v0.6.4 release separately reports BricsCAD V20 validation on 18/20 generated files; the v0.6.5 release notes do not attribute that result to v0.6.5.",
+      "limits": "Full source SHA and registry archive checksum were not resolved. Project claims are not a per-operation support matrix or independent acceptance result."
+    },
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/issues/140",
+      "status": "issue-index-title_only",
+      "revision": "Issue index reviewed 2026-10-20; issue body fetch returned cache miss",
+      "observation": "Visible title reports an IntelliCAD-written AC1014/R14 DWG parse failure with truncation near bit 3400.",
+      "limits": "No issue body, file hash, producer build, expected object inventory, grammar trace, or resolution state was verified. This is a compatibility lead only."
+    },
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/issues/136",
+      "status": "open_peer_report_for_v0.6.4",
+      "revision": "Issue page reviewed 2026-10-20",
+      "observation": "Reporter describes fixed-width Binary DXF output mismatches at 60 call sites across 15 group codes; the issue says the peer's own reader accepts the output. It separately reports an embedded-NUL string framing case. The v0.6.5 release notes mention generic binary numeric/string output corrections but do not identify this issue or a reporter retest.",
+      "limits": "No peer binary was built or run and no issue source file was downloaded. The report is not evidence of a libdxfrw defect or a verified 0.6.5 fault."
+    },
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/issues/133",
+      "status": "open_peer_owner_disposition_report",
+      "revision": "Issue page/index reviewed 2026-10-20",
+      "observation": "Report concerns orphaned entities being moved into model space. The v0.6.5 release notes state that orphaned geometry is kept out of model space.",
+      "limits": "The reporter's private corpus was unavailable and no reporter confirmation against v0.6.5 was visible."
+    },
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/issues/134",
+      "status": "open_peer_ac1032_regression_report_for_v0.6.4",
+      "revision": "Issue page reviewed 2026-10-20",
+      "observation": "Reporter states that 70 of 351 private AC1032 drawings failed under 0.6.4 but opened in 0.6.3, mostly at MLeader context records. The v0.6.5 release notes describe preservation of bounded auxiliary DWG objects after decode failures.",
+      "limits": "The private corpus was unavailable; no retest against v0.6.5 was found. Release-note wording is not proof of resolution or a format rule."
+    },
+    {
+      "project": "ACadRust",
+      "reference": "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "status": "mutable_main_test_source",
+      "revision": "Mutable main source page reviewed 2026-10-20; not bound to v0.6.5 tag",
+      "observation": "The test source describes same-codec read/write and double-roundtrip checks. It includes fabricated SAB framing and a generated planar body checked after the same library's DWG write/read path.",
+      "limits": "Useful for internal integrity regressions, but not an external B-rep kernel, independent reader, native CAD acceptance, or exact tagged-release test manifest."
+    },
+    {
+      "project": "ACadRust-derived applications",
+      "reference": "https://github.com/HakanSeven12/OpenCADStudio",
+      "status": "correlated_consumer_lineage",
+      "revision": "Existing plan-pinned app/repository lineage; current release executable not run",
+      "observation": "OpenCADStudio and already inventoried wrappers/forks use ACadRust or an ACadRust-derived codec. They may expose separate app rendering/behavior but do not constitute additional independent DWG parser implementations.",
+      "limits": "No new app build, release binary, codec pin, or runtime was evaluated in this pass."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "peerSignal": "ACadRust #136 Binary DXF widths and string framing",
+      "existingOwner": "PAR-39/7X",
+      "disposition": "Reuse existing source-callsite audit and independent raw binary type-table walker; do not add a duplicate test or use peer self-read as oracle."
+    },
+    {
+      "peerSignal": "ACadRust #140 AC1014/IntelliCAD title-only compatibility report",
+      "existingOwner": "Existing DWG version/reader and whole-file qualification owners",
+      "disposition": "Keep as an unverified external lead; require an exact producer sample/trace and ODA reconciliation before parser change or support claim."
+    },
+    {
+      "peerSignal": "ACadRust #133/#134 owner and bounded auxiliary-record reports",
+      "existingOwner": "PAR-49/7G and PAR-14/PAR-26",
+      "disposition": "Retain owner identity, record-local bounds, and failure continuation/refusal checks. Treat v0.6.5 release notes as unverified peer mitigation claims."
+    },
+    {
+      "peerSignal": "ACadRust ACIS and AcDs test claims",
+      "existingOwner": "PAR-07/S8",
+      "disposition": "Keep opaque payload, owner/key association, analytic semantics, and native acceptance independent; same-codec roundtrip is non-promoting."
+    }
+  ],
+  "validation": {
+    "kind": "Plan/receipt structural checks only",
+    "build": "NOT_RUN",
+    "tests": "NOT_RUN",
+      "jqSyntax": "PASSED",
+      "diffCheck": "PASSED"
+  }
+}

@@ -19,6 +19,7 @@
 
 #include "../drw_base.h"
 #include "drw_textcodec.h"
+#include "dwgsafety.h"
 
 // CRC-CCITT lookup table — same constants the reader uses (the file's
 // crctable[256] is static-linked, so we duplicate it locally; small
@@ -499,6 +500,10 @@ void dwgBufferW::putUCSText(const std::string& utf8) {
     }
 }
 
+std::string dwgBufferW::encodeCodePageText(const std::string& utf8) const {
+    return m_decoder ? m_decoder->fromUtf8CP8(utf8) : utf8;
+}
+
 std::string dwgBufferW::encodeTextAreaString(const std::string& utf8,
                                              bool unicode) const {
     if (!unicode)
@@ -556,10 +561,11 @@ std::string dwgBufferW::encodeTextAreaString(const std::string& utf8,
     return encoded;
 }
 
-std::uint32_t dwgBufferW::bitCount() const {
-    if (m_bitPos == 0)
-        return static_cast<std::uint32_t>(m_buf.size()) * 8;
-    return static_cast<std::uint32_t>(m_buf.size() - 1) * 8 + m_bitPos;
+std::uint64_t dwgBufferW::bitCount() const {
+    std::uint64_t result = 0;
+    if (!dwgSafety::bufferBitCount(m_buf.size(), m_bitPos, result))
+        return (std::numeric_limits<std::uint64_t>::max)();
+    return result;
 }
 
 void dwgBufferW::putBytes(const std::uint8_t* buf, size_t n) {
@@ -609,24 +615,27 @@ void dwgBufferW::putThickness(double t, bool b_R2000_style) {
 }
 
 void dwgBufferW::putCmColor(DRW::Version v, std::uint16_t colorIndex) {
-    putBitShort(colorIndex);
-    if (v >= DRW::AC1018) {  // R2004+: getCmColor reads BS + BL(rgb) + rawchar8(flags)
-        // getCmColor dispatches on rgb>>24 (type byte):
-        //   0xC0 → return 256 (ByLayer)
-        //   0xC1 → return 0   (ByBlock)
-        //   0xC3 → return rgb&0xFF  (ACI palette index 1..255)
-        // Type 0x00 falls to the default "return 256" branch, discarding idx.
-        std::uint32_t typeNibble;
-        if (colorIndex == 0)
-            typeNibble = 0xC1u;         // ByBlock
-        else if (colorIndex >= 256)
-            typeNibble = 0xC0u;         // ByLayer (256)
-        else
-            typeNibble = 0xC3u;         // ACI 1..255
-        std::uint32_t rgb = (typeNibble << 24) | (colorIndex & 0xFFu);
-        putBitLong(rgb);
-        putRawChar8(0);      // flags = 0 (no color name, no book name)
+    if (v < DRW::AC1018) {
+        putBitShort(colorIndex);
+        return;
     }
+    // ODA §2.11: the R2004+ CMC leading BS is a reserved color index that
+    // must always be zero. The actual color/method lives in the packed BL.
+    putBitShort(0);
+    // getCmColor dispatches on rgb>>24 (type byte):
+    //   0xC0 → return 256 (ByLayer)
+    //   0xC1 → return 0   (ByBlock)
+    //   0xC3 → return rgb&0xFF  (ACI palette index 1..255)
+    std::uint32_t typeNibble;
+    if (colorIndex == 0)
+        typeNibble = 0xC1u;         // ByBlock
+    else if (colorIndex >= 256)
+        typeNibble = 0xC0u;         // ByLayer (256)
+    else
+        typeNibble = 0xC3u;         // ACI 1..255
+    std::uint32_t rgb = (typeNibble << 24) | (colorIndex & 0xFFu);
+    putBitLong(rgb);
+    putRawChar8(0);      // flags = 0 (no color name, no book name)
 }
 
 void dwgBufferW::putCmColor(DRW::Version v, std::uint16_t colorIndex, std::int32_t rgb24,
@@ -638,14 +647,57 @@ void dwgBufferW::putCmColor(DRW::Version v, std::uint16_t colorIndex, std::int32
         putCmColor(v, colorIndex);
         return;
     }
-    // R2004+ truecolor: BS index, BL packed (0xC2<<24 | rgb24), RC name flags,
-    // then the name strings to the string buffer (defaulting to this).
-    // Inverse of dwgBuffer::getCmColor type==0xC2 branch.
-    putBitShort(colorIndex);
-    std::uint32_t rgb = (0xC2u << 24) | (static_cast<std::uint32_t>(rgb24) & 0xFFFFFFu);
-    putBitLong(static_cast<std::int32_t>(rgb));
-    std::uint8_t flags = static_cast<std::uint8_t>((colorName.empty() ? 0u : 1u)
-                                       | (bookName.empty() ? 0u : 2u));
+    putCmColor(v, 0xC2u, colorIndex, rgb24, colorName, bookName, strBuf);
+}
+
+void dwgBufferW::putCmColor(DRW::Version v, std::uint8_t method,
+                            std::uint16_t colorIndex, std::int32_t rgb24,
+                            const UTF8STRING& colorName,
+                            const UTF8STRING& bookName,
+                            dwgBufferW* strBuf) {
+    const std::uint8_t flags = static_cast<std::uint8_t>(
+        (colorName.empty() ? 0u : 1u) | (bookName.empty() ? 0u : 2u));
+    putCmColorWithFlags(v, method, colorIndex, rgb24, colorName, bookName,
+                        flags, strBuf);
+}
+
+void dwgBufferW::putCmColorWithFlags(DRW::Version v, std::uint8_t method,
+                            std::uint16_t colorIndex, std::int32_t rgb24,
+                            const UTF8STRING& colorName,
+                            const UTF8STRING& bookName, std::uint8_t flags,
+                            dwgBufferW* strBuf) {
+    if (v < DRW::AC1018) {
+        putCmColor(v, colorIndex);
+        return;
+    }
+
+    if ((flags & ~0x03u) != 0u
+        || ((flags & 0x01u) == 0u && !colorName.empty())
+        || ((flags & 0x02u) == 0u && !bookName.empty())) {
+        m_good = false;
+        return;
+    }
+
+    std::uint32_t payload = 0;
+    if (method == 0xC0u && colorIndex == 256u && rgb24 == -1) {
+        payload = 0;
+    } else if (method == 0xC1u && colorIndex == 0u && rgb24 == -1) {
+        payload = 0;
+    } else if (method == 0xC2u && rgb24 >= 0 && rgb24 <= 0x00FFFFFF) {
+        payload = static_cast<std::uint32_t>(rgb24);
+    } else if (method == 0xC3u && rgb24 == -1
+               && colorIndex > 0u && colorIndex <= 255u) {
+        payload = colorIndex;
+    } else {
+        m_good = false;
+        return;
+    }
+
+    // R2004+ CMC: reserved BS zero, method-tagged BL, RC name flags, then
+    // optional TV values in the version-specific string stream.
+    putBitShort(0);
+    putBitLong(static_cast<std::int32_t>(
+        (static_cast<std::uint32_t>(method) << 24u) | payload));
     putRawChar8(flags);
     dwgBufferW* names = strBuf ? strBuf : this;
     if (flags & 1)
@@ -754,8 +806,14 @@ void dwgBufferW::patchRawLong32AtBit(size_t bitOffset, std::uint32_t val) {
 
 bool dwgBufferW::patchRawBytesAtBit(size_t bitOffset,
                                     const std::uint8_t *bytes, size_t count) {
-    if (bytes == nullptr || count == 0 || bitOffset > bitCount()
-        || count > (bitCount() - bitOffset) / 8)
+    std::uint64_t totalBits = 0;
+    std::uint64_t byteBits = 0;
+    if (bytes == nullptr || count == 0
+        || !dwgSafety::bufferBitCount(m_buf.size(), m_bitPos, totalBits)
+        || totalBits > (std::numeric_limits<size_t>::max)()
+        || bitOffset > totalBits
+        || !dwgSafety::multiply(count, 8u, byteBits)
+        || byteBits > totalBits - bitOffset)
         return false;
 
     for (size_t byte = 0; byte < count; ++byte) {

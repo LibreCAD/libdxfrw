@@ -1,0 +1,1102 @@
+{
+  "schema": "libdxfrw-material-consumer-publication-proof-v1",
+  "slice": "RPP-5gh",
+  "date": "2026-10-28",
+  "dateTimezone": "America/Toronto",
+  "observedAtUtc": "2026-10-28T09:07:12.335697+00:00",
+  "parentCommit": "a845d69931d38fdc249d9da849f99d855c02cf5e",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "scope": "Selected MATERIAL source-order profile witnessed by pinned ezdxf1.4.5: a complete refraction mapper and an already-bound bump tiling role precede normal method271 before strength465 with no luminance464; unique physical scales/290 can follow the normal map. Match selected independent producer body values and local source/output/refusal controls. Not arbitrary source ordering, complete peer semantics, whole-document export, original semantic certification, native rendering or support promotion.",
+  "baseline": {
+    "productionParent": "a845d699",
+    "command": "build/dwg2dxf/dwg2dxf build/rpp5gh-evidence/peer-AC1027-asc.dxf -y -d -v2013 build/rpp5gh-evidence/baseline-valid-peer-out.dxf",
+    "exitCode": 1,
+    "result": "Pinned independent producer source reaches the complete sixteen-value refraction matrix, then fails on normal method271=7 because it is treated as bump tiling. The earlier all-default peer control separately fails at specular-code73=0; both limits are retained.",
+    "traceSha256": "1962d5b8644eeb4cca39a54ba8175fd156212dc90e603cc8dcf360b0f9fc0f6d"
+  },
+  "fileSha256": {
+    "CMakeLists.txt": "6b941c8c71163b2699376bc97269a99c4b684f72ac02df7283f9374837260506",
+    "dwg2dxf/dx_material_body.h": "fc23f3471731f39b51097e97f7de68d7879eeaee360f6b48d992ec6dc4436001",
+    "src/drw_objects.cpp": "95aa69ba38685c1d6615d16925451f878d9a6af5aeff87cc2f381258582341fc",
+    "src/libdxfrw.cpp": "22cbd0c48d1cf96c97b81aab4a8803070e9a0e9b6ac84dedac69ea87a9050d53",
+    "tests/dxf_fixture_tests.cpp": "a8f0e9cd27803e13139243090ee907bdfa35a02e2f66518d6681e4f43cea724c",
+    "tools/qualify_material_source_order.py": "ff02cbb1b2743bde95342c639b7361c7a02e67508217b945d6b599b780c7143e",
+    "source-release-files.am": "522bbfb2a77a98dde8f778f9a1d453e507ca06ce14beb2ea63dba7b73071317b",
+    "source-release-files.txt": "7e314c2031f9f4b129a28cf8a935068743edbe47520f10a13b070d10bd4c56e0"
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "observed": "2026-10-28",
+      "supports": "The normative DICTIONARYVAR table names the ACDBVARIABLEDICTIONARY owner. The measured peer instead uses EZDXF_META; preserve this producer/specification distinction and do not weaken ownership admission without a separate qualified path."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "observed": "2026-10-28",
+      "supports": "MATERIAL base mapper, normal header, repeated-code and unique physical field roles; does not resolve every optional/ambiguous ordering or certify native semantics."
+    },
+    {
+      "url": "https://pypi.org/project/ezdxf/1.4.5/",
+      "observed": "2026-10-28",
+      "supports": "Pinned independent package release used to generate all peer drawings locally from the committed recipe. Runtime source and installed archive hashes are recorded separately."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/material.py",
+      "observed": "2026-10-28",
+      "supports": "Primary mutable peer implementation demonstrates normal-method-before-strength and late physical field ordering. Actual runtime evidence below is pinned1.4.5; no implementation code copied."
+    }
+  ],
+  "implementation": [
+    "Recognize the observed pre-strength normal270/271 header after a completed finite sixteen-value refraction matrix and an already-bound corresponding bump role. Keep the earlier bump projection/tiling distinct. Do not generalize this profile to sources with absent or ambiguous base-map evidence.",
+    "Require a supplied luminance464 or normal-strength465 at the real object boundary before publishing an inferred normal header. Missing-boundary controls fail before typed/raw MATERIAL callbacks. No invented values or new installed instance/virtual/callback state.",
+    "Parse unique460-463/290 controls before or after the normal block, up to the procedural-table boundary. Continue to treat the generic procedural region separately; finite/Boolean validation applies to these newly reached physical values.",
+    "Assign matching source field roles in the private body reconciler, independently of the mutable typed model. Actual source order may replay unchanged; edits still reconcile and relocate strength as needed, with full source/body freezing and actual output inspection.",
+    "Add an optional pinned-producer generator/probe harness. It generates eight full ASCII/Binary drawings from scratch and checks selected imported body values with the actual C++ reader. Require an empty output directory and pinned ezdxf1.4.5; no runtime package or drawings become library/test build dependencies."
+  ],
+  "controls": {
+    "counterLine": "MATERIAL source-order profiles=64; readbacks=130; refusals=12; retries=20; callbacks=8; reorderedBase=2",
+    "counts": {
+      "profiles": 64,
+      "readbacks": 130,
+      "refusals": 12,
+      "retries": 20,
+      "callbacks": 8,
+      "reorderedBase": 2
+    },
+    "profiles": "64 locally authored four-version x input x output x mode/method presence profiles. Each performs unchanged replay and edited mode/method/physical-scale export, literal wire checks and owning readback.",
+    "refusals": "12 first-record refusals: missing465, missing refraction prefix, either remaining inferred header without a boundary, nonfinite late scale, and invalid late Boolean, across ASCII/Binary. Typed/raw callbacks remain empty. Corrected data imports and exports through the same adapter.",
+    "reorderedBase": "Two compatibility controls move the first bump projection/tiling fields after the complete refraction matrix. They remain base roles and preserve edited export/readback; only an already-bound role can begin the inferred normal header.",
+    "callbacks": "Eight actual late method edits across four phases and two encodings preserve sentinel destinations; corrected same-adapter exports pass. Combined with corrected-import controls,20 retries pass.",
+    "independentProducer": "Eight pinned ezdxf-generated original inputs match selected normal method/strength/file, bump/refraction/diffuse/normal matrices and late physical scales/Boolean in each normal/ASan configuration. These are independent producer body-value observations, not complete original-source certificates.",
+    "peerRecipeConstraint": "Pinned peer default specular-color method is emitted at code73 rather than normative76. The original default control fails with73=0. The committed recipe explicitly selects method1 for all generated materials to isolate the normal header/late-field gap without invalid code73 values; specular-color semantics are not qualified.",
+    "fullDocumentAttempt": {
+      "exitCode": 1,
+      "diagnostic": "DICTIONARYVAR records require the NOD AcDbVariableDictionary route",
+      "graphNodes": 19,
+      "graphEdges": 53,
+      "stagedHandles": 19,
+      "sourceRecords": 34,
+      "traceSha256": "c81bfdee4d9f3833e4aa701498f885e88d35abef88e9c735f883eefc1d781461",
+      "qualification": "FAILED_NOT_PROMOTED",
+      "ownership": {
+        "root": "A",
+        "rootEntries": [
+          {
+            "key": "ACAD_COLOR",
+            "type": "DICTIONARY",
+            "handle": "B"
+          },
+          {
+            "key": "ACAD_GROUP",
+            "type": "DICTIONARY",
+            "handle": "C"
+          },
+          {
+            "key": "ACAD_LAYOUT",
+            "type": "DICTIONARY",
+            "handle": "D"
+          },
+          {
+            "key": "ACAD_MATERIAL",
+            "type": "DICTIONARY",
+            "handle": "E"
+          },
+          {
+            "key": "ACAD_MLEADERSTYLE",
+            "type": "DICTIONARY",
+            "handle": "F"
+          },
+          {
+            "key": "ACAD_MLINESTYLE",
+            "type": "DICTIONARY",
+            "handle": "10"
+          },
+          {
+            "key": "ACAD_PLOTSETTINGS",
+            "type": "DICTIONARY",
+            "handle": "11"
+          },
+          {
+            "key": "ACAD_PLOTSTYLENAME",
+            "type": "ACDBDICTIONARYWDFLT",
+            "handle": "12"
+          },
+          {
+            "key": "ACAD_SCALELIST",
+            "type": "DICTIONARY",
+            "handle": "14"
+          },
+          {
+            "key": "ACAD_TABLESTYLE",
+            "type": "DICTIONARY",
+            "handle": "15"
+          },
+          {
+            "key": "ACAD_VISUALSTYLE",
+            "type": "DICTIONARY",
+            "handle": "16"
+          },
+          {
+            "key": "EZDXF_META",
+            "type": "DICTIONARY",
+            "handle": "2D"
+          }
+        ],
+        "dictionaryVars": [
+          {
+            "handle": "2E",
+            "owner": "2D"
+          },
+          {
+            "handle": "33",
+            "owner": "2D"
+          }
+        ],
+        "libdxfrwCliRequireResolvedOwners": true
+      },
+      "nextAction": "Resolve the peer EZDXF_META ownership profile against normative ACDBVARIABLEDICTIONARY semantics. The CLI already selects resolved-owner/NOD validation. Qualify any distinct bounded preservation path separately, retaining actual root/entry/owner checks and independent output/failure/retry proof."
+    },
+    "developmentControlCorrection": "The first malformed-ASCII test attempted a unique-occurrence replacement in a two-MATERIAL source. Select occurrence0 explicitly; retain the failed development log. No production refusal was softened."
+  },
+  "postCheckpointReview": "The initial23-test checkpoint passed, then review identified first base fields reordered after refraction as ambiguous. Require an already-bound corresponding bump role, add two actual export/readback controls, and rerun both builds/archives/tests/probes. The initial checkpoint is retained under first-shared and is not final-source qualification.",
+  "producerRuntime": {
+    "packages": [
+      {
+        "name": "ezdxf",
+        "version": "1.4.5",
+        "archiveHashes": {
+          "sha256": "991c43415fc4ad458a978dfb0f1a58abf92db3f41105d4c38389903dd769874a"
+        }
+      },
+      {
+        "name": "pyparsing",
+        "version": "3.3.3",
+        "archiveHashes": {
+          "sha256": "ece8c00a69cf01b45d0b1dedabb469c90d8caf996d4fda40f147627a122849a4"
+        }
+      },
+      {
+        "name": "typing_extensions",
+        "version": "4.16.0",
+        "archiveHashes": {
+          "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+        }
+      },
+      {
+        "name": "fonttools",
+        "version": "4.68.0",
+        "archiveHashes": {
+          "sha256": "ab6505dfbe3199453d8542b25f55c1ea3260d38029d9db58c0c7304d438abdc0"
+        }
+      },
+      {
+        "name": "numpy",
+        "version": "2.5.4",
+        "archiveHashes": {
+          "sha256": "0b4724a19de67bea8cfc4970798efa78bcbbe2ac2613cfac16721a42d44de2a5"
+        }
+      }
+    ],
+    "generation": {
+      "ezdxf": "1.4.5",
+      "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "materialSource": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/material.py",
+      "materialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "results": [
+        {
+          "version": "AC1021",
+          "format": "asc",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1021-asc.dxf",
+          "sha256": "ffcc38123ae0ee60baa56b3b3b7a2c1031c0b1c0800122c5f210c4f562521d2b",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1021",
+          "format": "bin",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1021-bin.dxf",
+          "sha256": "ab2243fcce9474c24c629b4b0230d704fc343949778b60ffe160ca52b160853b",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1024",
+          "format": "asc",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1024-asc.dxf",
+          "sha256": "58439985d46c215f13f4c5f3581f189514a6c1cd5e4be0087bb3beab58e17fff",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1024",
+          "format": "bin",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1024-bin.dxf",
+          "sha256": "a555aae831aa00a7315229def1d6b9ac9a22a7b0170a853c1fc98384671b7c06",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1027",
+          "format": "asc",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1027-asc.dxf",
+          "sha256": "9bcc7df6e33dc748a2d5d1fb292c835e851dbd491be0bbdffe2262f289ca4bbc",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1027",
+          "format": "bin",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1027-bin.dxf",
+          "sha256": "d2d84323bdb82a241ac6255d134060b64fc0d5f58f1001d11415880e2c9583d3",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1032",
+          "format": "asc",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1032-asc.dxf",
+          "sha256": "8a91c18f16cc9d1005238d9c03c22853127f64db5e1fbf8136f345cb45d64d45",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        },
+        {
+          "version": "AC1032",
+          "format": "bin",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1032-bin.dxf",
+          "sha256": "67e12d36b6fdf9e94d292acf186a7e805d65ad3692fecdf1f774ece30d5bcd6d",
+          "materialHandle": "2F",
+          "normalMethod": 7,
+          "normalStrength": 0.5,
+          "selectedRecordLayout": {
+            "groupCount": 133,
+            "refraction147Count": 16,
+            "lastRefraction147Index": 102,
+            "normalMethod271Index": 103,
+            "strength465Index": 104,
+            "latePhysicalIndices": {
+              "460": 127,
+              "461": 128,
+              "462": 129,
+              "463": 130,
+              "290": 131
+            }
+          }
+        }
+      ]
+    },
+    "notInstalledGlobally": true,
+    "initialSelectedBodyReport": {
+      "path": "build/rpp5gh-evidence/normal-peer/qualification.json",
+      "sha256": "3863b869a5b461c49296ea6b5495bd0833e2a49e9037369a374a5200d04122c2",
+      "generated": 8,
+      "passed": 8,
+      "scope": "Selected imported body values only; not full/native support"
+    }
+  },
+  "validation": {
+    "registrationsMatch": true,
+    "frozenInputs": 593,
+    "bothBuildsBeforeRuntime": true,
+    "normalBeforeAsan": true,
+    "countersMatchAcrossConfigurations": true,
+    "scope": "Observed MATERIAL source-order parsing, raw/typed body reconciliation and all existing MATERIAL controls, with shared dictionary/finalization/CLI/consumer checks. Independent ezdxf1.4.5 selected body probes are separate; whole-document peer export fails at the existing NOD/DICTIONARYVAR route and is not qualified.",
+    "selected": [
+      "libdxfrw_build_inventory",
+      "libdxfrw_public_header_hygiene",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_material_text_owner_budget",
+      "libdxfrw_material_body_transactions",
+      "libdxfrw_material_normal_boundaries",
+      "libdxfrw_material_source_order",
+      "libdxfrw_header_material_bindings",
+      "libdxfrw_layer_material_bindings",
+      "libdxfrw_material_consumer_bindings",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_dxf_consumer_finalization",
+      "dwg2dxf_material_typed_capture_limits",
+      "libdxfrw_dictionary_source_origins",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_shade_consumer_output",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "builds": {
+      "normal": {
+        "start": "2026-10-28T09:01:45.368169+00:00",
+        "end": "2026-10-28T09:02:00.627638+00:00",
+        "seconds": 15.259229500006768,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ]
+      },
+      "asan": {
+        "start": "2026-10-28T09:02:00.714738+00:00",
+        "end": "2026-10-28T09:03:27.915587+00:00",
+        "seconds": 87.19991283299169,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ]
+      }
+    },
+    "results": {
+      "normal": {
+        "start": "2026-10-28T09:04:54.206522+00:00",
+        "end": "2026-10-28T09:05:34.064164+00:00",
+        "seconds": 39.856906250002794,
+        "exitCode": 0,
+        "executed": [
+          {
+            "name": "libdxfrw_material_normal_boundaries",
+            "status": "Passed    9.53 sec"
+          },
+          {
+            "name": "dwg2dxf_acds_strict_material_closure",
+            "status": "Passed    6.52 sec"
+          },
+          {
+            "name": "libdxfrw_material_body_transactions",
+            "status": "Passed   16.53 sec"
+          },
+          {
+            "name": "libdxfrw_material_strict_color_closure",
+            "status": "Passed    4.77 sec"
+          },
+          {
+            "name": "dwg2dxf_generated_root_common_closure",
+            "status": "Passed    5.28 sec"
+          },
+          {
+            "name": "libdxfrw_header_material_bindings",
+            "status": "Passed    3.58 sec"
+          },
+          {
+            "name": "libdxfrw_material_color_lexemes",
+            "status": "Passed    4.73 sec"
+          },
+          {
+            "name": "libdxfrw_material_consumer_bindings",
+            "status": "Passed    2.33 sec"
+          },
+          {
+            "name": "libdxfrw_layer_material_bindings",
+            "status": "Passed    2.24 sec"
+          },
+          {
+            "name": "libdxfrw_material_source_order",
+            "status": "Passed    2.33 sec"
+          },
+          {
+            "name": "libdxfrw_shade_consumer_output",
+            "status": "Passed    1.86 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_consumer_finalization",
+            "status": "Passed    0.49 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_installed_cli_compat",
+            "status": "Passed    1.32 sec"
+          },
+          {
+            "name": "libdxfrw_material_root_output_compatibility",
+            "status": "Passed    0.37 sec"
+          },
+          {
+            "name": "libdxfrw_dictionary_source_origins",
+            "status": "Passed    0.32 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_cli_compat",
+            "status": "Passed    1.04 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_material_text_owner_budget",
+            "status": "Passed    0.25 sec"
+          },
+          {
+            "name": "libdxfrw_build_inventory",
+            "status": "Passed    0.13 sec"
+          },
+          {
+            "name": "dwg2dxf_material_typed_capture_limits",
+            "status": "Passed    0.03 sec"
+          },
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "status": "Passed   13.93 sec"
+          },
+          {
+            "name": "libdxfrw_material_raw_scalar_wire_controls",
+            "status": "Passed    0.03 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_operation_admission",
+            "status": "Passed    0.10 sec"
+          },
+          {
+            "name": "libdxfrw_3d_consumer_probe",
+            "status": "Passed    0.30 sec"
+          }
+        ],
+        "passed": 23,
+        "counters": [
+          "HEADER material profiles=80; independent fields=1634; readbacks=80; callback rollbacks=66; corrected retries=246; malformed/target refusals=52; staged field refusals=16; direct profiles=6; inspector guards=8; reached post-header writer faults=128; unreached offsets=0; scalar-only diagnostics=128; inactive/null2D profiles=4",
+          "Layer material profiles=32; independent fields=748; readbacks=32; callback rollbacks=82; corrected retries=108; exact/one-under limits=4; invalid pointer refusals=34; staged field refusals=72; reached inspector faults=50; unreached offsets=4; inactive2D profiles=2; legacy projection models=2",
+          "MATERIAL body profiles=16; values=3334; presence=314; readbacks=1084; compositions=16; refusals=36; callbacks=72; retries=532; lexical=2; corruptions=800; signedZeros=4; opaqueReplays=4; allocationFaults=256; baselineSwaps=8; textProfiles=96",
+          "MATERIAL normal-boundary profiles=64; insertions=64; removals=16; readbacks=542; refusals=6; callbacks=24; retries=46; direct=4; transitions=128; compositions=32; lexical=4; corruptions=798",
+          "MATERIAL source-order profiles=64; readbacks=130; refusals=12; retries=20; callbacks=8; reorderedBase=2",
+          "Material consumer profiles=64; independent fields=4992; readbacks=64; callback rollbacks=50; corrected retries=72; exact/one-under limits=4; invalid target rollbacks=18; staged field refusals=104; reached finalizer faults=12; unreached offsets=4; corrected finalizations=16; extra rooted profiles=2; inactive2D profiles=2; raw provider body rollbacks=2; unqualified raw rollbacks=8; tolerant root profiles=2",
+          "Shade consumer output profiles=38; independent fields=588; observed mutations=120; valid preflight edits=22; callback/extra-record rollbacks=152; exact/one-under limits=4; reached finalization faults=4; unreached offsets=4; corrected finalizations=8; corrected retries=156; inactive 2D streaming profiles=4"
+        ],
+        "writerOutputPropertyExitCode": 0,
+        "independentBodyProbesPassed": 8,
+        "independentBodyReport": {
+          "schema": "libdxfrw.material-peer-source-order.v1",
+          "scope": "Selected imported body values only; not full/native support",
+          "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+          "producer": "ezdxf",
+          "version": "1.4.5",
+          "packages": {
+            "ezdxf": "1.4.5",
+            "numpy": "2.5.4",
+            "fonttools": "4.68.0",
+            "pyparsing": "3.3.3",
+            "typing_extensions": "4.16.0"
+          },
+          "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+          "probeSha256": "742200b2d22b44a32f71c5df786a2e49298f2e5f84ee9b358da6f5eee78b96df",
+          "generated": 8,
+          "passed": 8,
+          "results": [
+            {
+              "version": "AC1021",
+              "format": "asc",
+              "path": "peer-AC1021-asc.dxf",
+              "sha256": "a9d160f2b7151b98aaaac83d95891f7b4a8a67638eb35b4574ecfbe9fa25fc23",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1021",
+              "format": "bin",
+              "path": "peer-AC1021-bin.dxf",
+              "sha256": "3521ae362df71a4327421eb8549888506e66d4d193186a7c11648952ee2f6fe4",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1024",
+              "format": "asc",
+              "path": "peer-AC1024-asc.dxf",
+              "sha256": "28f765f62db262475b1d73655ba10737194ddec4738080120bf126020b1c2b40",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1024",
+              "format": "bin",
+              "path": "peer-AC1024-bin.dxf",
+              "sha256": "1f9873c7ba729449367432082eb26f5c1382d70a190dfeb3a514eb35e52ba7a1",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1027",
+              "format": "asc",
+              "path": "peer-AC1027-asc.dxf",
+              "sha256": "82e11f0c8c7cdebbe2ef4258154981746046d500fa97c6dd892a09357ee2c750",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1027",
+              "format": "bin",
+              "path": "peer-AC1027-bin.dxf",
+              "sha256": "cf613bca8316518da9b258fcc7ced22a61b8038fa17ccb5b1669aa40ae8a58f6",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1032",
+              "format": "asc",
+              "path": "peer-AC1032-asc.dxf",
+              "sha256": "5d8a0e50927cff602154807109ffbe866415d2dfaea1b82ea6bd523d54b7e253",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1032",
+              "format": "bin",
+              "path": "peer-AC1032-bin.dxf",
+              "sha256": "746667d6aeaeb448fb01c4c4eea59d6ca8b1c32cb75a2cd7733b25dc130d8fbc",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            }
+          ],
+          "wholeDocumentExportQualified": false,
+          "nativeRenderingQualified": false,
+          "fullObjectiveComplete": false
+        },
+        "ctestSeconds": 39.06
+      },
+      "asan": {
+        "start": "2026-10-28T09:05:34.117363+00:00",
+        "end": "2026-10-28T09:06:11.280569+00:00",
+        "seconds": 37.16277758400247,
+        "exitCode": 0,
+        "executed": [
+          {
+            "name": "libdxfrw_material_body_transactions",
+            "status": "Passed   11.85 sec"
+          },
+          {
+            "name": "libdxfrw_material_normal_boundaries",
+            "status": "Passed    7.27 sec"
+          },
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "status": "Passed   19.78 sec"
+          },
+          {
+            "name": "dwg2dxf_generated_root_common_closure",
+            "status": "Passed    4.52 sec"
+          },
+          {
+            "name": "dwg2dxf_acds_strict_material_closure",
+            "status": "Passed    5.37 sec"
+          },
+          {
+            "name": "libdxfrw_material_strict_color_closure",
+            "status": "Passed    4.39 sec"
+          },
+          {
+            "name": "libdxfrw_header_material_bindings",
+            "status": "Passed    4.96 sec"
+          },
+          {
+            "name": "libdxfrw_shade_consumer_output",
+            "status": "Passed    2.20 sec"
+          },
+          {
+            "name": "libdxfrw_material_color_lexemes",
+            "status": "Passed    3.91 sec"
+          },
+          {
+            "name": "libdxfrw_material_consumer_bindings",
+            "status": "Passed    1.91 sec"
+          },
+          {
+            "name": "libdxfrw_layer_material_bindings",
+            "status": "Passed    1.53 sec"
+          },
+          {
+            "name": "libdxfrw_material_source_order",
+            "status": "Passed    1.59 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_installed_cli_compat",
+            "status": "Passed    1.13 sec"
+          },
+          {
+            "name": "libdxfrw_material_root_output_compatibility",
+            "status": "Passed    0.29 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_consumer_finalization",
+            "status": "Passed    0.24 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_cli_compat",
+            "status": "Passed    0.76 sec"
+          },
+          {
+            "name": "libdxfrw_3d_consumer_probe",
+            "status": "Passed    0.28 sec"
+          },
+          {
+            "name": "libdxfrw_dictionary_source_origins",
+            "status": "Passed    0.24 sec"
+          },
+          {
+            "name": "libdxfrw_material_raw_scalar_wire_controls",
+            "status": "Passed    0.02 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_material_text_owner_budget",
+            "status": "Passed    0.26 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_operation_admission",
+            "status": "Passed    0.07 sec"
+          },
+          {
+            "name": "libdxfrw_build_inventory",
+            "status": "Passed    0.21 sec"
+          },
+          {
+            "name": "dwg2dxf_material_typed_capture_limits",
+            "status": "Passed    0.02 sec"
+          }
+        ],
+        "passed": 23,
+        "counters": [
+          "HEADER material profiles=80; independent fields=1634; readbacks=80; callback rollbacks=66; corrected retries=246; malformed/target refusals=52; staged field refusals=16; direct profiles=6; inspector guards=8; reached post-header writer faults=128; unreached offsets=0; scalar-only diagnostics=128; inactive/null2D profiles=4",
+          "Layer material profiles=32; independent fields=748; readbacks=32; callback rollbacks=82; corrected retries=108; exact/one-under limits=4; invalid pointer refusals=34; staged field refusals=72; reached inspector faults=50; unreached offsets=4; inactive2D profiles=2; legacy projection models=2",
+          "MATERIAL body profiles=16; values=3334; presence=314; readbacks=1084; compositions=16; refusals=36; callbacks=72; retries=532; lexical=2; corruptions=800; signedZeros=4; opaqueReplays=4; allocationFaults=256; baselineSwaps=8; textProfiles=96",
+          "MATERIAL normal-boundary profiles=64; insertions=64; removals=16; readbacks=542; refusals=6; callbacks=24; retries=46; direct=4; transitions=128; compositions=32; lexical=4; corruptions=798",
+          "MATERIAL source-order profiles=64; readbacks=130; refusals=12; retries=20; callbacks=8; reorderedBase=2",
+          "Material consumer profiles=64; independent fields=4992; readbacks=64; callback rollbacks=50; corrected retries=72; exact/one-under limits=4; invalid target rollbacks=18; staged field refusals=104; reached finalizer faults=12; unreached offsets=4; corrected finalizations=16; extra rooted profiles=2; inactive2D profiles=2; raw provider body rollbacks=2; unqualified raw rollbacks=8; tolerant root profiles=2",
+          "Shade consumer output profiles=38; independent fields=588; observed mutations=120; valid preflight edits=22; callback/extra-record rollbacks=152; exact/one-under limits=4; reached finalization faults=4; unreached offsets=4; corrected finalizations=8; corrected retries=156; inactive 2D streaming profiles=4"
+        ],
+        "writerOutputPropertyExitCode": 0,
+        "independentBodyProbesPassed": 8,
+        "independentBodyReport": {
+          "schema": "libdxfrw.material-peer-source-order.v1",
+          "scope": "Selected imported body values only; not full/native support",
+          "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+          "producer": "ezdxf",
+          "version": "1.4.5",
+          "packages": {
+            "ezdxf": "1.4.5",
+            "numpy": "2.5.4",
+            "fonttools": "4.68.0",
+            "pyparsing": "3.3.3",
+            "typing_extensions": "4.16.0"
+          },
+          "producerMaterialSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+          "probeSha256": "a4081b290793f81a08d5b2560f68a68546b5b568b9957033cd850ad141ec6b14",
+          "generated": 8,
+          "passed": 8,
+          "results": [
+            {
+              "version": "AC1021",
+              "format": "asc",
+              "path": "peer-AC1021-asc.dxf",
+              "sha256": "54b36c01e1a434b6b0c75d8f3f63c0aa417bc265c7429806952635951fd0bf40",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1021",
+              "format": "bin",
+              "path": "peer-AC1021-bin.dxf",
+              "sha256": "5a995d3d03765f0081d29b7ba99fa65265c682a81f154f054745139096f524ee",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1024",
+              "format": "asc",
+              "path": "peer-AC1024-asc.dxf",
+              "sha256": "b82c33da81d2b76eaee39928b8632ed9ee7dfe6b1bd04842eaaed0e674aa58ee",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1024",
+              "format": "bin",
+              "path": "peer-AC1024-bin.dxf",
+              "sha256": "5281ec1d8f741d1afcfd8ff68ca5c7692f488d23673ded1a87bb2605d101ed45",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1027",
+              "format": "asc",
+              "path": "peer-AC1027-asc.dxf",
+              "sha256": "64d8eba6e65c12f32051bc68b6d282d3be55b674602861d09b8480237b51d145",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1027",
+              "format": "bin",
+              "path": "peer-AC1027-bin.dxf",
+              "sha256": "813c536d316443f81d943273a4d71a415ae370f17535b293482b84917c3a79da",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1032",
+              "format": "asc",
+              "path": "peer-AC1032-asc.dxf",
+              "sha256": "7bf20007d350fadd7c470f6d90d85246e4a6e3a0c19e5e1a21674ff3c0038701",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            },
+            {
+              "version": "AC1032",
+              "format": "bin",
+              "path": "peer-AC1032-bin.dxf",
+              "sha256": "805cedf6c2f4c20e76a52787e15985b85ac93b88e0207b6d532c7204d73823b4",
+              "exitCode": 0,
+              "stdout": "Independent MATERIAL producer selected body: PASS\n",
+              "stderr": ""
+            }
+          ],
+          "wholeDocumentExportQualified": false,
+          "nativeRenderingQualified": false,
+          "fullObjectiveComplete": false
+        },
+        "ctestSeconds": 36.45
+      }
+    }
+  },
+  "packaging": {
+    "steps": [
+      {
+        "step": "inventory",
+        "command": [
+          "python3",
+          "-B",
+          "tools/generate_build_inventory.py",
+          "--check"
+        ],
+        "exitCode": 0,
+        "seconds": 0.09586691700678784
+      },
+      {
+        "step": "configure",
+        "command": [
+          "/Users/dli/dev/libdxfrw/configure",
+          "--disable-shared",
+          "CXXFLAGS=-O0"
+        ],
+        "exitCode": 0,
+        "seconds": 6.765954500006046
+      },
+      {
+        "step": "dist",
+        "command": [
+          "make",
+          "dist"
+        ],
+        "exitCode": 0,
+        "seconds": 7.651611540990416
+      },
+      {
+        "step": "check-bz2",
+        "command": [
+          "python3",
+          "-B",
+          "tools/generate_build_inventory.py",
+          "--check",
+          "--archive",
+          "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/source-release/libdxfrw-2.0.0.tar.bz2"
+        ],
+        "exitCode": 0,
+        "seconds": 0.8329183750029188
+      },
+      {
+        "step": "check-gz",
+        "command": [
+          "python3",
+          "-B",
+          "tools/generate_build_inventory.py",
+          "--check",
+          "--archive",
+          "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/source-release/libdxfrw-2.0.0.tar.gz"
+        ],
+        "exitCode": 0,
+        "seconds": 0.21940541599178687
+      }
+    ],
+    "archives": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/source-release/libdxfrw-2.0.0.tar.bz2",
+        "sha256": "4ea247ecab7c5c22fba721533e3859db1d5278f90c5d1604caf480de3fea7c6b"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/source-release/libdxfrw-2.0.0.tar.gz",
+        "sha256": "ae9873586dd043a27f4185a41dc7f111995d2fbc83bb063c6468281a691dfe8b"
+      }
+    ],
+    "end": "2026-10-28T09:04:47.883709+00:00",
+    "sourceInputs": 593,
+    "scope": "Source archive byte verification only; no extracted-source build or distcheck"
+  },
+  "compatibility": {
+    "strictWarningsRetained": true,
+    "libreCad3TargetVerified": true,
+    "installedHeadersChanged": false,
+    "newInstalledStateOrVirtuals": false,
+    "publicInterfaceCallbackChange": false,
+    "dwgParserOrByteLayoutChange": false,
+    "formalAbiApplicationQualification": "NOT_RUN",
+    "nativeCadKernelQualification": "NOT_RUN",
+    "freshExtractedSourceCompileOrDistcheck": "NOT_RUN",
+    "controlledRssPerformance": "NOT_RUN",
+    "asanOptions": "halt_on_error=1:detect_leaks=0"
+  },
+  "scratchArtifacts": {
+    "asan-LastTest.log": "557957502f7990778adaa562fdcd557661fe2b94d71cf0f6a019fa50b53a2f07",
+    "asan-build.json": "2680e7ae5220450b8c5c4e743e54cd6cc2533d42dd9603a110309d093ca159db",
+    "asan-build.log": "97fa2a3fe29b3c5af2d7890d45e134bcf3323027042058073b1593002994b639",
+    "asan-peer.log": "ce6b8f832e07e4ee0decf8b78ef5d197d94ca74170116287e495ce50dddb9388",
+    "asan-tests.json": "d3933f05689a1ed4535a36d9ef6541e0f94b78f690fbad7cf9ea8da3b2557c30",
+    "asan-tests.log": "80f7516564e618bdc3671b8b7ea5410892b34cddfe7c0dee21560730c5a3cf28",
+    "asan-writer-output-property.log": "cad47023b39e39a6cc3e390f78035dca0545e29a74c8c9940b0be9653ee90f65",
+    "baseline-peer-cli.log": "b921584b8aeccf011b85ae1311b593de5d9e28148db9a988b939d1e66e4d7102",
+    "baseline-valid-peer-trace.log": "1962d5b8644eeb4cca39a54ba8175fd156212dc90e603cc8dcf360b0f9fc0f6d",
+    "development-build.log": "6fc8038b91595cdd550d179aa98a563389c3db99abb57efe6c6593af812455d6",
+    "development-control-build.log": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+    "development-owning.log": "9fdbdbba8af8e4ed27a5ecd08b3ff45f3555be83a083dbb594ed595bdf5e5a5d",
+    "development-peer-cli.log": "cc1b72611e0528c854ddd48f293dcd2c099a2bf867b7875d5353b2289edcd898",
+    "development-peer-full-trace.log": "c81bfdee4d9f3833e4aa701498f885e88d35abef88e9c735f883eefc1d781461",
+    "development-peer-probe.log": "638adf9d03aa7d06acaf5577653a0ce8181387a5a8c21e0000d10c6830f64e8e",
+    "final-owning.log": "a5622a58d0f1aa276c109d7b11ee35805acf8f7ec334a1a481b876fc8277e2ba",
+    "final-package.log": "d50544c6dca07c104b1dc2d90c629d57ff500dd2203ee57d704a2773d2c8789c",
+    "normal-LastTest.log": "35414e6c1a28f022d18d3625363e8fa1a66d0ac4d89491e8809466ba48b737cf",
+    "normal-build.json": "d068b3b359ad23302282219c6d4f98d745b588484afa29ed1c2421ae9bdb3289",
+    "normal-build.log": "788e114d72584eb138d4df46f31cfd26a2dcbd2eb9bafc2c6f06dfd9dfff0ebd",
+    "normal-peer.log": "ce6b8f832e07e4ee0decf8b78ef5d197d94ca74170116287e495ce50dddb9388",
+    "normal-tests.json": "5697f54530e99be91542b1eee44e0994d7cedcb31dbf6cb2fc3f3ec923c069b8",
+    "normal-tests.log": "7fd53bd9c92a4197560e233b5b3b6c0acc84da55802b1827f5aa9d121908cf9d",
+    "normal-writer-output-property.log": "cad47023b39e39a6cc3e390f78035dca0545e29a74c8c9940b0be9653ee90f65",
+    "package-check-bz2.log": "c8aa8601bc9c01a9e9f05e527ed3383380ca2af991ab4fdfd86dd697029b70cf",
+    "package-check-gz.log": "c8aa8601bc9c01a9e9f05e527ed3383380ca2af991ab4fdfd86dd697029b70cf",
+    "package-configure.log": "0ef35148471f78d87e9ec94c8081e21671a660a3920196af8edcb313df2c12c0",
+    "package-dist.log": "8e78fc896c10f78e021fc8da11095dcb20d387ecb87f3d54ddc407c46ce4ef6e",
+    "package-inventory.log": "16c614068efca2d556e124fb2c189239adbae7c7804a4097e2547f73a7b7c375",
+    "packaging.json": "4fb36a73f2d391542c4ca32966dcf55819b96d0c49ee8e221365cb2fc50fe4d6",
+    "peer-dictionaryvar-ownership.json": "fd1d2e2f773b9c7b1587f21e386a4cbc945b814d8e3450f98867b17368445026",
+    "peer-generation.json": "80e61d4ed10acce396f985536882e6e6fe7654c913abfda5b201bfcf8732ca53",
+    "peer-generation.log": "6c5623fb8132eed61e5b13ccfbed87de0888caab7ba19cc49465426b6ee97ad6",
+    "peer-install.json": "1dc747519e9eee008c9688a477a479aea7d22bff835e1bc0897c8c67375d955c",
+    "peer-install.log": "230dcbc41c2540dacb5d6fb3d7db555ff52996c795706bc7e0d15598dc7ff3c3",
+    "qualification.json": "204983cbe74f84ccc8c032ce4451df5fb301c9565a5c739ec203902c034bf229",
+    "registrations.json": "6ed29dc67c5132d14f64edf316539c972d2e317ab9a483aa94cbf5fc6416bd5f",
+    "selection.json": "0fcb8464b85317fba3b00ca16edbaa318a79d97cb987f346a63c131b30925cbd",
+    "source-check-after-asan.json": "1e496ad55bd718c0ea8ecd61573ada55efd66486921492808d2540ef4ffb6b3c",
+    "source-check-after-normal.json": "1e496ad55bd718c0ea8ecd61573ada55efd66486921492808d2540ef4ffb6b3c",
+    "source-check-before-runtime.json": "1e496ad55bd718c0ea8ecd61573ada55efd66486921492808d2540ef4ffb6b3c",
+    "sources-before.sha256": "ccd641e1690c0720774c01f29d68d2c0b60401571213711a3ab42870b4204167"
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalLayoutReferenceDispositionsCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "selectedOriginalViewUcsTargetsCanMatch": true,
+    "selectedOriginalViewportTargetsCanMatch": true,
+    "selectedCanonicalPrimaryVisualStyleSourcesCanMatch": true,
+    "selectedRootedOriginalVisualStyleTargetsCanMatch": true,
+    "observedCommentedCanonicalVisualStyleSourcesCanMatch": true,
+    "selectedCanonicalRenderPresetSourcesCanMatch": true,
+    "selectedRootedOriginalLayoutPresetTargetsCanMatch": true,
+    "viewportShadeSourceQualified": false,
+    "editedRenderSettingsTypedRewritingQualified": "SELECTED_SCHEMA_FAMILY_WITH_NAME_AND_OPTIONAL_PROJECTION",
+    "selectedAc1027PresetEmittedBodiesMatchAuthoredLiterals": true,
+    "completeEmittedObjectDictionaryGraphQualified": false,
+    "selectedCapturedPresetOutputBodiesAndDictionariesInspected": true,
+    "selectedCallbackPresetEditsRefuseBeforePublication": true,
+    "rawHandleScopeControlsPass": true,
+    "macosExtractedAutotoolsStaticQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosExtractedAutotoolsSharedQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosExtractedCmakeSelectedQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosAutotoolsDistcheckPassed": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "nativeLinuxGccSourceReleaseDistcheck": "NOT_RUN",
+    "nativeWindowsSourceRelease": "NOT_RUN",
+    "selectedModernShadeConsumerTransportQualified": true,
+    "commonEntityFullVisualStyleBindingQualified": false,
+    "allModernShadeProducerAndVersionProfilesQualified": false,
+    "renderPresetRenameAndSchemaChangesQualified": false,
+    "commonMetadataEditingQualified": false,
+    "allRenderPresetProfilesQualified": false,
+    "selectedPresetRenameAndOptionalPresenceQualified": true,
+    "allPresetNameAndSchemaChangesQualified": false,
+    "nativeDictionaryCollationQualified": false,
+    "rapidRtApplicationScopeReplayTrackingMatched": true,
+    "selectedExistingCommon348TransportQualified": true,
+    "selectedCommon348CallbackAndOutputFieldsInspected": true,
+    "common348NativeSemanticsQualified": false,
+    "allCommon348ProducerAndSourceProfilesQualified": false,
+    "anonymousCommon348OriginalIdentityCertified": false,
+    "selectedFullStylePreCopyBudgetBoundariesQualified": true,
+    "selectedDxfMaterialConsumerTransportQualified": true,
+    "selectedDxfMaterialReplayFrozenForTolerantExports": true,
+    "allMaterialSourceAndProducerProfilesQualified": false,
+    "nativeDwgMaterialConsumerSemanticsQualified": false,
+    "materialTypedRawBodyEditTransactionsQualified": "SELECTED_MODERN_DXF_CURRENT_MODEL_ONLY",
+    "wholeOperationAggregateRssQualified": false,
+    "selectedDxfLayerMaterialTransportQualified": true,
+    "selectedDxfLayerMaterialOutputAndRetryChecked": true,
+    "allLayerMaterialSourceAndVersionProfilesQualified": false,
+    "materialHeaderDependencyQualified": "SELECTED_DXF_SOURCE_AND_OUTPUT_BINDING",
+    "nativeDwgLayerMaterialProjectionQualified": false,
+    "anonymousLayerOriginalIdentityCertified": false,
+    "selectedHeaderMaterialScalarTransportQualified": true,
+    "selectedHeaderMaterialTargetTypeCheckedForDirectWriters": true,
+    "allHeaderMaterialNativeProfilesQualified": false,
+    "allMaterialHeaderDependenciesQualified": false,
+    "selectedModernDxfMaterialBodyTransactionsQualified": true,
+    "selectedMaterialBodyOriginalProducerSemanticsQualified": false,
+    "allMaterialBodyProfilesQualified": false,
+    "allMaterialBodyPresenceTransactionsQualified": false,
+    "selectedModernDxfMaterialAlternateBoundaryTransactionsQualified": true,
+    "selectedEzdxf145MaterialImportValuesMatched": true,
+    "selectedMaterialPreStrengthHeaderProfile": "COMPLETE_REFRACTION_MATRIX_AND_BOUND_BUMP_ROLE_ONLY"
+  },
+  "remaining": [
+    "Resolve the measured peer EZDXF_META/DICTIONARYVAR ownership profile versus normative ACDBVARIABLEDICTIONARY semantics. CLI NOD validation is already selected; qualify any distinct preservation route without bypassing ownership admission.",
+    "Qualify MATERIAL layouts without a completed refraction prefix or with ambiguous repeated fields, remaining optional boundaries, specular-field conflicts, opaque/procedural/schema edits and independent native producer/renderer evidence.",
+    "Remaining material/full/face/edge consumer profiles; native LAYER/HEADER/common348 evidence; reactors/IMAGE/document/control/name/application/XDATA/CEPSNID/CEPSNTYPE; arbitrary remaps/collisions and recursive/coupled/full-document ownership.",
+    "Rendering engine/schema/optional/absent/duplicate/alias/extension/active/global/environment/background/live-section/sun; independent VIEWPORT shade4/5 and335/343/344/91 and native dictionary collation.",
+    "TABLE Values/multiple-content/linked-data ownership, formatting/units/borders and native B2b/B3/C schema/bit/owner/version/corpus evidence.",
+    "Package/platform/native consumers, formal ABI/application, controlled RSS/performance and native Linux GCC release, native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence.",
+    "Safe adapter compilation sharing only after compiler/configuration/definitions/include/sanitizer/PIC and resolved-header/preprocessed-token equivalence. No performance improvement is claimed.",
+    "J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and nonpromoting; the complete support ledger and full output eligibility stay closed."
+  ]
+}

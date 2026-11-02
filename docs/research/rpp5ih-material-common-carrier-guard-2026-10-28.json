@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 MATERIAL immutable common carrier guard",
+  "date": "2026-10-28",
+  "codeCommit": "2d17db67681df6b6a2b7bab5ba3ce08258bd68fe",
+  "problem": "Previously, dxfMaterial::sameState covered modeled MATERIAL body only. An application-data change combined with a selected projection edit exported successfully while dropping the added typed common group.",
+  "contract": {
+    "admission": "Decode immutable captured MATERIAL baseline and compare all DRW_TableEntry common fields against the caller using the existing standardDwgCommonEqual comparator before either unchanged or edited raw replay.",
+    "protectedFields": "Identity, base name and flags, appData, XDATA, reactors, extension dictionary and unresolved DWG/common state; the existing body-specific comparison still governs modeled edits.",
+    "atomicity": "Inconsistent common model is refused before publication, preserving caller and destination; restore to baseline and retry on the same facade.",
+    "preserved": "Existing normal blend/projection edits and original common groups with XDATA remain replayable when their captured and typed representations agree."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "96cd80b949a09949613cadd4d3f89f313e1bda7c03dc754efcef77e42d87d45c",
+    "materialBodyHeaderSha256": "73b135bfca8194f4872fea05efc95f58d552c3c51d419593d90f0b14d032cac7",
+    "testSourceSha256": "82dd8c5b86aad699976b5616ec72c8c412f1ff29e83937b6ec9722c166122c99",
+    "normalAdapterObjectSha256": "7d60560ea1694d6ba62cde3b3ea6fe26d0ecb7ba2567fd5bc0b45360569e62dd",
+    "normalLibrarySha256": "b2b91d755e8d02d83629854730e00ba75eedb97216a9e61355ee11c3928a7c4a",
+    "normalTestExecutableSha256": "f5c000953fc63d98da80f26ca908328ad14a9d435d0efe80efea5043338b6b36",
+    "simultaneousTableCommit": "67c7674a5302346d0dd0e39408f688d6aa65a15b",
+    "simultaneousBlockRecordCommit": "edf69bd8efc000e401b63615bb724257f733a943",
+    "tableWriterSourceSha256": "5a77b2cf4fb3c4c64e28ca6b9c408002882056583d702de3601aa687bd8f7293",
+    "entitiesSourceSha256": "cf2e2af4e1530bdee4f9bae534adb630593d08da4e2bca1ab3dff707d28b0368",
+    "entitiesHeaderSha256": "14fdf6d7179e16bd40dca2f80ab62cf77ebed44cd2173068efdb00b04623ed16",
+    "tableCodecHeaderSha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e",
+    "asanAdapterObjectSha256": "00f4fce00df82b7b1deaefa34d7031a8792d0beb2b64e239a94d39df4deeba9f",
+    "asanLibrarySha256": "91b882e9ef6b82e535b595ea3e9f227be00f50109ec4202a0b859042cf406fa7",
+    "asanTestExecutableSha256": "35c6b31c245d45d630ca85d89f5fbda3837e47b6fbf4d1a21d0a9f0f2dd6c9b5"
+  },
+  "validation": {
+    "normal": {
+      "result": "PASS",
+      "count": "9/9",
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_block_record_legacy_observation",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "note": "BLOCK_RECORD observation was strengthened after the shared cohort and revalidated separately 1/1."
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_block_record_legacy_observation",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "9/9",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "72 common-field edit refusal/sentinel/same-facade retry controls: six common mutation classes × three body modes × four source/output encoding combinations. Twelve locally-authored APPID/application/XDATA source and output readbacks span the same body modes and encodings.",
+    "note": "Original readback verifies typed application and XDATA contents, including provider-aware source; no separate native renderer or full-document qualification.",
+    "sourceChronology": "The normal shared cohort included simultaneously prepared TABLE and BLOCK_RECORD work; BLOCK_RECORD was subsequently strengthened and passed separately. The final ASan 9/9 included that strengthened BLOCK_RECORD state. The TABLE and BLOCK_RECORD revisions were committed separately as the hashes listed in sourceBindings."
+  },
+  "reviewWitness": {
+    "sourceSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "sourceNote": "Previously independently authored peer source with unrelated EZDXF_META dictionary removed; selected MATERIAL unchanged.",
+    "preFixProbeSourceSha256": "ffd60c1c9c5f7bd84634f508548146068cc178411ae77f7b869b3a2a262fbd23",
+    "preFixProbeExecutableSha256": "0a6d3a150bb9b80dcd4c848acb714910fb2a868ca5f1bfce0ac8e7626a0c2e35",
+    "preFixResult": "A selected normal-projection edit plus additional typed application group succeeded, but ordinary source/output readback changed appData group count 2→1. This original diagnostic deliberately checks group-count loss and uses a caller-authored group.",
+    "postFixProbeSourceSha256": "65c660da132a9c6ab930d0a965173907aaed61576e4bf967c5ad740e130fdc2d",
+    "postFixProbeExecutableSha256": "7c86ee6e66966fd86e51554e273a2207c987a86ff93161dfbf361c434f3f12bd",
+    "postFixResult": "Unchanged/blend/projection × appData/XDATA/base flags all refuse with sentinel and caller preserved and succeed on corrected retry; corresponding no-fault controls export and read back original reactor group.",
+    "physicalOriginalAndOutput": "The independent ezdxf physical loader confirmed the original and projection output common prefixes match, including MATERIAL handle 2F, reactor 330 E and owner E."
+  },
+  "limitations": [
+    "This guard rejects common-carrier changes; it does not implement serialization of typed common metadata edits.",
+    "No native consumer/rendering or full-document support claim is made.",
+    "No drawing fixture is committed."
+  ]
+}

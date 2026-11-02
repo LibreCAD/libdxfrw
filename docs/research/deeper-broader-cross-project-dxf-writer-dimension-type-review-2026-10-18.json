@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-project DXF writer and DIMENSION group-type review",
+  "mode": "research-only plan refinement",
+  "scope": [
+    "Cross-check recent open-source DXF/DWG writer and parser failure reports against existing plan owners",
+    "Audit DIMENSION group-code 80-84 type use across authoritative references, an independent typed model, and local writer callsites",
+    "Refine PAR-39/7X implementation readiness without changing code, tests, fixtures, dependencies, or support claims"
+  ],
+  "sources": [
+    {
+      "title": "Autodesk Group Code Value Types Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "Lists 60-79 as 16-bit and 90-99 as 32-bit; no general type assignment for 80-89."
+    },
+    {
+      "title": "Autodesk Common Dimension Group Codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "finding": "Common DIMENSION group-code list does not include 80-84."
+    },
+    {
+      "title": "ezdxf Dimension entity source",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimension.py",
+      "finding": "Independent typed common-DIMENSION attributes omit codes 80-84; not a normative exclusion."
+    },
+    {
+      "title": "ACadSharp issue 1253",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "finding": "Reporter describes AutoCAD rejection of a peer DXF writer with CLASSES, HATCH, and DIMSTYLE table-scope issues; peer report only."
+    },
+    {
+      "title": "LibreDWG issue 1410",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1410",
+      "finding": "Reporter describes peer DXF-to-DWG failures around zero-valued HATCH coordinates, ATTRIB tags, and embedded MTEXT; existing local plan coverage applies."
+    },
+    {
+      "title": "ezdxf binary proxy issue 1412 and fix 1418",
+      "url": "https://github.com/mozman/ezdxf/issues/1412",
+      "finding": "Peer-specific raw-binary versus pre-encoded-hex proxy transport defect; merged fix already mapped to existing local chunk coverage."
+    },
+    {
+      "title": "Autodesk About Binary DXF Files",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+      "finding": "Distinguishes scalar widths, NUL-terminated strings, binary chunks, two-byte group codes, and the 0xFF extended-code escape."
+    }
+  ],
+  "localAudit": {
+    "files": [
+      "src/intern/dxfcode.h",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfwriter.cpp"
+    ],
+    "observations": [
+      "The standalone DXF classifier maps group codes 80-89 to String.",
+      "DRW_Dimension parses groups 80-84 using getInt32().",
+      "Both DIMENSION writer paths call writeInt16() for nonzero 80-84 fields.",
+      "The guarded binary writeInt16 path requires the code's classified kind to be I16 and therefore rejects these calls.",
+      "The ASCII writeInt16 path validates numeric range but does not validate the group's assigned kind.",
+      "Git history traces the fields to LibreCAD parity import commit 0c5595930b20917a40ed7c188475eaca624b8ce9; this establishes local source lineage, not format semantics.",
+      "A read-only scan of all 16 checked-in ASCII DXF fixtures found no DIMENSION groups 80-84.",
+      "No end-to-end generated execution was run during this research-only update."
+    ],
+    "classification": "Source-confirmed caller/classifier mismatch under the existing PAR-39 umbrella; the legal semantics/profile for codes 80-84 remain unresolved."
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-39",
+    "updatedSubplan": "7X.6",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ledger": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "validation": {
+    "codeChanged": false,
+    "testSourceChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerOrNativeRun": "NOT_RUN",
+    "fullSuite": "NOT_RUN",
+    "diffCheck": "PASS: git diff --check for the edited plan; jq empty validates the research receipt"
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "supportClaimsPromoted": 0
+}

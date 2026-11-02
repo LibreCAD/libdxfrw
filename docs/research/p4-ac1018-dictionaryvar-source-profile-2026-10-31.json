@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-31",
+  "profile": "AC1018 ET-Drawing-with-Border DICTIONARYVAR source profile",
+  "classification": "SOURCE_PROFILE_ONLY",
+  "support_claim_effect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false
+  },
+  "authoritative_format_source": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.74 DICTIONARYVAR",
+    "page": 194,
+    "relevant_layout": "AC1018/R2004+ DICTIONARYVAR fields are followed by the owner/reactor/extension-dictionary handle sequence."
+  },
+  "independent_implementation_evidence": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O JSON -o /tmp/et-libre.json /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "records": [
+      {"owner_key": "CTABLESTYLE", "value": "STANDARD", "schema": 0},
+      {"owner_key": "DIMASSOC", "value": "2", "schema": 0},
+      {"owner_key": "HIDETEXT", "value": "1", "schema": 0}
+    ],
+    "common_link_observation": "Each record is owned by dictionary handle 0x66 and has one reactor to that same dictionary; the NOD key AcDbVariableDictionary targets that dictionary."
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "change": "For AC1018, mark the DICTIONARYVAR common link tail validated only when the parsed handle sequence reaches the end of its bounded object frame with fewer than eight alignment bits remaining. Later versions retain their existing separately bounded-tail behavior."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focused_source_profile": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-source-profile /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "passed",
+      "assertions": "Three typed values, unique owner keys, schema values, owner links, one reactor per record, empty extension data, and complete AC1018 common-tail frame qualification."
+    },
+    "existing_compatibility_selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "passed for ASCII and Binary output, readback, refusal, and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-ac1018-source-profile /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback /Users/dli/doc/dwg/title_block-iso.dwg",
+        "result": "passed for ASCII and Binary output, readback, refusal, and same-adapter retry"
+      }
+    ]
+  },
+  "limits": [
+    "This qualifies only the three-record AC1018 source profile and its common links.",
+    "The exact source still has 23 opaque callbacks and strict output remains refused.",
+    "AC1018 whole-document DXF output/readback is not qualified; the current output attempt stops in the STYLE table on an empty-name STYLE record.",
+    "No support claim is promoted by this receipt."
+  ],
+  "next_action": "Resolve the bounded output disposition for the empty-name STYLE and prove the remaining source graph/output bindings without weakening strict refusal."
+}

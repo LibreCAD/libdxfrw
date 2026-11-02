@@ -1,0 +1,249 @@
+{
+  "schema": "mline-style-element-arity-evidence-v1",
+  "slice": "RPP-5gr",
+  "date": "2026-10-28",
+  "parentCommit": "0c7be5df31aeb3061173fe0417fad84a7dfb06f0",
+  "state": "CONFIRMED_MLINE_STYLE_ARITY_GAP_FIXED; FOCUSED_NORMAL_COHORT_AND_RETAINED_WITNESS_RECHECKS_PASS",
+  "fileSha256": {
+    "dwg2dxf/dx_iface.cpp": "9027c64839b8ccf11a64847bc4829c82730138d32e681ba242577e34e998c4ae",
+    "tests/dxf_fixture_tests.cpp": "02725f25b8dca2b1b1e7a042a45aa0cb2f8288febbd1110c9e90323e223424cb"
+  },
+  "scope": "Adapter DXF export must refuse a locally valid MLINE whose numLines differs from its rooted MLINESTYLE element count. Both source mismatch and direct public-model edits are exercised; ordinary record import remains tolerant of unresolved cross-record semantics.",
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "basis": "MLINE73 is the number of elements in the associated MLINESTYLE definition. No DWG byte-layout or universal historical profile claim is inferred."
+    }
+  ],
+  "baseline": {
+    "parentCommit": "f709340cf1777caf47786d290240ce4b6473c165",
+    "probeSha256": "317fd5b33fa198e07be3e8fe623f066a8465d72ef199bba681649e4b7d348afa",
+    "cases": [
+      {
+        "source": "/tmp/libdxfrw-mline-arity-audit/D100-arity1.dxf",
+        "sourceSha256": "c4622b5cedfedeee5753793c293d7e1bf4fa6ba6209523a9580c12678ee9b0f1",
+        "output": "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/D100-baseline-output.dxf",
+        "outputSha256": "d47ae3c2fbd461aabdaa9205fc9dd2d107d393d5063ac0f294f089d1eb1be814",
+        "exitCode": 0,
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/baseline-probe",
+          "--mline-style-key-probe",
+          "/tmp/libdxfrw-mline-arity-audit/D100-arity1.dxf",
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/D100-baseline-output.dxf",
+          "asc"
+        ],
+        "pairs": [
+          {
+            "self": "38",
+            "numLines": 2,
+            "styleHandle": "31",
+            "styleElements": 2
+          },
+          {
+            "self": "39",
+            "numLines": 1,
+            "styleHandle": "31",
+            "styleElements": 2
+          }
+        ]
+      },
+      {
+        "source": "/tmp/libdxfrw-mline-arity-audit/D101-arity1.dxf",
+        "sourceSha256": "f29fe83fb5c5bac6f5d661430649bbd88f9d7af89cff3181003fdb652a5bcb0a",
+        "output": "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/D101-baseline-output.dxf",
+        "outputSha256": "c984683614cc36e65bb7920fc73269bc364ab6635d31915e85a97e0474e7fcc7",
+        "exitCode": 0,
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/baseline-probe",
+          "--mline-style-key-probe",
+          "/tmp/libdxfrw-mline-arity-audit/D101-arity1.dxf",
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/D101-baseline-output.dxf",
+          "asc"
+        ],
+        "pairs": [
+          {
+            "self": "38",
+            "numLines": 1,
+            "styleHandle": "31",
+            "styleElements": 2
+          },
+          {
+            "self": "39",
+            "numLines": 2,
+            "styleHandle": "31",
+            "styleElements": 2
+          }
+        ]
+      }
+    ],
+    "confirmed": "Both ENTITIES and named BLOCK export an internally consistent1-element MLINE referencing a2-element MLINESTYLE.",
+    "reportSha256": "3a89f2d4b9a7d476e1e3ff5e9a347f5f8d5ac19e9c1d978d031b642e25220fd7",
+    "producer": "Existing original local-from-scratch mlineStyleAuthorityControls::recipe(false); retained RPP-5gp baseline input.",
+    "originalSource": {
+      "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-authority-147863645263083/input.dxf",
+      "sha256": "434f9621be8f3b5321e8f6cbd6f1a7f604c8930960b8ebed29f23412486ad5ff"
+    },
+    "derivation": "Select only D100 in ENTITIES or D101 in AuthorityBlock; set73to1 and remove each vertex second74/41/75 parameter tuple, leaving style71=2 and both49offsets. Scratch serialization normalizes code/value spelling; retained input digests identify the actual witness bytes.",
+    "binding": "Baseline probe is retained and hashed before fixture rebuild; no production source changed between the parent authority implementation and these reproduced exports."
+  },
+  "implementation": [
+    "Add count equality beside the existing rooted/unique style target lookup in validateMLineEntities. Reuse the current index; no new scan, allocation or graph engine.",
+    "Report an invalid style target/name or element count before publication. Predicate runs only when MLINE exists; other entity routes remain unchanged.",
+    "Keep ordinary import and low-level context-free writer responsibilities unchanged. No parseCode/parseDwg, public header, model layout, vtable, callback, DWG layout or unit change."
+  ],
+  "tests": {
+    "recipe": "mlineStyleAuthorityControls::arityRecipe",
+    "profiles": "AC1027; ASCII/binary source \u00d7 ASCII/binary target \u00d7 ENTITIES/namedBLOCK",
+    "sourceCases": 8,
+    "typedEditCases": 8,
+    "correctedRetries": 16,
+    "recordLocalValidity": "All negative consumers pass validateDxfRecord: parameter arrays agree with their own1-element count while their actual target style has2elements.",
+    "typedEdit": "After valid import, set selected public numLines=1 and resize each vertex segment/fill collections to1. Restore the saved model and retry through the same adapter. This is a DXF-backed public-model route, not newly authored/DWG route qualification.",
+    "failureProof": "Exact sentinel destination, no temporary publication, selected/unselected identity/name/geometry/count state and style/key fields remain as expected; corrected outputs receive literal reference/field proof and ordinary readback."
+  },
+  "qualification": {
+    "build": {
+      "parentCommit": "0c7be5df31aeb3061173fe0417fad84a7dfb06f0",
+      "sourceManifestSha256": "66d112d5583957afdc3896e43e82e9b36854d4b8a4f0252200963a56ff206803",
+      "targets": [
+        "libdxfrw_dxf_fixture_tests",
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "dwg2dxf"
+      ],
+      "configuration": "normal",
+      "cmakeCacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "buildNinjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3",
+      "buildExitCode": 0,
+      "buildSeconds": 11.683674874977442,
+      "buildLogSha256": "ddd97c980a455c9bbc289e95afe1cb58b541c9915d918828b69b0fde110d538d",
+      "probeSha256": "62df03f356652ed2a2974e22627d902e849d9fb86405ae96ae55c8c53a8c3159",
+      "converterSha256": "3485d461a16b3a88e63a7452e9216d28c3ff6ff45bc523a33355671ed0101a6c",
+      "adapterProbeSha256": "f1c49b8f99fbdecb73a33dfdf226cb76b35d925a669099e6310e9098541bd851"
+    },
+    "exitCode": 0,
+    "seconds": 4.263185540999984,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build",
+      "-j",
+      "4",
+      "-R",
+      "^(libdxfrw_mline_style_authority|libdxfrw_mline_style_body_transactions|libdxfrw_mline_vector_component_order|dwg2dxf_generated_root_common_closure)$",
+      "--output-on-failure"
+    ],
+    "selected": [
+      "libdxfrw_mline_style_authority",
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_vector_component_order",
+      "dwg2dxf_generated_root_common_closure"
+    ],
+    "passed": [
+      "libdxfrw_mline_vector_component_order",
+      "libdxfrw_mline_style_authority",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_mline_style_body_transactions"
+    ],
+    "counters": [
+      "MLINESTYLE authority profiles=4; readbacks=174; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2; aritySourceRefusals=8; arityTypedRefusals=8; arityRetries=16"
+    ],
+    "ctestLogSha256": "8c32c97a785098c7e3642d188db8ae77bab50bf40e4d07922a3b3646ca84e2ea",
+    "registrationsSha256": "abcabf9695efc7fb9c214cdfd1b98bea2fa46d9f097b0d44da9ebf984404b80c",
+    "sourceInputsUnchanged": 593,
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "retainedBaselineRechecks": [
+      {
+        "sourceSha256": "c4622b5cedfedeee5753793c293d7e1bf4fa6ba6209523a9580c12678ee9b0f1",
+        "exitCode": 1,
+        "stderr": "DXF export preflight failed: MLINE code-340 style target/name or element count is invalid\n",
+        "destinationPreserved": true,
+        "correctedExitCode": 0,
+        "correctedSourceSha256": "434f9621be8f3b5321e8f6cbd6f1a7f604c8930960b8ebed29f23412486ad5ff",
+        "correctedOutputSha256": "12767f67066eeb109baf23a78bd745e5abe51f2baa6d92fad21c226880294675",
+        "validJoins": 2
+      },
+      {
+        "sourceSha256": "f29fe83fb5c5bac6f5d661430649bbd88f9d7af89cff3181003fdb652a5bcb0a",
+        "exitCode": 1,
+        "stderr": "DXF export preflight failed: MLINE code-340 style target/name or element count is invalid\n",
+        "destinationPreserved": true,
+        "correctedExitCode": 0,
+        "correctedSourceSha256": "434f9621be8f3b5321e8f6cbd6f1a7f604c8930960b8ebed29f23412486ad5ff",
+        "correctedOutputSha256": "12767f67066eeb109baf23a78bd745e5abe51f2baa6d92fad21c226880294675",
+        "validJoins": 2
+      }
+    ],
+    "probeSha256": "62df03f356652ed2a2974e22627d902e849d9fb86405ae96ae55c8c53a8c3159",
+    "converterSha256": "3485d461a16b3a88e63a7452e9216d28c3ff6ff45bc523a33355671ed0101a6c",
+    "cli": [
+      {
+        "sourceSha256": "c4622b5cedfedeee5753793c293d7e1bf4fa6ba6209523a9580c12678ee9b0f1",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/tmp/libdxfrw-mline-arity-audit/D100-arity1.dxf",
+          "-y",
+          "-v2013",
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/cli-arity-0.dxf"
+        ],
+        "exitCode": 1,
+        "destinationPreserved": true,
+        "stdout": "\nConversion failed\n",
+        "stderr": "DXF export preflight failed: MLINE code-340 style target/name or element count is invalid\n"
+      },
+      {
+        "sourceSha256": "f29fe83fb5c5bac6f5d661430649bbd88f9d7af89cff3181003fdb652a5bcb0a",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/tmp/libdxfrw-mline-arity-audit/D101-arity1.dxf",
+          "-y",
+          "-v2013",
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/cli-arity-1.dxf"
+        ],
+        "exitCode": 1,
+        "destinationPreserved": true,
+        "stdout": "\nConversion failed\n",
+        "stderr": "DXF export preflight failed: MLINE code-340 style target/name or element count is invalid\n"
+      },
+      {
+        "sourceSha256": "434f9621be8f3b5321e8f6cbd6f1a7f604c8930960b8ebed29f23412486ad5ff",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-authority-147863645263083/input.dxf",
+          "-y",
+          "-v2013",
+          "/Users/dli/dev/libdxfrw/build/rpp5gr-evidence/cli-corrected.dxf"
+        ],
+        "exitCode": 0,
+        "outputSha256": "12767f67066eeb109baf23a78bd745e5abe51f2baa6d92fad21c226880294675",
+        "stdout": "Success: converted /var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-authority-147863645263083/input.dxf to /Users/dli/dev/libdxfrw/build/rpp5gr-evidence/cli-corrected.dxf\n",
+        "stderr": ""
+      }
+    ],
+    "reportSha256": "65b3183b1af8dc987d7d60731a9f3b21b0c9a9445082a5fb197a1ba0654f4cf9"
+  },
+  "validationChoice": "One affected normal4-test cohort plus retained probe and actual CLI witnesses. The production change is a scalar compatibility predicate and diagnostic: no allocation/ownership/lifetime machinery changes, so ASan and the broad peer/full suite are not repeated. Earlier ASan/peer receipts retain their original source binding, not this HEAD.",
+  "limitations": [
+    "This fixes a demonstrated cross-record count inconsistency; it does not recalculate MLINE geometry, enable count/offset/340 edits or qualify native MLINE rendering.",
+    "Independent output proof for the retained negatives uses physical target/count joins; full shared semantic/kernel, complete document and native platform gates remain separate.",
+    "Flag71versusvertex72 consistency, route-specific color/grammar, earlier authority, element edits and MLEADERSTYLE remain open."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "nativeMlineConsumerQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Only original embedded local-from-scratch recipes and metadata/hashes committed. Baseline/probe/generated drawings remain in scratch; no external drawing payload admitted."
+}

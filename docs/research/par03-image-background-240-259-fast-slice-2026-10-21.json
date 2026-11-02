@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03 DXF 240-259 classification and ImageBackground wire correction",
+  "mode": "Focused generated ASCII/Binary fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "The shared worktree is broadly dirty. This slice includes scoped source/test changes, the plan correction, and this receipt; no files were staged or committed.",
+    "changedFiles": [
+      "src/intern/dxfcode.h",
+      "src/libdxfrw.cpp",
+      "src/drw_objects.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par03-image-background-240-259-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": [
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "The published general value-type table describes 210-239 and resumes at 270-279, without assigning a general type to 240-259. The standalone classifier therefore does not guess a binary width."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "finding": "The numerical reference likewise documents 210/220/230 and 270-279, without a general assignment for 240-259."
+    },
+    {
+      "source": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "finding": "The IMAGE_BACKGROUND schema maps the offset pair from DXF 140 and the scale pair from DXF 142."
+    },
+    {
+      "source": "https://docs.rs/acadrust/latest/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "finding": "The ImageBackground writer emits offset.x/y at 140/141 and scale.x/y at 142/143. This is implementation corroboration, not format authority."
+    }
+  ],
+  "implementation": {
+    "change": "Classify 240-259 as Unknown in StandaloneSafe; retain their former Double interpretation only in LibreCadMasterLegacy. Correct IMAGEBACKGROUND output to write offset.y and scale.y at 141 and 143. Restrict parsing of historic 240/242 aliases to the explicit legacy profile.",
+    "assertions": [
+      "Classifier boundaries 239/240/242/259/260/270 reflect the selected profiles.",
+      "ASCII unknown values in 240/242/259 retain source spelling rather than being read as stale doubles.",
+      "Standalone binary parsing and writing fail closed for the unknown 240-259 range.",
+      "Legacy-profile binary widths remain explicitly testable.",
+      "ASCII and Binary IMAGEBACKGROUND output place distinct Y offset/scale values at 141/143 and emit neither 240 nor 242."
+    ],
+    "fixturePolicy": "The DXF controls are generated in memory/test temporary output; no DWG/DXF fixture file was added."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(wave1|dxf_code_type_boundaries|dxf_fixtures)$' --output-on-failure",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dxfcode.h src/libdxfrw.cpp src/drw_objects.cpp tests/wave1_tests.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par03-image-background-240-259-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue the code/context audit for standalone DXF 260-269 and other unassigned or context-sensitive spans; then self-unblock to the next locally actionable plan item without waiting on external gates."
+}

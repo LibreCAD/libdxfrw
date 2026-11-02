@@ -1,0 +1,74 @@
+{
+  "id": "p5-ac1024-sun-xrecord-owner-outlier-2026-11-01",
+  "date": "2026-11-01",
+  "scope": "Determine whether the physical AC1024 aerial sample justifies a SUN owner route beyond VPORT and VIEWPORT.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local input was read in place. No DWG/DXF fixture was added to the repository."
+  },
+  "independentReader": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -O DXF -o /private/tmp/libredwg-aerial.dxf /Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "exitCode": 0,
+    "outputSha256": "006331812c41b01f6f93361fc709f2f2a303f91e576efa27474a137cf76d7de4",
+    "observedRecords": [
+      {
+        "type": "SUN",
+        "handle": "0x187",
+        "ownerHandle": "0x94",
+        "ownerType": "VPORT",
+        "ownerName": "*Active"
+      },
+      {
+        "type": "SUN",
+        "handle": "0x24C",
+        "ownerHandle": "0x246",
+        "ownerType": "XRECORD"
+      },
+      {
+        "type": "SKYLIGHT_BACKGROUND",
+        "handle": "0x261",
+        "ownerHandle": "0xAE",
+        "sunReferenceGroup340": "0x24C"
+      },
+      {
+        "type": "XRECORD",
+        "handle": "0x246",
+        "ownerHandle": "0x245"
+      }
+    ]
+  },
+  "authoritativeContract": {
+    "source": "Autodesk ObjectARX Reference, AcDbSun",
+    "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSun.html",
+    "rule": "AcDbSun is a hard-owned child of an AcDbViewportTableRecord or AcDbViewport object."
+  },
+  "currentImplementation": {
+    "sourceTrace": "/private/tmp/p5-aerial-sun.log",
+    "observed": "libdxfrw parsed the two SUN objects; strict owner-graph preflight refused the drawing because SUN 0x24C has no admitted VPORT/VIEWPORT hard owner.",
+    "generatedOwnerRouteReceipt": "docs/research/p5-dwg-typed-sun-group63-owner-closure-2026-10-31.json",
+    "disposition": "No code change. The observed XRECORD owner conflicts with the documented AcDbSun owner contract; do not admit it as a valid SUN owner route. Preserve strict refusal for this source."
+  },
+  "odaCrossCheck": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "arguments": [
+      "/private/tmp/oda-aerial-in",
+      "/private/tmp/oda-aerial-out",
+      "ACAD2010",
+      "DXF",
+      "0",
+      "0",
+      "*.dwg"
+    ],
+    "exitCode": 134,
+    "result": "Process aborted in macOS pasteboard/XPC setup before conversion; no output was produced. This is unavailable evidence, not a file-compatibility result."
+  },
+  "planImpact": {
+    "removed": "Do not treat this sample as a witness for a valid non-VPORT/VIEWPORT SUN owner route.",
+    "remaining": "Reopen physical owner-route implementation only if a conforming source demonstrates a missing VPORT/VIEWPORT path. Native rendering semantics remain separately open.",
+    "supportClaim": "No support claim promoted."
+  }
+}

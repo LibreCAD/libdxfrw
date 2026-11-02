@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADER leader-line CMC name/book retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain optional CMC color and book names for R2010+ MLEADER leader lines",
+    "Read and write the names through the detached R2007+ DWG string stream",
+    "Verify all generic CMC methods and fail closed when named output lacks a detached string stream"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.86 MLeaderAnnotContext"],
+      "finding": "ODA §2.11 defines CMC color/book flags; §20.4.86 identifies the R2010+ per-leader-line color as CMC. This does not specify class-specific DXF name/book group mapping."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The local MLEADER line parser previously read the CMC without the detached string stream or optional name outputs. The model now retains both values, and encodeMLeaderRoot emits them into the supplied string stream.",
+      "compatibility": "Two public DRW_MLeaderLeaderLine members were appended; this changes helper-struct and containing model sizes. Downstream consumers must rebuild. No virtual method changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Generated MLEADER frames exercise named C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB. The independent walker reads color/book strings from the detached stream and checks CMC method, payload, and flags; parser checks verify both names and the following handle sentinel. A missing-string-stream negative refuses before output.",
+      "limit": "Generated frames establish local codec consistency only; no producer-authored MLEADER drawing or native consumer was exercised."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append colorName and colorBookName to DRW_MLeaderLeaderLine.",
+      "Capture CMC optional names through the bounded R2007+ detached string stream.",
+      "Emit C0-C3 method/value and optional names using the supplied string stream.",
+      "Refuse named output before body emission if the detached string stream is missing or aliases the bit body."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestReused": "libdxfrw_mleader_line_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_line_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mleader-leader-line-cmc-name-book-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "MLEADER entity-level, embedded-context, and MLEADERSTYLE CMC optional names/books are not yet retained.",
+    "Class-specific DXF color/name/book mappings remain unaudited and must not be inferred from this DWG result.",
+    "HATCH C5 producer semantics and native/external qualification remain separate gates.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

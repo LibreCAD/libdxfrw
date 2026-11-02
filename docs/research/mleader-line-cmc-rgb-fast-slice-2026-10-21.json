@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADER leader-line CMC RGB retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Verify the R2010+ per-leader-line color contract in ODA v5.4.1 §20.4.86",
+    "Retain C2 RGB in the typed MLEADER leader-line helper and reproduce it on DWG output",
+    "Add independent generated wire inspection and pre-write invalid-value refusal controls"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.86 MLeaderAnnotContext",
+      "page": 215,
+      "finding": "The R2010 per-leader-line color field is CMC with DXF group 92. Section 2.11 defines the R2004+ CMC method-packed value; C2 contains the 24-bit RGB payload."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/intern/dwgbufferw.cpp"
+      ],
+      "finding": "The MLEADER line parser retained only the normalized scalar returned by readBoundedCmColor, and encodeMLeaderRoot always selected the indexed-color writer. The parser now retains C2 RGB; the writer emits C2 when present.",
+      "compatibility": "colorRgb is appended to DRW_MLeaderLeaderLine, preserving earlier member offsets but changing the public helper struct size; consumers must rebuild. No vtable or DRW_Interface callback changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "The independent wire walker verifies reserved CMC index zero, C2 method, exact RGB payload, and zero name flags. Production parsing verifies normalized scalar 256, retained RGB, and following handle sentinel. Invalid 24-bit range and mismatched scalar controls are rejected before body/string/handle output.",
+      "limit": "Generated vectors establish local parser/writer agreement and the encoded class-field contract only; they are not producer-authored files or independent application semantics. DXF truecolor mapping and optional CMC color/book names are not covered."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append colorRgb to DRW_MLeaderLeaderLine with -1 as the absent sentinel.",
+      "Retain C2 RGB from the bounded R2010+ per-line CMC parser.",
+      "Encode retained RGB as C2 and refuse out-of-range or inconsistent scalar/RGB states before output."
+    ],
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Extend the AC1024/AC1032 generated MLEADER root field-order controls with independent line CMC wire decoding.",
+      "Assert parsed RGB/scalar retention and trailing hard-pointer alignment.",
+      "Add focused --mleader-line-cmc-rgb selector and libdxfrw_mleader_line_cmc_rgb CTest."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_line_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mleader-line-cmc-rgb-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "unresolved": [
+    "MLeaderStyle scalar-only CMC colors and class-specific DXF truecolor semantics remain unaudited.",
+    "Optional CMC name/book roundtrip is not represented by this field.",
+    "No external producer, native CAD application, independent semantic comparison, or support claim was added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

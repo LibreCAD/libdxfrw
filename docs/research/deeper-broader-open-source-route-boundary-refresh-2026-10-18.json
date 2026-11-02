@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader open-source route boundary refresh",
+  "mode": "primary-source research only",
+  "scope": [
+    "Re-screen open-source DWG/DXF and ACIS projects for an independently qualified semantic route",
+    "Resolve apparent capability claims against each repository's own support matrix, FAQ, lineage statements, and release state",
+    "Refine optional peer admission without adding routine tests, dependencies, fixtures, or support claims"
+  ],
+  "sources": [
+    {
+      "name": "unitedrhino/go-cad",
+      "url": "https://github.com/unitedrhino/go-cad",
+      "assessment": "Separate pure-Go implementation claims DWG/DXF read/write and LibreDWG-correlated value comparison; source ancestry was not audited. Explicitly ACIS blob-only with no geometry kernel. Retain only the already-scoped optional structural/explicit-entity differential role."
+    },
+    {
+      "name": "kernalix7/CADKernel",
+      "url": "https://github.com/kernalix7/CADKernel",
+      "assessment": "General format claims conflict with its own matrix, which leaves ACIS SAT/SAB unchecked, and its FAQ, which says commercial CAD import is planned. Not admitted as a DWG/ACIS comparator."
+    },
+    {
+      "name": "BRL-CAD",
+      "url": "https://github.com/BRL-CAD/brlcad",
+      "assessment": "Current project TODO still lists SAT import/export work; no implemented ACIS route was qualified by this screen. Excluded from the current parser set."
+    },
+    {
+      "name": "compscientific/cadcodec",
+      "url": "https://github.com/compscientific/cadcodec",
+      "assessment": "README advertises broad DWG/DXF and ACIS support and identifies acadrust use by Open CAD Studio. Source ancestry, package manifest, release, and runtime test provenance were not inspected; keep lineage unresolved and do not count it as a separate parser/kernel."
+    },
+    {
+      "name": "cbassuarez/obj2cad",
+      "url": "https://github.com/cbassuarez/obj2cad",
+      "assessment": "Current README labels the project pre-release, says DWG and curved surfaces await AutoCAD acceptance, and documents an ACadRust-derived DWG writer with ezdxf/ACadRust readback. Scratch authoring lead only, not an accepted DWG writer or independent semantic oracle."
+    },
+    {
+      "name": "ACadSharp Prototype1b reader PR #1154 and writer PR #1150",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1154",
+      "secondaryUrl": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "assessment": "Merged DWG section reader and still-open writer remain distinct capabilities; discussion separates section parsing from per-entity attachment and does not establish B-rep semantics. Keep DWG AcDs and DXF carrier routes separate."
+    }
+  ],
+  "planChanges": {
+    "implementationQueueChanged": false,
+    "validationCadenceChanged": false,
+    "newMandatoryPeerGate": false,
+    "newDependency": false,
+    "newFixture": false,
+    "newConfirmedLocalFinding": 0,
+    "newTopLevelSubplan": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This was a source-screening pass only. No peer repository was cloned or executed, no external file was downloaded, and no native CAD application or independent kernel was run. Candidate claims remain unverified execution evidence."
+}

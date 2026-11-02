@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle DetailViewStyle group-2 numeric insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "scope": [
+    "Serialize changed DetailViewStyle boundary-line color and weight when absent from a captured raw source group.",
+    "Preserve style-group ordering, aligned ASCII raw lexemes/Binary placeholders, and exact raw-carrier comparison.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or a CTest registration."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The copied DetailViewStyle raw carrier inserts group 62 (boundary-line color) and group 90 (boundary-line weight) within an existing group-2 style block when the typed values differ from class defaults and no source group represented them. Numeric color range is checked before insertion. ASCII raw lexemes are updated in lockstep; Binary raw-value placeholders remain aligned.",
+    "generatedControl": "The secondary DetailViewStyle omits group-2 color and weight values while retaining the group marker/resource reference. The test changes values to 42 and 37, verifies the full expected ordered raw group stream and typed ASCII/Binary readback."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/model-doc-view-style-detail-group2-numeric-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version DXF typed-field serialization is covered for these two generated numeric properties.",
+    "Other absent numeric/handle fields and changed repeated-field cardinality remain fail-closed.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

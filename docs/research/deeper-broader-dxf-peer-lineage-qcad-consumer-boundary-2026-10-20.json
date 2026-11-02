@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "title": "Deeper/broader DXF peer implementation-lineage and QCAD consumer boundary",
+  "date": "2026-10-20",
+  "scope": "Read-only primary-source comparison of QCAD Community Edition, LibreDWG, ACadSharp, and ezdxf operation/version/transfer boundaries; update optional consumer readiness without claiming execution or support qualification.",
+  "sources": [
+    {
+      "name": "QCAD repository",
+      "url": "https://github.com/qcad/qcad",
+      "evidence": "Identifies QCAD as an open-source 2D CAD application with DXF support and optional DWG through a proprietary plugin.",
+      "limit": "Repository overview does not qualify a particular build or file result."
+    },
+    {
+      "name": "QCAD official feature matrix",
+      "url": "https://www.qcad.org/en/features/",
+      "evidence": "Lists QCAD CE DXF R15 read/write; broader DWG/DXF version coverage is marked for QCAD Professional and QCAD/CAM.",
+      "limit": "Vendor feature declaration; no local binary or drawing was executed."
+    },
+    {
+      "name": "QCAD DXF module source description and license",
+      "url": "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox",
+      "secondaryUrl": "https://github.com/qcad/qcad/blob/master/LICENSE.txt",
+      "evidence": "Describes DXF import/export as based on dxflib; the license inventory identifies bundled dxflib.",
+      "limit": "Establishes a related implementation component, not an independent format-parser vote or exact ancestry relationship to this checkout."
+    },
+    {
+      "name": "LibreDWG README",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "evidence": "Separates broad DWG read scope with advanced R2010+ objects that may be skipped from write limitations; dxf2dwg is documented as R2000-only.",
+      "limit": "Mutable project contract; exact execution still requires immutable tool/revision/profile binding."
+    },
+    {
+      "name": "ACadSharp README and issue 1195",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "secondaryUrl": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "evidence": "README publishes separate DXF/DWG reader/writer version columns, including no AC1021 DWG writer. Issue 1195 reports silent 3DSOLID/REGION omission on DXF writing for ACadSharp 3.4.9, including solid-only blocks.",
+      "limit": "The issue report is release-scoped and is not a current-release retest or a libdxfrw defect."
+    },
+    {
+      "name": "ezdxf XREF documentation and entity model source",
+      "url": "https://ezdxf.readthedocs.io/en/stable/xref.html",
+      "secondaryUrl": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+      "evidence": "The XREF utility documents a selected copyable/transformable subset and exclusions for ACAD_TABLE, unknown/proxy records and many HEADER/OBJECTS features; the general model notes unsupported-version features may be ignored on export.",
+      "limit": "Transfer utility boundaries do not describe all ezdxf parser/writer capabilities or independently qualify ACIS semantics."
+    }
+  ],
+  "findings": [
+    "QCAD CE is a candidate optional AC1015 DXF application consumer, not DWG, 3D, or ACIS evidence; its Professional DWG plugin is proprietary and outside the open-source codec comparison.",
+    "A version support claim must name operation direction and exact tool: LibreDWG read/write ceilings differ, ACadSharp publishes operation-specific version rows, and DXF transfer helpers such as ezdxf XREF are narrower than general file I/O.",
+    "ACadSharp issue 1195 reinforces the need for per-source-entity output disposition and BLOCK/INSERT closure checks, but remains a version-scoped peer report rather than a local defect.",
+    "No new libdxfrw defect or support promotion was established; the existing PAR-07/S8 and S2.3.9.4.29 owners remain appropriate."
+  ],
+  "implementationReadyChecks": [
+    "Keep evidence keyed by format, version/encoding, direction, entity/property, ownership/reference closure, and consumer route.",
+    "Optionally run QCAD CE only at the existing composed checkpoint with a locally generated AC1015 DXF and an exact app/build/input/output binding; record NOT_RUN when unavailable.",
+    "For modeler output compare each source handle disposition and block/insert reachability after strict reopen; do not use aggregate counts or successful document load as preservation proof.",
+    "Do not make QCAD, LibreDWG, ACadSharp, ezdxf, or platform availability a per-slice implementation blocker; continue focused local fast tests and self-unblock."
+  ],
+  "changes": {
+    "code": false,
+    "tests": false,
+    "fixtures": false,
+    "dependencies": false,
+    "supportClaimsPromoted": false,
+    "externalJStatusesChanged": false,
+    "findingsBeforeAfter": "141",
+    "topLevelSubplansBeforeAfter": "78"
+  },
+  "validation": {
+    "receiptJsonValidation": "passed: python3 -m json.tool",
+    "planDiffCheck": "passed: git diff --check on modified tracked plan files",
+    "peerExecutablesRun": false,
+    "nativeCadRun": false,
+    "fullSuiteRun": false
+  }
+}

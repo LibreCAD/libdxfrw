@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VIEW Background and SUN fail-closed export fast slice",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Prevent lossy or unremapped export of VIEW group-332 Background and group-361 SUN references whose target/owner graphs are not represented",
+    "Verify both references independently for ASCII and Binary AC1027 input, adapter export, retry, and direct-writer behavior",
+    "Keep implementation DXF-only, fail-closed, and within the existing PAR-40/7G.2 owner"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Adapter graph validation rejects nonzero VIEW background and SUN references before output publication. The direct VIEW writer also refuses these unqualified references rather than writing their source handles unremapped or dropping them for older target profiles.",
+    "testControls": [
+      "Generated ASCII and Binary AC1027 VIEW records independently carry code 332 or code 361 with handle 0x777 and explicit code72=0.",
+      "Parsing retains the correct typed handle.",
+      "Adapter export refuses atomically and preserves a pre-existing destination.",
+      "Clearing only the unsupported reference permits same-adapter export and readback; raw output contains no group for that cleared edge.",
+      "Direct low-level VIEW writer refuses each nonzero reference atomically."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "publicLayoutChanged": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --view-live-section-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --ucs-orthographic-options"
+    ],
+    "focusedResults": [
+      "VIEW background/SUN fail-closed export: PASS",
+      "VIEW code-334 LiveSection fail-closed export: PASS",
+      "UCS orthographic DXF option tuples: PASS; expected diagnostics were printed by malformed negative controls"
+    ],
+    "gitDiffCheckPassed": true,
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "evidence": [
+    {
+      "source": "Autodesk VIEW DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "observed": "The VIEW schema describes group 332 as an optional soft-pointer ID/handle to a background object and group 361 as a SUN hard-ownership ID. The local plan/source audit shows that their object/owner graphs are not retained by the current adapter."
+    }
+  ],
+  "assessment": {
+    "confirmedPlanGapClosed": "Nonzero VIEW group-332 and group-361 references now fail closed at adapter preflight and direct-writer boundaries, with generated atomic-refusal and corrected-retry controls.",
+    "newConfirmedLocalDefectsFixed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "limitations": "Background and SUN objects/owners are still not retained or serialized. This slice does not prove target-class/root/ownership semantics, native plotting/rendering, DWG behavior, or 3D support. Full fixture CTest and full suite were not run. The shared working tree remains broadly modified and uncommitted."
+  }
+}

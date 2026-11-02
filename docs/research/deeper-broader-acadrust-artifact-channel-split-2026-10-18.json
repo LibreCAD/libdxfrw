@@ -1,0 +1,151 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadRust artifact split and cross-family consumer screen",
+  "mode": "primary-source web research and plan refinement (no production-code changes)",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve ACadRust release, mutable main, README, and registry package identities",
+    "Reconcile open AC1024 and AC1032 peer reports with the exact reported artifact and evidence ceiling",
+    "Screen the current cq-acis release against mutable branch-only geometry profiles, CADKernel's detailed matrix, and a LibreDWG-backed browser consumer",
+    "Refresh the optional peer comparison procedure without adding routine validation or dependencies"
+  ],
+  "method": {
+    "kind": "Read current primary repository release/source pages, registry package metadata, open issues, and local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-test-and-freecad-route-review-2026-10-18.json",
+      "docs/research/deeper-broader-open-source-implementation-evidence-review-2026-10-18.json"
+    ],
+    "limitations": "GitHub main and docs.rs latest are mutable. The issues do not provide their private customer DWG files, so reported peer failures and fixes were not reproduced. A package version, tag, branch manifest, and release artifact are distinct evidence identities. cq-acis 0.3.12 was source-inspected through PyPI provenance but not installed or run; current main documentation is mutable and labels some profiles unreleased. cad-viewer main was inspected as a downstream consumer only; no browser application, parser, or renderer was run and the exact source commit was not pinned."
+  },
+  "sources": [
+    {
+      "project": "ACadRust GitHub releases",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4"
+      ],
+      "revision": "Latest listed release page reviewed 2026-10-18; v0.6.4 at 8d5c46d",
+      "observed": "GitHub lists v0.6.4 at 8d5c46d as its latest formal release. Release notes report 18/20 BricsCAD V20 results for generated files and added tests, not complete per-family or private-corpus qualification."
+    },
+    {
+      "project": "ACadRust mutable main source and README",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18",
+      "observed": "Main Cargo.toml declares version 0.6.5 while the README usage examples still name 0.6.4. The 0.6.5 manifest is not itself a published release or immutable test artifact."
+    },
+    {
+      "project": "ACadRust registry package",
+      "urls": [
+        "https://docs.rs/crate/acadrust/latest"
+      ],
+      "revision": "docs.rs latest page reviewed 2026-10-18",
+      "observed": "The latest indexed package is acadrust 0.5.5, listed as published 2026-09-10. It is older than the GitHub v0.6.4 release and mutable main 0.6.5 manifest."
+    },
+    {
+      "project": "ACadRust issue #134",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "revision": "Issue page reviewed 2026-10-18",
+      "observed": "The reporter says 70 of 351 private AC1032 drawings opened in 0.6.3 but failed in 0.6.4, mostly on MLeader context objects. The page references a maintainer commit 0e46236 and later opencadcodec merge reference a1a216d; the issue remains open, no reporter corpus was available, and no fix was independently rerun."
+    },
+    {
+      "project": "ACadRust issue #135",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/135"
+      ],
+      "revision": "Issue page reviewed 2026-10-18",
+      "observed": "The reporter describes AC1024 associative geometry dependency records failing in 0.6.4, skipped by failsafe mode, and returned as Unknown (then omitted by DXF output) on main commit a1a216d. The proposed layout interpretation is identified as an unverified hypothesis and the drawings are private."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/Cargo.toml"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18",
+      "observed": "The project assigns DWG parsing to LibreDWG FFI and DXF parsing to undxf; its workspace manifest is GPL-3.0-or-later. It adds no independent DWG parser lineage beyond LibreDWG and remains read-only."
+    },
+    {
+      "project": "cq-acis release artifact and mutable geometry documentation",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "PyPI 0.3.12 reviewed 2026-10-18; mutable main docs reviewed 2026-10-18",
+      "observed": "PyPI records cq-acis 0.3.12 source SHA-256 eba52992abcf6afce57b0f3526c3afeeed29cc60fbbb61c275958703d597de3a and publishing commit e05a8f470d2f6799277f7b7df467d2fc35625889, with Windows, Linux, and macOS wheels. Current main docs label some seam/slit-cylinder conversion profiles unreleased and state independent native-file coverage is limited. Main-only profile claims must not be attributed to the pinned wheel; neither route provides outer DWG/DXF/AcDs ownership parsing."
+    },
+    {
+      "project": "CADKernel detailed format matrix",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18",
+      "observed": "The detailed matrix marks ACIS SAT/SAB read/write planned/unsupported and describes DWG as DXF fallback, despite broader format-support headlines. This confirms the existing exclusion rather than qualifying a new peer."
+    },
+    {
+      "project": "cad-viewer downstream browser consumer",
+      "urls": [
+        "https://github.com/flyfish-dev/cad-viewer",
+        "https://github.com/flyfish-dev/cad-viewer/blob/main/README.md"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18; exact commit not pinned",
+      "observed": "The viewer documents DWG parsing through @mlightcad/libredwg-web / LibreDWG WASM and DXF parsing through JavaScript dxf-parser plus fallback, followed by normalized CadDocument WebGL/Canvas rendering. Its separate DWF renderer's W3D path does not qualify DWG 3D. The repository is AGPL-3.0-only. Classify as a correlated downstream 2D consumer, not an independent DWG parser, writer, or ACIS/AcDs semantic reader."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Requires the existing optional ACadRust comparator to bind to a specific artifact channel (tagged release, named main commit, or published crate) rather than the ambiguous word latest. The broader screen confirms cq-acis package versus mutable-doc profile separation, CADKernel's existing unsupported classification, and cad-viewer's correlated LibreDWG-backed 2D consumer role. Peer failures, branch-only profiles, marketing summaries, and rendering behavior cannot alter local support claims.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "At the composed peer checkpoint choose one named artifact channel: v0.6.4 tag, immutable main commit, or registry package 0.5.5; do not combine behavior or test outcomes across channels.",
+    "Record commit or archive hash, lockfile resolution, toolchain, features, platform, command, input/output hashes, direction, and PASS/FAIL/IGNORED/NOT_RUN test dispositions.",
+    "For parse and write comparisons, use an independent expected manifest and per-identity/owner output disposition; same-codec reopen or Unknown fallback is not a preservation pass.",
+    "Do not import private customer drawings or commit external fixtures; use existing eligible samples or controls generated locally from scratch.",
+    "Keep peer, native, and full-suite work outside the fast implementation-slice loop."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout is broadly modified. Only the plan and this research receipt were changed for this pass; unrelated worktree changes were preserved."
+  }
+}

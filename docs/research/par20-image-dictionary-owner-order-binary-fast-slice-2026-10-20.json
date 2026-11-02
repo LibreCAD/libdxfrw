@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_IMAGE_DICT owner order in Binary DXF",
+  "repository": "LibreCAD/libdxfrw",
+  "subplan": "PAR-20/7G.3",
+  "scope": [
+    "Extend the existing generated IMAGE/IMAGEDEF/IMAGEDEF_REACTOR graph and physical OBJECTS-order regression from ASCII-only checks to Binary DXF.",
+    "Reuse the current dwg2dxf_image_path_cli CTest owner and preserve fixture-free generated controls."
+  ],
+  "changes": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testFilesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/run_dwg2dxf_image_path_test.cmake",
+      "tests/CMakeLists.txt"
+    ],
+    "focusedCtestRegistered": false,
+    "existingCtestExtended": "dwg2dxf_image_path_cli",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "coverageAdded": [
+    "Generate a Binary DXF image graph in the CTest scratch directory.",
+    "Run two dwg2dxf CLI conversion passes with Binary DXF output selected and strictly import both outputs.",
+    "Use the existing binary-aware OBJECTS record-order scanner to verify actual NOD first, ACAD_IMAGE_DICT owner afterward, and both IMAGEDEF children after that owner.",
+    "Verify typed graph identity: one NOD entry resolves to one dictionary, the dictionary is NOD-owned, its two unique keys target the exact two IMAGEDEF records, and both definitions name that dictionary as owner.",
+    "Do not require source dictionary key strings to survive because the adapter intentionally generates output keys from paths."
+  ],
+  "validation": {
+    "configure": "PASS: cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure; 1/1, 0.53 sec; ASCII and Binary paths",
+    "scopedDiffCheck": "PASS: git diff --check on changed test, CMake, and plan files",
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "This is a generated local serializer/adapter regression, not an independent producer or native CAD qualification.",
+    "No peer executable, external drawing, native CAD application, or geometry kernel was used.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; no commit was created."
+  ],
+  "nextAction": "Continue the remaining local PAR-20/7G.3 owner/root route inventory; after each slice, update this plan and self-unblock to the next source-supported item."
+}

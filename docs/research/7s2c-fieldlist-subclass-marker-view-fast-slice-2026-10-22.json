@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c FIELDLIST subclass-marker view",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Compare FIELDLIST group-100 subclass keywords using the current record's borrowed string view.",
+    "routes": [
+      "FIELDLIST AcDbObject marker",
+      "FIELDLIST AcDbIdSet marker",
+      "FIELDLIST AcDbFieldList marker"
+    ],
+    "lifetime": "The borrowed view is used only for synchronous state transitions before the next readRec().",
+    "behavior": "State transitions, accepted marker order, malformed-input refusal, callback timing, and wire behavior are unchanged.",
+    "non_claims": [
+      "no new DXF feature or support claim",
+      "no persistent fixture",
+      "no external/native consumer qualification"
+    ]
+  },
+  "generated_control": {
+    "profile": "ASCII and Binary DXF OBJECTS/FIELDLIST containing a 32-KiB unknown group-100 subclass marker",
+    "assertions": [
+      "both encodings reject the unknown subclass marker",
+      "no typed FIELDLIST callback is published before refusal"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-borrowed-subclass-markers",
+    "selector_result": "PASS",
+    "ctests": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_borrowed_subclass_markers|libdxfrw_dxf_fixtures)$' --output-on-failure",
+    "ctest_result": "PASS (2/2; 4.15 s)",
+    "diff_check": "PASS (src/libdxfrw.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad user changes; this slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue with the locally actionable AC1024 object-parse failures, beginning with sample-traced AcDbShLoft/AcDbShRevolve field alignment against ODA v5.4.1. Preserve fail-closed associative-action widths, keep object parse errors separate from the CLASSES CRC signal, and do not wait for external gates before advancing local fixes."
+}

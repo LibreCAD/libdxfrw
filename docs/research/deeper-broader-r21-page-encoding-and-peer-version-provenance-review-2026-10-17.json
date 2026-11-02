@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-17",
+  "scope": "Research-only review of AC1021/R21 page transform distinctions, current local page decoding/raw-section capture, and LibreDWG peer revision provenance.",
+  "primary_spec": {
+    "source": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": ["5.1", "5.4", "5.13"],
+    "findings": [
+      "Page compression and Reed-Solomon encoding are separate transforms; a page may be uncompressed while still RS-coded.",
+      "The section encoding value identifies interleaved versus non-interleaved RS layout (4 versus 1), not a per-page RS-present flag.",
+      "The inspected specification text does not fully define a raw-versus-RS detector for every page profile."
+    ]
+  },
+  "peer_evidence": {
+    "libredwg_pr_1363": {
+      "url": "https://github.com/LibreDWG/libredwg/pull/1363",
+      "merged": "2026-08-07",
+      "result": "The PR reports an AC1021 fix for RS-coded pages whose compressed and uncompressed sizes are equal, and describes a small set of apparently verbatim metadata pages distinguished by physical-page-size geometry.",
+      "limits": "Peer-reported results on named samples; not a universal raw-page rule, a local reproduction, or independent per-handle semantic evidence."
+    },
+    "libredwg_issue_1361": {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1361",
+      "status": "Closed by PR 1363",
+      "note": "The reported extreme LWPOLYLINE values were attributed to R2007 page decoding rather than entity grammar."
+    },
+    "libredwg_issue_1357": {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1357",
+      "status": "Still open on GitHub; reporter verified master behavior after related R2007 fixes",
+      "note": "The suspected causal link to PR 1363 was not bisected and remains an inference."
+    },
+    "peer_version_boundary": {
+      "stable_release": "LibreDWG 0.14.1 beta dated 2026-07-25",
+      "relevant_fix_merge": "PR 1363 merged 2026-08-07",
+      "latest_prerelease_observed": "0.14.8612 at f860b0f, dated 2026-10-13",
+      "policy": "Do not treat 0.14.1 as containing the later AC1021 page fix; pin and verify an exact later commit for any optional comparison."
+    }
+  },
+  "local_source_audit": {
+    "files": [
+      "src/intern/dwgreader21.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "observation": "dwgReader21::parseDataPage accepts the AC1018 page format separately and otherwise RS-decodes before its compressed/stored decision. captureRawDwgDataSections passes prototype, VBA, and unknown sections through this decoder. A focused source search found no direct generated R21 page-envelope matrix in the selected existing test files.",
+    "classification": "Potential valid-page coverage gap; no local input was run and no libdxfrw defect is claimed."
+  },
+  "plan_update": {
+    "existing_owners": ["7BE", "PAR-14", "PAR-26", "PAR-49/7G.3"],
+    "new_finding_or_top_level_subplan": false,
+    "implementation_order_changed": false,
+    "recommended_generated_cases": [
+      "AC18-format compatibility page",
+      "AC1021 RS-compressed page",
+      "AC1021 RS-coded but uncompressed page",
+      "ODA-/producer-qualified raw/no-RS page in a captured optional or unknown section",
+      "Malformed page geometry/encoding refusal and same-reader reuse"
+    ],
+    "validation_policy": "Use the existing strict reader-matrix target and focused selector; defer broad matrices, sanitizer work, and one exact-pinned peer run to their existing composed gates."
+  },
+  "fixture_policy": "No external DWG/DXF was downloaded or committed. Future test controls are to be generated from scratch in the existing test owner; no CTest registration or dependency is added.",
+  "validation": {
+    "peer_runtime_run": false,
+    "local_tests_run": false,
+    "native_cad_run": false,
+    "reason": "Research and plan refinement only; no production code changed."
+  },
+  "support_claims_promoted": false,
+  "findings_subplans": "127/71",
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

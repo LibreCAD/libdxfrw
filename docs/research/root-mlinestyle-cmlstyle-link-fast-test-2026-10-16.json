@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-root-mlinestyle-cmlstyle-link-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Assert the populated current MLINESTYLE header link in the existing generated rooted-MLineStyle ASCII/binary adapter control.",
+  "implementation": {
+    "assertion": "Read the retained $CMLSTYLE string variant and compare case-insensitively to the unique rooted DRW_MLineStyle name.",
+    "graphContext": "The same control already verifies NOD to ACAD_MLINESTYLE dictionary to style ownership and MLINE group-2/group-340 association with handle remapping.",
+    "policyBoundary": "Covers only one populated rooted style; does not decide missing/absent current-style defaults or refusal policy."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R named_resource_import_evidence --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 0.33
+    },
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": {
+    "realDwgOriginMLineStyle": "not qualified; generated DXF controls only",
+    "absentCurrentStylePolicy": "not resolved",
+    "consumerSemantics": "not evaluated",
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJStatusChanged": 0,
+    "gitCommitCreated": false
+  }
+}

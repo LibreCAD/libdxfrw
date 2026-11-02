@@ -1,0 +1,5993 @@
+{
+  "scope": "generated modeler DXF syntax/retention; no native producer, general ACIS or unit qualification",
+  "created_utc": "2026-10-15T09:22:35.713256+00:00",
+  "platform": {
+    "system": "Darwin",
+    "release": "27.0.0",
+    "machine": "arm64"
+  },
+  "generator_sha256": "ee33ee9c82ce0a434fbb374b5c51c38edee54c8c4dfa3edc966a63881ada5906",
+  "ezdxf_version": "1.4.4",
+  "ezdxf_sources": {
+    "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/__init__.py": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0",
+    "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/acis/api.py": "3f635580fc958b89363f05c78373fc18d0e45cfb202bb83b053a771ce287c069",
+    "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/acis/entities.py": "61137e27746e3f3b3e32256aa2b3b2b01ebfa6f3da2e7b14cabe424004e73068",
+    "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/acis/mesh.py": "9be32b3e1f471b96e87791638eaf0e4690ff071d6527305c29802206d80fde7b"
+  },
+  "cli": {
+    "path": "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+    "sha256": "5b285b7cd83c3b4c65e5846f066a41e6f9089bcfe00f9a393a0b5f0417284d60"
+  },
+  "oda": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "version": "27.1.0.0",
+    "version_source": "/Applications/ODAFileConverter.app/Contents/Info.plist"
+  },
+  "versions": [
+    {
+      "year": 2000,
+      "files": {
+        "seed_3DSOLID_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "142540a33ea18139269305ef443aa0ab997bb1c4d9306b1f38b7e7730b339ce5",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "9ae4899efe4dee9109a3d20d3cf16f20361fa834c39b4abb9c16e13742c7b629",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "958860ed493943925f9af2342b9c7e04ea98f800c9e8a9d059744d254aee0312",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_3DSOLID_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "dd3ce976211ed2650888307993234a27c9db814b80b61cfcc09e79c45f6d301d",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "f5f3f90b959290e9a92949194482ee1a9d86aeeda7724ae7f2e1e33688e0511c",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_3DSOLID_ascii.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "4d25380535604a1e9e11a408f715ae73e49511f151f458625db4403502f836d9",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_3DSOLID_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_3DSOLID_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "479fd3ba59265ac9027cee359df498177a6633b0f0aee9cd6e0dfb59106d3e04",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c502e3faae7fc54f2ff52d5f9eca559d2e1f9dbd520642afb04665e115aac313",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "958860ed493943925f9af2342b9c7e04ea98f800c9e8a9d059744d254aee0312",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_binary.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "4d25380535604a1e9e11a408f715ae73e49511f151f458625db4403502f836d9",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_3DSOLID_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_3DSOLID_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "06a13e07d63958e15128f02311adf2ed62e6de74ce150a99a337f18d4acbdb16",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "aecd762e50ad0bb69d27d3c861accce772d58953124877eb567b2530e39bda46",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_REGION_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "ac2119426166ef81ec6b61ea86ec5df5f8171a241869d8a06658499354e01230",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "7d7419118ee41a6bea98c65b6c2f47b5f87d82e2e56251fc79a5567720e0fc62",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c511291a1dee48a02b2f4a0176a30042ce81e76121679afe051376d6152ef0e2",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "dfdad5ed67040fa9cecb7775792e5a3c5727fbee78643bc1ec0eaf659fa4ab76",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "f1e17c3eac54a2a915b0c456bc8f5a4d004891094ac4387b054432e37c7227bd",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "7d7419118ee41a6bea98c65b6c2f47b5f87d82e2e56251fc79a5567720e0fc62",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "543acc15721e320ab2d9736603d13d6e24aecb798c278fd7498785d4441050a9",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_REGION_ascii.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "e510b9a6e19fd2b10dc4018b0d50cb9d4b57d8b82ad247194dff9ad7959c7019",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_REGION_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_REGION_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "4859672a78e9616b846d2d3cab07615ac6fb29738c9531cd80b185ef266c2395",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "7d7419118ee41a6bea98c65b6c2f47b5f87d82e2e56251fc79a5567720e0fc62",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c0a4ff6e57065c1d41fc5ac25c986a1412b7b2abff3782ce55da6b9c7a57df22",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "dfdad5ed67040fa9cecb7775792e5a3c5727fbee78643bc1ec0eaf659fa4ab76",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_binary.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "e510b9a6e19fd2b10dc4018b0d50cb9d4b57d8b82ad247194dff9ad7959c7019",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_REGION_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_REGION_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "3fbafc24874300be28c8410796c56756670cc7e50a66ee167f515cced0bfd176",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "7d7419118ee41a6bea98c65b6c2f47b5f87d82e2e56251fc79a5567720e0fc62",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "368b7b5b0923cc417f06884bbbf657185c450066096c3b64a2955a1d85d2c633",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_BODY_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "cff0c104b836b67d5ba6e91f5f0c9d19b7d9a7721897b5233eff830813ffbea6",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "879f59165b482a45f67d0810d16aa32bf18bf6c90be82fb3ee32a6f1a34ab621",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "958860ed493943925f9af2342b9c7e04ea98f800c9e8a9d059744d254aee0312",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "c1018fae74e076194201bbc9300bcc2b1b9b57fde9810e91fb85f25879b5e581",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c22ccd16589e7ad25af69b1101672b32e51ab521a7a62e9a122d5a7b499a36f5",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_BODY_ascii.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "894bc4f3cf20bd956829376969b27b1d76f768ee5ee71710d49921fe30e45b7e",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_BODY_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_BODY_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "81070f120823d4af792947fdb07a02bcb174dbee6882ba926e56b073f1a48fc9",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "608b9e8f3d856b10686fb1ac748f52181e21d1267ae8713009286a26f389cbaa",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "958860ed493943925f9af2342b9c7e04ea98f800c9e8a9d059744d254aee0312",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_binary.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "894bc4f3cf20bd956829376969b27b1d76f768ee5ee71710d49921fe30e45b7e",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_BODY_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs/libdxfrw_BODY_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "33cb75ff4bfb4cafab40fc44568a503e4328e452e52a3f89bcdf0d57bd92f4e3",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "e68c2df47e4792420166bbe4b96c103c4dd0fe0e85a74954e3731707591e0219",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "3d93c319ce723ea74a2e3df45cbd8bcd443b8f3737b142eb1d76baabe77dc94a",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        }
+      },
+      "processes": [
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/inputs",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/oda-dwg",
+            "ACAD2000",
+            "DWG",
+            "0",
+            "1",
+            "*.dxf"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/oda-dwg",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2000/oda-dxf",
+            "ACAD2000",
+            "DXF",
+            "0",
+            "1",
+            "*.dwg"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "year": 2004,
+      "files": {
+        "seed_3DSOLID_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "8bf9dc0a29c9d216e91f6ad031dcd3c6dcf57414fb2fcb2d54d919c75c1fa665",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fbef90677846fcce1c9876caf909e1e227821b04c3aae0a3207322969124cb1",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "1879a84e83ee57077cf346af440a5f8547ad2ecc5c3fc2903e1d50283df485d5",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 90,
+                "sab_bytes": 0,
+                "carrier_sha256": "5ba908c914eb21715f824873d0e7d346a350b173bdb2ed4e453d4dcd1d7a606f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_3DSOLID_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "328f089aae0ad5401361447c04a3d929c393f090ea1b72b8a10adc2dd16968cd",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fbef90677846fcce1c9876caf909e1e227821b04c3aae0a3207322969124cb1",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "8b7a02d1ef9069dd1ee1ef4a5d53bab48cea192bf4009d7478a147181a6e82c4",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_3DSOLID_ascii.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "b9ba5eaa14661f5abb6a12ef586d4e6ecdb1994582a50e9c7d903b2c949e9661",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_3DSOLID_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_3DSOLID_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "5f8f68ea14b078a7592438645a96ece63e3360802900f86a2db929d3dfecd9d5",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fbef90677846fcce1c9876caf909e1e227821b04c3aae0a3207322969124cb1",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "601df0673a1beb2d9d048ae9eedcb7225baac5825364106705824425e97f0105",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 90,
+                "sab_bytes": 0,
+                "carrier_sha256": "5ba908c914eb21715f824873d0e7d346a350b173bdb2ed4e453d4dcd1d7a606f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_binary.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "b9ba5eaa14661f5abb6a12ef586d4e6ecdb1994582a50e9c7d903b2c949e9661",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_3DSOLID_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_3DSOLID_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "e70d2d7fd6abda377ed73f2fc586dee1b7d4b9acbad4b440bb49206ab50ff2e1",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fbef90677846fcce1c9876caf909e1e227821b04c3aae0a3207322969124cb1",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "5760134276a09dddf21c72aedb09ac5ec0962fcffc49abf6b292123aabac3637",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_REGION_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "cea8c685063e90fa4ca472e7ea2348a5f41532a8ca65c690c9455d9ba9aa7756",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "f31acf9b8bee05ae6203040398fb99522e1a6457d8f7f8945b44caa8e8a1e803",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "e840d4f10a21bc795da7cbd8beea40821f35a75ed44c6d836c9fd6d11fa798e4",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 32,
+                "sab_bytes": 0,
+                "carrier_sha256": "b78700725a1bf88cdd15b7a1bac6ed8c68a7027aa33e0edb401e3878c99ba79f",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "855c068d83c2b92b1847869cefef56bc2fdced474e4e38efb16ad5af28765455",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "f31acf9b8bee05ae6203040398fb99522e1a6457d8f7f8945b44caa8e8a1e803",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "9d09c1a68406497a3c08b80245fec74933331566eb03cb414745c69c62d6cb33",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_REGION_ascii.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "f95163a53a4f9124d631e57b2c19365c25367e37836ef51f7437eaf28cef02d7",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_REGION_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_REGION_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "c32501a69052432eb228073ca88f5440b52a4416316fd9943842666bbd338fc0",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "f31acf9b8bee05ae6203040398fb99522e1a6457d8f7f8945b44caa8e8a1e803",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "d46dadd4b23b0fc6e99e8e4fa0340ad9f52c13f1888f099201f736a2e78ddc95",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 32,
+                "sab_bytes": 0,
+                "carrier_sha256": "11a57a9bd42c80d641a73c8e48cf17026c69eba2f067ec8d80d924c8b00acc7f",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_binary.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "f95163a53a4f9124d631e57b2c19365c25367e37836ef51f7437eaf28cef02d7",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_REGION_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_REGION_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "6b7195132a9385f1212de2ae0276462bd864545c2d7cecd32b0a2426aaef6ea5",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "f31acf9b8bee05ae6203040398fb99522e1a6457d8f7f8945b44caa8e8a1e803",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "2d6fa89e00b670fed096b37de3c6611d5b7e24cb3c5a0eb1241eb9c063ccf829",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_BODY_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "e8f43b4cf1ef96350b786e50323a8b2e90bbf79002bb0cfa84c169ab6edb9068",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fc1ea32809cfd388e10414fd18fe94915a3ef5ced8a8b21f9bd20aa69da34c8",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c2bd097e765230d1811132cc7f24843d185631b95cf3ba2418df18d1cea792c1",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 90,
+                "sab_bytes": 0,
+                "carrier_sha256": "925b43be5b7ccd9755dcc91f4b89e252f87c624e377e296a9b5a657949f74324",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "5b1beb244b112866246805940dd405a12597d8c7798297264b7121fa36164aa3",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fc1ea32809cfd388e10414fd18fe94915a3ef5ced8a8b21f9bd20aa69da34c8",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "9c8f2341a0a95aae5176d2dc235e4ac159c39609a60f0a543fa9762d716035b8",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_BODY_ascii.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "5b22aa18f90259ccad2c9617144828a438b346881356adcbd4c20a0ae6a1f979",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_BODY_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_BODY_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "c4204d5536c251198013a6c9b2d937ee1dfe76559dd6f894498c31b5caf531e1",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fc1ea32809cfd388e10414fd18fe94915a3ef5ced8a8b21f9bd20aa69da34c8",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "1797304abaad4a1b2ae3f00126c29b38c4072a51aa0b7743ee5051f2d108396e",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 90,
+                "sab_bytes": 0,
+                "carrier_sha256": "5ba908c914eb21715f824873d0e7d346a350b173bdb2ed4e453d4dcd1d7a606f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_binary.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "5b22aa18f90259ccad2c9617144828a438b346881356adcbd4c20a0ae6a1f979",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_BODY_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs/libdxfrw_BODY_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "cf89018ec8d5d299eb699aae011ebe89ca212781882552757cccc463e6f758ea",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "0fc1ea32809cfd388e10414fd18fe94915a3ef5ced8a8b21f9bd20aa69da34c8",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "0779efb5ea868f78029d6ebf8e919758c2e561e2a5021d6f1025d8e353c4c0f3",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        }
+      },
+      "processes": [
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/inputs",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/oda-dwg",
+            "ACAD2004",
+            "DWG",
+            "0",
+            "1",
+            "*.dxf"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/oda-dwg",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2004/oda-dxf",
+            "ACAD2004",
+            "DXF",
+            "0",
+            "1",
+            "*.dwg"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "year": 2007,
+      "files": {
+        "seed_3DSOLID_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "d70231169d745ee22c4ec1ff4905f40c251b4a72622f0a91dfb4e4f6aa70bd77",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "e2d49e4b9544d304292c0c199c13c8cd4f66a3007a1c624ea8c959a26bc78c9f",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "541b6906b2d572287ed1c18af00676f69727986f505c32e026c2b178e97b455d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_3DSOLID_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "42d6dd43599676c434c1679bdaef28f5ba8387dd4536f0abf3ffec2e23daa2ed",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "27de596dea98c5321b2093ab401428817c4a7fa131f23289dc496fbbae874b78",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_3DSOLID_ascii.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "3da583844445652252d969d889ff4c22049db06b2c9ca1dc2dc4c06e11a0c871",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_3DSOLID_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_3DSOLID_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "826088dd531032059ee22936a0e883f129d64cab6e5fa2c0aa1fdfcbd0268533",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "e5644110321fdbda7469c885eee27d12b7c5f12d1390492e9aed0f6c9200fd29",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "541b6906b2d572287ed1c18af00676f69727986f505c32e026c2b178e97b455d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_binary.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "3da583844445652252d969d889ff4c22049db06b2c9ca1dc2dc4c06e11a0c871",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_3DSOLID_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_3DSOLID_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "70f948cfd0d4b9df91a18e47e1f8260eb4f147d5129a93624752b9c4139dbce7",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "1d32ebe05f41e2f418a2ca58f0f25c8136d289751b66ea47b2a926b93b630ffd",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_REGION_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "1b449c13c46049a2b4fc68d7e9163f931ceb3cf13d91e568025926319905c6d4",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a12ad7b7b6cfefd31e6f1edca11466703ffe69da02dd3b9a1e262721b7583df1",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "084158e9201f588cd9b97396d79818023b79b9cd2a841d151782e23b4d99dacb",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "02b2011f2b6bb8dc10bb21f131ce551eefe0179d581bbd4158268b28111bd7f3",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "c49915c98c902bcd76371ffaed9cfa4b8baf444661b5e43b521be4e31db5d1b7",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a12ad7b7b6cfefd31e6f1edca11466703ffe69da02dd3b9a1e262721b7583df1",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "cdfe926b42468599be47f5de676945343288acf7ac0070329d6cc8530f5468d1",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_REGION_ascii.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "b686425229bf8f2b954da84a38f9345b6780e3f296aa33f8969ddadf43f7087d",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_REGION_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_REGION_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "92f3bab31a6c9652fcb711c18ab7cf8de77e1c20b188e1b0622639df621957a0",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a12ad7b7b6cfefd31e6f1edca11466703ffe69da02dd3b9a1e262721b7583df1",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "81de47332f281ec9720351f36dff2a41b0e6792d44832f3704dc32fa9fe245dd",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "02b2011f2b6bb8dc10bb21f131ce551eefe0179d581bbd4158268b28111bd7f3",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_binary.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "b686425229bf8f2b954da84a38f9345b6780e3f296aa33f8969ddadf43f7087d",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_REGION_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_REGION_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "cc688e21fe049991e5a9ada2abc70d074df1c6c49d819ca1c9dbc57626a82507",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a12ad7b7b6cfefd31e6f1edca11466703ffe69da02dd3b9a1e262721b7583df1",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "d2a33bcca429b210325ef73ab8e9429a62888965593a97d533ff0d25b9a3fee8",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_BODY_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "9d4b00a9beb2ea76c03a2cdc64f30eed42494f3fe7420173d5011e37dd9abc15",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "cb17409c5f6799ecb1dcd5737b1718ecdd85a1bea8d6528b327a86f83bdc5674",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "541b6906b2d572287ed1c18af00676f69727986f505c32e026c2b178e97b455d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "9a5ad911df3e81b21b453a66d328fb125c2c8f520bc10ceaead0548f59e6dbac",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "21ed8e0ce36281603fed30d6febdda020a059377319beda56e2014c9de7d2ee3",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_BODY_ascii.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "3d1cc0ac642af128a2fb3675c0e5e1d5404fc5c43ce96d76e33484a2bb08d095",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_BODY_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_BODY_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "4c22e7a381d5b26bfc143f00efb16dd340faa86085c24f74809260eee639c517",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "ff584cf68bd26c74f2537a62cf172c8553cdec17835743d65220151d570cad00",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "541b6906b2d572287ed1c18af00676f69727986f505c32e026c2b178e97b455d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_binary.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "3d1cc0ac642af128a2fb3675c0e5e1d5404fc5c43ce96d76e33484a2bb08d095",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_BODY_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs/libdxfrw_BODY_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "fd0a2126c3a678a4b22a2972d43afa1617f5779b331efc7778422cb3211d537c",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "af58cc322f32835342b1ba5fbca4c555cbdf9d5c5beac0a246e03cd38c78226d",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "5332a84e91a932bf74e6c19d25282aae0e472af24ecccd14af14f57c52f57138",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        }
+      },
+      "processes": [
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/inputs",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/oda-dwg",
+            "ACAD2007",
+            "DWG",
+            "0",
+            "1",
+            "*.dxf"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/oda-dwg",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2007/oda-dxf",
+            "ACAD2007",
+            "DXF",
+            "0",
+            "1",
+            "*.dwg"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "year": 2010,
+      "files": {
+        "seed_3DSOLID_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "f6087559ba22a18bc1d364f71c4abcfe60edce65190f2e2607b288da60ca9aa2",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "b2f4c8ec49f7e409347351292bf431a4eafe35f163c34d53dc294abf3a409b6c",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "3b908e10644fc774f098001f591ed996249df41351b9b410acbd39ba75d02ede",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "4a8ccc89980823586c6e2e6ed2d12ff46136d7d751f53cc3bbc04e726bf9a1d6",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_3DSOLID_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "2aab310cb5932c1bec0f258c180e3570ae1a822e5580893f01d7fe3674a8ac0b",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "b2f4c8ec49f7e409347351292bf431a4eafe35f163c34d53dc294abf3a409b6c",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "550df58c216587e9590bcbf8e7875e7969ec18ad203d4f4c6d020d1844599712",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_3DSOLID_ascii.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "261a3c1d67618e77f45f5eb462a35b8a4c6c2e248d3e529cd095286878db712b",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_3DSOLID_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_3DSOLID_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "7f928ad79c910e24e225a3d3089d106bc896854218d60b304b5849b05db4d3d6",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "b2f4c8ec49f7e409347351292bf431a4eafe35f163c34d53dc294abf3a409b6c",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "0a00ab63a57d594ac4fed82b96786a53bc71c9846dcaee3154c2ac1826aa113a",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "4a8ccc89980823586c6e2e6ed2d12ff46136d7d751f53cc3bbc04e726bf9a1d6",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_binary.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "261a3c1d67618e77f45f5eb462a35b8a4c6c2e248d3e529cd095286878db712b",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_3DSOLID_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_3DSOLID_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "3c4462024573378af5b3050c21a7214f2596f4a3ec0f0ff9833a9918c83579e9",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "b2f4c8ec49f7e409347351292bf431a4eafe35f163c34d53dc294abf3a409b6c",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "91d9004b114acfbc02214f1ed960e3c3da67e0215b6cd38fd0987aafa84582ab",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_REGION_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "a85985986b9c3f40207228639449a25c995ec17f698de7e3fa16d8d9cebcb701",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "aad683431e84829e75f00ecaa994320160dd15b5cb2ea72cf6a1dac6c678338d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "f0dc38da3610fbffe5a70161dae6b53d932a648c594104d092ca698b1b43250e",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a2b216f3692690ed4e44907d75d92a006675230ac7285272620b96383686bee7",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "2bd6367a77af45b84eda31c91e725b94a661f0bd5ad716234453912dec8e6dcc",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "aad683431e84829e75f00ecaa994320160dd15b5cb2ea72cf6a1dac6c678338d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "179e862ddc64e78645f32b2986296ea120e6f7b303831b38ad2c3ba02376b322",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_REGION_ascii.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "a7611c36aa862356b10d20f46bb55de4caed6bf846924c2e75b02e783cb37783",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_REGION_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_REGION_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "7f57c745574bbf3f6cc36f0a83ebc726bc554092227f9b72490ef3483f5c8d54",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "aad683431e84829e75f00ecaa994320160dd15b5cb2ea72cf6a1dac6c678338d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "32bf4015503302cf8acb5e0049cfaebb7eb9d01b3707e60ea07df17b33d58d07",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "a2b216f3692690ed4e44907d75d92a006675230ac7285272620b96383686bee7",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_binary.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "a7611c36aa862356b10d20f46bb55de4caed6bf846924c2e75b02e783cb37783",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_REGION_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_REGION_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "402271ab553a2c0a76a1995cb75011f5da8da7a4a880d461828f5836d692dd78",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 31,
+                "sab_bytes": 0,
+                "carrier_sha256": "aad683431e84829e75f00ecaa994320160dd15b5cb2ea72cf6a1dac6c678338d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "68330d28a02952617d92cc6cd4d4b41a19c104d85349f8638c03508ef9171a61",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "seed_BODY_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "0f29f62d3a66c1c378b95a32b0ad82b8703c4af497b60bd0b14e55cfd376696a",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "8cd959672b935b1c9447354a8aa641bf7102e6eab2fbea65f669ed0153dbb2a7",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "0e300950f7c3f1391deada5977ca7cd5a7676df8369229db393558a9448415b2",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "4a8ccc89980823586c6e2e6ed2d12ff46136d7d751f53cc3bbc04e726bf9a1d6",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "ce518424c9b8405bb70404834e0dbf1d6663c15328a1c8dbc6e264cce3681c71",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "8cd959672b935b1c9447354a8aa641bf7102e6eab2fbea65f669ed0153dbb2a7",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "7daa140019ce5db72c4904717b27369fa223d65cbbb7477af0d2689d602f01f4",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        },
+        "libdxfrw_BODY_ascii.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "317902c3afa1fd0a016c2b4191ef25ced63517dbaec29f61a5d310a823e27f55",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_BODY_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_BODY_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "d5d2b55a7763245dff8cb30d401aa5a325454e97bd4b77f8bc1da8ff40255dd3",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "8cd959672b935b1c9447354a8aa641bf7102e6eab2fbea65f669ed0153dbb2a7",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "    1"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "e590dbb368b17477ee5d072fe1672310ac33ae0df3c6b86409c0c9024c9f7232",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "4a8ccc89980823586c6e2e6ed2d12ff46136d7d751f53cc3bbc04e726bf9a1d6",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  70,
+                  "     1"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_binary.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "317902c3afa1fd0a016c2b4191ef25ced63517dbaec29f61a5d310a823e27f55",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_BODY_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs/libdxfrw_BODY_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "551e1d0d0e6385042752908100451504fb0e6ce40d05a51bf77c132d361e00ac",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 89,
+                "sab_bytes": 0,
+                "carrier_sha256": "8cd959672b935b1c9447354a8aa641bf7102e6eab2fbea65f669ed0153dbb2a7",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "67d0a7667e5b05af9952abc094761a0ac408a525b252bf726d50dcf54d371a4a",
+            "entities": [],
+            "modeler_fields": []
+          },
+          "retained": false
+        }
+      },
+      "processes": [
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/inputs",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/oda-dwg",
+            "ACAD2010",
+            "DWG",
+            "0",
+            "1",
+            "*.dxf"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/oda-dwg",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2010/oda-dxf",
+            "ACAD2010",
+            "DXF",
+            "0",
+            "1",
+            "*.dwg"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "year": 2013,
+      "files": {
+        "seed_3DSOLID_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "c5e9d86efed23bbbbcbcd44ccda4e957112f25695b3b1a00bcc3aa825a8f987d",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{8805FD18-AD7C-4714-9F7F-383AF1410CDB}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "5578ec7e17778e8a79de364e2bb551cf1c9b2de1e9108158b8d3e8f5e5023bdf",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{ea60dc27-fe55-e847-958f-16fd4b81b241}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_3DSOLID_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "46dc7643072fae1941adce01b04178131fe075d7565ab869dfd1708f94e020b8",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "1e836deb00716907c73fd5ec1792dd807a3a544e3caf73d80c422960c80eb74a",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{a431f080-cc46-4646-a5c3-2768d42c3054}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_ascii.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "a67209468a9fb570f9e42f9b4b203bdcd52238ed0f588e809c1f6cae70eb733d",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_3DSOLID_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_3DSOLID_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "d0f7a355db798b2c4fa99aae94dd6e587e9341a86307ea48ded73a0c9bb7dbfc",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{8805FD18-AD7C-4714-9F7F-383AF1410CDB}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "ec042089b2143f5297eeb1cc9c6c401dbf48f0cbc6540f521f88d8f47d6e5522",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{75892e8a-0e96-8c45-92de-5f6f4f16156d}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_3DSOLID_binary.dxf": {
+          "role": "subject",
+          "kind": "3DSOLID",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "a67209468a9fb570f9e42f9b4b203bdcd52238ed0f588e809c1f6cae70eb733d",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_3DSOLID.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_3DSOLID_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_3DSOLID.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_3DSOLID_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "064c61d5a419b662d5204d9070add368c31972427432073a3e066ab3d0590860",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "4e10f14bc37f39701432b78fa34f025664a717c3311d298badcd1363d0480ba2",
+            "entities": [
+              {
+                "type": "3DSOLID",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "3DSOLID"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{5635301c-9222-7446-9df9-6f594781a920}"
+                ],
+                [
+                  100,
+                  "AcDb3dSolid"
+                ],
+                [
+                  350,
+                  "0"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "82ac05e236328d3989d2d4722bb8431a474d52c081ef85b1eb1d6717cc20b402",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1797,
+                "carrier_sha256": "43864e86cd143161e13b0524782259c9e302f8d7dac971f3cac0267243cef53d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{F619124A-7CCD-4283-AAAE-D478F7417D8C}"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "5bb471d565d5f2a0086f010183a3025e61ac2d9833b5524ea9aecc991e7688a2",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1805,
+                "carrier_sha256": "0db50b5186314b39cf2b8122a7523bf2b31f41cc47ff2daaed2742d1ffc14a82",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{0fe737a9-c3a0-ce40-94a2-2b1a8ed32810}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_REGION_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "204c5a297d8bd785cb39b6c4c226ce1b9cf8f75c3a45a49056059b1a930d153d",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1797,
+                "carrier_sha256": "43864e86cd143161e13b0524782259c9e302f8d7dac971f3cac0267243cef53d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "dfc3dad4dde4f0ce63caa72912d511b66337e5a20da7bb35ad15d80c24c25e6e",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1805,
+                "carrier_sha256": "0db50b5186314b39cf2b8122a7523bf2b31f41cc47ff2daaed2742d1ffc14a82",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{9428cd65-e5e9-8543-8e21-f51fa7e4ac66}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_ascii.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "87c6538e7f7b3e24e6da15697b6dc4c92a6ab33d7b8541156df7d3689277f0c3",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_REGION_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_REGION_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "21f88965d64d6ac2c75bc550bca935a9ae4c1fc61baf1a635f8c2fba2df9fbeb",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1797,
+                "carrier_sha256": "43864e86cd143161e13b0524782259c9e302f8d7dac971f3cac0267243cef53d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{F619124A-7CCD-4283-AAAE-D478F7417D8C}"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "c69f39cadd938b9d9421003e6d622a02c464c7524e339bb8b315fd8229fa721b",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1805,
+                "carrier_sha256": "0db50b5186314b39cf2b8122a7523bf2b31f41cc47ff2daaed2742d1ffc14a82",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{f9f7a09b-0777-064d-827e-05c66b627d31}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_REGION_binary.dxf": {
+          "role": "subject",
+          "kind": "REGION",
+          "expected": {
+            "faces": 1,
+            "bounds": [
+              [
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                3.0,
+                0.0
+              ]
+            ]
+          },
+          "source_sha256": "87c6538e7f7b3e24e6da15697b6dc4c92a6ab33d7b8541156df7d3689277f0c3",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_REGION.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_REGION_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_REGION.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_REGION_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "18ad0cef8109901d3ec4696560ad836c3bccb0d5b6bfb4a4212c6fa0e753b0b2",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1797,
+                "carrier_sha256": "43864e86cd143161e13b0524782259c9e302f8d7dac971f3cac0267243cef53d",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "dd366a9aa54fabf66ab2f31f5193971b504de1416137b37aa74ef094fbf7f1d3",
+            "entities": [
+              {
+                "type": "REGION",
+                "sat_lines": 0,
+                "sab_bytes": 1805,
+                "carrier_sha256": "0db50b5186314b39cf2b8122a7523bf2b31f41cc47ff2daaed2742d1ffc14a82",
+                "bodies": 1,
+                "faces": 1,
+                "bounds": [
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    2.0,
+                    3.0,
+                    0.0
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "REGION"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{d9a15190-bc02-0846-b29f-141f99255fd5}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_ascii.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "bc0110a24681b7ed91f57669922d7ba59906a6ad986b24034caa2ca8df857aee",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{67C1C95E-867C-444F-A2F7-477DD3F3A8BC}"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "0896a65aac1c5f058fbfcd0d2104877394fcf6f569c9dbe7661ec5a864cd3441",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{145ee7d0-b9b0-7c4a-939a-7c155cbea24d}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "seed_BODY_binary.dxf": {
+          "role": "oracle-calibration",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "input": {
+            "exists": true,
+            "sha256": "38341b9cfe5952fe8dfd11edf0d70171c401e4cf3bb267b707eeb2163053d57b",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "f3b9d7eea899e6fb94d6e85d5730ecae0b76f43926015131058936a622b0c110",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{069673cf-daa4-9243-b6d1-ccbb2a25b1aa}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_ascii.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "2bf982918d5ec83df72628a8a3ffbaff18c105f74f61b587f75f8219a4687efc",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_BODY_ascii.dxf"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_BODY_ascii.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "1b37eb26d09c9e6c7481ef97d1fd1878326dde071ee666e659a612c4ea0fd43d",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "1"
+                ],
+                [
+                  2,
+                  "{67C1C95E-867C-444F-A2F7-477DD3F3A8BC}"
+                ]
+              ]
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "722c2dd94a45f46e6053194302fb33fa391fa8a91e1ce4c6be6dced00c36bdcc",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{fa7b9d22-9410-484f-ba6c-f5ed16d64f15}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        },
+        "libdxfrw_BODY_binary.dxf": {
+          "role": "subject",
+          "kind": "BODY",
+          "expected": {
+            "faces": 6,
+            "bounds": [
+              [
+                -0.5,
+                -0.5,
+                -0.5
+              ],
+              [
+                0.5,
+                0.5,
+                0.5
+              ]
+            ]
+          },
+          "source_sha256": "2bf982918d5ec83df72628a8a3ffbaff18c105f74f61b587f75f8219a4687efc",
+          "conversion": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_BODY.dxf",
+              "-o",
+              "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_BODY_binary.dxf",
+              "-b"
+            ],
+            "status": 0,
+            "stdout": "Success: converted /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/minimal_BODY.dxf to /private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs/libdxfrw_BODY_binary.dxf\n",
+            "stderr": ""
+          },
+          "input": {
+            "exists": true,
+            "sha256": "fe249a9e19b81a38034d450fb3281030742cbbd68e4d314a83231ea0e9e62234",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5489,
+                "carrier_sha256": "7d355eb6c62d71f765fafce531a56aee65bbc2d82aaec2fe83c6f589baa76777",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ]
+          },
+          "oda_dwg_exists": true,
+          "oda_readback": {
+            "exists": true,
+            "sha256": "753fdae7833306a3bd1cda7ff969665a4737d14f3a0b049f0e44b34b464423ab",
+            "entities": [
+              {
+                "type": "BODY",
+                "sat_lines": 0,
+                "sab_bytes": 5497,
+                "carrier_sha256": "06d3b82bd3719694477a491bd9029d70189ecfd7c64fe04da31f226b1dbc8a0f",
+                "bodies": 1,
+                "faces": 6,
+                "bounds": [
+                  [
+                    -0.5,
+                    -0.5,
+                    -0.5
+                  ],
+                  [
+                    0.5,
+                    0.5,
+                    0.5
+                  ]
+                ]
+              }
+            ],
+            "modeler_fields": [
+              [
+                [
+                  0,
+                  "BODY"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  100,
+                  "AcDbModelerGeometry"
+                ],
+                [
+                  290,
+                  "     1"
+                ],
+                [
+                  2,
+                  "{2b63d74f-a319-ff4b-b10a-c1209a1cbadf}"
+                ]
+              ]
+            ]
+          },
+          "retained": true
+        }
+      },
+      "processes": [
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/inputs",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/oda-dwg",
+            "ACAD2013",
+            "DWG",
+            "0",
+            "1",
+            "*.dxf"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/oda-dwg",
+            "/private/tmp/libdxfrw-modeler-qualification.qn2TfU/2013/oda-dxf",
+            "ACAD2013",
+            "DXF",
+            "0",
+            "1",
+            "*.dwg"
+          ],
+          "status": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Raw DXF entity event adapter capture bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound the dx_iface adapter copy of unsupported/raw DXF entity events retained in block order.",
+    "Keep incomplete capture sticky across reads into an existing dx_data and fail export before publication.",
+    "Add generated tests for successful accounting and each resource/owner refusal without persistent fixtures."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Moves dx_iface::addRawDxfEntity from an inline unbounded vector copy to an out-of-line bounded capture function.",
+      "Enforces aggregate limits of 100000 events, 4000000 groups, and DRW::kMaxDxfBinaryPayloadBytes logical bytes per retained dx_data.",
+      "Charges the ordered event slot once and includes raw record dynamic strings, group slots/string/binary values, and retained source spellings.",
+      "Advances event/group/byte counters only after successful vector insertion; missing owner, exceeded budget, and allocation failure set a sticky fail-closed flag.",
+      "Removes the import-start reset of rawDxfEntityCaptureFailed so a prior partial retained model cannot become exportable by beginning another read."
+    ],
+    "compatibility": "No DRW_Interface callback contract or class layout changed. dx_data gained internal adapter accounting fields. Raw entity order and payload schema are unchanged. The 64 MiB cap is logical storage accounting, not allocator-capacity or RSS measurement."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_(raw_dxf_entity_capture_limits|acds_history_dwg_frame_capture_limits|acsh_history_capture_limits|evaluation_graph_capture_limits|dynamic_block_capture_limits|proxy_object_capture_limits)$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "build": "PASS (dxfrw, dwg2dxf, adapter test target)",
+    "focusedCtest": "PASS (6/6)",
+    "diffCheck": "PASS",
+    "testCoverage": [
+      "successful raw entity event insertion with exact logical bytes and typed-event index",
+      "byte-budget rejection, sticky capture failure, and export refusal without output",
+      "record-count budget rejection",
+      "raw-group budget rejection",
+      "missing current block owner rejection"
+    ]
+  },
+  "assessment": {
+    "newConfirmedFormatDefect": 0,
+    "findingsChanged": false,
+    "topLevelSubplansChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": 0,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "planSha256": "3c5cd3956d3fe7084d947cc07ad55e114b1f6ebf2eec649fe417b51a9c917a2d",
+    "nextSlice": "Continue the 7S.2c retained-output/callback-copy census at the raw VISUALSTYLE companion callback and reconcile it with its typed/raw import receipt before introducing accounting."
+  },
+  "workingTree": {
+    "containsPreExistingUncommittedChanges": true,
+    "onlyScopedFilesWereEditedByThisSlice": true,
+    "unrelatedChangesStagedOrCommitted": false
+  }
+}

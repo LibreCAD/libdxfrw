@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-block-representation-data-staged-output-proof-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 BLOCKREPRESENTATIONDATA staged field and role proof",
+  "status": "STAGED_FIELDS_AND_SOURCE_ROLES_QUALIFIED_STRICT_DOCUMENT_GATE_OPEN",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "repositoryStatus": "local untracked input; intentionally not added to Git",
+    "object": {
+      "handle": "0xDD6",
+      "sourceType": 520,
+      "className": "AcDbBlockRepresentationData",
+      "ownerDictionary": "0xDD5",
+      "blockRecord": "0x127",
+      "flag": 1,
+      "body": "complete bounded body; one zero alignment bit; block-reference handle 0x127"
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_standard_output.h"
+    ],
+    "summary": "The OBJECTS staging inspector now decodes the actual emitted BLOCKREPRESENTATIONDATA bytes with the production parser, requires exact source object identity and flag, a unique mapped owner DICTIONARY with the canonical ACAD_REACTORS group, and a group-340 target matching the unique source BLOCK_RECORD name and emitted TABLES identity. Finalization then checks the typed source object-to-output identity and owner role after the writer enters its finalization phase. Opaque callback qualification is recorded only after staged field and role checks pass.",
+    "profileLimits": "AC1024 source only; complete typed body; one owner reactor; no extension dictionary, XDATA, unsupported APPDATA, or DataStorage payload. The output proof is per-record and does not close the containing dynamic-block graph or complete document."
+  },
+  "outputProof": {
+    "stagedObjects": {
+      "result": "PASS. One emitted ACDB_BLOCKREPRESENTATION_DATA record matched source handle 0xDD6, exact flag 1, mapped owner DICTIONARY 0xDD5, its sole canonical reactor edge, and group-340 reference to the planned BLOCK_RECORD for source handle 0x127. The emitted record was complete under the production typed parser and unique in the staged OBJECTS inventory."
+    },
+    "finalIdentity": {
+      "result": "PASS. Finalization confirmed the source object binding, emitted OBJECTS type, owner DICTIONARY identity, and unique BLOCK_RECORD TABLES identity with owner 1."
+    },
+    "strictDocument": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 <output.dxf>",
+      "result": "Expected refusal after all other reached finalization gates pass: per-record output proofs are pending for 90/109 opaque DWG callback identities. The transaction publishes no qualification because output is refused. A pre-existing destination sentinel remained byte-for-byte unchanged.",
+      "unqualifiedIdentities": [
+        {"handle": "0x000A", "type": 82},
+        {"handle": "0x000F", "type": 82},
+        {"handle": "0x0052", "type": 34},
+        {"handle": "0x0096", "type": 506, "record": "TABLESTYLE", "class": "AcDbTableStyle"},
+        {"handle": "0x00F2", "type": 42, "standardPayloadMatched": true},
+        {"handle": "0x00F3", "type": 510, "record": "SORTENTSTABLE", "class": "AcDbSortentsTable"},
+        {"handle": "0x0107", "type": 42, "standardPayloadMatched": true},
+        {"handle": "0x1069", "type": 42, "standardPayloadMatched": true},
+        {"handle": "0x106A", "type": 510, "record": "SORTENTSTABLE", "class": "AcDbSortentsTable"},
+        {"handle": "0x1116", "type": 42, "standardPayloadMatched": true},
+        {"handle": "0x1117", "sourceFrame": "missing"},
+        {"handle": "0x1118", "type": 513, "record": "BLOCKVISIBILITYPARAMETER", "class": "AcDbBlockVisibilityParameter"},
+        {"handle": "0x1119", "type": 514, "record": "BLOCKVISIBILITYGRIP", "class": "AcDbBlockVisibilityGrip"},
+        {"handle": "0x111A", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT", "class": "AcDbBlockGripExpr"},
+        {"handle": "0x111B", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT", "class": "AcDbBlockGripExpr"},
+        {"handle": "0x111C", "type": 510, "record": "SORTENTSTABLE", "class": "AcDbSortentsTable"},
+        {"handle": "0x1122", "type": 519, "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION", "class": "AcDbDynamicBlockPurgePreventer"},
+        {"handle": "0x121C", "type": 42, "standardPayloadMatched": true},
+        {"handle": "0x121D", "type": 510, "record": "SORTENTSTABLE", "class": "AcDbSortentsTable"}
+      ]
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_block_representation_data_output$' --output-on-failure",
+      "result": "PASS 1/1. Direct ASCII/Binary exact groups and fresh typed readback pass; incomplete-body refusal preserves a destination and corrected same-writer retry passes."
+    },
+    "physicalFailureAtomicity": "PASS. Strict conversion rejected the incomplete 90/109 source-output qualification set and preserved the pre-existing destination sentinel.",
+    "fullSuites": "NOT RUN; this slice used the owning selector and one physical source conversion.",
+    "fixturesAdded": 0,
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "db781521459b79226daa3581ec51a0cac9f130423bd861b7cd2234911edb00f0",
+    "dwg2dxf/dx_iface.h": "b24c5cd031d31b646cacc413eb1c19b6074c1b03ba9ddad6b0b491bf655cccf4",
+    "dwg2dxf/dx_standard_output.h": "20b7a8dc59f81d7ed414210c304de4959deb365ee9adfa8f03ce6507195a16de",
+    "build-gcc/dwg2dxf/dwg2dxf": "5c686f5e964bfec0aff948faee2ceb74fd029fc509be3ebaf815d7edf1199ad3",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "27269a97ff37792534a64e80e3fb7b11bd1819413ee6b5109c76465ce05e8623"
+  },
+  "planImpact": {
+    "completedActionRemoved": "Bind the physical AC1024 BLOCKREPRESENTATIONDATA flag, source/output identity, owner/reactor role, mapped BLOCK_RECORD target, staged typed fields, and failure-safe strict refusal.",
+    "remainingP4Scope": "Strict complete conversion remains refused by 19 source identities listed above without pending output proof. Classify each against retained standard/opaque source profiles and existing owner/output proofs; keep unsupported identities refused and do not weaken the completeness gate.",
+    "externalItemsPromoted": 0
+  }
+}

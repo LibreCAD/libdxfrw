@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MTEXT CMC source-method retention",
+  "mode": "generated AC1024 parser/writer fast slice",
+  "scope": [
+    "Retain the source R2004+ CMC method for standalone and embedded MTEXT background colors",
+    "Prevent DWG rewriting from silently changing an explicitly parsed method to a canonical C0-C3 method",
+    "Verify C0-C3 method replay, synthetic C5 observability, following-handle alignment, and fail-before-output refusal"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": [
+        "2.11 CmColor",
+        "20.4.46 MTEXT"
+      ],
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "ODA §2.11 defines the R2004+ CMC envelope as reserved BS index, packed BL, RC flags, and optional color/book TV strings. It does not qualify the packed payload semantics for C5 Foreground."
+    },
+    "autodeskApi": {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_ColorMethod.html",
+      "finding": "Autodesk documents ColorMethod.Foreground as 0xC5 and the ACI foreground method as 7; this supports the existing narrow scalar projection but does not establish a producer-authored DWG C5 payload."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp"
+      ],
+      "finding": "Standalone and embedded MTEXT parsed CMC through readBoundedCmColor but discarded its returned method. Their shared writer inferred C0-C3 solely from the normalized scalar/RGB fields, so a C5 source projected to scalar 7 could be rewritten as C3. DRW_MText now appends a DWG method field with a 0xFF unspecified sentinel, captures it in both parser routes, resets it on DWG reset and DXF color edits, and requires explicit C0-C3 to agree with the normalized fields before output. Unsupported explicit methods refuse before CMC emission. Pre-R2004 indexed output accepts only a representable C0/C1/C3 value without RGB or names.",
+      "compatibility": "No virtual interface changed. DRW_MText public layout changes; downstream consumers must rebuild. DXF field mapping remains unchanged."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": [
+        "AC1024"
+      ],
+      "finding": "Generated background C0-C3 cases retain explicit method identity through parse and replay. A generated C3 packed CMC method byte is changed to C5 without changing neighboring fields; production parse verifies scalar ACI 7, retained C5, and following-handle alignment. Copy, assignment, reset, and fail-before-output refusal are asserted.",
+      "limit": "The C5 case is a synthetic mutation of a generated CMC frame, not producer-authored evidence. It qualifies only local method retention and fail-closed output behavior, not C5 payload interpretation or interoperability."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Retain R2004+ MTEXT background CMC method in standalone and embedded parsing.",
+      "Preserve supported explicit C0-C3 methods when they agree with scalar/RGB state.",
+      "Refuse unqualified explicit methods before writing output instead of normalizing them to C3.",
+      "Clear DWG method provenance when DXF color groups replace the public color state."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": null,
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --mtext-background-cmc",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mtext_background_cmc|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (12/12)"
+      },
+      {
+        "command": "jq empty docs/research/mtext-background-cmc-method-retention-fast-slice-2026-10-21.json && git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-background-cmc-method-retention-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "C5 packed-value and HATCH-gradient producer semantics remain unqualified; generated C5 controls do not close that gate.",
+    "Other scalar-only CMC consumers and class-specific DXF truecolor/name/book mappings remain under audit.",
+    "PAR-03/PAR-04 associative-action value-kind classification remains open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

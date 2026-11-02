@@ -1,0 +1,62 @@
+{
+  "title": "Deeper/broader peer defect triage and ACIS retained-output census closure",
+  "date": "2026-10-19",
+  "scope": "Primary-source review of open-source DWG/DXF peer reports and a local static source census; advisory evidence only.",
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1172",
+      "observation": "AC1032 INSERT count changes reported on private files; later discussion identifies a possible TABLE-as-INSERT count confound but does not establish the earlier report's root cause."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1001",
+      "observation": "Separate TableEntity DXF writer support request; do not transfer its later-version behavior to the #1172 reader report."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1181",
+      "observation": "Peer-reported DWG writer crash for anonymous-flagged short block names; no local defect or normative rule inferred."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1180",
+      "observation": "LEADER zero text dimensions; already covered by existing plan owner and not duplicated."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html",
+      "observation": "Class maturity/disposition is implementation-specific and does not establish libdxfrw semantics."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "observation": "ACIS support is bounded and is not a general geometry kernel."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observation": "DWG path invokes an external converter followed by DXF import; those stages remain separately qualified."
+    }
+  ],
+  "local_audit": {
+    "file": "src/drw_acis.cpp",
+    "sha256": "bf9887312068b671e9a5f271ed66625e424fce4df4347a43321d33d331305b39",
+    "result": "All input-proportional retained parser, graph, projection, cache, diagnostic, and worklist insertions inspected were covered by existing logical budgets before insertion/reservation. DRW_AcisModel::nodesOfType remains an unbounded caller-sized API query with no in-tree bounded-pipeline callers."
+  },
+  "decisions": [
+    "Do not add a finding from peer-only reports without a local reproducer or authoritative contract.",
+    "Reconcile INSERT/TABLE counts by concrete type, handle, and owner rather than broad inheritance counts.",
+    "Keep short anonymous block-name coverage conditional on the applicable local version/profile contract.",
+    "Close the 7S.3 retained-output source census; continue independent 7S.2c owners without external gates.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "peer_runtime": "not run",
+    "native_cad": "not run",
+    "full_test_suite": "not run",
+    "fixtures_added": false,
+    "ctest_registration_added": false,
+    "support_claim_changed": false
+  }
+}

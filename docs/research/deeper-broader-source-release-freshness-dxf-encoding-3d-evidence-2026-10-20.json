@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Source/release freshness, DXF encoding, and 3D evidence ceiling",
+  "mode": "Primary-source web research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh authoritative DXF string and binary-chunk rules for versioned compatibility review.",
+    "Reconcile peer release, mutable master, issue, and milestone states without treating them as interchangeable support evidence.",
+    "Reconfirm availability and licensing boundary for an independent ACIS semantic witness.",
+    "Refine implementation readiness while preserving the focused local validation cadence and non-blocking external gates."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm"
+      ],
+      "revision": "Official AutoCAD 2026 DXF group-code reference accessed 2026-10-20",
+      "observed": "The reference identifies codes 310-319 as hexadecimal binary chunks and states that R2007+ DXF strings use UTF-8 while R2004 and earlier use plain ASCII/CIF with Unicode control sequences.",
+      "limits": "A normative wire rule does not prove that a peer or local callback/adapter retains, orders, or reconstructs every field or chunk."
+    },
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/milestone/23",
+        "https://github.com/LibreDWG/libredwg/milestone/22",
+        "https://github.com/LibreDWG/libredwg/issues/1357"
+      ],
+      "revision": "Mutable NEWS/issues/milestones accessed 2026-10-20; issue #1357 identifies old release e405fcff and reporter-verified master commit 56a05f98; no executable or fixture was run",
+      "observed": "The 0.14 milestone is closed and states DWG write coverage for 2004-2018 except 2007. The 0.14.1 milestone remains open and showed 13 open items / 67% completion when inspected. Issue #1357 is still listed/open in that milestone, while its reporter says an AC1021 regression was verified fixed on master commit 56a05f98; modelspace aggregate counts matched ODA and ezdxf on three inputs after R2007 decoder fixes.",
+      "limits": "Milestone and issue states do not define released-binary behavior. The reported comparison is not independently reproduced here and aggregate count does not establish per-object identity, ownership, or semantic equivalence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/discussions/435"
+      ],
+      "revision": "Mutable repository pages accessed 2026-10-20; v3.8.0 release identified; PR #1240 unmerged in reviewed state; v1.0 roadmap discussion predates v3.8.0",
+      "observed": "The version matrix advertises versioned DXF/DWG reader/writer routes without an entity-family denominator. Issue #1195 reports DXF writer omission of Solid3D/Region against an older package; visible PR #1240 is DWG ModelerGeometry writing and does not establish a released DXF fix. The historical v1.0 roadmap named Solid3D and proxies as then-missing, but predates v3.8.0.",
+      "limits": "No ACadSharp artifact or code was built or run. The old roadmap is not evidence of current v3.8.0 behavior, and the unmerged DWG writer change cannot be credited as DXF support."
+    },
+    {
+      "project": "Open CASCADE Technology and commercial components",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "revision": "Open Cascade SAS announcement dated 2026-03-10 and mutable component preview accessed 2026-10-20",
+      "observed": "The announcement separates open-source core exchange formats from commercial DXF and ACIS SAT/SAB data-exchange components. No general ACIS kernel in the open-source OCCT core was identified by this pass.",
+      "limits": "This is an availability/licensing statement, not proof that no independent open-source implementation exists anywhere; no component was obtained or run."
+    },
+    {
+      "project": "LibreCAD/libdxfrw plan",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/3D_SUPPORT_STATUS.md"
+      ],
+      "revision": "Shared local worktree inspected 2026-10-20",
+      "observed": "The plan already contains per-source dispositions, versioned DXF/codepage and carrier tests, route-specific peer admission, and PAR-07/S8 separation of carriers, ACIS/AcDs association, geometry semantics, and native consumers.",
+      "limits": "No new local code or test result follows from this research. Existing test owners were referenced rather than rerun or duplicated."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06/PAR-49: separate issue/milestone state, immutable master result, and released executable evidence; keep per-source identity and loss accounting above aggregate counts",
+      "PAR-07/S8: keep object shell, raw carrier, ACIS record graph, DWG AcDs association, B-rep validity, and consumer acceptance separate; external kernel availability remains optional",
+      "PAR-14: use current Autodesk versioned string and binary chunk rules only when a local source audit finds an uncovered encoding boundary"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-freshness crosswalk distinguishing released binaries, mutable master fixes, open issues/milestones, and unmerged proposals.",
+    "Refreshed Autodesk's R2007 string encoding and 310-319 binary-chunk rules as targeted versioned test criteria, with reuse of existing tests preferred over duplicates.",
+    "Made ACadSharp's version matrix and historical Solid3D/proxy roadmap explicitly insufficient to prove current per-family output support; kept DXF and DWG writer directions separate.",
+    "Reaffirmed that commercial OCCT ACIS components are not an open-source-core semantic witness and do not block local carrier/owner-graph work."
+  ],
+  "limitations": [
+    "Mutable GitHub master, issue, release, and milestone pages were not pinned or downloaded as immutable archives; exact repository state can change.",
+    "Peer reports and maintainer release statements were not independently reproduced with binaries or drawings.",
+    "This pass found no new local defect and does not provide independent native-application or ACIS-kernel semantic evidence.",
+    "No existing code/test target was built or executed because this was a plan-only research update."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Independent LibreDWG decode of AC1021 DetailViewStyle and SectionViewStyle records",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Deepen PAR-138 field-mapping readiness with an independently implemented DWG/DXF route.",
+    "Cross-check style object identity, owner dictionaries, flags, and currently unnamed fields without changing DWG semantics or promoting support."
+  ],
+  "method": {
+    "kind": "Local sample trace, installed peer decoder run, peer source audit, and plan update",
+    "input": {
+      "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+      "repositoryFixture": false,
+      "version": "AC1021",
+      "classNames": ["AcDbSectionViewStyle", "AcDbDetailViewStyle"],
+      "classNumbers": [515, 516],
+      "instancesPerClass": 2
+    },
+    "peerRuntime": {
+      "project": "LibreDWG",
+      "installedPackage": "libredwg 0.14",
+      "reportedExecutable": "dwgread 0.14",
+      "sourceCommitOrBuildHash": null
+    },
+    "peerCommands": [
+      "dwgread -O JSON <input> > /private/tmp/par138_children-room-decoration-libre.json",
+      "dwgread -O DXF -o /private/tmp/par138_children-room-decoration-libre.dxf <input>"
+    ],
+    "peerRunResult": "Both commands completed with SUCCESS. JSON and DXF artifacts remained under /private/tmp.",
+    "localParserResult": "The current local dwg2dxf debug trace found both classes and entered both style parsers. A machine-comparable callback-field dump against the LibreDWG JSON was not run.",
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/blob/master/include/dwg.h",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/encode.c",
+      "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html"
+    ],
+    "limits": [
+      "LibreDWG master source URLs are mutable, and the installed 0.14 executable has no captured commit/build hash.",
+      "The local AC1021 sample and peer output do not establish the semantic interpretation of every bit or property.",
+      "The ODA v5.4.1 specification remains authoritative for DWG byte-layout changes.",
+      "No AutoCAD/ODA producer toggle matrix or native view rendering run was performed."
+    ],
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planUpdated": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"]
+  },
+  "observations": {
+    "objects": [
+      {
+        "class": "SECTIONVIEWSTYLE",
+        "handle": "0x21A",
+        "name": "Metric50",
+        "flagsDecimal": 102,
+        "flagsHex": "0x66",
+        "unknownB1": false,
+        "unknownB2": false
+      },
+      {
+        "class": "SECTIONVIEWSTYLE",
+        "handle": "0x18081",
+        "name": "Imperial24",
+        "flagsDecimal": 78,
+        "flagsHex": "0x4E",
+        "unknownB1": false,
+        "unknownB2": false
+      },
+      {
+        "class": "DETAILVIEWSTYLE",
+        "handle": "0x21C",
+        "name": "Metric50",
+        "flagsDecimal": 3,
+        "semanticFlagMapping": "unresolved"
+      },
+      {
+        "class": "DETAILVIEWSTYLE",
+        "handle": "0x18082",
+        "name": "Imperial24",
+        "flagsDecimal": 3,
+        "semanticFlagMapping": "unresolved"
+      }
+    ],
+    "sectionFlagCrosswalkFromLibreDwgStructComments": {
+      "0x01": "is_continuous_labeling",
+      "0x02": "show_arrowheads",
+      "0x04": "show_viewlabel",
+      "0x08": "show_all_plane_lines",
+      "0x10": "show_all_bend_identifiers",
+      "0x20": "show_end_and_bend_lines",
+      "0x40": "show_hatching"
+    },
+    "observedSectionBits": {
+      "Metric50": ["0x02", "0x04", "0x20", "0x40"],
+      "Imperial24": ["0x02", "0x04", "0x08", "0x40"]
+    },
+    "dictionaryGraph": {
+      "ACAD_SECTIONVIEWSTYLE": {
+        "dictionaryHandle": "0x219",
+        "entries": {
+          "Metric50": "0x21A",
+          "Imperial24": "0x18081"
+        }
+      },
+      "ACAD_DETAILVIEWSTYLE": {
+        "dictionaryHandle": "0x21B",
+        "entries": {
+          "Metric50": "0x21C",
+          "Imperial24": "0x18082"
+        }
+      }
+    },
+    "writerCaveat": "LibreDWG's current fixup_NOD source conditionally disables both style families in normal NOD serialization; STABLE class labels do not imply writer graph completeness."
+  },
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-20", "PAR-07/S8"],
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimPromoted": false,
+    "effect": "Adds a peer-mapped candidate bit crosswalk for SectionViewStyle and a real AC1021 sample profile. DetailViewStyle flags and SectionViewStyle's two group-290 booleans stay unresolved; next fast slice should test bit/value preservation, while named semantic accessors wait for ODA corroboration or a producer-authored toggle witness.",
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

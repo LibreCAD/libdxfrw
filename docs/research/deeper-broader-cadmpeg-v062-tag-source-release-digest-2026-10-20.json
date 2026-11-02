@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "CADMPEG v0.6.2 tag-source, release-digest, and SAT comparator refresh",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Resolve the CADMPEG v0.6.2 release and source-tag identity",
+    "Bind selected platform release-asset digests from the GitHub release API",
+    "Check whether the exact-tag CLI build configuration includes the SAT codec",
+    "Refine only the existing PAR-07/S8 optional bare-payload comparator route"
+  ],
+  "sources": [
+    {
+      "project": "CADMPEG v0.6.2 GitHub release API",
+      "reference": "https://api.github.com/repos/cadmpeg/cadmpeg/releases/tags/v0.6.2",
+      "status": "release_api_reviewed_2026-10-20",
+      "observation": "The release API reports v0.6.2 targeting full source commit 7bcc95276548de4e4876894b9a650a84ea9c4d6d, published 2026-10-19. Uploaded archive SHA-256 values include ARM64 macOS f5b56c71f6717a996656368a518a4e223999bc5d2258d8c3e72f050751db5134, Windows x64 bebea5db3e42ac125c22892de9c39030e0d553a18c07a53ac7e6b057b7880880, and Linux x64 823e4ef832baf0ad4ed42d6e0cf3c788ae374bc348466261be0ca11074b0ac52."
+    },
+    {
+      "project": "CADMPEG exact-tag workspace and CLI manifests",
+      "references": [
+        "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/Cargo.toml",
+        "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/crates/cadmpeg/Cargo.toml"
+      ],
+      "status": "tag_pinned_manifest_reviewed_2026-10-20",
+      "observation": "The workspace is version 0.6.2 and contains cadmpeg-codec-sat. The CLI's default feature list includes sat, so the tagged release configuration includes the bare SAT codec."
+    },
+    {
+      "project": "CADMPEG exact-tag release workflow",
+      "reference": "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/.github/workflows/release.yml",
+      "status": "tagged_workflow_reviewed_2026-10-20",
+      "observation": "The release workflow is triggered by version-tag pushes, checks out the event ref, and invokes cargo-dist build with the tag. This binds the release procedure to the tag configuration but is not an independent reproducible build or runtime test."
+    },
+    {
+      "project": "CADMPEG exact-tag SAT/ASM profile",
+      "references": [
+        "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md",
+        "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+        "https://raw.githubusercontent.com/cadmpeg/cadmpeg/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm-open-items.md"
+      ],
+      "status": "exact_tag_profile_and_open_items_reviewed_2026-10-20",
+      "observation": "The bare stream codec is read-only. Its documented verified Spatial ACIS majors are 217 and 218; other majors are unverified. The docs describe losses, unknown records, and unresolved geometry/topology questions. This is a candidate parser/neutral-geometry comparison only, not a DWG/DXF/AcDs reader, owner/key oracle, or native CAD consumer."
+    },
+    {
+      "project": "CADMPEG docs.rs latest package view",
+      "reference": "https://docs.rs/crate/cadmpeg-codec-sat/latest",
+      "status": "package_view_reviewed_2026-10-20",
+      "observation": "The surfaced docs.rs latest page identifies version 0.6.1, separate from the 0.6.2 GitHub source tag/release. Do not silently substitute the package artifact/API for the release binary."
+    },
+    {
+      "project": "cq-acis third-party notices",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/THIRD_PARTY_NOTICES.md",
+      "status": "lineage_reference_checked_2026-10-20",
+      "observation": "Existing plan evidence records CADMPEG source/notes among cq-acis format references and CadQuery/OCCT geometry construction. Agreement between these routes remains correlated format-discovery evidence and is not an independent kernel result."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Resolved CADMPEG v0.6.2 release/source identity and selected platform asset digests, confirmed the exact-tag SAT default feature and narrowed the optional route to its documented bare-stream profile. No local defect or support gap is established.",
+    "nextImplementation": "Continue the existing local-ready queue. If a semantic question remains at the already-planned PAR-07/S8 checkpoint, verify one selected archive against its digest, then compare only an exact owner-closed ACIS 217/218 payload against pre-authored analytic expectations; artifact or platform unavailability self-unblocks to local work.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "githubReadOnlyApiReview": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cadmpeg-v062-tag-source-release-digest-2026-10-20.json"
+    ],
+    "limitations": "The GitHub release API, exact-tag source manifests/workflow/docs, and docs.rs version page were read. No release archive, source archive, CAD drawing, or peer package was downloaded, and no peer executable was run. The release binary was not independently rebuilt or inspected."
+  },
+  "validation": {
+    "planEdit": "Corrected the stale v0.6.2-unconfirmed status and added one-time profile-bounded readiness steps. Queue, fixture policy, test cadence, counts, and all six external J-item statuses remain unchanged.",
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files; receipt trailing-whitespace check)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree has broad pre-existing changes and Git metadata is read-only in this session."
+  }
+}

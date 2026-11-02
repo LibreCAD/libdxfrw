@@ -12,15 +12,15 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <set>
 #include <sys/stat.h>
 
 #include "dx_iface.h"
 #include "dx_data.h"
 #include "dx_cli.h"
-
-#ifndef S_ISDIR
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
-#endif
+#include "dx_batch_input.h"
+#include "dx_batch_output_names.h"
 
 void usage(){
     std::cout << "Usage: " << std::endl;
@@ -30,36 +30,36 @@ void usage(){
     std::cout << "   -b         optional, sets output as binary dxf" << std::endl;
     std::cout << "   -B         optional, batch mode reads a text file whit a list of full path input" << std::endl;
     std::cout << "               files and saves with the same name in the indicated folder as output" << std::endl;
+    std::cout << "               LF/CRLF lists; 128 KiB filename, 16 MiB list, 10000 inputs maximum" << std::endl;
+    std::cout << "               requires -version, never prompts, returns failure if any item fails" << std::endl;
     std::cout << "   -y -Y      optional, Warning! if output dxf exist overwrite without ask" << std::endl;
+    std::cout << "   -d -D      optional, enable debug trace" << std::endl;
     std::cout << "   -version   version output of dxf file" << std::endl;
     std::cout << "   output     output file name" << std::endl << std::endl;
     std::cout << "   -o         FreeCAD-compatible output path; defaults to the input revision" << std::endl;
     std::cout << "              and never prompts. Use -y to replace an existing output." << std::endl;
+    std::cout << "   DXF input text is checked before output: observed corruption, ambiguous" << std::endl;
+    std::cout << "   decoding and unsupported legacy Unicode profiles fail without publication." << std::endl;
+    std::cout << "   --dxf-codepage-policy=compatible|exact-named selects DXF input mapping." << std::endl;
+    std::cout << "   Default is compatible; exact input still requires an eligible source profile." << std::endl;
+    std::cout << "   --allow-partial-dwg-read permits bounded terminal DWG frame losses;" << std::endl;
+    std::cout << "   strict is the default; owner/reference checks remain strict and" << std::endl;
+    std::cout << "   partial output is not a complete DWG semantics/support claim." << std::endl;
     std::cout << "     version can be:" << std::endl;
     std::cout << "        -R12   dxf release 12 version" << std::endl;
     std::cout << "        -v2000 dxf version 2000" << std::endl;
     std::cout << "        -v2004 dxf version 2004" << std::endl;
     std::cout << "        -v2007 dxf version 2007" << std::endl;
     std::cout << "        -v2010 dxf version 2010" << std::endl;
-}
-
-DRW::Version checkVersion(std::string param){
-    if (param == "-R12")
-        return DRW::AC1009;
-    else if (param == "-v2000")
-        return DRW::AC1015;
-    else if (param == "-v2004")
-        return DRW::AC1018;
-    else if (param == "-v2007")
-        return DRW::AC1021;
-    else if (param == "-v2010")
-        return DRW::AC1024;
-    return DRW::UNKNOWNV;
+    std::cout << "        -v2013 dxf version 2013 (AC1027)" << std::endl;
+    std::cout << "        -v2018 dxf version 2018 (AC1032)" << std::endl;
 }
 
 bool convertFile(std::string inName, std::string outName, DRW::Version ver,
                  bool binary, bool overwrite, bool debug,
-                 bool nonInteractive = false){
+                 bool nonInteractive = false,
+                 DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible,
+                 bool allowPartialDwgRead = false){
     bool badState = false;
     //verify if input file exist
     std::ifstream ifs;
@@ -93,7 +93,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     dx_data fData;
     //First read a dwg or dxf file
     dx_iface input;
-    badState = input.fileImport( inName, &fData, debug);
+    badState = input.fileImport(inName, &fData, debug, codePagePolicy);
     if (!badState) {
         std::cout << "Error reading file " << inName << std::endl;
         return false;
@@ -108,21 +108,32 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
         }
     }
 
+    if (allowPartialDwgRead && fData.sourceFormat == dx_source_format::DWG) {
+        std::cerr << "WARNING: explicit partial DWG read mode; output may omit "
+                     "failed or unmodeled source content and is not a "
+                     "completeness/support claim. Owner/reference checks remain strict.\n";
+    }
+
     //And write a dxf file
     dx_iface output;
-    badState = output.fileExport(outName, ver, binary, &fData, debug);
+    // CLI complete-conversion admission is explicit and separate from owner
+    // resolution and proxy-cache replay. Ordinary library exports retain the
+    // compatibility policy for both.
+    badState = output.fileExport(outName, ver, binary, &fData, debug, true,
+                                 dx_dxfSourceTextPolicy::RequireValidSource,
+                                 DRW::DxfTextWritePolicy::RequireLossless,
+                                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                                 allowPartialDwgRead
+                                     ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                     : dx_dwgReadCompletenessPolicy::RequireComplete);
 
     return badState;
 }
 
 int main(int argc, char *argv[]) {
     bool badState = false;
-    bool binary = false;
-    bool overwrite = false;
-    bool batch = false;
-    bool debug = false;
+    dwg2dxfCli::Options options;
     std::string outName;
-    DRW::Version ver = DRW::UNKNOWNV;
     if (argc < 3) {
         usage();
         return 1;
@@ -139,10 +150,6 @@ int main(int argc, char *argv[]) {
     if (freeCadMode) {
         const std::string fileName = argv[1];
         bool haveOutput = false;
-        bool haveVersion = false;
-        bool freeCadBinary = false;
-        bool freeCadOverwrite = false;
-        bool freeCadDebug = false;
         bool invalidOption = false;
 
         for (int i = 2; i < argc; ++i) {
@@ -154,30 +161,22 @@ int main(int argc, char *argv[]) {
                 }
                 outName = argv[++i];
                 haveOutput = true;
-            } else if (param == "-b") {
-                freeCadBinary = true;
-            } else if (param == "-y" || param == "-Y") {
-                freeCadOverwrite = true;
-            } else if (param == "-d" || param == "-D") {
-                freeCadDebug = true;
-            } else {
-                ver = checkVersion(param);
-                if (ver == DRW::UNKNOWNV || haveVersion) {
-                    invalidOption = true;
-                    break;
-                }
-                haveVersion = true;
+            } else if (!dwg2dxfCli::applyOption(param, options, false)) {
+                invalidOption = true;
+                break;
             }
         }
 
-        if (invalidOption || !haveOutput || outName.empty()) {
+        if (invalidOption || !haveOutput || fileName.empty() || outName.empty()) {
             std::cout << "Bad options." << std::endl;
             usage();
             return 1;
         }
 
-        const bool ok = convertFile(fileName, outName, ver, freeCadBinary,
-                                    freeCadOverwrite, freeCadDebug, true);
+        const bool ok = convertFile(fileName, outName, options.version,
+                                    options.binary, options.overwrite,
+                                    options.debug, true, options.codePagePolicy,
+                                    options.allowPartialDwgRead);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -192,35 +191,21 @@ int main(int argc, char *argv[]) {
         std::string param = argv[i];
         if (i == (argc - 1) )
             outName = param;
-        else {
-            if (param.at(0) == '-') {
-                if (param.at(1) == 'b')
-                    binary = true;
-                else if (param.at(1) == 'y')
-                    overwrite = true;
-                else if (param.at(1) == 'B')
-                    batch = true;
-                else if (tolower(param.at(1)) == 'd')
-                    debug = true;
-                else {
-                    ver = checkVersion(param);
-                    if (ver == DRW::UNKNOWNV) {
-                        badState = true;
-                    }
-                }
-            } else
-                badState = true;
-        }
+        else if (!dwg2dxfCli::applyOption(param, options, true))
+            badState = true;
     }
 
-    if (badState) {
+    if (badState || fileName.empty() || outName.empty()
+        || (options.batch && !options.haveVersion)) {
         std::cout << "Bad options." << std::endl;
         usage();
         return 1;
     }
 
-    if (!batch){ //no batch mode, only one file
-        bool ok = convertFile(fileName, outName, ver, binary, overwrite, debug);
+    if (!options.batch){ //no batch mode, only one file
+        bool ok = convertFile(fileName, outName, options.version, options.binary,
+                              options.overwrite, options.debug, false, options.codePagePolicy,
+                              options.allowPartialDwgRead);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -232,45 +217,111 @@ int main(int argc, char *argv[]) {
 
     }
 
- //batch mode, prepare input file and output folder.
-    //verify if input file exist
-    std::ifstream ifs;
-    ifs.open (fileName.c_str(), std::ifstream::in);
-    badState = ifs.fail();
-    ifs.close();
-    if (badState) {
-        std::cout << "Batch mode, Error can't open " << fileName << std::endl;
+    // List acquisition and name/identity preflight complete before any output.
+    // File conversions remain independent transactions, not a batch rollback.
+    try {
+        namespace fs = std::filesystem;
+        const auto listPath = fs::u8path(fileName);
+        std::error_code ec;
+        if (!fs::is_regular_file(listPath, ec) || ec) {
+            std::cout << "Batch mode: input list must be a regular file\n";
+            return 2;
+        }
+        std::ifstream list(listPath, std::ios::binary);
+        std::vector<std::string> inputs;
+        std::string error;
+        if (!list.is_open() || !dwg2dxfCli::readBatchList(list, inputs, error)) {
+            std::cout << "Batch mode: "
+                      << (list.is_open() ? error : "cannot open input list") << '\n';
+            return 2;
+        }
+        const auto directory = fs::u8path(outName);
+        ec.clear();
+        if (!fs::is_directory(directory, ec) || ec) {
+            std::cout << "Batch mode: output must be an existing directory\n";
+            return 4;
+        }
+        std::vector<fs::path> sources;
+        std::vector<fs::path> outputs;
+        std::set<fs::path> sourceNames;
+        std::set<fs::path> outputNames;
+        const auto normalized = [](const fs::path& path) {
+            return fs::weakly_canonical(fs::absolute(path));
+        };
+        sourceNames.insert(normalized(fs::u8path(fileName)));
+        for (const auto& name : inputs) {
+            const auto source = fs::u8path(name);
+            auto outputName = source.filename();
+            outputName.replace_extension(".dxf");
+            const auto output = directory / outputName;
+            if (source.filename().empty() || !outputNames.insert(normalized(output)).second) {
+                std::cout << "Batch mode: invalid or colliding output names\n";
+                return 2;
+            }
+            sourceNames.insert(normalized(source));
+            sources.push_back(source);
+            outputs.push_back(output);
+        }
+        const auto outputNameCheck = dwg2dxfCli::checkBatchOutputNameCollisions(
+            directory, outputs, error);
+        if (outputNameCheck == dwg2dxfCli::BatchOutputNameCheck::Collision) {
+            std::cout << "Batch mode: invalid or colliding output names\n";
+            return 2;
+        }
+        if (outputNameCheck == dwg2dxfCli::BatchOutputNameCheck::Error) {
+            std::cout << "Batch mode: cannot safely validate output names: "
+                      << error << '\n';
+            return 2;
+        }
+        for (const auto& output : outputs) {
+            if (sourceNames.count(normalized(output))) {
+                std::cout << "Batch mode: output aliases an input/list\n";
+                return 2;
+            }
+            ec.clear();
+            const bool exists = fs::exists(output, ec);
+            if (ec) {
+                std::cout << "Batch mode: cannot inspect output identity\n";
+                return 2;
+            }
+            if (!exists)
+                continue;
+            for (const auto& source : sources) {
+                ec.clear();
+                const bool same = fs::equivalent(source, output, ec);
+                // A nonexistent source is an independent conversion failure.
+                if (same) {
+                    std::cout << "Batch mode: output aliases an input\n";
+                    return 2;
+                }
+                if (ec && ec != std::errc::no_such_file_or_directory) {
+                    std::cout << "Batch mode: cannot inspect input identity\n";
+                    return 2;
+                }
+            }
+            ec.clear();
+            if (fs::equivalent(fs::u8path(fileName), output, ec) || ec) {
+                std::cout << "Batch mode: output aliases list or identity check failed\n";
+                return 2;
+            }
+        }
+        bool allOk = true;
+        for (std::size_t index = 0; index < inputs.size(); ++index) {
+            const std::string output = outputs[index].u8string();
+            ec.clear();
+            const bool regular = fs::is_regular_file(sources[index], ec);
+            const bool ok = regular && !ec
+                && convertFile(inputs[index], output, options.version,
+                               options.binary, options.overwrite,
+                               options.debug, true, options.codePagePolicy,
+                               options.allowPartialDwgRead);
+            std::cout << (ok ? "Success: " : "Failed: ") << inputs[index]
+                      << " -> " << output << '\n';
+            allOk = ok && allOk;
+        }
+        return allOk ? 0 : 1;
+    } catch (const std::exception& exception) {
+        std::cout << "Batch mode: preflight/conversion error: " << exception.what() << '\n';
         return 2;
     }
-
-    //verify existence of output directory
-    struct stat statBuf;
-    int dirStat = stat(outName.c_str(), &statBuf);
-    if(dirStat != 0 || S_ISDIR(statBuf.st_mode) == 0) {
-        std::cout << "Batch mode: " << outName << " must be an existing directory" << std::endl;
-        usage();
-        return 4;
-    }
-    outName+="/";
-    //create a list with the files to convert.
-    std::ifstream bfs;
-    bfs.open (fileName.c_str(), std::ifstream::in);
-    std::list<std::string>inList;
-    std::string line;
-    while ( bfs.good() ){
-        std::getline(bfs, line);
-        if(!line.empty())
-            inList.push_back(line);
-    }
-    for (std::list<std::string>::const_iterator it=inList.begin(); it!=inList.end(); ++it){
-        std::string input = *it;
-        unsigned found = input.find_last_of("/\\");
-        std::string output = outName + input.substr(found+1);
-        std::cout << "Converting file " << input << " to " << output << std::endl;
-        bool ok = convertFile(input, output, ver, binary, overwrite, debug);
-        if (!ok)
-            std::cout << "Failed" << std::endl;
-    }
-
-    return 0;
 }

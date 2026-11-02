@@ -1,0 +1,38 @@
+{
+  "id": "par134-tablestyle-border-flag-and-active-value-domains",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_TableStyle",
+    "version": "AC1032",
+    "field": "cell-style border flags, type, and visibility",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.101.4"
+  },
+  "change": "Reject edge/property-override bits outside 0x3f; validate Single/Double and 0/1 visibility only when their corresponding override bits are active.",
+  "generated_controls": [
+    {"edge_flags": "0x0", "property_flags": "0x0", "expected": "parse"},
+    {"edge_flags": "0x1", "property_flags": "0x0", "expected": "parse"},
+    {"edge_flags": "0x3f", "property_flags": "0x3f", "expected": "parse"},
+    {"edge_flags": "0x40", "property_flags": "0x0", "expected": "refuse and clear state"},
+    {"edge_flags": "0x1", "property_flags": "0x40", "expected": "refuse and clear state"},
+    {"property_flags": "border-type", "border_type": 1, "expected": "parse"},
+    {"property_flags": "border-type", "border_type": 2, "expected": "parse"},
+    {"property_flags": "border-type", "border_type": 0, "expected": "refuse and clear state"},
+    {"property_flags": "border-type", "border_type": 3, "expected": "refuse and clear state"},
+    {"property_flags": "invisibility", "visibility": 0, "expected": "parse"},
+    {"property_flags": "invisibility", "visibility": 1, "expected": "parse"},
+    {"property_flags": "invisibility", "visibility": 2, "expected": "refuse and clear state"}
+  ],
+  "validation": [
+    "cmake --build build-gcc --target dxfrw libdxfrw_dwg_object_vectors_tests -j4: PASS",
+    "ctest --test-dir build-gcc -R ^libdxfrw_tablestyle_border_flag_domains$ --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R ^libdxfrw_dwg_object_vectors$ --output-on-failure: PASS (1/1)",
+    "cmake --build build-gcc --target lc3_compat_check -j4: PASS",
+    "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

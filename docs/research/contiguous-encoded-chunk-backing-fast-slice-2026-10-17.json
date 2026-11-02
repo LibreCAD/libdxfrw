@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Contiguous encoded chunk backing fast slice",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Replace per-group owned strings in strict UTF8 chunk emission with a shared encoded byte buffer and ranges",
+    "Use the same bounded backing representation for strict and compatible MTEXT chunk emission",
+    "Preserve full preflight, byte/character limits, empty group behavior, and short-final-group semantics"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Strict and compatible chunk writers now retain one encoded string and a vector of (offset,length) ranges; each range is synchronously passed to dxfWriter::writeString as a view.",
+    "allEncodingPreflightBeforeFirstOutput": true,
+    "emptyFinalFieldPreserved": true,
+    "strictMTextShortFinalScalarRulePreserved": true,
+    "byteAndCharacterLimitsPreserved": true,
+    "publicApiChanged": false,
+    "installedHeaderChanged": false,
+    "classLayoutChanged": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests libdxfrw_writer_primitives_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "build-gcc/libdxfrw_writer_primitives_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$|^libdxfrw_writer_primitives$|^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "jq empty docs/research/contiguous-encoded-chunk-backing-fast-slice-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/intern/dxfwriter.h src/intern/dxfwriter.cpp tests/gbk_codepage_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "targetTextSelector": "PASS: wire=40, rejection/modern=14, chunks=40, framing=4, no-partial-output=4, empty-chunks=6, short-final=4, compatible-MTEXT=2, borrowed-view=2, profile/cap/raw controls passed",
+      "writerPrimitivesExecutable": "PASS",
+      "focusedCtest": "PASS: 3/3, 4.43 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "No allocator-count, throughput, peak-memory or RSS benchmark was run.",
+    "The unified encoded string may reallocate as it grows; source strings, range storage, and downstream write storage remain.",
+    "The worktree is broadly dirty; this verified slice is uncommitted."
+  ]
+}

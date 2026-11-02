@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 slice 1: preserve BLOCK_RECORD-to-LAYOUT handle",
+  "mode": "Implementation progress receipt",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "Dirty before this slice; changes were kept uncommitted and no unrelated paths were reverted.",
+    "changedPaths": [
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementation": "DRW_Block_Record.layoutHandle is retained in pending block-owner state and emitted as the final BLOCK_RECORD hard-pointer handle. DRW::NoHandle and XREF-plus-layout associations fail closed. Existing zero-layout behavior is unchanged.",
+    "limits": "This does not yet produce or validate a closed multi-layout graph; dictionary closure, default/active identity, exact per-layout owner routing, and finalizer reciprocity checks remain open."
+  },
+  "contract": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "references": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "sections": ["20.4.2", "20.4.51", "20.4.52", "20.4.84"],
+    "disposition": "Only the BLOCK_RECORD LAYOUT handle was changed. R13-R14 owner-relative entity modes, fixed-root BLOCK_CONTROL counting, and R2000+ owner-list encoding remain unchanged."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+        "result": "PASS (1/1; 0.28 s)"
+      }
+    ],
+    "coverage": [
+      "Independent emitted-handle-token checks for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "Generated AC1024 DWG whole-file write/readback checks the reciprocal LAYOUT and *Paper_Space7 BLOCK_RECORD handles and the owned LINE sentinel."
+    ],
+    "fixturesAdded": 0,
+    "externalOrNativeQualification": "NOT_RUN",
+    "fullSuite": "NOT_RUN"
+  },
+  "status": {
+    "PAR-144": "IMPLEMENTATION_IN_PROGRESS",
+    "completedSlice": 1,
+    "nextAction": "Add indexed explicit layout-owner/endpoint state and fail-closed reciprocal LAYOUT-to-BLOCK_RECORD validation; preserve the one-layout and ordinary-block paths.",
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commit": null,
+    "commitReason": "The worktree contained unrelated dirty implementation changes; this slice was not committed or broadly staged."
+  }
+}

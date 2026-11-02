@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <utility>
 #include "../drw_base.h"
 
 class DRW_Coord;
@@ -42,6 +43,16 @@ public:
     ///        May be null for tests or for callers that pre-encode.
     explicit dwgBufferW(DRW_TextCodec *decoder = nullptr);
     ~dwgBufferW() = default;
+
+    /// Publish a staged stream without allocation, including its cursor,
+    /// codec, error state and handle-occurrence ledger.
+    void swap(dwgBufferW& other) noexcept {
+        m_buf.swap(other.m_buf);
+        m_handleOccurrences.swap(other.m_handleOccurrences);
+        std::swap(m_bitPos, other.m_bitPos);
+        std::swap(m_decoder, other.m_decoder);
+        std::swap(m_good, other.m_good);
+    }
 
     // ---- accessors ------------------------------------------------------
 
@@ -186,10 +197,13 @@ public:
     /// unicode is true.
     std::string encodeTextAreaString(const std::string& utf8,
                                      bool unicode) const;
+    /// Byte-oriented value using the bound file CP8 profile, including when
+    /// the primary R2007+ codec is Unicode. Null-codec callers supply bytes.
+    std::string encodeCodePageText(const std::string& utf8) const;
 
     /// Bit count of data written so far (total bits, accounting for a
     /// partial trailing byte when bitPos() != 0).
-    std::uint32_t bitCount() const;
+    std::uint64_t bitCount() const;
 
     /// Append raw bytes at the current bit position.  Handles
     /// non-byte-aligned writes via per-byte bit shifting.
@@ -223,6 +237,23 @@ public:
     void putCmColor(DRW::Version v, std::uint16_t colorIndex, std::int32_t rgb24,
                     const UTF8STRING& colorName,
                     const UTF8STRING& bookName,
+                    dwgBufferW* strBuf = nullptr);
+
+    /// Explicit R2004+ CMC color method. Supports C0 ByLayer, C1 ByBlock,
+    /// C2 truecolor, and C3 indexed color, with optional name/book strings;
+    /// invalid method/value pairs fail the writer before emitting bytes.
+    void putCmColor(DRW::Version v, std::uint8_t method,
+                    std::uint16_t colorIndex, std::int32_t rgb24,
+                    const UTF8STRING& colorName,
+                    const UTF8STRING& bookName,
+                    dwgBufferW* strBuf = nullptr);
+
+    /// R2004+ CMC with source flags preserved. Only the two ODA §2.11
+    /// name/book bits are accepted; either flagged string may be empty.
+    void putCmColorWithFlags(DRW::Version v, std::uint8_t method,
+                    std::uint16_t colorIndex, std::int32_t rgb24,
+                    const UTF8STRING& colorName,
+                    const UTF8STRING& bookName, std::uint8_t flags,
                     dwgBufferW* strBuf = nullptr);
 
     /// ENC color (R2000): emits BS color index.  Matches reader's

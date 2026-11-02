@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "LibreDWG dwg2dxf to FreeCAD artifact-integrity boundary",
+  "mode": "Current primary-source research and read-only route audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile an open FreeCAD report about LibreDWG dwg2dxf output with the current FreeCAD converter/importer route.",
+    "Distinguish historical malformed-output reports from current release evidence and local libdxfrw defects.",
+    "Refine the existing FreeCAD Linux/Windows composed qualification checkpoint without new routine tests, fixtures, or peer builds."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/19247",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable current source/docs and issue state reviewed 2026-10-20; historical reproductions identify FreeCAD 1.0.0 and 1.2 development plus LibreDWG 0.13.3.7835.",
+      "observed": "Issue #19247 remains open with Confirmed and Needs example file labels. The initial report says FreeCAD 1.0.0 rejects output from LibreDWG dwg2dxf. A maintainer examining the attached DXF diagnosed empty/missing group-code/value pairs in header variables and LTYPE/STYLE records. A later retest comment reports unresolved anonymous block references, no-geometry shapes, and entity-read exceptions on FreeCAD 1.2 development with LibreDWG 0.13.3.7835. Current importDWG.py routes conversion output to the selected DXF importer and its LibreDWG branch uses output-path existence, not child return code or strict parse, as the handoff check. The docs describe materially different C++ and legacy importer subsets and state that stock FreeCAD does not read ACIS/SAT solids.",
+      "limits": "Issue attachments and historical builds were not downloaded or rerun. The issue does not establish whether current LibreDWG or current FreeCAD still has the same behavior. Mutable docs/source are route descriptions, not a native result."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1052",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Current public issue/NEWS pages reviewed 2026-10-20; issue #1052 is closed, #1408 is open, NEWS has a 0.14.1 section.",
+      "observed": "Issue #1052 reports a missing DXF group code for a string-valued $DIMBLK1 header variable. Open #1408 reports LibreDWG 0.14 Windows output for complex CR-bearing TEXT/MTEXT with an empty line in a group-code position, a lost leading character, and exit status 0. The 0.14.1 NEWS section lists multiple DXF fixes but does not identify #19247 as resolved.",
+      "limits": "The reports cover distinct artifacts and failure modes. #1408's full reproducer is not public in the report. Release notes cannot prove either a current failure or fix for #19247, and peer reports do not establish a libdxfrw defect."
+    },
+    {
+      "project": "Local plan and tests",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "workspace:tests/dxf_fixture_tests.cpp",
+        "workspace:tests/dwg2dxf_cli_contract_tests.py"
+      ],
+      "revision": "Shared worktree inspected 2026-10-20; no code/test execution in this research pass.",
+      "observed": "The existing plan already requires a pinned FreeCAD converter/importer route, strict intermediate-DXF validation, output freshness, object disposition, and separate ACIS semantics. This pass adds the unresolved #19247 scenario to that route-level evidence boundary rather than another local finding or test lane.",
+      "limits": "No new coverage was executed or inferred from repository test names alone."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-05/7AR: strict DXF output integrity and group-code/value pairing",
+      "PAR-07/S8: exact FreeCAD converter-to-DXF-importer route and object disposition",
+      "Existing FreeCAD Linux/Windows composed checkpoint: separate converter, strict parse, importer, and visible-result stages"
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Record FreeCAD issue #19247 as an old-build, artifact-specific failure shape, not a current-release verdict or libdxfrw defect; keep the attachment external and uncommitted.",
+    "Require exact converter/importer pinning and separate process result, fresh output identity, strict independent DXF parse, block-definition/reference closure, FreeCAD import outcome, and visible/default-space result.",
+    "Treat a malformed but present conversion output as a converter/artifact-integrity failure; do not infer fallback or importer success from FreeCAD's file-existence handoff.",
+    "Use locally authored scratch builders for typed HEADER strings, LTYPE/STYLE records, anonymous block references, and following sentinels when implementation needs a deterministic reproduction; keep this out of the native per-slice cadence.",
+    "Keep FreeCAD's stock DXF path outside ACIS/B-rep semantic evidence; retain independent 3D semantics under the existing deferred external gate.",
+    "Do not change findings/subplan counts or J256/J260/J268/J284/J293/J295 status."
+  ],
+  "limitations": [
+    "The FreeCAD issue describes specific historical builds and an external attachment; no current version regression was established.",
+    "The 0.14.1 NEWS page does not identify issue #19247, so its fix status is unknown; the report must be re-tested at a future composed checkpoint before changing disposition.",
+    "No code, tests, fixtures, dependencies, peer executable, FreeCAD build, or kernel were run.",
+    "The research does not promote support claims; issue J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "commands": [
+      "jq -e '.schema == \"libdxfrw.research-receipt.v1\" and .assessment.newFindings == 0 and .assessment.newTopLevelSubplans == 0 and .assessment.supportClaimsPromoted == 0 and (.assessment.deferredExternal | length == 6)' docs/research/deeper-broader-libredwg-dwg2dxf-freecad-artifact-integrity-boundary-2026-10-20.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-libredwg-dwg2dxf-freecad-artifact-integrity-boundary-2026-10-20.json"
+    ],
+    "result": "PASS (receipt invariants and scoped git diff check)"
+  },
+  "commitCreated": false,
+  "commitBlocker": "Research-only plan update; shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

@@ -1,0 +1,40 @@
+{
+  "id": "RPP-5z7",
+  "date": "2026-10-30",
+  "title": "TABLECONTENT CONTENTFORMAT text-style hard-pointer output",
+  "scope": {
+    "operation": "Emit and remap non-null CONTENTFORMAT text-style references for style-level and per-content formats.",
+    "source": "Open Design Specification for .dwg files v5.4.1, §20.4.101.3: CONTENTFORMAT is used in CELLSTYLEMAP, table entities and TABLECONTENT; group 340 is a hard pointer to the text-style handle.",
+    "previousGap": "The TABLECONTENT writer refused every non-null m_textStyleHandle and, if that gate were relaxed alone, would write the source handle without resolving it to the emitted STYLE table record.",
+    "profiles": "Generated AC1027 TABLECONTENT records: 1x1 and 2x2; style scopes 1 through 4; ASCII and binary DXF. Each record includes one style-scope and one per-content CONTENTFORMAT reference to the same generated STYLE record."
+  },
+  "implementation": [
+    "Permit non-null CONTENTFORMAT text-style handles through TABLECONTENT profile validation.",
+    "Before writing group 340, require that the referenced source handle was emitted as a STYLE record and resolve it to the final written table handle; an installed reference resolver must agree with that emitted identity.",
+    "Keep a null style handle encoded as zero. Missing or unresolved non-null hard pointers fail the write."
+  ],
+  "evidence": {
+    "generatedRuntimeInput": true,
+    "committedFixtureFiles": false,
+    "asciiAndBinary": true,
+    "physicalWire": "Across all four scopes and both record shapes/encodings, the independent group walker finds exactly two CONTENTFORMAT group-340 values and verifies that both resolve to the emitted STYLE handle.",
+    "typedReadback": "Fresh import confirms the selected style-scope and per-content m_textStyleHandle each equal the emitted STYLE table-record handle.",
+    "missingTarget": "Removing the referenced STYLE provider causes export refusal; a pre-existing destination sentinel, TABLECONTENT metadata and caller handle remain unchanged.",
+    "retry": "Restoring the STYLE provider permits same-adapter retry, and fresh import verifies the group-340 target."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focusedSelector": "build-gcc/tests/libdxfrw_table_content_dxf_tests --table-style-format-write",
+    "focusedSelectorResult": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "P5 remains open; other CONTENTFORMAT domains/property combinations, CELLSTYLEMAP profiles, native TABLE semantics and rendering are not qualified.",
+    "This slice does not close the physical mechanical source VISUALSTYLE carrier gate or P4 whole-document closure."
+  ]
+}

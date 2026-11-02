@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS 21800 count-zero exception is not generalized to ASM",
+  "mode": "local implementation fast slice",
+  "scope": [
+    "Retain the generated ACIS BinaryFile version-21800 zero-count positive control",
+    "Change only the equal-width signature to ASM BinaryFile4 and require conservative rejection",
+    "Verify failed parsing clears preexisting output state without adding ASM support"
+  ],
+  "implementation": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "details": [
+      "The negative is derived from vertexSab(21800, 0), so version, record framing, payload, and zero count match the accepted ACIS control; only the signature bytes change.",
+      "The existing rejection helper verifies parse failure and clearing of stale header and record output.",
+      "The test vector is constructed in memory; no persistent DWG, DXF, SAB, or other fixture is added."
+    ],
+    "productionCodeChanged": false,
+    "newCtestRegistration": false,
+    "persistentFixturesAdded": false,
+    "externalFixturesImported": false,
+    "temporaryOutputsRemoved": true
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "passed (1/1, 0.84 seconds)"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "diffCheck": "passed for tracked plan/test; receipt parsed as JSON and checked for trailing whitespace"
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This generated parser boundary does not determine ASM framing rules, qualify independent ACIS semantics, or promote any DWG/DXF 3D support claim. The shared worktree is broadly modified, so the slice remains unstaged and uncommitted."
+}

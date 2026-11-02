@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer-source freshness, local-owner confirmation, and no-switch trigger",
+  "mode": "Deeper primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh current LibreDWG pull-request state for previously mapped parser-safety, count, discriminator, string, and class-dispatch proposals.",
+    "Reconfirm BRL-CAD POLYFACE issue and proposed-fix status and distinguish proposal recovery behavior from DXF requirements.",
+    "Cross-check the specific peer mechanisms against the current local AcDs marker scan, SAB pre-scan input cap, and signed POLYFACE validation.",
+    "Confirm the official OCCT component product boundary for DXF and ACIS import/export.",
+    "Add a condition-triggered peer-research stop rule without changing implementation order, validation cadence, or support claims."
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG open pull-request list",
+      "url": "https://github.com/LibreDWG/libredwg/pulls",
+      "evidence": "The current open queue lists proposals covering AcDs marker-scan bounds, checked vector-size products, tagged/union identity, count-to-array consistency, modern DXF TV/TU field typing, and class/type dispatch. These are unmerged proposals, not release behavior."
+    },
+    {
+      "name": "LibreDWG AcDs scan proposal #1453",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1453",
+      "evidence": "The open proposal describes a peer size_t subtraction-underflow path in an AcDs ACIS-marker scan near the decompressed buffer boundary."
+    },
+    {
+      "name": "BRL-CAD issue #228 and proposed PR #245",
+      "urls": [
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "evidence": "The issue remains open and reports unvalidated POLYFACE face indices in dxf-g; the proposed bounds-checking fix remains an open pull request with no review recorded on the inspected page. Its invalid-triangle skip behavior is a peer proposal, not a format contract."
+    },
+    {
+      "name": "Official OCCT components preview README",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "evidence": "The repository identifies itself as a public preview/documentation hub for commercial OCCT extensions and lists DXF Import-Export and ACIS Import-Export as components obtained through its store."
+    },
+    {
+      "name": "Local source cross-check",
+      "urls": [
+        "src/drw_datastorage.cpp",
+        "src/drw_acis.cpp",
+        "src/drw_entities.cpp"
+      ],
+      "evidence": "AcDs marker scanning is bounded to complete markers inside the retained payload; SAB input size is rejected before signature discovery; POLYFACE signed indices are checked against the actual coordinate-record count before DXF writing. These local checks address only the named mechanisms and are not an exhaustive safety proof."
+    }
+  ],
+  "method": {
+    "kind": "Read-only internet primary-source review and local source/plan audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-research-peer-source-freshness-local-owner-confirmation-2026-10-19.json"
+    ],
+    "limitations": "GitHub PR and issue pages are mutable status views. The proposal contents are peer evidence, not DWG/DXF normative sources or proof of corresponding local defects. The local source checks are specific to the reviewed mechanisms; no exhaustive parser audit or runtime qualification was performed."
+  },
+  "localCrosswalk": {
+    "peerProposalOwners": "Reuse existing PAR-14/PAR-20/7S/7V and class-dispatch work; keep the scheduled bounded arithmetic census at its owning checkpoint and do not port unmerged peer code.",
+    "polyface": "Reuse 7V/PAR-37 signed one-based index, negative invisible-edge, zero-termination, stale-count, and out-of-range refusal controls. Keep BRL-CAD out of hostile-vector qualification until a merged revision is reviewed and pinned.",
+    "acdsAndSab": "Local marker bounds and pre-scan input cap address the specific peer scan mechanism only; preserve them and do not infer a general ACIS/AcDs support or security claim.",
+    "occt": "Stock open-source OCCT is not an independent DXF or ACIS reader/kernel lane based on the official component catalog. Any separately licensed extension remains a distinct commercial artifact lane.",
+    "researchTrigger": "Reopen external peer status research only when a cited change merges or ships in a pinned artifact, changes the route/version matrix, or a touched local owner lacks its planned invariant/control.",
+    "implementationCadence": "Continue local generated fast controls, strict touched-target builds, owning focused CTest, and scoped diff/receipt checks per slice; keep peer builds, sanitizers, long fuzzing, native CAD, and independent ACIS/kernel work at scheduled composed checkpoints.",
+    "externalEvidence": "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-14/PAR-20/7S/7V peer proposal crosswalk and scheduled arithmetic audit",
+      "PAR-37 signed POLYFACE index validation and peer-admission status",
+      "PAR-07/S8 open-source versus separately licensed ACIS/DXF evidence boundary",
+      "Implementation research trigger and unchanged validation cadence"
+    ],
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationSlicesAdded": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "planSha256": "1f76c8fcdb34dff4e06de41ca0a05e587ec00bfbff64285720cb2e6cee6366fc"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-tail-runtime-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constraint-group same-input node-tail runtime",
+  "status": "PROFILE_RECONCILED_IMPLEMENTATION_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Execute an independent DWG reader against the exact AC1024 mechanical source used by the earlier conflicting LibreDWG projections, and establish the observed constraint-group node framing without treating peer output as consumer or support qualification.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false
+  },
+  "independentReader": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "runtime": "official macOS ARM64 Rust 1.99.1",
+    "harnessSource": "/private/tmp/libdxfrw-acadrust-qualifier/src/main.rs",
+    "harnessSourceSha256": "c93a8b486b48035635509f690814f4e18500a57092807a8f1c1c2cc3335d3550",
+    "harnessSha256": "3dd762b4b401ae9c8e58507111902715a92c6027d1948e3641dc3b81f24551c6",
+    "stdoutSha256": "0d268b7f7991d0715ba8001c11a2e5404dcbb3d9d44c4d8ef4330bbd30292d70"
+  },
+  "observation": {
+    "documentVersion": "AC1024",
+    "documentObjectCount": 226,
+    "constraintGroupCount": 1,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "readerModelVersion": 2,
+    "versionNote": "acadrust normalizes the legacy source version-0 group into model version 2; the model value is not the source version field.",
+    "nextNodeId": 523,
+    "actionCount": 88,
+    "serializedInlineNodeCount": 399,
+    "decodedVectorLength": 400,
+    "decodedVectorNote": "The first vector entry is an empty in-memory sentinel; it is not serialized.",
+    "classFamilyCount": 20,
+    "classCounts": {
+      "AcCenterPointConstraint": 15,
+      "AcColinearConstraint": 2,
+      "AcConcentricConstraint": 6,
+      "AcConstrainedArc": 7,
+      "AcConstrainedBoundedLine": 39,
+      "AcConstrainedCircle": 8,
+      "AcConstrainedDatumLine": 1,
+      "AcConstrainedImplicitPoint": 120,
+      "AcDistanceConstraint": 15,
+      "AcEqualLengthConstraint": 9,
+      "AcEqualRadiusConstraint": 6,
+      "AcFixedConstraint": 8,
+      "AcHorizontalConstraint": 1,
+      "AcMidPointConstraint": 13,
+      "AcParallelConstraint": 16,
+      "AcPerpendicularConstraint": 4,
+      "AcPointCoincidenceConstraint": 18,
+      "AcPointCurveConstraint": 105,
+      "AcRadiusDiameterConstraint": 2,
+      "AcTangentConstraint": 4
+    },
+    "representativeNode": {
+      "nodeId": 456,
+      "class": "AcEqualLengthConstraint",
+      "connections": [427, 433],
+      "classData": "Geometrical { owner_id: 0, is_implied: false, is_active: true }"
+    },
+    "parserProfile": "For the source version-0 layout, after the action list the reader consumes a next-node-ID seed followed by an inline node count; each serialized node then carries class-name text, node ID, connection count/vector, and class-specific data. The node class decoder documents that version-0 geometrical constraints have no serialized active flag."
+  },
+  "previousProjectionConflict": {
+    "libreDwgCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "jsonSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "dxfSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+    "finding": "The prior JSON and DXF projections disagree about the first node's connections. The same-input acadrust runtime decodes an inline node list and concrete connection vectors; do not treat the DXF value 1073741825 as a source connection field."
+  },
+  "interpretation": {
+    "completed": "Same-input independent peer execution reconciles the earlier node-tail profile conflict sufficiently to begin a bounded implementation slice.",
+    "stillOpen": [
+      "Implement and bound the inline framing, string and handle streams in libdxfrw.",
+      "Represent and validate all source-witnessed class-specific fields and connection roles.",
+      "Resolve any remaining source-required associative descendants.",
+      "Serialize the complete reachable graph, remap identities, and verify actual DXF readback and consumer meaning."
+    ],
+    "limitations": [
+      "ODA v5.4.1 does not document this class-specific body layout.",
+      "One independent peer runtime is structural evidence, not authoritative format proof or independent semantic-consumer acceptance.",
+      "The associative writer refusal remains required until complete graph closure and output/readback are proven.",
+      "No DWG/DXF fixture was added to the repository."
+    ]
+  }
+}

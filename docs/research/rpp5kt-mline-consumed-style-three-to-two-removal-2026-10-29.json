@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kt selected 3-to-2 removal from a consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "d727e62a6c4fd61c396c012a3fb6ffbe6ff1bd8a",
+  "evidenceCommit": "d727e62a6c4fd61c396c012a3fb6ffbe6ff1bd8a",
+  "scope": "Generalizes consumed MLINESTYLE removal admission to a nonempty ordered survivor subsequence and qualifies AC1027 three-element-to-two-element removal for each possible deleted tuple. Admission does not qualify every source/target count, native semantics or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the MLINESTYLE element count; group 74 gives the repeated parameter count per vertex; group 41 contains parameter values and group 75/42 the area-fill counts and values."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries each MLINESTYLE element offset."
+    }
+  ],
+  "contract": {
+    "admission": "The runtime-authored AC1027 source has three style tuples: offsets [1.25,-0.75,-1.25], ACI [1,3,4] and linetypes [ByLayer,Continuous,ByLayer]. Two source-bound ordinary MLINEs consume it. Each test removes one tuple, preserving the ordered two-element survivor sequence. Style flags are 2 and start/end angles match. All source dictionaries, style identity/provider joins and both consumer records are bound by the existing source capture and planner.",
+    "geometry": "The consumers are open, uncut, unfilled, three-vertex MLINEs with finite positive scale, center/bottom justification, unit extrusion and source-consistent positions, directions, miters and per-vertex parameters. Projection retains each survivor's source parameter slot and recalculates group 41 against the target minimum. Removing the minimum offset exercises bottom-justification rebasing. Each emitted parameter pair is [value,0], group 42 is absent and group-75 counts are zero.",
+    "identityAndOutput": "All three possible removed positions pass for ASCII/binary input crossed with ASCII/binary output. The output proof checks style group 71=2, exact group-49 offsets, flag and element group-62 colors, group-6 linetypes, and unique ByLayer/Continuous LTYPE provider records and their table ownership. Both MLINEs retain their original redundant group-2 name and point group 340 at the emitted style; group 73=2, group 74 counts, group 41 parameter arrays, group 75 zeros and absent group 42 are checked. Fresh import verifies tuple identity, consumer arrays, vertices, directions, miters, scale, extrusion and justification.",
+    "failureAndRetry": "Changing the style flags to an unsupported value refuses before publication and preserves destination/caller state; correcting the flag allows same-adapter retry. A late consumer-parameter mutation refuses before publication; restoring the caller snapshot allows same-adapter retry. Both failure classes run with ASCII and binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. The source profile is generated locally at runtime and temporary drawings are deleted after a passing run; no test fixture is committed.",
+    "limits": "Only AC1027 source count 3 to target count 2, each deletion position, and the exact open/uncut/unfilled consumer profile are qualified. Other source/target counts, empty-style output, unused-definition edits, other MLINE carriers/schemas/versions, native CAD rendering, document closure and independent 3D semantics remain unqualified. No format-support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "removalAndProjection": "Each of the three source element positions is removed. Output projection is checked against each survivor tuple and the full target minimum, including the target-minimum change when the -1.25 tail element is removed.",
+    "failureAndRetry": "Twelve successful encoding/deletion profiles; sixteen successful readbacks including corrected retries; two invalid-flag refusals and two late-consumer mutation refusals preserve destination/caller state; four same-adapter retries succeed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2"
+      ]
+    },
+    "affectedNormalCohort": {
+      "result": "PASS",
+      "summary": "5/5 consumed-style removal selectors, including the new all-position 3-to-2 profile",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_(style_removal|style_multi_removal|style_three_removal|style_single_from_four_removal|three_to_two_removal)$' --output-on-failure"
+    },
+    "affectedAsanCohort": {
+      "result": "PASS",
+      "summary": "5/5 consumed-style removal selectors, including the new all-position 3-to-2 profile",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_consumed_(style_removal|style_multi_removal|style_three_removal|style_single_from_four_removal|three_to_two_removal)$' --output-on-failure"
+    },
+    "observedNewSelector": "MLINE consumed 3-to-2 removal positions=3; profiles=12; readbacks=16; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "4cfd65f9aeb66bbd038251f125e6e56d6b5715734087b07833f3886685565902",
+    "tests/CMakeLists.txt": "0b4a33369a6e8bde9871dba68e45c2d854f9d1ba13c324617c5d07625868d842",
+    "tests/dxf_fixture_tests.cpp": "67a1d4f72c0e71245556db9728812f381418e49e669184aed95a9724b763717a"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "73369b7219485a6254c5c4f63c7e5a691d1cfbda36577df6754ee1d46514b156",
+    "asanLibdxfrwDxfFixtureTests": "eca1b6778929504065cd6e4a70e3be5e52806cbc3dc64f441a06b0fd755f39f4"
+  },
+  "next": "Select a distinct current refused P2 witness, such as a source-bound composite retained-element edit or non-offset retarget, and identify the precise missing admission/proof layer before implementation. Do not expand the just-qualified 3-to-2 removal to other counts without a distinct source and exact output contract."
+}

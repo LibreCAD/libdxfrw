@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03 standalone DXF 260-269 unknown classification and binary refusal",
+  "mode": "Focused generated ASCII/Binary fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "The shared worktree is broadly dirty. This scoped classifier/test/plan/receipt slice is uncommitted; no files were staged or committed.",
+    "changedFiles": [
+      "src/intern/dxfcode.h",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par03-dxf-260-269-unknown-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": [
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "The published general value-type table does not assign a general type to codes 260-269. The standalone classifier therefore preserves ASCII spelling and does not guess a binary payload width."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "finding": "The numerical reference likewise resumes general assignments at 270-279 without defining a general value type for 260-269. This is not proof that producer-private or object-context uses do not exist."
+    },
+    {
+      "source": "src",
+      "finding": "A targeted source search found no production getBool(26x), typed writeBool(26x), or case 26x dispatch sites requiring a contextual mapping."
+    }
+  ],
+  "implementation": {
+    "change": "Classify 260-269 as Unknown in StandaloneSafe, retain opaque ASCII spelling, refuse binary parsing and typed/raw writes when no known width exists, and keep the historical Boolean interpretation in the explicit LibreCadMasterLegacy profile.",
+    "assertions": [
+      "Classifier boundary tests distinguish 259/260/269/270.",
+      "Standalone ASCII preserves values for codes 260 and 269 as opaque strings.",
+      "Standalone binary reader and writer refuse undocumented 260-269 widths.",
+      "Legacy-profile Boolean widths remain explicitly exercised.",
+      "Malformed typed raw-value variants are refused without bytes being emitted."
+    ],
+    "fixturePolicy": "All controls are generated in memory or temporary output; no persistent DWG/DXF fixture was added."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(wave1|dxf_code_type_boundaries|hardening|dxf_fixtures)$' --output-on-failure",
+        "result": "PASS (4/4)"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue the PAR-03 code/context audit for other assigned, unassigned, and producer-specific uses, then self-unblock to the next dependency-ready local implementation item without waiting on external gates."
+}

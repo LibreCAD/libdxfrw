@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-acds-source-and-consumer-contract-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Deeply reconcile the LibreDWG AcDs/SAB issue report with current upstream source and release history, then cross-check product-level DWG and ACIS acceptance boundaries.",
+  "method": {
+    "kind": "Primary repository source, issue, and product-contract review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableSources": "LibreDWG master and LibreCAD_3 master are mutable; issue #1411 identifies the exact tested LibreDWG source prefix for its reported run. The current source inspection is architectural evidence only, not a runtime reproduction.",
+    "evidenceBoundary": "Source presence and issue reports are not interchangeable: a section decoder entry point does not prove complete DataStorage interpretation, stable SAB-to-owner association, writer support, or geometry semantics."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG AcDs reader completeness versus issue #1411",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Current upstream source has a named R2007+ AcDs section reader and an AcDs schema parser. The parser decodes segment-index and several metadata/index families, but its segment switch leaves `_data_` and `blob01` unhandled; a later path searches the section buffer for ACIS BinaryFile markers and pairs found blobs with a queued 3DSOLID-handle list. The current-source path therefore is not proof of DataIndex-based per-handle resolution or AcDs writing. The NEWS brute-force sentence is under the historical 0.11 (2020) entry, not the current 0.14.1 (2026-07-25) entry. Open issue #1411 reports an AC1032 generated-carrier round trip losing 5,489 SAB bytes in a build at source prefix 8a1ae764; it is a concrete versioned failure report, not a run of current master.",
+      "doesNotEstablish": [
+        "whether a current LibreDWG binary still reproduces issue #1411",
+        "whether the marker-scan/queued-handle route associates multiple or reordered bodies correctly",
+        "complete ACDS schema semantics or exact payload ownership",
+        "DXF writer emission of modern AcDs-backed SAB data",
+        "ACIS B-rep validity"
+      ],
+      "planUse": "State the peer gap precisely: section recognition, metadata parsing, payload extraction, handle association, writer emission, and geometry semantics are separate gates. Do not describe current source as having no AcDs reader, do not cite the 0.11 NEWS note as a 2026 status statement, and do not use marker order as an independent handle-association oracle. At a composed peer checkpoint, pin source and executable, then use locally generated multiple-body controls with data/handle order permutations and inspect emitted carrier plus independent body disposition."
+    },
+    {
+      "topic": "Peer security fixes as adversarial-test design evidence",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "LibreDWG 0.14.1 beta NEWS lists fixes for an R2004 decompression-size under-allocation, an R2007 page-offset underflow, and a 3DSOLID block-size overflow that could bypass the bound and corrupt the heap. These are current peer release notes and useful examples of length-arithmetic and nested-boundary failure classes in this format family.",
+      "doesNotEstablish": [
+        "a corresponding vulnerability in libdxfrw",
+        "that the same source path or arithmetic exists locally",
+        "semantic support or interoperability"
+      ],
+      "planUse": "Keep local adversarial tests attached to existing parser-hardening owners: checked multiply/add, section-relative range, decompression budget, SAT/SAB block bounds, failure cleanup, and following-record sentinel. Treat the peer CVE/fix list as a review checklist, not a claim that local code is affected or a reason to add broad fuzz/full-suite work per slice."
+    },
+    {
+      "topic": "Actual downstream DWG/3D product contracts",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "LibreCAD_3 documents DWG import as opt-in/read-only and says DWG writing is not planned; this is distinct from library capability or generic CAD format matrices. FreeCAD's issue discussion distinguishes explicit DXF primitives from proprietary ACIS blobs, and its DWG implementation converts through an external converter before a selected DXF importer. These are different product routes and acceptance layers.",
+      "doesNotEstablish": [
+        "native Linux/Windows behavior for a particular FreeCAD build",
+        "FreeCAD stock ACIS-solid import",
+        "default availability of LibreCAD_3 DWG import",
+        "independent semantic evidence for libdxfrw"
+      ],
+      "planUse": "Keep compatibility tests explicit about source/API compatibility, optional versus default product wiring, operation and direction, converter/intermediate DXF/importer identity, and final document semantics. Retain FreeCAD as the named explicit-geometry consumer lane; do not use it as the stock ACIS oracle or infer DWG writing in LibreCAD_3."
+    }
+  ],
+  "implementationReadinessDelta": {
+    "existingOwnersOnly": true,
+    "refineExistingOwners": [
+      "PAR-07 / S8.1-S8.5 AcDs carrier extraction, owner association, and output disposition",
+      "7AG / peer-source freshness and operation-specific comparator admission",
+      "existing DWG parser bounds and malformed-input hardening tests",
+      "LibreCAD_3 and FreeCAD downstream product-route qualifications"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "fixturePolicy": "No downloads or checked-in fixtures. Optional peer carrier controls must be authored locally from scratch and remain under disposable temporary storage.",
+    "validation": {
+      "planUpdated": true,
+      "receiptJsonParsed": true,
+      "researchChangedCode": false,
+      "peerRuntime": "NOT RUN",
+      "nativeQualification": "NOT RUN",
+      "externalFilesDownloaded": 0,
+      "fixturesAdded": 0,
+      "dependenciesAdded": 0
+    }
+  }
+}

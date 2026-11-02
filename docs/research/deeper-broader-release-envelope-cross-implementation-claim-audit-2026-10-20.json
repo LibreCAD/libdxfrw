@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Release envelope and cross-implementation claim audit",
+  "mode": "Primary-source documentation and issue-status review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Confirm the current AutoCAD product-release to DWG file-version mapping.",
+    "Separate peer format/version matrices from direction-specific entity, object, graph, writer, and consumer evidence.",
+    "Reconcile current LibreDWG, ACadSharp, and ezdxf public evidence with existing local plan owners without promoting peer issue reports into local defects.",
+    "Refine the existing fast implementation and composed-comparison procedure without adding dependencies, fixtures, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DWG format/version mapping",
+      "urls": [
+        "https://help.autodesk.com/view/ACADWEB/ENU/?caas=caas%2Fsfdcarticles%2Fsfdcarticles%2FAutoCAD-drawing-file-format.html",
+        "https://help.autodesk.com/view/ACADWEB/ENU/?caas=caas%2Fsfdcarticles%2Fsfdcarticles%2Fdrawing-version-codes-for-autocad.html"
+      ],
+      "revision": "Official compatibility article dated 2026-05-27 and DWG version-code page accessed 2026-10-20.",
+      "observed": "The current compatibility table lists AutoCAD 2018 through AutoCAD 2027 as using the AutoCAD 2018 native drawing format. Autodesk's code table maps AutoCAD 2018/2019/2020/2021/2022/2023/2024 to AC1032; the current product table extends the same release family through 2027.",
+      "limits": "This maps product releases to the container/file-version code only. It does not establish identical object semantics across producers or support for any named entity/object profile."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/README",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/tree/master/test/xmlsuite"
+      ],
+      "revision": "Mutable master README/manual/NEWS and test-tree overview reviewed 2026-10-20; no commit or executable was pinned.",
+      "observed": "README names direction-specific tool coverage and says dwgrewrite re-reads output for confirmation; NEWS labels the 0.14.1 (2026-07-25) entry beta and announces newly added AC1018/R2004 DWG writing; the manual makes broad version coverage statements; README points to test/xmlsuite feature comparisons.",
+      "limits": "Project documentation and self-tests do not provide a normalized per-feature external success rate. Same-project readback is a consistency test, not independent consumer acceptance. Mutable source was not built or run."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "revision": "Mutable version matrix and issue statuses reviewed 2026-10-20. The issue page describes ACadSharp 3.6.35 for #1172, 3.4.9 for #1195, and 3.8.0/master-era source for several newer reports.",
+      "observed": "The public version matrix advertises DWG/DXF routes through AC1032. Open issue reports describe AC1032 INSERT loss, DXF 3DSOLID/REGION omission, a VERTEX subtype edge, repeated-record stack growth, an EED size-narrowing case, and whole-file AC1032 MTEXT rejection.",
+      "limits": "Issues are peer-reported at different versions and with different reproduction quality/root-cause confidence. The findings are already mapped to local parser, graph, carrier, writer, and acceptance owners; none is by itself a libdxfrw defect or a normative DWG/DXF rule. No peer sample was downloaded and no runtime was used."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable README and XREF documentation reviewed 2026-10-20.",
+      "observed": "The README documents ASCII/Binary DXF version support, while XREF documentation explicitly narrows its import module to copyable/transformable basic entities and excludes ACAD_TABLE and preserved unknown/proxy records.",
+      "limits": "Documentation defines route scope, not a runtime comparison. ezdxf was not installed or executed."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: normalize external evidence by exact artifact, operation direction, file version, entity/object profile, source identity, graph closure, and consumer; distinguish self-readback from independent validation.",
+      "PAR-06/PAR-49: use explicit per-source identity disposition across decode, callback/model, writer, and reopened output; counts and successful exits are not sufficient.",
+      "Version matrix: AC1032 remains the current AutoCAD format through 2027; record product release separately and do not invent a new container parser branch.",
+      "PAR-14/PAR-19/PAR-20/PAR-126 and existing ACIS gates: route peer issue reports to existing local owners before considering new findings or tests."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added Autodesk's current AutoCAD 2018-2027 to AC1032 release mapping and clarified that product release and record semantics remain separate evidence axes.",
+    "Compared LibreDWG README/NEWS/manual/test-method descriptions and refined optional peer admission to require exact operation direction, profile, artifact, and evidence class.",
+    "Reconciled ACadSharp's public AC1032 support matrix and current issue reports with existing local owners; no duplicate tests, findings, or code changes were justified.",
+    "Added an implementation-ready per-source disposition and bounded external-check procedure while preserving fast local validation, fixture policy, self-unblocking, and external deferred states."
+  ],
+  "limitations": [
+    "Mutable project documentation was not pinned to immutable source commits unless the source itself names a release.",
+    "Peer issue descriptions are reports, not verified local behavior or normative format specifications.",
+    "No external DWG/DXF sample was downloaded or committed; no peer or native-CAD program was run.",
+    "No new issue was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan; receipt trailing-whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

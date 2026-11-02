@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "HATCH and MPOLYGON peer, consumer, and field-semantics refresh",
+  "mode": "deeper and broader research; plan refinement",
+  "scope": [
+    "Cross-check per-path DWG HATCH reference ownership against ODA and independent reader/model implementations",
+    "Clarify Autodesk HATCH versus MPOLYGON group-71 field semantics",
+    "Reconcile ezdxf association limits and FreeCAD's documented converter/importer boundary",
+    "Refine PAR-140 / 7N.4 implementation readiness without promoting support claims"
+  ],
+  "sources": [
+    {
+      "name": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": "Sections 20.4.75 and 2.13 specify per-path BL group-97 counts, the flattened post-common-entity H handle list, and absolute/relative soft-pointer encodings.",
+      "limit": "Normative for DWG byte layout; does not establish target existence or consumer recompute behavior."
+    },
+    {
+      "name": "Autodesk HATCH Boundary Path Data",
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "observed": "DXF group 97 counts source boundary objects in each path and repeated group 330 values reference those objects.",
+      "limit": "DXF documentation; does not validate that handles resolve or that a CAD application maintains associativity."
+    },
+    {
+      "name": "Autodesk AutoCAD 2014 DXF reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2014_pdf_dxf_reference_enu.pdf",
+      "observed": "The shared HATCH/MPOLYGON field table assigns group 71 to associativity for HATCH but solid-fill for MPOLYGON; the common path data still includes group 97 and group 330 references.",
+      "limit": "Versioned DXF reference; local tests still need to verify the exact supported writer behavior."
+    },
+    {
+      "name": "LibreDWG public HATCH model and NEWS",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/refman/dwg_8h_source.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The public Dwg_HATCH_Path model has per-path count/list fields. The 0.14 release history records an associative-HATCH handle-index reset-per-path bug fix, plus path-derived-state and rational spline-weight fixes.",
+      "limit": "Independent model and implementation history only; not normative authority, a local reproduction, or current executable qualification. NEWS master is mutable."
+    },
+    {
+      "name": "ACadSharp DWG object-reader source snapshot",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "observed": "The reader consumes each boundary-object BL count inside the path loop and appends the following soft-pointer handles to that path template before publishing it.",
+      "limit": "Source inspection only; mutable branch and no ACadSharp executable or package was run."
+    },
+    {
+      "name": "ezdxf associative HATCH tutorial and HATCH reference",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/hatch.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/hatch.html"
+      ],
+      "observed": "ezdxf stores source boundary handle lists but explicitly does not maintain or validate the association against boundary geometry.",
+      "limit": "Independent DXF model/library guidance, not a native CAD engine or DWG authority."
+    },
+    {
+      "name": "FreeCAD published Draft DXF and DWG route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "The archived documentation baseline distinguishes C++ and legacy Python DXF importers, does not list HATCH/MPOLYGON in its explicit importer entity inventories, states that embedded ACIS/SAT solids cannot be read by stock DXF import, and documents DWG conversion through an external converter before DXF import.",
+      "limit": "Published capability baseline, not runtime evidence for an arbitrary build/backend. Entity-list omission is not proof of rejection; exact consumer claims require a pinned runtime test."
+    }
+  ],
+  "localAudit": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/hatch_reference_tests.cpp"
+    ],
+    "observed": [
+      "The local neutral model and DXF fields retain per-path references, but the DWG reader and writer previously discarded them; this was already inventoried as PAR-140/7N.4.",
+      "MPOLYGON uses shared boundary references but its DXF group-71 semantic is solid-fill rather than HATCH associativity.",
+      "The generated PAR-140 ASCII/Binary roundtrip exposed that writeMPolygon lacked the reference resolver/remapper used by HATCH; the writer path has been aligned and is covered by actual target-handle assertions.",
+      "Stock FreeCAD documentation is not a positive consumer source for HATCH, MPOLYGON association, or ACIS/AcDs semantics."
+    ]
+  },
+  "findings": {
+    "newLocalFinding": false,
+    "newTopLevelSubplan": false,
+    "existingFindingRefined": "PAR-140 / 7N.4",
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationReadiness": {
+    "localSlice": "PAR-140/7N.4 generated fast codec slice implemented; follow the separate progress receipt for exact changed files and validation.",
+    "remainingComposition": "Keep graph-closure failure behavior, geometric path agreement, and native associative edit/recompute as separate gates.",
+    "mpolygon": "Assert group-97/330 path references separately from group-71 solid-fill; do not treat group 71 as HATCH associativity.",
+    "freecad": "Pinned converter-to-DXF-to-selected-importer route only; HATCH/MPOLYGON consumption is runtime-pending and stock ACIS/3D solid consumption is unsupported by the published baseline.",
+    "fixturePolicy": "No external drawing downloaded or committed. Generated controls are temporary and removed.",
+    "validationCadence": "One strict focused target build, selector, and owning CTest per local slice; full suites remain scheduled composed checkpoints."
+  },
+  "validation": {
+    "planChanged": true,
+    "implementationCodeChangedByResearch": false,
+    "testsRunForResearchOnly": false,
+    "peerRepositoryClonedOrBuilt": false,
+    "peerExecutableRun": false,
+    "nativeApplicationRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimChanged": false
+  }
+}

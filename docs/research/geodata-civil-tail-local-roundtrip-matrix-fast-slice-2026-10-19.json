@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "GeoData CIVIL-tail local round-trip matrix target correction",
+  "mode": "Generated local test-only fast slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve the pending GeoData custom-class instance observed in the local DWG round-trip matrix.",
+    "Align generated GeoData writer inputs and readback expectations with the already implemented target-version CIVIL-tail predicate.",
+    "Run the strict owning target build and its local executable without invoking the full project test suite."
+  ],
+  "rootCause": {
+    "classification": "test-harness input/version mismatch; no production codec defect demonstrated",
+    "detail": "The LocalDwgInterface generated GeoData controls populated DRW_GeoCivilTail fields for all target versions and expected parsed tail presence through AC1027. The production encoder correctly refuses unrepresented tail data on versions without the CIVIL tail. Because the class instance handles were pre-registered, that intentional refusal left the generated test file with pending advertised class instances and caused the final class-count gate to reject it.",
+    "tailTargetVersions": [
+      "AC1021",
+      "AC1024"
+    ],
+    "noTailTargetVersions": [
+      "AC1015",
+      "AC1018",
+      "AC1027",
+      "AC1032"
+    ]
+  },
+  "changes": [
+    {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "detail": "Populate both version-1 and version-2 CIVIL-tail fields only for AC1021/AC1024, and require parsed CIVIL-tail presence only for that exact version pair."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Record the root cause, focused verification, and unchanged writer refusal/support boundary."
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip",
+        "result": "PASS",
+        "notes": "The executable also reported its Modeler DXF matrix/census/codec/failure controls and HATCH reference/admission/adapter/publication/same-data controls as passing. Expected malformed-DXF diagnostics are emitted by negative test cases."
+      }
+    ],
+    "ctestRun": false,
+    "fullProjectSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "planImpact": {
+    "productionBehaviorChanged": false,
+    "writerRefusalRelaxed": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportPromotions": 0,
+    "findingSubplanTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "externalOnlyItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false
+  },
+  "repositoryState": "Plan, receipt, and test edit are uncommitted in a broadly modified shared worktree. Git metadata is read-only in this task environment."
+}

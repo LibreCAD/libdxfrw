@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "kind": "research-only-plan-update",
+  "date": "2026-10-19",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Freshness and route-specific cross-check of peer failure reports against existing local owners; no code, build, test, fixture, dependency, or external execution.",
+  "sources": [
+    "https://github.com/DomCR/ACadSharp/issues/1279",
+    "https://github.com/DomCR/ACadSharp/issues/1280",
+    "https://github.com/DomCR/ACadSharp/issues/1281",
+    "https://github.com/DomCR/ACadSharp/issues/1282",
+    "https://github.com/DomCR/ACadSharp/issues/1195",
+    "https://github.com/DomCR/ACadSharp/pull/1240",
+    "https://github.com/DomCR/ACadSharp/issues/1259",
+    "https://github.com/DomCR/ACadSharp/pull/1260",
+    "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+    "https://github.com/LibreDWG/libredwg/issues/1355",
+    "https://github.com/LibreDWG/libredwg/issues/1413",
+    "https://github.com/mozman/ezdxf/issues/1412",
+    "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+  ],
+  "local_crosswalk": [
+    {
+      "peer": "ACadSharp #1282",
+      "peer_mechanism": "Per-APPID EED byte length narrowed to signed 16-bit short; reported 32768-byte input wraps and loses the entity on peer readback.",
+      "local_owner": "DRW_Entity::encodeDwgEed; tests/dwg_object_vectors_tests.cpp::testDwgEedSizeBoundaries",
+      "local_evidence_already_present": "Unsigned 16-bit chunk boundaries at 32767, 32768, 65535, and 65536 encoded bytes; split at item boundaries; following-field sentinel; atomic refusal/retry for an indivisible oversized item.",
+      "disposition": "No local finding; do not copy peer threshold as a format cap."
+    },
+    {
+      "peer": "ACadSharp #1280",
+      "peer_mechanism": "Current-culture lowercasing can corrupt ANSI_1254 lookup under Turkish/Azeri locales.",
+      "local_owner": "src/intern/drw_textcodec.cpp::codePageNameEquals; tests/gbk_codepage_tests.cpp::testTurkishCodePageRoundTrip",
+      "disposition": "Existing ASCII-invariant resolution and locale control cover the mechanism; no new test."
+    },
+    {
+      "peer": "ACadSharp #1281",
+      "peer_mechanism": "Recursive advancement for comments, repeated XDATA APPID groups, and repeated IMAGE/WIPEOUT clip groups.",
+      "local_owner": "Existing iterative DXF parser and hardening selector testRepeatedDxfRecordRobustness",
+      "disposition": "Existing 20000-record generated controls; no repeated stress run."
+    },
+    {
+      "peer": "ACadSharp #1279",
+      "peer_mechanism": "A 2D POLYLINE child with AcDbVertex but omitted AcDb2dVertex leaves a placeholder and crashes the peer document builder.",
+      "local_owner": "tests/dxf_fixture_tests.cpp classic POLYLINE/VERTEX subtype and parent-role controls",
+      "disposition": "Existing targeted recovery controls; do not generalize to mesh/polyface child roles."
+    },
+    {
+      "peer": "ACadSharp #1195 / PR #1240",
+      "peer_mechanism": "Reported silent 3DSOLID/REGION omission from DXF output; proposed serializer PR remains open and undeployed, with an ACIS storage refactor dependency.",
+      "local_owner": "DRW_ModelerGeometry callback, DXF modeler writer matrix, block/modeler census, strict disposition gates",
+      "disposition": "Carrier coverage remains separate from kernel/native semantic support; no peer capability promotion."
+    },
+    {
+      "peer": "LibreDWG #1355 / #1413",
+      "peer_mechanism": "Successful command can produce incomplete DXF; OBJECTS root selection can confuse lowest-handle dictionary with NOD.",
+      "local_owner": "tests/run_dwg_read_test.cmake terminal group-0 EOF assertion; generated NOD identity and ordering checks",
+      "disposition": "Existing distinct gates; no writer or harness change."
+    },
+    {
+      "peer": "ezdxf #1412",
+      "peer_mechanism": "Binary DXF proxy-graphic output failure with ASCII output working.",
+      "local_owner": "Existing proxy-graphic ASCII/Binary exact-byte, provenance, and publication tests",
+      "disposition": "Route-specific peer lead; no general binary-DXF conclusion or routine dependency."
+    }
+  ],
+  "plan_delta": {
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "finding_count_after": 137,
+    "top_level_subplan_count_after": 77,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claim_promoted": false
+  },
+  "verification": {
+    "local_source_test_inventory_only": true,
+    "build_run": false,
+    "test_run": false,
+    "peer_executable_run": false,
+    "native_cad_run": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "commit_attempted": false
+  }
+}

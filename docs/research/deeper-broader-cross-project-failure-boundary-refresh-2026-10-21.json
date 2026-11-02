@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Cross-project failure-boundary refresh and fast-gate refinement",
+  "mode": "deeper/broader primary-source research and plan update",
+  "scope": [
+    "Refresh recent LibreDWG and ACadSharp failure reports for converter completeness, per-object preservation, resource safety, and writer/native acceptance risks",
+    "Reconcile issue state with reporter comments and currently visible release/source identity",
+    "Map peer-only risks to existing PAR-06, PAR-07/S8, PAR-14, and PAR-20 owners without creating duplicate findings",
+    "Refine the plan into a bounded, self-unblocking local audit and fast-test sequence",
+    "Reconcile a stale PAR-134 findings-table next action against its already-recorded AC1024 generated-test progress"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issue #1357",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1357",
+      "status": "issue_page_open_reporter_verified_mutable_master_2026-08-11",
+      "observation": "The reporter states the owned-entity continuation problem was verified fixed on master commit 56a05f98 and reports modelspace counts matching ODA File Converter 25.6 for three AC1021 drawings. The reporter attributes the outcome as likely related to intervening R2007 decode fixes. This does not bind a release artifact or isolate the iterator as the only cause."
+    },
+    {
+      "project": "LibreDWG issue #1355",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1355",
+      "status": "open_peer_report_reviewed_2026-10-21",
+      "observation": "The issue reports an AC1032 DWG-to-DXF conversion that writes a truncated TABLES section with no ENTITIES or EOF while the CLI exits with status 0. The report includes a sample attachment and a comparison with ODA File Converter 25.6; the attachment was not downloaded or run."
+    },
+    {
+      "project": "ACadSharp issue board and issue #1172",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1172"
+      ],
+      "status": "current_issue_board_and_open_peer_report_reviewed_2026-10-21",
+      "observation": "The board lists a report of AC1032 INSERTs missing after a successful read/write route, including lost nested title-block content. Issue details identify AC1032 inputs and compare source versus read-back entity and INSERT counts. This is not locally reproduced and is not evidence about libdxfrw."
+    },
+    {
+      "project": "ACadSharp issue #1195",
+      "reference": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "status": "open_peer_report_reviewed_2026-10-21",
+      "observation": "The report says its DWG reader exposes 3DSOLID/REGION objects but its DXF writer omits them, including records inside solid-only block definitions. The customer drawings were not downloaded. This remains a peer-reported writer failure shape; local modeler identity and nested-owner checks already belong to PAR-07/S8."
+    },
+    {
+      "project": "ACadSharp issues #1281 and #1282",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "status": "open_peer_reports_reviewed_2026-10-21",
+      "observation": "#1281 reports stack exhaustion from recursive parsing of repeated comments, XDATA application blocks, or clip groups. #1282 reports a 16-bit per-application XDATA length overflow at 32768 bytes that can make a read-back object disappear. These are comparator-specific reports and only prompt a same-path local source audit."
+    },
+    {
+      "project": "ACadSharp issue #1297 and release page",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "status": "unresolved_peer_report_and_artifact_mismatch_reviewed_2026-10-21",
+      "observation": "#1297 reports AutoCAD 2025 refusing an AC1032 DWG containing frame-only MTEXT, but the author does not isolate the cause and reports other DWG object-family differences. The visible releases page lists v3.7.1 while the issue names later master versions; do not combine release and branch results or infer an MTEXT wire rule."
+    },
+    {
+      "project": "LibreDWG issue #1180 and repository README",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1180",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "status": "completed_peer_fuzzing_report_and_current_operation_inventory_reviewed_2026-10-21",
+      "observation": "#1180 documents a reported R2004 decompressor heap-buffer overflow that was closed after fixes. LibreDWG's README describes distinct tool operations and version ceilings; project-wide coverage percentages are not a common denominator or writer/reader qualification."
+    },
+    {
+      "project": "FreeCAD Draft DXF guide",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "current_consumer_documentation_reviewed_2026-10-21",
+      "observation": "The guide describes distinct built-in C++ and legacy Python DXF importers, says embedded ACIS/SAT solids cannot currently be read by stock FreeCAD, and describes DWG conversion to DXF before importer processing. This supports the existing explicitly bounded consumer profile rather than ACIS semantic qualification."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "status": "normative_authority_preserved",
+      "observation": "ODA v5.4.1 remains authoritative for DWG byte-layout changes. Peer issue reports do not replace its relevant sections or empirical local sample traces."
+    }
+  ],
+  "planImpact": {
+    "existingOwners": [
+      "PAR-06 parser and record-hardening policy",
+      "PAR-07/S8 per-source disposition and composed consumer qualification",
+      "PAR-14/PAR-49 strict output finalization, process result, and publication integrity",
+      "PAR-20 XDATA serialization and extension graph integrity"
+    ],
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingsAndTopLevelPlanCounts": "unchanged (143 / 78)",
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Updates the status of LibreDWG #1357 as a peer report whose author verified current mutable master while the issue page remains open; retains #1355 as an open truncated-output/zero-exit report. Adds recent ACadSharp peer risk shapes for silent INSERT/modeler omission, recursive stack exhaustion, XDATA width overflow, and unresolved AC1032 MTEXT native acceptance. These are mapped to existing owners and do not establish local defects. Also removes the stale PAR-134 AC1024 detached-string test action because the existing generated progress entry already covers valid framing, truncation, reserved-BS/RC negatives, and sentinel preservation.",
+    "nextImplementation": "At each relevant local slice, first inspect the same dispatch/serializer path, count/length widths, recursion, existing generated selectors, structural terminators, and per-source disposition. If there is no matching local path or coverage already proves the invariant, record NOT_APPLICABLE_LOCAL_PATH or ALREADY_COVERED and self-unblock. Only a locally reproduced same-route defect adds a finding and generated fast control. Keep exit status, complete structure, per-source owner/content closure, and native consumer acceptance as separate result fields.",
+    "validationCadence": "No change: run the owning warning-clean target, focused selector, and existing CTest only for a local code change; no routine full-suite or peer campaign.",
+    "fixturePolicy": "No external peer attachments or drawings added; local generated controls only if a local gap is established.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cross-project-failure-boundary-refresh-2026-10-21.json"
+    ],
+    "limitations": "GitHub issue bodies are peer-authored reports, mutable issue/release pages can disagree on branch freshness, and no peer build/runtime, native CAD application, or attachment was used. No same-route libdxfrw defect was established in this research-only update."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

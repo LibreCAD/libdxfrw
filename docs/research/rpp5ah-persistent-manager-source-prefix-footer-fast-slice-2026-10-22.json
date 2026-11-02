@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ah",
+  "date": "2026-10-22",
+  "state": "implemented_uncommitted",
+  "baselineHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Source-backed persistent-manager partial-prefix retention and exclusion of the common string-presence bit from scalar reads",
+  "authority": {
+    "commonObjectBoundary": "ODA Open Design Specification v5.4.1 section 20.1; page 104 visually reviewed",
+    "specificationSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "bodySchemaCeiling": "The common-object chapter does not establish a full persistent-manager body schema. The abbreviated source profile is retained as Partial, never promoted to complete typed semantics."
+  },
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "dwg": "samples/sample_AC1021.dwg",
+    "dwgSha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+    "pairedDxf": "samples/sample_AC1021_ascii.dxf",
+    "pairedDxfSha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+    "record": "ACDBPERSSUBENTMANAGER",
+    "class": "AcDbPersSubentManager",
+    "handle": "D63",
+    "observedFileLocalType": 549,
+    "typeIsNotGlobalConstant": true,
+    "bodyStartBit": 87,
+    "scalarEndBit": 151,
+    "objectDataEndBit": 152,
+    "scalars": [2, 0, 2, 4, 0, 2, 3, 4],
+    "ownerAndReactor": "C",
+    "artifactUse": "Read in place; no external drawing copied or committed"
+  },
+  "implementation": {
+    "boundaryFix": "The absent string-presence footer bit is excluded from the manager body BL read limit. A one-bit count cannot borrow that bit to become BL0.",
+    "partialProfile": "Only AC1021, class version 2, unknown scalars 0/2, zero association-subentity count, no strings, and an exact end-of-body cursor after the declared step vector.",
+    "retention": "Preserve observed class fields, step IDs and validated common owner/reactor handles; keep the undecoded final vector count absent rather than inferred.",
+    "prefixStatus": "Partial; decodedCountValue -1; exact start/bit span and explicit source assumption",
+    "rawDisposition": "Exact frame/class metadata retained; m_typedPayloadValidated remains false; frame publication carrier is Raw, not TypedAndRaw",
+    "otherProfiles": "Longer explicit count/vector path remains; malformed/truncated counts, nonzero association-subentity declarations, wrong class prefixes, and later-version abbreviated profiles still fail",
+    "publicLayoutGrowth": false,
+    "newPureVirtuals": false
+  },
+  "validation": {
+    "redBeforeFix": "Generated abbreviated-profile case failed; a generated one-bit count incorrectly succeeded by consuming the common footer",
+    "generatedDirectCases": 16,
+    "generatedDispatchCases": 12,
+    "syntheticClassOrdinals": [601, 667],
+    "crcValidGeneratedDispatchFrames": 24,
+    "directCoverage": ["exact source footer", "explicit zero count", "explicit nonempty scalar vector", "wrong class version/prefix", "wrong DWG version", "nonzero declared subentities", "truncated steps", "negative/oversized counts", "one-bit footer borrowing"],
+    "dispatchCoverage": "Typed diagnostic prefix versus raw carrier, false payload-validation flag, exact bytes and class metadata, failed records remaining failed, unique publication and following-sentinel delivery",
+    "strictTargets": ["dwg2dxf", "libdxfrw_dwg_object_vectors_tests", "libdxfrw_dwg_reader_matrix_tests", "libdxfrw_dwg2dxf_adapter_tests", "libdxfrw_dwg_local_roundtrip", "lc3_compat_check"],
+    "focusedCohort": {
+      "passed": 7,
+      "failed": 0,
+      "seconds": 1.62,
+      "tests": [
+        "libdxfrw_table_content_dwg_object_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_persistent_manager_exact_footer",
+        "dwg2dxf_associative_callback_contract",
+        "dwg2dxf_associative_strict_loss_gate",
+        "libdxfrw_persistent_manager_prefix_dispatch",
+        "dwg_associative_failed_frame_retention"
+      ]
+    },
+    "pinnedSourcePrefixProbe": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-source-prefix /Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "exit": 0,
+      "resultSha256": "7adfd1b419b75e685a86f90a7bcde3c80f00937217d48cf21a22231ddd88f2d3",
+      "resultPath": "/tmp/libdxfrw-perssubent-final.fc5M3W/source-prefix.log",
+      "result": "Actual D63 callback has Partial prefix, count -1, owner/reactor C and steps [3,4]; raw payload is not validated and publication carrier is Raw. Probe forwards callbacks to the normal adapter."
+    },
+    "sourceCli": {
+      "objectParseFailuresBefore": 1,
+      "objectParseFailuresAfter": 0,
+      "entityParseFailures": 0,
+      "classesCrcMismatch": 0,
+      "reader21Ac1021CrcMismatch": 29,
+      "exit": 1,
+      "destinationPublished": false,
+      "exportRefusal": "GROUP callback capture or ACAD_GROUP name resolution incomplete",
+      "traceSha256": "0f3eb166b8fb57ad08ee7e43d2be1825178ca453fa44c7c938ea37ec98985f5e",
+      "tracePath": "/tmp/libdxfrw-perssubent-final.fc5M3W/trace.log",
+      "evidenceCeiling": "No typed-body, whole-drawing conversion, semantic completeness, native acceptance or support claim follows from zero parse-failure counters or complete outer-frame coverage."
+    },
+    "postConfigureFocusedTests": {"passed": 2, "failed": 0, "seconds": 0.03, "timeoutSeconds": 15},
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeConsumersRun": false
+  },
+  "persistentDrawingFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Resolve DWG GROUP identity through the complete ACAD_GROUP dictionary without confusing its body string with a dictionary key; retain strict integrity/opaque semantic gates. Continue native TABLE graph writing independently.",
+  "worktree": "Uncommitted and unstaged; existing overlapping changes preserved"
+}

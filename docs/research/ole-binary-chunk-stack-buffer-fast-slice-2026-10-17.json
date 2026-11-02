@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-ole-binary-chunk-stack-buffer-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.42",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / OLE_GROUP_310_STACK_BUFFER",
+  "objective": "Avoid per-chunk heap-string allocation in OLE2FRAME and OLEFRAME DXF payload emission.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/ole-binary-chunk-stack-buffer-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "OLE2FRAME and OLEFRAME encode each at-most-127-byte group-310 payload segment into a fixed 254-character stack buffer.",
+      "Each writer call receives a string_view limited to the populated uppercase-hex range and remains synchronous.",
+      "Chunk boundaries, field order, the trailing OLE marker, payload ownership, and sticky writer error state are unchanged."
+    ],
+    "compatibility": "Internal writer implementation only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-ole-binary-chunk-stack-buffer",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated AC1024 ASCII/Binary controls cover OLE2FRAME and OLEFRAME with deterministic 300-byte payloads and verify exact 127/127/46-byte decoded chunk boundaries.",
+    "Controls also assert declared payload length, OLE trailer, unchanged caller payload, and a following-record sentinel."
+  ],
+  "limits": [
+    "Source-level allocation avoidance is established by fixed stack buffers and the synchronous writer call; allocator counts, peak RSS, and throughput were not measured.",
+    "No full suite, peer runtime, native CAD application, external drawing, or sanitizer/fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue auditing independent writer paths; consider consolidating bounded hex emission only if doing so preserves each caller's current error and output-order semantics.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

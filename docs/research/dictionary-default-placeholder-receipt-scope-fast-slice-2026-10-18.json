@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.implementation-slice-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Scope-aware PLACEHOLDER raw import receipt validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Validate ACDBPLACEHOLDER group-102 reactor scope and distinguish scoped code-330 from final owner code-330",
+    "Reject malformed or ambiguous raw PLACEHOLDER records in the successful WDFLT import receipt",
+    "Keep output graph preflight fail-closed for reactor-bearing PLACEHOLDER objects"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "control": "dictionaryWithDefaultAdapterRoundTrip",
+    "acceptedGeneratedControl": "One balanced ACAD_REACTORS scope with one nonzero code-330 target, followed by one final owner matching the parsed parent handle",
+    "rejectedGeneratedControls": [
+      "unterminated ACAD_REACTORS scope",
+      "out-of-scope code-330 reference mistaken for a reactor",
+      "duplicate owner",
+      "missing trailing owner"
+    ],
+    "safetyBoundary": "Receipt grammar validation does not enable reactor graph admission or output; typed and raw graph preflight still fail closed for reactor-bearing PLACEHOLDER records.",
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "result": "PASS (2/2; 0.32 s)"
+    },
+    "diffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeCadRun": false
+  },
+  "supportDisposition": {
+    "claimsPromoted": false,
+    "planFindings": 133,
+    "topLevelSubplans": 76,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "source_sha256": {
+    "dwg2dxf/dx_iface.cpp": "2c50fd82564eeb0a3787607fcaa42d8141a71e884536187b1b3ece59659c51c3",
+    "tests/dwg2dxf_adapter_tests.cpp": "43ef7db17c92a1a90e4a8861e941932c308839453abdb69137143ea521dd00bf"
+  },
+  "workspaceNote": "Generated test controls validate local import-receipt structure only. No real DWG-origin PLACEHOLDER witness, external fixture, native CAD result, or reactor emission support is established. The slice is uncommitted amid existing broad worktree changes."
+}

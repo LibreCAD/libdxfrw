@@ -1,0 +1,140 @@
+{
+  "schema": "libdxfrw-deeper-acad-table-version-peer-and-local-trace-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden existing 7G.3d research across the TABLE DXF contract, current peer implementation limits, and a locally available AC1021 table-bearing DWG diagnostic trace; make parser and writer readiness separable without promoting support claims.",
+  "method": {
+    "kind": "Official Autodesk references, ODA specification §§20.4.96–20.4.101, primary peer source/docs and merged change history, read-only local source audit, and one existing local DWG smoke trace",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table.html",
+      "https://github.com/DomCR/ACadSharp/pull/1040",
+      "https://github.com/DomCR/ACadSharp/commit/76d062b",
+      "https://github.com/DomCR/ACadSharp/issues/1000",
+      "https://github.com/DomCR/ACadSharp/discussions/900",
+      "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+      "https://manpages.debian.org/testing/python3-ezdxf/ezdxf.1.en.html",
+      "https://ezdxf.readthedocs.io/en/stable/addons/tablepainter.html",
+      "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg"
+    ],
+    "repositoryOrPeerBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localDiagnosticRun": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg -o /private/tmp/libdxfrw-acadtable-impl.SpcnuS/metric.dxf -v2010 -y -d",
+    "localInputIdentity": {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "magic": "AC1021",
+      "repositoryFixture": false
+    },
+    "fixtureOrDependencyAdded": false,
+    "sourcePinning": "ACadSharp PR #1040 is pinned to merged commit 76d062b for this history observation. LibreDWG and ezdxf documentation URLs are mutable/current; no exact binary was run. Any future peer execution must bind an exact release/source, build options, input hashes and route.",
+    "evidenceRule": "Autodesk DXF documentation defines published DXF fields and Autodesk API inheritance; ODA v5.4.1 governs DWG layout. Peer code, issue reports, project maturity labels and local diagnostic traces do not by themselves prove complete semantics or native acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "TABLE as native semantics plus display-block projection",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table.html"
+      ],
+      "observed": "ACAD_TABLE derives from BlockReference and uses an anonymous *T block for displayed geometry. TABLESTYLE, owner, FIELD, block-cell, block-attribute, virtual-edge and repeated cell-value fields are separate obligations. For FIELD-backed text, Autodesk says the FIELD id is saved and text groups are ignored.",
+      "doesNotEstablish": [
+        "that the local typed model represents all cell content variants",
+        "that *T geometry reconstructs native/editable table semantics",
+        "that a writer/readback is accepted by a native CAD application"
+      ],
+      "planUse": "Keep semantic cells, *T display projection, owner/style/cell-reference closure and native edit/render acceptance as separate evidence rows. Do not substitute static cell text for a FIELD or emit duplicate visible representations."
+    },
+    {
+      "topic": "ACadSharp merged DWG TABLE writer/read work",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1040",
+        "https://github.com/DomCR/ACadSharp/commit/76d062b",
+        "https://github.com/DomCR/ACadSharp/issues/1000"
+      ],
+      "observed": "PR #1040 merged on 2026-05-02 as commit 76d062b and adds/refactors TABLE entity DWG read/write support, including cell styles and references. Its recorded commit 2bb057e changes the linked-content flag to zero and skips linked-data details. The earlier maintainer statement that reads were partial in discussion #900 predates this merge and is not a current-master status claim by itself.",
+      "doesNotEstablish": [
+        "complete R21 linked-content behavior",
+        "correctness across all table/cell variants and DWG versions",
+        "native application acceptance or independent semantic correctness"
+      ],
+      "planUse": "Treat this as a useful feature/edge inventory. Pin a current package before optional runs and report skipped linked data and notifications explicitly; do not copy its disabled route as a format rule."
+    },
+    {
+      "topic": "LibreDWG TABLE version/maturity boundary",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html"
+      ],
+      "observed": "The manual lists TABLE as working only pre-R2010, TABLECONTENT as unstable/undertested and TABLESTYLE as version-limited. The manual also documents class-level no-test and partial dispositions.",
+      "doesNotEstablish": [
+        "a peer runtime result for any exact sample",
+        "a normative DWG schema",
+        "complete coverage based on aggregate conversion statistics"
+      ],
+      "planUse": "Use LibreDWG only as a version/class-scoped comparator, not as a blanket TABLE oracle."
+    },
+    {
+      "topic": "ezdxf native TABLE versus primitive painter",
+      "sources": [
+        "https://manpages.debian.org/testing/python3-ezdxf/ezdxf.1.en.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/tablepainter.html"
+      ],
+      "observed": "Documentation calls ACAD_TABLE unsupported and explicitly says TablePainter is unrelated to the native entity; it renders tables from ordinary DXF primitives.",
+      "doesNotEstablish": [
+        "native TABLE cell editing or graph preservation",
+        "native table-render parity",
+        "a complete parser/writer comparison"
+      ],
+      "planUse": "Use ezdxf only for a separately labeled projected-geometry check, never to fill native TABLE reader/writer support evidence."
+    },
+    {
+      "topic": "AC1021 local TABLE parser diagnostic",
+      "sources": [
+        "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+        "src/drw_entities.cpp: DRW_Table::parseDwg",
+        "src/intern/dwgreader.cpp: dynamic entity dispatch and remaining-object diagnostics"
+      ],
+      "observed": "The existing local AC1021 file empirically reports dynamic entity oType 506 for TABLE; handles 0x2856e and 0x2a974 both reach TABLE CadValue stream failure with bufGood=1, strGood=0 and hdlGood=1, followed by R2007 TABLE cell parse incomplete and leftover handle-stream bytes. Whole-file export is independently stopped before publication by FIELD/FIELDLIST serializer preflight. The two conditions are distinct; the trace does not identify the root cause of string-cursor failure or qualify TABLE output.",
+      "doesNotEstablish": [
+        "a reusable checked-in test fixture",
+        "a root cause for the malformed/incomplete cursor state",
+        "successful TABLE semantics or output acceptance"
+      ],
+      "planUse": "Use this input only as a developer smoke trace. Add a generated parser control if the exact route can be reduced safely; keep field export gating independent so it cannot mask parser evidence. Do not commit or copy the source DWG."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnerOnly": "7G.3d / PAR-20; no new finding or top-level subplan",
+    "sequence": [
+      "Keep generated DXF parser assertions for repeated/context-sensitive tags, text chunk ordering, field/block references, attributes, virtual-edge aliases, merges and following-record alignment.",
+      "Finish only narrow TABLESTYLE and cell graph profiles with unique staged identity remapping; preserve separate raw-carrier, typed DWG-origin and TABLE display-block routes.",
+      "Diagnose the AC1021 string/value/handle cursor failure against ODA §§20.4.96–20.4.101 before parseDwg changes; isolate read-side TABLE status from global FIELD/FIELDLIST DXF export preflight.",
+      "Add a separate AC1024+ embedded TABLECONTENT gate; do not infer it from AC1021 linked content or serializer round-trip.",
+      "Run the native render/edit check only at the composed consumer checkpoint after parser, adapter, graph and writer gates pass."
+    ],
+    "fastValidation": "For each local slice, affected strict build, nearest generated test, LibreCAD_3 compatibility target and git diff --check; no full-suite or external peer runtime for this research update.",
+    "fixturePolicy": "No fixture is committed or copied. Existing user-local sample is opt-in manual smoke evidence only; CI regression vectors must be generated from scratch in existing test executables."
+  },
+  "planImpact": {
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "localDiagnosticRuns": 1,
+    "localTestsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": "123 findings / 71 top-level subplans",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

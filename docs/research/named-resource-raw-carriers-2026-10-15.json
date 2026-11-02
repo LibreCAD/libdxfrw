@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-implementation-slice-receipt-v1",
+  "slice": "f.4b.1a.0 named-resource raw DXF carrier retention",
+  "date": "2026-10-15",
+  "baseline_commit": "82730a6",
+  "source_sha256": {
+    "dwg2dxf/dx_data.h": "bc1940fcef5e95e004d9eecbc16e5b91f2f7ba05b4d1f81112ee7ae541dd97f4",
+    "dwg2dxf/dx_iface.h": "d580ad9898b17640b92b0dfb32613f84dde1eca00b993c65ba4350fe61bd4039",
+    "dwg2dxf/dx_iface.cpp": "6f1d4f80ddae1030b60768eb58ec22e5ad5ecd615255af750c6db00fa56211fc",
+    "tests/dwg2dxf_adapter_tests.cpp": "c3421b702550c029c199598bd5f5b6492f8c933a5ad8a6afb2e2903deb31f910",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c1f68ea689ee83eeab6053562ad722f27267103715dfb262ec0bd02971fb3c06",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "601d9eb0da1f7b5b8a011c4f0459f6bd7a39b8eb6d153ce8f14468d522be32cd"
+  },
+  "retained_types": [
+    "SCALE",
+    "DICTIONARYVAR",
+    "MLINESTYLE",
+    "MLEADERSTYLE"
+  ],
+  "contract": {
+    "source": "DXF raw group/tag companions only",
+    "identity": "Preserve source name spelling, typed groups, self/owner handles, version, raw ASCII value spellings, and retained-text lease through the owned callback copy.",
+    "name_matching": "ASCII case-insensitive for collection routing; the stored carrier name is not rewritten.",
+    "not_implemented": [
+      "unique handle-level join to typed callbacks",
+      "per-family import-generation receipt binding",
+      "root graph integration or handle remapping",
+      "source-origin output selection, deduplication, or writer calls",
+      "DWG body conversion into a DXF raw carrier"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "tests_passed": 1,
+      "tests_total": 1,
+      "elapsed_seconds": 0.26
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "fixture_policy": {
+    "new_committed_dwg_dxf_or_sab_fixtures": false,
+    "generated_input": "Minimal OBJECTS DXF is parsed from an in-memory string; additional callback carriers are authored in memory."
+  },
+  "interpretation": "Raw-carrier retention is a prerequisite only. It does not promote typed support or qualify any DXF/DWG output route."
+}

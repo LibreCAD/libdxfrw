@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw-deeper-broader-3d-projection-vs-solid-parity-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden primary-source comparison of explicit DXF 3D geometry, ACIS/ASM carrier access, lossy mesh projection, B-rep semantics, and FreeCAD stock-consumer acceptance; refine existing plan gates only.",
+  "method": {
+    "kind": "Primary Autodesk format documentation, current FreeCAD source and maintainer issue, GDAL and ezdxf project documentation, plus local plan cross-check",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html#3d-extensibility",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html",
+      "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Controlling-the-drawing-units-when-exporting-to-an-ACIS-SAT-file.html",
+      "https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/ref_cad/cadACIS.html",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md"
+    ],
+    "peerRuntimeRun": false,
+    "nativeCadOrKernelRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Autodesk defines the DXF carrier framing only. FreeCAD main is mutable source; the no-token observation is limited to the inspected translation unit, while the maintainer statement is scoped to stock FreeCAD ACIS import. GDAL/ezdxf findings are documented capability limits, not local runtime observations. No drawing or shape was tested."
+  },
+  "evidence": [
+    {
+      "topic": "DXF 3DSOLID carrier versus modeler semantics",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "The documented record has a modeler-version marker, proprietary group-1 payload with optional group-3 continuation chunks, and a separate soft-owner history handle.",
+      "doesNotEstablish": [
+        "the ACIS/SAB grammar or B-rep validity",
+        "that raw carrier preservation is equivalent to shape interpretation",
+        "that rewriting the body as a mesh is lossless"
+      ],
+      "planUse": "Keep carrier bytes/chunk order and history reference separate from body completeness, shape validity, projection, and consumer acceptance."
+    },
+    {
+      "topic": "FreeCAD stock explicit-geometry and ACIS-import boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "The inspected current importer translation unit has a generic Open CASCADE shape-publication path with a 3DFACE example comment, but no direct 3DSOLID/SOLID3D token route. A FreeCAD maintainer states stock FreeCAD cannot read proprietary ACIS blobs and closed issue #18454 as not planned.",
+      "doesNotEstablish": [
+        "complete FreeCAD support for every explicit DXF 3D entity",
+        "the state of every importer backend or third-party plugin",
+        "runtime acceptance by a particular FreeCAD release/platform"
+      ],
+      "planUse": "Keep direct FreeCAD acceptance scoped to named entity/backend profiles and expected settings. Treat stock ACIS import as NOT_APPLICABLE unless a separately named plugin/kernel route is selected."
+    },
+    {
+      "topic": "GDAL raw modern-DXF ASM access",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html#3d-extensibility"
+      ],
+      "observed": "The DXF driver skips modeler entities by default because it cannot transform them into OGR geometry. Its optional AC1027+ mode exposes raw ASMData and a 12-real ASMTransform without constructing a solid.",
+      "doesNotEstablish": [
+        "DWG or AcDs parsing",
+        "entity-to-owner graph completeness",
+        "B-rep semantics, validity, or rendering"
+      ],
+      "planUse": "Admit GDAL only as an optional raw-carrier/transform comparator with exact source identity and owner/placement checks; do not count it as a geometry or ACIS semantic oracle."
+    },
+    {
+      "topic": "ezdxf limited ACIS parsing and flat-face mesh projection",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observed": "The project documents a limited ACIS subset; unsupported records can become NONE_ENTITY and be lost. Its body-to-mesh conversion is limited to flat polygonal faces and is not a general curved-surface B-rep kernel.",
+      "doesNotEstablish": [
+        "arbitrary SAT/SAB semantic completeness or lossless round trip",
+        "curved-surface or analytic-solid correctness",
+        "a fresh runtime result on any payload in this repository"
+      ],
+      "planUse": "Use ezdxf only for exact supported-profile carrier/syntax controls and flat-face vectors, capturing unsupported records and dispositions. Never count a flat mesh as ACIS/B-rep parity."
+    },
+    {
+      "topic": "ACIS header unit scalar versus coordinate transform",
+      "sources": [
+        "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Controlling-the-drawing-units-when-exporting-to-an-ACIS-SAT-file.html",
+        "https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/ref_cad/cadACIS.html",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md"
+      ],
+      "observed": "Autodesk's SAT-only support article says export units follow INSUNITS and documents mm, inch, and unitless header values. Ansys says its ACIS SAT/SAB reader obtains units from the geometry file without identifying the exact binary field. cadmpeg calls the BinaryFile4 header scalar scale metadata and says it is not a coordinate transform; that is peer documentation, not a normative modern-SAB contract.",
+      "doesNotEstablish": [
+        "that all current SAB/ASM profiles use identical unit semantics",
+        "the required normalization order relative to modeler, entity, or INSERT transforms",
+        "that raw wireframe coordinates should be scaled by the header scalar"
+      ],
+      "planUse": "Preserve and expose the exact parsed header scalar as source metadata without scaling coordinates. Resolve physical-unit interpretation only per a pinned producer/version profile with independent consumer evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "resultClasses": [
+      "typed-explicit-geometry",
+      "exact-opaque-carrier",
+      "lossy-tessellated-projection",
+      "ACIS/B-rep-semantics",
+      "named-native-consumer"
+    ],
+    "futureProjectionRequirements": [
+      "explicit lossy-conversion product decision",
+      "source-native analytic expectations and carrier disposition",
+      "declared linear/angular deflection and unit/transform order",
+      "topology, winding, degeneracy, and bounded-facet checks",
+      "owner, block, and INSERT placement validation",
+      "visible per-source loss/projection status before output publication"
+    ],
+    "validationCadence": "Implementation slices keep generated local vectors, the touched strict target, one focused test, applicable LibreCAD/LibreCAD_3 compile gate, and diff check. GDAL/ezdxf peer comparisons and FreeCAD native runs remain composed-only.",
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 124,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedSourceCode": false,
+    "relatedImplementationSlice": "Additive drw_decodeAcisWireframeWithHeader API was implemented and validated separately; it returns raw header metadata without scaling output coordinates and preserves existing public result layout and decoder symbols.",
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

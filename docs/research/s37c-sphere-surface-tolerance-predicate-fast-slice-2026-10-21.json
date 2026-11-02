@@ -1,0 +1,56 @@
+{
+  "title": "S3.7c ACIS sphere-surface point tolerance predicate",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "Decoded sphere surface fields; parser-fed SAB 21800 rooted projection also exercised",
+    "public_api": "drw_pointWithinToleranceOfAcisSphereSurface returns signed radial distance to the decoded sphere locus and accepts only within a caller-supplied tolerance.",
+    "radius_policy": "The geometric locus uses the magnitude of the stored signed radius; source data is unchanged and no positivity convention is inferred.",
+    "distance_policy": "Signed distance is radial distance minus radius magnitude; negative is inside. The sphere center has a well-defined distance even though its closest-point direction is ambiguous.",
+    "tolerance_policy": "Tolerance must be finite and nonnegative; no ACIS/modeler default is inferred.",
+    "refusal_policy": "Wrong/missing surface, zero/non-finite radius, non-finite point/tolerance, unrepresentable signed distance, or out-of-tolerance point returns false without changing signedDistance.",
+    "non_claims": [
+      "sphere parameterization or closest-point direction at center",
+      "face trim evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or native consumer qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_sab21800_inside_outside_and_exact_boundary": "PASS",
+    "sphere_center_signed_distance": "PASS",
+    "negative_signed_radius_uses_geometric_magnitude": "PASS",
+    "just_outside_and_invalid_inputs_refuse_atomically": "PASS",
+    "overflowing_point_center_difference_with_representable_signed_result": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.21 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

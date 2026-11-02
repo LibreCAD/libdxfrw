@@ -1,0 +1,43 @@
+{
+  "schema": "ac1018-blockrecord-xdictionary-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "7c63380468bc742f6c1b96844b9b081e41d44227",
+  "scope": "Private selected AC1018 source binding from BLOCK_RECORD XDICTIONARY group 360 to one physically bounded empty DICTIONARY child. No recursive graph, actual staged output, native semantics or support claim is promoted.",
+  "route": {
+    "requirements": "The adapter's explicit legacy identity observation and source-bound AC1018 BLOCK_RECORD capture must both be enabled. Child DICTIONARY capture is limited to handles selected by a complete original BLOCK_RECORD source profile; ordinary AC1018 consumers remain opted out.",
+    "algorithm": "Retain the selected BLOCK_RECORD extension-dictionary handle and owner in a bounded map; duplicate owners become ambiguous. Capture only the referenced OBJECTS DICTIONARY typed/raw pair and actual physical fields. Bind the identity-census DICTIONARY record, expected self-handle admission count, exact code-ordered physical fields, parent 330, typed model, read context, handle and container generation. Keep the proof only in the private ATTDEF scope join.",
+    "selectedBody": "The admitted profile is the exact empty five-field body: code 5 self, 330 owner, 100 AcDbDictionary, 280 hardOwner=1, 281 cloning=1. Entry-bearing dictionaries, other flag profiles, root dictionaries, recursive dependencies and output remain unqualified.",
+    "identityRepeats": "The selected OBJECTS DICTIONARY self handle has exactly one repeated admission on this reader route: raw object callback plus the dictionary source callback. Other repeat counts are refused."
+  },
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inheritedReceipt": "docs/research/rpp5iy-ac1018-attdef-source-scope-join-2026-10-28.json",
+    "independentByteScan": "Selected BLOCK_RECORD 6F2 at [30381,30685) carries group 360 -> 6F3. DICTIONARY 6F3 begins at byte 370348 and ends at the next code-0 marker at byte 370420. Its five body fields are code 5=6F3 [370363,370371), code 330=6F2 [370371,370379), code 100=AcDbDictionary [370379,370398), code 280=1 [370398,370409), and code 281=1 [370409,370420). The dictionary is entryless. The original sample is read-only and was not copied into the repository."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests --parallel 2",
+    "normalSelectors": "ctest --test-dir build-gcc -R '^libdxfrw_(legacy_attdef_scope_join|attdef_legacy_observation|attdef_legacy_adapter_capture|block_legacy_capture|block_record_legacy_observation|block_record_legacy_adapter)$' --output-on-failure",
+    "normal": "PASS 6/6; focused source joins pass for ASCII and binary. Includes two default opt-outs and six dictionary faults: missing target, wrong owner and wrong object type, each with corrected same-adapter retry.",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests --parallel 2",
+    "asanSelector": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asan": "PASS 1/1 on the final source state.",
+    "diffCheck": "PASS git diff --check",
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3, arm64-apple-darwin27.0.0"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "0482e27f2354b21ebc1a5cf407a2333791fb06ab4c029f175986f76023a3392b",
+    "dwg2dxf/dx_data.h": "20c9d43ad6c1de74c006b3a013d43c5c6f5956b5b8edad7043ec27143d251a41",
+    "tests/attdef_source_tests.cpp": "7051dbf9aedcecff340413b8e34956a7768be2822796309d47b7fa05ec261633",
+    "tests/legacy_attdef_scope_controls.h": "5889f50282b7e969361d7ddf01159a6f51a86cfa11da80c77c42888f3507fafd",
+    "normalTestExecutableSha256": "9cabd08af5f6411018c6ae77cad8d3239d6516e57ede72fe463671f2dca42876",
+    "asanTestExecutableSha256": "3ca7e1d5e421630f7ff92ba9e5ddbed80b1cf6f3dbbee50cb6f2a55221ce2cec"
+  },
+  "limits": [
+    "This is selected original source/model/physical identity and owner evidence only. It does not prove live recursive ownership, downstream child models, emitted output, retries through an export transaction, native behavior or support parity.",
+    "No generic resource, namespace, graph or output eligibility gate consumes this diagnostic join. No DRW_Interface virtual was added.",
+    "No drawing fixture was committed; test drawings are authored in scratch storage at runtime."
+  ]
+}

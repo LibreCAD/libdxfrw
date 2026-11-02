@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bw generated NOD/GROUP staged output and final-source guards",
+  "date": "2026-10-24",
+  "parentCommit": "28915ad2282cdd3ed254eba91816132cfb8d75da",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "GENERATED_ROOT_OUTPUT_AND_FINAL_SOURCE_GUARDS_IMPLEMENTED_NATIVE_AND_SEMANTIC_QUALIFICATION_OPEN",
+  "implementation": {
+    "views": "Additive nonvirtual const borrowed generated-root source and root-entry plan views plus actual attempt-local image-dictionary identity; null/zero before root planning freezes and after write returns; no output evidence inferred from views",
+    "sourceCopies": "Reuse existing codec-owned immutable source dictionaries; no refreshed source snapshot or mutable evidence frame",
+    "expectedEntries": "Bounded admitted NOD projection and complete supplied GROUP dictionary entries, preserving source order/keys/explicit roles and existing generated additions; not a full NOD preservation claim",
+    "physicalObserver": "Independent raw token scan verifies actual root identity, owner, class, flags, admitted entry order/handle roles/targets, reserved common links and nonempty record framing",
+    "modeledObserver": "Decode only independently selected root body; compare qualified keys/common metadata separately from raw framing; no independent source/text semantics claim",
+    "reservedGroups": "Validate retained source reserved group syntax against typed links before normalizing duplicate DXF common-link syntax",
+    "opaqueApplicationData": "Unknown custom application schemas compare lexically rather than acquiring invented translated handle semantics",
+    "compatibility": "Compatible-unqualified text keeps existing export route without common-comparison flag; signed-short binary transport normalized only in comparison copies",
+    "finalization": "Recheck complete current source dictionaries against frozen state, canonical root/HEADER handoff, actual emitted identity/owner, reciprocal extension ownership and unique referenced records",
+    "accountingAndRetry": "Private bounded per-attempt proof/reference state, existing staging/publication rollback, logical output allowance and reset before retries",
+    "internalAdapterPrivateProofStateAdded": true,
+    "publicDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "dwgParserGrammarOrDispatchChanged": false,
+    "documentMergePolicyChanged": false,
+    "issueMasksWaivedOrSupportClaimsPromoted": false
+  },
+  "compatibilityRegressionResolved": {
+    "observed": "An intermediate owning checkpoint had nine MATERIAL projection assertions fail",
+    "cause": "Whole-section modeled dictionary inspection applied a generic reader to unrelated MATERIAL unsigned-color fields after the selected root decoded",
+    "fix": "Use the independent scan to select the root body, then decode only that bounded root; do not weaken MATERIAL numeric parsing or source-to-output mapping",
+    "failureLog": "/tmp/rpp5bw-material-diagnostic-tests.log",
+    "correctedFocusedLog": "/tmp/rpp5bw-material-fix-tests.log",
+    "newFastCTest": "libdxfrw_material_root_output_compatibility",
+    "control": "Existing public scratch MATERIAL source covers rooted ownership/remapping, ordered payload, both encodings, cross-encoding and refusal/restoration retries"
+  },
+  "controls": {
+    "rootCTest": "dwg2dxf_generated_root_common_closure",
+    "source": "Scratch-authored public typed models and actual DXF import/reexport; not independent native root-source qualification",
+    "targetRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "rootModes": ["NOD common graph only", "ACAD_GROUP dictionary common graph only", "Both generated roots"],
+    "authoredActualImportReexportCellsRetained": 36,
+    "defaultCompatibleCellsRetained": 6,
+    "graphAtomicRefusalRestorationRetriesRetained": 24,
+    "graphOneUnderExactBudgetRetriesRetained": 5,
+    "emptyRootCells": 24,
+    "lateSourceMutationRestorationRetries": 40,
+    "latePhases": ["After adapter object callback, before staged inspection", "Immediately before consumer finalization"],
+    "wireFieldsPerRoot": 17,
+    "wireRoots": 2,
+    "wireFaultKinds": ["Value mutation", "Deletion", "Duplication", "Group-code or handle-role mutation"],
+    "atomicWireRefusalSameCodecReadbackRetries": 272,
+    "inspectorGuardExceptionRetries": 10,
+    "inspectorFaultKinds": ["Exception", "Nested write", "Inspector setup mutation", "Nested read", "Inventory setup mutation"],
+    "outputOneUnderExactBudgetControls": 2,
+    "compatibleUnqualifiedTextControls": 4,
+    "signedShortTransportControls": 2,
+    "frozenViewsHiddenBeforePlanningAndOutsideAttempt": true,
+    "destinationSentinelsPreservedOnRefusal": true,
+    "publishedMarkerRequiresSuccessfulFinalization": true,
+    "stagedByteViewsRetainedAfterInspector": false,
+    "nativeGeneratedRootSourceQualification": "NOT_RUN"
+  },
+  "validation": {
+    "strictBuild": {
+      "result": "PASS", "warningSuppression": false,
+      "separatelyCompiledAdaptersRebuiltBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5bw-final-build.log", "asanLog": "/tmp/rpp5bw-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS", "passed": 13, "total": 13, "wallSeconds": 10.73, "parallelism": 3,
+      "tests": ["dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_rooted_custom_imagedef", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits", "libdxfrw_generated_dictionary_source_metadata", "libdxfrw_generated_dictionary_metadata_allocation", "libdxfrw_graph_preservation", "libdxfrw_public_header_hygiene", "dwg2dxf_generated_image_dictionary_source_identity", "libdxfrw_material_root_output_compatibility"],
+      "log": "/tmp/rpp5bw-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS", "passed": 5, "total": 5, "wallSeconds": 9.07, "parallelism": 3,
+      "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"],
+      "log": "/tmp/rpp5bw-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.09, "parallelism": 3,
+      "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"],
+      "log": "/tmp/rpp5bw-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS", "passed": 7, "total": 7, "wallSeconds": 7.24, "parallelism": 3,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tests": ["dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits", "libdxfrw_material_root_output_compatibility"],
+      "log": "/tmp/rpp5bw-asan-final.log"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "externalPlatformSemanticOrThroughputQualificationClaim": false
+  },
+  "remaining": [
+    "Audit/reproduce the separate generated IMAGE dictionary actual-DXF imported reserved-common-group comparison before reusing normalization",
+    "Broader named-root/full-document closure and full IMAGE/common geometry",
+    "Independent native generated-root framing/profile/identity receipts and sparse class cardinality",
+    "Explicit source/text/name/body/path/EED qualification and APPID/LAYER/XRECORD dependencies",
+    "Verified ownership/remapping contract before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0, "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false, "unrelatedUntrackedFilesPreserved": true, "remoteMutations": false
+  }
+}

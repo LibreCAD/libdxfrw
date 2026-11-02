@@ -1,0 +1,149 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader IngeCAD LibreDWG patch-stack and route-specific writer evidence review",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "IngeCAD's current LibreDWG vendor base and downstream patch provenance",
+    "Reconcile project-level R2000/R2004 writer claims with operation-specific disclosures",
+    "Map reported 2D DXF/DWG failure shapes to existing libdxfrw plan owners",
+    "Refine optional peer comparison readiness without expanding routine validation"
+  ],
+  "method": {
+    "kind": "Read-only review of current public IngeCAD project and LibreDWG patch-log sources, plus local plan owner/receipt review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planUpdated": true,
+    "limitations": "IngeCAD's patch log and project summary are mutable, maintainer-authored disclosures. Their private corpus, exact corpus manifest, converter binaries/build options, ODA artifact identity, and full semantic expected-value reports were not available or reproduced. Reported measurements are not libdxfrw results or support evidence."
+  },
+  "sources": [
+    {
+      "project": "IngeCAD LibreDWG vendor patch log",
+      "url": "https://github.com/ingelibre/ingecad/blob/main/tools/libredwg-patches/README.md",
+      "revision": "mutable main; page labels 2026-09-27 base refresh and 2026-10-08 XREF update; read 2026-10-17",
+      "observed": "The log states the current vendor base is LibreDWG 0.14.8597 plus current/ingecad-vendor-0.14.8597.patch; it reports patched 0.14.8580-to-0.14.8597 read parity by entity result/count over 1,657 private corpus drawings, a 213-drawing save sweep opening in ODA and IngeCAD improving 182 to 185 with none worse, and make check 270/0. It describes fixes or candidate fixes for DIMENSION_ANG3PT import subtype matching, pre-R2007 codepage handling, FIELDLIST handles, proxy class/graphics/version fields, EED groups and signed values, annotative context export, and XREF BLOCK flags/path. These are maintainer-reported, route-specific observations."
+    },
+    {
+      "project": "IngeCAD project-level status page",
+      "url": "https://github.com/ingelibre",
+      "revision": "mutable project page reviewed 2026-10-17",
+      "observed": "The page reports 96.8% parity against ODA File Converter over 1,657 drawings and says a DWG round-trip fuzz harness plus fixes raised R2000/R2004 validity from 6% to 100%. The read review did not find a pinned corpus manifest, exact scoring definition, source/binary hash set, or operation matrix sufficient to reproduce those aggregates."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "official mirror; mutable project page",
+      "observed": "Used only as the upstream project identity referenced by IngeCAD's patch log. No upstream release, PR, or binary was installed or run in this review."
+    }
+  ],
+  "evidence": [
+    {
+      "topic": "Patch-base and corpus A/B provenance",
+      "sources": [
+        "https://github.com/ingelibre/ingecad/blob/main/tools/libredwg-patches/README.md"
+      ],
+      "observed": "The detailed patch log binds its stated vendor source to LibreDWG 0.14.8597 plus a carried patch file. It reports unchanged read entity results/counts across 1,657 inputs between patched 0.14.8580 and patched 0.14.8597, and a 213-drawing save sweep with 182-to-185 ODA/IngeCAD opens and no reported regressions.",
+      "doesNotEstablish": [
+        "reproducibility without the exact corpus manifest, artifact hashes, arguments, and output reports",
+        "per-handle/type/owner or graph closure from aggregate counts or file-open results",
+        "current upstream LibreDWG behavior when the tested artifact includes downstream patches",
+        "any defect or support result in libdxfrw"
+      ],
+      "planUse": "At an already-scheduled optional comparison, record the exact upstream base/source SHA, patch file and PR-head digests, converter build, ODA identity, inputs, arguments, requested and actual AC codes, and per-source disposition. Preserve stock and patched outputs separately. Do not run corpus sweeps per implementation slice."
+    },
+    {
+      "topic": "R2004 write claim is operation and model-origin dependent",
+      "sources": [
+        "https://github.com/ingelibre",
+        "https://github.com/ingelibre/ingecad/blob/main/tools/libredwg-patches/README.md"
+      ],
+      "observed": "The project page reports 100% validity for R2000/R2004 in a round-trip fuzz context. The detailed patch log says R2004 remains disabled for IngeCAD as a save target because a minimal DXF-authored model through dxf2dwg --as r2004 then dwg2dxf yields empty ENTITIES; it distinguishes this from a positive same-version dwgrewrite case on a DWG-decoded model. The sources therefore disclose at least two different operations/scopes rather than one universal writer result.",
+      "doesNotEstablish": [
+        "which exact build or fuzz corpus underlies the high-level aggregate",
+        "that every R2004 writer path fails or succeeds",
+        "a local libdxfrw writer defect or support boundary"
+      ],
+      "planUse": "Qualify writer evidence by model origin, operation, and target version. For any relevant local R2004 change, use scratch-generated DXF-origin and DWG-origin controls, inspect actual magic, require an independent reader and native/audit result at the composed gate, and compare semantic identities."
+    },
+    {
+      "topic": "Reported cross-family regression shapes",
+      "sources": [
+        "https://github.com/ingelibre/ingecad/blob/main/tools/libredwg-patches/README.md"
+      ],
+      "observed": "The patch log describes import/export defects around dimension subtype matching, legacy codepage strings in dictionary/table names, repeated FIELDLIST owner handles, proxy class identifiers and graphics placement/version, multiple APPID/EED groups and signed 1070/1071 values, annotative-context DXF output, and XREF metadata transfer from BLOCK to BLOCK_HEADER. Some counts are from IngeCAD's private corpus; one source note states ODA File Converter was used as a judge for particular outputs, without pinning its exact executable in the log reviewed here.",
+      "doesNotEstablish": [
+        "the same bug in libdxfrw",
+        "one direction or version applying to all listed issues",
+        "independent ACIS/AcDs semantics, native platform qualification, or broad DWG/DXF parity"
+      ],
+      "planUse": "Route only relevant shapes to existing codepage, dimension, FIELD/FIELDLIST graph, EED/APPID, proxy, annotation-context, and XREF owners. When a local owner is next touched, use the smallest locally generated case with a suffix/owner sentinel. Add no duplicate finding or corpus-derived fixture."
+    },
+    {
+      "topic": "Downstream patch drift as a source of false attribution",
+      "sources": [
+        "https://github.com/ingelibre/ingecad/blob/main/tools/libredwg-patches/README.md"
+      ],
+      "observed": "The patch log recounts a stale draft of LibreDWG #1375 in a vendor tree, a resulting pre-R2007 MTEXT corruption, and a subsequent correction after comparison with upstream stock. It states a vendor reconstruction rule based on exact PR heads rather than a developer work branch.",
+      "doesNotEstablish": [
+        "that every vendor artifact has the same patch-state problem",
+        "that the historical downstream regression remains in the current vendor build"
+      ],
+      "planUse": "Before attributing a peer failure or porting a fix, distinguish release, exact upstream commit, and downstream patch stack; compare the tested build against its unpatched baseline and minimize only after provenance is captured."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-05/PAR-74/PAR-85 text and codepage paths",
+      "existing dimension subtype/field dispatch",
+      "FIELD/FIELDLIST graph and callback/write-refusal owners",
+      "existing EED/APPID/XDATA handle and signed-value owners",
+      "PAR-76/7AP typed proxy-graphics owners",
+      "PAR-06/7F.1 annotative-context inventory and handoff",
+      "PAR-65 XREF BLOCK/BLOCK_RECORD metadata edge",
+      "existing peer provenance and writer-version/operation matrix"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-ingecad-libredwg-patch-stack-and-route-specific-writer-evidence-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-ingecad-libredwg-patch-stack-and-route-specific-writer-evidence-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 DWG AcDs mixed-signature owner join and LINE sentinel",
+  "status": "IMPLEMENTED_LOCAL_GENERATED_FAST_SLICE",
+  "planAnchor": "implementation-progress-par-07s8-dwg-acds-mixed-signature-owner-join-and-line-sentinel-2026-10-20-generated-fast-slice-uncommitted",
+  "scope": [
+    "Exercise ACIS BinaryFile and ASM BinaryFile4 marker payloads in the actual generated DWG DataStorage record-to-modeler owner-handle join",
+    "Keep DataIndex row order, physical record order, numeric handle order, and callback order distinct",
+    "Assert ordinary entity traversal and LINE coordinates after mixed-signature modeler callbacks"
+  ],
+  "changes": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testInfrastructureChanged": true,
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuntimeRun": false,
+    "supportClaimPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "files": [
+    "tests/dwg_reader_matrix_tests.cpp",
+    "CMakeLists.txt",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "implementation": {
+    "payloads": "Four source-authored, marker-only payloads alternate ACIS BinaryFile and ASM BinaryFile4 prefixes and carry distinct trailing identity bytes. They are intentionally not valid SAB bodies.",
+    "associationAssertions": "Each of four modeler callbacks must receive the exact payload belonging to its own handle despite distinct DataIndex directory-row, physical-record, numeric-handle, and callback orders; link failures and orphans must remain zero.",
+    "continuityAssertion": "A generated LINE follows the four modelers in the same block walk; its handle and both endpoint coordinates are asserted after DataStorage finalization.",
+    "validationSelector": "--acds-dataindex-order",
+    "ctest": "libdxfrw_dwg_acds_dataindex_order",
+    "semanticBoundary": "Association and stream-continuity regression only. No ACIS parse, B-rep validation, native consumer result, or 3D support promotion."
+  },
+  "validation": {
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_acds_dataindex_order$' --output-on-failure",
+      "git diff --check on scoped files",
+      "jq empty on this receipt"
+    ],
+    "results": {
+      "configure": "PASS",
+      "targetBuild": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1)",
+      "scopedDiffCheck": "PASS",
+      "receiptJson": "PASS",
+      "fullSuite": "NOT_RUN"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "The shared worktree contains unrelated pre-existing changes; no unrelated changes were staged or committed."
+  },
+  "inventory": "141 findings / 78 top-level subplans; no new finding or top-level subplan"
+}

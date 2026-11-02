@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw-open-source-3d-route-and-consumer-qualification-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden the open-source DWG/DXF 3D peer screen across structural readers, raw carriers, explicit-geometry projection, ACIS inspection, and native application consumption; refine existing plan gates only.",
+  "method": {
+    "kind": "Primary project documentation, source, and project issue reports reviewed through public project pages",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localTestsRunForResearch": false,
+    "limitations": [
+      "Mutable master documentation/source is not a version-pinned runtime result.",
+      "FreeCAD and ACadSharp issue reports are scoped observations and were not independently reproduced.",
+      "A parser, renderer, carrier inspector, projection, and geometry kernel answer different questions and are not interchangeable evidence."
+    ]
+  },
+  "evidence": [
+    {
+      "route": "GDAL/OGR DXF explicit-geometry projection",
+      "sources": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observation": "The project's known-issues page lists MESH and MPOLYGON as unsupported and describes 3DFACE as a polygon representation with writer caveats.",
+      "evidenceGrade": "PROJECT_DOCUMENTATION_AND_SOURCE",
+      "planUse": "Admit exact entity/direction comparisons only; count unsupported, omitted, flattened, triangulated, and repaired records explicitly."
+    },
+    {
+      "route": "GDAL/OGR DWG CAD reader",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/oda.html"
+      ],
+      "observation": "The CAD route is read-only, documents a narrow POINT/LINE/CIRCLE/ARC/3DFACE projection, and is based on libopencad. GDAL's separate ODA DWG route requires non-public ODA libraries.",
+      "evidenceGrade": "PROJECT_DOCUMENTATION",
+      "planUse": "Do not treat the CAD driver as an ACIS/AcDs or full DWG object-graph oracle; keep libopencad and ODA as distinct implementation and licensing routes."
+    },
+    {
+      "route": "FreeCAD DXF importer and ACIS consumer",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext"
+      ],
+      "observation": "A maintainer response distinguishes explicit entities that import from proprietary ACIS blobs that the FOSS path cannot read. Documentation distinguishes C++ and legacy Python importers; source-level shape construction alone does not prove runtime acceptance.",
+      "evidenceGrade": "PROJECT_ISSUE_PLUS_VERSIONED_DOCUMENTATION_AND_MUTABLE_SOURCE",
+      "planUse": "Use FreeCAD as a pinned explicit-face consumer profile unless an exact installed backend independently demonstrates ACIS acceptance; capture importer mode, build, warnings, object type, and expected geometry."
+    },
+    {
+      "route": "ezdxf carrier inspection and rendering",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst"
+      ],
+      "observation": "The drawing add-on does not render ACIS and projects 3D entities into XY; browse-acis inspects/exports SAT/SAB bytes; required ACIS authoring data is provided by an external library.",
+      "evidenceGrade": "PROJECT_AUTHORED_API_DOCUMENTATION",
+      "planUse": "Separate raw carrier inspection, explicit geometry rendering, authoring, and kernel semantics; do not count the viewer as a solid-shape oracle."
+    },
+    {
+      "route": "LibreDWG and ACadSharp version/direction claims",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observation": "LibreDWG's own README discloses advanced R2010+ read omissions, later writer limitations, and no 3D handling in its SVG output. ACadSharp issue #1195 reports DWG-read solids omitted by its DXF writer; the report is version-scoped and unreproduced in this review.",
+      "evidenceGrade": "PROJECT_SUMMARY_PLUS_UNREPRODUCED_PEER_ISSUE_REPORT",
+      "planUse": "Bind claims to exact version, direction, entity family, and emitted representation; reader release notes, aggregate version coverage, or successful open do not establish writer or 3D parity."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "PAR-07 route/evidence classification",
+      "S5 peer and composed comparison",
+      "S8 downstream consumer and publication evidence"
+    ],
+    "newFindingOrTopLevelSubplan": false,
+    "perSlicePeerRuntimeAdded": false,
+    "peerAdmissionRequirements": [
+      "Name the route role: structural parser, raw-carrier inspector, carrier writer, explicit-geometry projector, ACIS parser, geometry kernel, or native application.",
+      "Pin artifact/source, version/build options, platform, importer/exporter settings, and source/output hashes at composed checkpoints.",
+      "Record shared parser, kernel, and control-author lineage; do not count related tools as independent votes.",
+      "Compare explicit DXF families separately and count unsupported, omitted, flattened, triangulated, or repaired output.",
+      "Keep modeler entity identity, SAT/SAB or AcDs carrier and ownership closure, geometric projection, closed B-rep validity, and native application acceptance as distinct axes."
+    ],
+    "fastValidationPolicy": "Generated local tests remain the normal per-slice gate. Run an eligible external peer/native route only at an existing composed checkpoint; unavailable tools are NOT_RUN and do not block local implementation.",
+    "supportClaimsChanged": false,
+    "externalJItemsChanged": false,
+    "externalJItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "totals": {
+      "findings": 125,
+      "topLevelSubplans": 71
+    }
+  }
+}

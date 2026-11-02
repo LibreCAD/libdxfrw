@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL normal-map blend edit",
+  "date": "2026-10-28",
+  "codeCommit": "b983e03f7d2e34641aa4e99ac9e5792a5179691b",
+  "scope": "Previously admitted source with exactly two host-body group 42 fields, complete unique inferred normal tuple and no 464/465 or procedural boundary; original raw body unchanged; sole finite typed normal-blend edit; same-version DXF adapter replay.",
+  "contract": {
+    "operation": "Change only the second group 42, leaving the first diffuse blend, remaining raw fields and original values/spellings intact except required binary transcoding.",
+    "atomicity": "Refuse conflicts and unsupported profiles before publication; preserve destination and caller state, allow corrected same-facade retry. Actual output is re-decoded and its represented model compared to the desired model.",
+    "unqualified": "Global low-level MATERIAL write grammar, changed raw bodies, multiple typed fields, partial or ambiguous inferred tuples, procedural or extension-subclass roles, cross-format caret escapes and native rendering remain outside this selected packet."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "554a7606d4a9ed8c9cbf606d257d62a6cfe540f78f72839cf91b723b4481dee9",
+    "adapterSourceSha256": "0f1bed9f2cb46ed18a25839c7ce6a7e6d038ed6b691f706e66a90fdbacb4d6a0",
+    "testSourceSha256": "036e25ca224096315e85ff5581ced153d8fd2fc028749e0a6118ecbc8e3d7c66",
+    "normalAdapterObjectSha256": "bdc510cd52262f1491b79b13e152bfd862c523634daa87ee7797b0eaf83e74d3",
+    "normalLibrarySha256": "77497fcab54d339380e07334e0ada321825397d27116029b1c362959fd1ce62a",
+    "normalTestExecutableSha256": "d3d3130d05cb93126509d830ad960c7b5d2b4276684539ffaf0bfb80ba29838f",
+    "simultaneousTableCodeCommit": "80fbad605867f65b2218164b50d41abe8f5da3b7",
+    "simultaneousTableEntitiesCppSha256": "5e496d1656911d398044a14255b6e930395bf6c458c0c892a3bbb3263fc20ed4",
+    "simultaneousTableEntitiesHeaderSha256": "14fdf6d7179e16bd40dca2f80ab62cf77ebed44cd2173068efdb00b04623ed16",
+    "simultaneousTableCodecHeaderSha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e",
+    "asanAdapterObjectSha256": "b7d5745080fc0edeed7bfc56065eb81204c85e317c29d03834af711375303737",
+    "asanLibrarySha256": "513edfbeb231312e0be0666b644aa3fd1bc694d4b328f3cbd520e004c1c2a089",
+    "asanTestExecutableSha256": "3336be1b1af88c8f42ca0d8fede6ac79b43fde417bda849f855baede865f566c"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_override_177",
+        "libdxfrw_table_legacy_text_height",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_content_source_proof",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "7/7"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_override_177",
+        "libdxfrw_table_legacy_text_height",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_content_source_proof",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "7/7",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "4 source/output encoding combinations; 12 conflicting raw, additional typed or nonfinite refusal/retry controls; 6 late-callback mutation/refusal/retries; existing explicit-marker and incomplete-source controls.",
+    "logNote": "Test results directly observed; shared CTest LastTest.log may be overwritten.",
+    "buildBinding": "Normal and ASan runs used the simultaneous TABLE source/header revision recorded above; both adapter and library were rebuilt for the changed public model layout."
+  },
+  "independentPeer": {
+    "version": "1.4.5",
+    "reportPath": "build/p3-material-edit-peer/independent.json",
+    "reportSha256": "fdfe208eb689b5ff20e4ff1741ff0a46f962e6aead1a8f6db53b14fb0246ae5f",
+    "reportScriptSha256": "bb4742e839f6ce7d2e401c7d508d117ca01b65fbb569121b3abc75861813d965",
+    "probeSourceSha256": "bf6864e7d4048efa7e0c9b525db25ff3a2f76036bf56b62584d62c4f9bf2bc29",
+    "probeExecutableSha256": "bd6294c186705dc770c1c2118f44a6efa7f17bdb79e8a57f8c7e390f4e99457d",
+    "projectionToolSha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+    "originalSourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "derivedInputSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "derivation": "Removed EZDXF_META root entry and its DICTIONARY/DICTIONARYVAR objects from a copy; exact selected MATERIAL fields and identity verified unchanged before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "sourceHostBodyTagCount": 55,
+    "expectedBlendFields": [
+      0.25,
+      0.75
+    ],
+    "outputBlendFields": [
+      0.25,
+      0.875
+    ],
+    "outputs": [
+      {
+        "format": "asc",
+        "sha256": "8392264816021e590837f51fa9d9d8921a3de41cac5082ba84b1df879f18adf7"
+      },
+      {
+        "format": "bin",
+        "sha256": "54e8f092a01d092f4eb27997213d12b4011baeca9f85cc2fae5a3dfc89c232d6"
+      }
+    ],
+    "observations": "Independent ezdxf physical tag loader before ordinary setup verified exact source/derived selected identity and body, and exact equality of all 55 output body tags except the selected second group 42 in ASCII and binary."
+  },
+  "limitations": [
+    "The peer input is derived from an independently authored source to remove unrelated EZDXF_META DICTIONARYVAR records; it is not proof of unmodified whole-document export.",
+    "Physical tag transport and locally authored typed intent do not qualify omitted-boundary behavior in native CAD applications, rendering, or untested versions.",
+    "No drawing fixture is committed."
+  ]
+}

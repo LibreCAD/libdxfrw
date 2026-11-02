@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-deeper-broader-layout-active-viewport-release-boundary-v1",
+  "title": "Layout last-active viewport versus live viewport/UCS context",
+  "date": "2026-10-18",
+  "scope": "Refresh the OpenCADStudio issue #1670 status and reconcile its application/codec fix with the release boundary and existing libdxfrw layout/viewport plan.",
+  "researchMode": "primary-source documentation, release, and issue review; no peer build or runtime execution",
+  "sources": [
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1670",
+      "observed": "The issue is closed. The reporter distinguishes the saved active paper viewport/effective UCS from the stored LAYOUT last-active viewport link and stored VIEWPORT UCS fields. On Oct. 14, 2026, the maintainer says the application now writes the entered viewport or paper canvas to LAYOUT group 331 and restores the corresponding viewport/UCS context on open. The maintainer also reports a DWG codec bug: the reader treated the LAYOUT last-active link as the overall viewport; a linked codec change instead derives the overall viewport from the layout's viewport list.",
+      "limits": "These are maintainer-reported source/application tests. The issue does not establish native AutoCAD/BricsCAD qualification or prove a libdxfrw defect. The attached user drawings were not downloaded or used."
+    },
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "observed": "GitHub identifies v2026.41 at commit cff240e and dates its release Oct. 11, 2026. The issue links the application and codec fixes on Oct. 14, 2026, after that release date.",
+      "limits": "The reviewed pages do not establish whether either fix was backported into the v2026.41 tag or a particular binary. Do not transfer post-release current-source behavior to that tag without source ancestry/artifact verification."
+    },
+    {
+      "url": "https://www.opencad.studio/",
+      "observed": "The hosted site advertises browser release v2026.40.1 while the GitHub releases page identifies v2026.41 as latest.",
+      "limits": "The version label is not an immutable binary identity or a source commit binding; it must not be used as proof that the post-release issue fix is deployed."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+      "observed": "Autodesk's LAYOUT reference assigns group 331 the last-active viewport relationship.",
+      "limits": "That persisted relationship alone does not specify an application's complete live editor-state restoration contract."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "observed": "Autodesk's VIEWPORT reference defines distinct group 68 status/stacking order, group 69 viewport identity, and group 71 UCS adoption behavior when a viewport is made active.",
+      "limits": "These DXF fields do not by themselves establish the separate DWG overall-viewport record or an application's editor-state contract."
+    }
+  ],
+  "localCrossCheck": {
+    "existingCoverage": [
+      "The plan already validates LAYOUT group 331 as a typed, owner-scoped handle and remaps it during output.",
+      "The plan treats DWG viewport counts/handle lists separately from DXF group 331 and DXF VIEWPORT groups 68/69.",
+      "Generated DXF controls cover last-active target ownership/remapping and viewport status/ID values."
+    ],
+    "staleTextCorrected": "A later plan row called issue #1670 unresolved even though the issue was closed on Oct. 14; it now records the fix while preserving its evidence limitations.",
+    "productionCodeChanged": false,
+    "testsRun": false,
+    "fixturesAdded": false
+  },
+  "planImpact": "Clarifies that LAYOUT 331 target closure, DWG overall-viewport selection, stored viewport/UCS fields, and consumer active-context restoration are four distinct questions. Optional consumer qualification must pin a post-fix artifact/source and cannot infer active context from group 331 alone. No implementation reorder or validation-frequency change.",
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "externalFixturesDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check on the modified plan; receipt JSON checked separately by jq)",
+    "fullSuiteRun": false
+  }
+}

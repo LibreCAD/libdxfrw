@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader DataStorage parser, projection-peer, and LibreCAD_3 consumer boundaries",
+  "mode": "Primary-source web research and read-only local plan/test-surface audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare structured DWG AcDs/DataStorage parsing with payload association and DXF extraction as separate operations.",
+    "Reconcile projected 3D output and partial ACIS parser capabilities across GDAL, ezdxf, FreeCAD, and LibreCAD_3.",
+    "Refine existing PAR-07/S8, DataStorage, and consumer qualification gates without creating new findings or required peer runs."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp Prototype_1b reader",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1154"
+      ],
+      "revision": "Issue and merged pull request inspected 2026-10-20; PR #1154 merged into master on 2026-07-28",
+      "observed": "The merged PR implements structured reading of the DWG Prototype_1b section, including data/index/schema records; its description says values remain unknown and that data mutation requires rebuilding related references. It explicitly leaves DXF extraction unchanged and states that linking DataStorage entries to entity payloads is separate. The review surfaced stale segment-index, multiple-schema, data-start/alignment, unreferenced-entry, and handle-order cases.",
+      "limits": "The PR's tests and comparison counts are peer-reported and were not independently reproduced. Intermediate-branch errors are not asserted to persist in the merged version. Section parsing alone does not prove correct entity-to-SAB association, semantic geometry, or writer validity."
+    },
+    {
+      "project": "LibreDWG AcDs/SAB report",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Issue #1411 reports LibreDWG 0.14.8593 at commit 8a1ae764 on Linux/x86-64; public source/NEWS links are mutable master",
+      "observed": "The issue reports AC1032 REGION records surviving conversion while SAB/AcDs data is absent, and provides a locally generatable ezdxf polyhedral SAB repro with a stated 5,489-byte payload. This is a useful example of entity-shell survival without carrier survival.",
+      "limits": "The report was not independently reproduced and is version-specific. It does not establish behavior of current LibreDWG master or any libdxfrw version. No external drawing or issue-produced output was downloaded."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable documentation accessed 2026-10-20; page states Binary-DXF read support begins with GDAL 3.12",
+      "observed": "GDAL projects DXF records into OGR features; selected curves are tessellated, explicit faces/planar fills are polygon-like, some styling/fill is omitted, and AC1027+ optional mode exposes raw ASM bytes plus affine transform without constructing OGR modeler geometry.",
+      "limits": "Documentation only; GDAL was not installed or run. OGR projection is not exact CAD record preservation or B-rep validation."
+    },
+    {
+      "project": "ezdxf ACIS tools",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Current stable documentation accessed 2026-10-20; page identifies ezdxf 1.4.5",
+      "observed": "The documented ACIS tools cover simple/known structures, warn that unsupported entities may become NONE_ENTITY with data loss, and provide mesh extraction only from flat polygonal faces; curved-face geometry is lost and no ACIS kernel is provided. The docs also show generated polyhedral SAT/SAB authoring.",
+      "limits": "Documentation/source only; no peer runtime was used. Generated polyhedra do not establish curved analytic geometry, general topology, or native acceptance."
+    },
+    {
+      "project": "LibreCAD_3 and FreeCAD consumer routes",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "LibreCAD_3 master page accessed 2026-10-20; FreeCAD documentation repository is archived and these pages are route snapshots",
+      "observed": "LibreCAD_3 documents DWG reading as experimental and disabled by default, with DWG writing intentionally not implemented; FreeCAD documentation distinguishes C++ and legacy Python import profiles, documents stock ACIS/SAT import as unsupported, and describes DWG import as converter to DXF followed by the configured importer.",
+      "limits": "These are project-policy/documentation statements, not current Linux/Windows application runtime qualification. No native app or converter was run."
+    },
+    {
+      "project": "ODA authority and local test surface",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_datastorage.cpp",
+        "tests/graph_preservation_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/hardening_tests.cpp"
+      ],
+      "revision": "Local sources inspected 2026-10-20; no parser implementation was changed",
+      "observed": "The existing generated controls already exercise DataStorage schemas, record anchors, and Blob01 pages including nonsequential physical page placement; direct DXF SOLID corner-slot parsing and TRACE OCS transformation are also covered in the local suite.",
+      "limits": "This pass audited source only and ran no tests. Coverage names do not imply every malformed, multi-schema, or version-specific case is already complete; review exact assertions before adding any test. ODA v5.4.1 remains the governing byte-layout authority under repository instructions."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: distinguish section structure, entity association, raw carrier, semantic geometry, writer/reopen, and application consumption",
+      "DataStorage: treat peer heuristic/recovery paths as diagnostic or optional, never as strict indexed association evidence",
+      "3D peer comparison: classify OGR projection and partial mesh extraction as lossy/approximate rather than CAD-model semantics",
+      "LibreCAD_3/FreeCAD: preserve consumer policy and exact backend/platform boundaries separately from library capability"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added ACadSharp's merged structured section reader as a bounded DataStorage structure comparator while keeping entity association and DXF extraction as separate gates.",
+    "Recorded the ACadSharp issue/PR adversarial shapes as test-design prompts, not confirmed defects in the merged peer or local implementation.",
+    "Added LibreDWG issue #1411's scratch-generatable AC1032 REGION/SAB loss shape without importing or committing the peer's fixture/output.",
+    "Clarified GDAL OGR projection and ezdxf flat-face mesh extraction as lossy/approximate evidence, not exact record preservation or B-rep semantics.",
+    "Added LibreCAD_3's documented experimental/read-only DWG consumer policy and retained separate exact-profile FreeCAD converter/importer qualification.",
+    "Required audit of existing generated DataStorage and SOLID/TRACE controls before any new test; implementation queue and fast validation cadence remain unchanged."
+  ],
+  "limitations": [
+    "ACadSharp, LibreDWG, and LibreCAD_3 source pages are mutable master branches; no artifact was built or run in this pass.",
+    "The ACadSharp PR thread contains peer-reported corpus/native observations that were not independently reproduced.",
+    "LibreDWG issue #1411 is a version-pinned report, not a verified result for current master.",
+    "GDAL, ezdxf, FreeCAD, AutoCAD, ODA, and independent geometry kernels were not run.",
+    "No external DWG/DXF sample was downloaded; no native Linux/Windows FreeCAD qualification was produced.",
+    "The six external-only J items remain DEFERRED_EXTERNAL and their evidence cannot promote support claims."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; no-index diff check on receipt produced no whitespace diagnostics)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session; no commit was attempted."
+  }
+}

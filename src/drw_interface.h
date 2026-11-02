@@ -13,7 +13,19 @@
 #ifndef DRW_INTERFACE_H
 #define DRW_INTERFACE_H
 
+// Preserve a caller's X11 None macro while declaring all header enums.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include <cstring>
+#include <limits>
 
 #include "drw_datastorage.h"
 #include "drw_entities.h"
@@ -79,6 +91,13 @@ public:
   /** Called for every Dictionary (named-object container, ODA fixed type 42).
    */
   virtual void addDictionary(const DRW_Dictionary &data) { (void)data; }
+  /** Called for the position-identified DXF Named Objects Dictionary, or
+   * the complete DWG dictionary selected by the validated HEADER reference.
+   * The default preserves the historical addDictionary() notification.
+   */
+  virtual void addNamedObjectDictionary(const DRW_Dictionary &data) {
+    addDictionary(data);
+  }
   /** Called for every Dictionary-with-default object. */
   virtual void addDictionaryWithDefault(const DRW_DictionaryWithDefault &data) {
     (void)data;
@@ -175,7 +194,7 @@ public:
   addDwgFrameCoverageReport(const DRW_DwgFrameCoverageReport &data) {
     (void)data;
   }
-  /** Called after a DWG reader finalizes its independent CLASSES report. */
+  /** Called after a DWG reader finalizes its parser-derived CLASSES report. */
   virtual void
   addDwgClassCoverageReport(const DRW_DwgClassCoverageReport &data) {
     (void)data;
@@ -185,6 +204,14 @@ public:
   /** Called for typed AcDb:AcDsPrototype_1b (DataStorage) index (PR-2a). */
   virtual void addDataStorage(const DRW_DataStorageSection &data) {
     (void)data;
+  }
+  /**
+   * Optional ownership-transfer callback for completed DWG DataStorage data.
+   * Existing consumers keep their const-reference callback; the default
+   * forwards there so implementations need not change.
+   */
+  virtual void addDataStorage(DRW_DataStorageSection &&data) {
+    addDataStorage(static_cast<const DRW_DataStorageSection&>(data));
   }
   //! Lossless DXF passthrough (slice A1): an OBJECTS-section object libdxfrw
   //! does not model is delivered verbatim so it can be re-emitted unchanged.
@@ -203,10 +230,19 @@ public:
   /**
    * Called for every block. Note: all entities added after this
    * command go into this block until endBlock() is called.
+   * The DXF reader attempts endBlock() once if this callback throws; a cleanup
+   * exception does not replace the original exception. The import has failed.
    *
    * @see endBlock()
    */
   virtual void addBlock(const DRW_Block &data) = 0;
+
+  /**
+   * Optional callback for the distinct ENDBLK record that closes the current
+   * BLOCK. It is delivered immediately before the legacy endBlock() callback
+   * so consumers can retain footer metadata without disturbing block scope.
+   */
+  virtual void addBlockEnd(const DRW_Block &data) { (void)data; }
 
   /**
    * Called for every BLOCK_RECORD table entry.  The callback is optional so
@@ -476,8 +512,9 @@ public:
 
   /**
    * Called for every VISUALSTYLE (AcDbVisualStyle) object encountered in
-   * the OBJECTS section. ODA spec §20.4.95. Default no-op — LibreCAD has
-   * no 3D rendering and treats these as opaque round-trip metadata.
+   * the OBJECTS section. ODA v5.4.1 does not provide a complete DWG body
+   * layout for this class. Default no-op — LibreCAD has no 3D rendering and
+   * treats these as opaque round-trip metadata.
    */
   virtual void addVisualStyle(const DRW_VisualStyle &data) { (void)data; }
 
@@ -610,8 +647,11 @@ public:
    * is emitted. DXF writers ignore this hook. */
   virtual void writeDwgClasses() {}
   /** DWG-only pre-table callback. Implementations may register APPIDs
-   * referenced by entity or typed-object EED/XDATA before the APPID table is
-   * emitted. DXF writers ignore this hook. */
+   * referenced by entity or typed-object EED/XDATA and R2018 multiline
+   * ATTRIB/ATTDEF outer annotative data before the APPID table is emitted.
+   * The corresponding APPID identity must be collected here so its handle
+   * can be remapped safely during entity writing. DXF writers ignore this
+   * hook. */
   virtual void collectDwgAppIds() {}
   virtual void writeBlocks() = 0;
   virtual void writeBlockRecords() = 0;
@@ -630,6 +670,12 @@ public:
   /** Called after deferred BLOCK_CONTROL and BLOCK_RECORD objects have
    * been emitted. Returning false aborts the DWG transaction. */
   virtual bool finalizeDwgWriteStructure() { return true; }
+  /** Called once after DXF emission and flush, before publishing the output.
+   * Returning false aborts the transaction. Inspect results only: record
+   * writes, handle allocation and output registrations are closed, and returned
+   * mutable context/result aliases must not be mutated. Existing consumers may
+   * omit this callback, but must rebuild against the changed interface. */
+  virtual bool finalizeDxfWrite() { return true; }
   virtual void writeAppId() = 0;
   /** Called when the writer wants the implementation to emit named VIEW
    * records. Default-empty for ABI compatibility with consumers (LibreCAD_3,
@@ -638,6 +684,540 @@ public:
   /** Called when the writer wants the implementation to emit named UCS
    * records. Default-empty (same rationale as writeViews). */
   virtual void writeUCSs() {}
+
+  /** Optional trailing ownership-transfer callback for completed modeler
+   * entities. Existing consumers keep the const-reference callback; the
+   * default forwards there so implementations need not change. */
+  virtual void addModelerGeometry(DRW_ModelerGeometry &&data) {
+    addModelerGeometry(static_cast<const DRW_ModelerGeometry &>(data));
+  }
+
+  /** Optional trailing ownership-transfer callback for raw DWG objects and
+   *  entities. Existing consumers keep the const-reference callback; the
+   *  default forwards there so implementations need not change. */
+  virtual void addUnsupportedObject(DRW_UnsupportedObject &&data) {
+    addUnsupportedObject(static_cast<const DRW_UnsupportedObject &>(data));
+  }
+
 };
+
+/** Optional side-channel for consumers that need to refuse conversion after
+ *  the generic OBJECTS fallback observes a record with no modeled adapter
+ *  route. Kept separate from DRW_Interface so its established vtable is not
+ *  extended or shifted for existing binary consumers. */
+class DRW_UnmodeledDxfObjectHandler {
+public:
+  virtual ~DRW_UnmodeledDxfObjectHandler() = default;
+  virtual void addUnmodeledDxfObject(const DRW_RawDxfObject &data) = 0;
+};
+
+/** Opt-in source record for DXF TABLE compound correlation. Does not extend
+ * DRW_Interface's vtable or duplicate addRawDxfEntity. The parent record
+ * excludes separate ATTRIB/SEQEND records; the typed view retains those.
+ * Delivered before addTable, only after the entity boundary is accepted.
+ * BLOCKS pairs are staged together until the enclosing ENDBLK is accepted.
+ * This is source transport, not semantic or output qualification. */
+class DRW_DxfTableSourceHandler {
+public:
+  virtual ~DRW_DxfTableSourceHandler() = default;
+  virtual bool wantsDxfTableSource() const { return false; }
+  virtual void addDxfTableSource(const DRW_Table& table,
+                                const DRW_RawDxfObject& source) = 0;
+};
+
+/** Opt-in complete STYLE/LTYPE source rows. Separate from DRW_Interface's
+ * established vtable. Selection is latched per symbol-table batch; default
+ * false performs no raw copy or raw-variant charging. Rows are delivered only
+ * after a valid ENDTAB, immediately before each corresponding typed callback.
+ * Includes the source record body, not its code-0 marker or table control.
+ * Source transport alone does not qualify semantics, target closure or output.
+ */
+class DRW_DxfSymbolSourceHandler {
+public:
+  virtual ~DRW_DxfSymbolSourceHandler() = default;
+  virtual bool wantsDxfSymbolSource() const { return false; }
+  virtual void addDxfSymbolSource(const DRW_TableEntry& row,
+                                 const DRW_RawDxfObject& source) = 0;
+};
+
+/** Opt-in borrowed TABLESTYLE/FIELD/XRECORD/DATALINK, DICTIONARYWDFLT,
+ * raw-only ACDBPLACEHOLDER and symbol publication context.
+ * This adds no callback to DRW_Interface. Existing typed/raw callback order
+ * and raw-only fallback stay intact. Symbols use their separately opted-in
+ * source facet followed by the existing typed callback after valid ENDTAB.
+ * Selection is latched before the pair;
+ * the dxfRW resource/plot-source views identify the actual pointers and original
+ * common/payload completeness, and expires at return/throw. Raw-only placeholder
+ * views have no typed model and do not invent a typed callback. The immutable raw
+ * carrier is moved only when selected; default false adds no source copy.
+ * Publication transport does not qualify targets, semantics or output. */
+class DRW_DxfResourceSourceHandler {
+public:
+  virtual ~DRW_DxfResourceSourceHandler()=default;
+  virtual bool wantsDxfResourceSource() const {return false;}
+};
+
+/** Explicit opt-in APPID/LAYER source rows. Source precedes the
+ * existing typed callback after a valid ENDTAB. Default false captures no raw
+ * row or original-state vector. Separate from both DRW_Interface and the
+ * established STYLE/LTYPE source facet; existing callback contracts stay intact.
+ * Source transport alone does not qualify names, targets, semantics or output. */
+class DRW_DxfNamespaceSourceHandler {
+public:
+  virtual ~DRW_DxfNamespaceSourceHandler()=default;
+  virtual bool wantsDxfNamespaceSource() const {return false;}
+  virtual void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
+};
+
+/** Optional source/output route for the LAYER symbol TABLE control header.
+ * Kept separate from DRW_Interface so existing consumer vtables do not change.
+ * The source carries the TABLE header's handle and optional extension-dictionary
+ * target; output consumers must resolve that target through their admitted
+ * object graph before returning it to the writer. */
+class DRW_DxfLayerTableControlHandler {
+public:
+  virtual ~DRW_DxfLayerTableControlHandler() = default;
+  virtual bool wantsDxfLayerTableControl() const { return false; }
+  virtual bool addDxfLayerTableControl(std::uint32_t handle,
+                                       std::uint32_t xDictHandle) {
+    (void)handle;
+    (void)xDictHandle;
+    return true;
+  }
+  virtual bool getDxfLayerTableControl(std::uint32_t& handle,
+                                       std::uint32_t& xDictHandle) const {
+    handle = 0u;
+    xDictHandle = 0u;
+    return false;
+  }
+};
+
+/** Separate explicit VIEW/UCS source opt-in. Source/typed pairs are published
+ * only after valid ENDTAB. Existing DRW_Interface and symbol/resource facets
+ * retain their callback and kind contracts. Transport is not semantic proof. */
+class DRW_DxfViewUcsSourceHandler {
+public:
+  virtual ~DRW_DxfViewUcsSourceHandler()=default;
+  virtual bool wantsDxfViewUcsSource() const {return false;}
+  virtual void addDxfViewUcsSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
+};
+
+/** Opt-in source transport for the first OBJECTS dictionary. Its historical
+ * addRawDxfObject suppression is preserved. Selection is latched before reading
+ * that record; default false adds no callback or source copy. Delivered after
+ * addNamedObjectDictionary, only after the complete record boundary is accepted.
+ * The source excludes its code-0 marker. The live dxfRW structural-source view
+ * identifies both real callback phases and the original pre-callback XDATA
+ * state; source storage is immutable through the pair. Transport is not graph/output proof.
+ * Kept separate so DRW_Interface's established vtable does not change. */
+class DRW_DxfRootDictionarySourceHandler {
+public:
+  virtual ~DRW_DxfRootDictionarySourceHandler() = default;
+  virtual bool wantsDxfRootDictionarySource() const { return false; }
+  virtual void addDxfRootDictionarySource(const DRW_Dictionary& dictionary,
+                                         const DRW_RawDxfObject& source) = 0;
+};
+
+/** Opt-in BLOCK_RECORD source rows. Selection is latched per table batch;
+ * default false adds no source copy/charging. Complete rows are delivered after
+ * valid ENDTAB, immediately before their typed callbacks. The source excludes
+ * its code-0 marker and table control. No DRW_Interface vtable change, block
+ * entity/child/source projection, target-closure or output claim is implied.
+ * The live dxfRW structural-source view identifies the actual pair and original
+ * pre-staging XDATA state; source storage is immutable through the pair. */
+class DRW_DxfBlockRecordSourceHandler {
+public:
+  virtual ~DRW_DxfBlockRecordSourceHandler() = default;
+  virtual bool wantsDxfBlockRecordSource() const { return false; }
+  virtual void addDxfBlockRecordSource(const DRW_Block_Record& row,
+                                      const DRW_RawDxfObject& source) = 0;
+};
+
+/** Optional original non-root DICTIONARY source. Selected once before the
+ * record; default false adds no publication/copy or established vtable slot.
+ * Delivered after accepted boundary and the existing typed/raw callbacks.
+ * Historical fixed C/D raw-callback suppression is unchanged; source delivery
+ * does not invent such a callback or authorize raw output. The structural view
+ * exposes actual typed/[raw]/source phases and original pre-callback state.
+ */
+class DRW_DxfDictionarySourceHandler {
+public:
+  virtual ~DRW_DxfDictionarySourceHandler()=default;
+  virtual bool wantsDxfDictionarySource() const {return false;}
+  virtual void addDxfDictionarySource(const DRW_Dictionary&,const DRW_RawDxfObject&)=0;
+};
+
+/** Optional original LAYOUT body, separate from DRW_Interface's vtable.
+ * Selection is latched before each record. Default false adds no source copy
+ * or charging. Delivered after the accepted object boundary immediately before
+ * addLayout, with the same typed object; source excludes code 0. A delivered
+ * prefix is not whole-import success, field/target or output qualification.
+ * Retained callers must bound/copy borrowed arguments; ordinary callback order
+ * and the historical absence of an addRawDxfObject(LAYOUT) call are preserved. */
+class DRW_DxfLayoutSourceHandler {
+public:
+  virtual ~DRW_DxfLayoutSourceHandler() = default;
+  virtual bool wantsDxfLayoutSource() const { return false; }
+  virtual void addDxfLayoutSource(const DRW_Layout& layout,
+                                  const DRW_RawDxfObject& source) = 0;
+};
+
+/** Optional BLOCK/ENDBLK source transport, separate from DRW_Interface.
+ * Selection is latched once per BLOCK. Begin is the original parsed model,
+ * before absent-name clearing and BLOCK_RECORD name/units/preview reconciliation;
+ * it is delivered before addBlock. End is delivered immediately before
+ * addBlockEnd, after the footer boundary is accepted but BEFORE staged children
+ * are replayed. Both raw bodies exclude code 0. Dropped blocks emit neither.
+ * Begin alone is preliminary: a bad footer or throwing callback can leave a
+ * delivered prefix. Require paired typed callbacks, balanced scope and whole
+ * import success before using it; this is not child/graph/output qualification.
+ * Default false adds no raw capture/charging and no established vtable slot.
+ */
+class DRW_DxfBlockSourceHandler {
+public:
+  virtual ~DRW_DxfBlockSourceHandler() = default;
+  virtual bool wantsDxfBlockSource() const { return false; }
+  virtual void addDxfBlockBeginSource(const DRW_Block& original,
+                                      const DRW_RawDxfObject& source) = 0;
+  virtual void addDxfBlockEndSource(const DRW_Block& footer,
+                                    const DRW_RawDxfObject& source) = 0;
+};
+
+/** Original physical child stream, not a typed/semantic/graph certificate.
+ * Includes compound subrecords and ignored comments. Groups exclude code 0;
+ * each group's span parallels its original scalar and ASCII raw spelling
+ * (empty raw spelling in binary). Identity/owner roles are NOT guessed from
+ * arbitrary code-5/330 values: the original scalars preserve the evidence.
+ */
+struct DRW_DxfPhysicalRecordSpan {
+  std::size_t ordinal{0},beginOffset{0},endOffset{0};
+  bool ignoredComment{false};
+};
+/** Actual per-scalar OBJECTS observations. Fields include ignored comments;
+ * code0 markers are separate. No value, role or support semantics are inferred.
+ * Shared immutable owners retain the read-budget lease after the callback.
+ */
+struct DRW_DxfObjectPhysicalSource {
+  enum class Status : std::uint8_t {NotCaptured,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  struct Field {int code{0};DRW_DxfPhysicalRecordSpan span;};
+  Status status{Status::NotCaptured};DRW::Version version{DRW::UNKNOWNV};bool binary{false};
+  UTF8STRING name;DRW_DxfPhysicalRecordSpan marker,endMarker;
+  std::vector<Field> fields;std::size_t bytes{0},work{0};
+};
+struct DRW_DxfObjectPhysicalSourceLimits {
+  std::size_t fields{4000000u},bytes{64u*1024u*1024u},work{128u*1024u*1024u};
+};
+/** Optional independent limit policy; collection uses the existing rendering/
+ * dictionary source opt-ins. Adds no DRW_Interface or existing facet slot.
+ * Own limits/allocation leave ordinary reads intact; shared read limits still
+ * bound aggregate retained owners. Called once per selected object.
+ */
+class DRW_DxfObjectPhysicalSourcePolicy {
+public:
+  virtual ~DRW_DxfObjectPhysicalSourcePolicy()=default;
+  virtual DRW_DxfObjectPhysicalSourceLimits dxfObjectPhysicalSourceLimits() const noexcept {return {};}
+};
+/** Whole-read physical identity evidence, not object/body/target qualification.
+ * Candidates preserve code 5/105 even in opaque scopes. HEADER/CLASSES are
+ * framing/metadata, not object namespaces. Admission records the real parser's
+ * registry decision; Unobserved is NOT proof that a physical identity is absent.
+ */
+struct DRW_DxfIdentitySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  enum class Section : std::uint8_t {Header,Classes,Tables,Blocks,Entities,Objects,Other};
+  enum class Kind : std::uint8_t {TableControl,TableRecord,Entity,Object,Unclassified};
+  // OpaqueBody is a physical XRECORD body candidate, not an outer identity.
+  // Consumers that do not recognize it must keep the namespace unqualified.
+  // SortOrder is a SORTENTSTABLE subclass sort key, not an object identity.
+  // Treat this new scope conservatively unless its role is independently joined.
+  enum class Scope : std::uint8_t {Outer,Application,Xdata,Embedded,Unframed,OpaqueBody,SortOrder};
+  enum class Admission : std::uint8_t {None,Unobserved=None,Accepted,Null,Duplicate,Invalid};
+  static constexpr std::size_t NoIndex=(std::numeric_limits<std::size_t>::max)();
+  static constexpr std::size_t None=NoIndex; // legacy spelling; NoIndex is macro-safe
+  struct SectionSource {
+    Section kind{Section::Other};UTF8STRING name;
+    DRW_DxfPhysicalRecordSpan marker,endMarker;
+  };
+  struct Record {
+    Kind kind{Kind::Unclassified};UTF8STRING name,tableName;
+    std::size_t section{NoIndex},table{NoIndex},firstCandidate{0},candidates{0};
+    DRW_DxfPhysicalRecordSpan marker,endMarker;
+  };
+  struct Candidate {
+    std::size_t record{NoIndex},section{NoIndex};int code{0};
+    Scope scope{Scope::Unframed};Admission admission{Admission::Unobserved};
+    std::size_t repeatedAdmissions{0};UTF8STRING lexeme,rawValue;
+    DRW_DxfPhysicalRecordSpan span;
+  };
+  Status status{Status::NotStarted};DRW::Version version{DRW::UNKNOWNV};bool binary{false};
+  std::vector<SectionSource> sections;std::vector<Record> records;std::vector<Candidate> candidates;
+  DRW_DxfPhysicalRecordSpan eofMarker;
+  std::size_t bytes{0},work{0},scalars{0},ignoredComments{0},unmatchedAdmissions{0};
+};
+struct DRW_DxfIdentitySourceLimits {
+  std::size_t sections{1024u},records{100000u},candidates{400000u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+/** Separate optional facet, latched once before the first scalar. Default
+ * false adds no collection/copy/charging and no DRW_Interface slot. Delivery
+ * follows accepted EOF; a truncated read or earlier throwing callback delivers
+ * nothing. Complete is physical transport, not successful whole import (later
+ * read-budget checks/callbacks can fail), namespace completeness or support.
+ * Own limits/allocation failures report unavailable evidence without rejecting
+ * compatible import; shared read limits still bound extra retained owners.
+ */
+class DRW_DxfIdentitySourceHandler {
+public:
+  virtual ~DRW_DxfIdentitySourceHandler()=default;
+  virtual bool wantsDxfIdentitySource() const {return false;}
+  virtual DRW_DxfIdentitySourceLimits dxfIdentitySourceLimits() const {return {};}
+  virtual void addDxfIdentitySource(const DRW_DxfIdentitySource&)=0;
+};
+struct DRW_DxfPhysicalEntitySource {
+  UTF8STRING name;
+  DRW_DxfPhysicalRecordSpan marker;
+  std::size_t endOrdinal{0},endOffset{0}; // next code-0 marker, excluded
+  std::vector<DRW_Variant> groups;
+  std::vector<UTF8STRING> rawValues;
+  std::vector<DRW_DxfPhysicalRecordSpan> spans;
+};
+struct DRW_DxfBlockChildrenSourceLimits {
+  std::size_t records{65536u},groups{262144u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+struct DRW_DxfBlockChildrenSource {
+  enum class Status : std::uint8_t { NotStarted, Collecting, Complete, Quota, Allocation, InvalidBoundary };
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint32_t blockHandle{0},blockRecord{0};
+  DRW_DxfPhysicalRecordSpan endMarker;
+  std::vector<DRW_DxfPhysicalEntitySource> records;
+  std::size_t groups{0},bytes{0},work{0},ignoredComments{0};
+};
+/** Separate optional facet, selected once per BLOCK. No established
+ * DRW_Interface vtable change. Dropped/invalid blocks deliver no inventory.
+ * Delivery follows accepted addBlockEnd and precedes staged child callbacks.
+ * Complete means the physical stream reached ENDBLK, NOT successful whole
+ * import, callback pairing, compound interpretation or selected support.
+ * Its own quota/allocation failure is explicit, not a format rejection. Shared
+ * reader byte/node limits still bound the extra owners and may fail the read.
+ */
+class DRW_DxfBlockChildrenSourceHandler {
+public:
+  virtual ~DRW_DxfBlockChildrenSourceHandler() = default;
+  virtual bool wantsDxfBlockChildrenSource() const {return false;}
+  virtual DRW_DxfBlockChildrenSourceLimits dxfBlockChildrenSourceLimits() const {return {};}
+  virtual void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) = 0;
+};
+
+/** Original ENTITIES stream, independent of BLOCKS and modeled callbacks.
+ * Interval starts at the actual first entity (or ENDSEC when empty), excluding
+ * the SECTION header and preceding comments. Includes compound subrecords and
+ * ignored comments within the interval. No identity/space roles are inferred.
+ * Complete means accepted ENDSEC, not successful whole import, callback/body,
+ * space, graph, editable-state, semantic or output qualification.
+ */
+struct DRW_DxfEntitiesSourceLimits {
+  std::size_t records{65536u},groups{262144u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+struct DRW_DxfEntitiesSource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // process-local interval identity, not an owner
+  DRW_DxfPhysicalRecordSpan beginMarker,endMarker;
+  std::vector<DRW_DxfPhysicalEntitySource> records;
+  std::size_t groups{0},bytes{0},work{0},ignoredComments{0};
+};
+/** Separate opt-in facet, latched once per ENTITIES section. Callback follows
+ * accepted ENDSEC and ordinary entity callbacks, whose timing is unchanged.
+ * No report on an aborted/truncated section or throwing entity callback. Own
+ * quota/allocation failure is reported, not a format rejection; extra owners
+ * also share reader byte/node limits, which may fail the read. Existing
+ * DRW_Interface and observer-facet vtables/layouts remain unchanged.
+ */
+class DRW_DxfEntitiesSourceHandler {
+public:
+  virtual ~DRW_DxfEntitiesSourceHandler() = default;
+  virtual bool wantsDxfEntitiesSource() const {return false;}
+  virtual DRW_DxfEntitiesSourceLimits dxfEntitiesSourceLimits() const {return {};}
+  virtual void addDxfEntitiesSource(const DRW_DxfEntitiesSource&) = 0;
+};
+
+// Planned staged delivery is separate from the unprojected physical stream.
+// Origins are original scalar ordinals/byte intervals, never inferred from a
+// callback count, effective block name or convenience handle. Consumers still
+// need profile/field/compound/target proof and successful whole-import context.
+enum class DRW_DxfBlockCallback : std::uint8_t {
+  addPoint,addLine,add3DLine,addRay,addXline,addArc,addCircle,addEllipse,
+  addLWPolyline,addMLine,addUnderlay,addShape,addOle2Frame,addOleFrame,
+  addProxyEntity,addPolyline,addSpline,addHelix,addMesh,addInsert,addTable,
+  addTrace,add3dFace,addSolid,addMText,addText,addAttDef,addTolerance,addCamera,
+  addGeoPositionMarker,addSectionObject,addDimAlign,addDimLinear,addDimRadial,
+  addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
+  addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
+  addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
+  addRawDxfEntity,AttdefSource,TableSource,Count
+};
+struct DRW_DxfBlockDispatch {
+  DRW_DxfPhysicalRecordSpan begin,end;
+  std::size_t firstEvent{0},events{0};
+};
+struct DRW_DxfBlockDeliveryEvent {
+  std::size_t dispatch{0};
+  DRW_DxfBlockCallback callback{DRW_DxfBlockCallback::Count};
+  std::int32_t entityType{0};
+  std::uint32_t handle{0},owner{0};
+  bool hasValue{false};
+};
+struct DRW_DxfBlockDeliveryLimits {
+  std::size_t dispatches{65536u},events{262144u};
+  std::size_t bytes{16u*1024u*1024u},work{32u*1024u*1024u};
+};
+struct DRW_DxfBlockDeliverySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // process-local capture identity, not a file handle
+  std::uint32_t blockHandle{0},blockRecord{0};
+  DRW_DxfPhysicalRecordSpan endMarker;
+  std::vector<DRW_DxfBlockDispatch> dispatches;
+  std::vector<DRW_DxfBlockDeliveryEvent> events;
+  std::size_t bytes{0},work{0};
+};
+/** Separate opt-in facet; requires physical child capture for the same BLOCK.
+ * Report after accepted ENDBLK/physical inventory, before staged replay. Each
+ * planned callback is bracketed with its immutable staged origin; finish follows
+ * all callbacks, including an empty stream. An exception leaves an unfinished
+ * prefix. Own quota/allocation failure reports evidence failure, not a format
+ * error; shared reader limits may still fail the read. Complete describes the
+ * planned manifest, not successful replay or semantic/support qualification.
+ * Existing DRW_Interface and source-facet vtables are unchanged.
+ */
+class DRW_DxfBlockDeliveryHandler {
+public:
+  virtual ~DRW_DxfBlockDeliveryHandler() = default;
+  virtual bool wantsDxfBlockDeliverySource() const {return false;}
+  virtual DRW_DxfBlockDeliveryLimits dxfBlockDeliveryLimits() const {return {};}
+  virtual void addDxfBlockDeliverySource(const DRW_DxfBlockDeliverySource&) = 0;
+  virtual void beginDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) = 0;
+  virtual void endDxfBlockDelivery(std::uint64_t,std::uint32_t,std::size_t,const DRW_DxfBlockDeliveryEvent&) = 0;
+  virtual void finishDxfBlockDelivery(std::uint64_t,std::uint32_t) = 0;
+};
+
+/** Source interpretation context, not a geometry/support certificate.
+ * applyExtrusion records the read option used for final callback preparation;
+ * its actual effect is defined by the entity's implementation (TEXT is currently
+ * a no-op). inBlock distinguishes BLOCKS children from ENTITIES records. */
+struct DRW_DxfAttdefSourceContext {
+  bool applyExtrusion{false};
+  bool inBlock{false};
+};
+
+/** Opt-in ATTDEF source transport, separate from DRW_Interface's vtable.
+ * Selection is latched before each record. Complete raw bodies exclude the
+ * code-0 marker and accompany the finalized typed view, immediately before
+ * addAttDef. BLOCKS pairs wait for an accepted ENDBLK; invalid/dropped blocks
+ * deliver neither callback. Default false adds no raw copy or source charge.
+ * Callback failure may leave an already delivered prefix: consumers must treat
+ * the whole import as failed. This is not immutable source/target/output proof.
+ */
+class DRW_DxfAttdefSourceHandler {
+public:
+  virtual ~DRW_DxfAttdefSourceHandler() = default;
+  virtual bool wantsDxfAttdefSource() const { return false; }
+  virtual void addDxfAttdefSource(const DRW_Attdef& value,
+                                 const DRW_RawDxfObject& source,
+                                 const DRW_DxfAttdefSourceContext& context) = 0;
+};
+
+// Immediate ENTITIES observations, distinct from BLOCK's staged replay.
+enum class DRW_DxfEntitiesCallback : std::uint8_t {
+  addPoint,addLine,add3DLine,addRay,addXline,addArc,addCircle,addEllipse,
+  addLWPolyline,addMLine,addUnderlay,addShape,addOle2Frame,addOleFrame,
+  addProxyEntity,addPolyline,addSpline,addHelix,addMesh,addKnot,addInsert,addTable,
+  addTrace,add3dFace,addSolid,addMText,addText,addAttDef,addTolerance,addCamera,
+  addGeoPositionMarker,addSectionObject,addDimAlign,addDimLinear,addDimRadial,
+  addDimDiametric,addDimAngular,addDimAngular3P,addDimOrdinate,addDimArc,
+  addLeader,addHatch,addMPolygon,addViewport,addImage,addWipeout,addPointCloud,
+  addPointCloudEx,addNavisworksModel,addSurface,addMLeader,addModelerGeometry,
+  addRawDxfEntity,TableSource,AttdefSource,Count
+};
+struct DRW_DxfEntitiesDeliveryEvent {
+  enum class Origin : std::uint8_t {Parser,SourceObserver,ProxyRendering};
+  std::size_t dispatch{0};
+  DRW_DxfEntitiesCallback callback{DRW_DxfEntitiesCallback::Count};
+  Origin origin{Origin::Parser};
+  std::int32_t entityType{0};
+  std::uint32_t handle{0},owner{0};
+  bool hasValue{false};
+};
+struct DRW_DxfEntitiesDispatch {
+  DRW_DxfPhysicalRecordSpan begin,end;
+  std::size_t firstEvent{0},events{0};
+};
+struct DRW_DxfEntitiesDeliveryLimits {
+  std::size_t dispatches{65536u},events{262144u};
+  std::size_t bytes{16u*1024u*1024u},work{32u*1024u*1024u};
+};
+struct DRW_DxfEntitiesDeliverySource {
+  enum class Status : std::uint8_t {NotStarted,Collecting,Complete,Quota,Allocation,InvalidBoundary};
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint64_t scopeId{0}; // exactly the original ENTITIES physical scope
+  DRW_DxfPhysicalRecordSpan beginMarker,endMarker;
+  std::vector<DRW_DxfEntitiesDispatch> dispatches;
+  std::vector<DRW_DxfEntitiesDeliveryEvent> events;
+  std::size_t completedEvents{0},bytes{0},work{0};
+};
+/** Separate opt-in facet, latched per ENTITIES section and requiring that
+ * section's DRW_DxfEntitiesSourceHandler opt-in. Brackets immediate producer
+ * callbacks without copying/staging their values or changing legacy timing.
+ * Adapter-internal callbacks are not producer events. TABLE/ATTDEF source
+ * facets remain independently selected. Explicit proxy-render origins do not
+ * establish additional physical primary entities. Exceptions before final
+ * publication leave only an observed prefix. Accepted ENDSEC publishes the
+ * report after the physical source callback; a throwing report callback or a
+ * later file failure still invalidates the import. Complete requires complete physical
+ * transport and returned callbacks, not successful whole import, immutable
+ * modeled bodies, space/dependency/live/output or semantic/support proof.
+ * Own quota/allocation failures soften evidence only; shared reader limits can
+ * still fail import. Existing interfaces/vtables/layouts are unchanged.
+ */
+class DRW_DxfEntitiesDeliveryHandler {
+public:
+  virtual ~DRW_DxfEntitiesDeliveryHandler() = default;
+  virtual bool wantsDxfEntitiesDeliverySource() const {return false;}
+  virtual DRW_DxfEntitiesDeliveryLimits dxfEntitiesDeliveryLimits() const {return {};}
+  virtual void beginDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) = 0;
+  virtual void endDxfEntitiesDelivery(std::uint64_t,std::size_t,const DRW_DxfEntitiesDeliveryEvent&) = 0;
+  virtual void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&) = 0;
+};
+
+/** Optional source-evidence side channel. Does not extend DRW_Interface's
+ * established vtable or require existing 2D consumers to retain source bytes.
+ * Request once per read; default false performs no source copy. Reports are
+ * delivered once after class accounting, including explicit capture failures.
+ * This is not a semantic/support certificate. A consumer whose callback throws
+ * must treat its own source capture as failed, not use partially retained data.
+ */
+class DRW_DwgClassSourceHandler {
+public:
+  virtual ~DRW_DwgClassSourceHandler() = default;
+  virtual bool wantsDwgClassSource() const { return false; }
+  virtual void addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) {
+    (void)data;
+  }
+};
+
+#ifdef LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_INTERFACE_RESTORE_NONE
+#endif
 
 #endif

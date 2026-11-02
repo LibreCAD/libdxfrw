@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-alignment-parameter-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 BLOCKALIGNMENTPARAMETER bounded DXF output profile",
+  "status": "AC1024_ALIGNMENT_PARAMETER_TYPED_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local repository input only; no DWG or DXF fixture was added to Git. Per-record outputs were temporary and removed by the selector."
+  },
+  "independentStructuralComparison": {
+    "implementation": "GNU LibreDWG dwgread/dwg2dxf 0.14",
+    "output": "/private/tmp/arch-libredwg-reference.dxf",
+    "outputSha256": "16587f4864d2dd0b704bd1992e482a0e80be0c7517ff4455584c97d5142312e5",
+    "observedRecords": 2,
+    "fields": "The emitted BLOCKALIGNMENTPARAMETER records contain AcDbEvalExpr, AcDbBlockElement, AcDbBlockParameter, AcDbBlock2PtParameter, and AcDbBlockAlignmentParameter subclasses. The two-point section orders 1010/1020/1030, 1011/1021/1031, group 170, four property-state group 91 values, counts 171-174 with paired 92/301 through 95/304 connection entries, base location 177, then alignment-perpendicular 280.",
+    "limits": "Independent converter output supports structural field-order comparison only; it is not a native-application or semantic oracle."
+  },
+  "implementation": {
+    "dxfRead": "AC1024-only bounded subclass/group sequence. Exactly four property-state values and four counted code/name connection lists are retained. Malformed fields or unknown subclass tails remain raw-only.",
+    "dxfWrite": "AC1024-only typed profile. Preserves source handle/owner and instance values; projects source schema versions to the emitted DXF schema; validates list cardinality, limits, coordinates, and tail/profile completeness before publishing output.",
+    "adapter": "Projects the physical source fields through dx_iface while keeping graph admission closed until the remaining records and dependencies are covered.",
+    "notQualified": "Does not qualify the complete dynamic-block graph or native dynamic-block semantics; does not promote a format support claim."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "fastRegression": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_alignment_parameter_writer$' --output-on-failure",
+      "result": "PASS, 1/1; authored DWG/DXF source projections, ASCII/Binary field order and typed/raw readback, unknown-tail raw-only fallback, destination rollback, and corrected same-writer retry."
+    },
+    "physicalWitness": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-alignment-parameter-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS; both physical records emitted individually in ASCII and Binary and freshly imported with exact typed fields and raw group order."
+    },
+    "sanitizerWitness": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-alignment-parameter-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS under AddressSanitizer."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; focused warning-as-error build, fast regression, physical witness, and sanitizer selector were sufficient for this bounded record profile."
+  },
+  "externalItemsPromoted": 0
+}

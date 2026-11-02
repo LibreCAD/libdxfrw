@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORTENTSTABLE projection reserve cardinality",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Right-size graph-validation scratch reservations to the data population each index stores.",
+    "Preserve existing source-record admission limits and SORTENTSTABLE semantics."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::validateSortEntsGraph",
+    "before": "The entity index and unresolved-owner sets reserved from sourceRecords, a combined census that also counts dictionaries, tables, blocks and raw records.",
+    "after": "Count admitted entity entries separately; reserve the entity map and unresolved handle claims from sourceEntities, and reserve unresolved physical-owner names from the number of block containers.",
+    "effect": "Avoids reserving slots for non-entity records in the entity index/owner-claim set and avoids using per-entity record volume to size the set of distinct physical block names. Admission thresholds, traversal, lookups, and output are unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 0.33,
+        "coverageNote": "Existing SORTENTSTABLE owner-graph control covers generated entity populations, duplicate-pair policy, ASCII/Binary emission, and readback."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one over-broad reservation-sizing case in the SORTENTSTABLE graph projection scratch audit. No data, limit, or support claim changed."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter-test target build",
+      "Focused existing SORTENTSTABLE adapter round-trip CTest"
+    ],
+    "limitations": "No allocator instrumentation, peak RSS, or throughput benchmark was run; the reduction is source-level capacity right-sizing and not a global memory bound."
+  }
+}

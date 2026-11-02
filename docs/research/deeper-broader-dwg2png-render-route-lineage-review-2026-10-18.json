@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader new DWG render-pipeline and shared-lineage review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen a newly surfaced DWG-to-image application against the current open-source parser and consumer map",
+    "Determine whether it adds an independent DWG/DXF parser, writer, or 3D semantic route",
+    "Update the existing optional comparator guidance without expanding implementation or per-slice validation"
+  ],
+  "method": {
+    "kind": "Read primary project README, architecture, capability limits, and repository release metadata",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "AGENTS.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "The dwg2png project page and README are mutable and provide no release artifact or per-file input hashes/run receipt for the reported corpus. No executable or drawing was obtained or tested; all route capabilities and corpus results remain project-reported."
+  },
+  "sources": [
+    {
+      "project": "diskd-ai/dwg2png",
+      "urls": [
+        "https://github.com/diskd-ai/dwg2png",
+        "https://github.com/diskd-ai/dwg2png#architecture-boundaries",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18; no release artifact listed",
+      "observed": "The README describes an acadrust parser stage followed by application-owned tessellation, page/viewport projection, rendering, and metadata extraction. Its listed rendered entity set includes common 2D geometry, text, attributes, blocks, and paper-space viewport projection. It explicitly lists HATCH, DIMENSION geometry, LEADER/MLEADER, MLINE, raster images, and 3D solids as not rendered; splines may use fit points or a control polygon. It self-reports 11 AC1032 inputs and 23 rendered pages compared with plotted PDFs, without per-file hashes or an independently authored expected geometry manifest on the reviewed page."
+    },
+    {
+      "project": "Existing peer-lineage and qualification plan",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/mozman/ezdxf"
+      ],
+      "revision": "Existing local review baseline; no peer source re-executed in this pass",
+      "observed": "The plan already separates parser lineage, directional file-format operations, downstream projection, carrier preservation, and independent solid semantics. The new application routes through the already-counted ACadRust lineage and does not close the existing independent parser, native-consumer, or geometry-semantic gates."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Records dwg2png as an optional ACadRust-lineage downstream 2D projection/renderer discovery route only. It is not an independent DWG/DXF codec, native CAD acceptance result, or 3D/ACIS semantic witness. No required gate, implementation order, or validation cadence changed.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not add dwg2png to ordinary fast slices, CMake, CI, fixture storage, or the required native matrix.",
+    "If a concrete 2D projection discrepancy later justifies its use, pin source commit, Cargo.lock dependency/source identities, toolchain, and exact operation before running it.",
+    "Use only locally authored or otherwise authorized inputs with hashes and an independent page/geometry expectation; record every source handle and unsupported/omitted disposition.",
+    "Attribute parser decode, application tessellation, page/viewport projection, rendering, and metadata as separate stages. Do not count ACadRust-based apps as independent DWG parser votes.",
+    "Treat screenshots, self-reported PDF comparisons, text/metadata extraction, and outputs that omit 3D solids as projection observations only, never as carrier or B-rep validation.",
+    "Keep findings 130/73 and J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL; source discovery does not promote any support claim."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-ac1_40-load-fail-closed-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Fail closed on the unresolved AC1.40 T_LOAD marker with a specific diagnostic, and cover the behavior using generated in-memory controls in the existing DWG reader-matrix target.",
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgreaderR1_40.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehavior": "T_LOAD returns BAD_READ_ENTITIES and records unsupported-legacy-load at the marker offset instead of consuming and discarding the unresolved resource directive.",
+    "testFunction": "testR140LoadFailsClosed",
+    "cases": [
+      {
+        "case": "generated_T_LOAD_with_following_POINT",
+        "expected": "read fails at the entity stage; diagnostic phase/cause/code/offset match; no following POINT callback"
+      },
+      {
+        "case": "same_reader_retry_without_T_LOAD",
+        "expected": "ordinary AC1.40 POINT stream succeeds and clears the prior failure diagnostic"
+      }
+    ],
+    "sourceHashesSha256": {
+      "src/intern/dwgreaderR1_40.cpp": "d1628d0f52b84024846a69e870faedf343c09aeb1320f95e407bd914bd89037f",
+      "tests/dwg_reader_matrix_tests.cpp": "5a318db043dc3b33eece54194cf27d5cf8b432b4c099e48248d1c4223a3a45ed"
+    },
+    "externalSamplesOrPoCsUsed": 0,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf lc3_compat_check --parallel 2",
+        "result": "passed; ninja reported no work to do"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "passed; 1/1 in 1.48s"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgreaderR1_40.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/ac1_40-load-fail-closed-fast-slice-2026-10-16.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "externalDrawingDownloadedOrCommitted": 0,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingFinding": "PAR-123",
+    "existingSubplan": "7BS.2",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared worktree contains broad in-progress changes and Git metadata is read-only under the active workspace permissions."
+  },
+  "semanticLimits": [
+    "The test string bytes are source-authored controls, not an authoritative statement of historical LOAD string encoding.",
+    "No SHX search, path policy, glyph mapping, geometry, transform, or native consumer behavior was implemented or qualified.",
+    "The refusal does not roll back callbacks from records before T_LOAD; it prevents later geometry callbacks and preserves an explicit failed-read result."
+  ]
+}

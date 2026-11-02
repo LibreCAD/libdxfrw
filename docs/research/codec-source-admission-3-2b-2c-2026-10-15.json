@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "date": "2026-10-15",
+  "planSlice": "Slice3.2b.2c",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parentState": "IN_PROGRESS",
+  "parentCommit": "c53b1b1ee93837a662b90ff92aaff388b5d171f7",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Explicit CLI required-source-text admission before publication, separate from owner resolution; no complete charset/target/DWG qualification",
+  "consumerRebuildRequired": true,
+  "binaryAbiQualified": false,
+  "sourceHashes": {
+    "src/drw_base.h": "b762c78e73e85d9eee28b6ff8ce4f4fe8f8fced7d1216edcabf3d657ab93767f",
+    "src/intern/dxfreader.cpp": "57152fa644bc842df1d699a0da020f9a8effe95dc76e5fcc071b9952ac6c06a3",
+    "dwg2dxf/dx_data.h": "37d0bd25c072a380f92f137018ffd9a14508bbf14d4692acb2b6739b73214594",
+    "dwg2dxf/dx_iface.h": "c0f03dcd7cefa503da14433c330f6bc445f9f33adaf94a5204fcafe387ba5826",
+    "dwg2dxf/dx_iface.cpp": "d3064c338967b3431bd760a10d81b182a15926b47e7392534159d0a34c8e7ebd",
+    "dwg2dxf/main.cpp": "068ff5ef9e684672cc22c93eda0b8ae041c4504ee1b5885020a5d6e7fe4fbd6b",
+    "tests/gbk_codepage_tests.cpp": "f49a843657a81a8a40a0e308f8c08b1906a08ca467711b8bd6b05a6dc5ba3770",
+    "tests/dwg2dxf_cli_contract_tests.py": "3ac713bd02efc910864bbf4b9c0ac74ee28b48c521f96d857571d4e896bf7f40"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "73e3ac848cbc995fc70959238ba383374916a525b67cb4530434177cedfa3fa2",
+    "build/libdxfrw_gbk_codepage_tests": "09cb2d0af126de400252ad9bf4589683aaa040969347fafd3eeb99879975d0a1",
+    "build/dwg2dxf/dwg2dxf": "5720de456bd94b829d8ab17750859b21cf62fe4d3325643200eec9a1fce755e7",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "9c569796c65ecaa870ef6e98cdeeb7e0c3534fb216640dee540c5ac8c1c84ace",
+    "/private/tmp/libdxfrw-source-admission.IkDomz/focused-ctest.xml": "ea64693b61187c154dc366d0fb393f680688a9d721d20d4f0fe7d4679e3b3445"
+  },
+  "policy": {
+    "explicit": "dx_dxfSourceTextPolicy::RequireValidSource, independently supplied by main to fileExport; Compatible remains ordinary adapter default",
+    "admission": "successful returned import, no original throw/legacy error/primary diagnostic failure, available bounded diagnostics, nonsaturated observations and no observed issue bits",
+    "metadata": "full owned raw HEADER declaration, not metadata prefix or canonical/exact naming category, determines legacy UTF8/UTF16 ineligibility",
+    "positives": "decoder-independent ASCII/represented CIF/MIF with missing/unknown/inexact page metadata; valid modern UTF8 with inert legacy metadata; no revision is invented",
+    "negatives": "malformed UTF8/CIF/Unicode scalars, undefined/DBCS sequences, observed replacement/discard, unresolved escapes, nonASCII inexact/unavailable/unknown/unspecified selection, unsupported legacy Unicode profiles",
+    "cumulative": "reader-only appended UnspecifiedSourceVersion and UnsupportedEncodingProfile issue kinds prevent later revision/page metadata from erasing earlier decoding ambiguity; old issue ordinals remain",
+    "unknownRevision": "raw nonASCII semantic decoding without an accepted source revision is recorded at decode time; ASCII/represented escapes can remain eligible without one",
+    "profile": "well-formed scalar output from an even-length ASCII pair under UTF16 is still an unsupported DXF profile; modern metadata is inert and DWG TU is unchanged",
+    "publication": "source gate runs at fileExport entry before output transaction/planning/emission; refusal preserves absent/existing destinations and does not mutate owned import evidence",
+    "reporting": "bounded constant ASCII reason plus uint32 issue mask on stderr; reporting exceptions cannot authorize publication",
+    "compatibility": "ordinary facade read bool/error/text/projection and Compatible adapter export remain; no installed policy API or pure virtual added",
+    "boundary": "necessary observed required-source-text gate only; not complete semantic coverage, mapping oracle, raw-carrier, target, DWG or native-consumer support"
+  },
+  "tests": {
+    "entryPoint": "build/libdxfrw_gbk_codepage_tests --source-text-admission",
+    "outputSummary": "DXF source admission: handoffs=40, profile controls=1, envelope controls=17",
+    "mode": {
+      "exitCode": 0,
+      "wallSeconds": 0.163547083
+    },
+    "apiHandoffs": "20 literal source rows x2 file encodings; explicit source admission separate from owner Boolean, existing/absent destination checks, compatible same-adapter export and unchanged read evidence",
+    "profileControl": "UTF16 bytes4142 decode to valid U+4241 but record only UnsupportedEncodingProfile; no malformed-byte inference",
+    "envelopeControls": "17 accepted/rejected dispositions cover independent ASCII, missing/throwing/failed import, diagnostic capture/operation/failure/cap, saturation, unknown revision/format, missing owned declaration and future unknown issue bit",
+    "actualCli": {
+      "command": "python3 tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf",
+      "negativeSourceShapes": 26,
+      "refusals": 208,
+      "correctedRetries": 104,
+      "positiveScalarOutputs": 40,
+      "mixedBatch": 1,
+      "dimensions": "ASCII/binary input x positional/FreeCAD argv; negative absent/existing destinations, ASCII/binary output; all corrected same-path retries overwrite the retained sentinel",
+      "owners": "TEXT plus layer, deferred HEADER and XDATA; later canonical metadata, later recognized revision, valid-scalar earlier UTF16, full16-advisory list",
+      "positiveProjection": "literal expected UTF8 scalar bytes in ASCII output, no strict peer reopening/native comparator claim",
+      "priorControls": {
+        "optionFilename": 48,
+        "batch": 18,
+        "readObservation": 2
+      },
+      "totalBoundedProcessControls": 421,
+      "childLimits": "5 seconds and65536 bytes for new controls; no unbounded subprocesses or optional tools"
+    },
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests libdxfrw_diagnostic_tests dwg2dxf lc3_compat_check --parallel 2",
+    "strict": "C++17 -Wall -Wextra -Werror -fsyntax-only src/intern/dxfreader.cpp dwg2dxf/dx_iface.cpp dwg2dxf/main.cpp tests/gbk_codepage_tests.cpp",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(dwg2dxf_cli_contract|libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures|libdxfrw_diagnostic|libdxfrw_public_header_hygiene)$' --output-on-failure --output-junit /private/tmp/libdxfrw-source-admission.IkDomz/focused-ctest.xml",
+      "tests": 5,
+      "failures": 0,
+      "skipped": 0,
+      "wallSeconds": 32.46,
+      "cliSeconds": 11.9604,
+      "headersSeconds": 15.3213,
+      "note": "concurrent sanitizer compilation/other checks affected host timing; focused receipt is not a benchmark or full suite; header check10 entrypoints/10 identical enums/mixedTU, actual X11 unavailable"
+    },
+    "sanitizer": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 /private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests --source-text-admission",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+      "exitCode": 0,
+      "wallSeconds": 0.249049209,
+      "scope": "focused source admission mode on macOS; not a native/full-suite/leak qualifier"
+    },
+    "preliminaryObservation": "A preliminary Python run terminated with FileNotFoundError while Ninja replaced the converter during relinking (live build44616). No product failure was inferred. Final direct and CTest checks ran after that exact build handle returned exit0 and the current executable is hash-bound."
+  },
+  "authority": {
+    "primary": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://www.rfc-editor.org/rfc/rfc3629.html"
+    ],
+    "decision": "version-specific DXF string storage and Unicode scalar validity are separate from named-mapping qualification; local compatible raw codepages are not automatically normative producer profiles",
+    "frozenResearch": "previous140 codec outputs and32 conversion routes remain frozen historical evidence; no converter-engine mapping change or new external oracle/native run"
+  },
+  "fixturePolicy": "all new DWG/DXF payloads are authored at runtime in unique scratch roots; no external fixture, dependency, CTest registration or support metadata added",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12
+  },
+  "next": "Slice3.2b.2d explicit target scalar transport for DXF and DWG-derived semantic text;3.3 mapping and3.4 numeric DWG/version evidence remain separate"
+}

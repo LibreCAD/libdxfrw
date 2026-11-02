@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-graph-route-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical associative graph route through DXF preflight",
+  "status": "ASSOCIATIVE_ROUTE_PASSED_NEXT_DICTIONARY_EDGE_BLOCKED",
+  "supportClaimEffect": "none",
+  "baselineCommit": "9175fc06",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "constraintGroupHandle": "0x42B",
+    "groupVersion": 0,
+    "maxDependencyIndex": 143,
+    "actionCount": 88,
+    "nodeCount": 399,
+    "actionTargetCounts": {
+      "ACDBASSOCGEOMDEPENDENCY": 54,
+      "ACDBASSOCDEPENDENCY": 17,
+      "ACDBASSOCVALUEDEPENDENCY": 17
+    },
+    "nestedNetworkRoute": {
+      "rootNetwork": "0x422",
+      "childNetwork": "0x424",
+      "groupOwner": "0x424"
+    }
+  },
+  "formatEvidence": {
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "version": "5.4.1",
+      "section": "20.1 Common non-entity object format",
+      "pages": [104, 105],
+      "finding": "For R2010+, the handle-stream size includes padding bits that make the object stream end on a byte boundary. The parser now validates the exact remaining alignment span without treating padding values as zero-valued semantic data."
+    },
+    "independentReader": {
+      "repository": "LibreDWG",
+      "version": "0.14",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "projection": "/private/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "projectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "finding": "All 54 source ACDBASSOCGEOMDEPENDENCY records decode m_dependencyOrder=-10000; the source record 0x6FB independently matches the local parser's target 0x392 and SingleEdge subclass values."
+    },
+    "dimensionDependencyBodies": {
+      "sourceCount": 17,
+      "className": "ASSOCDIMDEPENDENCYBODY",
+      "independentProjectionFinding": "LibreDWG identifies the source CLASSES name without the ACDB prefix; the body owner handle points back to its ACDBASSOCDEPENDENCY."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The AC1024 source-bound associative graph preflight now accepts the witnessed nonzero group dependency index, all listed constraint-node DataKinds and role-bound handles, geometry dependency order -10000, aligned handle-stream padding, ACDBASSOCDIMDEPENDENCYBODY class-name alias, generic dimension dependency body prefix, value-dependency peers, and the validated nested network route. The implementation reuses the existing graph planner and typed writers.",
+    "physicalDiagnostic": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/assoc-debug.dxf",
+      "result": "FAIL_CLOSED after 143 visited nodes and 371 examined edges: dictionary entry target is missing or ambiguous, owner=114 (0x72), target=151 (0x97). No DXF destination was published. This establishes associative profile admission only; it does not establish complete physical conversion."
+    },
+    "fixturePolicy": "All automated graph/writer inputs are generated in memory. The investigation DWG and peer outputs are not committed as test fixtures."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with the configured warning-as-error build."
+    },
+    "focusedTests": {
+      "commands": [
+        "ctest --test-dir build-gcc -R '^(libdxfrw_associative_(dependency|constraint_group)_writer|dwg2dxf_associative_(geometry_dependency_graph_export|dwg_root_network_value_dependency_export))$' --output-on-failure",
+        "ctest --test-dir build-gcc -R '^(libdxfrw_associative_dependency_body_writer|libdxfrw_associative_dimension_dependency_body)$' --output-on-failure"
+      ],
+      "result": "PASS 6/6 focused fast tests: direct dependency/group/body serialization, ASCII/Binary generated graph output and readback, bounded role/reference validation, and failure/retry coverage."
+    },
+    "fullSuites": "NOT_RUN per the fast-validation plan."
+  },
+  "remaining": "At the time of this receipt, resolve the source-required dictionary entry edge owner 0x72 -> target 0x97, then continue the P4 callback census and required descendant/output proofs. The MATERIAL edge and generated output packet have since been closed; see p4-ac1024-material-output-2026-10-31.json.",
+  "currentDiagnostic": {
+    "receipt": "p4-ac1024-material-output-2026-10-31.json",
+    "status": "The current physical mechanical witness passes associative extension-graph planning and stops at registerMeshClass admission, reported as AcDbSubDMesh CLASS metadata. The destination is not published."
+  },
+  "limitations": [
+    "No physical-source DXF was successfully published or read back.",
+    "The explicit-partial diagnostic is not a completeness or support claim.",
+    "P4's 228 opaque callback identities across 21 profiles remain an open exit gate.",
+    "No LibreCAD, LibreCAD_3, FreeCAD, native platform, ABI, packaging, or 3D semantic gate is promoted."
+  ],
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "e4366203b55f3ccba3e3e80a6a2db0d16fa96d1859c16cef634019949301940a",
+    "dwg2dxf/dx_iface.cpp": "83dfa455970f104865b8e21c11e063f109e8ca80e30a39e81c76524eae138989",
+    "dwg2dxf/dx_iface.h": "92f963a95c38cbf992b0d0537041540be162bf26327258de585f91929c351080",
+    "tests/dwg2dxf_adapter_tests.cpp": "f8abd86489bd5c978a31cd6e4d455d7d75bd79902c50846485ef6de53c9609b9",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7c5308b99f02420800aecb2e759c8e00bb73138a571a6862bad569090c9a7546"
+  }
+}

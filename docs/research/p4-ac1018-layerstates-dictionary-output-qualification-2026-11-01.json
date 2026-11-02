@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-01",
+  "scope": "Strict source-to-staged-output qualification for the empty AC1018 LAYER_CONTROL extension dictionary and its empty ACAD_LAYERSTATES child dictionary in one existing physical witness. This does not qualify nonempty layer-state dictionaries, their XRECORD payloads, layer-state restoration semantics, or whole-source conversion.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "version": "AC1018",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "fixture_committed": false
+  },
+  "independent_source_evidence": {
+    "tool": "LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executable_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "json_command": "/opt/homebrew/bin/dwgread -O JSON -o /tmp/et-libre.json /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "json_sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+    "dxf_command": "/opt/homebrew/bin/dwgread -O DXF -o /tmp/et-libre.dxf /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "dxf_sha256": "04484a2b42e65c11f0a9d81630c7c153f52fbf35f5d823fb3de1ad2fb4c22bf3",
+    "observed_graph": [
+      "LAYER_CONTROL handle 0x2 references extension DICTIONARY 0xE8.",
+      "DICTIONARY 0xE8 is owned by 0x2, has hardOwner=1 and cloning=1, and has exactly one ACAD_LAYERSTATES hard-owner entry to 0xE9.",
+      "DICTIONARY 0xE9 is owned by 0xE8, has hardOwner=0 and cloning=1, has no entries, and has reactor 0xE8."
+    ]
+  },
+  "external_schema_evidence": [
+    {
+      "title": "Autodesk AcDbLayerStateManager Reference Guide",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbLayerStateManager.html",
+      "use": "Confirms the layer-state dictionary is accessed within the Layer Table extension dictionary and identifies its name as ACAD_LAYERSTATES."
+    },
+    {
+      "title": "Autodesk LayerStateManager Class Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LayerStateManager.html",
+      "use": "Independently confirms the ACAD_LAYERSTATES name and its location within the Layer Table extension dictionary."
+    }
+  ],
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "186383345d301bf7f5ebdd62dd0e44afbd0c990e796b601c90aa960e3826dc88",
+      "dwg2dxf/dx_iface.h": "e58dcbb8a72298936e8d54f15872a5d644e73e5bfab01005de5ec7e0445165ef",
+      "tests/dwg2dxf_adapter_tests.cpp": "04a32e3964f7d802490683e18b2972535c44e3481e5b7628046afc35eaff73de"
+    },
+    "proof": [
+      "The writer captures the AC1018 source version, import generation, LAYER_CONTROL extension edge, both unique typed DICTIONARY models, and both corresponding standard callback frames. The callback typed baselines must match the retained models field by field.",
+      "Admission is restricted to the observed empty profile: E8 has one ACAD_LAYERSTATES edge, hard-owner/cloning values 1/1, no reactors, no xdictionary, E9 has zero entries, hard-owner/cloning values 0/1 and reactor E8; both dictionaries reject EED, data storage, incomplete entries, common-link tails and unresolved APPID/LAYER references.",
+      "After TABLES proves source LAYER_CONTROL maps to emitted LAYER TABLE handle 2, OBJECTS inspection verifies unique DICTIONARY identities, output owners, every common field, dictionary flags, complete entry name/target/role, and reactor mapping against the frozen source models. Both opaque callback qualifications are staged only after the entire graph matches.",
+      "Finalization checks the source snapshot and requires the staged graph inspection. Qualification remains transaction-scoped and is not published on refusal."
+    ]
+  },
+  "validation": {
+    "build_command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "build_result": "PASS",
+    "adapter_test_executable": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "adapter_test_sha256": "6db396d43e3bc4efbe50086f67ac5a963cd7e4403c1f823240429df19f6c8a33",
+    "cases": [
+      {
+        "command": "--layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII and binary DXF; validates destination rollback, same-adapter corrected retry, 20/23 callback qualifications, fresh readback of the LAYER_CONTROL extension dictionary, ACAD_LAYERSTATES hard-owner entry, empty child body, and child reactor."
+      },
+      {
+        "command": "--layout-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "PASS for existing AC1024 ASCII and binary LAYOUT output compatibility."
+      },
+      {
+        "command": "--dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; existing DICTIONARYWDFLT/PLACEHOLDER proof and retry pass with the two additional LayerStates qualifications."
+      },
+      {
+        "command": "--dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII and binary DXF; complete output remains correctly refused at 20/23 and the partial profile retries."
+      },
+      {
+        "command": "--mline-style-physical-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII and binary DXF; existing MLINESTYLE rollback, retry and readback remain intact."
+      }
+    ],
+    "diff_check": "PASS"
+  },
+  "qualification_delta": {
+    "source_callback_count": 23,
+    "qualified_before": 18,
+    "qualified_after": 20,
+    "newly_qualified": ["0xE8", "0xE9"],
+    "remaining_unqualified": ["0x0C", "0x2CD", "0x2CE"],
+    "whole_source_output": "Still refused; invalid non-shape empty-name STYLE 0xDF remains an independent blocker."
+  },
+  "limitations": [
+    "Autodesk documentation and this witness support the dictionary location/name, not general serialization or restoration semantics for saved LayerStates.",
+    "The witness's ACAD_LAYERSTATES dictionary is empty. Nonempty dictionaries and their XRECORD descendants remain refused/unqualified until source and independent consumer evidence supports their contents and graph roles.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

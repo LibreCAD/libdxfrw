@@ -1,0 +1,60 @@
+{
+  "id": "RPP-5z2",
+  "date": "2026-10-30",
+  "title": "Bounded TABLECONTENT column/table-scope margin writer",
+  "scope": {
+    "operation": "Serialize one column-scope or table-scope TABLEFORMAT margin override in a rectangular TABLECONTENT grid.",
+    "profile": "Generated 2x2 AC1027 scalar table: one type-3 column style or one type-4 table style carries the selected margin-only profile. ASCII and binary DXF.",
+    "source_basis": "The current decoder in src/intern/dxftablecontent.h retains separate type-3 formatted-column and type-4 table scopes, each with the six-value CELLMARGIN payload. Before this change, the multi-cell writer rejected nondefault column and table styles and emitted defaults. This receipt qualifies only generated serializer profiles; it is not a producer-authored source or native-rendering witness.",
+    "ordered_margins": {
+      "vertical": 0.875,
+      "horizontal": 1.0,
+      "bottom": 1.125,
+      "right": 1.25,
+      "horizontal_spacing": 1.375,
+      "vertical_spacing": 1.5
+    },
+    "limits": [
+      "One selected type-3 column style or one type-4 table style",
+      "The second column remains default in the column profile",
+      "All six margins are finite and nonnegative",
+      "No borders, content-format, custom-data, CELLSTYLEMAP, or other style properties"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no independent producer, native CAD rendering, or DWG output claim."
+  },
+  "implementation": [
+    "Generalize the selected margin-only style admission to type-3 column and type-4 table scopes while retaining cell and row profiles.",
+    "Validate every column scope and the table scope before emitting the multi-cell object.",
+    "Emit the selected type-3 style in COLUMNTABLEFORMAT and the selected type-4 style in TABLEFORMAT."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": [
+      "The type-3 profile emits two column TABLEFORMAT records: the selected first column has data and margin flag 1 with exactly six ordered group-40 values; the sibling column stays default.",
+      "The type-4 profile emits the selected TABLEFORMAT with data and margin flag 1 and exactly six ordered group-40 values."
+    ],
+    "typed_readback": "Fresh imports preserve the selected scope type, has-data state, override flag and all six margins for both column and table profiles.",
+    "failure_control": "A negative horizontal margin is refused; the existing destination sentinel, caller metadata and table collection remain unchanged.",
+    "retry_control": "Restoring the original positive margin permits export on the same adapter; fresh readback returns the selected margin value."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-column-table-margin-write",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_grid_write|libdxfrw_table_content_linked_grid_write|libdxfrw_table_content_row_margin_write|libdxfrw_table_content_column_table_margin_write|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "5/5 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "This receipt does not qualify other column/table style properties, alternate scope compositions, CELLSTYLEMAP, native rendering, or DWG output."
+  ]
+}

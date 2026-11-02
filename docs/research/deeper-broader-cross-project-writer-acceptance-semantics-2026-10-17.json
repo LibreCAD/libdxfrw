@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cross-project writer acceptance and post-roundtrip semantics review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "primary-source issue research and local plan/test-owner cross-check",
+  "scope": [
+    "Reconcile peer reports about dictionary/object graph closure and silent writer loss",
+    "Distinguish open/read success from native audit, repair/deletion, and editable semantic preservation",
+    "Refine existing graph, XDATA, dimension, and composed consumer gates without duplicating findings",
+    "Preserve the focused per-slice validation cadence and external deferrals"
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "localFilesInspected": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-49/7G, PAR-63/64/7K, PAR-69/71/7O, 7G progress and research receipts",
+      "tests/dxf_fixture_tests.cpp:testNodRootOrdering",
+      "tests/dwg_local_roundtrip_tests.cpp: dimension subtype and DIMARC generated controls",
+      "tests/dwg2dxf_adapter_tests.cpp: generated object/dictionary graph closure controls"
+    ],
+    "limitations": "Peer issue reports describe their cited implementation, route, revision, and artifact. OpenCADStudio and CADCraft use the ACadRust codec lineage and are not independent parser votes. No peer or native behavior was reproduced during this research-only pass."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp issue #1133",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1133",
+      "observed": "The issue discussion describes a DXF writer emitting dictionary name/handle references for objects subsequently filtered as unsupported, creating dangling edges. The maintainer states that undocumented DWG writer integrity requires opening output in another application for meaningful validation."
+    },
+    {
+      "project": "ACadSharp pull requests #1136 and #1137",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1136",
+        "https://github.com/DomCR/ACadSharp/pull/1137"
+      ],
+      "observed": "The issue links staged writer work on dictionary output and BlockRepresentationData. These are peer implementation changes and not evidence of libdxfrw behavior."
+    },
+    {
+      "project": "OpenCADStudio issue #1078",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "observed": "The issue reports AC1032 output requiring AutoCAD recovery; a later maintainer comment attributes the fix across codec/kernel/application repositories and reports an AutoCAD COM audit plus per-object and AcDs comparisons. The reported figures are tied to that issue's source pair and implementation."
+    },
+    {
+      "project": "CADCraft issue #100 and PR #140",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/100",
+        "https://github.com/storytold/cadcraft/pull/140"
+      ],
+      "observed": "A source-pinned AC1015 report traces an arc-length dimension whose cached anonymous block appears correct after reopen but whose editable subtype is read as aligned and changes to the chord measurement after update/regeneration. The issue is marked completed by a follow-up PR. It is a peer-specific semantic test-shape lead."
+    },
+    {
+      "project": "OpenCADStudio issue #249",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/249",
+      "observed": "The plugin-host report says newly authored structured XDATA records were stored separately from the raw EED field and omitted by that ACadRust DWG writer. This is a plugin/API-adapter route, not a matching libdxfrw interface."
+    },
+    {
+      "project": "LibreDWG issue #1413",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1413",
+      "observed": "The report describes a lower-handle extension dictionary preceding the true NOD and shadowing it in a DXF writer/reader route. The issue is already covered in the plan and is not a new finding in this review."
+    },
+    {
+      "project": "Autodesk DXF object ownership",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+      "observed": "The reference says the named object dictionary is the first object in OBJECTS. This confirms the existing physical-order NOD rule; it is not based on group-330 spelling or handle order."
+    }
+  ],
+  "localCrossCheck": {
+    "nod": "The generated testNodRootOrdering() source covers ASCII/Binary root identification with non-monotonic handles and owner spellings, malformed owned-first rejection, no-root compatibility behavior, and regenerated writer NOD order. No new NOD finding was added.",
+    "objectGraph": "Existing 7G/PAR-49 plan owners cover root identity, references, and output closure; the research refinement requires dictionary key/handle edges to resolve against the actual emitted object inventory or be refused/omitted coherently.",
+    "dimensions": "Existing PAR-69/71 and 7O controls cover subtype/state and picture placement, but future composed semantic acceptance must distinguish the first cached graphic from editable type/measurement after a normal update/recompute.",
+    "xdata": "Existing PAR-63/64/7K work distinguishes structured authored data, raw carrier state, and DWG/DXF serialization routes. OpenCADStudio's plugin-specific record model is not a libdxfrw API route."
+  },
+  "assessment": {
+    "separateResultLanes": [
+      "writer output status and target version",
+      "emitted object identity/type/owner inventory",
+      "dictionary and hard-reference closure",
+      "strict independent readback",
+      "native application open",
+      "native audit findings, repairs, and deletions",
+      "editable semantic type/value after recompute",
+      "cached or regenerated graphical presentation",
+      "opaque same-version carrier byte preservation"
+    ],
+    "lineageRule": "OpenCADStudio and CADCraft are tied to ACadRust lineage for codec evidence; application-level AutoCAD observations may inform a consumer gate but do not create an independent parser vote or satisfy FreeCAD-specific qualification.",
+    "graphRule": "An emitted dictionary edge to an object omitted by output filtering is a closure failure; object count equality alone is insufficient.",
+    "semanticRule": "A cached block rendering after readback does not prove the editable record's subtype or recomputed measurement is correct.",
+    "speedRule": "Run generated local focused tests at the touched implementation slice; reserve exact-pinned native application and broad semantic checks for the already planned composed checkpoint."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyIncreased": false,
+    "newTestsOrRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuntimeExecutions": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 129,
+    "topLevelImplementationSubplans": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "receiptJsonParsed": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0
+  }
+}

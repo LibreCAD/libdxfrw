@@ -14,10 +14,26 @@
 #ifndef LIBDWGR_H
 #define LIBDWGR_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// Use NoBinding/NoAddressSpace instead of the legacy None enumerators when
+// that caller macro is active.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_LIBDWGR_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <map>
 #include <string>
 #include <memory>
 #include <set>
@@ -33,8 +49,10 @@
 class dwgReader;
 class dwgBuffer;
 class dwgWriter;
+class dwgWriter15;
 class DwgCompoundWriteTestAccess;
 class DwgWriteFailureTestAccess;
+class DwgReadObservationTestAccess;
 
 /// Closed identity for a typed OBJECTS writer that can carry the AC1027+
 /// DataStorage presence bit.  The identity is deliberately separate from a
@@ -42,6 +60,7 @@ class DwgWriteFailureTestAccess;
 /// classes collide in one output file.
 enum class DwgDataStorageWriterBinding : std::uint8_t {
     None,
+    NoBinding = None,
     MLeaderStyle,
     TableStyle,
     Material,
@@ -88,8 +107,9 @@ enum class DwgDataStorageWriterPhase : std::uint8_t {
 };
 
 /// Severity of a DWG integrity observation. Structural observations are
-/// failures; checksum observations remain warnings for compatibility with
-/// existing third-party files.
+/// failures; checksum and explicitly tolerated reference observations remain
+/// warnings for compatibility with existing third-party files. A warning
+/// does not certify complete semantic/object-graph coverage.
 enum class DwgIntegritySeverity : std::uint8_t {
     Error,
     Warning
@@ -100,6 +120,7 @@ enum class DwgIntegritySeverity : std::uint8_t {
 /// seeking to a buffer-local position in the source DWG.
 enum class DwgIntegrityAddressSpace : std::uint8_t {
     None,
+    NoAddressSpace = None,
     PhysicalFile,
     DecodedBuffer
 };
@@ -135,7 +156,26 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     ObjectMapCrc,
     ObjectMapDuplicateOffset,
     ObjectFrameBounds,
-    FrameLedgerTransition
+    FrameLedgerTransition,
+    TemplateMissing,
+    TemplateMalformed,
+    TemplateDescriptionUnsupported,
+    HeaderSectionBounds,
+    HeaderSectionSentinel,
+    HeaderSectionCrc,
+    HeaderSectionCompatibility,
+    HeaderSectionUnclaimedData,
+    NamedObjectDictionaryReference,
+    /// BLOCK_CONTROL lists a BLOCK_RECORD handle that is absent from the
+    /// object map. Ordinary erased entries are skipped and reported; model
+    /// and paper space phantom entries remain structural failures.
+    TableControlDanglingHandle,
+    /// An entity belongs to a BLOCK_RECORD that is absent from the drawing.
+    /// The entity is rejected and reported as an orphan during recovery.
+    EntityOwnerRecordMissing,
+    /// An INSERT references an erased BLOCK_RECORD listed by BLOCK_CONTROL.
+    /// The reference cannot be delivered without silently changing meaning.
+    EntityBlockRecordErased
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.
@@ -169,6 +209,102 @@ struct DwgIntegrityDiagnostic {
     bool hasLogicalHandle {false};
     bool hasExpected {false};
     bool hasObserved {false};
+};
+
+/// Reporting limits, not DWG format limits. Prefixes are arbitrary source
+/// bytes, not necessarily complete UTF-8 strings or unique class identities.
+constexpr std::size_t DwgReadObservationMaxRows = 16;
+constexpr std::size_t DwgReadObservationMaxNameBytes = 64;
+
+struct DwgReadBytePrefix {
+    std::array<std::uint8_t, DwgReadObservationMaxNameBytes> bytes{};
+    std::size_t length{0};
+    std::size_t sourceBytes{0};
+    bool truncated() const noexcept { return length != sourceBytes; }
+};
+
+struct DwgReadNamedObservation {
+    DwgReadBytePrefix name;
+    std::size_t instances{0};
+};
+
+/// The lexical first full source keys are selected before prefix copying.
+/// Instance counts in different summaries may describe the same record.
+struct DwgReadNamedObservations {
+    std::array<DwgReadNamedObservation, DwgReadObservationMaxRows> rows{};
+    std::size_t retained{0};
+    std::size_t sourceNames{0};
+    std::size_t instances{0};
+    std::size_t omittedNames{0};
+    std::size_t omittedInstances{0};
+    std::size_t truncatedRetainedNames{0};
+    /// Excluded names plus suffix bytes of retained prefixes, once per key.
+    std::size_t omittedNameBytes{0};
+    bool aggregateSaturated{false};
+};
+
+/// Allocation-free projection of an integrity row. Presence flags, version
+/// and address space retain their original diagnostic meanings.
+struct DwgReadIntegrityObservation {
+    DRW::Version version{DRW::UNKNOWNV};
+    DwgIntegritySeverity severity{DwgIntegritySeverity::Error};
+    DwgIntegrityAddressSpace offsetSpace{DwgIntegrityAddressSpace::None};
+    DwgIntegrityPhase phase{DwgIntegrityPhase::FileHeader};
+    DwgIntegrityCheckKind kind{DwgIntegrityCheckKind::PageRange};
+    std::int32_t logicalSectionId{-1};
+    std::int32_t sectionDescriptorId{-1};
+    DwgReadBytePrefix sectionName;
+    std::uint64_t pageId{0};
+    std::uint64_t fileOffset{0};
+    std::uint32_t logicalHandle{0};
+    std::uint64_t expected{0};
+    std::uint64_t observed{0};
+    bool hasPageId{false};
+    bool hasFileOffset{false};
+    bool hasLogicalHandle{false};
+    bool hasExpected{false};
+    bool hasObserved{false};
+};
+
+struct DwgReadIntegrityObservations {
+    std::array<DwgReadIntegrityObservation, DwgReadObservationMaxRows> rows{};
+    std::size_t retained{0};
+    std::size_t sourceRecorded{0};
+    std::size_t extractionOmitted{0};
+    /// Upstream reports this count; diagnostic-construction failures may not
+    /// be counted, so it is lower-bound evidence, not a complete loss total.
+    std::size_t reportedUpstreamDropped{0};
+    std::size_t truncatedRetainedNames{0};
+    std::size_t omittedNameBytes{0};
+    bool aggregateSaturated{false};
+};
+
+/// Unique HANDLE-map frame dispositions, not semantic decode counts. A
+/// published opaque frame can still have unmodeled fields or be discarded by
+/// a consumer. Status NotAvailable leaves the source denominator unknown.
+struct DwgReadFrameObservations {
+    DRW_DwgFrameCoverageStatus status{DRW_DwgFrameCoverageStatus::NotAvailable};
+    std::size_t sourceFrames{0};
+    std::array<std::size_t, 7> dispositions{};
+    std::size_t unrecognizedDispositions{0};
+};
+
+/// Named observations are not disjoint record populations. Never sum skipped
+/// categories, parse failures, opaque callbacks or frame dispositions into a
+/// unique semantic-loss count. Zero observations do not prove completeness.
+struct DwgReadObservations {
+    std::size_t entityParseFailures{0};
+    std::size_t objectParseFailures{0};
+    std::size_t classesCrcMismatch{0};
+    std::size_t reader21CrcMismatch{0};
+    std::size_t reader18HeaderCrcMismatch{0};
+    std::size_t dataStorageLinkFailures{0};
+    std::size_t dataStorageOrphanRecords{0};
+    std::size_t decodedProxyPrimitives{0};
+    DwgReadNamedObservations skippedCustomClasses;
+    DwgReadNamedObservations skippedUnsupportedObjects;
+    DwgReadIntegrityObservations integrity;
+    DwgReadFrameObservations frames;
 };
 
 /// Executable capability metadata for one low-level typed writer.  A zero
@@ -212,6 +348,13 @@ class dwgRW {
 public:
     explicit dwgRW(const char* name);
     ~dwgRW();
+    /// Whole-document read/readBuffer/write/getPreview/testReader operations
+    /// are not reentrant on one instance. A nested call returns false without
+    /// changing the active operation's error, diagnostic or destination. Use
+    /// another facade for nested work. Getters, record writers, registration
+    /// and DataStorage hooks retain their existing phase contracts. This is
+    /// not a thread-safety guarantee. Binary consumers must rebuild against
+    /// the updated headers; the private admission state changes object layout.
     //read: return true if all ok
     [[nodiscard]] bool read(DRW_Interface *interface_, bool ext);
     [[nodiscard]] bool readBuffer(const std::uint8_t *data, std::uint64_t size,
@@ -254,6 +397,12 @@ public:
         }
     };
     WriteSkipCounters getWriteSkipCounters() const { return m_writeSkipCounters; }
+    /// Compatibility with LibreCAD's bundled writer. DWG omissions are
+    /// summarized by getWriteSkipCounters(); per-record names are not kept.
+    const std::map<std::string, std::size_t>& leftOut() const {
+        static const std::map<std::string, std::size_t> empty;
+        return empty;
+    }
     /// Mark the current callback-driven write as incomplete. Ordinary
     /// per-record false returns remain recoverable skips; callers use this
     /// latch when a required phase item could not be emitted.
@@ -282,6 +431,11 @@ public:
     bool registerDwgNamedObjectDictionaryEntry(
         const std::string& name, std::uint32_t childHandle);
 
+    /// Register one GROUP dictionary key and its exact GROUP object handle.
+    /// The key is emitted inside ACAD_GROUP, never directly in the NOD.
+    bool registerDwgGroupDictionaryEntry(
+        const std::string& name, std::uint32_t groupHandle);
+
     /// Copy the physical Named Objects Dictionary receipt after the deferred
     /// OBJECTS-table phase has committed.
     bool getEmittedDwgNamedObjectDictionaryEntries(
@@ -307,8 +461,8 @@ public:
     /// committed DWG object frame.
     bool getLastDwgObjectFrame(DRW::DwgObjectFrameReceipt& frame) const;
 
-    /// Copy ordered frame evidence for the most recently committed
-    /// POLYLINE/VERTEX/SEQEND write. Other writes and any rollback clear it.
+    /// Copy ordered frame evidence for the most recently committed compound
+    /// entity write. Other writes and any rollback clear it.
     bool getLastDwgCompoundEntityWriteReceipt(
         DRW::DwgCompoundEntityWriteReceipt& receipt) const;
 
@@ -448,6 +602,11 @@ public:
     std::uint32_t defineBlock(const std::string& name, const DRW_Coord& basePoint,
                         int insUnits = 0);
 
+    /// Define a user block while retaining representable BLOCK_RECORD
+    /// metadata, including DWG XREF fields. This is additive to the legacy
+    /// overload; unsupported metadata is rejected by the concrete writer.
+    std::uint32_t defineBlock(const DRW_Block_Record& record);
+
     bool beginBlockContent(std::uint32_t blockRecordHandle);
     bool endBlockContent();
 
@@ -512,6 +671,20 @@ public:
     bool writeMLeaderStyle(DRW_MLeaderStyle *object);
     bool registerTableStyleObjectClass(DRW_TableStyle *object);
     bool writeTableStyle(DRW_TableStyle *object);
+    bool registerCellStyleMapObjectClass(DRW_CellStyleMap *object);
+    bool writeCellStyleMap(DRW_CellStyleMap *object);
+    /// Standalone AC1021 TABLECONTENT only. Register before CLASSES freezes;
+    /// the caller supplies the owning dictionary and referenced object graph.
+    bool registerTableContentObjectClass(DRW_TableContentObject *object);
+    bool writeTableContent(DRW_TableContentObject *object);
+    /// Atomically write the AC1021 TABLESTYLE extension-DICTIONARY graph
+    /// containing one CELLSTYLEMAP at the canonical round-trip key. The
+    /// caller supplies and links all three objects; malformed ownership,
+    /// duplicate/dangling map targets, noncanonical keys, and other DWG
+    /// versions are refused before any object frame is published.
+    bool writeTableStyleCellStyleMapGraph(
+        DRW_TableStyle *tableStyle, DRW_Dictionary *extensionDictionary,
+        DRW_CellStyleMap *cellStyleMap);
     bool registerMaterialObjectClass(DRW_Material *object);
     bool writeMaterial(DRW_Material *object);
     bool registerLightListObjectClass(DRW_LightList *object);
@@ -576,7 +749,14 @@ public:
     bool registerNavisworksModelEntityClass();
     bool writeUnderlayDefinition(DRW_UnderlayDefinition *object);
     bool registerRawDwgObjectClass(const DRW_UnsupportedObject *object);
+    /// Replay validated opaque non-modeler frames. Fixed modeler entities
+    /// require the typed-peer overload below.
     bool writeRawDwgObject(DRW_UnsupportedObject *object);
+    /// Replay a fixed ACIS modeler frame only when paired with its unchanged
+    /// typed entity. AcDs-backed frames and unresolved history links are
+    /// refused until their external reference closure can be validated.
+    bool writeRawDwgObject(DRW_UnsupportedObject *object,
+                           const DRW_ModelerGeometry *typedModeler);
     bool writeRawDwgSection(const DRW_RawDwgSection *section);
     bool registerSectionObjectClass(DRW_Section *object);
     bool writeSection(const DRW_Section *section);
@@ -604,11 +784,29 @@ public:
     /// The resolved source codepage name (e.g. "ANSI_1252"), captured from the
     /// reader's DWG metadata after a successful read. Empty before any read.
     std::string getCodePage() const { return codePage; }
+    /// Raw DWG envelope codepage id, when a codepage field was present in the
+    /// source file. A present but unrecognized id is preserved here even when
+    /// getCodePage() is empty and the reader used its version-selected fallback.
+    std::uint16_t getSourceCodePageId() const noexcept {
+        return m_sourceCodePageId;
+    }
+    /// Distinguish a missing DWG codepage field from an unsupported id.
+    bool hasSourceCodePageField() const noexcept {
+        return m_hasSourceCodePageField;
+    }
+    /// True only when the source id maps to a codec the reader recognizes.
+    bool hasRecognizedSourceCodePage() const noexcept {
+        return m_hasRecognizedSourceCodePage;
+    }
     /// Per-entity parseDwg failures accumulated during the load. These
     /// are warnings — the file still loads with the surviving entities.
     /// Zero on a clean load. Surface alongside the entity count so users
     /// know how many entities were skipped.
     size_t getEntityParseFailures() const;
+    /// Records listed in BLOCK_CONTROL but absent from the DWG object map.
+    size_t getDanglingBlockRecords() const;
+    /// Entity frames rejected because their owner BLOCK_RECORD was erased.
+    size_t getOrphanedEntities() const;
     /// Per-object parseDwg failures accumulated during the OBJECTS-section
     /// load. Like getEntityParseFailures, these are non-fatal warnings — the
     /// file still loads with the surviving objects. Zero on a clean load.
@@ -617,10 +815,11 @@ public:
     /// CRC fields are treated as absent for legacy writers; non-zero
     /// mismatches are surfaced as a non-fatal diagnostic.
     size_t getClassesCrcMismatch() const;
-    /// AC1027+ header, system-page, and data-page CRC/checksum mismatches.
+    /// AC1021 reader21 header, system-page and data-page CRC/checksum mismatches.
     /// These diagnostics do not include structural parse failures.
     size_t getR2007CrcMismatch() const;
-    /// AC1018 encrypted file-header CRC mismatches. These are non-fatal
+    /// Reader18-family encrypted file-header CRC mismatches (AC1018 and the
+    /// AC1024/AC1027/AC1032 readers inheriting that path). These are non-fatal
     /// diagnostics; structural section/page failures still fail the read.
     size_t getR2004CrcMismatch() const;
     /// AC1027+ modeler/surface entities that advertised a DataStorage payload
@@ -652,6 +851,13 @@ public:
     /// Unsupported OBJECTS-section records encountered during read. Keyed by
     /// DXF recName for custom classes or by fixed type code for fixed objects.
     std::unordered_map<std::string, size_t> getSkippedUnsupportedObjects() const;
+    /// Bounded, allocation-free observations from the most recent full read.
+    /// During a read this exposes its live best-effort prefix. Existing read
+    /// caches survive write()/getPreview(); callers must separately capture
+    /// the actual read Boolean, error and source version at read completion.
+    /// This adds no whole-map/vector/string copy and leaves legacy getters
+    /// unchanged. It does not bound the existing reader's own allocations.
+    DwgReadObservations getReadObservations() const noexcept;
     /// Number of render primitives recovered by decoding the cached proxy
     /// graphics of raw-net custom entities (STDPART2D, AEC_*, …). Non-zero
     /// means previously-invisible geometry now renders.
@@ -662,13 +868,18 @@ public:
     const std::vector<std::string>& getLayerNameOrder() const { return m_layerNameOrder; }
     const std::vector<std::string>& getLtypeNameOrder() const { return m_ltypeNameOrder; }
 bool testReader();
+    /** Set process-global debugging. Constructing any DXF/DWG codec resets it
+     * to None for compatibility; this is not a per-instance setting. */
     void setDebug(DRW::DebugLevel lvl);
 
     friend class dwgReader;
 
 private:
+    friend class DwgBlockRecordXrefWireTestAccess;
     friend class DwgCompoundWriteTestAccess;
     friend class DwgWriteFailureTestAccess;
+    friend class DwgReadObservationTestAccess;
+    friend class DwgCodePageTestAccess;
 
     enum class DwgWriteFailurePoint : std::uint8_t {
         AfterFirstDeferredTableRecord = 1,
@@ -682,6 +893,7 @@ private:
     bool writeDwgObjectsForTest();
     bool emitDeferredBlockControlForTest();
 
+    class WholeOperationScope;
     struct DwgWriteTransaction;
 
     enum class WriteSkipKind {
@@ -713,9 +925,15 @@ private:
     void recordOperationDiagnosticForError(DRW::error value);
     [[nodiscard]] bool recordWriteResult(WriteSkipKind kind, bool ok);
     [[nodiscard]] bool writeObjectTransaction(
-        WriteSkipKind kind, const std::function<bool()>& write);
+        WriteSkipKind kind, const std::function<bool()>& write,
+        bool allowIdempotentNoFrame = false);
     [[nodiscard]] bool writeObjectTransaction(
         WriteSkipKind kind, DRW_TableEntry *mutationTarget,
+        const std::function<bool()>& write,
+        bool allowIdempotentNoFrame = false);
+    [[nodiscard]] bool writeFixedObjectFrameTransaction(
+        WriteSkipKind kind, dwgWriter15 *objectWriter,
+        const DRW_TableEntry *object, DRW_TableEntry *mutationTarget,
         const std::function<bool()>& write);
     [[nodiscard]] bool encodeEntityForWrite(
         DRW_Entity *ent, DRW_Entity *mutationTarget = nullptr);
@@ -755,6 +973,9 @@ private:
     std::string fileName;
     bool applyExt { false }; /*apply extrusion in entities to conv in 2D?*/
     std::string codePage;
+    std::uint16_t m_sourceCodePageId { 0 };
+    bool m_hasSourceCodePageField { false };
+    bool m_hasRecognizedSourceCodePage { false };
     DRW_Interface *iface { nullptr };
     std::unique_ptr< dwgReader > reader;
     std::unique_ptr< dwgWriter > writer;
@@ -770,6 +991,8 @@ private:
     /// Captured from reader->m_entityParseFailures before reader.reset()
     /// so getEntityParseFailures() works post-read.
     size_t m_entityParseFailures { 0 };
+    size_t m_danglingBlockRecords { 0 };
+    size_t m_orphanedEntities { 0 };
     /// Captured from reader->m_objectParseFailures before reader.reset()
     /// so getObjectParseFailures() works post-read.
     size_t m_objectParseFailures { 0 };
@@ -781,6 +1004,7 @@ private:
     /// Captured location-bearing integrity diagnostics before reader.reset().
     std::vector<DwgIntegrityDiagnostic> m_integrityDiagnostics;
     std::size_t m_integrityDiagnosticsDropped {0};
+    DwgReadFrameObservations m_readFrameObservations;
     /// Captured from reader->m_dataStorageLinkFailures before reader.reset().
     size_t m_dataStorageLinkFailures { 0 };
     /// Captured from reader->m_dataStorageOrphanRecords before reader.reset().
@@ -814,12 +1038,14 @@ private:
     bool m_failNextFieldClassRegistrationForTest { false };
     bool m_failAfterFirstBlockOwnedEntityForTest { false };
     DRW_OperationDiagnostic m_lastDiagnostic;
+    bool m_wholeOperationActive {false};
 
 };
 
 /// Deprecated read-only façade retained for source compatibility.  It owns
 /// the new implementation rather than inheriting from a class with a
 /// non-virtual destructor, and forwards the complete historical read surface.
+/// Its owned implementation also rejects overlapping whole-document calls.
 class dwgR {
 public:
     explicit dwgR(const char* name);
@@ -831,11 +1057,26 @@ public:
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
     std::string getCodePage() const { return implementation.getCodePage(); }
+    std::uint16_t getSourceCodePageId() const noexcept {
+        return implementation.getSourceCodePageId();
+    }
+    bool hasSourceCodePageField() const noexcept {
+        return implementation.hasSourceCodePageField();
+    }
+    bool hasRecognizedSourceCodePage() const noexcept {
+        return implementation.hasRecognizedSourceCodePage();
+    }
     DRW_OperationDiagnostic getLastDiagnostic() const {
         return implementation.getLastDiagnostic();
     }
     size_t getEntityParseFailures() const {
         return implementation.getEntityParseFailures();
+    }
+    size_t getDanglingBlockRecords() const {
+        return implementation.getDanglingBlockRecords();
+    }
+    size_t getOrphanedEntities() const {
+        return implementation.getOrphanedEntities();
     }
     std::unordered_map<std::string, size_t> getSkippedCustomClasses() const {
         return implementation.getSkippedCustomClasses();
@@ -849,5 +1090,10 @@ public:
 private:
     dwgRW implementation;
 };
+
+#ifdef LIBDXFRW_LIBDWGR_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_LIBDWGR_RESTORE_NONE
+#endif
 
 #endif

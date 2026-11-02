@@ -1,0 +1,46 @@
+{
+  "id": "par03-par04-associative-value-kind-reserved-code-guard",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "AcDbAssocAction AcDbEvalVariant value-kind classifier",
+    "fields": [
+      "DXF group-code-to-variant-kind classification",
+      "bounded refusal for unassigned group codes"
+    ],
+    "specification": "Autodesk DXF Group Code Value Types Reference; no DWG variant field widths changed"
+  },
+  "evidence": {
+    "primaryReference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "peerCrossCheck": {
+      "repository": "/Users/dli/dev/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "files": ["src/dwg.c", "src/dwg2.spec"],
+      "limit": "Peer implementation comparison only; not authority for DWG wire widths."
+    },
+    "confirmedGap": "The prior range classifier assigned unlisted codes 80-89 as Int32, code 101 as String, and codes 106-109 as Point3d. The official DXF type reference enumerates neighboring ranges but leaves those codes unassigned. The first two mappings could consume a made-up BL/string payload and report a typed associative prefix as complete."
+  },
+  "change": [
+    "Extracted the internal group-code classifier into src/intern/dwgvaluekind.h so its boundaries have direct unit coverage.",
+    "Classify codes 80-89, 101, and 106-109 as Invalid; leave unsupported but recognized value kinds fail-closed.",
+    "Removed the unused scalar-only readCmColorWithinBody wrapper after auditing every live readCmColorWithinBounds consumer; no live modern CMC consumer discarded all method/flags/index/RGB/name/book metadata."
+  ],
+  "generated_controls": [
+    {"group_code": 80, "payload": "BitLong-shaped adversarial value", "expected": "refuse; do not publish complete action"},
+    {"group_code": 89, "payload": "BitLong-shaped adversarial value", "expected": "refuse; do not publish complete action"},
+    {"group_code": 101, "payload": "string-shaped adversarial value", "expected": "refuse; do not publish complete action"},
+    {"group_code": 106, "expected": "Invalid kind and refusal"},
+    {"group_code": 109, "expected": "Invalid kind and refusal"},
+    {"group_code": "documented neighboring boundaries", "expected": "exact kind assertions for -1, 0, 5, 10, 37, 38, 79, 90, 100, 102, 105, and 110"}
+  ],
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j4: PASS",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_associative_action_value_kinds|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (2/2)",
+    "git diff --check -- src/intern/dwgvaluekind.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

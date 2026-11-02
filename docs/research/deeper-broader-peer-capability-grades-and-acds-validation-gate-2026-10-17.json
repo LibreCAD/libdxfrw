@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer capability grades and AcDs validation gate",
+  "mode": "research-plus-local-fast-control",
+  "scope": [
+    "Open-source DWG/DXF peer capability and maturity terminology",
+    "Operation-specific data loss in cross-document copy and rendering routes",
+    "FreeCAD converter/importer boundary for ACIS-bearing DWG/DXF",
+    "Generated AcDs direct/blob threshold and Blob01 page-chain test readiness"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG manual: class stability and test coverage",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "mutable master documentation reviewed 2026-10-17",
+      "evidence": "The manual separates stable, unstable, debugging and unhandled classes, and separately lists enabled-but-untested and no-test-coverage classes. These are distinct source/documentation statuses, not a pinned executable result."
+    },
+    {
+      "name": "ezdxf xref documentation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "revision": "mutable master documentation reviewed 2026-10-17",
+      "evidence": "The cross-document import/copy route lists ACAD_TABLE and preserved unknown/proxy tag storage as unsupported and documents silent omission without an exception. The scope is xref/copy, not ordinary file parsing or same-document save."
+    },
+    {
+      "name": "ezdxf drawing add-on limitations",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "revision": "mutable master documentation reviewed 2026-10-17",
+      "evidence": "The drawing add-on documents no ACIS rendering and no 3D rendering engine; 3D entities are projected into the XY plane."
+    },
+    {
+      "name": "FreeCAD import/export limits",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "evidence": "The manual describes FreeCAD DXF import/export as 2D for proprietary ACIS 3D data, with DWG subject to the same importer limitation."
+    },
+    {
+      "name": "FreeCAD additional importer/converter components",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "evidence": "The docs distinguish the native C++ DXF importer from an optional legacy Python importer and describe DWG conversion through external tools."
+    },
+    {
+      "name": "FreeCAD current DWG importer source",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "mutable main source reviewed 2026-10-17",
+      "evidence": "The application route delegates DWG conversion and then opens the produced DXF through the configured importer; this is a composed converter/importer route, not a direct DWG 3D parser result."
+    }
+  ],
+  "assessment": {
+    "peer_comparison_rule": "Grade each artifact by exact revision, operation, target version, record identity/owner disposition, carrier versus projection, and downstream semantic route; do not treat a project-level support label, exit code, preview, or missing test coverage as universal capability evidence.",
+    "independence_rule": "Record parser and kernel lineage separately; wrappers, forks and applications sharing a parser/kernel are not independent votes.",
+    "support_claim_effect": "No peer claim promotes local DXF/DWG, ACIS, AcDs, native-consumer, or external-only support status."
+  },
+  "local_control": {
+    "test_owner": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--datastorage-page-boundaries",
+    "generated_in_memory_only": true,
+    "coverage": [
+      "0x40000-byte direct record acceptance",
+      "0x40001-byte blob reference with two Blob01 pages",
+      "DataIndex order differing from payload record order",
+      "exact assembled payload bytes and handle/page-segment resolution",
+      "five corrupted page metadata/reference fields fail closed while the independent direct record remains available"
+    ],
+    "not_established": [
+      "valid SAB or ACIS grammar",
+      "solid or B-rep semantic correctness",
+      "independent producer correctness",
+      "general DWG AcDs ownership or platform support"
+    ]
+  },
+  "implementation_readiness": {
+    "existing_findings_and_subplans_only": true,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "implementation_order_changed": false,
+    "external_peer_runs_per_slice": false,
+    "fixture_policy": "No external DWG/DXF fixture was added. The control is constructed in memory and no new CTest registration was added.",
+    "deferred_external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --datastorage-page-boundaries",
+      "cmake --build build-gcc --target lc3_compat_check -j2"
+    ],
+    "results": [
+      "local-roundtrip target built",
+      "focused DataStorage boundary selector passed",
+      "lc3_compat_check target built"
+    ],
+    "full_suite_run": false,
+    "peer_runtime_run": false,
+    "native_cad_run": false,
+    "external_files_downloaded": 0,
+    "fixtures_added": 0,
+    "production_semantics_changed": false,
+    "selector_added": true,
+    "receipt_json_validation": true,
+    "scoped_git_diff_check": true
+  },
+  "ledger": {
+    "finding_count": 128,
+    "top_level_subplan_count": 71,
+    "support_claims_promoted": 0
+  }
+}

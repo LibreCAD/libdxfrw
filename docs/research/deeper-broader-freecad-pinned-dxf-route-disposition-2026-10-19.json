@@ -1,0 +1,31 @@
+{
+  "research_date": "2026-10-19",
+  "kind": "research_only_plan_refinement",
+  "repository": "FreeCAD/FreeCAD",
+  "revision": "871850d6fac66031e24226ab5368d1138f80299e",
+  "source_files": {
+    "src/Mod/Import/App/dxf/dxf.cpp": "7d78b3b90d2b659759a9b4eb987b4e619dee176a",
+    "src/Mod/Import/App/dxf/dxf.h": "72ce0afd4c4dbec21d7e6b8a6c26a9907b261fff",
+    "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "9158059f253572fea32a79745cc80e1f582a69e0"
+  },
+  "observations": [
+    "The C++ importer increments its per-type source count before dispatch.",
+    "Unknown entity types are consumed, reported in unsupportedFeatures with source line and handle, and do not necessarily fail the import.",
+    "The current explicit dispatcher includes LINE, ARC, CIRCLE, MTEXT, TEXT, SOLID, ELLIPSE, SPLINE, LWPOLYLINE, POLYLINE, POINT, INSERT, and DIMENSION; 3DFACE, MESH, 3DSOLID, REGION, and BODY are not routed by this dispatcher.",
+    "Classic DXF SOLID is converted to a planar face, not an ACIS-backed solid.",
+    "Defaults suppress annotations, paper-space entities, and hidden/system blocks; scale is 1; import mode defaults to IndividualShapes; layers and colors are preserved."
+  ],
+  "plan_changes": [
+    "For the composed FreeCAD consumer gate, record exact build/backend, converter status, intermediate DXF version/hash, and importer options.",
+    "Reconcile source handle/type manifest against input counters, unsupported line/handle entries, and final FreeCAD object graph; never use entity count alone as import success.",
+    "Use a compact scratch-generated discriminator only at the composed checkpoint; add one explicit-options profile only when the claim includes content disabled by defaults.",
+    "Keep planar SOLID, 3DFACE/MESH, and ACIS-backed 3DSOLID/REGION/BODY claims separate."
+  ],
+  "limits": [
+    "No FreeCAD executable or peer runtime was run.",
+    "No platform-specific behavior was qualified.",
+    "No new local libdxfrw defect or production change was established.",
+    "No external sample was downloaded or added as a repository fixture.",
+    "No support claim was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

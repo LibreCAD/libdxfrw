@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF sibling-dictionary order generated fast slice",
+  "mode": "local generated regression implementation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise ordinary named NOD dictionaries before and after ACAD_IMAGE_DICT",
+    "Verify sibling order and NOD-to-dictionary identity/owner closure in generated DXF",
+    "Use the existing image-path CLI and test registration only"
+  ],
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "testOwner": "dwg2dxf_image_path_cli",
+    "generatedSourceNodOrder": [
+      "BEFORE_IMAGE",
+      "ACAD_IMAGE_DICT",
+      "AFTER_IMAGE"
+    ],
+    "assertions": [
+      "Fresh semantic imports preserve BEFORE_IMAGE then AFTER_IMAGE relative order across two CLI conversions",
+      "Each ordinary NOD entry resolves to exactly one parsed dictionary whose parent is the parsed NOD",
+      "Independent ASCII record walk verifies each group-3/group-350 target resolves to exactly one DICTIONARY with group-330 owner C",
+      "Existing image assertions still require the writer-generated ACAD_IMAGE_DICT and closed IMAGEDEF/reactor links"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "absoluteImageDictionaryPositionAsserted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedCTestPassed": true,
+    "focusedCTestResult": "1/1 passed in 0.41 seconds; script verifies generated export, two exact-argv dwg2dxf passes, and fresh read-back",
+    "diffCheckPassed": true,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remaining7P5b": [
+      "Missing/duplicate output identity refusal controls",
+      "Optional transformed U/V bounds consumer control",
+      "Independent byte-level group-12/group-21 scanner and versioned producer evidence before any writer mapping change"
+    ]
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing tracked and untracked work, including this test file and the plan. Only the focused test and corresponding plan/receipt content were edited; unrelated changes were preserved."
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-datalink-callback-capture-fail-closed-fast-slice-v1",
+  "date": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "implemented-uncommitted",
+  "scope": "Retain typed DATALINK callback values in the concrete dwg2dxf adapter and refuse DXF output before publication while no qualified DATALINK/TABLECONTENT owner graph serializer exists.",
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "behavior": [
+      "dx_data owns a vector of DRW_DataLink callback values, including nested custom-data payloads",
+      "dx_iface overrides the existing non-pure DRW_Interface::addDataLink callback and copies values when cData is present",
+      "dx_iface::fileExport refuses any retained typed DATALINK before output publication because object ownership/reference and writer closure are unqualified",
+      "No DATALINK writer, owner/NOD/extension mapping, linked-range semantics, or TABLE semantic-completeness promotion was added"
+    ],
+    "test": "A generated-from-scratch ASCII OBJECTS sequence exercises processDataLink through dx_iface and checks copied fields/custom data. Both ASCII and binary output modes verify refusal preserves an existing destination and that the same adapter can successfully retry after removing the unsupported object.",
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicPureVirtualsAdded": 0
+  },
+  "validation": {
+    "buildCommands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j2",
+        "result": "PASS"
+      }
+    ],
+    "focusedCommands": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.09
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "dwgInputRun": false
+  },
+  "evidenceLimits": [
+    "The generated ASCII object sequence is a parser/adapter regression control, not a producer-authored DATALINK sample.",
+    "ASCII and binary runs test export refusal and retry; they do not establish DATALINK serialization.",
+    "No DWG producer owner graph, NOD/extension-dictionary location, linked-range relation, external spreadsheet refresh, or semantic TABLE behavior was qualified.",
+    "m_semanticContentComplete remains false for linked-table profiles.",
+    "No DWG/DXF fixture was downloaded, created as a file, or committed; the DXF input exists only as a source string in the test."
+  ],
+  "planImpact": {
+    "existingFinding": "PAR-126",
+    "existingSubplan": "7G.3d",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommit": "not committed; broad pre-existing worktree changes remain"
+  }
+}

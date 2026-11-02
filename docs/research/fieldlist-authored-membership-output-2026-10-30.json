@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "fieldlist-authored-membership-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Locally authored FIELDLIST membership output",
+  "status": "QUALIFIED_LOCAL_GENERATED_AC1027_PROFILE",
+  "supportClaimEffect": "none",
+  "implementationCommit": "5ce24ca49f2f12d1c11ea61be4d8f8ff2834bdca",
+  "scope": {
+    "version": "AC1027",
+    "source": "Locally authored in-memory dx_data; no DWG/DXF fixture file.",
+    "profile": "Flat scalar FIELD records, one FIELDLIST with complete unique membership, generated NOD ACAD_FIELDLIST entry, and standalone TABLECONTENT field references.",
+    "encodings": ["ASCII DXF", "binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Admitted one bounded locally authored FIELDLIST membership profile, emitted FIELDLIST records after FIELD records, and added the remapped FIELDLIST handle to the generated NOD. Imported FIELDLIST body equivalence and complex FIELD child/object graphs remain refused.",
+    "failureRetry": "An unresolved FIELDLIST member is rejected without replacing an existing destination; correcting membership and retrying on the same adapter succeeds.",
+    "fixturePolicy": "All inputs are authored in test code. ASCII/binary outputs are temporary and deleted; no DWG/DXF fixture was committed."
+  },
+  "proof": {
+    "selector": "dwg2dxf_fieldlist_membership_output",
+    "checks": [
+      "fresh ASCII and binary import",
+      "FIELD evaluator, code and cached string values",
+      "FIELD owner and FIELDLIST parent",
+      "NOD ACAD_FIELDLIST target identity",
+      "FIELDLIST membership and optional group-290 boolean",
+      "TABLECONTENT field references resolve to emitted FIELD handles",
+      "unresolved member refusal and destination preservation",
+      "corrected same-adapter retry"
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_fieldlist_membership_output|libdxfrw_field_graph_export_refusal)$' --output-on-failure",
+      "result": "PASS 2/2"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^(libdxfrw_fieldlist_membership_output|libdxfrw_field_graph_export_refusal)$' --output-on-failure",
+      "result": "PASS 2/2"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "5ce24ca49f2f12d1c11ea61be4d8f8ff2834bdca",
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "3d19f14feee7887d67bbfaccdb3477d99566dd5ac747ac35e5ceb712005389df",
+      "dwg2dxf/dx_iface.h": "14ca5c060854f8dbd55a2abfd86824185207d84c36b3c0c759f356b43a06fe10",
+      "tests/CMakeLists.txt": "867ef55b0c511ab01739dafb24a90996de050defab1101e6d9049e87aa3a5c57",
+      "tests/dwg2dxf_adapter_tests.cpp": "738a5fd075d8601d134016aa5be986bb8bf2f9ee60aae5b13b422c8f4f2ca187"
+    },
+    "normalArtifactSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "858b7c5df7963bf7118e91adf4dee3711ec5864da4f088d4cc59f45ffc6eda4e"
+    },
+    "asanArtifactSha256": {
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "fc29295bb862efe106a3868e415d88ccf5992f2b69d655c22fac3007917c8e68"
+    }
+  },
+  "limits": [
+    "This proves locally authored flat FIELD scalar values, NOD membership and TABLECONTENT references only.",
+    "It does not qualify DXF-imported FIELD/FIELDLIST source-body fidelity, nested child/object graphs, DWG parity, native consumers or general support claims."
+  ],
+  "nextAction": "See fieldlist-imported-source-profile-2026-10-30.json for the imported raw-to-typed body proof; keep complex FIELD graph output refused until its complete rooted graph is independently verified. Continue with the plan's source-bound VISUALSTYLE carrier-coverage packet."
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-variable-owned-child-graph-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 variable-owned value-dependency graph output",
+  "status": "GENERATED_ONE_CHILD_GRAPH_VERIFIED_PHYSICAL_EXPORT_BLOCKED_BY_OPAQUE_CALLBACKS",
+  "supportClaimEffect": "none",
+  "scope": {
+    "version": "AC1024",
+    "recordRelation": "One source-bound ASSOCVARIABLE suffix child to an owned ASSOCVALUEDEPENDENCY, whose owner field points back to that variable.",
+    "outputRoute": "The existing rooted associative graph serializer in ASCII and Binary DXF.",
+    "physicalBoundary": "This receipt does not claim a complete physical-source conversion; the mechanical witness fails strict read admission before the serializer runs."
+  },
+  "sourceEvidence": {
+    "suffixProfileReceipt": "docs/research/p4-ac1024-assocvariable-suffix-profile-2026-10-30.json",
+    "physicalWitness": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "records": 17,
+      "observedForms": {
+        "emptySuffix": 4,
+        "oneHardOwnedValueDependency": 13
+      },
+      "independentOwnerCorrelation": "LibreDWG projection cross-check in the suffix-profile receipt joins all 17 variables and their value-dependency ownerhandle fields by absolute handle."
+    },
+    "wireToOutputRelation": "The physical code-3 hard-owned handle is retained in m_variableOwnedDependencies. Graph admission requires a unique matching VALUEDEPENDENCY child owned by the variable; the child record carries the DXF owner field. The serializer follows the owned edge, and the generated test reads back the emitted child owner and dependency target."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The record writer checks the suffix parse state, bounded zero/one child count, marker, hard-owned role and matching prefix ledger. The graph preflight validates each listed child as a parsed AC1024 ASSOCVALUEDEPENDENCY whose owner is the variable, validates the reciprocal edge at the child, and follows the owned edge during recursive traversal. The source audit also checks that a variable-owned value dependency appears in the variable suffix list.",
+    "failureBehavior": "A missing or wrong variable-owned child handle is rejected before destination publication. The generated ASCII/Binary graph test preserves a preexisting destination sentinel and succeeds after the child handle is corrected.",
+    "fixturesAdded": 0,
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_network_writer|libdxfrw_associative_variable_writer|dwg2dxf_associative_dwg_root_network_value_dependency_export|libdxfrw_associative_variable_generated)$' --output-on-failure",
+      "result": "PASS 4/4 in 0.91 seconds. Covers generated ASCII/Binary graph output/readback, invalid child rollback and corrected retry, direct variable record writing, and generated physical suffix vectors."
+    },
+    "physicalStrictRead": {
+      "sourceLog": "/private/tmp/mechanical-variable-status.log",
+      "sourceLogSha256": "03f13137ff6d8ba11cab50915833aa6c42be6b88ba2f042568df318e7f2b717e",
+      "observation": "The mechanical read has zero entity/object parse failures and frameCoverageStatus=2 (FinalizedComplete), with 366/366 frames published. Strict admission still fails because opaqueViewCallbacks=228 exceeds opaqueFramesRetainedByAdapter=0. The adapter separately reports 32 standard object frames captured for source correlation; these are not emitted-output retention. `strictDwgReadOutcomeIsComplete` intentionally keeps the source ineligible while opaque callbacks lack an admitted retention/output route.",
+      "result": "No physical associative DXF output or strict-complete conversion is qualified."
+    },
+    "fullSuites": "NOT_RUN"
+  },
+  "limitations": [
+    "The generated one-child graph proves this selected serializer route, not direct conversion of the physical mechanical file.",
+    "The 228 opaque callback views have not yet been inventoried by source handle/class/record or reconciled to required output roles and an end-to-end output-preservation route.",
+    "Any other required associative bodies, extension-dictionary descendants, or unmodeled records remain refused until their source profiles and output paths are qualified.",
+    "No native CAD semantic or format support claim is promoted."
+  ],
+  "planImpact": {
+    "removedCompletedAction": "Validate, traverse and serialize the selected variable-owned AC1024 value-dependency edge in the generated graph path.",
+    "remainingP4Scope": "Census the strict-blocking opaque callbacks, qualify typed serialization or end-to-end replay for source-required records, then bind the complete physical graph to emitted bytes and readback.",
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "b5b4c948bb5efc18a6321ffc627a6af5720ce5be962001b6ae8536b4032de740",
+    "dwg2dxf/dx_iface.cpp": "458d44981f625d6e8e8d3f30892d996b7b447db22c52b633234e3245715a5915",
+    "tests/wave1_tests.cpp": "85531be4b5402911e7ce53ba11cba636d4ff344a3a13d82b4c2ba0da9ca8727f",
+    "tests/dwg2dxf_adapter_tests.cpp": "19f9f994c093cabead6f3cb3e1e67f81859271bfbc455199b98e56aa32a77a47",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a3b5479de438867ac8c5f04bde53cfffe29a7701e4e71abbe5630e46f553586a"
+  },
+  "artifactHashesSha256": {
+    "build-gcc/dwg2dxf/dwg2dxf": "dda680ea9bcdc2f3d4a2c32c343798fc56cf72bb699c11c82998d6cbfcddff14",
+    "build-gcc/libdxfrw_wave1_tests": "974c7c2db0db5aa49f9be1f008fcf6fcf0c3d36610354166a49baa6e11734ca8",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "b2cb5861990cb06ffcdd96e8cd267aae187d7a93f45633ef6f398d3d8850b482",
+    "build-gcc/CMakeCache.txt": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  }
+}

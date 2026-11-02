@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK linetype-scale and visibility ASCII/Binary round-trip fast slice",
+  "mode": "Local source review plus generated focused regression control",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close BLOCK writer omissions for common group 48 linetype scale and group 60 visibility",
+    "Mirror ordinary entity writer version/default policy",
+    "Verify raw wire values and semantic re-import in ASCII and Binary AC1021 DXF"
+  ],
+  "sources": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeEntity and dxfRW::writeBlock source comparison",
+      "observation": "writeEntity emits non-default group 48 and group 60=1 for invisible state when version > AC1009. writeBlock now follows the same policy.",
+      "boundary": "Only groups 48 and 60 are covered; other common attributes and target-version boundaries remain separate."
+    },
+    {
+      "path": "src/drw_entities.cpp",
+      "identity": "Local DRW_Entity common group-48/group-60 parser source review",
+      "observation": "The common parser retains group 48 in ltypeScale and interprets group 60 bit 0 as visibility for DRW_Block.",
+      "boundary": "Generated assertions exercise non-default values only on AC1021."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "identity": "Generated XREF/BLOCK control based on tracked block_record_preview_r2007.dxf",
+      "observation": "The local BLOCK sets linetype scale 2.5 and visibility group 60 to 1; raw ASCII/Binary output plus semantic re-import verify both.",
+      "boundary": "AC1021 only; temporary files are removed."
+    }
+  ],
+  "implementation": {
+    "productionChange": "dxfRW::writeBlock emits group 48 only when ltypeScale != 1.0 and group 60=1 only when visible is false, with version > AC1009.",
+    "generatedFields": [
+      {"code": 48, "type": "double", "value": 2.5},
+      {"code": 60, "type": "visibility flag", "value": 1, "semanticVisible": false}
+    ],
+    "coverage": [
+      "Scratch-authored source imports through dx_iface",
+      "Raw ASCII and Binary AC1021 output retains group-48 and group-60 values",
+      "Semantic source import and output re-import retain DRW_Block ltypeScale and visible state",
+      "Existing group-102 scope, layer, linetype, color, XREF path/description, XDATA, and ENDBLK checks remain passing"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "lc3SourceCompatibilityTargetPassed": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "crossVersionMatrixRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "Lineweight, transparency, and plot/material/style handle fields",
+      "Color-book resource/linkage interpretation and other common metadata",
+      "Special ACAD_REACTORS/ACAD_XDICTIONARY reference translation and closure",
+      "Cross-version XDATA text policy and downgrade behavior",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

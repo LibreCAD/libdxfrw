@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_IMAGE_DICT root ambiguity",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refuse duplicate ACAD_IMAGE_DICT root edges when an image-definition export plan is present.",
+    "Refuse a differently named NOD alias to the same image dictionary.",
+    "Preserve valid output on failure and allow a corrected graph to retry in ASCII and Binary DXF."
+  ],
+  "sourceChange": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Added image-root ambiguity preflight and generated duplicate-key/alias refusal controls to the existing image-path generator.",
+    "reason": "The writer skipped canonical ACAD_IMAGE_DICT input edges while rebuilding the root, and other aliases to that dictionary could be omitted by generic root handling. This could silently normalize an ambiguous source graph.",
+    "productionBehaviorChanged": true,
+    "ctestInventoryChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedGeneration": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --generate /tmp/libdxfrw-image-root-duplicate-control.dxf",
+      "result": "PASS (ASCII; duplicate canonical edge and dictionary alias both refuse atomically, corrected retry reproduces valid bytes)"
+    },
+    "focusedReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --verify /tmp/libdxfrw-image-root-duplicate-control.dxf",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure",
+      "result": "PASS (1/1; ASCII and Binary generation, CLI conversion, and readback)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

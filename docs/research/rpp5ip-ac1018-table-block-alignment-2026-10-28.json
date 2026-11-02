@@ -1,0 +1,58 @@
+{
+  "schema": "ac1018-table-block-cell-alignment-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "fad5990a1a12e652d1441c2b7fc24c1c34a8ee88",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1018 block cell mask 0x01 with alignment 1 through 9. Emit group 170 after block fields while retaining existing target and block-reference guards. Text-height and other block-cell mask bits remain refused.",
+  "bindings": {
+    "src/libdxfrw.cpp": "1d0b5ae2ff4a05b3066aaa6160c28772298c631553a41627c06ea7cd6214a8d7",
+    "tests/table_legacy_height_controls.h": "d1cb07e7c16aac8dbaba9854053c6809779c2cb93cb04d405fddda776aadef8c"
+  },
+  "originalWitness": {
+    "source": "Existing ACadSharp samples sample_AC1018_ascii.dxf and sample_AC1018_binary.dxf, TABLE A35, cells 8 and 9",
+    "asciiSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "binarySha256": "d659b8e7964eb30700660eea34454696bbbfc927726c3417d93df8776e88e225",
+    "result": "Both cells use 171=2,177=1,178=0,179=0,170=1 and a 340 BLOCK_RECORD pointer. Cell 8 target A0B names my_block in both; cell 9 target is 13E9 ASCII and 23F9 binary, each naming *U25. The A35 table also has 18 explicit 177=0/178=0 pairs.",
+    "authoritativeReferences": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm"
+    ]
+  },
+  "independentOutput": {
+    "report": "build/table-merge-writer-review/block-align-independent.json",
+    "reportSha256": "7d6281dad84c19e7a1f9fa10bc1e385d486ec8b5a8af28f302efe1a7126b8ba5",
+    "observer": "ezdxf 1.4.5 raw tag and BLOCK_RECORD role resolution",
+    "observerSourceSha256": "b855863cc2a216edb84d24164b8c4d08f5140bce03cfec1623a745fa077368b2",
+    "producerSourceSha256": "58da13807242efdddb3f0ac372d89acc77d0b26caef5bf29182b9b9ea2ff601a",
+    "producerExecutableSha256": "2cad8e8bd1aa2c92fcd8278009ddbf483b7552f6784df064d277abcf83567a4d",
+    "result": "Selected fields and 340 BLOCK_RECORD role of original A35 cell 8 match authored actual ASCII/binary output. Original includes explicit 179=0; output omits 179. Source targets my_block; the authored target is TABLE_CELL_BLOCK. Original ASCII/binary scales differ in low precision; comparison uses a stated tolerance."
+  },
+  "controls": "16 AC1018 authored outputs across input/output ASCII/binary, strict/compatible, alignment 1 and 9; 128 invalid-mask/alignment/reference/old-target atomic refusals and corrected same-writer retries. Typed readback checks remapped 340 and block owner; 16 modern AC1021 compatibility outputs.",
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)$' --output-on-failure",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "a4eb0ea83d5c0a19de84a9237e7cd3d2eb31790d113c784eb49c0ccfb2a9c5c1",
+    "librarySha256": "70c41831a346f9c0043c4d529eec68d13620771935d1e67a3f13c2d6b24de5d7",
+    "adapterObjectSha256": "d6de4590f2f8ed357083c6694eac09dab690a223ede94b889fb9e6aa71b85abd"
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "c7e72c5ff24c6db4490898e31d7d5556a65c27c08779e9e1416de35ec2618337",
+    "librarySha256": "20c8f783f367285177bc0f9eddfe57bb70f81427ab1fd8759475e9d30c9596c7",
+    "adapterObjectSha256": "a381063b6280ca8746c6ebc6298e2767aae921e7e5cc0ed615b840fcb621c8b4"
+  },
+  "simultaneousWork": {
+    "chronology": "The adapter and library sources were frozen together during normal and ASan builds, then committed separately as ffc576cb and fad5990a.",
+    "adapterSourceSha256": "242864146e0cc288995194158157be736458b390655e9b0e7a51847744dbb518",
+    "librarySourceSha256": "1d0b5ae2ff4a05b3066aaa6160c28772298c631553a41627c06ea7cd6214a8d7"
+  },
+  "limitations": [
+    "The missing 179=0 presence differs physically; its absence/default semantic equivalence is not proven.",
+    "Native TABLE rendering, original full A35 output, document and LibreCAD/LibreCAD_3/FreeCAD qualification remain open.",
+    "The public TABLE data layout changed in prior work; consumer rebuild and ABI/API qualification remain required.",
+    "Existing ACadSharp sources were read-only; authored files/outputs remain in ignored scratch and no external fixture was committed."
+  ]
+}

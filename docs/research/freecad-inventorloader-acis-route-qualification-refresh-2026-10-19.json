@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "FreeCAD InventorLoader current ACIS route qualification refresh",
+  "mode": "Primary-source add-on README, adapter, and issue tracker review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the current qualification status of InventorLoader as an optional SAT/SAB and DXF-inline ACIS comparison route.",
+    "Separate standalone SAT/SAB parsing, DXF carrier extraction, native Inventor/Fusion feature reconstruction, and FreeCAD kernel/STEP outcomes.",
+    "Determine whether issue #110 provides an upstream fix or only an issue-body workaround."
+  ],
+  "sources": [
+    {
+      "project": "InventorLoader README",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+      "observed": "The add-on documents SAT/SAB and DXF solid import into FreeCAD, no export, and limitations for blending surfaces, some helix surfaces, and law-defined curves without spline data. The README labels the add-on released 1.5.",
+      "limitation": "The mutable master page is not an immutable artifact pin or proof of current FreeCAD compatibility."
+    },
+    {
+      "project": "InventorLoader DXF adapter",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+      "observed": "The DXF adapter reads through ezdxf, examines Solid3d entities for sat/sab carriers, passes extracted payloads to the add-on AcisReader, then creates geometry through FreeCAD Part or a STEP strategy.",
+      "limitation": "This is a composed DXF-to-FreeCAD route, not a DWG parser, AcDs owner/key resolver, or independent geometry kernel. Source was inspected; runtime was not executed."
+    },
+    {
+      "project": "InventorLoader issue #110",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/110",
+      "observed": "The issue remains open. Its body reports that demo Dice.sat appeared to import nothing, then supplies a standalone FreeCAD 1.2 macro that uses a locally corrected readText path, explicitly retains the AcisReader, resolves nodes and imports a STEP conversion. The report notes messy face normals on its direct route.",
+      "limitation": "The macro is a user-provided workaround in an open issue, not a merged upstream fix, released add-on artifact, independently reproduced result, or semantic geometry oracle."
+    },
+    {
+      "project": "InventorLoader issue #100",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/100",
+      "observed": "Open report for Windows FreeCAD 1.1 development build and InventorLoader 1.5.1: DXF import raises KeyError: 3, while STEP mode reportedly creates an empty document.",
+      "limitation": "User report not independently reproduced; scoped to the named route/build."
+    },
+    {
+      "project": "InventorLoader issues #102 and #103",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/issues/102",
+        "https://github.com/jmplonka/InventorLoader/issues/103"
+      ],
+      "observed": "Both remain open and report an SAB parse error and a SAT shell/face-recognition error, respectively.",
+      "limitation": "User reports not independently reproduced; no general failure claim is made."
+    },
+    {
+      "project": "InventorLoader issue #104",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/104",
+      "observed": "Open report says a FreeCAD weekly 2025-10-15 F3D import did nothing after strategy selection, while STEP reportedly worked in FreeCAD 1.0.2.",
+      "limitation": "This is the F3D importer route, not direct DWG/DXF or standalone SAT/SAB parsing."
+    },
+    {
+      "project": "InventorLoader issue #109",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/109",
+      "observed": "Open Windows FreeCAD 1.1 development report for native IPT import errors, including a Part::Extrusion rejected by a Body; STEP reportedly imports with missing sketch connectivity/constraints.",
+      "limitation": "This is the native Inventor feature route, not the standalone SAT parser; the issue was not reproduced."
+    }
+  ],
+  "classification": {
+    "overall": "OPTIONAL_CANDIDATE / NOT_QUALIFIED",
+    "sat_sab_payload": "OPTIONAL_READER_ROUTE / NOT_RUN",
+    "dxf_inline_acis": "EZDXF_EXTRACTION_PLUS_INVENTORLOADER_ACISREADER_PLUS_FREECAD_PART_OR_STEP / NOT_QUALIFIED",
+    "native_dwg": "NO_DWG_PARSER_OR_ACDS_ASSOCIATION_EVIDENCE",
+    "issue_110": "USER_WORKAROUND_ONLY / NO_UPSTREAM_FIX_ESTABLISHED"
+  },
+  "implementation_readiness": [
+    "Keep InventorLoader optional and composed-checkpoint-only; do not add it to regular build, CTest, or per-slice validation.",
+    "Before any use, pin exact add-on commit, FreeCAD build, OS/architecture, selected import strategy, and checksum/hash for any local workaround.",
+    "Do not silently apply the issue #110 macro workaround and report it as stock upstream behavior.",
+    "Require a fast nonempty-geometry preflight and compare solid count, closed-shell/validity, analytic dimensions, volume and placement; record unsupported geometry and fallbacks.",
+    "Keep stock FreeCAD DXF import and the DWG-converter-to-DXF route as separate qualification lanes.",
+    "If the optional app/add-on route cannot be pinned or produces no semantic result, mark it NOT_QUALIFIED and continue local implementation."
+  ],
+  "validation": {
+    "add_on_installed_or_run": false,
+    "samples_downloaded": false,
+    "local_build_or_tests": false,
+    "fixtures_added": false,
+    "dependencies_changed": false,
+    "support_claim_changed": false,
+    "finding_or_subplan_count_changed": false,
+    "reported_plan_totals": "139 findings / 77 top-level subplans",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

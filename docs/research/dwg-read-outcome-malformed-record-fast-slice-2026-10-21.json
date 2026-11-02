@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Generated DWG partial-read outcome sentinel repair",
+  "mode": "scratch-generated AC1027 malformed-record recovery control",
+  "scope": [
+    "Replace a stale malformed-HATCH sentinel that is canonically emitted as valid",
+    "Verify record-level rejection and continuation in the DWG entity stream",
+    "Register a fast focused CTest for the read-outcome policy selector"
+  ],
+  "evidence": {
+    "localSource": {
+      "files": [
+        "src/drw_entities.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/semantic_differential_adapter.cpp"
+      ],
+      "finding": "DRW_Hatch::encodeDwg treats a nonempty spline weightlist as canonical and emits the rational bit regardless of the legacy flags field. The previous test's supposedly malformed HATCH therefore parsed successfully. DRW_Line::parseDwg rejects non-finite coordinates after bounded field decoding, while the entity loop can continue to the next frame."
+    }
+  },
+  "changes": {
+    "productionChanged": false,
+    "testChanged": true,
+    "testSummary": [
+      "Replace the generated partial-read control HATCH with a LINE whose base X coordinate is NaN, followed by a finite LINE.",
+      "Align the semantic adapter readback control with the same generated malformed-LINE route.",
+      "Register libdxfrw_dwg_read_outcome_policy to run the focused selector without the full local-roundtrip executable."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "readOutcome": "The parser reports exactly one entity parse failure, publishes the following valid LINE, finalizes partial frame coverage, and emits the expected diagnostic disposition.",
+    "temporaryFiles": "Generated DWGs are confined to a unique temporary directory and removed by the control."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe -j4",
+    "buildResult": "PASS (-Werror strict build)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --dwg-read-outcome",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_read_outcome_policy|libdxfrw_3d_consumer_probe)$' --output-on-failure",
+    "focusedCtestResult": "PASS (2/2; 0.13 sec)",
+    "diffCheck": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp tests/semantic_differential_adapter.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "This is generated local malformed-coordinate recovery evidence, not a producer-authored malformed HATCH test or format-semantic claim.",
+    "No persistent fixture, external reader, native CAD application, full suite, or platform qualification was used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The broad shared worktree is dirty; this test-only slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 class-by-class CMC reader/writer and class-specific DXF projection audit; resume exact-source PAR-03/PAR-04 associative-action classification."
+}

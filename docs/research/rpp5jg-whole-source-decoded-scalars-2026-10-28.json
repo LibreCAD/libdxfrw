@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2/P4a internal whole-read decoded-scalar observation",
+  "date": "2026-10-28",
+  "codeCommit": "027f40a0aea3aa54ab6a913cb4fe4e35bda82f55",
+  "scope": "Default-off internal DXF observation of successful accepted reads, including HEADER, CLASSES, TABLES, BLOCKS, ENTITIES and OBJECTS, ASCII and binary. The private adapter evidence is groundwork for later document grammars and source joins; no geometry edit uses it yet.",
+  "contract": {
+    "capture": "The actual decoder observes each read scalar before semantic callbacks and retains code, kind, typed numeric value, text/raw representations where available, ordinal, logical consumed-byte span and ignored-comment flag. Capture runs through accepted EOF with version/encoding. A same-open-stream check requires no trailing bytes for eligibility; it does not make the external file immutable afterward.",
+    "notByteExact": "This is a decoded scalar/value census, not a byte-exact file image. ASCII group-code spelling and line endings are not retained; binary numeric wire bytes and the binary signature are not retained. Binary chunks use canonical hexadecimal. Offsets identify the observed stream but do not substitute for byte evidence.",
+    "authentication": "The codec keeps its capture private and delivers a separate copy. Only an active, codec-created, read-bound and nontransferable ticket can compare delivery against the private original and obtain a separate adapter copy. A distinct codec-created completion token binds successful read and same-stream extent. The adapter keeps the verified owner private, binds data owner, generation, container identity, codec and read context, and accepts it only for a successful enclosing DXF import. Missing, duplicate, cross-context, forged, failed or incomplete evidence is ineligible. Tickets are borrowed only during synchronous callbacks.",
+    "lifecycle": "A new import invalidates prior evidence for that data, including early failures; reentry invalidates the active owner. Failed, exceptional, repeated or context-mismatched attempts do not retain a qualified owner. Fresh-data retry is covered. Omitting the base callback leaves evidence absent without itself changing normal import success.",
+    "bounds": "Field, logical retained-byte and work limits use checked arithmetic; allocator-request charges cover original, callback and adapter copies plus transient vector reallocation peaks. Field comparisons and copies are precharged and local quota failure is sticky. These logical charges are not an exact allocator-overhead or RSS ceiling. Observer-local quota exhaustion removes evidence while a read may succeed; exhausting the codec shared retained-byte budget can fail an opted-in read. Corrected retry is tested.",
+    "compatibility": "Capture defaults off and uses a separate internal facet, with no added DRW_Interface virtuals or promised generic external observation API. Private dx_iface/dx_data layout changes require rebuilding dependent binaries. This does not independently qualify LibreCAD, LibreCAD_3, FreeCAD or native interpretation.",
+    "unqualified": "The observer does not classify application scopes, proxy payloads, arbitrary references, ownership or document completeness. No audited document grammar, hidden-340 refusal, geometry projection, actual DXF output or native semantic support is established; the consumed-offset prototype remains unintegrated."
+  },
+  "sourceBindings": {
+    "observerHeaderSha256": "c5b226583663d5eceed8a751d560e221f61d2cea2e62ac89d0d85ea3f46a85fa",
+    "decoderCppSha256": "0dd64fbc8fb2761d261491632ed82c05cca695eb9584c8c928041d696c32987e",
+    "adapterCppSha256": "061ce0425d1b035e4c628ecd7e056ff9d635e2ea7481480d7e3e6bde92a1397a",
+    "adapterHeaderSha256": "33476a0bffe8429869cb02b46f76e308ae59160b12d29a2bdb309889baf2c832",
+    "adapterDataSha256": "08f3a9d0aa374b8c015456c481e5496b68c2caa099946fcfcbcf9a30997642cc",
+    "testSourceSha256": "e07fc8dd21c644cac1e9632d3e8a066bce084d696344fc2d5d4553feb28c1837",
+    "normalAdapterObjectSha256": "f4e26b628a5d8af13ba25b7e02bbc1510291379ea4cf2e4903ec602db108a708",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "asanAdapterObjectSha256": "29dad4e570ebe235bb51bb29b899b31c3dbbdf92449498f1fad35f2984498f98",
+    "asanLibrarySha256": "470a3cf789dabd460281880b22933e335a60e01b8eb58281ff27aeb012d29e57",
+    "asanWholeTestSha256": "517ea0388cd9d9fb4841e9d7b4f7ab05a45f9fe3eb914993c882bec38dd54d87"
+  },
+  "validation": {
+    "normal": {
+      "result": "PASS",
+      "count": "5/5",
+      "selectors": [
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_acds_source_delivery",
+        "libdxfrw_entities_source_transport",
+        "libdxfrw_entities_delivery_transport",
+        "libdxfrw_identity_source_namespace"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "5/5",
+      "selectors": [
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_acds_source_delivery",
+        "libdxfrw_entities_source_transport",
+        "libdxfrw_entities_delivery_transport",
+        "libdxfrw_identity_source_namespace"
+      ],
+      "options": "halt_on_error=1:detect_leaks=0",
+      "logSha256": "eb876f4dda15597935af939db33c40df302bdc52666d6670b4873aabb46d407e"
+    },
+    "inventory": "Build/source-release inventory check passed for 622 tracked files.",
+    "focusedControls": "18 header-only version/encoding captures; default-off path; hidden 340 and ignored comments; pre/post-callback delivery changes, missing/duplicate callbacks, cross-data/generation mismatches, actual nested cross-reader source and completion token substitutions, compile-time minting/nontransferability controls, thrown callback and fresh-data retry, same-data early failure and reentry invalidation, malformed/truncated and trailing input, exact and one-below local limits, shared retained-byte exhaustion and retry. readAscii covers ordinary input, missing final newline and trailing input. Binary 999 is a direct decoder probe, not a native-validity claim."
+  },
+  "finalSharedProbe": {
+    "probeSourceSha256": "72c745243c72badd00f82282bbf09621be06129905b4b4613502909dbfca8cd6",
+    "probeExecutableSha256": "9c00b1e835c52266124b3e8db86c84f65a319dc8677b2d99d107bd3b35731132",
+    "meaning": "Each projection serializes the private decoded scalar census; it is not an output DXF or a document/semantic proof.",
+    "cases": [
+      {
+        "name": "tracked AC1015 repository fixture",
+        "encoding": "ASCII",
+        "fields": 142,
+        "inputSha256": "397a220d74f97192d665beddc91ca3ecf828a6ce0892ae7f643e8112bee2630f",
+        "projectionSha256": "9862311ae7231d55d7ba5e4f4f37175b5ebed38106cb3d6967f463f3b6fc8ee9"
+      },
+      {
+        "name": "locally authored 3D source",
+        "encoding": "ASCII",
+        "fields": 1632,
+        "inputSha256": "16905d3057d5e1c70b22ec7a3ff8768520ac99df0fe75bc660d3c9f490edbb27",
+        "projectionSha256": "0cc4650cabe4fb289fabb46e27fce5c17561475985f68d6a63ba11d4b95a232f"
+      },
+      {
+        "name": "generated clean",
+        "encoding": "ASCII",
+        "fields": 315,
+        "inputSha256": "3e2febdc5f8831344cbe98a0d92de9096a3bc8841772668bc38ab53b0e56cfd8",
+        "projectionSha256": "8c3870041d0bad3471c90d1a74689fbb4f7277478043f7cb7b06f209bf9f235a"
+      },
+      {
+        "name": "generated clean",
+        "encoding": "binary",
+        "fields": 315,
+        "inputSha256": "0131498b6650b49aa0590d8302dcdb3e8fef5d7c302fa2ed49b7b94a11923525",
+        "projectionSha256": "d67f676262ceb74e885f79223377eac27418c9ed760f9bdd1a6605cac44eee2f"
+      },
+      {
+        "name": "generated hidden application 340",
+        "encoding": "ASCII",
+        "fields": 318,
+        "inputSha256": "aef26bd29850e4d7fdc46a88b095d418c80ff878e991382c1e34c720e2be08c7",
+        "projectionSha256": "a17b3c88ca90fe90a697a8eac70a0c54ed2cf5ef79ad41196dcecc2b9227a43d"
+      },
+      {
+        "name": "generated hidden application 340",
+        "encoding": "binary",
+        "fields": 318,
+        "inputSha256": "f9ea1ae90754a197428e1ba589799fe3b59c63e5dc495ae5c0fa106a4ae40d80",
+        "projectionSha256": "3e98edbfd2bf4735ee1ce5f93fd79e948247f5e2649386e3220ea21199cfb001"
+      }
+    ]
+  },
+  "claimsPromoted": false,
+  "fixtures": "Generated input, projections and probe artifacts remain in ignored local scratch; no DWG/DXF fixture was committed."
+}

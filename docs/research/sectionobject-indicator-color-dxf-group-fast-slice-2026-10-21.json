@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03/7Q SECTIONOBJECT indicator-color DXF group correction",
+  "mode": "official-reference-backed generated DXF fast slice",
+  "scope": [
+    "Reconcile the numeric SECTIONOBJECT indicator-color DXF code with Autodesk's class-specific reference",
+    "Correct typed SECTIONOBJECT parse and write for the documented numeric group",
+    "Retain compatibility with prior libdxfrw output without promoting undocumented color representations"
+  ],
+  "evidence": {
+    "autodeskSectionDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8B60CBAB-B226-4A5F-ABB1-46FD8AABB928.htm",
+      "finding": "The SECTION DXF reference lists indicator color under group codes 63 and 411."
+    },
+    "autodeskGroupTypes": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "Group codes 60-79 have 16-bit integer values and codes 410-419 are strings; therefore the existing numeric indicator-color field maps to code 63, while the code-411 representation requires separate string semantics."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.cpp", "src/drw_entities.h", "src/libdxfrw.cpp"],
+      "finding": "The typed SECTIONOBJECT parser and writer used code 62 for m_indicatorColor, contrary to the class-specific SECTION table. The typed parser and writer now use code 63; code 62 remains an accepted legacy spelling on input.",
+      "limit": "The SectionObject DWG CMC path still discards RGB. Code 411 and truecolor/name mappings are not inferred from this correction."
+    },
+    "generatedControls": {
+      "files": ["tests/hardening_tests.cpp", "tests/wave1_tests.cpp"],
+      "finding": "Generated direct-parser controls accept code 63 and legacy code 62. A focused writer wire control requires code 63.",
+      "limit": "No external or persistent DXF fixture was added; these controls establish local typed behavior only."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Parse SECTIONOBJECT indicator color from documented DXF group 63.",
+      "Continue accepting group 62 as legacy libdxfrw input.",
+      "Write the typed numeric indicator-color field using group 63."
+    ],
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Add focused parser controls for canonical group 63 and legacy group 62.",
+      "Add a focused writer wire assertion for group 63."
+    ],
+    "focusedCtestsAdded": [
+      "libdxfrw_sectionobject_indicator_color_wire",
+      "libdxfrw_sectionobject_indicator_color_groups"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R 'sectionobject_indicator_color' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp src/drw_entities.h src/libdxfrw.cpp tests/hardening_tests.cpp tests/wave1_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "SECTIONOBJECT's typed scalar indicator color now uses documented numeric DXF group 63 in both read and write paths, while prior local group-62 output remains readable.",
+    "unresolved": [
+      "Group 411 is listed in the class table but is string-valued; its specific Section indicator-color role is not represented by the current model and was not guessed.",
+      "The SectionObject DWG CMC parser and writer do not yet retain the RGB payload.",
+      "The broader scalar-only CMC consumer audit and HATCH C5 producer behavior remain open."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the PAR-134 class-by-class audit with MLeader and MLeaderStyle CMC fields, preserving only color information supported by each class's model and documented wire contract."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

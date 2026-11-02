@@ -5,14 +5,22 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "handle_allocator.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/drw_textcodec.h"
 #include "intern/dwg_dxf_output_transaction.h"
+#include "intern/dxfwriter.h"
+#include "intern/dwgsafety.h"
 #include "intern/dwgwriter15.h"
+#include "intern/dwgwriter21.h"
+#include "intern/dwgwriter24.h"
+#include "intern/dwgwriter27.h"
+#include "intern/dwgwriter32.h"
 #include "libdwgr.h"
 
 #if !defined(_WIN32)
@@ -42,6 +50,11 @@ public:
     using dwgWriter::reserveHandle;
     using dwgWriter15::beginObject;
     using dwgWriter15::finishObject;
+};
+
+class DictionaryParseProbe final : public DRW_Dictionary {
+public:
+    using DRW_Dictionary::parseDwg;
 };
 
 void testModularVectors(TestContext& t) {
@@ -117,6 +130,112 @@ void testBitAndRawVectors(TestContext& t) {
              "BD rejects reserved two-bit code 11");
 }
 
+void testWideBufferBitCountArithmetic(TestContext& t) {
+    std::uint64_t bits = 0;
+    dwgBufferW writer;
+    writer.putRawChar8(0xA5u);
+    t.expect(writer.bitCount() == 8u,
+             "writer bit count preserves ordinary byte-aligned output");
+    writer.putBit(1u);
+    t.expect(writer.bitCount() == 9u,
+             "writer bit count includes a partial trailing byte");
+
+    constexpr std::uint64_t halfGiBBytes = 1ULL << 29;
+    t.expect(dwgSafety::bufferBitCount(halfGiBBytes, 0u, bits)
+                 && bits == (1ULL << 32),
+             "buffer bit count remains wide beyond the 32-bit bit boundary");
+    t.expect(dwgSafety::bufferBitCount(halfGiBBytes, 7u, bits)
+                 && bits == std::numeric_limits<std::uint32_t>::max(),
+             "partial final byte reaches the largest 32-bit bit count");
+    t.expect(!dwgSafety::bufferBitCount(0u, 1u, bits)
+                 && !dwgSafety::bufferBitCount(1u, 8u, bits),
+             "buffer bit count rejects impossible trailing-bit cursors");
+    t.expect(!dwgSafety::bufferBitCount(
+                 std::numeric_limits<std::uint64_t>::max() / 8u + 1u,
+                 0u, bits),
+             "buffer bit count rejects 64-bit multiplication overflow");
+}
+
+void testDwgTextLengthBoundaries(TestContext& t) {
+    constexpr std::size_t maxPayloadUnits = 0xFFFEu;
+    constexpr std::uint8_t sentinel = 0xA5u;
+    const std::string byteText(maxPayloadUnits, 'A');
+
+    const auto checkByteText = [&](void (dwgBufferW::*writeText)(
+                                      const std::string&),
+                                   const char* successLabel,
+                                   const char* rejectLabel) {
+        dwgBufferW writer;
+        (writer.*writeText)(byteText);
+        writer.putRawChar8(sentinel);
+        t.expect(writer.isGood(), successLabel);
+
+        dwgBuffer reader(writer.data().data(), writer.data().size());
+        const std::uint16_t encodedLength = reader.getBitShort();
+        t.expect(encodedLength == 0xFFFFu,
+                 "CP8/ENC length includes the terminator without wrapping");
+        std::vector<std::uint8_t> encoded(encodedLength);
+        const bool payloadRead = encodedLength != 0
+            && reader.getBytes(encoded.data(), encoded.size());
+        t.expect(payloadRead && encoded.front() == 'A'
+                     && encoded[encoded.size() - 2u] == 'A'
+                     && encoded.back() == 0,
+                 "CP8/ENC maximum payload and terminator are byte-exact");
+        t.expect(reader.getRawChar8() == sentinel && reader.isGood(),
+                 "CP8/ENC following sentinel remains aligned at maximum");
+
+        dwgBufferW rejected;
+        (rejected.*writeText)(std::string(maxPayloadUnits + 1u, 'A'));
+        t.expect(!rejected.isGood() && rejected.data().empty(), rejectLabel);
+    };
+
+    checkByteText(&dwgBufferW::putCP8Text,
+                  "CP8 accepts the largest payload plus a terminator",
+                  "CP8 rejects payload above the unsigned BS limit atomically");
+    checkByteText(&dwgBufferW::putENCText,
+                  "ENC accepts the largest payload plus a terminator",
+                  "ENC rejects payload above the unsigned BS limit atomically");
+
+    // The payload has 65,534 UTF-16 units: 65,532 BMP units and one astral
+    // scalar encoded as a surrogate pair. The writer then appends its NUL.
+    const std::string astral = "\xF0\x9F\x98\x80";
+    const std::string unicodeAtLimit(0xFFFCu, 'A');
+    const std::string unicodeText = unicodeAtLimit + astral;
+    dwgBufferW unicodeWriter;
+    unicodeWriter.putUCSText(unicodeText);
+    unicodeWriter.putRawChar8(sentinel);
+    t.expect(unicodeWriter.isGood(),
+             "TU accepts 65,534 payload code units plus a terminator");
+
+    dwgBuffer unicodeReader(unicodeWriter.data().data(),
+                            unicodeWriter.data().size());
+    const std::uint16_t encodedUnits = unicodeReader.getBitShort();
+    t.expect(encodedUnits == 0xFFFFu,
+             "TU length counts UTF-16 units and includes its terminator");
+    std::vector<std::uint8_t> unicodeBytes(
+        static_cast<std::size_t>(encodedUnits) * 2u);
+    const bool unicodePayloadRead = unicodeReader.getBytes(
+        unicodeBytes.data(), unicodeBytes.size());
+    t.expect(unicodePayloadRead && unicodeBytes[0] == 'A'
+                 && unicodeBytes[unicodeBytes.size() - 6u] == 0x3Du
+                 && unicodeBytes[unicodeBytes.size() - 5u] == 0xD8u
+                 && unicodeBytes[unicodeBytes.size() - 4u] == 0x00u
+                 && unicodeBytes[unicodeBytes.size() - 3u] == 0xDEu
+                 && unicodeBytes[unicodeBytes.size() - 2u] == 0u
+                 && unicodeBytes.back() == 0u,
+             "TU maximum payload preserves astral surrogate pair and NUL");
+    t.expect(unicodeReader.getRawChar8() == sentinel && unicodeReader.isGood(),
+             "TU following sentinel remains aligned at maximum");
+
+    // One astral scalar contributes two units: 65,533 BMP units plus that
+    // scalar is 65,535 payload units and must be rejected before the BS.
+    const std::string unicodeOverLimit = std::string(0xFFFDu, 'A') + astral;
+    dwgBufferW rejectedUnicode;
+    rejectedUnicode.putUCSText(unicodeOverLimit);
+    t.expect(!rejectedUnicode.isGood() && rejectedUnicode.data().empty(),
+             "TU rejects 65,535 payload code units without a wrapped length");
+}
+
 void testHandleOccurrences(TestContext& t) {
     dwgBufferW writer;
     writer.putFixedHandle(5, 3, 0x123456u);
@@ -169,6 +288,25 @@ void testWriterReservationVectors(TestContext& t) {
              "writer high-water follows explicit source reservation");
 }
 
+void testLeaderAnnotationReferenceFailsClosed(TestContext& t) {
+    DRW_Header header;
+    WriterProbe writer(nullptr, &header);
+    DRW_Leader leader;
+    leader.handle = 0xD101u;
+    leader.annotHandle = 0xD102u;
+
+    const bool encoded = writer.encodeEntity(&leader);
+    t.expect(!encoded,
+             "DWG LEADER rejects an annotation hard pointer it cannot emit");
+    t.expect(writer.buffer().empty(),
+             "rejected DWG LEADER leaves no partial entity frame");
+    t.expect(leader.handle == 0xD101u,
+             "rejected DWG LEADER preserves its caller handle");
+    leader.annotHandle = 0u;
+    t.expect(writer.encodeEntity(&leader) && !writer.buffer().empty(),
+             "same DWG writer succeeds after the rejected LEADER is corrected");
+}
+
 void testFrameReceiptAndRollback(TestContext& t) {
     DRW_Header header;
     WriterProbe writer(nullptr, &header);
@@ -197,6 +335,273 @@ void testFrameReceiptAndRollback(TestContext& t) {
     t.expect(writer.buffer().empty()
                  && !writer.getLastDwgObjectFrame(cleared),
              "writer rollback removes bytes and clears receipt");
+}
+
+void testModernDictionaryStreamBoundary(TestContext& t) {
+    // DICTIONARY ends its scalar body with the hard-owner RC, followed by
+    // its counted TV array. Check the actual frame boundary independently
+    // of DRW_Dictionary::parseDwg's detached-string seek.
+    const std::string unicodeKey("\xE5\xAD\x97_\xF0\x9F\x98\x80");
+    for (const auto version :
+         {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
+        for (const bool extensionMissing : {false, true}) {
+            for (const bool hasReactor : {false, true}) {
+                for (const std::string& key :
+                     {std::string("FAST_GROUP_KEY"), unicodeKey,
+                      std::string(2200u, 'A')}) {
+                    DRW_Header header;
+                    std::unique_ptr<dwgWriter15> writer;
+                    switch (version) {
+                    case DRW::AC1021:
+                        writer =
+                            std::make_unique<dwgWriter21>(nullptr, &header);
+                        break;
+                    case DRW::AC1024:
+                        writer =
+                            std::make_unique<dwgWriter24>(nullptr, &header);
+                        break;
+                    case DRW::AC1027:
+                        writer =
+                            std::make_unique<dwgWriter27>(nullptr, &header);
+                        break;
+                    default:
+                        writer =
+                            std::make_unique<dwgWriter32>(nullptr, &header);
+                        break;
+                    }
+                    DRW_Dictionary dictionary;
+                    dictionary.handle = 0xD100u;
+                    dictionary.parentHandle = 0xCu;
+                    dictionary.setDwgCommonObjectState(
+                        hasReactor ? 1 : 0, extensionMissing ? 1 : 0, false);
+                    if (hasReactor) {
+                        dictionary.reactorHandles.push_back(0xCu);
+                    }
+                    dictionary.m_entries.push_back({key, 0xD101u});
+                    const bool hasSecondEntry = key == unicodeKey;
+                    if (hasSecondEntry)
+                        dictionary.m_entries.push_back({"NEXT_KEY", 0xD102u});
+                    const bool written = writer->writeDictionary(dictionary);
+                    t.expect(written,
+                             "modern dictionary boundary frame writes");
+                    if (!written)
+                        continue;
+                    const auto& bytes = writer->buffer();
+                    dwgBuffer framing(bytes.data(), bytes.size());
+                    const auto frameBytes = framing.getModularShort();
+                    const auto handleBits =
+                        version > DRW::AC1021 ? framing.getUModularChar() : 0u;
+                    const auto prefixBytes = framing.getPosition();
+                    if (!framing.isGood() || frameBytes <= 0 ||
+                        prefixBytes + static_cast<std::uint64_t>(frameBytes) +
+                                2u !=
+                            bytes.size()) {
+                        t.expect(
+                            false,
+                            "R2007 dictionary has exact MS/body/CRC framing");
+                        continue;
+                    }
+                    dwgBuffer body(bytes.data() + prefixBytes,
+                                   static_cast<std::size_t>(frameBytes),
+                                   &codec);
+                    t.expect(body.getObjType(version) == 42u,
+                             "modern dictionary has the fixed object type");
+                    const auto endBit =
+                        version == DRW::AC1021
+                            ? body.getRawLong32()
+                            : static_cast<std::uint64_t>(frameBytes) * 8u -
+                                  handleBits;
+                    t.expect(
+                        body.getHandle().ref == dictionary.handle &&
+                            body.getBitShort() == 0,
+                        "R2007 dictionary handle and empty EED are literal");
+                    t.expect(body.getBitLong() == (hasReactor ? 1 : 0) &&
+                                 body.getBit() == (extensionMissing ? 1 : 0),
+                             "modern dictionary common flags are exact");
+                    if (version >= DRW::AC1027)
+                        t.expect(body.getBit() == 0,
+                                 "modern dictionary has no data-storage binary "
+                                 "data");
+                    t.expect(body.getBitLong() == (hasSecondEntry ? 2 : 1) &&
+                                 body.getBitShort() == dictionary.cloning &&
+                                 body.getRawChar8() == dictionary.hardOwner,
+                             "R2007 dictionary scalar prefix is exact");
+                    const auto scalarEndBit =
+                        body.getPosition() * 8u + body.getBitPos();
+                    std::uint64_t stringStartBit = 0, stringEndBit = 0;
+                    t.expect(body.getR2007StringStreamBounds(
+                                 endBit, stringStartBit, stringEndBit) &&
+                                 stringStartBit == scalarEndBit,
+                             "modern dictionary strings immediately follow "
+                             "scalar data");
+                    dwgBuffer contiguous = body.forkIndependent();
+                    t.expect(
+                        contiguous.getVariableText(version, false) == key &&
+                            contiguous.isGood(),
+                        "modern dictionary key decodes at the scalar boundary");
+                    if (hasSecondEntry)
+                        t.expect(contiguous.getVariableText(version, false)
+                                         == "NEXT_KEY" && contiguous.isGood(),
+                                 "modern dictionary counted names remain contiguous");
+                    t.expect(endBit % 8u == 0u && stringEndBit < endBit &&
+                                 endBit <
+                                     static_cast<std::uint64_t>(frameBytes) *
+                                         8u,
+                             "R2007 footer ends immediately before the handle "
+                             "stream");
+                    body.setPosition(endBit / 8u);
+                    body.setBitPos(0);
+                    t.expect(
+                        body.getOffsetHandle(dictionary.handle).ref ==
+                            dictionary.parentHandle,
+                        "modern dictionary owner remains in the handle stream");
+                    if (hasReactor)
+                        t.expect(body.getHandle().ref == 0xCu,
+                                 "modern dictionary reactor remains in the "
+                                 "handle stream");
+                    if (!extensionMissing)
+                        t.expect(body.getHandle().ref == 0,
+                                 "modern dictionary null extension slot stays "
+                                 "present");
+                    const auto entry = body.getHandle();
+                    t.expect(entry.code == 2 && entry.ref == 0xD101u &&
+                                 body.isGood(),
+                             "modern dictionary item has its exact ownership "
+                             "handle");
+                    if (hasSecondEntry) {
+                        const auto nextEntry = body.getHandle();
+                        t.expect(nextEntry.code == 2 && nextEntry.ref == 0xD102u
+                                     && body.isGood(),
+                                 "modern dictionary second item stays in order");
+                    }
+                    DRW::DwgObjectFrameReceipt receipt;
+                    t.expect(writer->getLastDwgObjectFrame(receipt) &&
+                                 receipt.dataBitSize == endBit,
+                             "modern dictionary frame receipt follows the "
+                             "actual stream "
+                             "boundary");
+                    dwgBufferW crc;
+                    crc.putBytes(bytes.data(), bytes.size() - 2u);
+                    const auto expectedCrc = crc.crc16(0xC0C1, 0, crc.size());
+                    t.expect(bytes[bytes.size() - 2u] ==
+                                     static_cast<std::uint8_t>(expectedCrc) &&
+                                 bytes.back() == static_cast<std::uint8_t>(
+                                                     expectedCrc >> 8u),
+                             "modern dictionary CRC covers size prefixes and "
+                             "shifted streams");
+                }
+            }
+        }
+    }
+
+    struct DictionaryFrame {
+        std::vector<std::uint8_t> bytes;
+        std::size_t bodyOffset = 0;
+        std::size_t bodyBytes = 0;
+        std::uint32_t handleBits = 0;
+        std::uint64_t stringStartBit = 0;
+    };
+    const auto makeDictionaryFrame = [](std::uint32_t childHandle) {
+        DictionaryFrame result;
+        DRW_Header header;
+        dwgWriter27 writer(nullptr, &header);
+        DRW_Dictionary dictionary;
+        dictionary.handle = 0xD100u;
+        dictionary.parentHandle = 0xCu;
+        dictionary.setDwgCommonObjectState(0, 1, false);
+        dictionary.m_entries.push_back({"A", childHandle});
+        if (!writer.writeDictionary(dictionary))
+            return result;
+
+        result.bytes = writer.buffer();
+        dwgBuffer framing(result.bytes.data(), result.bytes.size());
+        const std::int32_t frameBytes = framing.getModularShort();
+        result.handleBits = framing.getUModularChar();
+        result.bodyOffset = static_cast<std::size_t>(framing.getPosition());
+        if (!framing.isGood() || frameBytes <= 0
+            || result.bodyOffset + static_cast<std::size_t>(frameBytes) + 2u
+                != result.bytes.size()) {
+            result.bytes.clear();
+            return result;
+        }
+        result.bodyBytes = static_cast<std::size_t>(frameBytes);
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer body(result.bytes.data() + result.bodyOffset,
+                       result.bodyBytes, &codec);
+        const bool scalarPrefix = body.getObjType(DRW::AC1027) == 42u
+            && body.getHandle().ref == dictionary.handle
+            && body.getBitShort() == 0
+            && body.getBitLong() == 0
+            && body.getBit() == 1
+            && body.getBit() == 0
+            && body.getBitLong() == 1;
+        body.getBitShort(); // cloning
+        body.getRawChar8(); // hard-owner flag
+        result.stringStartBit = body.getPosition() * 8u + body.getBitPos();
+        std::uint64_t stringStart = 0;
+        std::uint64_t stringEnd = 0;
+        const std::uint64_t endBit = result.bodyBytes * 8u
+            - result.handleBits;
+        if (!scalarPrefix || !body.isGood()
+            || !body.getR2007StringStreamBounds(
+                endBit, stringStart, stringEnd)
+            || stringStart != result.stringStartBit
+            || stringEnd < stringStart) {
+            result.bytes.clear();
+        }
+        return result;
+    };
+    const auto patchFirstNameToEmpty = [](DictionaryFrame& frame) {
+        if (frame.bytes.empty())
+            return false;
+        // A R2007+ TU length of zero is the two-bit value 10. Patch only that
+        // length code so the generated frame keeps its original handle stream.
+        for (unsigned bitIndex = 0; bitIndex < 2u; ++bitIndex) {
+            const std::uint64_t bit = frame.bodyOffset * 8u
+                + frame.stringStartBit + bitIndex;
+            const std::uint8_t mask = static_cast<std::uint8_t>(
+                1u << (7u - static_cast<unsigned>(bit % 8u)));
+            if (bitIndex == 0u)
+                frame.bytes[static_cast<std::size_t>(bit / 8u)] |= mask;
+            else
+                frame.bytes[static_cast<std::size_t>(bit / 8u)] &=
+                    static_cast<std::uint8_t>(~mask);
+        }
+        return true;
+    };
+    const auto parseDictionaryFrame = [](
+        const DictionaryFrame& frame, DictionaryParseProbe& dictionary) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer input(frame.bytes.data() + frame.bodyOffset,
+                        frame.bodyBytes, &codec);
+        return dictionary.parseDwg(DRW::AC1027, &input, frame.handleBits);
+    };
+
+    DictionaryFrame emptyNullEntry = makeDictionaryFrame(0u);
+    DictionaryFrame emptyNonNullEntry = makeDictionaryFrame(0xD101u);
+    const bool prepared = patchFirstNameToEmpty(emptyNullEntry)
+        && patchFirstNameToEmpty(emptyNonNullEntry);
+    DictionaryParseProbe parsedDictionary;
+    const bool parsedEmptyNonNull = prepared
+        && parseDictionaryFrame(emptyNonNullEntry, parsedDictionary);
+    const bool rejectedEmptyNonNull = prepared && !parsedEmptyNonNull
+        && !parsedDictionary.hasCompleteDwgEntries()
+        && parsedDictionary.m_entries.empty();
+    const bool acceptedEmptyNull = prepared
+        && parseDictionaryFrame(emptyNullEntry, parsedDictionary)
+        && parsedDictionary.hasCompleteDwgEntries()
+        && parsedDictionary.m_entries.size() == 1u
+        && parsedDictionary.m_entries.front().m_name.empty()
+        && parsedDictionary.m_entries.front().m_handle == 0u
+        && !parsedDictionary.hasCompleteDxfEntries();
+    t.expect(rejectedEmptyNonNull,
+             "DICTIONARY rejects an empty name paired with a non-null handle and clears failed state");
+    t.expect(acceptedEmptyNull,
+             "DICTIONARY retains an observed empty-name/null-handle DWG pair while DXF output remains incomplete");
 }
 
 void testWriteRejectionDoesNotTouchDestination(TestContext& t) {
@@ -274,6 +679,10 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         t.expect(transaction.open(),
                  "output transaction opens an exclusive temporary");
         transaction.stream() << "published";
+        t.expect(transaction.verifyRange(0, "published"),
+                 "output transaction reads back an exact staged range");
+        t.expect(!transaction.verifyRange(0, "publishEd"),
+                 "output transaction rejects a mismatched staged range");
         t.expect(transaction.commit(),
                  "output transaction commits a flushed temporary");
         t.expect(!transaction.isOpen(),
@@ -324,6 +733,102 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
         std::istreambuf_iterator<char>());
     t.expect(preservedContents == "original",
              "aborted output transaction preserves the destination");
+
+    {
+        const std::filesystem::path appeared =
+            transactionTestPath("concurrent-create");
+        std::filesystem::remove(appeared, ignored);
+        DwgDxfOutputTransaction transaction(appeared.string(),
+                                            std::ios::binary);
+        t.expect(transaction.open(),
+                 "missing-target transaction opens an exclusive temporary");
+        transaction.stream() << "transaction-content";
+        {
+            std::ofstream concurrent(appeared,
+                                     std::ios::binary | std::ios::trunc);
+            concurrent << "concurrent-content";
+        }
+        t.expect(!transaction.commit(),
+                 "publication rejects a destination created during writing");
+        std::ifstream concurrent(appeared, std::ios::binary);
+        const std::string concurrentContents(
+            (std::istreambuf_iterator<char>(concurrent)),
+            std::istreambuf_iterator<char>());
+        t.expect(concurrentContents == "concurrent-content",
+                 "concurrent destination creation is preserved");
+        t.expect(transactionTemporaryCount(appeared) == 0,
+                 "rejected concurrent creation cleans its temporary");
+        std::filesystem::remove(appeared, ignored);
+    }
+
+    {
+        const std::filesystem::path replaced =
+            transactionTestPath("concurrent-replace");
+        const std::filesystem::path concurrentPath =
+            transactionTestPath("concurrent-replacement-content");
+        std::filesystem::remove(replaced, ignored);
+        std::filesystem::remove(concurrentPath, ignored);
+        {
+            std::ofstream seed(replaced, std::ios::binary | std::ios::trunc);
+            seed << "original-content";
+        }
+        DwgDxfOutputTransaction transaction(replaced.string(),
+                                            std::ios::binary);
+        t.expect(transaction.open(),
+                 "existing-target transaction opens an exclusive temporary");
+        transaction.stream() << "transaction-content";
+        {
+            std::ofstream concurrent(concurrentPath,
+                                     std::ios::binary | std::ios::trunc);
+            concurrent << "concurrent-replacement";
+        }
+        std::filesystem::remove(replaced, ignored);
+        std::filesystem::rename(concurrentPath, replaced, ignored);
+        t.expect(!ignored,
+                 "test installs the concurrent destination replacement");
+        t.expect(!transaction.commit(),
+                 "publication rejects a replaced destination");
+        std::ifstream concurrent(replaced, std::ios::binary);
+        const std::string concurrentContents(
+            (std::istreambuf_iterator<char>(concurrent)),
+            std::istreambuf_iterator<char>());
+        t.expect(concurrentContents == "concurrent-replacement",
+                 "concurrent destination replacement is preserved");
+        t.expect(transactionTemporaryCount(replaced) == 0,
+                 "rejected concurrent replacement cleans its temporary");
+        std::filesystem::remove(replaced, ignored);
+    }
+
+    {
+        const std::filesystem::path modified =
+            transactionTestPath("concurrent-modify");
+        std::filesystem::remove(modified, ignored);
+        {
+            std::ofstream seed(modified, std::ios::binary | std::ios::trunc);
+            seed << "original";
+        }
+        DwgDxfOutputTransaction transaction(modified.string(),
+                                            std::ios::binary);
+        t.expect(transaction.open(),
+                 "modified-target transaction opens an exclusive temporary");
+        transaction.stream() << "transaction-content";
+        {
+            std::ofstream concurrent(modified,
+                                     std::ios::binary | std::ios::trunc);
+            concurrent << "concurrent-in-place-update";
+        }
+        t.expect(!transaction.commit(),
+                 "publication rejects an in-place destination modification");
+        std::ifstream concurrent(modified, std::ios::binary);
+        const std::string concurrentContents(
+            (std::istreambuf_iterator<char>(concurrent)),
+            std::istreambuf_iterator<char>());
+        t.expect(concurrentContents == "concurrent-in-place-update",
+                 "concurrent in-place destination update is preserved");
+        t.expect(transactionTemporaryCount(modified) == 0,
+                 "rejected in-place modification cleans its temporary");
+        std::filesystem::remove(modified, ignored);
+    }
 
     {
         DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
@@ -492,6 +997,72 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
     t.expect(!std::filesystem::exists(missing),
              "failed output transaction does not create a destination");
 
+    std::filesystem::remove(target, ignored);
+}
+
+void testStagedRangeAuthenticationRollbackAndRetry(TestContext& t) {
+    const std::filesystem::path target = transactionTestPath("staged-range");
+    std::error_code ignored;
+    std::filesystem::remove(target, ignored);
+    {
+        std::ofstream seed(target, std::ios::binary | std::ios::trunc);
+        seed << "original";
+    }
+
+    bool rejected = false;
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(), "mismatched staged range opens transaction");
+        if (transaction.isOpen()) {
+            dxfWriterAscii writer(&transaction.stream());
+            DxfWriterRecordScope section(writer);
+            t.expect(writer.writeString(0, "SECTION"),
+                     "staged section body materializes for mismatch control");
+            rejected = !section.commit(
+                [](std::string_view bytes) { return !bytes.empty(); },
+                [&transaction](std::streamoff offset, std::string_view bytes) {
+                    std::string mismatch(bytes);
+                    mismatch.front() ^= 1;
+                    return transaction.verifyRange(offset, mismatch);
+                });
+        }
+        t.expect(rejected,
+                 "post-append byte mismatch refuses staged section commit");
+        transaction.abort();
+    }
+    {
+        std::ifstream preserved(target, std::ios::binary);
+        const std::string value((std::istreambuf_iterator<char>(preserved)), {});
+        t.expect(value == "original",
+                 "staged section mismatch rolls back the published destination");
+    }
+
+    bool retried = false;
+    {
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(), "corrected staged range opens retry transaction");
+        if (transaction.isOpen()) {
+            dxfWriterAscii writer(&transaction.stream());
+            DxfWriterRecordScope section(writer);
+            t.expect(writer.writeString(0, "SECTION"),
+                     "retry section body materializes");
+            retried = section.commit(
+                [](std::string_view bytes) { return !bytes.empty(); },
+                [&transaction](std::streamoff offset, std::string_view bytes) {
+                    return transaction.verifyRange(offset, bytes);
+                });
+            t.expect(retried,
+                     "corrected exact staged bytes pass append authentication");
+            t.expect(retried && transaction.commit(),
+                     "authenticated retry publishes atomically");
+        }
+    }
+    {
+        std::ifstream published(target, std::ios::binary);
+        const std::string value((std::istreambuf_iterator<char>(published)), {});
+        t.expect(retried && value != "original" && !value.empty(),
+                 "authenticated retry replaces the sentinel destination");
+    }
     std::filesystem::remove(target, ignored);
 }
 
@@ -699,12 +1270,17 @@ int main() {
     TestContext context;
     testModularVectors(context);
     testBitAndRawVectors(context);
+    testWideBufferBitCountArithmetic(context);
+    testDwgTextLengthBoundaries(context);
     testHandleOccurrences(context);
     testAllocatorVectors(context);
     testWriterReservationVectors(context);
+    testLeaderAnnotationReferenceFailsClosed(context);
     testFrameReceiptAndRollback(context);
+    testModernDictionaryStreamBoundary(context);
     testWriteRejectionDoesNotTouchDestination(context);
     testOutputTransactionPublicationAndRollback(context);
+    testStagedRangeAuthenticationRollbackAndRetry(context);
 #if !defined(_WIN32)
     // The _WIN32 branch creates its temporary in the target's own directory and
     // inherits the directory ACL; there is no umask and no mode to carry.

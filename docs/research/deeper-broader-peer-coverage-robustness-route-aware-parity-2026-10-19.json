@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer coverage claims, robustness test shapes, and route-aware parity scoring",
+  "mode": "Deeper/broader primary-source web research and local plan audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare declared feature breadth with class maturity and actual test denominators in open-source DWG/DXF implementations",
+    "Refresh malformed DWG parser failure reports and classify their local test-shape value without transferring peer byte offsets or conclusions",
+    "Separate DXF raw retention, cross-document import, projected rendering, ACIS payload handling, B-rep semantics, and native-consumer evidence",
+    "Refine the current implementation plan without adding peer dependencies or increasing routine validation cost"
+  ],
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/classes.inc"
+      ],
+      "revision": "Mutable current manual, README, and source declarations reviewed 2026-10-19; immutable commit not pinned",
+      "observed": "Project documentation reports broad DWG revision coverage while distinguishing stable, unstable, debugging, and unhandled classes, conditional same-version unknown-class preservation, and a list of entity/object families without test coverage. This establishes the project's own maturity distinctions, not a current independent per-family execution result."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/131",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/releases"
+      ],
+      "revision": "Current issue pages and release listing reviewed 2026-10-19; reports remain issue-era and version-scoped",
+      "observed": "#123 and #124 describe single-bit mutations of locally generated AC1024 files that reportedly trigger zero-filled/capped object data, oversized allocation, or unchecked header slicing. Maintainer-linked fixes requested reporter retesting; no reporter-confirmed results for the cited controls were visible in the reviewed pages. #131 reports peer legacy code-page mapping errors. #134 reports an AC1032 MLEADER-context bounded-reader regression. These are test-shape evidence only, not ODA format authority or evidence of libdxfrw defects."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst"
+      ],
+      "revision": "Mutable current documentation reviewed 2026-10-19; package artifact not run",
+      "observed": "The documentation distinguishes DXF entity/tag handling from cross-document XREF/import transfer and projection/rendering. Unsupported/proxy entities and selected document features are outside the documented copy route; the drawing add-on is not a 3D engine and does not render ACIS; ACIS creation requires an external library."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable documentation/source reviewed 2026-10-19; no FreeCAD runtime or converter executed",
+      "observed": "DWG import composes an external converter with a selected DXF importer. The documented C++ and legacy Python importer routes have different entity subsets, and stock DXF import does not read embedded ACIS/SAT solids."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md already maps ACadRust #123/#124 to PAR-14/PAR-26 and PAR-14/7BE, #131 to the explicit code-page support/refusal policy, and #134 to the PAR-07/S8 bounded-record failure ladder.",
+    "The current plan's peer-admission and composed-evidence gates already separate declaration, typed/raw retention, writer output, strict reopen, semantic geometry, and native acceptance.",
+    "The local plan audit found no peer report that by itself establishes a new libdxfrw feature defect; exact existing test coverage must be checked before any future mutation vector is added."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Makes per-family evidence denominators explicit, reinforces that read/retain/write/reopen/semantic/native are distinct outcomes, and supplies a safe local mutation-test recipe for relevant parser-hardening owners. Adds no duplicate local issue or peer prerequisite and does not increase routine validation cadence."
+  },
+  "method": {
+    "kind": "Read current primary project documentation and public issue reports, then map the evidence to existing local plan owners",
+    "localSourceAndPlanAudit": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub master/main documents and public issue pages are mutable and are not immutable executable artifacts. Reporter descriptions and maintainer-linked candidate commits were not independently reproduced. ODA v5.4.1 remains authoritative for DWG byte layout; no peer report is treated as format authority or as a libdxfrw result."
+  },
+  "implementationReadyChecks": [
+    "Keep support and test denominators per format/version/family/direction/route and record source identity plus unsupported, skipped, malformed, or untested dispositions.",
+    "Before adding malformed-input coverage, inspect the exact current local selector and source path; author a valid local baseline and mutate a structurally located field rather than copying peer offsets or thresholds.",
+    "For malformed controls, assert bounded refusal, first-stage error, and no partial publication or fabricated typed contents; use a bounded child process only for a case with material allocation risk.",
+    "Keep focused target/selector/owning CTest/scoped diff as the slice gate; reserve external peers, full suites, fuzz campaigns, and native CAD for named composed checkpoints.",
+    "Preserve 2D consumers and keep explicit surfaces, modeler carriers, ACIS/AcDs association, kernel semantics, and platform-native acceptance in separate support rows."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-coverage-robustness-route-aware-parity-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-coverage-robustness-route-aware-parity-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

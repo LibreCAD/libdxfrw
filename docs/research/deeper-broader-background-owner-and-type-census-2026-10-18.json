@@ -1,0 +1,173 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader Background owner-graph and subclass-census review",
+  "mode": "primary-source DXF/object-model review plus local generated implementation controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "scope": "DICTIONARY entry/ownership contract"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "scope": "common DXF object ownership, ACAD_REACTORS, and ACAD_XDICTIONARY group-code roles"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Background.html",
+      "scope": "Background hierarchy and ACAD_BACKGROUND collection contract"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SkyBackground.html",
+      "scope": "SkyBackground managed API subtype; does not define a standalone serialized DXF/DWG object"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "scope": "VIEWPORT Background, shade-plot, VisualStyle, and SUN reference slots"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "scope": "Mutable current-master Background schema/type names and stability labels, checked 2026-10-18; schema census only"
+    },
+    {
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "scope": "LibreDWG published object coverage status and implementation limits"
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "scope": "ezdxf XREF transfer behavior for unknown DXF objects and unsupported OBJECTS features"
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "scope": "ezdxf drawing backend configuration; background rendering policy is distinct from serialized Background-object support"
+    }
+  ],
+  "localCorpusEvidence": [
+    {
+      "file": "~/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "version": "AC1024",
+      "className": "AcDbSkyBackground",
+      "dxfRecordName": "SKYLIGHT_BACKGROUND",
+      "declaredClassInstanceCount": 11,
+      "readerOutcome": "Historical baseline said the Classes-section CRC mismatch stopped callbacks; post-7BE recheck now completes the read with operationSucceeded=true/legacyError=0, one warn-only CLASSES CRC mismatch, 13 object parse failures, and partial-observed export refusal. No typed Background instance or owner closure was established."
+    },
+    {
+      "file": "~/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+      "version": "AC1024",
+      "className": "AcDbSkyBackground",
+      "dxfRecordName": "SKYLIGHT_BACKGROUND",
+      "declaredClassInstanceCount": 51,
+      "readerOutcome": "Historical baseline said the Classes-section CRC mismatch stopped callbacks; post-7BE recheck now completes the read with operationSucceeded=true/legacyError=0, one warn-only CLASSES CRC mismatch, 54 object parse failures, and partial-observed export refusal. No typed Background instance or owner closure was established."
+    },
+    {
+      "file": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "note": "The AGENTS.md path without the suffix was absent. The available 279-page copy was text-searched for SkyBackground/SKY_BACKGROUND/SKYLIGHT_BACKGROUND; no literal match was found. This negative search is not used to infer that the file format lacks the class."
+    }
+  ],
+  "researchFindings": [
+    "Autodesk documents common owner group 330, ACAD_REACTORS soft-pointer app data, and ACAD_XDICTIONARY hard-owner group 360 as distinct relationships.",
+    "LibreDWG's mutable current object schema labels the six local Background kinds UNSTABLE and maps IBL to RAPIDRTRENDERENVIRONMENT; this is not independent acceptance evidence.",
+    "ezdxf can retain unknown DXF objects as tag storage for transfer operations, while its XREF support explicitly excludes most OBJECTS-section features; tag preservation is not semantic Background support.",
+    "Autodesk's current managed API documents SkyBackground. Two local AC1024 class tables map AcDbSkyBackground to SKYLIGHT_BACKGROUND, matching the existing DRW_Background::Skylight kind; the class-table census therefore found no separate serialized Sky name. After the local AC1024/MV37 HEADER-envelope compatibility change, current dirty-worktree reads reach object processing with a warning-only CLASSES CRC mismatch but retain object parse failures and partial coverage; this does not qualify typed Background instance parsing or ownership."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-background-owner-and-type-census-2026-10-18.json"
+    ],
+    "behavior": [
+      "Background typed xDictHandle values now seed the bounded typed extension-object traversal; visited extension dictionary/XRECORD descendants may have a Background source handle as their validated parent.",
+      "Background raw carrier preflight requires a single typed/raw-matching ACAD_XDICTIONARY group-360 edge and refuses reactor groups, duplicate/malformed extension edges, unqualified handle groups, and XDATA 1005 references.",
+      "Background graph closure only permits a nonzero typed xDictHandle when the generic graph planner staged the corresponding extension dictionary.",
+      "The standalone typed Background writer now refuses unregistered xDictHandle/reactor edges and opaque handle-bearing app-data rather than emitting an unclosed edge.",
+      "Background reactor and SUN adapter routes remain fail-closed; the SkyBackground API class maps to the existing SKYLIGHT_BACKGROUND class-table name in two local AC1024 samples. The earlier statement that current reads stop before callbacks is superseded: post-HEADER-fix reads reach object processing but report 13/54 object parse failures and partial coverage, so no typed instance/owner evidence is admitted."
+    ],
+    "generatedControls": [
+      "Generated AC1027 ASCII and Binary controls capture and round-trip Background -> extension DICTIONARY -> typed XRECORD with owner/handle remapping.",
+      "Typed/raw group-360 mismatch and a wrong extension-dictionary owner reject atomically while preserving an existing destination sentinel.",
+      "Direct typed ASCII/Binary writer controls refuse unregistered Background extension dictionaries, reactor handles, and opaque app-data handle groups without publishing a file.",
+      "No downloaded drawings or persistent DWG/DXF fixtures were added."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false
+  },
+  "postHeaderEnvelopeRecheck": {
+    "date": "2026-10-18",
+    "basis": "Read-only rerun after the uncommitted AC1024/MV37 HEADER-envelope compatibility change; repository HEAD is unchanged and the worktree is broadly dirty.",
+    "command": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -v2010 <temporary-output.dxf>",
+    "executableSha256": "3560092e1ab1649b5c41d0d9f2d5e011859e0102c95638a91733f79322e59e99",
+    "cases": [
+      {
+        "file": "~/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+        "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "classesCrcMismatch": 1,
+        "objectParseFailures": 13,
+        "semanticCoverage": "partial-observed",
+        "cliExport": "refused"
+      },
+      {
+        "file": "~/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+        "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "classesCrcMismatch": 1,
+        "objectParseFailures": 54,
+        "semanticCoverage": "partial-observed",
+        "cliExport": "refused"
+      }
+    ],
+    "interpretation": "A warning-only CLASSES CRC mismatch is not the current read stop and must not be cited as preventing callbacks. These observations still do not establish typed Background instance parsing, owner closure, rendering, or semantic support. No source drawings were copied into the repository."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "git diff --check"
+    ],
+    "focusedResults": [
+      "All six existing Background kinds and the new extension-dictionary/XRECORD positive/negative controls passed for generated ASCII and Binary DXF.",
+      "VIEW, VIEWPORT, and VPORT fail-closed selectors passed.",
+      "Strict target build and whitespace check passed."
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "researchConclusion": "A narrow Background ACAD_XDICTIONARY graph can use the existing typed owner traversal without enabling reactors or generic opaque handle-bearing data. Two local AC1024 class tables map AcDbSkyBackground to SKYLIGHT_BACKGROUND, resolving the separate-name question. The post-HEADER-fix reader proceeds into object processing but reports a warning-only CLASSES CRC mismatch and object parse failures; no typed Background instance/owner closure has been qualified.",
+    "remaining": "AC1024 Background/SUN instance closure after object parse failures and partial-coverage refusal are resolved or an independently passing source becomes available; adapter reactor typed-target and lifecycle closure; VIEWPORT group-361 and Skylight-to-SUN owner semantics; native/peer qualification; no semantic-rendering or 3D support claim is promoted.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "containedOpenTasks": [],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

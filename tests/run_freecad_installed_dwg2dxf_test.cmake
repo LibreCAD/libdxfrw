@@ -1,6 +1,6 @@
 if(NOT DEFINED BUILD_DIR OR NOT DEFINED BUILD_DWG2DXF
         OR NOT DEFINED INSTALL_BINDIR OR NOT DEFINED INSTALL_LIBDIR
-        OR NOT DEFINED EXECUTABLE_SUFFIX OR NOT DEFINED SAMPLE
+        OR NOT DEFINED EXECUTABLE_SUFFIX OR NOT DEFINED DWG_SOURCE_GENERATOR
         OR NOT DEFINED RTEXT_SAMPLE OR NOT DEFINED MPOLYGON_SAMPLE
         OR NOT DEFINED OUTPUT_DIR)
     message(FATAL_ERROR "Installed FreeCAD CLI test arguments are incomplete")
@@ -15,6 +15,9 @@ foreach(_install_dir IN ITEMS "${INSTALL_BINDIR}" "${INSTALL_LIBDIR}")
 endforeach()
 if(NOT EXISTS "${BUILD_DWG2DXF}")
     message(FATAL_ERROR "Build-tree converter does not exist: ${BUILD_DWG2DXF}")
+endif()
+if(NOT EXISTS "${DWG_SOURCE_GENERATOR}")
+    message(FATAL_ERROR "DWG source generator does not exist: ${DWG_SOURCE_GENERATOR}")
 endif()
 
 string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _nonce)
@@ -57,6 +60,20 @@ if("${_installed_real_path}" STREQUAL "${_build_real_path}")
         "Installed CLI resolves to the build-tree executable '${_build_real_path}'")
 endif()
 
+set(_positive_sample "${_test_root}/source drawing AC1027.dwg")
+execute_process(
+    COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source "${_positive_sample}" AC1027
+    RESULT_VARIABLE _generate_result
+    OUTPUT_VARIABLE _generate_stdout
+    ERROR_VARIABLE _generate_stderr
+    TIMEOUT 30
+)
+if(NOT "${_generate_result}" STREQUAL "0" OR NOT EXISTS "${_positive_sample}")
+    message(FATAL_ERROR
+        "Could not generate the installed-test AC1027 DWG (${_generate_result}); diagnostics retained under '${_test_root}'\n"
+        "${_generate_stdout}\n${_generate_stderr}")
+endif()
+
 # FreeCAD inherits its process environment. Remove common developer loader
 # overrides so a shared build must resolve libdxfrw from the install itself.
 if(CMAKE_HOST_WIN32)
@@ -80,7 +97,7 @@ set(_clean_environment_command
     "PATH=${_clean_path}"
     "${CMAKE_COMMAND}"
     "-DDWG2DXF=${_installed_dwg2dxf}"
-    "-DSAMPLE=${SAMPLE}"
+    "-DSAMPLE=${_positive_sample}"
     "-DRTEXT_SAMPLE=${RTEXT_SAMPLE}"
     "-DMPOLYGON_SAMPLE=${MPOLYGON_SAMPLE}"
     "-DOUTPUT_DIR=${_test_output}"

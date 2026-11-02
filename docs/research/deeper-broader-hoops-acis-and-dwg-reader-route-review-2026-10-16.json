@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw-deeper-broader-hoops-acis-and-dwg-reader-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Identify and qualify a current external ACIS semantic-reader candidate for the selected macOS ARM64 route, separating extracted SAT/SAB semantics from DWG AcDs linkage, full DWG reading, 2D consumer compatibility, and independent-kernel claims.",
+  "method": {
+    "kind": "Primary-source review of current Tech Soft 3D HOOPS Exchange format, platform, API, unit, physical-property, and evaluation/license documentation; reconciled with existing local external-evidence plan gates.",
+    "accountCreatedOrAccessed": false,
+    "sdkOrLicenseObtained": false,
+    "peerRuntimeRun": false,
+    "nativeCadOrKernelRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Vendor documentation establishes an optional candidate route and documented interface/platform scope only. No SDK artifact, exact build, license, sample parse, B-rep measurement, or AcDs behavior was executed or independently confirmed."
+  },
+  "evidence": [
+    {
+      "topic": "Documented ACIS SAT/SAB semantic-reader scope",
+      "sources": [
+        "https://docs.techsoft3d.com/hoops/exchange/start/format/acis_reader.html"
+      ],
+      "observed": "The current HOOPS Exchange ACIS reader page lists SAT/SAB versions 1.3 (103) through 35.0 (3500), B-rep access, and generated tessellation. It says the reader can query the topological and geometric model and enumerates supported surface and curve families. It also notes that some evaluators are less robust, not all ACIS geometric definitions are exposed, and some advanced procedural geometries need conversion to NURBS for reliable import.",
+      "doesNotEstablish": [
+        "that a particular SDK build or license is available on this host",
+        "that the current library accepts the local or external target SAB/ASM profile",
+        "that every shape-relevant record is decoded or that an imported body is semantically complete",
+        "independence of HOOPS internal geometry-kernel lineage from other commercial or open-source kernels"
+      ],
+      "planUse": "Admit HOOPS Exchange only as an optional licensed external semantic-reader candidate for an exact bounded SAT/SAB profile. Require per-body completeness, B-rep topology/geometry observations, explicit unsupported-feature diagnostics, and independently known analytic expectations."
+    },
+    {
+      "topic": "Apple Silicon route versus direct DWG/DXF route",
+      "sources": [
+        "https://docs.techsoft3d.com/hoops/exchange/start/supported-platforms.html",
+        "https://docs.techsoft3d.com/hoops/exchange/api/c/functions/A3DAsmModelFileLoadFromFile.html",
+        "https://docs.techsoft3d.com/hoops/exchange/start/format/dwg_reader.html",
+        "https://docs.techsoft3d.com/hoops/exchange/start/supported-formats.html"
+      ],
+      "observed": "The platform page lists Apple macOS x86-64 and Apple Silicon arm64, minimum macOS 13.0, with the runtime library under macos/libA3DLIBS.dylib. The documented file-load API takes a physical path. The AutoCAD reader documentation separates its 2D and 3D routes and states that the DWG reader is available only on Windows and Linux; the current supported-formats page advertises the 3D AutoCAD route through AutoCAD 2026.",
+      "doesNotEstablish": [
+        "the exact downloadable SDK version, package digest, or target-host binary architecture before obtaining the official artifact",
+        "direct DWG 3D support on macOS",
+        "that AutoCAD's advertised version range implies parity for every DWG object or ACdS record",
+        "2D entity graph, annotation, block, or LibreCAD consumer compatibility"
+      ],
+      "planUse": "Use macOS ARM64 only for the optional extracted SAT/SAB route. Treat any direct DWG 3D test as a separate optional Windows/Linux checkpoint. Keep the platform and route in the receipt and never attribute a DWG reader result to AcDs byte/index validation."
+    },
+    {
+      "topic": "Geometry-backed metrics and units",
+      "sources": [
+        "https://docs.techsoft3d.com/hoops/exchange/api/c/functions/A3DComputePhysicalProperties.html",
+        "https://docs.techsoft3d.com/hoops/exchange/api/c/structures/A3DPhysicalPropertiesData.html",
+        "https://staging.docs.techsoft3d.com/hoops/exchange/guide/units.html"
+      ],
+      "observed": "HOOPS documents B-rep physical-property computation for surface area, volume, gravity center, and inertia; the API can be configured to use B-rep geometry rather than tessellation and can report failure if geometry is absent. Documentation distinguishes model-file units from B-rep units and says cumulative assembly/occurrence scaling affects measurements. It also notes that volume may not be computed for non-solid bodies.",
+      "doesNotEstablish": [
+        "that any local sample yields those metrics",
+        "the unit semantics of a particular embedded AutoCAD SAB without running the exact reader and inspecting its model metadata",
+        "that a missing volume on a sheet or wire body means empty geometry"
+      ],
+      "planUse": "For an optional run, request geometry-backed rather than tessellation-only metrics, capture volume-computed state, units, transforms and topology, and compare against independent analytic values. Keep non-solid expected geometry cases distinct from solid-volume checks."
+    },
+    {
+      "topic": "Access, license and dependency boundary",
+      "sources": [
+        "https://docs.techsoft3d.com/hoops/exchange/start/evaluating-exchange.html",
+        "https://docs.techsoft3d.com/hoops/exchange/tutorials/c/environment-setup.html"
+      ],
+      "observed": "The vendor setup path uses a Developer Zone account, official SDK package and a valid license key; evaluation keys expire with the evaluation period. macOS users are directed to download a ZIP package. The product is proprietary and not a project dependency.",
+      "doesNotEstablish": [
+        "that this user's account has an active entitlement or evaluation",
+        "that an evaluation license can be used beyond its stated period or in production",
+        "permission to redistribute the SDK, key, or vendor sample payloads"
+      ],
+      "planUse": "Keep all SDK and license operations optional and explicitly authorized. Do not add the SDK, license key, or proprietary payloads to the repository. If access is absent, record NOT_AVAILABLE/NOT_RUN and continue local work."
+    }
+  ],
+  "implementationReadiness": {
+    "localFastValidationChanged": false,
+    "existingFindingsOrSubplansChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Keep HOOPS out of per-slice validation and all default build/test targets.",
+      "At the existing composed external checkpoint only, and only when authorized, pin the official SDK artifact/release, platform, architecture, hash, license status and runtime options before any parse.",
+      "On macOS ARM64, use a scratch-path SAT/SAB file and compare complete B-rep observations and geometry-backed analytic metrics; label a locally generated sample as harness smoke, not producer interoperability proof.",
+      "Keep the AcDs byte/page/handle-to-payload association receipt separate; optionally consider direct HOOPS DWG 3D reading only on a documented Windows/Linux platform.",
+      "Do not call the proprietary route an open-source comparator or an independent-kernel result unless code/runtime lineage is separately established.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting until their evidence gates independently pass."
+    ]
+  }
+}

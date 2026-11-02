@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kw selected unique-LTYPE MLINESTYLE removal with composite retained-field edits",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "3120cc94163a4e251c0c2d6ccd179cafa2ae7b23",
+  "evidenceCommit": "3120cc94163a4e251c0c2d6ccd179cafa2ae7b23",
+  "scope": "Adds one fail-closed AC1027 unused modern MLINESTYLE removal profile. When a changed retained tuple has no unique source matching at least two of offset, ACI and LTYPE, a unique unchanged LTYPE may identify its original tuple. The selected profile removes three tuples, changes both offset and ACI on the survivor, and retains a unique source LTYPE. This does not qualify offset-only or ACI-only identity, ambiguous LTYPE matches, or broader MLINE geometry and document support.",
+  "dependencies": [
+    "RPP-5jb selected unused-style removal with retained-element LTYPE edits",
+    "RPP-5id selected unique ordered subsequence removal",
+    "Existing MLINESTYLE dictionary authority and source-live checks"
+  ],
+  "contract": {
+    "admission": "AC1027 source and output. The selected unused MLINESTYLE has four original ordered element tuples; the first tuple's LTYPE is changed in the authored source to EditDash, for which original LTYPE provider handle 0x103 is uniquely evidenced. Three tuples are removed. The retained first tuple's offset and ACI are both changed while its LTYPE and all non-editable tuple fields remain unchanged. The route requires the existing original record, owner, dictionary, provider, codec, identity and caller-state checks.",
+    "identity": "For each retained element, count unchanged offset, ACI and LTYPE anchors among original tuples that also match every non-editable field. Prefer candidates matching at least two anchors and require exactly one such candidate. Only if no two-anchor candidate exists may exactly one candidate matching the unchanged LTYPE identify the source tuple. Require retained source indices to be strictly increasing. This preserves prior pair-collision refusals and does not authorize single offset or ACI anchors.",
+    "output": "Across ASCII/binary source and output combinations, prove the changed MLINESTYLE body contains the expected ordered survivor tuple and count, is owned by the emitted MLINESTYLE dictionary, and is reachable through the expected dictionary key. Verify original MLINE consumers keep their original group-340 style identity and geometry. Fresh import verifies the emitted survivor offset, ACI and LTYPE. Verify the unique EditDash provider and its output table ownership/reference.",
+    "failureAndRetry": "Four source/output encoding combinations refuse if the unique source LTYPE origin evidence is removed; restoring it permits same-adapter retry. Four combinations with EditDash duplicated across source tuples refuse as ambiguous; restoring the original source profile permits retry. Sixteen late-mutation controls cover four serialization phases across both source encodings and both output encodings; each refusal preserves destination state, and restoration permits retry. Existing removal controls retain offset-only, ACI-only, cross-anchor collision, malformed-provider, and other invalid-operation refusals.",
+    "compatibility": "No public API or DRW_Interface virtual changes. The regression authors all input DWG/DXF data in memory and writes temporary runtime files; no fixture file is committed. Existing full-tuple, unique two-anchor and ordered-subsequence paths remain available.",
+    "limits": "Only the selected AC1027 unused-style four-to-one removal and composite offset-plus-ACI edit with one unique unchanged LTYPE is qualified. This does not qualify consumed-style element removal, MLINE parameter reprojection, other source counts, multiple survivors matched only by LTYPE, alternate LTYPE provider profiles, legacy versions, other carriers, native CAD interpretation, complete document closure, or support claims."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "positiveProfile": "Four exact source/output combinations prove the retained tuple's source identity, ordered output fields, named LTYPE provider, dictionary ownership, consumer references and fresh readback. Existing removal controls also prove the two selected collision-free composite variants under both output encodings.",
+    "negativeAndRetry": "Four missing-origin refusals and four duplicate-LTYPE ambiguity refusals preserve destination/caller state and pass same-adapter correction retries. Sixteen late mutation refusals across four write phases and four source/output encodings pass corrected retries. Offset-only and ACI-only anchors remain refused."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "cmake --build build-gcc --target dwg2dxf -j2"
+      ]
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "The owning MLINESTYLE body-transaction selector passed, including the existing append/removal, ambiguity, provider, late-mutation, failure/retry and output/readback controls.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_style_body_transactions$' --output-on-failure",
+      "observedCompositeControls": "profiles=4; providerRefusals=4; ambiguous=4; late=16; retries=24; readbacks=28"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "a59049eeed4a6ab54d78581538d12c42e8d475e28d14874b5b3eb428397e71d0",
+    "tests/dxf_fixture_tests.cpp": "dd55ed7e670804893e19d0c52a83535f644f25c7765e5877e4976e408f152f8d"
+  },
+  "next": "Select a current exact non-offset MLINE retarget refusal and bind its source geometry, dependent consumers, expected emitted fields, and missing semantic layer. Prefer a profile with differing flags or non-angle geometry only when independent source evidence establishes the intended transformation. Keep the dense 255-to-254 retained-byte refusal and all unsupported profiles intact."
+}

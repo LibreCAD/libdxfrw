@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1024-table-break-option-flow-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Table",
+    "version": "AC1024",
+    "fields": ["R2010 TABLE break option flags", "R2010 TABLE break flow direction"],
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.96.2"
+  },
+  "change": "Validate documented break-option bits with mask 0x1F and flow direction as the discrete values 1, 2, or 4. Preserve TABLECONTENT but mark the optional tail incomplete when either field is invalid.",
+  "regression": "Before parser validation, generated complete frames with eight out-of-domain option/flow profiles were accepted as semantically complete.",
+  "generated_controls": {
+    "valid": [
+      {"option_flags": 0, "flow_direction": 1},
+      {"option_flags": 1, "flow_direction": 1},
+      {"option_flags": 16, "flow_direction": 2},
+      {"option_flags": 31, "flow_direction": 4}
+    ],
+    "invalid": [
+      {"option_flags": 32, "flow_direction": 1},
+      {"option_flags": -1, "flow_direction": 1},
+      {"option_flags": 0, "flow_direction": 0},
+      {"option_flags": 0, "flow_direction": 3},
+      {"option_flags": 0, "flow_direction": 5},
+      {"option_flags": 0, "flow_direction": -1},
+      {"option_flags": 2147483647, "flow_direction": 2},
+      {"option_flags": 1073741824, "flow_direction": 4}
+    ]
+  },
+  "validation": [
+    "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_table_break_.*|libdxfrw_tablestyle_.*|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (13/13; 0.31 s)",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

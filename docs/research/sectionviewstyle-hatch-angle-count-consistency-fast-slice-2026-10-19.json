@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SectionViewStyle DXF hatch-angle count consistency",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Generated DXF input validation for the SectionViewStyle hatch-angle count/value relationship",
+  "changes": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "declaredCountBound": 100000,
+    "dwgAndDxfUseSameCountBound": true,
+    "callbackRequires": [
+      "No hatch angle values without a declared DXF count.",
+      "Declared hatch-angle count equals the captured angle vector size."
+    ],
+    "emptyAngleListWithoutDeclaredCountAllowed": true,
+    "generatedAsciiAndBinaryControls": {
+      "validDeclaredSingleAngle": true,
+      "refusalCases": [
+        "declared count differs from captured angles",
+        "negative declared count",
+        "count exceeds the existing 100000 bound",
+        "angle values occur without a declared count"
+      ],
+      "malformedRecordPublishesNoSectionViewStyleCallback": true,
+      "existingRawReplayAndFollowingRecordControlsRetained": true
+    },
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "This verifies local DXF count-to-value consistency only. It does not establish hatch-angle semantics, DWG-origin field mapping, a typed serializer, or native acceptance/rendering.",
+  "planEffect": {
+    "newConfirmedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-peer failure taxonomy and implementation-readiness reconciliation",
+  "mode": "Primary-source issue/documentation review with local source/test inventory; no peer runtime",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh recent LibreDWG and ACadSharp failure reports across DWG modeler payloads, value fidelity, DXF object ordering, string integrity, and strict-consumer acceptance.",
+    "Cross-check each report against Autodesk/ODA references and current local test owners without inferring matching libdxfrw defects.",
+    "Refine implementation-ready gates while preserving fast per-slice validation, scratch/repository-owned fixture policy, and non-promoting external evidence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "revision": "Issue opened 2026-09-02; mutable issue page reviewed 2026-10-20 and shown open.",
+      "observed": "The author reports an R2018 generated DXF REGION with a 5,489-byte ezdxf-authored SAB payload losing its AcDs records and body after LibreDWG DXF-to-DWG-to-DXF conversion; a separate confidential AutoCAD drawing is also described.",
+      "limits": "This is a peer report and a same-codec round trip; ezdxf payload generation does not establish independent B-rep semantics. The confidential drawing was not obtained and no peer executable was run."
+    },
+    {
+      "project": "LibreDWG issue #1412",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1412",
+      "revision": "Issue opened 2026-09-08; mutable issue page reviewed 2026-10-20 and shown open.",
+      "observed": "The author describes a C string-quoting path that terminates at buffer capacity, then measures with strlen, allowing allocator residue into DXF output; allocator perturbation is used in the reporter's reproduction.",
+      "limits": "The described implementation is LibreDWG's C buffer path. Local libdxfrw source uses length-aware string writes in the audited writer route; no analogous local mechanism was reproduced."
+    },
+    {
+      "project": "LibreDWG issue #1413",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1413",
+      "revision": "Issue opened 2026-09-08; mutable issue page reviewed 2026-10-20 and shown open.",
+      "observed": "The author reports an extension DICTIONARY at handle 3 and owner 2 emitted before the NOD at handle B and owner 0; a reader that treats the first OBJECTS record as root then selects the wrong dictionary.",
+      "limits": "The peer reproducer was not run here. This is about DXF serialization position, not DWG NOD discovery by array order or minimum handle."
+    },
+    {
+      "project": "LibreDWG issue #1414",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+      "revision": "Issue opened 2026-09-08; mutable issue page reviewed 2026-10-20 and shown open/question.",
+      "observed": "The report contrasts TV and TU string conversion paths for literal \\U+XXXX content while targeting modern DXF and identifies lone-surrogate UTF-8 validity as a separate concern.",
+      "limits": "The report asks about intended policy and is not a normative source or independent result. No peer corpus or patch was run."
+    },
+    {
+      "project": "LibreDWG issue #1415",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1415",
+      "revision": "Issue opened 2026-09-08; mutable issue page reviewed 2026-10-20 and shown open.",
+      "observed": "The author reports CMC method confusion between packed ACI (0xC3) and RGB (0xC2), palette collisions, and a true-color low-byte fallback that can emit invalid group 62 zero; the author later corrected an initial proposed guard after identifying the R2004+ BS index as vestigial for this route.",
+      "limits": "Peer analysis and corpus measurements were not independently run. ODA v5.4.1 §2.11 and local generated controls remain the applicable evidence for libdxfrw."
+    },
+    {
+      "project": "ACadSharp issue #1253",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "revision": "Issue opened 2026-09-13; mutable issue page and comments reviewed 2026-10-20; open with no linked PR shown.",
+      "observed": "The report describes AutoCAD rejection of ACadSharp 3.6.35 DXF output across CLASSES, HATCH, and DIMSTYLE cases. A later comment narrows the HATCH observation: TrueView required group 47 on derived-boundary paths (flag 92=7), so the original simple zero-value omission proposal is not a universal predicate.",
+      "limits": "The reports are profile- and version-specific; raw producer output was not independently inspected and no native app was run. The HATCH group-47 presence condition remains unresolved locally."
+    },
+    {
+      "project": "ACadSharp issue #1299",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "revision": "Issue opened 2026-10-14; mutable issue page reviewed 2026-10-20 and shown open.",
+      "observed": "A user reports that a DWG-to-DXF output from ACadSharp 3.8.0 is rejected by GDAL as bad spline data and cites an external AI-generated explanation.",
+      "limits": "The issue attachments were not downloaded; the cited explanation is not technical authority. GDAL is a downstream parser/projection route and its rejection alone does not establish a format violation or libdxfrw defect."
+    },
+    {
+      "project": "Autodesk DXF OBJECTS section reference and ezdxf OBJECTS internals",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-49C9C960-0944-4C1B-8DF9-E2428C28A2FB.htm; https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html",
+      "revision": "Official Autodesk reference and mutable ezdxf documentation reviewed 2026-10-20.",
+      "observed": "The references support the positional NOD-first OBJECTS convention and distinguish object ownership from physical position.",
+      "limits": "The reviewed references do not unambiguously establish a universal parent-before-child order for every OBJECTS record. Keep exact order checks scoped to a local writer invariant or pinned consumer requirement; do not infer DWG root identity from physical order."
+    },
+    {
+      "project": "Local libdxfrw source and test inventory",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; src/intern/dxfwriter.cpp; tests/dxf_fixture_tests.cpp; tests/dwg2dxf_adapter_tests.cpp; tests/gbk_codepage_tests.cpp",
+      "revision": "Working tree source/test inventory reviewed 2026-10-20.",
+      "observed": "Existing owners cover NOD-first/owner-before-child output, ODA-shaped C2/C3 CMC values, TV/TU source and target text characterization, and exact string framing/transactionality. The local plan separately tracks AcDs carrier closure and strict-consumer gates.",
+      "limits": "This is source/test inspection only; no tests or peer/native executables were run in this research pass."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: keep AcDs carrier association, object/owner closure, payload preservation, and independent geometry semantics as separate evidence stages.",
+      "PAR-20/7G.3: retain actual NOD identity and required first-record/owner ordering as separate graph/output assertions.",
+      "PAR-66/7AN: reuse method-discriminated CMC controls; do not infer ACI from palette RGB or the reserved R2004+ index.",
+      "PAR-05/7AR: keep TV/TU source storage, target DXF version, field kind, raw bytes, and semantic text as separate dimensions.",
+      "PAR-14/PAR-76: keep exact-length string framing, binary/ASCII mode, strict consumer acceptance, and rollback distinct.",
+      "PAR-05/7BQ.5: preserve profile-specific native acceptance candidates and the unresolved HATCH group-47 presence predicate."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a newest-research summary plus a consolidated failure-stage crosswalk covering recently reviewed LibreDWG and ACadSharp reports.",
+    "Reconciled the reports with existing local source/test owners and retained current implementation order, fast-test cadence, and fixture policy.",
+    "Kept issue reports, release behavior, native acceptance, carrier preservation, and semantic geometry evidence in separate evidence classes."
+  ],
+  "limitations": [
+    "GitHub issue pages are mutable and report peer observations; no peer repository was built or run.",
+    "No linked customer/peer drawings were downloaded; no strict external parser or native CAD application was invoked.",
+    "Local conclusions are source/test inventory only and do not constitute test execution or support qualification."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and new receipt whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

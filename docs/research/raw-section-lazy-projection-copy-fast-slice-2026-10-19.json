@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Lazy raw DXF section projection copy",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid copying the full retained raw-section collection before knowing whether the AcDs DXF projection will append a generated section.",
+    "Keep source raw sections immutable and preserve existing AcDs validation and writer replay behavior."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "appendAcdsDataSection and dx_iface::fileExport",
+    "before": "fileExport copied dx_data::rawDxfSections into a local mutable vector for every export. The helper only appended at its final step, and the writer setter copied the completed vector again.",
+    "after": "The helper reads source sections by const reference, reports whether it generated an append, and makes an isolated copy only after all existing graph/schema checks pass. No-append exports pass source sections to the writer's const-reference setter; append exports move the augmented working copy into the writer.",
+    "effect": "Removes one complete raw-section clone from the common no-append path and one writer-handoff copy from the append path. Source collections remain unchanged. Allocation failure during projection is converted to a clean preflight refusal."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "passed"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+        "result": "passed"
+      }
+    ],
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_dxf_writer_matrix|dwg2dxf_modeler_dxf_move_dispatch|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_block_owners|dwg2dxf_block_owners_ascii_cli|dwg2dxf_block_owners_binary_cli|libdxfrw_ltype_mirror_authority|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_dxf_class_typed_capture_limits|libdxfrw_image_definition_plan_failure_retry)$' --output-on-failure",
+        "result": "passed",
+        "count": "11/11",
+        "elapsedSeconds": 1.54
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage",
+        "result": "passed",
+        "coverage": "Generated AC1027 multi-record AcDs projection in ASCII and Binary DXF."
+      }
+    ],
+    "diffCheck": "scoped git diff --check passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "externalSampleAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Avoids a redundant deep copy of the retained raw-section collection on exports that do not generate an AcDs section, while preserving the copy-before-append model for qualified AcDs projection."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict dwg2dxf, fixture-test, adapter-test, and local-roundtrip targets",
+      "Focused raw-section capture and passthrough controls",
+      "Focused generated AC1027 multi-record AcDs projection in ASCII/Binary DXF",
+      "Focused owner, linetype, class, dictionary, and writer regressions"
+    ],
+    "limitations": "No RSS or allocator instrumentation was run. The no-append path still copies raw sections once into codec ownership; AcDs projection still requires an isolated full source copy. No semantic-support or whole-process memory-bound claim is made."
+  }
+}

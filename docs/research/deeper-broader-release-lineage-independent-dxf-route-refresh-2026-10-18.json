@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader release, fork-lineage, and independent DXF-route refresh",
+  "mode": "primary-source research and plan-only update",
+  "scope": [
+    "Reconcile ACadRust release, mutable-main, and published API version evidence",
+    "Resolve cadcodec and opencadcodec ancestry before counting parser lineages",
+    "Recheck independent DXF route capability boundaries for raw ACIS transport, rendering, and native writer acceptance",
+    "Translate evidence into non-blocking implementation-readiness guidance"
+  ],
+  "sources": [
+    {
+      "name": "ACadRust v0.6.4 release",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+        "https://github.com/hakanaktt/acadrust/commit/8d5c46d"
+      ],
+      "observed": "Release notes report generation-specific ACIS silhouette/inline-surface fixes, Rust/package checks, and BricsCAD V20 validation of 18/20 generated files. The two reported BricsCAD failures involve TABLESTYLE suppression that the release says BricsCAD also loses when saving and reopening its own case. These are release notes, not a reproduction against libdxfrw artifacts."
+    },
+    {
+      "name": "ACadRust issue #129",
+      "url": "https://github.com/hakanaktt/acadrust/issues/129",
+      "observed": "The reporter says six privately supplied AutoCAD 2004/2018 DWGs that failed strict parsing in 0.6.3 pass in 0.6.4 with all 3DSOLID and SURFACE records retained. The reporter also says ODA File Converter reads ACadRust-saved DWGs with the same solids and ACIS-data sizes. The files, hashes, per-body manifests, and full external logs are not public. This is a narrow peer-reported regression/readback result, not independent B-rep semantics or broad version support."
+    },
+    {
+      "name": "ACadRust current repository, release list, and docs.rs API",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/index.html"
+      ],
+      "observed": "The mutable repository README advertises 0.6.5, the release list still identifies v0.6.4 as latest, and the reviewed docs.rs ACIS API page identifies package 0.5.5. These are separate artifacts and must not be conflated without exact source/package resolution."
+    },
+    {
+      "name": "cadcodec and opencadcodec repository ancestry",
+      "urls": [
+        "https://github.com/compscientific/cadcodec",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "GitHub identifies compscientific/cadcodec as a fork of HakanSeven12/opencadcodec, and identifies opencadcodec as a fork of hakanaktt/acadrust. This resolves repository ancestry but does not audit fork deltas, features, or runtime behavior. The route is not an independent parser lineage."
+    },
+    {
+      "name": "GDAL, ezdxf, and IxMilia DXF route documentation",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "GDAL documents opt-in AC1027+ raw ASM and a 12-value transform without OGR solid construction; ezdxf documents SAT/SAB inspection while its drawing add-on does not render ACIS and projects 3D entities to XY; IxMilia exposes typed modeler entity classes but warns that AutoCAD may not open writer output containing 3DSOLID, REGION, or BODY. These remain distinct, operation-specific DXF evidence routes."
+    },
+    {
+      "name": "OpenAEC Foundation Open 2D Studio",
+      "urls": [
+        "https://github.com/OpenAEC-Foundation/open-2d-studio",
+        "https://github.com/OpenAEC-Foundation/open-2d-studio/releases"
+      ],
+      "observed": "The project describes a 2D CAD application with DXF import/export through a Rust backend. The reviewed public overview does not identify a DWG or modeler-geometry path or pin the exact backend for the release, so it is not admitted as a separate DWG/3D route."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Resolves cadcodec as an ACadRust-descended codec family member and classifies ACadRust v0.6.4 issue #129 evidence as a narrow, peer-reported strict-read and ODA readback result. It adds no independent semantic route, mandatory peer gate, implementation item, test, fixture, dependency, or support promotion."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "issueAttachmentsDownloaded": 0,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Research used project-authored release notes, issue reports, repository ancestry indicators, and published documentation. The private ACadRust #129 drawings and native validation logs were unavailable. No runtime results were reproduced. Local ODA v5.4.1 remains authoritative for DWG byte layout; no peer evidence promotes ACIS/AcDs or B-rep support claims."
+  }
+}

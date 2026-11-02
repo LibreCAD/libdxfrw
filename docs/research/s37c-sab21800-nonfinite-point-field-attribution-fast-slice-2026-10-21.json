@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 non-finite point-node attribution",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified. This slice changes rooted point-coordinate validation/attribution, generated graph-preservation assertions, both plan files, and this receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab21800-nonfinite-point-field-attribution-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "localFinding": "Rooted projection previously retained non-finite referenced point coordinates until the whole-body finite scan, which rejected the body projection but attributed the error only to the body root.",
+    "formatBasis": "No wire-layout assumption changed. The existing rooted point resolver identifies the already-referenced point record and validates its existing LocationVec. ODA v5.4.1 remains authoritative for DWG layout.",
+    "scopeLimit": "Only non-finite point detection and exact failure-node reporting changed for rooted SAB 21800 projection. The non-rooted API retains its prior final finite-result validation; point grammar, transforms, semantic interpretation, and geometry support are unchanged."
+  },
+  "implementation": {
+    "productionChange": "When rooted vertex resolution encounters a non-finite LocationVec in its referenced point record, report that point node and fail the entire rooted projection transaction. Internal unrooted extraction receives no attribution pointer and preserves prior behavior.",
+    "generatedControls": [
+      "Nine parser-fed SAB 21800 cases inject NaN, +infinity, and -infinity into x/y/z of the referenced point.",
+      "Every case parses/builds generically, then rooted projection fails with InvalidModel, clears pre-seeded output, and reports the exact point record node."
+    ],
+    "claimBoundary": "Finite-value refusal and diagnostic attribution only. No transform semantics, point-editing claim, B-rep validity, producer conformance, broad ACIS support, or native consumer acceptance is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.32 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sab21800-nonfinite-point-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sab21800-nonfinite-point-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "persistentFixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "Rooted non-finite point coordinates now fail at their exact source point node with transactional output clearing.",
+    "nextAction": "Continue to the next dependency-ready local S3.7c point/graph validation invariant; do not wait for external semantic or platform qualification.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

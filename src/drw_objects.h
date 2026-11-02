@@ -15,6 +15,19 @@
 #ifndef DRW_OBJECTS_H
 #define DRW_OBJECTS_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// Coverage reason enums provide NoReason as their macro-safe zero spelling.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #include "drw_base.h"
 #include <array>
 #include <cstddef>
@@ -30,6 +43,13 @@
 
 class dxfReader;
 class dxfWriter;
+class DxfReadRetainedLease;
+namespace dxfField { class Decoder; }
+namespace dxfBlockRecord { class Decoder; }
+namespace dxfLayout { class Decoder; }
+namespace dxfViewUcs { class Decoder; }
+namespace dxfRenderSettings { class Decoder; }
+namespace dxfRendering { class Observation; }
 class dwgBuffer;
 class dwgRW;
 
@@ -142,6 +162,39 @@ struct DRW_DictionaryCountCap {
 class dwgBufferW;
 class DwgBlockOwnershipTestAccess;
 
+// Read-only name-field evidence shared by the APPID/LAYER DWG parsers. It is
+// not an entire table-record certificate, and cannot be installed by callers.
+class DRW_DwgTableNameSource {
+public:
+  [[nodiscard]] bool matches(std::uint32_t sourceHandle, const UTF8STRING& value) const noexcept {
+    return handle == sourceHandle && name == value;
+  }
+  [[nodiscard]] bool bound(DRW::Version sourceVersion, const std::string& page) const noexcept {
+    return profileBound && version == sourceVersion && codePage == page;
+  }
+  [[nodiscard]] std::uint32_t decodeIssues() const noexcept { return issues; }
+  [[nodiscard]] std::size_t retainedBytes() const noexcept {
+    return sizeof(DRW_DwgTableNameSource) + 2u * sizeof(void*)
+        + name.size() + codePage.size() + encodedField.size() + 2u;
+  }
+  [[nodiscard]] bool equal(const DRW_DwgTableNameSource& other) const noexcept {
+    return handle == other.handle && version == other.version && name == other.name
+        && codePage == other.codePage && issues == other.issues
+        && profileBound == other.profileBound && startBit == other.startBit
+        && bitCount == other.bitCount && encodedField == other.encodedField;
+  }
+private:
+  friend class DRW_TableEntry;
+  UTF8STRING name;
+  std::string codePage;
+  std::vector<std::uint8_t> encodedField;
+  DRW::Version version{DRW::UNKNOWNV};
+  std::uint32_t handle{0u};
+  std::uint32_t issues{0u};
+  std::uint64_t startBit{0u}, bitCount{0u};
+  bool profileBound{false};
+};
+
 #define SETOBJFRIENDS                                                          \
   friend class dxfRW;                                                          \
   friend class dwgReader;                                                      \
@@ -157,6 +210,11 @@ class DwgBlockOwnershipTestAccess;
  */
 class DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfField::Decoder;
+  friend class dxfBlockRecord::Decoder;
+  friend class dxfLayout::Decoder;
+  friend class dxfViewUcs::Decoder;
+  friend class dxfRendering::Observation;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 
@@ -178,6 +236,8 @@ public:
     oType = e.oType;
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
+    m_dxfRetainedStringLease = e.m_dxfRetainedStringLease;
+    m_dxfRetainedNameBytes = e.m_dxfRetainedNameBytes;
     copyExtDataFrom(e);
   }
 
@@ -190,12 +250,15 @@ public:
         pendingLayerRefResolutions(std::move(e.pendingLayerRefResolutions)),
         xDictFlag(e.xDictFlag), numReactors(e.numReactors),
         commonLinkTailValidated(e.commonLinkTailValidated),
-        hasDsData(e.hasDsData), curr(e.curr) {
+        hasDsData(e.hasDsData), curr(e.curr), currCoordMask(e.currCoordMask),
+        m_dxfRetainedStringLease(std::move(e.m_dxfRetainedStringLease)),
+        m_dxfRetainedNameBytes(e.m_dxfRetainedNameBytes) {
     oType = e.oType;
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
     e.extData.clear();
     e.curr = nullptr;
+    e.currCoordMask = 0;
   }
 
   // Clone before replacing owned variants so allocation failure does not
@@ -220,6 +283,8 @@ public:
       oType = e.oType;
       objSize = e.objSize;
       handleStreamBitSize = e.handleStreamBitSize;
+      m_dxfRetainedStringLease = e.m_dxfRetainedStringLease;
+      m_dxfRetainedNameBytes = e.m_dxfRetainedNameBytes;
       clearExtData();
       installExtData(std::move(copies), e);
     }
@@ -249,12 +314,41 @@ public:
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
     curr = e.curr;
+    currCoordMask = e.currCoordMask;
+    m_dxfRetainedStringLease = std::move(e.m_dxfRetainedStringLease);
+    m_dxfRetainedNameBytes = e.m_dxfRetainedNameBytes;
     e.extData.clear();
     e.curr = nullptr;
+    e.currCoordMask = 0;
     return *this;
   }
 
 protected:
+  // Derived table records use the same shared lease as common name/XDATA
+  // fields for parsed strings that outlive the current DXF record.
+  bool replaceDxfRetainedStringField(
+      const std::unique_ptr<dxfReader> &reader, std::size_t &ownerBytes,
+      std::string &destination, std::string value);
+  bool replaceDxfRetainedStringBytes(
+      const std::unique_ptr<dxfReader> &reader, std::size_t &ownerBytes,
+      std::size_t newOwnerBytes);
+  bool appendDxfRetainedStringField(
+      const std::unique_ptr<dxfReader> &reader, std::size_t &ownerBytes,
+      std::vector<std::string> &destination, std::string value);
+  // Charge a string retained inside a compound record whose container is not
+  // a vector of strings (for example, a vector of named handle entries).
+  bool retainDxfRetainedStringBytes(
+      const std::unique_ptr<dxfReader> &reader, std::size_t &ownerBytes,
+      std::size_t valueBytes);
+  // Use when a derived record maps another DXF code to the inherited name
+  // field, so it shares the same live-byte counter as group 2.
+  bool replaceDxfRetainedNameField(
+      const std::unique_ptr<dxfReader> &reader, std::string value);
+  bool replaceDxfRetainedNameAndStringField(
+      const std::unique_ptr<dxfReader> &reader,
+      std::size_t &secondaryOwnerBytes, std::string &secondaryDestination,
+      std::string nameValue, std::string secondaryValue);
+  bool releaseDxfRetainedStringBytes(std::size_t bytes) noexcept;
   virtual bool parseCode(int code, const std::unique_ptr<dxfReader> &reader);
   // Parses and consumes one DXF 102 application group.  The staged common
   // references are published only after the matching close marker.
@@ -295,6 +389,8 @@ protected:
     flags = 0;
     clearExtData();
     appData.clear();
+    m_dxfRetainedStringLease.reset();
+    m_dxfRetainedNameBytes = 0u;
     reactorHandles.clear();
     pendingAppIdResolutions.clear();
     pendingLayerRefResolutions.clear();
@@ -307,6 +403,7 @@ protected:
     objSize = 0;
     handleStreamBitSize = 0;
     curr = nullptr;
+    currCoordMask = 0;
   }
 
 public:
@@ -316,6 +413,8 @@ public:
       0};          /*!< Soft-pointer ID/handle to owner object, code 330 */
   UTF8STRING name; /*!< entry name, code 2 */
   int flags{0};    /*!< Flags relevant to entry, code 70 */
+  // Ordered typed XDATA: strings1000/1001/1003 are semantic UTF-8;
+  // controls1002, binary1004 and handle1005 retain their distinct roles.
   std::vector<DRW_Variant *>
       extData; /*!< FIFO list of extended data, codes 1000 to 1071*/
   std::list<std::list<DRW_Variant>> appData; /*!< application data, code 102 */
@@ -372,6 +471,10 @@ public:
 
   //***** dwg parse ********/
 protected:
+  static bool readDwgNameWithSource(DRW::Version version, dwgBuffer* bodyBuf,
+      dwgBuffer* stringBuf, std::uint32_t bodyEnd, std::uint32_t stringEnd,
+      std::int16_t encodedType, std::int16_t expectedType, std::uint32_t handle,
+      UTF8STRING& parsedName, std::shared_ptr<const DRW_DwgTableNameSource>& sourceResult);
   std::int16_t oType{0};
   std::uint8_t xDictFlag{0};
   std::int32_t numReactors{0};
@@ -397,6 +500,8 @@ private:
     for (DRW_Variant *value : extData)
       delete value;
     extData.clear();
+    curr = nullptr;
+    currCoordMask = 0;
   }
 
   void copyExtDataFrom(const DRW_TableEntry &source) {
@@ -416,6 +521,7 @@ private:
   void installExtData(std::vector<std::unique_ptr<DRW_Variant>> copies,
                       const DRW_TableEntry &source) {
     curr = nullptr;
+    currCoordMask = 0;
     extData.reserve(copies.size());
     for (std::size_t i = 0; i < copies.size(); ++i) {
       DRW_Variant *value = copies[i].get();
@@ -424,9 +530,15 @@ private:
         curr = value;
       copies[i].release();
     }
+    if (curr != nullptr)
+      currCoordMask = source.currCoordMask;
   }
 
   DRW_Variant *curr{nullptr};
+  std::uint8_t currCoordMask{0}; // transient X/Y/Z presence for one XDATA tuple
+  // Shared accounting for parsed names and 102 appData strings.
+  std::shared_ptr<DxfReadRetainedLease> m_dxfRetainedStringLease;
+  std::size_t m_dxfRetainedNameBytes{0u};
 };
 
 //! What the reader established about the common owner/reactor/xdictionary
@@ -463,6 +575,12 @@ inline DRW_DwgCommonLinkEvidence drwDwgCommonLinkEvidenceForLinks(
 
 //! Raw carrier for a DWG object/entity class that libdxfrw does not model yet.
 struct DRW_UnsupportedObject {
+  //! Stable callback name for the R13-R2004 viewport-entity-header control
+  //! record. It is a DWG control list, not an opaque drawing object.
+  static const char *vportEntityHeaderControlRecordName() noexcept {
+    return "VPORT_ENTITY_HEADER_CONTROL";
+  }
+
   void setCommonLinkEvidence(DRW_DwgCommonLinkEvidence evidence) noexcept {
     m_commonLinkEvidence = evidence;
     m_commonHandleDataValidated = drwDwgCommonLinkEvidenceValidated(evidence);
@@ -644,6 +762,7 @@ enum class DRW_DwgFrameDisposition : std::uint8_t {
 //! Stable reason for the latest source-frame disposition.
 enum class DRW_DwgFrameCoverageReason : std::uint8_t {
   None,
+  NoReason = None,
   ReceiptPublished,
   CompoundDeferred,
   CompoundStaged,
@@ -708,6 +827,7 @@ enum class DRW_DwgClassCoverageState : std::uint8_t {
 //! Reason a CLASSES stream record did not become usable for DWG dispatch.
 enum class DRW_DwgClassCoverageReason : std::uint8_t {
   None,
+  NoReason = None,
   Parse,
   Bounds,
   Duplicate,
@@ -755,6 +875,36 @@ struct DRW_DwgClassCoverageReport {
       DRW_DwgClassCoverageStatus::NotAvailable;
   bool m_complete = false;
   std::vector<DRW_DwgClassCoverageEntry> m_entries;
+};
+
+namespace DRW {
+constexpr std::size_t kMaxDwgClassSourceBytes = 64u * 1024u * 1024u;
+}
+
+//! Optional byte-capture state, independent of parser/semantic completeness.
+enum class DRW_DwgClassSourceStatus : std::uint8_t {
+  NotRequested, NotCaptured, Captured, TooLarge, InvalidRange,
+  CaptureFailed, RequestFailed, DeliveryFailed
+};
+
+//! Actual physical/decoded CLASSES bytes, never reconstructed from class rows.
+//! Copied shared owners outlive the reader's temporary decoded storage. The
+//! immutable bytes and metadata do not certify CRCs, framing, text or support.
+struct DRW_DwgClassSourceReport {
+  DRW_DwgClassSourceStatus m_status = DRW_DwgClassSourceStatus::NotRequested;
+  DRW::Version m_version = DRW::UNKNOWNV;
+  std::uint8_t m_appMaintenanceVersion = 0;
+  std::uint16_t m_codePageId = 0;
+  bool m_codePagePresent = false;
+  bool m_codePageRecognized = false;
+  std::int32_t m_sectionDescriptorId = -1;
+  DRW_DwgFrameOffsetSpace m_offsetSpace = DRW_DwgFrameOffsetSpace::Unknown;
+  std::uint64_t m_baseByteOffset = 0;
+  std::uint64_t m_declaredSectionSize = 0;
+  std::uint64_t m_byteCount = 0;
+  bool m_classReadCompleted = false;
+  bool m_parserCoverageComplete = false;
+  std::shared_ptr<const std::vector<std::uint8_t>> m_bytes;
 };
 
 //! Read-side publication receipt for one fully validated DWG object/entity
@@ -1014,6 +1164,8 @@ void populateVbaProjectSectionView(DRW_RawDwgSection &section);
 //! with its typed value; rawValues, when populated by an ASCII reader, retain
 //! the original value spelling for same-format replay. Binary writers use the
 //! typed value.
+//! String-valued groups retain source-encoding bytes (not semantic UTF-8),
+//! including XDATA strings; version-bound raw replay must not transcode them.
 struct DRW_RawDxfObject {
   UTF8STRING name;                 /*!< object type name (the code-0 string) */
   std::uint32_t handle = 0;        /*!< code 5 (for dedup vs typed writers) */
@@ -1026,6 +1178,14 @@ struct DRW_RawDxfObject {
   bool hasRawValues = false;
   DRW::Version m_version =
       DRW::UNKNOWNV; /*!< source DXF version, if captured */
+  // Shared logical-byte owner for captured string copies. Copies made by a
+  // consumer callback share this lease; they are not charged as library-owned
+  // duplicate destinations. This read-time lease tracks library-owned parsed
+  // copies only: the public fields remain mutable, so caller changes or copies
+  // retained after callback publication are caller-owned and are not monitored
+  // or charged to the source read's retained-byte budget. It counts logical
+  // string bytes, not allocator capacity or RSS.
+  std::shared_ptr<DxfReadRetainedLease> m_retainedTextLease;
 };
 
 //! Lossless carrier for a DXF section that libdxfrw does not model.
@@ -1037,6 +1197,11 @@ struct DRW_RawDxfSection {
   std::vector<UTF8STRING> m_rawValues;
   bool m_hasRawValues = false;
   DRW::Version m_version = DRW::UNKNOWNV;
+  // The shared lease covers library-owned parsed text copies only. These
+  // public vectors can be changed or copied by the consumer after callback
+  // publication; such caller-owned growth is outside the read budget and is
+  // not monitored for allocator capacity or RSS.
+  std::shared_ptr<DxfReadRetainedLease> m_retainedTextLease;
 };
 
 //! GROUP object (fixed type 72), carrying a named set of entity handles.
@@ -1072,6 +1237,8 @@ public:
 
 private:
   bool m_dwgEntityHandlesComplete = false;
+  // Logical bytes retained by DXF-parsed GROUP description text only.
+  std::size_t m_dxfRetainedDescriptionBytes = 0u;
 };
 
 struct DRW_LightListEntry {
@@ -1089,7 +1256,8 @@ public:
   DRW_LightList(const DRW_LightList& o): DRW_TableEntry(o),
       m_classVersion(o.m_classVersion), m_lightCount(o.m_lightCount),
       m_lights(o.m_lights), m_dxfInLightListSubclass(false),
-      m_dxfPendingLightHandle(0), m_dxfSeen90(0) {
+      m_dxfPendingLightHandle(0), m_dxfSeen90(0),
+      m_dxfRetainedLightNameBytes(o.m_dxfRetainedLightNameBytes) {
     tType = o.tType;
   }
   DRW_LightList& operator=(const DRW_LightList& o) {
@@ -1101,6 +1269,7 @@ public:
       m_dxfInLightListSubclass = false;
       m_dxfPendingLightHandle = 0;
       m_dxfSeen90 = 0;
+      m_dxfRetainedLightNameBytes = o.m_dxfRetainedLightNameBytes;
       tType = o.tType;
     }
     return *this;
@@ -1124,6 +1293,7 @@ private:
   bool m_dxfInLightListSubclass = false;
   std::uint32_t m_dxfPendingLightHandle = 0;
   std::uint32_t m_dxfSeen90 = 0;
+  std::size_t m_dxfRetainedLightNameBytes{0u};
 };
 
 //! LAYERFILTER (AcDbLayerFilter), carrying the names in a layer filter.
@@ -1138,6 +1308,7 @@ public:
     tType = DRW::LAYERFILTER;
     m_nameCount = 0;
     m_names.clear();
+    m_dxfRetainedNameBytes = 0u;
   }
 
 protected:
@@ -1148,11 +1319,15 @@ protected:
 public:
   std::uint32_t m_nameCount = 0;
   std::vector<UTF8STRING> m_names;
+
+private:
+  std::size_t m_dxfRetainedNameBytes{0u};
 };
 
 struct DRW_DataLinkCustomData {
   std::uint32_t m_targetHandle = 0;
   UTF8STRING m_text;
+  std::size_t m_dxfRetainedTextBytes{0u};
 };
 
 //! DATALINK (AcDbDataLink), preserving external-data connection metadata.
@@ -1174,7 +1349,8 @@ public:
       m_customDataCount(o.m_customDataCount), m_customData(o.m_customData),
       m_hardOwnerHandle(o.m_hardOwnerHandle), m_dxfInDataLinkBody(false),
       m_dxfInCustomData(false), m_dxfDataAdapterSeen(false),
-      m_dxfPendingTargetHandle(0), m_dxfHasPendingTargetHandle(false) {
+      m_dxfPendingTargetHandle(0), m_dxfHasPendingTargetHandle(false),
+      m_dxfRetainedTextBytes(o.m_dxfRetainedTextBytes) {
     tType = o.tType;
   }
   DRW_DataLink& operator=(const DRW_DataLink& o) {
@@ -1205,6 +1381,7 @@ public:
       m_dxfDataAdapterSeen = false;
       m_dxfPendingTargetHandle = 0;
       m_dxfHasPendingTargetHandle = false;
+      m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
       tType = o.tType;
     }
     return *this;
@@ -1237,6 +1414,7 @@ public:
     m_dxfDataAdapterSeen = false;
     m_dxfPendingTargetHandle = 0;
     m_dxfHasPendingTargetHandle = false;
+    m_dxfRetainedTextBytes.fill(0u);
   }
 
 protected:
@@ -1272,6 +1450,8 @@ private:
   bool m_dxfDataAdapterSeen = false;
   std::uint32_t m_dxfPendingTargetHandle = 0;
   bool m_dxfHasPendingTargetHandle = false;
+  // Adapter, description, tooltip, connection string, update status.
+  std::array<std::size_t, 5> m_dxfRetainedTextBytes{};
 };
 
 //! GEOMAPIMAGE (AcDbGeomapImage), the LiveMap raster image object.
@@ -1395,11 +1575,18 @@ public:
       m_backDistance = o.m_backDistance;
       m_inverseInsertTransform = o.m_inverseInsertTransform;
       m_insertTransform = o.m_insertTransform;
+      m_dxfBoundaryPointYSeen.clear();
+      m_dxfBoundaryPointCount = 0;
+      m_dxfFlagsSeenMask = 0;
+      m_dxfBoundaryPointCountSeen = false;
+      m_dxfBackDistanceSeen = false;
       tType = o.tType;
     }
     return *this;
   }
   void reset();
+  [[nodiscard]] bool hasValidDxfFields() const;
+  [[nodiscard]] bool hasValidDxfSourceFields() const;
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
@@ -1409,6 +1596,11 @@ protected:
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *handleBuf = nullptr) const;
   std::vector<double> m_dxfCode40Values;
+  std::vector<std::uint8_t> m_dxfBoundaryPointYSeen;
+  std::int32_t m_dxfBoundaryPointCount = 0;
+  std::uint8_t m_dxfFlagsSeenMask = 0;
+  bool m_dxfBoundaryPointCountSeen = false;
+  bool m_dxfBackDistanceSeen = false;
 
 public:
   std::vector<DRW_Coord> m_boundaryPoints;
@@ -1432,6 +1624,67 @@ struct DRW_GeoMeshFace {
   std::int32_t m_index1 = 0;
   std::int32_t m_index2 = 0;
   std::int32_t m_index3 = 0;
+};
+
+//! CIVIC3D_DATA values used only by the archival GEODATA DXF v1 grammar.
+//! Kept separate from similarly numbered modern GEODATA fields.
+struct DRW_GeoDataLegacyCivil {
+  bool m_present = false;
+  bool m_transformLocalToGrid = false;
+  std::array<double, 2> m_localReferencePoint{{0.0, 0.0}};
+  std::array<double, 2> m_gridReferencePoint{{0.0, 0.0}};
+  std::int32_t m_localReferencePointNumber = 0;
+  std::int32_t m_gridReferencePointNumber = 0;
+  bool m_useRotationPoints = false;
+  std::array<double, 2> m_localRotationPoint{{0.0, 0.0}};
+  std::array<double, 2> m_gridRotationPoint{{0.0, 0.0}};
+  double m_rotationAngle = 0.0;
+  double m_gridAzimuth = 0.0;
+  std::int32_t m_scaleEstimationMethod = 0;
+  // The 2009 table calls group 141 "Scale estimation method"; later Autodesk
+  // tables call it "User specified scale factor". Preserve without inference.
+  double m_ambiguous141Value = 0.0;
+  bool m_enableSeaLevelCorrection = false;
+  double m_seaLevelElevation = 0.0;
+  double m_coordinateProjectionRadius = 0.0;
+};
+
+//! Values unique to the archival GEODATA DXF v1 field map.
+//! Group 70 is retained as uninterpreted flags because Autodesk's 2009 DXF
+//! reference conflicts with later tables and current peer implementations.
+struct DRW_GeoDataLegacy {
+  std::int32_t m_controlFlags = 0;
+  std::array<double, 3> m_geolocation{{0.0, 0.0, 0.0}};
+  DRW_Coord m_secondWcsPoint;
+  double m_northDirectionAngle = 0.0;
+  std::array<double, 3> m_drawingScales{{1.0, 1.0, 1.0}};
+  double m_mapUnits = 0.0;
+  std::int32_t m_dwgUnits = 0;
+  UTF8STRING m_coordinateSystemDescription;
+  UTF8STRING m_coordinateSystemDatum;
+  DRW_GeoDataLegacyCivil m_civil;
+};
+
+//! DWG-only CIVIL tail carried by GEODATA in AC1021 and AC1024.
+//! The fields are retained in wire order; several are undocumented reserved
+//! values and are deliberately not interpreted or folded into the main body.
+struct DRW_GeoCivilTail {
+  bool m_present = false;
+  bool m_hasCivilData = true;
+  bool m_reservedFlag1 = false;
+  // ODA §20.4.78 order: Reference Y, Reference X, Reference Y, Reference X.
+  std::array<double, 4> m_referenceCoordinates{{0.0, 0.0, 0.0, 0.0}};
+  std::array<std::int32_t, 2> m_reservedLongs{{0, 0}};
+  // Two 2RD pairs, retained as X/Y scalar slots in their original order.
+  std::array<double, 4> m_reservedCoordinates{{0.0, 0.0, 0.0, 0.0}};
+  bool m_reservedFlag2 = false;
+  double m_northDirectionDegrees = 0.0;
+  double m_northDirectionRadians = 0.0;
+  std::int32_t m_scaleEstimationMethod = 1;
+  double m_userSpecifiedScaleFactor = 1.0;
+  bool m_enableSeaLevelCorrection = false;
+  double m_seaLevelElevation = 0.0;
+  double m_coordinateProjectionRadius = 0.0;
 };
 
 //! GEODATA object carrying drawing geolocation metadata.
@@ -1462,13 +1715,16 @@ public:
       m_geoRssTag(o.m_geoRssTag), m_observationFromTag(o.m_observationFromTag),
       m_observationToTag(o.m_observationToTag),
       m_observationCoverageTag(o.m_observationCoverageTag),
-      m_points(o.m_points), m_faces(o.m_faces) {
+      m_points(o.m_points), m_faces(o.m_faces), m_civilTail(o.m_civilTail),
+      m_legacy(o.m_legacy),
+      m_dxfRetainedTextBytes(o.m_dxfRetainedTextBytes) {
     tType = o.tType;
   }
   DRW_GeoData& operator=(const DRW_GeoData& o) {
     if (this != &o) {
       DRW_TableEntry::operator=(o);
       m_dxfInGeoDataSubclass = false;
+      m_dxfInLegacyCivilData = false;
       m_dxfSourcePointIndex = 0;
       m_dxfTargetPointIndex = 0;
       m_dxfFaceIndex = 0;
@@ -1495,6 +1751,9 @@ public:
       m_observationCoverageTag = o.m_observationCoverageTag;
       m_points = o.m_points;
       m_faces = o.m_faces;
+      m_civilTail = o.m_civilTail;
+      m_legacy = o.m_legacy;
+      m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
       tType = o.tType;
     }
     return *this;
@@ -1509,6 +1768,7 @@ protected:
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *handleBuf = nullptr) const;
   bool m_dxfInGeoDataSubclass = false;
+  bool m_dxfInLegacyCivilData = false;
   std::size_t m_dxfSourcePointIndex = 0;
   std::size_t m_dxfTargetPointIndex = 0;
   std::size_t m_dxfFaceIndex = 0;
@@ -1537,6 +1797,23 @@ public:
   UTF8STRING m_observationCoverageTag;
   std::vector<DRW_GeoMeshPoint> m_points;
   std::vector<DRW_GeoMeshFace> m_faces;
+  DRW_GeoCivilTail m_civilTail;
+  DRW_GeoDataLegacy m_legacy;
+
+private:
+  enum class DxfRetainedTextField : std::size_t {
+    CoordinateSystemDefinition,
+    GeoRssTag,
+    ObservationFromTag,
+    ObservationToTag,
+    ObservationCoverageTag,
+    LegacyCoordinateSystemDescription,
+    LegacyCoordinateSystemDatum,
+    Count
+  };
+  std::array<std::size_t,
+             static_cast<std::size_t>(DxfRetainedTextField::Count)>
+      m_dxfRetainedTextBytes{};
 };
 
 struct DRW_TableGeometryContent {
@@ -1587,6 +1864,18 @@ public:
   std::vector<DRW_TableGeometryCell> m_cells;
 };
 
+//! Raw DWG CMC provenance kept alongside a class-specific scalar projection.
+struct DRW_DwgCmcColorMetadata {
+  bool present = false;
+  std::uint8_t method = 0;
+  std::uint8_t flags = 0;
+  std::uint16_t rawIndex = 0;
+  std::int32_t rgb24 = -1;
+  bool hasRgb = false;
+  UTF8STRING colorName;
+  UTF8STRING bookName;
+};
+
 //! Class to handle dimstyle entries
 /*!
  *  Class to handle dim style symbol table entries
@@ -1616,7 +1905,8 @@ public:
     return *this;
   }
   DRW_Dimstyle(DRW_Dimstyle &&o) noexcept : DRW_TableEntry(std::move(o)) {
-    copyPodFrom(o);
+    copyPodFrom(o, false);
+    moveStringFieldsFrom(o);
     vars = std::move(o.vars);
     o.vars.clear();
   }
@@ -1624,7 +1914,8 @@ public:
     if (this != &o) {
       clearVars();
       DRW_TableEntry::operator=(std::move(o));
-      copyPodFrom(o);
+      copyPodFrom(o, false);
+      moveStringFieldsFrom(o);
       vars = std::move(o.vars);
       o.vars.clear();
     }
@@ -1650,6 +1941,30 @@ public:
   // createDimStyle consumer (which reads $DIM* keys) receives imported
   // values. Idempotent: never clobbers a key already present. (Phase 3A.0)
   void syncStructToVars();
+  /// Record the accepted DXF source revision and migrate legacy-only DIMUNIT /
+  /// DIMFIT values into their modern split fields. Explicit modern fields,
+  /// including zero, take precedence over obsolete tags.
+  void finalizeDxfDimensionVariables(DRW::Version sourceVersion);
+  /// API-created records normally treat legacy fields as authoritative when
+  /// written to pre-R2000 DXF. Set this when populating modern split fields
+  /// directly and expecting the writer to perform a checked legacy downgrade.
+  void setDxfDimensionSourceVersion(DRW::Version sourceVersion) noexcept {
+    m_dxfDimensionSourceVersion = sourceVersion;
+  }
+  /// Resolve a lossless legacy representation for a pre-R2000 DXF target.
+  /// Returns false for modern combinations that the legacy enums cannot hold.
+  bool resolveLegacyDxfDimensionVariables(int& unit, int& fit) const;
+  bool hasDxfDimensionLinetypeReference(int code) const noexcept {
+    switch (code) {
+    case 345: return (m_dxfDimensionPresence & kDxfDxfDimltype) != 0;
+    case 346: return (m_dxfDimensionPresence & kDxfDxfDimltex1) != 0;
+    case 347: return (m_dxfDimensionPresence & kDxfDxfDimltex2) != 0;
+    default: return false;
+    }
+  }
+  //! The DIMSTYLE DXF contract exposes these colors as ACI/index values only.
+  //! Return false if retained DWG CMC detail has no verified DXF projection.
+  bool canWriteDxfDimensionColors() const noexcept;
 
   void reset() {
     tType = DRW::DIMSTYLE;
@@ -1677,17 +1992,26 @@ public:
     dimaltrnd = 0.0;
     dimdec = dimtdec = 4;
     dimfit = dimatfit = 3;
+    m_dxfDimensionPresence = 0;
+    m_dxfDimensionSourceVersion = DRW::UNKNOWNV;
     dimdsep = '.';
     dimlwd = dimlwe = -2;
     // Phase 3A.1: R2007+/R2010+ members + handle refs.
     dimjogang = 0.0;
     dimtfill = dimtfillclr = dimarcsym = 0;
+    dimtfillclrRgb = -1;
+    dimtfillclrMethod = dimtfillclrFlags = 0;
+    dimtfillclrRawIndex = 0;
+    dimtfillclrName.clear();
+    dimtfillclrBookName.clear();
+    dimColorCmc = {};
     dimtxtdirection = 0;
     dimaltmzf = dimmzf = 1.0;
     dimaltmzs.clear();
     dimmzs.clear();
     dimtxstyH = dimldrblkH = dimblkH = dimblk1H = dimblk2H = dwgHandle{};
     dimltypeH = dimltex1H = dimltex2H = dwgHandle{};
+    m_dxfRetainedTextBytes.fill(0u);
     clearVars();
     DRW_TableEntry::reset();
   }
@@ -1795,8 +2119,35 @@ public:
   dwgHandle dimltex2H;  /*!< code 347 */
   std::map<std::string, DRW_Variant *>
       vars; /*!< extra/override variables written after standard fields */
+  // DWG-only CMC companions for DIMTFILLCLR. No class-specific DXF mapping
+  // is established by the current Autodesk DIMSTYLE reference.
+  std::int32_t dimtfillclrRgb{-1};
+  std::uint8_t dimtfillclrMethod{0};
+  std::uint8_t dimtfillclrFlags{0};
+  UTF8STRING dimtfillclrName;
+  UTF8STRING dimtfillclrBookName;
+  std::uint16_t dimtfillclrRawIndex{0}; /*!< R2004+ reserved CMC BS; ODA requires zero */
+  //! DWG CMC provenance aligned with DIMCLRD, DIMCLRE, and DIMCLRT.
+  std::array<DRW_DwgCmcColorMetadata, 3> dimColorCmc{};
 
 private:
+  static constexpr std::uint8_t kDxfLegacyDimunit = 0x01;
+  static constexpr std::uint8_t kDxfLegacyDimfit = 0x02;
+  static constexpr std::uint8_t kDxfModernDimfrac = 0x04;
+  static constexpr std::uint8_t kDxfModernDimlunit = 0x08;
+  static constexpr std::uint8_t kDxfModernDimtmove = 0x10;
+  static constexpr std::uint8_t kDxfModernDimatfit = 0x20;
+  static constexpr std::uint16_t kDxfDxfDimltype = 0x0040;
+  static constexpr std::uint16_t kDxfDxfDimltex1 = 0x0080;
+  static constexpr std::uint16_t kDxfDxfDimltex2 = 0x0100;
+  std::uint16_t m_dxfDimensionPresence {0};
+  DRW::Version m_dxfDimensionSourceVersion {DRW::UNKNOWNV};
+  // Live logical text bytes retained by the DIMSTYLE DXF parser fields.
+  std::array<std::size_t, 7> m_dxfRetainedTextBytes{};
+
+  bool syncStructToVarsImpl(dxfReader* reader);
+  bool syncStructToVarsForDxfRead(dxfReader& reader);
+
   void clearVars() {
     for (auto &kv : vars)
       delete kv.second;
@@ -1832,14 +2183,21 @@ private:
       throw;
     }
   }
-  // Copy every owned-by-value POD/string field (NOT the base members, NOT
-  // vars). New value-type members added in later phases ride this list.
-  void copyPodFrom(const DRW_Dimstyle &o) {
-    dimpost = o.dimpost;
-    dimapost = o.dimapost;
-    dimblk = o.dimblk;
-    dimblk1 = o.dimblk1;
-    dimblk2 = o.dimblk2;
+  // Copy every owned-by-value POD field and optionally the strings (NOT the
+  // base members, NOT vars). Move operations skip string copies before their
+  // noexcept move helper transfers those owners. New value-type members added
+  // in later phases ride this list.
+  void copyPodFrom(const DRW_Dimstyle &o, bool copyStrings = true) {
+    m_dxfDimensionPresence = o.m_dxfDimensionPresence;
+    m_dxfDimensionSourceVersion = o.m_dxfDimensionSourceVersion;
+    m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
+    if (copyStrings) {
+      dimpost = o.dimpost;
+      dimapost = o.dimapost;
+      dimblk = o.dimblk;
+      dimblk1 = o.dimblk1;
+      dimblk2 = o.dimblk2;
+    }
     dimscale = o.dimscale;
     dimasz = o.dimasz;
     dimexo = o.dimexo;
@@ -1899,20 +2257,44 @@ private:
     dimupt = o.dimupt;
     dimatfit = o.dimatfit;
     dimfxlon = o.dimfxlon;
-    dimtxsty = o.dimtxsty;
-    dimldrblk = o.dimldrblk;
+    if (copyStrings) {
+      dimtxsty = o.dimtxsty;
+      dimldrblk = o.dimldrblk;
+    }
     dimlwd = o.dimlwd;
     dimlwe = o.dimlwe;
     // Phase 3A.1 members — all value types, plain member-wise copy.
     dimjogang = o.dimjogang;
     dimtfill = o.dimtfill;
     dimtfillclr = o.dimtfillclr;
+    dimtfillclrRgb = o.dimtfillclrRgb;
+    dimtfillclrMethod = o.dimtfillclrMethod;
+    dimtfillclrFlags = o.dimtfillclrFlags;
+    dimtfillclrRawIndex = o.dimtfillclrRawIndex;
+    for (std::size_t i = 0; i < dimColorCmc.size(); ++i) {
+      dimColorCmc[i].present = o.dimColorCmc[i].present;
+      dimColorCmc[i].method = o.dimColorCmc[i].method;
+      dimColorCmc[i].flags = o.dimColorCmc[i].flags;
+      dimColorCmc[i].rawIndex = o.dimColorCmc[i].rawIndex;
+      dimColorCmc[i].rgb24 = o.dimColorCmc[i].rgb24;
+      dimColorCmc[i].hasRgb = o.dimColorCmc[i].hasRgb;
+      if (copyStrings) {
+        dimColorCmc[i].colorName = o.dimColorCmc[i].colorName;
+        dimColorCmc[i].bookName = o.dimColorCmc[i].bookName;
+      }
+    }
+    if (copyStrings) {
+      dimtfillclrName = o.dimtfillclrName;
+      dimtfillclrBookName = o.dimtfillclrBookName;
+    }
     dimarcsym = o.dimarcsym;
     dimtxtdirection = o.dimtxtdirection;
     dimaltmzf = o.dimaltmzf;
-    dimaltmzs = o.dimaltmzs;
+    if (copyStrings)
+      dimaltmzs = o.dimaltmzs;
     dimmzf = o.dimmzf;
-    dimmzs = o.dimmzs;
+    if (copyStrings)
+      dimmzs = o.dimmzs;
     dimtxstyH = o.dimtxstyH;
     dimldrblkH = o.dimldrblkH;
     dimblkH = o.dimblkH;
@@ -1921,6 +2303,25 @@ private:
     dimltypeH = o.dimltypeH;
     dimltex1H = o.dimltex1H;
     dimltex2H = o.dimltex2H;
+  }
+  void moveStringFieldsFrom(DRW_Dimstyle &o) noexcept {
+    dimpost = std::move(o.dimpost);
+    dimapost = std::move(o.dimapost);
+    dimblk = std::move(o.dimblk);
+    dimblk1 = std::move(o.dimblk1);
+    dimblk2 = std::move(o.dimblk2);
+    dimtxsty = std::move(o.dimtxsty);
+    dimldrblk = std::move(o.dimldrblk);
+    dimaltmzs = std::move(o.dimaltmzs);
+    dimmzs = std::move(o.dimmzs);
+    dimtfillclrName = std::move(o.dimtfillclrName);
+    dimtfillclrBookName = std::move(o.dimtfillclrBookName);
+    for (std::size_t i = 0; i < dimColorCmc.size(); ++i) {
+      dimColorCmc[i].colorName = std::move(o.dimColorCmc[i].colorName);
+      dimColorCmc[i].bookName = std::move(o.dimColorCmc[i].bookName);
+    }
+    m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
+    o.m_dxfRetainedTextBytes.fill(0u);
   }
 };
 
@@ -1955,6 +2356,10 @@ public:
     alignment = 'A';
     pathIdx = 0;
     declaredSize = -1;
+    synchronizedLengths.clear();
+    hasSynchronizedLengths = false;
+    m_dxfRetainedDescBytes = 0u;
+    m_dxfRetainedSegmentTextBytes.clear();
     path.clear();
     segments.clear();
     shapeHandles.clear();
@@ -1983,7 +2388,9 @@ protected:
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
   [[nodiscard]] bool validateDxf() const;
-  void update();
+  [[nodiscard]] bool update();
+  bool encodeDwgResolved(DRW::Version version, dwgBufferW *buf,
+                        dwgBufferW *strBuf, dwgBufferW *hdlBuf) const;
 
 public:
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -1999,11 +2406,36 @@ public:
   std::vector<DRW_LTypeSegment> segments; /*!< complex segment payload */
   std::vector<std::uint32_t>
       shapeHandles;          /*!< DWG shapefile handles, one per dash */
+  // Read-only counts let adapters account for parser-owned vectors that are
+  // intentionally kept private, without exposing or mutating their contents.
+  // Narrow source/live admission for parsed DXF LTYPE records whose admitted
+  // grammar specifies no dash elements. This does not qualify other patterns.
+  [[nodiscard]] bool sameSelectedDxfEmptyPatternState(const DRW_LType& other) const noexcept {
+    const auto selected=[](const DRW_LType& v) noexcept {
+      return v.size==0 && v.pathIdx==0 && v.declaredSize==0 && v.hasSynchronizedLengths
+          && v.synchronizedLengths.empty() && v.m_dxfRetainedSegmentTextBytes.empty()
+          && v.path.empty() && v.segments.empty() && v.shapeHandles.empty();
+    };
+    return selected(*this) && selected(other)
+        && m_dxfRetainedDescBytes==other.m_dxfRetainedDescBytes;
+  }
+  [[nodiscard]] std::size_t synchronizedLengthCount() const noexcept {
+    return synchronizedLengths.size();
+  }
+  [[nodiscard]] std::size_t retainedSegmentTextCount() const noexcept {
+    return m_dxfRetainedSegmentTextBytes.size();
+  }
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in the common
                                 stream */
 private:
   int pathIdx;
   int declaredSize;
+  std::vector<double> synchronizedLengths;
+  bool hasSynchronizedLengths {false};
+  // Per-field charges pair with the base table-entry lease. They track only
+  // strings admitted by DXF parsing, not caller mutations or DWG reads.
+  std::size_t m_dxfRetainedDescBytes {0u};
+  std::vector<std::size_t> m_dxfRetainedSegmentTextBytes;
 };
 
 //! Class to handle layer entries
@@ -2024,6 +2456,16 @@ public:
     lWeight = DRW_LW_Conv::widthDefault; // default BYDEFAULT (dxf -3, dwg 31)
     color24 = -1;                        // default -1 not set
     colorName.clear();
+    m_colorDwgMethod = 0;
+    m_hasDwgColorCmcMetadata = false;
+    m_colorDwgFlags = 0u;
+    m_colorDwgRawIndex = 0u;
+    m_colorDwgName.clear();
+    m_colorDwgBookName.clear();
+    m_dxfRetainedColorNameBytes = 0u;
+    m_dxfRetainedLineTypeBytes = 0u;
+    m_dxfRetainedPlotStyleHandleBytes = 0u;
+    m_dxfRetainedMaterialHandleBytes = 0u;
     handlePlotS.clear();
     handleMaterialS.clear();
     xrefBlockHandle = dwgHandle{};
@@ -2031,6 +2473,9 @@ public:
     materialHandle = dwgHandle{};
     unknownHandle = dwgHandle{};
     lTypeH = dwgHandle{};
+    hasInvalidDxfLineweight = false;
+    rawInvalidDxfLineweight = 0;
+    m_dwgNameSource.reset();
     DRW_TableEntry::reset();
   }
 
@@ -2042,9 +2487,82 @@ protected:
   [[nodiscard]] bool validateDxf() const;
 
 public:
+  [[nodiscard]] bool hasDwgNameSource() const noexcept { return m_dwgNameSource != nullptr; }
+  // Ownership identity, unlike content equality below. Read-only access does
+  // not install evidence or certify the entire record or its containing file.
+  [[nodiscard]] std::shared_ptr<const DRW_DwgTableNameSource> dwgNameSource() const noexcept {
+    return m_dwgNameSource;
+  }
+  [[nodiscard]] bool hasUnchangedDwgSourceName() const noexcept {
+    return m_dwgNameSource && m_dwgNameSource->matches(handle, name);
+  }
+  [[nodiscard]] bool hasBoundDwgNameProfile(DRW::Version version, const std::string& page) const noexcept {
+    return m_dwgNameSource && m_dwgNameSource->bound(version, page);
+  }
+  [[nodiscard]] std::uint32_t dwgNameDecodeIssues() const noexcept {
+    return m_dwgNameSource ? m_dwgNameSource->decodeIssues() : 0u;
+  }
+  [[nodiscard]] std::size_t dwgNameSourceRetainedBytes() const noexcept {
+    return m_dwgNameSource ? m_dwgNameSource->retainedBytes() : 0u;
+  }
+  [[nodiscard]] bool sameDwgNameSource(const DRW_Layer& other) const noexcept {
+    return m_dwgNameSource && other.m_dwgNameSource
+        ? m_dwgNameSource->equal(*other.m_dwgNameSource)
+        : m_dwgNameSource == other.m_dwgNameSource;
+  }
+  //! True when a DXF LAYER group 370 held a value outside its defined range.
+  [[nodiscard]] bool hasInvalidDxfLineweightValue() const noexcept {
+    return hasInvalidDxfLineweight;
+  }
+  //! Original group 370 value when hasInvalidDxfLineweightValue() is true.
+  [[nodiscard]] int invalidDxfLineweightValue() const noexcept {
+    return rawInvalidDxfLineweight;
+  }
+  //! Raw source DWG CMC method byte; zero means authored/DXF-origin state.
+  [[nodiscard]] std::uint8_t colorDwgMethod() const noexcept {
+    return m_colorDwgMethod;
+  }
+  //! True when this LAYER was parsed from an R2004+ DWG CMC value.
+  [[nodiscard]] bool hasDwgColorCmcMetadata() const noexcept {
+    return m_hasDwgColorCmcMetadata;
+  }
+  //! Raw R2004+ CMC color-name flags byte (ODA §2.11: bits 0 and 1).
+  [[nodiscard]] std::uint8_t colorDwgFlags() const noexcept {
+    return m_colorDwgFlags;
+  }
+  //! Raw leading CMC BS value; reserved and required to be zero in R2004+.
+  [[nodiscard]] std::uint16_t colorDwgRawIndex() const noexcept {
+    return m_colorDwgRawIndex;
+  }
+  //! Separate DWG CMC color name, before the public BOOK$ENTRY projection.
+  [[nodiscard]] const UTF8STRING& colorDwgName() const noexcept {
+    return m_colorDwgName;
+  }
+  //! Separate DWG CMC color-book name, before the public BOOK$ENTRY projection.
+  [[nodiscard]] const UTF8STRING& colorDwgBookName() const noexcept {
+    return m_colorDwgBookName;
+  }
+  //! Explicitly replace a malformed source lineweight with a legal LAYER value.
+  bool repairDxfLineweight(DRW_LW_Conv::lineWidth value) noexcept {
+    const int lineWeight = static_cast<int>(value);
+    const bool valid = (lineWeight >= static_cast<int>(DRW_LW_Conv::width00)
+                        && lineWeight <= static_cast<int>(DRW_LW_Conv::width23))
+        || value == DRW_LW_Conv::widthDefault;
+    if (!valid)
+      return false;
+    lWeight = value;
+    hasInvalidDxfLineweight = false;
+    rawInvalidDxfLineweight = 0;
+    return true;
+  }
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *hdlBuf = nullptr) const;
+  /// Resolve the optional DXF group-347 material pointer without consuming it.
+  /// Empty text/native zero is absent; text "0" is explicitly null. Nonzero
+  /// native aliases must agree, and all supplied handles must fit 32 bits.
+  /// This validates representation only; the exporter owns graph closure.
+  bool getDxfMaterialHandle(std::uint32_t &handle, bool &present) const noexcept;
   UTF8STRING lineType;  /*!< line type, code 6 */
   int color;            /*!< layer color, code 62 */
   int color24;          /*!< 24-bit color, code 420 */
@@ -2052,14 +2570,27 @@ public:
   bool plotF;           /*!< Plot flag, code 290 */
   enum DRW_LW_Conv::lineWidth lWeight; /*!< layer lineweight, code 370 */
   std::string handlePlotS; /*!< Hard-pointer ID/handle of plotstyle, code 390 */
-  std::string
-      handleMaterialS; /*!< Hard-pointer ID/handle of materialstyle, code 347 */
-                       /*only used for read dwg*/
+  std::string handleMaterialS; /*!< Optional material hard pointer, DXF code 347 */
   dwgHandle lTypeH;
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in DWG */
   dwgHandle plotStyleHandle; /*!< plot-style hard pointer in DWG */
   dwgHandle materialHandle;  /*!< material hard pointer in DWG */
   dwgHandle unknownHandle;   /*!< AC1027 trailing hard pointer in DWG */
+
+private:
+  std::shared_ptr<const DRW_DwgTableNameSource> m_dwgNameSource;
+  bool hasInvalidDxfLineweight {false};
+  int rawInvalidDxfLineweight {0};
+  std::uint8_t m_colorDwgMethod {0};
+  bool m_hasDwgColorCmcMetadata {false};
+  std::uint8_t m_colorDwgFlags {0u};
+  std::uint16_t m_colorDwgRawIndex {0u};
+  UTF8STRING m_colorDwgName;
+  UTF8STRING m_colorDwgBookName;
+  std::size_t m_dxfRetainedColorNameBytes {0u};
+  std::size_t m_dxfRetainedLineTypeBytes {0u};
+  std::size_t m_dxfRetainedPlotStyleHandleBytes {0u};
+  std::size_t m_dxfRetainedMaterialHandleBytes {0u};
 };
 
 //! Class to handle block record entries
@@ -2069,13 +2600,16 @@ public:
  */
 class DRW_Block_Record : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfBlockRecord::Decoder;
 public:
   DRW_Block_Record() { reset(); }
   void reset() {
     tType = DRW::BLOCK_RECORD;
     flags = 0;
+    xrefUnloaded = false;
     insUnits = 0;
     basePoint = DRW_Coord(0.0, 0.0, 0.0);
+    xrefIndex = -1;
     xrefPath.clear();
     description.clear();
     previewData.clear();
@@ -2097,8 +2631,11 @@ protected:
 
 public:
   // Note:    int DRW_TableEntry::flags; contains code 70 of block
+  bool xrefUnloaded {false}; /*!< DWG loaded bit / DXF BLOCK group 71; separate
+                                from BLOCK group-70 resolved/dependency bits */
   int insUnits;        /*!< block insertion units, code 70 of block_record*/
   DRW_Coord basePoint; /*!<  block insertion base point dwg only */
+  std::int32_t xrefIndex = -1; /*!< DWG XREF table index; -1 when absent */
   UTF8STRING xrefPath; /*!< Xref path name for XREF block_records (DWG: parsed
                           from BLOCK_HEADER, DXF: code 1) */
   UTF8STRING description; /*!< block description (DXF 4); DWG read */
@@ -2109,12 +2646,17 @@ public:
   std::uint8_t blockScaling =
       0; /*!< block scaling flag (DXF 281); R2007+ DWG */
   std::uint32_t layoutHandle =
-      0; /*!< soft ptr to the owning LAYOUT (DXF 340); DWG read */
+      0; /*!< hard pointer to associated LAYOUT (DXF 340); DWG read */
   dwgHandle xrefBlockHandle; /*!< external-reference block handle (DWG common
                                 table stream) */
   std::uint32_t insertCount = 0; /*!< number of DWG INSERT reference slots */
   std::vector<std::uint32_t>
       insertHandles; /*!< non-null DWG INSERT references */
+  // Adapter retention accounting needs only the private entity-map size; keep
+  // the mapping itself encapsulated because it is parser/writer bookkeeping.
+  [[nodiscard]] std::size_t entityMapCount() const noexcept {
+    return entMap.size();
+  }
 protected:
   // dwg parser
 private:
@@ -2143,6 +2685,7 @@ public:
     genFlag = 0; // 2= X mirror, 4= Y mirror
     fontFamily = 0;
     bigFont.clear();
+    m_dxfRetainedTextBytes.fill(0u);
     xrefBlockHandle = dwgHandle{};
     DRW_TableEntry::reset();
   }
@@ -2160,7 +2703,7 @@ public:
                                dwgBufferW *hdlBuf = nullptr) const;
   double height;      /*!< Fixed text height (0 not set), code 40 */
   double width;       /*!< Width factor, code 41 */
-  double oblique;     /*!< Oblique angle, code 50 */
+  double oblique;     /*!< Oblique angle in degrees, code 50 (DWG radians converted at the boundary) */
   int genFlag;        /*!< Text generation flags, code 71 */
   double lastHeight;  /*!< Last height used, code 42 */
   UTF8STRING font;    /*!< primary font file name, code 3 */
@@ -2168,6 +2711,11 @@ public:
   int fontFamily;     /*!< ttf font family, italic and bold flags, code 1071 */
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in the common
                                 stream */
+
+private:
+  // Parsed DXF font names retained on the shared table-entry text lease.
+  // Caller mutations and DWG string storage are outside this accounting.
+  std::array<std::size_t, 2> m_dxfRetainedTextBytes{};
 };
 
 //! Class to handle vport entries
@@ -2184,6 +2732,7 @@ public:
   DRW_Vport() { reset(); }
 
   void reset() {
+    m_dxfAmbientColorNameBytes = 0u;
     tType = DRW::VPORT;
     UpperRight.x = UpperRight.y = 1.0;
     snapSpacing.x = snapSpacing.y = 10.0;
@@ -2206,9 +2755,14 @@ public:
     ambientColor = 250;
     ambientColorRgb = -1;
     ambientColorName.clear();
+    m_ambientColorCmc = {};
     ucsIcon = 3;
     gridBehavior = 7;
     gridMajorLines = 5;
+    shadePlotMode = 0;
+    hasDxfShadePlotMode = false;
+    shadePlotHandle = 0;
+    hasDxfShadePlotHandle = false;
     visualStyleHandle = 0;
     m_sunHandle = 0;
     backgroundHandle = 0;
@@ -2230,11 +2784,14 @@ protected:
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
   [[nodiscard]] bool validateDxf() const;
+  [[nodiscard]] bool validateDxf(DRW::Version version) const;
 
 public:
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *hdlBuf = nullptr) const;
+  [[nodiscard]] const DRW_DwgCmcColorMetadata&
+  ambientColorDwgCmc() const noexcept { return m_ambientColorCmc; }
   DRW_Coord lowerLeft;   /*!< Lower left corner, code 10 & 20 */
   DRW_Coord UpperRight;  /*!< Upper right corner, code 11 & 21 */
   DRW_Coord center;      /*!< center point in WCS, code 12 & 22 */
@@ -2277,10 +2834,17 @@ public:
    * bit 3 (4) allow subdivision
    * bit 4 (8) follow dynamic SCP
    **/
+  /** VPORT shade-plot fields retained from DXF. Modes 0-3 with a null target
+   * are writable; modern modes and non-null targets remain fail-closed until
+   * their VPORT-specific target graph is qualified. */
+  int shadePlotMode = 0;       /*!< DXF group 170 */
+  bool hasDxfShadePlotMode = false;
+  std::uint32_t shadePlotHandle = 0; /*!< DXF group 333 soft pointer */
+  bool hasDxfShadePlotHandle = false;
   std::uint32_t visualStyleHandle =
-      0;                         /*!< R2007+ visual-style ref (DWG-only) */
+      0;                         /*!< DXF group 348 / R2007+ DWG visual style */
   std::uint32_t m_sunHandle = 0; /*!< R2007+ SUN hard-owner ref (DWG-only) */
-  std::uint32_t backgroundHandle = 0; /*!< R2007+ background ref (DWG-only) */
+  std::uint32_t backgroundHandle = 0; /*!< R2007+ background ref, DXF code 332 */
   std::uint32_t namedUcsHandle = 0;   /*!< R2000+ named UCS ref (DWG-only) */
   std::uint32_t baseUcsHandle = 0;    /*!< R2000+ base UCS ref (DWG-only) */
   dwgHandle xrefBlockHandle; /*!< external-reference block ref (DWG-only) */
@@ -2291,6 +2855,10 @@ public:
       0.0;               /*!< R2000+ per-viewport UCS elevation (DWG-only) */
   int ucsOrthoType = 0;  /*!< R2000+ UCS orthographic view type (DWG-only) */
   bool ucsPerVP = false; /*!< R2000+ UCS-per-viewport flag (DWG-only) */
+
+private:
+  DRW_DwgCmcColorMetadata m_ambientColorCmc;
+  std::size_t m_dxfAmbientColorNameBytes {0u};
 };
 
 //! Class to handle fixed type 71 VPORT_ENTITY_HEADER records.
@@ -2578,6 +3146,7 @@ public:
     loaded = 0;
     resolution = 0;
     reactors.clear();
+    m_dxfRetainedImageNameBytes = 0u;
     DRW_TableEntry::reset();
   }
 
@@ -2597,12 +3166,15 @@ public:
   double u;        /*!< image size in pixels U value, code 10 */
   double v;        /*!< image size in pixels V value, code 20 */
   double up;       /*!< default size of one pixel U value, code 11 */
-  double vp;      /*!< default size of one pixel V value, code 12 really is 21*/
+  double vp;      /*!< default pixel V size, documented DXF code 12; reader also accepts 21 */
   int loaded;     /*!< image is loaded flag, code 280, 0=unloaded, 1=loaded */
   int resolution; /*!< resolution units, code 281, 0=no, 2=centimeters, 5=inch
                    */
 
   std::map<std::string, std::string> reactors;
+
+private:
+  std::size_t m_dxfRetainedImageNameBytes{0u};
 };
 
 //! Class to handle plotsettings entries
@@ -2621,6 +3193,7 @@ public:
     // prefix so the read/encode code can be shared verbatim.
     pageSetupName.clear();
     printerConfig.clear();
+    m_dxfRetainedTextBytes.fill(0u);
     plotLayoutFlags = 0;
     marginLeft = marginBottom = marginRight = marginTop = 0.0;
     paperWidth = paperHeight = 0.0;
@@ -2642,6 +3215,8 @@ public:
     shadePlotCustomDPI = 0;
     plotViewHandle = dwgHandle{};
     shadePlotHandle = dwgHandle{};
+    dwgEedAppIdReferences.clear();
+    dwgEedLayerReferences.clear();
     DRW_TableEntry::reset();
   }
 
@@ -2689,6 +3264,18 @@ public:
   int shadePlotCustomDPI;       /*!< code 78, BS (R2004+) */
   dwgHandle plotViewHandle;     /*!< code 6, R2004+ handle stream */
   dwgHandle shadePlotHandle;    /*!< code 333, R2007+ handle stream */
+
+  // Parser-only source roles for EED references. parseAttribs resolves the
+  // public XDATA values to names before callbacks; retain the original
+  // handles/indexes so a downstream output proof can bind those names to the
+  // source APPID/LAYER rows instead of trusting the resolved strings alone.
+  std::vector<PendingHandleRef> dwgEedAppIdReferences;
+  std::vector<PendingHandleRef> dwgEedLayerReferences;
+
+private:
+  // Retained logical bytes for the five DXF text fields above; caller
+  // mutations and DWG strings are outside this per-read accounting scope.
+  std::array<std::size_t, 5> m_dxfRetainedTextBytes{};
 };
 
 //! Class to handle UCS entries
@@ -2702,6 +3289,7 @@ struct DRW_UCSOrthoPoint {
 
 class DRW_UCS : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfViewUcs::Decoder;
 public:
   DRW_UCS() { reset(); }
 
@@ -2727,6 +3315,7 @@ protected:
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
+  [[nodiscard]] bool validatePayloadFields(unsigned int flagMask) const;
   [[nodiscard]] bool validateDxf() const;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
@@ -2738,7 +3327,8 @@ public:
   DRW_Coord yAxisDirection; /*!< UCS Y-axis direction, codes 12/22/32 */
   DRW_Coord orthoOrigin;    /*!< Origin for orthographic UCS, codes 13/23/33 */
   double elevation;         /*!< Elevation, code 146 */
-  int orthoType; /*!< Orthographic type, code 71/79 (0 none, 1 Top, ...) */
+  int orthoType; /*!< Shared DWG orthographic metadata / DXF scalar code 79;
+                      not the repeated DXF code-71 option selector */
   std::vector<DRW_UCSOrthoPoint>
       orthographicOptions;   /*!< R2000+ orthographic UCS options */
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in the common
@@ -2754,10 +3344,12 @@ public:
  */
 class DRW_View : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfViewUcs::Decoder;
 public:
   DRW_View() { reset(); }
 
   void reset() {
+    m_dxfAmbientColorNameBytes = 0u;
     tType = DRW::VIEW;
     size.x = size.y = size.z = 0.0;
     center.x = center.y = center.z = 0.0;
@@ -2786,6 +3378,7 @@ public:
     m_ambientColor = 250;
     m_ambientColorRgb = -1;
     m_ambientColorName.clear();
+    m_ambientColorCmc = {};
     m_backgroundHandle = 0;
     m_visualStyleHandle = 0;
     m_sunHandle = 0;
@@ -2799,12 +3392,16 @@ protected:
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool validatePayloadFields() const;
+  [[nodiscard]] bool validatePayloadFields(unsigned int flagMask) const;
   [[nodiscard]] bool validateDxf() const;
+  [[nodiscard]] bool validateDxf(DRW::Version version) const;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *hdlBuf = nullptr) const;
 
 public:
+  [[nodiscard]] const DRW_DwgCmcColorMetadata&
+  ambientColorDwgCmc() const noexcept { return m_ambientColorCmc; }
   DRW_Coord size;   /*!< View width/height in DCS, codes 40 & 41 */
   DRW_Coord center; /*!< View center point in DCS, codes 10 & 20 */
   DRW_Coord viewDirectionFromTarget; /*!< View direction from target in WCS,
@@ -2846,6 +3443,10 @@ public:
       0; /*!< R2007+ live-section soft-pointer ref (DWG-only) */
   dwgHandle xrefBlockHandle; /*!< external-reference block handle in the common
                                 stream */
+
+private:
+  DRW_DwgCmcColorMetadata m_ambientColorCmc;
+  std::size_t m_dxfAmbientColorNameBytes {0u};
 };
 
 //! Class to handle AppId entries
@@ -2863,6 +3464,7 @@ public:
     flags = 0;
     name = "";
     unknown71 = 0;
+    m_dwgNameSource.reset();
     DRW_TableEntry::reset();
   }
 
@@ -2875,9 +3477,38 @@ protected:
 
 public:
   std::uint8_t unknown71{0}; /*!< Undocumented group-71 byte. */
+  // Read-only evidence from the DWG name field, not a public-name hash or a
+  // semantic certificate. Copies share immutable source storage; reset clears
+  // it. Editing name/handle never refreshes it, and authored/DXF rows have none.
+  [[nodiscard]] bool hasDwgNameSource() const noexcept {
+    return m_dwgNameSource != nullptr;
+  }
+  [[nodiscard]] std::shared_ptr<const DRW_DwgTableNameSource> dwgNameSource() const noexcept {
+    return m_dwgNameSource;
+  }
+  [[nodiscard]] bool hasUnchangedDwgSourceName() const noexcept {
+    return m_dwgNameSource && m_dwgNameSource->matches(handle, name);
+  }
+  [[nodiscard]] bool hasBoundDwgNameProfile(DRW::Version version,
+                                           const std::string& page) const noexcept {
+    return m_dwgNameSource && m_dwgNameSource->bound(version, page);
+  }
+  [[nodiscard]] std::uint32_t dwgNameDecodeIssues() const noexcept {
+    return m_dwgNameSource ? m_dwgNameSource->decodeIssues() : 0u;
+  }
+  [[nodiscard]] std::size_t dwgNameSourceRetainedBytes() const noexcept {
+    return m_dwgNameSource ? m_dwgNameSource->retainedBytes() : 0u;
+  }
+  [[nodiscard]] bool sameDwgNameSource(const DRW_AppId& other) const noexcept {
+    return m_dwgNameSource && other.m_dwgNameSource
+        ? m_dwgNameSource->equal(*other.m_dwgNameSource)
+        : m_dwgNameSource == other.m_dwgNameSource;
+  }
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *hdlBuf = nullptr) const;
+private:
+  std::shared_ptr<const DRW_DwgTableNameSource> m_dwgNameSource;
 };
 
 //! Class to handle Dictionary (ODA spec sec 20.4.44 fixed type 42)
@@ -2893,7 +3524,8 @@ public:
   DRW_Dictionary() { reset(); }
   DRW_Dictionary(const DRW_Dictionary& o): DRW_TableEntry(o),
       cloning(o.cloning), hardOwner(o.hardOwner), m_entries(o.m_entries),
-      countCap(o.countCap), m_dwgEntriesComplete(o.m_dwgEntriesComplete) {
+      countCap(o.countCap), m_dwgEntriesComplete(o.m_dwgEntriesComplete),
+      m_dxfRetainedEntryNameBytes(o.m_dxfRetainedEntryNameBytes) {
     tType = o.tType;
     m_pendingEntryName.clear();
   }
@@ -2905,6 +3537,8 @@ public:
       m_entries = o.m_entries;
       countCap = o.countCap;
       m_dwgEntriesComplete = o.m_dwgEntriesComplete;
+      m_dxfRetainedEntryNameBytes = o.m_dxfRetainedEntryNameBytes;
+      m_dxfRetainedPendingEntryNameBytes = 0u;
       m_pendingEntryName.clear();
       tType = o.tType;
     }
@@ -2922,10 +3556,13 @@ public:
     name.clear();
     m_entries.clear();
     m_pendingEntryName.clear();
+    m_dxfRetainedEntryNameBytes = 0u;
+    m_dxfRetainedPendingEntryNameBytes = 0u;
     DRW_TableEntry::reset();
   }
 
 protected:
+  void markDwgEntriesIncomplete() noexcept { m_dwgEntriesComplete = false; }
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
@@ -2943,9 +3580,17 @@ protected:
 
 public:
   struct Entry {
+    enum class DxfHandleCode : std::uint16_t {
+      Unspecified = 0,
+      SoftOwner = 350,
+      HardOwner = 360
+    };
     UTF8STRING m_name;
     // Some valid DWGs encode a dictionary entry with a null child reference.
     std::uint32_t m_handle = 0;
+    // Preserve the source edge code per key; zero keeps the legacy writer
+    // policy for newly constructed or DWG-origin entries.
+    DxfHandleCode m_dxfHandleCode = DxfHandleCode::Unspecified;
   };
   int cloning;                  /*!< duplicate-record handling (BS) */
   int hardOwner;                /*!< hard-owner flag (RC, R2007+) */
@@ -2957,6 +3602,16 @@ public:
   }
   //! True when the DXF name/handle stream is structurally complete.
   [[nodiscard]] bool hasCompleteDxfEntries() const noexcept;
+  //! Selected proof helper for a parsed, complete DXF dictionary body.
+  //! Compares parser-private pending-name and retained-name state without
+  //! exposing or changing the dictionary layout.
+  [[nodiscard]] bool sameSelectedDxfEntryState(const DRW_Dictionary& other) const noexcept {
+    return m_dwgEntriesComplete && other.m_dwgEntriesComplete
+        && m_pendingEntryName.empty() && other.m_pendingEntryName.empty()
+        && m_dxfRetainedPendingEntryNameBytes == 0u
+        && other.m_dxfRetainedPendingEntryNameBytes == 0u
+        && m_dxfRetainedEntryNameBytes == other.m_dxfRetainedEntryNameBytes;
+  }
   [[nodiscard]] bool isDwgPayloadValid(DRW::Version version) const noexcept;
   [[nodiscard]] std::uint8_t dwgItemHandleCode() const noexcept;
 
@@ -2964,6 +3619,8 @@ private:
   // Keep a DXF entry name private until its following handle is decoded.
   UTF8STRING m_pendingEntryName;
   bool m_dwgEntriesComplete = false;
+  std::size_t m_dxfRetainedEntryNameBytes{0u};
+  std::size_t m_dxfRetainedPendingEntryNameBytes{0u};
 };
 
 //! Class to handle DICTIONARYWDFLT (AcDbDictionaryWithDefault).
@@ -2975,7 +3632,8 @@ public:
   DRW_DictionaryWithDefault() { reset(); }
   DRW_DictionaryWithDefault(const DRW_DictionaryWithDefault& o):
       DRW_Dictionary(o), m_defaultEntryHandle(o.m_defaultEntryHandle),
-      m_dxfDefaultEntrySeen(false) {
+      m_dxfDefaultEntrySeen(false),
+      m_hasDxfDefaultEntry(o.m_hasDxfDefaultEntry) {
     tType = DRW::DICTIONARYWDFLT;
   }
   DRW_DictionaryWithDefault& operator=(const DRW_DictionaryWithDefault& o) {
@@ -2983,6 +3641,7 @@ public:
       DRW_Dictionary::operator=(o);
       m_defaultEntryHandle = o.m_defaultEntryHandle;
       m_dxfDefaultEntrySeen = false;
+      m_hasDxfDefaultEntry = o.m_hasDxfDefaultEntry;
       tType = DRW::DICTIONARYWDFLT;
     }
     return *this;
@@ -2992,6 +3651,7 @@ public:
     tType = DRW::DICTIONARYWDFLT;
     m_defaultEntryHandle = 0;
     m_dxfDefaultEntrySeen = false;
+    m_hasDxfDefaultEntry = false;
   }
 
 protected:
@@ -3009,7 +3669,10 @@ public:
   [[nodiscard]] bool isDwgPayloadValid(DRW::Version version) const noexcept;
 
 private:
+  // Per-parse duplicate guard: never copy it into a new parser walk.
   bool m_dxfDefaultEntrySeen = false;
+  // Persistent completeness evidence for the model, retained by value copies.
+  bool m_hasDxfDefaultEntry = false;
 };
 
 //! Class to handle DICTIONARYVAR (AcDbDictionaryVar).
@@ -3023,6 +3686,7 @@ public:
     tType = DRW::DICTIONARYVAR;
     m_schema = 0;
     m_value.clear();
+    m_dxfRetainedValueBytes = 0u;
     DRW_TableEntry::reset();
   }
 
@@ -3037,6 +3701,9 @@ protected:
 public:
   int m_schema = 0;   /*!< code 280 */
   UTF8STRING m_value; /*!< code 1 */
+
+private:
+  std::size_t m_dxfRetainedValueBytes{0u};
 };
 
 //! Class to handle XRECORD (fixed type 0x4f).
@@ -3048,7 +3715,12 @@ public:
       m_cloning(o.m_cloning), m_values(o.m_values),
       m_handleValues(o.m_handleValues), m_dataEntries(o.m_dataEntries),
       m_rawData(o.m_rawData), m_rawDataValid(o.m_rawDataValid),
-      m_dxfBodySeen(false) {
+      m_dxfBodySeen(false), m_dxfHeaderPending(false), m_dxfXdataSeen(false),
+      m_dxfRetainedVariantStringBytes(
+          o.m_dxfRetainedVariantStringBytes),
+      m_dxfCoordinatesExact(o.hasExactDxfCoordinateTuples()),
+      m_rawDataVersion(o.m_rawDataVersion),
+      m_rawDataSourceRecord(o.m_rawDataSourceRecord) {
     tType = o.tType;
   }
   DRW_XRecord& operator=(const DRW_XRecord& o) {
@@ -3058,9 +3730,17 @@ public:
       m_values = o.m_values;
       m_handleValues = o.m_handleValues;
       m_dataEntries = o.m_dataEntries;
+      m_dxfRetainedVariantStringBytes =
+          o.m_dxfRetainedVariantStringBytes;
       m_rawData = o.m_rawData;
       m_rawDataValid = o.m_rawDataValid;
       m_dxfBodySeen = false;
+      m_dxfHeaderPending = false;
+      m_dxfXdataSeen = false;
+      m_dxfCoordinateMask = 0;
+      m_dxfCoordinatesExact = o.hasExactDxfCoordinateTuples();
+      m_rawDataVersion = o.m_rawDataVersion;
+      m_rawDataSourceRecord = o.m_rawDataSourceRecord;
       tType = o.tType;
     }
     return *this;
@@ -3071,9 +3751,16 @@ public:
     m_values.clear();
     m_handleValues.clear();
     m_dataEntries.clear();
+    m_dxfRetainedVariantStringBytes = 0u;
     m_rawData.clear();
     m_rawDataValid = false;
     m_dxfBodySeen = false;
+    m_dxfHeaderPending = false;
+    m_dxfXdataSeen = false;
+    m_dxfCoordinateMask = 0;
+    m_dxfCoordinatesExact = true;
+    m_rawDataVersion = DRW::UNKNOWNV;
+    m_rawDataSourceRecord.reset();
     DRW_TableEntry::reset();
   }
 
@@ -3099,8 +3786,38 @@ public:
   std::vector<std::uint8_t> m_rawData;
   bool m_rawDataValid = false;
 
+  [[nodiscard]] DRW::Version dwgRawDataVersion() const noexcept {
+    return m_rawDataVersion;
+  }
+  // An opaque block can contain undiscovered references and versioned text.
+  // Replay requires the parser's exact source state; reset() before replacing
+  // it with a complete typed payload. Clearing the validity flag alone must
+  // not silently discard the unsupported part of a parsed record.
+  [[nodiscard]] bool canReplayDwgRawData(DRW::Version version) const noexcept;
+  [[nodiscard]] bool hasDwgRawDataSourceRecord() const noexcept {
+    return m_rawDataSourceRecord != nullptr;
+  }
+
+  // Canonical complete XYZ tuples fit COORD exactly. Partial, repeated or
+  // reordered physical components remain tolerant-readable, with their exact
+  // spelling in the raw companion, but cannot be emitted through this typed
+  // carrier without an explicit reconstruction. reset() before replacing an
+  // inexact parsed payload; editing the vectors does not clear its provenance.
+  [[nodiscard]] bool hasExactDxfCoordinateTuples() const noexcept {
+    return m_dxfCoordinatesExact && m_dxfCoordinateMask == 0;
+  }
+
 private:
   bool m_dxfBodySeen = false;
+  bool m_dxfHeaderPending = false;
+  bool m_dxfXdataSeen = false;
+  std::size_t m_dxfRetainedVariantStringBytes{0u};
+  std::uint8_t m_dxfCoordinateMask = 0;
+  bool m_dxfCoordinatesExact = true;
+  DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
+  // Copies share this immutable snapshot, while all editable public payloads
+  // remain deep copies. The snapshot itself has no snapshot pointer/cycle.
+  std::shared_ptr<const DRW_XRecord> m_rawDataSourceRecord;
 };
 
 //! Value payload used by FIELD and TABLE/TABLECONTENT objects.
@@ -3114,6 +3831,11 @@ struct DRW_CadValue {
   UTF8STRING m_valueString;
   std::uint32_t m_handle = 0;
   std::vector<std::uint8_t> m_rawData;
+  // ODA §20.4.99's first flag bit suppresses the value payload, not the
+  // preceding data-type BL. Other retained flags do not imply emptiness.
+  [[nodiscard]] bool hasDwgPayload(DRW::Version version) const noexcept {
+    return version <= DRW::AC1018 || (m_formatFlags & 0x01) == 0;
+  }
 };
 
 //! Class to handle FIELD (AcDbField).
@@ -3441,7 +4163,7 @@ private:
   bool m_dwgEntriesComplete = false;
 };
 
-//! Class to handle MATERIAL (AcDbMaterial) identity fields.
+//! Class to handle MATERIAL (AcDbMaterial) fields.
 class DRW_Material : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
@@ -3454,10 +4176,214 @@ public:
     tType = DRW::MATERIAL;
     m_name.clear();
     m_description.clear();
+    m_ambientColorMethod = 0u;
+    m_ambientColorFactor = 1.0;
+    m_ambientColorValue = 0u;
+    m_hasAmbientColorMethod = false;
+    m_hasAmbientColorFactor = false;
+    m_hasAmbientColorValue = false;
+    m_diffuseColorMethod = 0u;
+    m_diffuseColorFactor = 1.0;
+    m_diffuseColorValue = 0u;
+    m_hasDiffuseColorMethod = false;
+    m_hasDiffuseColorFactor = false;
+    m_hasDiffuseColorValue = false;
+    m_diffuseMapBlendFactor = 1.0;
+    m_diffuseMapSource = 1u;
+    m_diffuseMapFileName.clear();
+    m_diffuseMapProjection = 1u;
+    m_diffuseMapTiling = 1u;
+    m_diffuseMapAutoTransform = 1u;
+    m_hasDiffuseMapBlendFactor = false;
+    m_hasDiffuseMapSource = false;
+    m_hasDiffuseMapFileName = false;
+    m_hasDiffuseMapProjection = false;
+    m_hasDiffuseMapTiling = false;
+    m_hasDiffuseMapAutoTransform = false;
+    m_diffuseMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                              0.0, 1.0, 0.0, 0.0,
+                              0.0, 0.0, 1.0, 0.0,
+                              0.0, 0.0, 0.0, 1.0}};
+    m_hasDiffuseMapTransform = false;
+    m_dxfDiffuseMapTransformCount = 0u;
+    m_specularGlossFactor = 0.5;
+    m_specularColorMethod = 0u;
+    m_specularColorFactor = 1.0;
+    m_specularColorValue = 0u;
+    m_hasSpecularGlossFactor = false;
+    m_hasSpecularColorMethod = false;
+    m_hasSpecularColorFactor = false;
+    m_hasSpecularColorValue = false;
+    m_specularMapBlendFactor = 1.0;
+    m_specularMapSource = 1u;
+    m_specularMapFileName.clear();
+    m_specularMapProjection = 1u;
+    m_specularMapTiling = 1u;
+    m_specularMapAutoTransform = 1u;
+    m_hasSpecularMapBlendFactor = false;
+    m_hasSpecularMapSource = false;
+    m_hasSpecularMapFileName = false;
+    m_hasSpecularMapProjection = false;
+    m_hasSpecularMapTiling = false;
+    m_hasSpecularMapAutoTransform = false;
+    m_specularMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                               0.0, 1.0, 0.0, 0.0,
+                               0.0, 0.0, 1.0, 0.0,
+                               0.0, 0.0, 0.0, 1.0}};
+    m_hasSpecularMapTransform = false;
+    m_dxfSpecularMapTransformCount = 0u;
+    m_reflectionMapBlendFactor = 1.0;
+    m_reflectionMapSource = 1u;
+    m_reflectionMapFileName.clear();
+    m_reflectionMapProjection = 1u;
+    m_reflectionMapTiling = 1u;
+    m_reflectionMapAutoTransform = 1u;
+    m_hasReflectionMapBlendFactor = false;
+    m_hasReflectionMapSource = false;
+    m_hasReflectionMapFileName = false;
+    m_hasReflectionMapProjection = false;
+    m_hasReflectionMapTiling = false;
+    m_hasReflectionMapAutoTransform = false;
+    m_reflectionMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                                 0.0, 1.0, 0.0, 0.0,
+                                 0.0, 0.0, 1.0, 0.0,
+                                 0.0, 0.0, 0.0, 1.0}};
+    m_hasReflectionMapTransform = false;
+    m_dxfReflectionMapTransformCount = 0u;
+    m_opacityPercent = 1.0;
+    m_opacityMapBlendFactor = 1.0;
+    m_opacityMapSource = 1u;
+    m_opacityMapFileName.clear();
+    m_opacityMapProjection = 1u;
+    m_opacityMapTiling = 1u;
+    m_opacityMapAutoTransform = 1u;
+    m_hasOpacityPercent = false;
+    m_hasOpacityMapBlendFactor = false;
+    m_hasOpacityMapSource = false;
+    m_hasOpacityMapFileName = false;
+    m_hasOpacityMapProjection = false;
+    m_hasOpacityMapTiling = false;
+    m_hasOpacityMapAutoTransform = false;
+    m_opacityMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                              0.0, 1.0, 0.0, 0.0,
+                              0.0, 0.0, 1.0, 0.0,
+                              0.0, 0.0, 0.0, 1.0}};
+    m_hasOpacityMapTransform = false;
+    m_dxfOpacityMapTransformCount = 0u;
+    m_bumpMapBlendFactor = 1.0;
+    m_bumpMapSource = 1u;
+    m_bumpMapFileName.clear();
+    m_bumpMapProjection = 1u;
+    m_bumpMapTiling = 1u;
+    m_bumpMapAutoTransform = 1u;
+    m_hasBumpMapBlendFactor = false;
+    m_hasBumpMapSource = false;
+    m_hasBumpMapFileName = false;
+    m_hasBumpMapProjection = false;
+    m_hasBumpMapTiling = false;
+    m_hasBumpMapAutoTransform = false;
+    m_bumpMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                           0.0, 1.0, 0.0, 0.0,
+                           0.0, 0.0, 1.0, 0.0,
+                           0.0, 0.0, 0.0, 1.0}};
+    m_hasBumpMapTransform = false;
+    m_dxfBumpMapTransformCount = 0u;
+    m_refractionIndex = 1.0;
+    m_refractionMapBlendFactor = 1.0;
+    m_refractionMapSource = 1u;
+    m_refractionMapFileName.clear();
+    m_refractionMapProjection = 1u;
+    m_refractionMapTiling = 1u;
+    m_refractionMapAutoTransform = 1u;
+    m_hasRefractionIndex = false;
+    m_hasRefractionMapBlendFactor = false;
+    m_hasRefractionMapSource = false;
+    m_hasRefractionMapFileName = false;
+    m_hasRefractionMapProjection = false;
+    m_hasRefractionMapTiling = false;
+    m_hasRefractionMapAutoTransform = false;
+    m_refractionMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                                 0.0, 1.0, 0.0, 0.0,
+                                 0.0, 0.0, 1.0, 0.0,
+                                 0.0, 0.0, 0.0, 1.0}};
+    m_hasRefractionMapTransform = false;
+    m_dxfRefractionMapTransformCount = 0u;
+    m_colorBleedScale = 0.0;
+    m_indirectDumpScale = 0.0;
+    m_reflectanceScale = 0.0;
+    m_transmittanceScale = 0.0;
+    m_hasColorBleedScale = false;
+    m_hasIndirectDumpScale = false;
+    m_hasReflectanceScale = false;
+    m_hasTransmittanceScale = false;
+    m_twoSidedMaterial = false;
+    m_hasTwoSidedMaterial = false;
+    m_materialsAnonymous = false;
+    m_hasMaterialsAnonymous = false;
+    m_luminance = 0.0;
+    m_luminanceMode = 0;
+    m_normalMapMethod = 0;
+    m_normalMapStrength = 0.0;
+    m_hasLuminance = false;
+    m_hasLuminanceMode = false;
+    m_hasNormalMapMethod = false;
+    m_hasNormalMapStrength = false;
+    m_normalMapBlendFactor = 1.0;
+    m_normalMapSource = 1u;
+    m_normalMapFileName.clear();
+    m_normalMapProjection = 1u;
+    m_normalMapTiling = 1u;
+    m_normalMapAutoTransform = 1u;
+    m_hasNormalMapBlendFactor = false;
+    m_hasNormalMapSource = false;
+    m_hasNormalMapFileName = false;
+    m_hasNormalMapProjection = false;
+    m_hasNormalMapTiling = false;
+    m_hasNormalMapAutoTransform = false;
+    m_normalMapTransform = {{1.0, 0.0, 0.0, 0.0,
+                             0.0, 1.0, 0.0, 0.0,
+                             0.0, 0.0, 1.0, 0.0,
+                             0.0, 0.0, 0.0, 1.0}};
+    m_hasNormalMapTransform = false;
+    m_dxfNormalMapTransformCount = 0u;
+    m_dxfMaterialGenProcTableStarted = false;
+    m_dxfMaterialGenProcTableEnded = false;
+    m_dxfMaterialImplicitTail = false;
+    m_globalIlluminationMode = 0;
+    m_finalGatherMode = 0;
+    m_hasGlobalIlluminationMode = false;
+    m_hasFinalGatherMode = false;
+    m_genProcTableEnd = false;
+    m_hasGenProcTableEnd = false;
+    m_mapUTile = 0;
+    m_hasMapUTile = false;
+    m_translucence = 0.0;
+    m_hasTranslucence = false;
+    m_reflectivity = 0.0;
+    m_hasReflectivity = false;
+    m_illuminationModel = 0;
+    m_hasIlluminationModel = false;
+    m_channelFlags = 0;
+    m_hasChannelFlags = false;
+    m_dxfRetainedNameBytes = 0u;
+    m_dxfRetainedDescriptionBytes = 0u;
+    m_dxfRetainedDiffuseMapFileNameBytes = 0u;
+    m_dxfRetainedSpecularMapFileNameBytes = 0u;
+    m_dxfRetainedReflectionMapFileNameBytes = 0u;
+    m_dxfRetainedOpacityMapFileNameBytes = 0u;
+    m_dxfRetainedBumpMapFileNameBytes = 0u;
+    m_dxfRetainedRefractionMapFileNameBytes = 0u;
+    m_dxfRetainedNormalMapFileNameBytes = 0u;
+    m_dxfPastPreNormalMapFields = false;
+    m_dxfCompleteDiffuseBeforeRefraction = false;
+    m_dxfInferredNormalMapBoundary = false;
+    m_dxfRepeatedDiffuseMapField = false;
+    m_dxfPreStrengthNormalMapMethod = false;
     m_rawData.clear();
     m_rawDataBitSize = 0;
     m_rawDataValid = false;
     m_rawDataVersion = DRW::UNKNOWNV;
+    m_dwgSemanticFieldsParsed = false;
     DRW_TableEntry::reset();
   }
 
@@ -3473,6 +4399,242 @@ public:
   [[nodiscard]] bool validateDwgPayload(DRW::Version version) const;
   UTF8STRING m_name;
   UTF8STRING m_description;
+  //! Ambient color controls: DXF groups 70 (method) and 40 (factor).
+  std::uint8_t m_ambientColorMethod {0u};
+  double m_ambientColorFactor {1.0};
+  std::uint32_t m_ambientColorValue {0u};
+  bool m_hasAmbientColorMethod {false};
+  bool m_hasAmbientColorFactor {false};
+  bool m_hasAmbientColorValue {false};
+  //! Diffuse color controls: DXF groups 71 (method) and 41 (factor).
+  std::uint8_t m_diffuseColorMethod {0u};
+  double m_diffuseColorFactor {1.0};
+  std::uint32_t m_diffuseColorValue {0u};
+  bool m_hasDiffuseColorMethod {false};
+  bool m_hasDiffuseColorFactor {false};
+  bool m_hasDiffuseColorValue {false};
+  //! Diffuse-map controls: DXF groups 42, 72, 3, 73, 74, and 75.
+  double m_diffuseMapBlendFactor {1.0};
+  std::uint8_t m_diffuseMapSource {1u};
+  UTF8STRING m_diffuseMapFileName;
+  std::uint8_t m_diffuseMapProjection {1u};
+  std::uint8_t m_diffuseMapTiling {1u};
+  std::uint8_t m_diffuseMapAutoTransform {1u};
+  bool m_hasDiffuseMapBlendFactor {false};
+  bool m_hasDiffuseMapSource {false};
+  bool m_hasDiffuseMapFileName {false};
+  bool m_hasDiffuseMapProjection {false};
+  bool m_hasDiffuseMapTiling {false};
+  bool m_hasDiffuseMapAutoTransform {false};
+  //! Diffuse-map mapper transform: DXF group 43, 16 row-major reals.
+  std::array<double, 16> m_diffuseMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasDiffuseMapTransform {false};
+  //! Specular controls: DXF groups 44/76/45/92.
+  double m_specularGlossFactor {0.5};
+  std::uint8_t m_specularColorMethod {0u};
+  double m_specularColorFactor {1.0};
+  std::uint32_t m_specularColorValue {0u};
+  bool m_hasSpecularGlossFactor {false};
+  bool m_hasSpecularColorMethod {false};
+  bool m_hasSpecularColorFactor {false};
+  bool m_hasSpecularColorValue {false};
+  //! Specular-map fields: groups 46/77/4/78/79/170 plus transform group 47.
+  double m_specularMapBlendFactor {1.0};
+  std::uint8_t m_specularMapSource {1u};
+  UTF8STRING m_specularMapFileName;
+  std::uint8_t m_specularMapProjection {1u};
+  std::uint8_t m_specularMapTiling {1u};
+  std::uint8_t m_specularMapAutoTransform {1u};
+  bool m_hasSpecularMapBlendFactor {false};
+  bool m_hasSpecularMapSource {false};
+  bool m_hasSpecularMapFileName {false};
+  bool m_hasSpecularMapProjection {false};
+  bool m_hasSpecularMapTiling {false};
+  bool m_hasSpecularMapAutoTransform {false};
+  //! Specular-map mapper transform: DXF group 47, 16 row-major reals.
+  std::array<double, 16> m_specularMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasSpecularMapTransform {false};
+  //! Reflection-map fields: groups 48/171/6/172/173/174 plus transform 49.
+  double m_reflectionMapBlendFactor {1.0};
+  std::uint8_t m_reflectionMapSource {1u};
+  UTF8STRING m_reflectionMapFileName;
+  std::uint8_t m_reflectionMapProjection {1u};
+  std::uint8_t m_reflectionMapTiling {1u};
+  std::uint8_t m_reflectionMapAutoTransform {1u};
+  bool m_hasReflectionMapBlendFactor {false};
+  bool m_hasReflectionMapSource {false};
+  bool m_hasReflectionMapFileName {false};
+  bool m_hasReflectionMapProjection {false};
+  bool m_hasReflectionMapTiling {false};
+  bool m_hasReflectionMapAutoTransform {false};
+  //! Reflection-map mapper transform: DXF group 49, 16 row-major reals.
+  std::array<double, 16> m_reflectionMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasReflectionMapTransform {false};
+  //! Opacity and opacity-map fields: groups 140/141/175/7/176/177/178/142.
+  double m_opacityPercent {1.0};
+  double m_opacityMapBlendFactor {1.0};
+  std::uint8_t m_opacityMapSource {1u};
+  UTF8STRING m_opacityMapFileName;
+  std::uint8_t m_opacityMapProjection {1u};
+  std::uint8_t m_opacityMapTiling {1u};
+  std::uint8_t m_opacityMapAutoTransform {1u};
+  bool m_hasOpacityPercent {false};
+  bool m_hasOpacityMapBlendFactor {false};
+  bool m_hasOpacityMapSource {false};
+  bool m_hasOpacityMapFileName {false};
+  bool m_hasOpacityMapProjection {false};
+  bool m_hasOpacityMapTiling {false};
+  bool m_hasOpacityMapAutoTransform {false};
+  //! Opacity-map mapper transform: DXF group 142, 16 row-major reals.
+  std::array<double, 16> m_opacityMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasOpacityMapTransform {false};
+  //! Bump-map controls and mapper transform: groups 143/179/8/270/271/272/144.
+  double m_bumpMapBlendFactor {1.0};
+  std::uint8_t m_bumpMapSource {1u};
+  UTF8STRING m_bumpMapFileName;
+  std::uint8_t m_bumpMapProjection {1u};
+  std::uint8_t m_bumpMapTiling {1u};
+  std::uint8_t m_bumpMapAutoTransform {1u};
+  bool m_hasBumpMapBlendFactor {false};
+  bool m_hasBumpMapSource {false};
+  bool m_hasBumpMapFileName {false};
+  bool m_hasBumpMapProjection {false};
+  bool m_hasBumpMapTiling {false};
+  bool m_hasBumpMapAutoTransform {false};
+  //! Bump-map mapper transform: DXF group 144, 16 row-major reals.
+  std::array<double, 16> m_bumpMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasBumpMapTransform {false};
+  //! Refraction fields and map: groups 145/146/273/9/274/275/276/147.
+  double m_refractionIndex {1.0};
+  double m_refractionMapBlendFactor {1.0};
+  std::uint8_t m_refractionMapSource {1u};
+  UTF8STRING m_refractionMapFileName;
+  std::uint8_t m_refractionMapProjection {1u};
+  std::uint8_t m_refractionMapTiling {1u};
+  std::uint8_t m_refractionMapAutoTransform {1u};
+  bool m_hasRefractionIndex {false};
+  bool m_hasRefractionMapBlendFactor {false};
+  bool m_hasRefractionMapSource {false};
+  bool m_hasRefractionMapFileName {false};
+  bool m_hasRefractionMapProjection {false};
+  bool m_hasRefractionMapTiling {false};
+  bool m_hasRefractionMapAutoTransform {false};
+  //! Refraction-map mapper transform: DXF group 147, 16 row-major reals.
+  std::array<double, 16> m_refractionMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasRefractionMapTransform {false};
+  //! Pre-luminance physical controls: groups 460-463 and 290.
+  double m_colorBleedScale {0.0};
+  double m_indirectDumpScale {0.0};
+  double m_reflectanceScale {0.0};
+  double m_transmittanceScale {0.0};
+  bool m_hasColorBleedScale {false};
+  bool m_hasIndirectDumpScale {false};
+  bool m_hasReflectanceScale {false};
+  bool m_hasTransmittanceScale {false};
+  bool m_twoSidedMaterial {false};
+  bool m_hasTwoSidedMaterial {false};
+  //! Materials Anonymous: DXF group 293.
+  bool m_materialsAnonymous {false};
+  bool m_hasMaterialsAnonymous {false};
+  //! Luminance and normal-map controls: groups 464/270/271/465.
+  double m_luminance {0.0};
+  std::int16_t m_luminanceMode {0};
+  std::int16_t m_normalMapMethod {0};
+  double m_normalMapStrength {0.0};
+  bool m_hasLuminance {false};
+  bool m_hasLuminanceMode {false};
+  bool m_hasNormalMapMethod {false};
+  bool m_hasNormalMapStrength {false};
+  //! Normal-map controls and mapper transform: groups 42/72/3/73/74/75/43.
+  double m_normalMapBlendFactor {1.0};
+  std::uint8_t m_normalMapSource {1u};
+  UTF8STRING m_normalMapFileName;
+  std::uint8_t m_normalMapProjection {1u};
+  std::uint8_t m_normalMapTiling {1u};
+  std::uint8_t m_normalMapAutoTransform {1u};
+  bool m_hasNormalMapBlendFactor {false};
+  bool m_hasNormalMapSource {false};
+  bool m_hasNormalMapFileName {false};
+  bool m_hasNormalMapProjection {false};
+  bool m_hasNormalMapTiling {false};
+  bool m_hasNormalMapAutoTransform {false};
+  std::array<double, 16> m_normalMapTransform {{
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0}};
+  bool m_hasNormalMapTransform {false};
+  //! MATERIAL tail fields with distinct parser contexts and DXF codes.
+  std::int16_t m_globalIlluminationMode {0};
+  std::int16_t m_finalGatherMode {0};
+  bool m_hasGlobalIlluminationMode {false};
+  bool m_hasFinalGatherMode {false};
+  bool m_genProcTableEnd {false};
+  bool m_hasGenProcTableEnd {false};
+  std::int16_t m_mapUTile {0};
+  bool m_hasMapUTile {false};
+  double m_translucence {0.0};
+  bool m_hasTranslucence {false};
+  double m_reflectivity {0.0};
+  bool m_hasReflectivity {false};
+  std::int32_t m_illuminationModel {0};
+  bool m_hasIlluminationModel {false};
+  std::int32_t m_channelFlags {0};
+  bool m_hasChannelFlags {false};
+  [[nodiscard]] bool hasCompleteDxfMapTransforms() const noexcept {
+    // Without an explicit normal-map marker, the reader only admits the
+    // complete distinguishing tuple. A repeated pre-strength method must be
+    // followed immediately by its strength boundary before publication.
+    return !m_dxfPreStrengthNormalMapMethod
+        && (!m_dxfInferredNormalMapBoundary
+            || (m_hasNormalMapBlendFactor && m_hasNormalMapSource
+                && m_hasNormalMapFileName && m_hasNormalMapProjection
+                && m_hasNormalMapTiling && m_hasNormalMapAutoTransform))
+        && (!m_hasDiffuseMapTransform
+            || m_dxfDiffuseMapTransformCount
+                == m_diffuseMapTransform.size())
+        && (!m_hasSpecularMapTransform
+            || m_dxfSpecularMapTransformCount
+                == m_specularMapTransform.size())
+        && (!m_hasReflectionMapTransform
+            || m_dxfReflectionMapTransformCount
+                == m_reflectionMapTransform.size())
+        && (!m_hasOpacityMapTransform
+            || m_dxfOpacityMapTransformCount
+                == m_opacityMapTransform.size())
+        && (!m_hasBumpMapTransform
+            || m_dxfBumpMapTransformCount
+                == m_bumpMapTransform.size())
+        && (!m_hasRefractionMapTransform
+            || m_dxfRefractionMapTransformCount
+                == m_refractionMapTransform.size())
+        && (!m_hasNormalMapTransform
+            || m_dxfNormalMapTransformCount == m_normalMapTransform.size());
+  }
 
   //! Preserve an opaque modern MATERIAL body tail for same-version replay.
   [[nodiscard]] bool setDwgRawData(std::vector<std::uint8_t> bytes,
@@ -3486,6 +4648,7 @@ public:
     m_rawDataBitSize = bitSize;
     m_rawDataValid = true;
     m_rawDataVersion = version;
+    m_dwgSemanticFieldsParsed = false;
     return true;
   }
   [[nodiscard]] const std::vector<std::uint8_t> &dwgRawData() const noexcept {
@@ -3495,15 +4658,53 @@ public:
     return m_rawDataBitSize;
   }
   [[nodiscard]] bool hasDwgRawData() const noexcept { return m_rawDataValid; }
+  //! True when the selected AC1024 MATERIAL profile was decoded completely
+  //! into fields representable by the current DXF MATERIAL writer.
+  [[nodiscard]] bool hasCompleteDwgSemanticFields() const noexcept {
+    return m_dwgSemanticFieldsParsed;
+  }
+  //! True when DXF tail fields were parsed after a complete nonprocedural map
+  //! tuple, without the optional procedural-table group 292 marker.
+  [[nodiscard]] bool hasDxfMaterialImplicitTail() const noexcept {
+    return m_dxfMaterialImplicitTail;
+  }
   [[nodiscard]] DRW::Version dwgRawDataVersion() const noexcept {
     return m_rawDataVersion;
   }
 
 private:
+  std::size_t m_dxfRetainedNameBytes{0u};
+  std::size_t m_dxfRetainedDescriptionBytes{0u};
+  std::size_t m_dxfRetainedDiffuseMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedSpecularMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedReflectionMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedOpacityMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedBumpMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedRefractionMapFileNameBytes{0u};
+  std::size_t m_dxfRetainedNormalMapFileNameBytes{0u};
+  // The Normal Map block follows luminance/strength and reuses groups
+  // 3/42/43/72-75. Keep those post-boundary fields out of the base-map slots.
+  bool m_dxfPastPreNormalMapFields{false};
+  bool m_dxfCompleteDiffuseBeforeRefraction{false};
+  bool m_dxfInferredNormalMapBoundary{false};
+  bool m_dxfRepeatedDiffuseMapField{false};
+  // A repeated 271 with a bump tiling already bound must be followed by 465.
+  bool m_dxfPreStrengthNormalMapMethod{false};
+  bool m_dxfMaterialGenProcTableStarted{false};
+  bool m_dxfMaterialGenProcTableEnded{false};
+  bool m_dxfMaterialImplicitTail{false};
+  std::size_t m_dxfDiffuseMapTransformCount{0u};
+  std::size_t m_dxfSpecularMapTransformCount{0u};
+  std::size_t m_dxfReflectionMapTransformCount{0u};
+  std::size_t m_dxfOpacityMapTransformCount{0u};
+  std::size_t m_dxfBumpMapTransformCount{0u};
+  std::size_t m_dxfRefractionMapTransformCount{0u};
+  std::size_t m_dxfNormalMapTransformCount{0u};
   std::vector<std::uint8_t> m_rawData;
   std::uint32_t m_rawDataBitSize = 0;
   bool m_rawDataValid = false;
   DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
+  bool m_dwgSemanticFieldsParsed = false;
 };
 
 //! Render background object family (AcDb*Background: solid / gradient / ground-
@@ -3541,7 +4742,9 @@ public:
       m_offset(o.m_offset), m_scale(o.m_scale), m_iblName(o.m_iblName),
       m_enabled(o.m_enabled), m_displayImage(o.m_displayImage),
       m_secondaryBackgroundHandle(o.m_secondaryBackgroundHandle),
-      m_sunHandle(o.m_sunHandle), m_seen90(0), m_seen290(0) {
+      m_sunHandle(o.m_sunHandle), m_seen90(0), m_seen290(0),
+      m_dxfRetainedFileNameBytes(o.m_dxfRetainedFileNameBytes),
+      m_dxfRetainedIblNameBytes(o.m_dxfRetainedIblNameBytes) {
     tType = DRW::BACKGROUND;
   }
   DRW_Background& operator=(const DRW_Background& o) {
@@ -3575,6 +4778,8 @@ public:
       m_sunHandle = o.m_sunHandle;
       m_seen90 = 0;
       m_seen290 = 0;
+      m_dxfRetainedFileNameBytes = o.m_dxfRetainedFileNameBytes;
+      m_dxfRetainedIblNameBytes = o.m_dxfRetainedIblNameBytes;
       tType = DRW::BACKGROUND;
     }
     return *this;
@@ -3621,6 +4826,8 @@ protected:
 private:
   int m_seen90 = 0;  /*!< gradient/ground-plane/solid: 90 appears twice */
   int m_seen290 = 0; /*!< ibl: 290 appears twice (enable, displayImage) */
+  std::size_t m_dxfRetainedFileNameBytes{0u};
+  std::size_t m_dxfRetainedIblNameBytes{0u};
 };
 
 //! Point-cloud definition objects (AcDbPointCloudDef / ...DefEx and their
@@ -3654,6 +4861,9 @@ protected:
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *handleBuf = nullptr) const;
+
+private:
+  std::size_t m_dxfRetainedSourceFilenameBytes{0u};
 };
 
 //! NAVISWORKSMODELDEF object (AcDbNavisworksModelDef).
@@ -3671,7 +4881,8 @@ public:
       DRW_TableEntry(o), m_flags(o.m_flags), m_path(o.m_path),
       m_status(o.m_status), m_minExtent(o.m_minExtent),
       m_maxExtent(o.m_maxExtent),
-      m_hostDrawingVisibility(o.m_hostDrawingVisibility), m_seen290(0) {
+      m_hostDrawingVisibility(o.m_hostDrawingVisibility), m_seen290(0),
+      m_dxfRetainedPathBytes(o.m_dxfRetainedPathBytes) {
     tType = DRW::NAVISWORKSMODELDEF;
   }
   DRW_NavisworksModelDef& operator=(const DRW_NavisworksModelDef& o) {
@@ -3684,6 +4895,7 @@ public:
       m_maxExtent = o.m_maxExtent;
       m_hostDrawingVisibility = o.m_hostDrawingVisibility;
       m_seen290 = 0;
+      m_dxfRetainedPathBytes = o.m_dxfRetainedPathBytes;
       tType = DRW::NAVISWORKSMODELDEF;
     }
     return *this;
@@ -3706,6 +4918,7 @@ protected:
 
 private:
   int m_seen290 = 0;
+  std::size_t m_dxfRetainedPathBytes{0u};
 };
 
 //! One PointCloudColorMap ramp.  DXF stores the declared color count before
@@ -3739,7 +4952,11 @@ public:
       m_classificationColorRampCount(o.m_classificationColorRampCount),
       m_classificationColorRamps(o.m_classificationColorRamps),
       m_dxfClassification(false), m_dxfActiveRamp(-1),
-      m_dxfDefaultSchemeCount(0) {
+      m_dxfDefaultSchemeCount(0),
+      m_dxfRetainedDefaultSchemeBytes(o.m_dxfRetainedDefaultSchemeBytes),
+      m_dxfRetainedColorRampBytes(o.m_dxfRetainedColorRampBytes),
+      m_dxfRetainedClassificationRampBytes(
+          o.m_dxfRetainedClassificationRampBytes) {
     tType = DRW::POINTCLOUDCOLORMAP;
   }
   DRW_PointCloudColorMap& operator=(const DRW_PointCloudColorMap& o) {
@@ -3754,6 +4971,10 @@ public:
       m_colorRamps = o.m_colorRamps;
       m_classificationColorRampCount = o.m_classificationColorRampCount;
       m_classificationColorRamps = o.m_classificationColorRamps;
+      m_dxfRetainedDefaultSchemeBytes = o.m_dxfRetainedDefaultSchemeBytes;
+      m_dxfRetainedColorRampBytes = o.m_dxfRetainedColorRampBytes;
+      m_dxfRetainedClassificationRampBytes =
+          o.m_dxfRetainedClassificationRampBytes;
       m_dxfClassification = false;
       m_dxfActiveRamp = -1;
       m_dxfDefaultSchemeCount = 0;
@@ -3784,6 +5005,9 @@ private:
   bool m_dxfClassification = false;
   std::int32_t m_dxfActiveRamp = -1;
   std::size_t m_dxfDefaultSchemeCount = 0;
+  std::array<std::size_t, 3> m_dxfRetainedDefaultSchemeBytes{};
+  std::vector<std::size_t> m_dxfRetainedColorRampBytes;
+  std::vector<std::size_t> m_dxfRetainedClassificationRampBytes;
 };
 
 struct DRW_SunStudyDate {
@@ -3818,7 +5042,9 @@ public:
       m_pageSetupWizardHandle(o.m_pageSetupWizardHandle),
       m_viewHandle(o.m_viewHandle),
       m_visualStyleHandle(o.m_visualStyleHandle),
-      m_textStyleHandle(o.m_textStyleHandle), m_seen90(0), m_seen290(0),
+      m_textStyleHandle(o.m_textStyleHandle),
+      m_dxfRetainedTextBytes(o.m_dxfRetainedTextBytes),
+      m_seen90(0), m_seen290(0),
       m_dxfDateCountSeen(false), m_dxfHourCountSeen(false),
       m_dxfDateValuesRemaining(0), m_dxfDateValue(0),
       m_dxfHasPendingDateValue(false) {
@@ -3859,6 +5085,7 @@ public:
       m_dxfDateValuesRemaining = 0;
       m_dxfDateValue = 0;
       m_dxfHasPendingDateValue = false;
+      m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
       tType = DRW::SUNSTUDY;
     }
     return *this;
@@ -3900,6 +5127,7 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 private:
+  std::array<std::size_t, 4> m_dxfRetainedTextBytes{};
   int m_seen90 = 0;
   int m_seen290 = 0;
   bool m_dxfDateCountSeen = false;
@@ -4135,6 +5363,7 @@ private:
 //! settings are still retained by the raw-object path for same-version replay.
 class DRW_RenderSettings : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfRenderSettings::Decoder;
 public:
   enum Kind { Settings, Global, Environment, Entry, RapidRT, MentalRay };
   static constexpr std::uint16_t kDwgClassNumEntry = 549;
@@ -4164,6 +5393,10 @@ public:
   std::vector<std::int32_t> m_bytes;  /*!< code 280 (RC) */
   std::vector<double> m_doubles;      /*!< code 40 */
   /* named fields finalized for the documented kinds */
+  // Preset records retain the historical aliases: materials, texture sampling
+  // and shadows use fogEnabled, fogBackgroundEnabled and environmentImageEnabled.
+  // Environment records use the literal fog/image meanings. Preset image text
+  // is the preview filename, not an environment map.
   bool m_fogEnabled = false;
   bool m_fogBackgroundEnabled = false;
   bool m_backfacesEnabled = false;
@@ -4217,6 +5450,16 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 private:
+  // Internal DXF decoder supplies string roles from the original subclass.
+  // Roles:1 name,2 image/preview filename,4 description.8 selects the legacy,
+  // markerless parseCode projection. No parser state is
+  // added to installed models and native DWG finalization remains separate.
+  bool parseDxfValue(int code, const std::unique_ptr<dxfReader>& reader,
+                     unsigned stringRoles);
+  std::size_t m_dxfRetainedStringVectorBytes{0u};
+  std::size_t m_dxfRetainedNameBytes{0u};
+  std::size_t m_dxfRetainedEnvironmentFilenameBytes{0u};
+  std::size_t m_dxfRetainedDescriptionBytes{0u};
   std::vector<std::uint8_t> m_rawData;
   std::uint32_t m_rawDataBitSize = 0;
   bool m_rawDataValid = false;
@@ -4242,6 +5485,22 @@ struct DRW_SectionGeometrySettings {
   double m_hatchAngle = 0.0;
   double m_hatchSpacing = 1.0;
   double m_hatchScale = 1.0;
+  // DWG CMC source details are appended so existing member offsets remain
+  // stable.  The CMC is represented in DXF only by groups 62/420, so names
+  // and source flags must be retained here for DWG replay and guarded when
+  // projecting to that scalar DXF representation.
+  std::uint8_t m_colorMethod = 0;
+  std::uint8_t m_colorFlags = 0;
+  std::uint16_t m_colorRawIndex = 0;
+  UTF8STRING m_colorName;
+  UTF8STRING m_colorBookName;
+
+private:
+  friend class DRW_Section;
+  std::size_t m_dxfRetainedLayerBytes{0u};
+  std::size_t m_dxfRetainedLineTypeBytes{0u};
+  std::size_t m_dxfRetainedPlotStyleBytes{0u};
+  std::size_t m_dxfRetainedHatchPatternBytes{0u};
 };
 
 struct DRW_SectionTypeSettings {
@@ -4253,6 +5512,10 @@ struct DRW_SectionTypeSettings {
   UTF8STRING m_destinationFile;
   std::int32_t m_numGeometrySettings = 0;
   std::vector<DRW_SectionGeometrySettings> m_geometry;
+
+private:
+  friend class DRW_Section;
+  std::size_t m_dxfRetainedDestinationFileBytes{0u};
 };
 
 //! Section objects: SECTION_MANAGER (live flag + section-object handle list)
@@ -4281,7 +5544,12 @@ public:
       m_sourceHandle(o.m_sourceHandle),
       m_destinationBlockHandle(o.m_destinationBlockHandle),
       m_destinationFileHandle(o.m_destinationFileHandle),
-      m_destinationFile(o.m_destinationFile), m_dxfInBody(false),
+      m_destinationFile(o.m_destinationFile),
+      m_dxfRetainedDestinationTextBytes(
+          o.m_dxfRetainedDestinationTextBytes),
+      m_dxfRetainedDestinationFileMirrorBytes(
+          o.m_dxfRetainedDestinationFileMirrorBytes),
+      m_dxfInBody(false),
       m_dxfTypeIndex(-1), m_dxfGeometryIndex(-1), m_settingsInts(),
       m_rawData(o.m_rawData), m_rawDataBitSize(o.m_rawDataBitSize),
       m_rawDataValid(o.m_rawDataValid), m_rawDataVersion(o.m_rawDataVersion) {
@@ -4304,6 +5572,10 @@ public:
       m_destinationBlockHandle = o.m_destinationBlockHandle;
       m_destinationFileHandle = o.m_destinationFileHandle;
       m_destinationFile = o.m_destinationFile;
+      m_dxfRetainedDestinationTextBytes =
+          o.m_dxfRetainedDestinationTextBytes;
+      m_dxfRetainedDestinationFileMirrorBytes =
+          o.m_dxfRetainedDestinationFileMirrorBytes;
       m_dxfInBody = false;
       m_dxfTypeIndex = -1;
       m_dxfGeometryIndex = -1;
@@ -4333,6 +5605,8 @@ public:
     m_destinationBlockHandle = 0;
     m_destinationFileHandle = 0;
     m_destinationFile.clear();
+    m_dxfRetainedDestinationTextBytes = 0u;
+    m_dxfRetainedDestinationFileMirrorBytes = 0u;
     m_rawData.clear();
     m_rawDataBitSize = 0;
     m_rawDataValid = false;
@@ -4396,6 +5670,9 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 private:
+  // Group 1 is retained in both the current type and this top-level mirror.
+  std::size_t m_dxfRetainedDestinationTextBytes{0u};
+  std::size_t m_dxfRetainedDestinationFileMirrorBytes{0u};
   bool m_dxfInBody = false;
   int m_dxfTypeIndex = -1;
   int m_dxfGeometryIndex = -1;
@@ -4406,6 +5683,25 @@ private:
   DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
 };
 
+//! DWG CMC companions for the scalar TABLESTYLE color fields.
+//! A zero method denotes caller-authored/DXF-origin data that may be inferred.
+struct DRW_TableStyleCmcColor {
+  std::int32_t m_rgb = -1;
+  UTF8STRING m_name;
+  UTF8STRING m_bookName;
+  std::uint8_t m_method = 0;
+  std::uint8_t m_flags = 0;
+  std::uint16_t m_reservedIndex = 0;
+
+private:
+  friend class DRW_TableStyle;
+  friend class DRW_CellStyleMap;
+  std::size_t m_dxfRetainedNameBytes{0u};
+  std::size_t m_dxfRetainedBookNameBytes{0u};
+  bool m_dxfNamePresent{false};
+  bool m_dxfBookNamePresent{false};
+};
+
 struct DRW_TableStyleBorder {
   int m_edgeFlags = 0;
   int m_propertyOverrideFlags = 0;
@@ -4413,8 +5709,12 @@ struct DRW_TableStyleBorder {
   int m_color = 0;
   int m_lineWeight = 0;
   std::uint32_t m_lineTypeHandle = 0;
+  // Context-dependent wire integer: legacy row borders use visibility;
+  // rich cell-style group 93 is invisibility (0 visible, 1 invisible).
+  // Do not interpret this shared carrier as a universal semantic bool.
   int m_visible = 0;
   double m_doubleLineSpacing = 0.0;
+  DRW_TableStyleCmcColor m_colorCmc;
 };
 
 struct DRW_TableStyleContentFormat {
@@ -4427,8 +5727,14 @@ struct DRW_TableStyleContentFormat {
   double m_blockScale = 1.0;
   int m_cellAlignment = 0;
   int m_contentColor = 0;
+  DRW_TableStyleCmcColor m_contentColorCmc;
   std::uint32_t m_textStyleHandle = 0;
   double m_textHeight = 0.0;
+
+private:
+  friend class DRW_TableStyle;
+  friend class DRW_CellStyleMap;
+  std::size_t m_dxfRetainedValueFormatBytes{0u};
 };
 
 struct DRW_TableStyleCellStyle {
@@ -4437,6 +5743,7 @@ struct DRW_TableStyleCellStyle {
   std::uint32_t m_propertyOverrideFlags = 0;
   std::uint32_t m_mergeFlags = 0;
   int m_backgroundColor = 0;
+  DRW_TableStyleCmcColor m_backgroundColorCmc;
   std::uint32_t m_contentLayout = 0;
   DRW_TableStyleContentFormat m_contentFormat;
   int m_marginOverrideFlags = 0;
@@ -4450,19 +5757,35 @@ struct DRW_TableStyleCellStyle {
   int m_styleClass = 0;
   UTF8STRING m_name;
   std::vector<DRW_TableStyleBorder> m_borders;
+
+private:
+  friend class DRW_TableStyle;
+  friend class DRW_CellStyleMap;
+  std::size_t m_dxfRetainedNameBytes{0u};
 };
 
 struct DRW_TableStyleRowStyle {
+  UTF8STRING m_textStyleName;
   std::uint32_t m_textStyleHandle = 0;
   double m_textHeight = 0.0;
   int m_textAlignment = 0;
   int m_textColor = 0;
   int m_fillColor = 0;
+  DRW_TableStyleCmcColor m_textColorCmc;
+  DRW_TableStyleCmcColor m_fillColorCmc;
   bool m_hasBackgroundColor = false;
   int m_valueDataType = 0;
   int m_valueUnitType = 0;
   UTF8STRING m_valueFormatString;
   std::vector<DRW_TableStyleBorder> m_borders;
+
+private:
+  friend class DRW_TableStyle;
+  std::uint16_t m_dxfFieldsPresent{0u};
+  std::uint8_t m_dxfLineWeightMask{0u};
+  std::uint8_t m_dxfVisibilityMask{0u};
+  std::uint8_t m_dxfBorderColorMask{0u};
+  std::size_t m_dxfRetainedTextStyleNameBytes{0u};
 };
 
 //! Class to handle TABLESTYLE (AcDbTableStyle) identity/core fields.
@@ -4475,22 +5798,51 @@ public:
   void reset() {
     tType = DRW::TABLESTYLE;
     m_name.clear();
+    m_dxfRetainedTableStyleNameBytes = 0u;
+    m_dxfOriginalName.clear();
+    m_dxfOriginalNameRaw.clear();
+    m_dxfRetainedTableStyleOriginalNameBytes = 0u;
+    m_dxfRetainedTableStyleRawNameBytes = 0u;
+    m_dxfHasDescriptionBaseline = false;
     m_flowDirection = 0;
     m_flags = 0;
     m_horizontalCellMargin = 0.0;
     m_verticalCellMargin = 0.0;
     m_titleSuppressed = false;
     m_headerSuppressed = false;
+    m_r24PrefixPresent = false;
+    m_r24ClassVersion = 0;
+    m_r24UnknownValue1 = 0;
+    m_r24UnknownValue2 = 0;
     m_unknownHandle = 0;
     m_tableCellStyle = DRW_TableStyleCellStyle();
     m_rowStyles.clear();
     m_cellStyles.clear();
     m_subrecordRanges.clear();
+    m_dxfCurrentRowStyle = -1;
+    m_dxfCurrentBorder = -1;
+    m_dxfColorTarget = DxfColorTarget::None;
+    m_dxfNestedRowsValid = true;
+    m_dxfSawTableStyleBody = false;
+    m_dxfSawTableStyleHeader = false;
+    m_dxfCoreFieldsPresent = 0u;
+    m_dxfR24NestedStylesSeen = false;
+    m_dxfR24NestedStylesValid = true;
+    m_dxfR24NestedStylesComplete = false;
+    m_dxfR24SourceVersion = DRW::UNKNOWNV;
+    m_dxfR24Section = DxfR24Section::None;
+    m_dxfR24FieldIndex = 0u;
+    m_dxfR24StyleCount = 0u;
+    m_dxfR24BorderCount = 0u;
+    m_dxfR24BorderIndex = 0u;
     DRW_TableEntry::reset();
   }
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
+  bool parseDxfR24NestedStyle(int code,
+                              const std::unique_ptr<dxfReader>& reader,
+                              bool& handled);
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -4499,6 +5851,16 @@ protected:
 
 public:
   [[nodiscard]] bool validateDwgPayload(DRW::Version version) const;
+  [[nodiscard]] bool finalizeDxfNestedStyles() noexcept;
+  [[nodiscard]] bool hasDxfDescriptionBaseline() const noexcept {
+    return m_dxfHasDescriptionBaseline;
+  }
+  [[nodiscard]] const UTF8STRING& dxfOriginalDescription() const noexcept {
+    return m_dxfOriginalName;
+  }
+  [[nodiscard]] const std::string& dxfOriginalDescriptionRaw() const noexcept {
+    return m_dxfOriginalNameRaw;
+  }
   UTF8STRING m_name;
   int m_flowDirection = 0;
   int m_flags = 0;
@@ -4506,11 +5868,56 @@ public:
   double m_verticalCellMargin = 0.0;
   bool m_titleSuppressed = false;
   bool m_headerSuppressed = false;
+  // R2013+ DWG prefix fields whose meanings are still undocumented. Retain
+  // the source values so bounded output profiles can reject unqualified data.
+  bool m_r24PrefixPresent = false;
+  std::uint8_t m_r24ClassVersion = 0;
+  std::int32_t m_r24UnknownValue1 = 0;
+  std::int32_t m_r24UnknownValue2 = 0;
   std::uint32_t m_unknownHandle = 0;
   DRW_TableStyleCellStyle m_tableCellStyle;
   std::vector<DRW_TableStyleRowStyle> m_rowStyles;
   std::vector<DRW_TableStyleCellStyle> m_cellStyles;
   std::vector<DRW_DwgSubrecordRange> m_subrecordRanges;
+
+private:
+  enum class DxfR24Section : std::uint8_t {
+    None,
+    Table,
+    Content,
+    Margin,
+    Border,
+    Identity,
+    Invalid
+  };
+  enum class DxfColorTarget : std::uint8_t {
+    None,
+    Text,
+    Fill,
+    Border
+  };
+  int m_dxfCurrentRowStyle{-1};
+  int m_dxfCurrentBorder{-1};
+  DxfColorTarget m_dxfColorTarget{DxfColorTarget::None};
+  bool m_dxfNestedRowsValid{true};
+  bool m_dxfSawTableStyleBody{false};
+  bool m_dxfSawTableStyleHeader{false};
+  std::uint16_t m_dxfCoreFieldsPresent{0u};
+  bool m_dxfR24NestedStylesSeen{false};
+  bool m_dxfR24NestedStylesValid{true};
+  bool m_dxfR24NestedStylesComplete{false};
+  DxfR24Section m_dxfR24Section{DxfR24Section::None};
+  std::size_t m_dxfR24FieldIndex{0u};
+  std::size_t m_dxfR24StyleCount{0u};
+  std::size_t m_dxfR24BorderCount{0u};
+  std::size_t m_dxfR24BorderIndex{0u};
+  DRW::Version m_dxfR24SourceVersion{DRW::UNKNOWNV};
+  std::size_t m_dxfRetainedTableStyleNameBytes{0u};
+  UTF8STRING m_dxfOriginalName;
+  std::string m_dxfOriginalNameRaw;
+  std::size_t m_dxfRetainedTableStyleOriginalNameBytes{0u};
+  std::size_t m_dxfRetainedTableStyleRawNameBytes{0u};
+  bool m_dxfHasDescriptionBaseline{false};
 };
 
 //! Class to handle CELLSTYLEMAP (AcDbCellStyleMap).
@@ -4522,16 +5929,84 @@ public:
     tType = DRW::CELLSTYLEMAP;
     m_cellStyles.clear();
     m_subrecordRanges.clear();
+    m_dxfSection = DxfSection::None;
+    m_dxfColorTarget = DxfColorTarget::None;
+    m_dxfSawSubclass = false;
+    m_dxfValid = true;
+    m_dxfSawCount = false;
+    m_dxfDeclaredCount = 0;
+    m_dxfCompletedCount = 0;
+    m_dxfCellStyleIds.clear();
+    m_dxfCurrentStyle = -1;
+    m_dxfCurrentBorder = -1;
+    m_dxfTableFieldsPresent = 0;
+    m_dxfContentFieldsPresent = 0;
+    m_dxfGridFieldsPresent = 0;
+    m_dxfIdentityFieldsPresent = 0;
+    m_dxfColorFieldsPresent = 0;
+    m_dxfMarginsRead = 0;
+    m_dxfDeclaredBorderCount = 0;
+    m_dxfBorderSlotsRead = 0;
+    m_dxfSawContentMarker = false;
+    m_dxfSawMarginMarker = false;
+    m_dxfSawGridMarker = false;
+    m_dxfSawTableEnd = false;
+    m_dxfZeroGridEndExpected = false;
     DRW_TableEntry::reset();
   }
 
 protected:
+  bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
+  [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
+                               dwgBufferW *strBuf = nullptr,
+                               dwgBufferW *handleBuf = nullptr) const;
 
 public:
+  [[nodiscard]] bool validateDwgPayload(DRW::Version version) const;
+  [[nodiscard]] bool finalizeDxf() const noexcept;
   std::vector<DRW_TableStyleCellStyle> m_cellStyles;
   std::vector<DRW_DwgSubrecordRange> m_subrecordRanges;
+
+private:
+  enum class DxfSection : std::uint8_t {
+    None,
+    Table,
+    Content,
+    Margin,
+    Grid,
+    Identity
+  };
+  enum class DxfColorTarget : std::uint8_t {
+    None,
+    Background,
+    Content,
+    Border
+  };
+  DxfSection m_dxfSection{DxfSection::None};
+  DxfColorTarget m_dxfColorTarget{DxfColorTarget::None};
+  bool m_dxfSawSubclass{false};
+  bool m_dxfValid{true};
+  bool m_dxfSawCount{false};
+  std::size_t m_dxfDeclaredCount{0};
+  std::size_t m_dxfCompletedCount{0};
+  std::set<int> m_dxfCellStyleIds;
+  int m_dxfCurrentStyle{-1};
+  int m_dxfCurrentBorder{-1};
+  std::uint16_t m_dxfTableFieldsPresent{0};
+  std::uint16_t m_dxfContentFieldsPresent{0};
+  std::uint16_t m_dxfGridFieldsPresent{0};
+  std::uint8_t m_dxfIdentityFieldsPresent{0};
+  std::uint8_t m_dxfColorFieldsPresent{0};
+  std::size_t m_dxfMarginsRead{0};
+  std::size_t m_dxfDeclaredBorderCount{0};
+  std::size_t m_dxfBorderSlotsRead{0};
+  bool m_dxfSawContentMarker{false};
+  bool m_dxfSawMarginMarker{false};
+  bool m_dxfSawGridMarker{false};
+  bool m_dxfSawTableEnd{false};
+  bool m_dxfZeroGridEndExpected{false};
 };
 
 //! Class to handle Layout (ODA spec sec 19.4.85 fixed type 82)
@@ -4540,6 +6015,7 @@ public:
  */
 class DRW_Layout : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfLayout::Decoder;
 public:
   static constexpr std::int32_t kMaxViewportCount = 10000;
 
@@ -4559,6 +6035,7 @@ public:
   }
   void reset() {
     tType = DRW::LAYOUT;
+    m_dxfRetainedTextBytes.fill(0u);
     // PlotSettings prefix
     pageSetupName.clear();
     printerConfig.clear();
@@ -4618,9 +6095,14 @@ protected:
   //! (0 = AcDbPlotSettings prefix, 1 = AcDbLayout). Disambiguates the
   //! codes 1/70/76/330 that appear in both subclasses.
   int m_dxfSubclass = 0;
+  // Retained logical bytes for the five embedded PlotSettings strings and
+  // the subclass-scoped Layout name; public mutation and DWG are outside this
+  // DXF parse-accounting scope.
+  std::array<std::size_t, 6> m_dxfRetainedTextBytes{};
 
 private:
   void copyPersistentFields(const DRW_Layout& o) {
+    m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
     pageSetupName = o.pageSetupName;
     printerConfig = o.printerConfig;
     plotLayoutFlags = o.plotLayoutFlags;
@@ -4739,11 +6221,21 @@ struct DRW_MLineElement {
   double offset = 0.0; /*!< BD — perpendicular offset from centerline */
   int color = 256;     /*!< CMC index — 256 = ByLayer */
   int color24 = -1;    /*!< true-color RGB (-1 = none) */
+  std::uint8_t colorMethod = 0; /*!< CMC method byte; 0 means infer for authored data */
+  std::uint8_t colorFlags = 0; /*!< raw CMC name/book flag byte */
+  UTF8STRING colorName; /*!< CMC color name (DWG only) */
+  UTF8STRING colorBookName; /*!< CMC color-book name (DWG only) */
   int linetypeIndex =
       -1; /*!< BSd inline lt index PRE-R2018 (DXF 6); -1 = unset.
            *   R2018+ uses linetypeHandle instead (0B.4b). */
   std::uint32_t linetypeHandle = 0; /*!< H — linetype object reference */
   UTF8STRING linetype;              /*!< resolved linetype name (DXF 6) */
+  //! Raw R2004+ CMC BS index. Nonzero source values are retained but not writable.
+  std::uint16_t colorDwgIndex = 0u;
+
+private:
+  friend class DRW_MLineStyle;
+  std::size_t m_dxfRetainedLinetypeBytes{0u};
 };
 
 //! Class to handle MLineStyle (ODA spec sec 19.4.73 fixed type 73)
@@ -4761,13 +6253,31 @@ public:
     flags = 0;
     startAngle = endAngle = 0.0;
     fillColor = 256;
+    fillColor24 = -1;
+    fillColorMethod = 0;
+    fillColorFlags = 0;
+    fillColorDwgIndex = 0u;
+    fillColorName.clear();
+    fillColorBookName.clear();
     name.clear();
     description.clear();
+    m_dxfRetainedDescriptionBytes = 0u;
     elements.clear();
+    dxfDeclaredElementCount = -1;
+    dxfElementCountSeen = false;
+    dxfStyleFieldsSeen = 0u;
+    dxfElementFieldMasks.clear();
     DRW_TableEntry::reset();
   }
+  [[nodiscard]] bool validateDxfRecord() const noexcept;
 
 protected:
+  // DXF cap-angle defaults differ from the historical API/DWG reset contract.
+  // No fields or virtuals are added; each DXF record starts independently.
+  void resetDxf() {
+    reset();
+    startAngle = endAngle = 90.0;
+  }
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
@@ -4781,7 +6291,24 @@ public:
   double endAngle;        /*!< end angle (BD) */
   UTF8STRING description; /*!< description (TV / DXF 3) */
   int fillColor = 256;    /*!< CMC fill color / DXF 62 (256 = ByLayer) */
+  int fillColor24 = -1;   /*!< DWG CMC RGB (-1 = absent; not mapped by DXF MLINESTYLE) */
+  std::uint8_t fillColorMethod = 0; /*!< DWG CMC method byte; 0 means infer */
+  std::uint8_t fillColorFlags = 0; /*!< raw DWG CMC name/book flag byte */
+  UTF8STRING fillColorName; /*!< DWG CMC color name */
+  UTF8STRING fillColorBookName; /*!< DWG CMC color-book name */
   std::vector<DRW_MLineElement> elements;
+  //! Raw R2004+ CMC BS index. Nonzero source values are retained but not writable.
+  std::uint16_t fillColorDwgIndex = 0u;
+
+private:
+  int dxfDeclaredElementCount = -1;
+  bool dxfElementCountSeen = false;
+  // Bit mask for singleton DXF fields: flags, description, fill color,
+  // start angle and end angle. Element tuples have their own per-item masks.
+  std::uint8_t dxfStyleFieldsSeen = 0u;
+  std::vector<std::uint8_t> dxfElementFieldMasks;
+  // Logical bytes retained by DXF-parsed description text only.
+  std::size_t m_dxfRetainedDescriptionBytes {0u};
 };
 
 //! Class to handle MLEADERSTYLE (ODA spec §20.4.87, AcDbMLeaderStyle).
@@ -4795,6 +6322,9 @@ class DRW_MLeaderStyle : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
   static constexpr std::uint16_t kDwgClassNum = 504;
+  //! Validate a represented MLEADERSTYLE DXF integer field.
+  [[nodiscard]] static bool isValidDxfIntegerValue(
+      int code, std::int32_t value) noexcept;
 
   DRW_MLeaderStyle() { reset(); }
   void reset() {
@@ -4809,6 +6339,13 @@ public:
     secondSegmentAngle = 0.0;
     leaderType = 1;
     leaderColor = 0;
+    leaderColorRgb = -1;
+    leaderColorName.clear();
+    leaderColorBookName.clear();
+    leaderColorDwgMethod = 0;
+    leaderColorDwgFlags = 0;
+    leaderColorDwgIndex = 0;
+    leaderColorDwgMetadataPresent = false;
     leaderLineTypeHandle = {};
     leaderLineWeight = 0;
     landingEnabled = true;
@@ -4825,12 +6362,26 @@ public:
     textAngleType = 0;
     textAlignmentType = 0;
     textColor = 0;
+    textColorRgb = -1;
+    textColorName.clear();
+    textColorBookName.clear();
+    textColorDwgMethod = 0;
+    textColorDwgFlags = 0;
+    textColorDwgIndex = 0;
+    textColorDwgMetadataPresent = false;
     textHeight = 0.0;
     textFrameEnabled = false;
     alwaysAlignTextLeft = false;
     alignSpace = 0.0;
     blockHandle = {};
     blockColor = 0;
+    blockColorRgb = -1;
+    blockColorName.clear();
+    blockColorBookName.clear();
+    blockColorDwgMethod = 0;
+    blockColorDwgFlags = 0;
+    blockColorDwgIndex = 0;
+    blockColorDwgMetadataPresent = false;
     blockScale = DRW_Coord(1, 1, 1);
     blockScaleEnabled = false;
     blockRotation = 0.0;
@@ -4844,6 +6395,7 @@ public:
     topAttachment = 0;
     bottomAttachment = 0;
     textExtended = false;
+    m_dxfRetainedTextBytes.fill(0u);
   }
 
 protected:
@@ -4905,6 +6457,36 @@ public:
   std::uint16_t topAttachment = 0;       /*!< code 273 */
   std::uint16_t bottomAttachment = 0;    /*!< code 272 */
   bool textExtended = false;             /*!< code 298, R2013+ */
+
+private:
+  // Logical bytes retained by DXF-parsed description/default text only.
+  std::array<std::size_t, 2> m_dxfRetainedTextBytes{};
+
+public:
+  // R2004+ DWG truecolor companions for the three CMC-valued style fields.
+  // Appended after existing state to preserve all earlier member offsets.
+  std::int32_t leaderColorRgb = -1;
+  std::int32_t textColorRgb = -1;
+  std::int32_t blockColorRgb = -1;
+  UTF8STRING leaderColorName;
+  UTF8STRING leaderColorBookName;
+  UTF8STRING textColorName;
+  UTF8STRING textColorBookName;
+  UTF8STRING blockColorName;
+  UTF8STRING blockColorBookName;
+  // Raw DWG CMC method bytes. Zero means infer for authored/DXF-origin data.
+  std::uint8_t leaderColorDwgMethod = 0;
+  std::uint8_t textColorDwgMethod = 0;
+  std::uint8_t blockColorDwgMethod = 0;
+  std::uint8_t leaderColorDwgFlags = 0;
+  std::uint16_t leaderColorDwgIndex = 0;
+  bool leaderColorDwgMetadataPresent = false;
+  std::uint8_t textColorDwgFlags = 0;
+  std::uint16_t textColorDwgIndex = 0;
+  bool textColorDwgMetadataPresent = false;
+  std::uint8_t blockColorDwgFlags = 0;
+  std::uint16_t blockColorDwgIndex = 0;
+  bool blockColorDwgMetadataPresent = false;
 };
 
 //! Class to handle DBCOLOR (AcDbColor), a custom OBJECT class (§20.4).
@@ -4935,8 +6517,12 @@ public:
     rgb = -1;
     colorIndex = 0;
     colorMethod = 0;
+    colorDwgFlags = 0u;
+    colorDwgIndex = 0u;
+    colorDwgMetadataPresent = false;
     name.clear();
     bookName.clear();
+    m_dxfRetainedBookNameBytes = 0u;
   }
 
 protected:
@@ -4954,6 +6540,13 @@ public:
       0;               /*!< 0xC0 ByLayer / 0xC1 ByBlock / 0xC2 RGB / 0xC3 ACI */
   UTF8STRING bookName; /*!< color book name, code 430 prefix */
   // name (inherited from DRW_TableEntry) is the entry name within the book
+  // Appended R2004+ source-wire provenance for the DBCOLOR CMC.
+  std::uint8_t colorDwgFlags = 0u;
+  std::uint16_t colorDwgIndex = 0u;
+  bool colorDwgMetadataPresent = false;
+
+private:
+  std::size_t m_dxfRetainedBookNameBytes{0u};
 };
 
 //! Class to handle SCALE (AcDbScale) — annotation-scale entry, custom-class
@@ -5010,7 +6603,8 @@ public:
  *  renderer yet, so this parser deliberately captures metadata only and leaves
  *  raw bytes replayable through DRW_UnsupportedObject. The stable common
  *  scaffold is AcDbObjectContextData:
- *    BS classVersion, B defaultFlag, handle stream ... scaleHandle.
+ *    BS classVersion, then for R2010+ B hasFileToExtensionDictionary,
+ *    B defaultFlag, handle stream ... scaleHandle.
  *
  *  Text, dimension, leader, block-reference, and FCF families are decoded far
  *  enough to expose their stable placement/scale links. MLeader contexts keep
@@ -5066,6 +6660,7 @@ public:
   UTF8STRING m_recordName;
   Kind m_kind = Kind::Unknown;
   std::uint16_t m_classVersion = 0;
+  bool m_hasFileToExtensionDictionary = true;
   bool m_defaultFlag = false;
   std::uint32_t m_scaleHandle = 0;
   std::uint32_t m_blockHandle = 0; /*!< dimension contexts only */
@@ -5141,7 +6736,37 @@ public:
 struct DRW_DimensionAssociationOsnapRef {
   UTF8STRING m_className;
   std::uint8_t m_objectOsnapType = 0;
+  bool m_hasObjectOsnapType = false;
   std::uint32_t m_objectHandle = 0;
+  bool m_hasSubentType = false;
+  std::int32_t m_subentType = 0;
+  bool m_hasGsMarker = false;
+  std::int32_t m_gsMarker = 0;
+  bool m_hasNearParameter = false;
+  double m_nearParameter = 0.0;
+  bool m_hasOsnapPoint = false;
+  DRW_Coord m_osnapPoint;
+  bool m_hasLastPointRef = false;
+  std::int32_t m_lastPointRef = 0;
+  bool m_hasIntersectionObjectHandle = false;
+  std::uint32_t m_intersectionObjectHandle = 0;
+  bool m_hasIntersectionSubentType = false;
+  std::int32_t m_intersectionSubentType = 0;
+  bool m_hasIntersectionGsMarker = false;
+  std::int32_t m_intersectionGsMarker = 0;
+  // DXF groups 301/302 carry serialized XREF-database handle text. Keep the
+  // exact value opaque: these are not host-drawing handles and must not pass
+  // through the local handle resolver/remapper.
+  bool m_hasXrefObjectHandleString = false;
+  std::string m_xrefObjectHandleString;
+  std::size_t m_dxfRetainedXrefObjectHandleStringBytes{0u};
+  bool m_hasIntersectionXrefObjectHandleString = false;
+  std::string m_intersectionXrefObjectHandleString;
+  std::size_t m_dxfRetainedIntersectionXrefObjectHandleStringBytes{0u};
+  std::size_t m_dxfRetainedClassNameBytes{0u};
+  // Parser-only component presence catches incomplete/duplicate WCS tuples.
+  // A complete point is represented by m_hasOsnapPoint and m_osnapPoint.
+  std::uint8_t m_dxfPointComponentMask = 0;
 };
 
 //! Shell parser for DIMASSOC (AcDbDimAssoc) associative dimension metadata.
@@ -5203,9 +6828,9 @@ public:
   std::uint8_t m_rotatedDimensionType = 0;
   std::vector<DRW_DimensionAssociationOsnapRef> m_osnapRefs;
   // The public metadata model deliberately retains one object handle per
-  // osnap reference. Set when an input carries additional reference,
-  // subentity, point, or intersection data that native replay cannot emit
-  // without loss; the validated raw frame remains the replay source.
+  // osnap reference. Set when an input carries details that the typed model
+  // cannot emit without loss; the validated raw frame remains the replay
+  // source for those fields.
   bool m_hasUnrepresentableDetail = false;
 
 private:
@@ -5329,9 +6954,16 @@ public:
     tType = DRW::BLOCKREPRESENTATIONDATA;
     m_flag = 0;
     m_blockHandle = 0;
+    m_bodyFullyDecoded = false;
+    m_dxfInBody = false;
+    m_dxfSubclassSeen = false;
+    m_dxfFlagSeen = false;
+    m_dxfBlockSeen = false;
+    m_dxfBodyComplete = true;
   }
 
 protected:
+  bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -5341,6 +6973,18 @@ protected:
 public:
   std::uint16_t m_flag = 0;
   std::uint32_t m_blockHandle = 0;
+  bool m_bodyFullyDecoded = false;
+  [[nodiscard]] bool bodyFullyDecoded() const noexcept {
+    return m_bodyFullyDecoded;
+  }
+  [[nodiscard]] bool finalizeDxf() noexcept;
+
+private:
+  bool m_dxfInBody{false};
+  bool m_dxfSubclassSeen{false};
+  bool m_dxfFlagSeen{false};
+  bool m_dxfBlockSeen{false};
+  bool m_dxfBodyComplete{true};
 };
 
 //! Minimal ACDBPLACEHOLDER carrier (ODA fixed type 80).
@@ -5473,6 +7117,8 @@ public:
     m_isOn = false;
     m_color = 0;
     m_color24 = -1;
+    m_colorCmc = DRW_DwgCmcColorMetadata{};
+    m_colorName.clear();
     m_intensity = 0.0;
     m_hasShadow = false;
     m_julianDay = 0;
@@ -5491,13 +7137,13 @@ protected:
 
 public:
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
-                               dwgBufferW *handleBuf = nullptr) const;
+                               dwgBufferW *handleBuf = nullptr,
+                               dwgBufferW *strBuf = nullptr) const;
 
   std::uint32_t m_classVersion = 0;
   bool m_isOn = false;
   std::uint32_t m_color = 0; /*!< ACI index, DXF code 63 */
-  std::int32_t m_color24 =
-      -1; /*!< 24-bit true color, DXF code 421; -1 = unset */
+  std::int32_t m_color24 = -1; /*!< Optional 24-bit DWG CMC RGB; -1 = absent */
   double m_intensity = 0.0;
   bool m_hasShadow = false;
   std::int32_t m_julianDay = 0;
@@ -5506,6 +7152,8 @@ public:
   std::uint32_t m_shadowType = 0;
   std::uint16_t m_shadowMapSize = 0;
   std::uint8_t m_shadowSoftness = 0;
+  DRW_DwgCmcColorMetadata m_colorCmc;
+  UTF8STRING m_colorName; /*!< DWG CMC name/book projection; no SUN DXF group */
 };
 
 struct DRW_AssociativeHandleRef {
@@ -5518,12 +7166,16 @@ struct DRW_AssociativePrefixStatus {
     AcDbAssocAction,
     AcDbAssocActionParam,
     AcDbAssocDependency,
+    AcDbAssocValueDependency,
     AcDbAssocGeomDependency,
     AcDbAssocNetwork,
     AcDbAssocActionBody,
     AcDbEvalExpr,
     AcDbShHistoryNode,
-    AcShActionBody
+    AcShActionBody,
+    AcDbAssocDependencyBody,
+    AcDbAssoc2dConstraintGroup,
+    AcDbAssocVariable
   };
 
   enum class ParseStatus {
@@ -5541,14 +7193,88 @@ struct DRW_AssociativePrefixStatus {
   ParseStatus m_status = ParseStatus::Missing;
   size_t m_decodedHandleCount = 0;
   size_t m_decodedValueCount = 0;
+  // A partial prefix may use -1 when its count field is absent/undecoded.
   std::int32_t m_decodedCountValue = 0;
   UTF8STRING m_sourceAssumption;
+};
+
+//! Typed prefix for one AC1024 inline associative constraint node.
+struct DRW_AssociativeConstraintNode {
+  enum class DataKind {
+    Unsupported,
+    Geometrical,
+    Horizontal,
+    RadiusDiameter,
+    Line,
+    ImplicitPoint,
+    BoundedLine,
+    Circle,
+    Arc,
+    Distance,
+    Vertical,
+    RigidSet
+  };
+
+  UTF8STRING m_className;
+  std::int32_t m_nodeId = 0;
+  std::vector<std::int32_t> m_connections;
+  DataKind m_dataKind = DataKind::Unsupported;
+  std::int32_t m_ownerId = 0;
+  bool m_isImplied = false;
+  bool m_hasActiveFlag = false;
+  bool m_isActive = false;
+  bool m_hasDatumLineIndex = false;
+  std::int32_t m_datumLineIndex = 0;
+  bool m_hasGeometryDependency = false;
+  std::uint8_t m_geometryDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_geometryDependencyHandle = 0;
+  bool m_hasValueDependencyHandle = false;
+  std::uint8_t m_valueDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_valueDependencyHandle = 0;
+  bool m_hasDimensionDependencyHandle = false;
+  std::uint8_t m_dimensionDependencyCode = DRW::DwgNullReference;
+  std::uint64_t m_dimensionDependencyHandle = 0;
+  std::int32_t m_geometryNodeId = 0;
+  bool m_hasPoint = false;
+  DRW_Coord m_point;
+  DRW_Coord m_center;
+  DRW_Coord m_normal;
+  DRW_Coord m_direction;
+  bool m_isRay = false;
+  double m_radius = 0.0;
+  double m_startParameter = 0.0;
+  double m_endParameter = 0.0;
+  std::uint8_t m_directionType = 0;
+  std::uint8_t m_radiusDiameterMode = 0;
+  bool m_hasDistance = false;
+  DRW_Coord m_distance;
+  bool m_hasReserved = false;
+  double m_reserved = 0.0;
+  DRW_Coord m_startPoint;
+  DRW_Coord m_endPoint;
+  std::uint8_t m_pointType = 0;
+  std::int32_t m_pointIndex = 0;
+  std::int32_t m_curveNodeId = 0;
+  bool m_classDataParsed = false;
+  bool m_hasRigidSetReservedFlag = false;
+  bool m_rigidSetReservedFlag = false;
+  bool m_hasRigidSetTransform = false;
+  // The 16 AC1024 values in source wire order; no row/column convention is
+  // inferred here.
+  std::array<double, 16> m_rigidSetTransform{};
+  std::vector<std::int32_t> m_rigidSetGeometryIds;
 };
 
 //! Shell parser for ACDBASSOC* action/dependency/action-param objects.
 class DRW_AssociativeObject : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
+  enum class EvalVariantKind {
+    Missing,
+    Real,
+    Int32,
+    Unsupported
+  };
   explicit DRW_AssociativeObject(const UTF8STRING &recordName = UTF8STRING())
       : m_recordName(recordName) {
     tType = DRW::ASSOCIATIVEOBJECT;
@@ -5565,6 +7291,46 @@ public:
       copyPersistentFields(o);
       m_dxfPersistentSubentityBody = false;
       m_dxfPersistentSubentityClassValueCount = 0;
+      m_dxfAssociativeGeomSubclass = 0;
+      m_dxfAssociativeActionSubclass = false;
+      m_dxfAssociativeNetworkSubclass = false;
+      m_dxfAssociativeVariableSubclass = false;
+      m_dxfAssociativeActionIntIndex = 0;
+      m_dxfAssociativeActionOwnerSeen = false;
+      m_dxfAssociativeActionBodySeen = false;
+      m_dxfAssociativeActionUnexpectedField = false;
+      m_dxfAssociativeActionDependencyCount = -1;
+      m_dxfAssociativeNetworkIntIndex = 0;
+      m_dxfAssociativeNetworkActionCount = -1;
+      m_dxfAssociativeNetworkOwnedActionCount = -1;
+      m_dxfAssociativeNetworkUnexpectedField = false;
+      m_dxfAssociativeVariableStringIndex = 0;
+      m_dxfAssociativeVariableClassVersionSeen = false;
+      m_dxfAssociativeVariableDiscriminatorSeen = false;
+      m_dxfAssociativeVariableBoolIndex = 0;
+      m_dxfAssociativeVariableUnexpectedField = false;
+      m_dxfAssociativeConstraintGroupSubclass = false;
+      m_dxfConstraintGroupStage = 0u;
+      m_dxfConstraintGroupActionsRemaining = 0u;
+      m_dxfConstraintGroupNodesRemaining = 0u;
+      m_dxfConstraintGroupConnectionsRemaining = 0u;
+      m_dxfConstraintGroupPointIndex = 0u;
+      m_dxfConstraintGroupPointTarget = 0u;
+      m_dxfConstraintGroupPointBaseCode = 10;
+      m_dxfConstraintGroupPointAfterStage = 0u;
+      m_dxfConstraintNode = {};
+      m_dxfConstraintGroupUnexpectedField = false;
+      m_dxfAssociativeDimDependencyBodyStage = 0u;
+      m_dxfAssociativeDimDependencyBodyUnexpectedField = false;
+      m_dxfAssociativeValueDependencySubclass = false;
+      m_dxfAssociativeValueDependencyIntIndex = 0u;
+      m_dxfAssociativeValueDependencyNameSeen = false;
+      m_dxfAssociativeValueDependencyValueSeen = false;
+      m_dxfAssociativeValueDependencyUnexpectedField = false;
+      m_dxfGeomClassVersionPresent = false;
+      m_dxfGeomEnabledPresent = false;
+      m_dxfGeomSubentityClassNamePresent = false;
+      m_dxfGeomDependentOnCompoundObjectPresent = false;
       tType = DRW::ASSOCIATIVEOBJECT;
     }
     return *this;
@@ -5579,6 +7345,22 @@ protected:
 public:
   UTF8STRING m_recordName;
   std::uint16_t m_classVersion = 0;
+  std::uint16_t m_dependencyBodyVersion = 0;
+  std::uint16_t m_dimBaseVersion = 0;
+  bool m_dimensionDependencyBodyParsed = false;
+  bool m_constraintGroupBodyParsed = false;
+  std::int32_t m_constraintGroupVersion = 0;
+  bool m_constraintGroupFlag = false;
+  std::array<DRW_Coord, 3> m_constraintWorkplane{};
+  std::uint32_t m_constraintGroupReference = 0;
+  std::int32_t m_constraintActionCount = 0;
+  bool m_constraintActionsParsed = false;
+  std::vector<std::uint32_t> m_constraintActions;
+  bool m_constraintNextNodeIdRead = false;
+  std::int32_t m_constraintNextNodeId = 0;
+  std::int32_t m_constraintNodeCount = 0;
+  bool m_constraintNodesParsed = false;
+  std::vector<DRW_AssociativeConstraintNode> m_constraintNodes;
   std::int32_t m_geometryStatus = 0;
   std::uint32_t m_owningNetworkHandle = 0;
   std::uint32_t m_actionBodyHandle = 0;
@@ -5588,6 +7370,13 @@ public:
   std::vector<DRW_AssociativeHandleRef> m_actions;
   std::vector<std::uint32_t> m_ownedParams;
   std::vector<std::uint32_t> m_ownedActions;
+  // Source-qualified AC1024 ACDBASSOCNETWORK version/index fields. Keep them
+  // distinct from the shared AcDbAssocAction prefix until other versions are
+  // independently bound.
+  std::int32_t m_networkVersion = 0;
+  std::int32_t m_networkActionIndex = 0;
+  bool m_actionPrefixParsed = false;
+  bool m_networkFieldsParsed = false;
   // DXF PERSUBENTMGR stores associated subentities as repeated 330 handles.
   // Keep these separate from the scalar vectors in the fixed DWG type 1313
   // body; the dynamic DWG type 1248 remains an opaque shell.
@@ -5608,6 +7397,65 @@ public:
   std::uint32_t m_dependencyHandle = 0;
   std::uint32_t m_readDependencyHandle = 0;
   std::uint32_t m_writeDependencyHandle = 0;
+  // Completed AcDbAssocDependency body prefix. Name presence is separate from
+  // its string value so absent and explicitly empty names remain distinct.
+  bool m_dependencyFieldsParsed = false;
+  // True only when the AC1024 dependency body, detached text stream, and
+  // object-specific handle stream are fully consumed (apart from bounded
+  // object-body padding and byte-alignment padding in the handle stream).
+  bool m_dependencyWireComplete = false;
+  // AC1024 AcDbAssocValueDependency subclass. The cached value is an
+  // EvalVariant encoded by its DXF group code; only the witnessed 40/90
+  // numeric variants are typed here.
+  bool m_valueDependencyFieldsParsed = false;
+  std::int32_t m_valueDependencyClassVersion = 0;
+  UTF8STRING m_valueDependencyName;
+  std::int32_t m_valueDependencyValueCode = 0;
+  EvalVariantKind m_valueDependencyValueKind = EvalVariantKind::Missing;
+  double m_valueDependencyValueReal = 0.0;
+  std::int32_t m_valueDependencyValueInt32 = 0;
+  // Exact AC1024 AcDbAssocGeomDependency subclass fields retained from the
+  // bounded DWG body or its DXF subclass sequence.
+  bool m_geomDependencyFieldsParsed = false;
+  std::int32_t m_geomClassVersion = 0;
+  bool m_geomEnabled = false;
+  UTF8STRING m_geomPersistentSubentityClassName;
+  bool m_geomDependentOnCompoundObject = false;
+  // AC1024 AcDbAssocVariable body. The value kind is explicit because the
+  // DWG EvalVariant payload depends on its signed group-code discriminator.
+  bool m_associativeVariableFieldsParsed = false;
+  bool m_associativeVariableWireComplete = false;
+  bool m_variableOwnedDependenciesParsed = false;
+  std::vector<DRW_AssociativeHandleRef> m_variableOwnedDependencies;
+  // In the witnessed AC1024 suffix, a nonempty child list is followed by a
+  // zero BS marker. Preserve it without assigning an undocumented meaning.
+  bool m_variableSuffixMarkerPresent = false;
+  std::int32_t m_variableSuffixMarker = 0;
+  std::int32_t m_variableClassVersion = 0;
+  UTF8STRING m_variableName;
+  UTF8STRING m_variableExpression;
+  UTF8STRING m_variableEvaluator;
+  UTF8STRING m_variableDescription;
+  bool m_variableValueParsed = false;
+  std::int32_t m_variableValueCode = 0;
+  EvalVariantKind m_variableValueKind = EvalVariantKind::Missing;
+  double m_variableValueReal = 0.0;
+  std::int32_t m_variableValueInt32 = 0;
+  bool m_variableHasT78 = false;
+  UTF8STRING m_variableT78;
+  bool m_variableB290 = false;
+  bool m_dependencyIsRead = false;
+  bool m_dependencyIsWrite = false;
+  bool m_dependencyIsAttachedToObject = false;
+  bool m_dependencyIsDelegatingToOwningAction = false;
+  std::int32_t m_dependencyOrder = 0;
+  bool m_dependencyNamePresent = false;
+  UTF8STRING m_dependencyName;
+  std::uint32_t m_dependencyNodeHandle = 0;
+  // ACDBASSOCDEPENDENCY's explicit dep_body handle, kept distinct from its
+  // owner and read/write dependency references for graph closure.
+  std::uint32_t m_dependencyBodyHandle = 0;
+  std::int32_t m_dependencyBodyId = 0;
   std::uint32_t m_rNodeHandle = 0;
   std::uint32_t m_dNodeHandle = 0;
   std::int32_t m_status = 0;
@@ -5620,6 +7468,22 @@ private:
   void copyPersistentFields(const DRW_AssociativeObject& o) {
     m_recordName = o.m_recordName;
     m_classVersion = o.m_classVersion;
+    m_dependencyBodyVersion = o.m_dependencyBodyVersion;
+    m_dimBaseVersion = o.m_dimBaseVersion;
+    m_dimensionDependencyBodyParsed = o.m_dimensionDependencyBodyParsed;
+    m_constraintGroupBodyParsed = o.m_constraintGroupBodyParsed;
+    m_constraintGroupVersion = o.m_constraintGroupVersion;
+    m_constraintGroupFlag = o.m_constraintGroupFlag;
+    m_constraintWorkplane = o.m_constraintWorkplane;
+    m_constraintGroupReference = o.m_constraintGroupReference;
+    m_constraintActionCount = o.m_constraintActionCount;
+    m_constraintActionsParsed = o.m_constraintActionsParsed;
+    m_constraintActions = o.m_constraintActions;
+    m_constraintNextNodeIdRead = o.m_constraintNextNodeIdRead;
+    m_constraintNextNodeId = o.m_constraintNextNodeId;
+    m_constraintNodeCount = o.m_constraintNodeCount;
+    m_constraintNodesParsed = o.m_constraintNodesParsed;
+    m_constraintNodes = o.m_constraintNodes;
     m_geometryStatus = o.m_geometryStatus;
     m_owningNetworkHandle = o.m_owningNetworkHandle;
     m_actionBodyHandle = o.m_actionBodyHandle;
@@ -5629,6 +7493,10 @@ private:
     m_actions = o.m_actions;
     m_ownedParams = o.m_ownedParams;
     m_ownedActions = o.m_ownedActions;
+    m_networkVersion = o.m_networkVersion;
+    m_networkActionIndex = o.m_networkActionIndex;
+    m_actionPrefixParsed = o.m_actionPrefixParsed;
+    m_networkFieldsParsed = o.m_networkFieldsParsed;
     m_persistentSubentityCount = o.m_persistentSubentityCount;
     m_persistentSubentityHandles = o.m_persistentSubentityHandles;
     m_persistentUnknown0 = o.m_persistentUnknown0;
@@ -5646,6 +7514,60 @@ private:
     m_dependencyHandle = o.m_dependencyHandle;
     m_readDependencyHandle = o.m_readDependencyHandle;
     m_writeDependencyHandle = o.m_writeDependencyHandle;
+    m_dependencyFieldsParsed = o.m_dependencyFieldsParsed;
+    m_dependencyWireComplete = o.m_dependencyWireComplete;
+    m_valueDependencyFieldsParsed = o.m_valueDependencyFieldsParsed;
+    m_valueDependencyClassVersion = o.m_valueDependencyClassVersion;
+    m_valueDependencyName = o.m_valueDependencyName;
+    m_valueDependencyValueCode = o.m_valueDependencyValueCode;
+    m_valueDependencyValueKind = o.m_valueDependencyValueKind;
+    m_valueDependencyValueReal = o.m_valueDependencyValueReal;
+    m_valueDependencyValueInt32 = o.m_valueDependencyValueInt32;
+    m_geomDependencyFieldsParsed = o.m_geomDependencyFieldsParsed;
+    m_geomClassVersion = o.m_geomClassVersion;
+    m_geomEnabled = o.m_geomEnabled;
+    m_geomPersistentSubentityClassName =
+        o.m_geomPersistentSubentityClassName;
+    m_geomDependentOnCompoundObject = o.m_geomDependentOnCompoundObject;
+    m_associativeVariableFieldsParsed = o.m_associativeVariableFieldsParsed;
+    m_associativeVariableWireComplete =
+        o.m_associativeVariableWireComplete;
+    m_variableOwnedDependenciesParsed =
+        o.m_variableOwnedDependenciesParsed;
+    m_variableOwnedDependencies = o.m_variableOwnedDependencies;
+    m_variableSuffixMarkerPresent = o.m_variableSuffixMarkerPresent;
+    m_variableSuffixMarker = o.m_variableSuffixMarker;
+    m_variableClassVersion = o.m_variableClassVersion;
+    m_variableName = o.m_variableName;
+    m_variableExpression = o.m_variableExpression;
+    m_variableEvaluator = o.m_variableEvaluator;
+    m_variableDescription = o.m_variableDescription;
+    m_variableValueParsed = o.m_variableValueParsed;
+    m_variableValueCode = o.m_variableValueCode;
+    m_variableValueKind = o.m_variableValueKind;
+    m_variableValueReal = o.m_variableValueReal;
+    m_variableValueInt32 = o.m_variableValueInt32;
+    m_variableHasT78 = o.m_variableHasT78;
+    m_variableT78 = o.m_variableT78;
+    m_variableB290 = o.m_variableB290;
+    m_dxfVariableNameBytes = o.m_dxfVariableNameBytes;
+    m_dxfVariableExpressionBytes = o.m_dxfVariableExpressionBytes;
+    m_dxfVariableEvaluatorBytes = o.m_dxfVariableEvaluatorBytes;
+    m_dxfVariableDescriptionBytes = o.m_dxfVariableDescriptionBytes;
+    m_dxfVariableT78Bytes = o.m_dxfVariableT78Bytes;
+    m_dxfDependencyNameBytes = o.m_dxfDependencyNameBytes;
+    m_dxfValueDependencyNameBytes = o.m_dxfValueDependencyNameBytes;
+    m_dependencyIsRead = o.m_dependencyIsRead;
+    m_dependencyIsWrite = o.m_dependencyIsWrite;
+    m_dependencyIsAttachedToObject = o.m_dependencyIsAttachedToObject;
+    m_dependencyIsDelegatingToOwningAction =
+        o.m_dependencyIsDelegatingToOwningAction;
+    m_dependencyOrder = o.m_dependencyOrder;
+    m_dependencyNamePresent = o.m_dependencyNamePresent;
+    m_dependencyName = o.m_dependencyName;
+    m_dependencyNodeHandle = o.m_dependencyNodeHandle;
+    m_dependencyBodyHandle = o.m_dependencyBodyHandle;
+    m_dependencyBodyId = o.m_dependencyBodyId;
     m_rNodeHandle = o.m_rNodeHandle;
     m_dNodeHandle = o.m_dNodeHandle;
     m_status = o.m_status;
@@ -5656,6 +7578,60 @@ private:
   }
   bool m_dxfPersistentSubentityBody = false;
   std::uint32_t m_dxfPersistentSubentityClassValueCount = 0;
+  std::uint8_t m_dxfAssociativeGeomSubclass = 0;
+  bool m_dxfAssociativeActionSubclass = false;
+  bool m_dxfAssociativeNetworkSubclass = false;
+  bool m_dxfAssociativeVariableSubclass = false;
+  bool m_dxfAssociativeDependencySubclass = false;
+  bool m_dxfAssociativeValueDependencySubclass = false;
+  bool m_dxfAssociativeConstraintGroupSubclass = false;
+  std::uint8_t m_dxfConstraintGroupStage = 0;
+  std::size_t m_dxfConstraintGroupActionsRemaining = 0u;
+  std::size_t m_dxfConstraintGroupNodesRemaining = 0u;
+  std::size_t m_dxfConstraintGroupConnectionsRemaining = 0u;
+  std::size_t m_dxfConstraintGroupPointIndex = 0u;
+  std::uint8_t m_dxfConstraintGroupPointTarget = 0u;
+  int m_dxfConstraintGroupPointBaseCode = 10;
+  std::uint8_t m_dxfConstraintGroupPointAfterStage = 0u;
+  DRW_AssociativeConstraintNode m_dxfConstraintNode;
+  bool m_dxfConstraintGroupUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeActionIntIndex = 0;
+  bool m_dxfAssociativeActionOwnerSeen = false;
+  bool m_dxfAssociativeActionBodySeen = false;
+  bool m_dxfAssociativeActionUnexpectedField = false;
+  std::int32_t m_dxfAssociativeActionDependencyCount = -1;
+  std::uint8_t m_dxfAssociativeNetworkIntIndex = 0;
+  std::int32_t m_dxfAssociativeNetworkActionCount = -1;
+  std::int32_t m_dxfAssociativeNetworkOwnedActionCount = -1;
+  bool m_dxfAssociativeNetworkUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeVariableStringIndex = 0;
+  bool m_dxfAssociativeVariableClassVersionSeen = false;
+  bool m_dxfAssociativeVariableDiscriminatorSeen = false;
+  std::uint8_t m_dxfAssociativeVariableBoolIndex = 0;
+  bool m_dxfAssociativeVariableUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeDependencyIntIndex = 0;
+  std::uint8_t m_dxfAssociativeDependencyBoolIndex = 0;
+  std::uint8_t m_dxfAssociativeDependencyHandleIndex = 0;
+  bool m_dxfAssociativeDependencyNameSeen = false;
+  bool m_dxfAssociativeDependencyBodyHandleSeen = false;
+  bool m_dxfAssociativeDependencyUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeDimDependencyBodyStage = 0u;
+  bool m_dxfAssociativeDimDependencyBodyUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeValueDependencyIntIndex = 0;
+  bool m_dxfAssociativeValueDependencyNameSeen = false;
+  bool m_dxfAssociativeValueDependencyValueSeen = false;
+  bool m_dxfAssociativeValueDependencyUnexpectedField = false;
+  std::size_t m_dxfVariableNameBytes = 0u;
+  std::size_t m_dxfVariableExpressionBytes = 0u;
+  std::size_t m_dxfVariableEvaluatorBytes = 0u;
+  std::size_t m_dxfVariableDescriptionBytes = 0u;
+  std::size_t m_dxfVariableT78Bytes = 0u;
+  std::size_t m_dxfDependencyNameBytes = 0u;
+  std::size_t m_dxfValueDependencyNameBytes = 0u;
+  bool m_dxfGeomClassVersionPresent = false;
+  bool m_dxfGeomEnabledPresent = false;
+  bool m_dxfGeomSubentityClassNamePresent = false;
+  bool m_dxfGeomDependentOnCompoundObjectPresent = false;
 };
 
 //! Shell parser for ACSH_* history/action objects.
@@ -5704,6 +7680,13 @@ public:
     std::int32_t m_nodeValue = 0;
     std::uint32_t m_handle = 0;
     bool m_complete = false;
+    //! Raw CMC provenance retained for consumers that only project the
+    //! indexed DXF color. A false presence flag means caller-created data.
+    std::uint8_t m_colorMethod = 0;
+    std::uint8_t m_colorFlags = 0;
+    std::uint16_t m_colorIndexRaw = 0;
+    bool m_colorIndexIsReserved = false;
+    bool m_hasColorCmcMetadata = false;
   };
 
   UTF8STRING m_recordName;
@@ -5869,8 +7852,8 @@ public:
   // AcDbEvalExpr prefix (shared by every evalexpr-bearing class).
   bool m_evalExprParsed = false;
   std::uint32_t m_parentId = 0; /*!< BLd evalexpr.parentid (0xFFFFFFFF = -1) */
-  std::uint32_t m_major = 0;    /*!< BL evalexpr.major (DXF 98) */
-  std::uint32_t m_minor = 0;    /*!< BL evalexpr.minor (DXF 99) */
+  std::uint32_t m_major = 0; /*!< BL EvalExpr major (AC1024 DWG 29; DXF 98 = 33) */
+  std::uint32_t m_minor = 0; /*!< BL EvalExpr minor (AC1024 DWG 2; DXF 99 = 29) */
   std::int16_t m_valueCode =
       0; /*!< BSd evalexpr.value_code (DXF 70; -9999 = none) */
   double m_valueDouble = 0.0; /*!< selector-40 EvalExpr payload (DXF 140) */
@@ -5958,6 +7941,7 @@ public:
   // AcDbBlockLinearParameter body.
   UTF8STRING m_linearDistanceName;
   UTF8STRING m_linearDistanceDescription;
+  UTF8STRING m_parameterValueDescription; /*!< DXF group 307 description */
   double m_linearDistance = 0.0;
   std::int32_t m_linearValue96 = 0;
   double m_linearValue141 = 0.0;
@@ -6083,7 +8067,9 @@ public:
   // AcDbBlockLookupAction body.
   std::int32_t m_lookupRowCount = 0;
   std::int32_t m_lookupColumnCount = 0;
-  std::vector<UTF8STRING> m_lookupExpressions;
+  std::vector<UTF8STRING> m_lookupExpressions; // row-major rows * columns
+  // The AC1024 profile stores one metadata record per column. Other versions
+  // retain the prior decoder's per-cell interpretation pending evidence.
   std::vector<std::vector<std::int32_t>> m_lookupConnectionCodes;
   std::vector<std::vector<UTF8STRING>> m_lookupConnectionNames;
   std::vector<bool> m_lookupEntryFlags282;
@@ -6148,6 +8134,11 @@ struct DRW_ModelDocViewStyle {
   bool m_modifiedForRecompute = false; /*!< DXF 290 */
   UTF8STRING m_displayName;            /*!< DXF 300, R2018+ */
   std::uint32_t m_viewStyleFlags = 0;  /*!< DXF 90, R2018+ */
+
+private:
+  friend class DRW_DetailViewStyle;
+  friend class DRW_SectionViewStyle;
+  std::array<std::size_t, 2> m_dxfRetainedTextBytes{};
 };
 
 //! Class to handle DETAILVIEWSTYLE / AcDbDetailViewStyle objects.
@@ -6165,7 +8156,7 @@ public:
     if (this != &o) {
       DRW_TableEntry::operator=(o);
       copyPersistentFields(o);
-      m_dxfSubclass.clear();
+      m_dxfSubclass = DxfSubclass::Unknown;
       m_dxfGroup = -1;
       m_dxfHandleCount = 0;
       m_dxfColorCount = 0;
@@ -6214,6 +8205,14 @@ public:
   std::uint8_t m_modelEdge = 0;
 
 private:
+  // The DXF subclass marker only selects one of these parser states; never
+  // retain an arbitrary group-100 string for this transient discriminator.
+  enum class DxfSubclass : std::uint8_t {
+    Unknown,
+    ModelDocViewStyle,
+    DetailViewStyle
+  };
+
   void copyPersistentFields(const DRW_DetailViewStyle& o) {
     m_modelDoc = o.m_modelDoc;
     m_classVersion = o.m_classVersion;
@@ -6244,19 +8243,28 @@ private:
     m_borderLineWeight = o.m_borderLineWeight;
     m_borderLineColor = o.m_borderLineColor;
     m_modelEdge = o.m_modelEdge;
+    m_colorCmc = o.m_colorCmc;
+    m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
   }
-  UTF8STRING m_dxfSubclass;
+  DxfSubclass m_dxfSubclass = DxfSubclass::Unknown;
   int m_dxfGroup = -1;
   int m_dxfHandleCount = 0;
   int m_dxfColorCount = 0;
   int m_dxfDoubleCount = 0;
   int m_dxfLongCount = 0;
+  std::array<std::size_t, 2> m_dxfRetainedTextBytes{};
+
+public:
+  //! DWG CMC state aligned with the scalar colors above:
+  //! identifier, arrow, boundary, label, connection, border.
+  std::array<DRW_DwgCmcColorMetadata, 6> m_colorCmc{};
 };
 
 //! Class to handle SECTIONVIEWSTYLE / AcDbSectionViewStyle objects.
 class DRW_SectionViewStyle : public DRW_TableEntry {
   SETOBJFRIENDS
 public:
+  static constexpr std::int32_t kMaxHatchAngles = 100000;
   DRW_SectionViewStyle() { reset(); }
   DRW_SectionViewStyle(const DRW_SectionViewStyle& o): DRW_TableEntry(o),
       m_dxfSubclass(), m_dxfGroup(-1), m_dxfHandleCount(0),
@@ -6269,7 +8277,7 @@ public:
     if (this != &o) {
       DRW_TableEntry::operator=(o);
       copyPersistentFields(o);
-      m_dxfSubclass.clear();
+      m_dxfSubclass = DxfSubclass::Unknown;
       m_dxfGroup = -1;
       m_dxfHandleCount = 0;
       m_dxfColorCount = 0;
@@ -6277,6 +8285,7 @@ public:
       m_dxfLongCount = 0;
       m_dxfBoolCount = 0;
       m_dxfExpectedHatchAngles = 0;
+      m_dxfHasExpectedHatchAngles = false;
       tType = DRW::SECTIONVIEWSTYLE;
     }
     return *this;
@@ -6329,7 +8338,24 @@ public:
   bool m_unknownB2 = false;
   std::vector<double> m_hatchAngles;
 
+  //! Require an explicit matching DXF count whenever angle values are present.
+  //! The presence flag is parser state and is not copied with style values.
+  bool dxfHatchAngleCountMatches() const noexcept {
+    if (!m_dxfHasExpectedHatchAngles)
+      return m_hatchAngles.empty();
+    return static_cast<std::size_t>(m_dxfExpectedHatchAngles)
+        == m_hatchAngles.size();
+  }
+
 private:
+  // The DXF subclass marker only selects one of these parser states; never
+  // retain an arbitrary group-100 string for this transient discriminator.
+  enum class DxfSubclass : std::uint8_t {
+    Unknown,
+    ModelDocViewStyle,
+    SectionViewStyle
+  };
+
   void copyPersistentFields(const DRW_SectionViewStyle& o) {
     m_modelDoc = o.m_modelDoc;
     m_classVersion = o.m_classVersion;
@@ -6370,8 +8396,10 @@ private:
     m_unknownB1 = o.m_unknownB1;
     m_unknownB2 = o.m_unknownB2;
     m_hatchAngles = o.m_hatchAngles;
+    m_colorCmc = o.m_colorCmc;
+    m_dxfRetainedTextBytes = o.m_dxfRetainedTextBytes;
   }
-  UTF8STRING m_dxfSubclass;
+  DxfSubclass m_dxfSubclass = DxfSubclass::Unknown;
   int m_dxfGroup = -1;
   int m_dxfHandleCount = 0;
   int m_dxfColorCount = 0;
@@ -6379,6 +8407,13 @@ private:
   int m_dxfLongCount = 0;
   int m_dxfBoolCount = 0;
   std::uint32_t m_dxfExpectedHatchAngles = 0;
+  bool m_dxfHasExpectedHatchAngles = false;
+  std::array<std::size_t, 3> m_dxfRetainedTextBytes{};
+
+public:
+  //! DWG CMC state aligned with the scalar colors above:
+  //! identifier, arrow, plane, bend, label, hatch, hatch background.
+  std::array<DRW_DwgCmcColorMetadata, 7> m_colorCmc{};
 };
 
 //! Class to handle BREAKDATA / AcDbBreakData objects.
@@ -6431,15 +8466,40 @@ protected:
                 std::uint32_t bs = 0) override;
 };
 
+//! Owned CMC source fields; the legacy scalar color is only a normalized view.
+struct DRW_VisualStyleColor {
+  bool present = false;
+  bool modern = false; // R2004+ BS/BL/RC rather than an index-only BS.
+  std::uint16_t rawIndex = 0;
+  std::uint32_t rawRgb = 0; // Includes the method byte, even if unrecognized.
+  std::uint8_t flags = 0;
+  int normalizedIndex = 0;
+  UTF8STRING name, bookName; // Decoded strings; not raw text bytes.
+};
+
+//! Source property metadata, not a DXF tag stream or a conformance receipt.
+struct DRW_VisualStyleEncoding {
+  static constexpr std::size_t kPropertyCount = 58;
+  static constexpr std::size_t kColorCount = 8;
+  std::array<std::uint16_t, kPropertyCount> companions{};
+  std::uint8_t companionCount = 0;
+  // face mono, intersection, obscured, edge, silhouette, prop29/2c/33.
+  std::array<DRW_VisualStyleColor, kColorCount> colors{};
+  std::uint8_t colorCount = 0;
+  bool hasSourceIsolines = false;
+  std::int32_t sourceIsolines = 0;
+};
+
 //! AcDbVisualStyle body — face/edge/display property groups + r2013b expansion.
 /*!
- *  Primary values only (named); the interleaved BS "_int" companions from the
- *  r2010b/r2013b layout are consumed for bit-alignment and discarded (they are
- *  near-constant 0/1 sentinels). Disjoint subsets populate per version:
+ *  Named primary values retain their legacy meanings. Interleaved BS values
+ *  and CMC source fields are owned in m_encoding without interpreting them as
+ *  ignorable sentinels or normalizing unknown color methods. Subsets per version:
  *  legacy (< AC1024) fills face/edge/display; r2010b (>= AC1024) fills those
  *  plus extLightingModel; r2013b (>= AC1027) additionally fills the b/bl/bd/c
- *  prop* expansion. Colors are stored as the CMC index returned by
- *  readObjectCmColor (matches the DRW_TableStyle color-as-int convention).
+ *  prop* expansion. Scalar colors retain the existing normalized convenience
+ *  index; m_encoding preserves the distinct source representation. Consumers
+ *  must rebuild; this adds no callback or binary-ABI guarantee.
  */
 struct DRW_VisualStyleBody {
   static constexpr int kMaxEdgeIsolines = 5000;
@@ -6482,10 +8542,44 @@ struct DRW_VisualStyleBody {
   UTF8STRING strokes;
   bool bProp37 = false;
   double bdProp38 = 0.0, bdProp39 = 0.0;
+  // Assign {} explicitly when replacing source metadata with authored values.
+  DRW_VisualStyleEncoding m_encoding;
+};
+
+/** Primary DXF VISUALSTYLE property values, independent of native CMC encoding.
+ * Occurrence counts distinguish absence, explicit zero and repeated fields.
+ * Color62/Color63/FaceMonoRgb are separate source roles. No native palette
+ * index is inferred from RGB421. Description text stays on DRW_VisualStyle.
+ * Extension fields after291 remain on the raw carrier; tailGroups counts
+ * decoder-visible groups excluding consumed application groups, not a full
+ * physical span inventory or certificate. */
+struct DRW_DxfVisualStyleProperties {
+  enum class Integer : std::size_t {
+    Type,FaceLightingModel,FaceLightingQuality,FaceColorMode,FaceModifiers,
+    Color62,Color63,FaceMonoRgb,EdgeModel,EdgeStyle,EdgeIntersectionColor,
+    EdgeObscuredColor,EdgeObscuredLinetype,EdgeIntersectionLinetype,EdgeModifiers,
+    EdgeColor,EdgeWidth,EdgeOverhang,EdgeJitter,EdgeSilhouetteColor,
+    EdgeSilhouetteWidth,EdgeHaloGap,EdgeIsolines,EdgeHidePrecision,EdgeStyleApply,
+    DisplaySettings,ShadowType,InternalOnly,Count
+  };
+  enum class Real : std::size_t {FaceOpacity,FaceSpecular,EdgeCreaseAngle,EdgeOpacity,Brightness,Count};
+  static constexpr std::array<int,static_cast<std::size_t>(Integer::Count)> integerCodes{
+    70,71,72,73,90,62,63,421,74,91,64,65,75,175,92,66,76,77,78,67,79,170,171,290,174,93,173,291};
+  static constexpr std::array<int,static_cast<std::size_t>(Real::Count)> realCodes{40,41,42,43,44};
+  std::array<std::int32_t,integerCodes.size()> integers{};
+  std::array<double,realCodes.size()> reals{};
+  std::array<std::size_t,integerCodes.size()> integerOccurrences{};
+  std::array<std::size_t,realCodes.size()> realOccurrences{};
+  std::size_t descriptionOccurrences{0},legacyDescriptionOccurrences{0},tailGroups{0};
+  bool inVisualStyle{true},propertyTail{false},invalidBoolean{false};
+  std::int32_t value(Integer field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<integers.size()?integers[i]:0;}
+  double value(Real field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<reals.size()?reals[i]:0.0;}
+  std::size_t occurrences(Integer field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<integerOccurrences.size()?integerOccurrences[i]:0u;}
+  std::size_t occurrences(Real field) const noexcept {const auto i=static_cast<std::size_t>(field);return i<realOccurrences.size()?realOccurrences[i]:0u;}
 };
 
 //! Class to handle VISUALSTYLE (AcDbVisualStyle) — custom-class object
-//! §20.4.95.
+//! Non-fixed class; ODA 5.4.1 lists it but does not specify its complete body.
 /*!
  *  Decodes the full AcDbVisualStyle body (legacy < AC1024 / r2010b >= AC1024 /
  *  r2013b expansion >= AC1027) into m_body for structured-metadata parity with
@@ -6495,6 +8589,7 @@ struct DRW_VisualStyleBody {
  */
 class DRW_VisualStyle : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfRendering::Observation;
 public:
   static constexpr std::uint16_t kDwgClassNum = 560;
 
@@ -6503,9 +8598,12 @@ public:
     DRW_TableEntry::reset();
     tType = DRW::VISUALSTYLE;
     desc.clear();
+    m_dxfRetainedDescBytes = 0u;
     type = 0;
     m_body = DRW_VisualStyleBody{};
     m_bodyDecoded = false;
+    m_dxfInVisualStyle = true;
+    m_dxfInPropertyTail = false;
   }
 
 protected:
@@ -6521,9 +8619,19 @@ public:
   std::int32_t type =
       0; /*!< visual-style type code (BL style_type in DWG, 70) */
   DRW_VisualStyleBody
-      m_body; /*!< decoded body (DWG); empty on DXF/failed parse */
+      m_body; /*!< native body or unambiguous primary DXF values; DXF color62/63/421 and presence use the separate property view */
   bool m_bodyDecoded =
       false; /*!< true only after body, strings, and handles validate */
+
+private:
+  // Markerless older DXF records begin in the basic field scope. A real
+  // subclass marker scopes description/type;291 latches the opaque property
+  // tail until reset, including across repeated subclass markers. These are
+  // parser state, not a property-grammar or source-profile certificate.
+  bool m_dxfInVisualStyle = true;
+  bool m_dxfInPropertyTail = false;
+  // Logical bytes retained by DXF-parsed description text only.
+  std::size_t m_dxfRetainedDescBytes = 0u;
 };
 
 //! Class to handle UNDERLAYDEFINITION (AcDb*Definition) — custom-class object.
@@ -6545,6 +8653,8 @@ public:
     kind = PDF;
     filename.clear();
     sheetName.clear();
+    m_dxfRetainedFilenameBytes = 0u;
+    m_dxfRetainedSheetNameBytes = 0u;
     DRW_TableEntry::reset();
   }
 
@@ -6560,6 +8670,10 @@ public:
   Kind kind = PDF;
   UTF8STRING filename;
   UTF8STRING sheetName;
+
+private:
+  std::size_t m_dxfRetainedFilenameBytes{0u};
+  std::size_t m_dxfRetainedSheetNameBytes{0u};
 };
 
 //! INDEX (AcDbIndex) — generic index object with a last-updated TIMEBLL.
@@ -6679,7 +8793,8 @@ public:
       timestamp1(o.timestamp1), timestamp2(o.timestamp2),
       entries(o.entries), m_dxfTimestampSeen(false),
       m_dxfPendingEntry(false), m_dxfPendingIndex(0),
-      m_dxfPendingName() {
+      m_dxfPendingName(),
+      m_dxfRetainedEntryNameBytes(o.m_dxfRetainedEntryNameBytes) {
     tType = o.tType;
   }
   DRW_LayerIndex& operator=(const DRW_LayerIndex& o) {
@@ -6692,6 +8807,8 @@ public:
       m_dxfPendingEntry = false;
       m_dxfPendingIndex = 0;
       m_dxfPendingName.clear();
+      m_dxfRetainedEntryNameBytes = o.m_dxfRetainedEntryNameBytes;
+      m_dxfRetainedPendingNameBytes = 0u;
       tType = o.tType;
     }
     return *this;
@@ -6705,6 +8822,8 @@ public:
     m_dxfPendingEntry = false;
     m_dxfPendingIndex = 0;
     m_dxfPendingName.clear();
+    m_dxfRetainedEntryNameBytes = 0u;
+    m_dxfRetainedPendingNameBytes = 0u;
     DRW_TableEntry::reset();
   }
   bool finalizeDxf();
@@ -6727,6 +8846,8 @@ private:
   bool m_dxfPendingEntry = false;
   int m_dxfPendingIndex = 0;
   UTF8STRING m_dxfPendingName;
+  std::size_t m_dxfRetainedEntryNameBytes{0u};
+  std::size_t m_dxfRetainedPendingNameBytes{0u};
 };
 
 //! SPATIAL_INDEX (AcDbSpatialIndex) — ODA §20.4.95.
@@ -6825,6 +8946,18 @@ public:
    * writeEntity (writePolyline/writeInsert reuse ent->handle) keeps the
    * first-seen real source; stale minted-range keys are never queried. */
   std::map<std::uint32_t, std::uint32_t> sourceHandleToMintedMap;
+  /*!< DXF write: source table-record handle -> emitted code-5 handle.
+   * Kept separate from graphical entities and objects so forward table
+   * references (for example complex LTYPE -> STYLE) can be planned before the
+   * corresponding table callbacks are serialized. */
+  std::map<std::uint32_t, std::uint32_t>
+      sourceHandleToWrittenTableMap;
+  /*!< DXF write: source data-object handle -> emitted code-5 handle for
+   * typed object records that register their identity after successful
+   * serialization. Kept separate from graphical entities because object
+   * handles are not minted through writeEntity. */
+  std::map<std::uint32_t, std::uint32_t>
+      sourceHandleToWrittenObjectMap;
   /*!< DXF write: source modeler-entity handle -> minted code-5 handle.
    * Used only to retarget the known ACDSDATA ASM_Data owner key when opaque
    * sections are replayed after entity handles have been allocated. */
@@ -6957,6 +9090,11 @@ const unsigned char dxfColors[][3] = {
 };
 
 } // namespace DRW
+
+#ifdef LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_OBJECTS_RESTORE_NONE
+#endif
 
 #endif
 

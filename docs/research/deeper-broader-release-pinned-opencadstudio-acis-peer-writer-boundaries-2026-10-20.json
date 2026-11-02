@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Release-pinned OpenCADStudio ACIS kernel and peer-writer boundaries",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Resolve the OpenCADStudio v2026.42 source dependency graph from its tagged Cargo.lock",
+    "Compare tagged parser/kernel identity with the mutable main manifest",
+    "Recheck ACIS/B-rep scope and current ACadSharp DXF modeler-writer status",
+    "Refine only the existing PAR-07/S8 composed peer and semantic checkpoint"
+  ],
+  "sources": [
+    {
+      "project": "OpenCADStudio v2026.42 release",
+      "references": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.lock"
+      ],
+      "status": "tag_manifest_and_lock_reviewed_2026-10-20",
+      "observation": "The release identifies app source commit b6fbac3. The tagged Cargo.lock resolves acadrust 0.6.4 from opencadcodec commit 5d4f11ae38758caec540bc9819ff2c4120eeadb4, opencadkernel commit a60f18ff033b5a3f7d842e2398f393e4d6cfcd32, and opencadgraph commit d9f2aeeaaffa9f4972cb10a07e039f4512e8572f. This binds the tag's source graph but does not bind a release executable hash or reproducible build provenance."
+    },
+    {
+      "project": "OpenCADStudio mutable main manifest",
+      "reference": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "status": "mutable_manifest_snapshot_reviewed_2026-10-20",
+      "observation": "The reviewed main manifest uses different short codec/kernel revisions (cc6fbe8 / e9bc66d) from the v2026.42 tag. Mutable-main code must not be retroactively attributed to the release binary."
+    },
+    {
+      "project": "OpenCADKernel at the v2026.42 locked commit",
+      "reference": "https://github.com/HakanSeven12/opencadkernel/blob/a60f18ff033b5a3f7d842e2398f393e4d6cfcd32/README.md",
+      "status": "commit_pinned_readme_reviewed_2026-10-20",
+      "observation": "The README labels the B-rep kernel early, says most operations are not yet written, and describes an ACIS bridge that lifts/lowers SatDocument values. It is not evidence of general editable B-rep support or a complete semantic interpreter."
+    },
+    {
+      "project": "OpenCADStudio-associated tessellation route notes",
+      "reference": "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+      "status": "mutable_route_documentation_reviewed_2026-10-20",
+      "observation": "The current documentation distinguishes kernel B-rep tessellation from a per-surface fallback and says incomplete mesh output is marked. This route document is not pinned to the v2026.42 tag and is retained only as a test-design warning."
+    },
+    {
+      "project": "ACadSharp issue #1195 and PR #1240",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "status": "live_issue_and_pull_request_pages_reviewed_2026-10-20",
+      "observation": "The issue remains open; the maintainer states Solid3D, CadBody, and Region are not yet supported as DXF entities. PR #1240 remains open and depends on #1174, so it is not a released positive DXF modeler-writer route."
+    },
+    {
+      "project": "LibreDWG NEWS 0.14.1",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/NEWS#L2184-L2317",
+      "status": "named_release_notes_reviewed_2026-10-20",
+      "observation": "The 2026-07-25 beta notes report a 32-bit overflow fix in 3DSOLID SAT block bounds and a separate DXF export off-by-one fix that had dropped the last SAT block. This is independent implementation history, not a wire-format rule or libdxfrw defect."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Resolved the v2026.42 tagged source dependency graph and corrected the peer evidence ledger. OpenCADStudio remains an ACadRust-derived parser route and the pinned kernel is early; the executable hash/build is not bound. ACadSharp's linked ACIS-DXF writer proposal remains unmerged. Existing generated local modeler payload-boundary tests remain the owning local controls; no new local gap was identified.",
+    "nextImplementation": "Continue the existing local-ready implementation queue. Consider one exact OpenCADStudio route only at the already-planned composed checkpoint, using a locally generated analytic input and independent expectations; unavailable/unbound external artifacts self-unblock to local work.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-release-pinned-opencadstudio-acis-peer-writer-boundaries-2026-10-20.json"
+    ],
+    "limitations": "Primary-source manifests and documentation were reviewed; peer applications and code were not executed. The OpenCADStudio release binary was not acquired or hash-bound. Mutable project docs and issue reports establish source claims/status only, not runtime behavior."
+  },
+  "validation": {
+    "planEdit": "Corrected the stale tagged dependency-unbound status and added an optional, exact-profile evidence procedure. Queue, fast validation cadence, fixture policy, findings/subplan counts, and support claims remain unchanged.",
+    "jsonValidation": "PENDING",
+    "scopedDiffCheck": "PENDING",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree has broad pre-existing changes and Git metadata is read-only in this session."
+  }
+}

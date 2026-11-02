@@ -98,7 +98,7 @@ jobs:
         run: >-
           cmake -S . -B build
           ${{ matrix.configureArgs }}
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=OFF
           -DLIBDXFRW_BUILD_DOC=OFF
@@ -242,7 +242,7 @@ jobs:
         run: >-
           cmake -S . -B build
           ${{ matrix.configureArgs }}
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=OFF
           -DLIBDXFRW_BUILD_DOC=OFF

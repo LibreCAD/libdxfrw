@@ -1,0 +1,37 @@
+{
+  "slice": "PAR-134 TABLESTYLE row/border CMC retention and DXF loss guard",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "dwg_versions": ["AC1015", "AC1018", "AC1021 generated local writer matrix"],
+    "dxf_scope": "typed scalar-only TABLESTYLE row and border output",
+    "fields": ["row text/fill colors", "six row borders", "newer parsed cell/content colors"]
+  },
+  "implementation": {
+    "model": "Append a shared TABLESTYLE CMC companion carrying RGB, name/book strings, source method, raw flags, and reserved index to each parsed color location.",
+    "parser": "Bounded content-format, cell-style, legacy row, and border color readers publish normalized scalar plus all CMC metadata.",
+    "dwg_writer": "Validate C0-C3 scalar/RGB/method agreement, flags, and zero reserved index before output; replay supported methods and optional strings for each row/border color.",
+    "dxf_writer": "Keep established scalar groups 62/63/64-69 and refuse richer or inconsistent CMC metadata; no generic truecolor extension is invented for this class.",
+    "adapter_accounting": "Charge each retained color/book name in TABLESTYLE callback memory estimates.",
+    "compatibility": "Public TABLESTYLE struct sizes change; downstream consumers must rebuild. No vtable changed."
+  },
+  "generated_controls": {
+    "positive": "Local full DWG writer/read route checks named C2 RGB row text, named C3 indexed fill, and named black C2 border values and methods.",
+    "negative": "A generated C5 method on a copied TABLESTYLE row is rejected by the DWG writer before encoding.",
+    "fixtures": "No persistent DWG/DXF fixtures added."
+  },
+  "validation": {
+    "diff_check": "PASS for source, converter adapter, and local round-trip test files",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror)",
+    "owning_test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "owning_test_result": "FAIL at the separate stage-1 generated malformed-HATCH read-outcome sentinel; all TABLESTYLE assertions completed without a reported failure"
+  },
+  "evidence_limits": [
+    "The local generated file validates only the implementation's own writer/reader round-trip, not independent producer semantics or application acceptance.",
+    "The owning CTest is not a clean pass; its unrelated malformed-HATCH read-outcome sentinel remains open.",
+    "No external semantic reader, native CAD application, full suite, fixture, or support promotion was used.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "next_local_item": "Continue the PAR-134 CMC consumer/class-specific DXF mapping audit; the latest remaining scalar-only callers include ACShHistoryNode prefixes and TABLESTYLE source profiles beyond the typed legacy writer. Then continue source-backed PAR-03/PAR-04 context classification."
+}

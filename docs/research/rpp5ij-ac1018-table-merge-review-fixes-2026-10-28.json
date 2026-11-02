@@ -1,0 +1,97 @@
+{
+  "schema": "ac1018-table-merge-review-fixes-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "9fc363401961f85571924c58bb555f19b9cdf7d5",
+  "supportClaimsPromoted": false,
+  "scope": "Fix two review findings in selected AC1018 TABLE merge reconstruction: an excess cell marker must not publish inferred partial ranges, and sparse merges must not reserve range storage proportional to all cells. No writer/output or native geometry qualification.",
+  "priorReceipt": "docs/research/rpp5ih-ac1018-table-merge-2026-10-28.json",
+  "before": {
+    "extraCell": {
+      "input": "build/table-merge-review/extra-cell.dxf",
+      "inputSha256": "8c4da908220252137b82777d19bf3eaf54cd285be176570fce7479ea0a77e84e",
+      "probeSourceSha256": "8032797a82d5b01252315676c0e84db36bf8b0bed4afe0c5b46cfb9ccab081fb",
+      "probeExecutableSha256": "c5a80473fe4e59814440682b1f571168efd41fee1b0972be03cbb1f9afa4a937",
+      "oldLibrarySha256AtLink": "77497fcab54d339380e07334e0ada321825397d27116029b1c362959fd1ce62a",
+      "observed": "A source-authored valid 1\u00d72 anchor/covered grid followed by a bare excess group 171 returned read=1, semanticComplete=0, ranges=1. The incomplete record exposed a partial inferred range."
+    },
+    "sparseReserve": {
+      "input": "build/table-merge-review/sparse-merge.dxf",
+      "inputSha256": "ee140cbc581b3b9bc363119e1228678a22c5f3aa0a1c6cccce7d5694037939db",
+      "probeSourceSha256": "edfc6341e332ccd72fcaebbefd3d7de14d3e3aeed7769e86964205d97bb3cd01",
+      "probeExecutableSha256": "a1214e1ffe0be43fbbcbd389ce533cb926639d198c0a328c28b8e31d3e073c1f",
+      "oldLibrarySha256AtLink": "77497fcab54d339380e07334e0ada321825397d27116029b1c362959fd1ce62a",
+      "observed": "Direct TABLE decoder on a 1\u00d71000 grid with one merge returned one range with capacity 500. Allocation was bounded but needlessly proportional to all cells."
+    }
+  },
+  "implementation": "An excess AC1018 171 marks merge observation invalid before finalization, suppressing all inferred ranges; a linear candidate count bounds range reservation by actual anchors. Occupancy still remains bounded by the existing cell limit, and failure is caught at the noexcept finalizer.",
+  "bindings": {
+    "entitySource": {
+      "path": "src/drw_entities.cpp",
+      "sha256": "cf2e2af4e1530bdee4f9bae534adb630593d08da4e2bca1ab3dff707d28b0368"
+    },
+    "mergeControls": {
+      "path": "tests/table_legacy_merge_controls.h",
+      "sha256": "36180377efb92331bb32c70c53cdcb0712af4220b2cf3412fbdc10b6fc8a6930"
+    },
+    "testExecutable": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "1ab526efa582e1fc50a1ed36fb2cb323855d92f0c3abc1ec0d83864d23ae849c"
+    },
+    "library": {
+      "path": "build/libdxfrw.a",
+      "sha256": "5c694af4e3c04aabba69ec01acf7adea5c0214d5864ec22bda72f45a214dc21b"
+    },
+    "adapterObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "a4e81e4c1e9f05a25833339c4fc30d6978340731b97b0eb5bd4575219453bd66",
+      "note": "The adapter source and MATERIAL header were frozen but uncommitted during the shared normal build; their exact source bindings and subsequent commits are recorded in simultaneousWork."
+    }
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "result": "8/8 passed as reported; no retained test-log hash asserted",
+    "mergeControls": {
+      "malformedAndCorrectedRetries": 46,
+      "reachedAllocationFailureAndCorrectedDecoderRetries": 2,
+      "sparseAllocationControls": 2
+    },
+    "sparseControl": "ASCII and binary 1\u00d71000, one merge; limit each allocation only during the finalizer to 2048 bytes. Both complete and publish the expected single range without any blocked allocation. This checks a bounded operational allowance rather than an exact vector capacity."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "8/8 passed as reported; ASan does not qualify native semantics",
+    "testExecutable": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "46e71d1585e6cb7b00b32f2b13fc95dbd05dbe1752be6a6a557e0ce0122717fd"
+    },
+    "library": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "701db9da0ff497c31e4b44ca601841b3021fe6e9405c055d7881b1b980ef21cb"
+    },
+    "adapterObject": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "24975bf354234ff86e3d823563f4c2690341e801799cd48406055a0f5fff12ed"
+    }
+  },
+  "limitations": [
+    "The inferred anchor/covered grammar and original full TABLE semantics retain the limits of the prior receipt.",
+    "No staged writer output, group-289 default, native rendering, FreeCAD or full-document claim follows.",
+    "DRW_Table layout changed in the earlier merge implementation; formal ABI/API and consumer rebuild qualification remain open.",
+    "Before-input fixtures were created locally from scratch and remain in ignored scratch, not Git."
+  ],
+  "simultaneousWork": {
+    "adapterSource": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "a960cedfdc9090a254c47aaaf43cafbcdeb6654de973433bace65d4d87f55283",
+      "subsequentCommit": "844f126b"
+    },
+    "materialHeader": {
+      "path": "dwg2dxf/dx_material_body.h",
+      "sha256": "b45baf3dac9e6f5ebbde873bf5b66edeaf9971704dab4fd251d87ffbce197a39",
+      "subsequentCommit": "8367d77b"
+    },
+    "chronology": "Both sources were frozen during normal and ASan builds while uncommitted, then committed separately after the TABLE code commit."
+  }
+}

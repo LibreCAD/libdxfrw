@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FIELD ID-valued cache group-330 graph closure",
+  "mode": "Existing generated-control audit and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit existing FIELD graph and handle-remap controls for the ID-valued cache group-330 role.",
+    "Close the missing cache-value assertion in the existing complete generated FIELD graph without adding a test target or selector.",
+    "Verify wire ordering, ASCII/Binary parity, and strict local typed readback while retaining adapter export refusal."
+  ],
+  "implementation": {
+    "files": [
+      "tests/wave1_tests.cpp::testAcadFieldExtensionDictionaryWireCandidate",
+      "tests/wave1_tests.cpp::--acad-field-writer-candidate",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingCoverageReused": [
+      "testFieldAndFieldListHandleRemapping already proves data-type-64 group-330 remaps exactly once, emits no stale source handle, and does not chain the remap twice."
+    ],
+    "generatedCases": [
+      "The root FIELD cache value uses data type 64 and references the sibling XRECORD handle A730.",
+      "ASCII and Binary projections assert 7:ACFD_FIELD_VALUE, 93:0, 90:64, 330:A730, 94:0 in order.",
+      "Strict generated ASCII section reread verifies typed cached value type 64 and handle A730.",
+      "The value group-330 edge remains distinct from the common FIELD owner 330, FIELDLIST membership 330, and expression object 331."
+    ],
+    "policy": [
+      "Only local wire/typed-readback coverage is claimed; no external or native semantic support claim is promoted.",
+      "No production code changed and dx_iface continues to refuse FIELD/FIELDLIST graph export.",
+      "No duplicate test lane or persistent DWG/DXF fixture was added."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build/libdxfrw_wave1_tests --acad-field-writer-candidate",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_acad_field_writer_candidate$' --output-on-failure",
+        "result": "PASS (1/1)"
+      }
+    ],
+    "planAndTestDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false,
+    "commitStatus": "Not created; Git metadata is read-only in this workspace."
+  },
+  "assessment": {
+    "asciiBinaryWireOrderVerified": true,
+    "strictLocalTypedReadbackVerified": true,
+    "existingRemapControlReused": true,
+    "nativeConsumerSemanticsVerified": false,
+    "adapterFieldExportEnabled": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: add cached ID-valued group-330 edge to the complete FIELD graph candidate, distinct from owner/member/expression edge roles.",
+      "PAR-20/7G: reuse the existing remap test for identity and single-remap guarantees; no duplicate case added."
+    ],
+    "nextLocalAction": "Select the next in-scope local PAR-20/7G invariant after auditing the existing focused tests; maintain the strict adapter export boundary and do not wait on external/platform qualification.",
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

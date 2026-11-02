@@ -1,0 +1,51 @@
+{
+  "title": "S3.7c rooted reachable-node and graph-link source identity consistency",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Conservatively classify rooted ACIS projections whose retained row identities disagree with the reachable-node census.",
+    "invariants": [
+      "reachable node identities are nonnegative and unique",
+      "every graph-link source belongs to the rooted reachable-node set",
+      "retained lump, shell, face, loop, and coedge row identities belong to the rooted reachable-node set"
+    ],
+    "resourcePolicy": "Copy reachable IDs into one compact vector, sort once, and use binary search for exact membership checks. Scratch allocation failure is caught by the noexcept classifier and conservatively produces a known-gap result.",
+    "semanticLimit": "Internal projection consistency only. The reachable set and graphLinks are produced by the same parser and do not establish source-file completeness, native ACIS semantics, B-rep validity, or consumer acceptance."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.32 s)",
+    "diff_check": "PASS (scoped changed-file check)",
+    "new_controls": [
+      "geometry graph-link source removed from reachable IDs while the cached reachable count is updated",
+      "duplicate reachable body identity with the cached reachable count updated"
+    ],
+    "new_dwg_dxf_fixture": false,
+    "full_suite_run": false
+  },
+  "compatibility": {
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "wire_format_changed": false,
+    "2d_callback_lane_changed": false,
+    "support_claim_promoted": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows_qualification": "OPEN",
+    "independent_acis_acds_semantic_evidence": "OPEN"
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty; this focused slice was not staged or committed."
+  }
+}

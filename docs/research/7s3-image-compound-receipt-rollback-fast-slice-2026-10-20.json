@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 IMAGE compound preflight, receipts, and rollback boundary",
+  "mode": "Generated local implementation slice and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reject known unsupported DataStorage flags before taking the full snapshot.",
+    "Require frame receipts for all three frames emitted by the compound IMAGE facade operation.",
+    "Preserve one comprehensive outer checkpoint for IMAGEDEF, class-registered IMAGEDEF_REACTOR, and IMAGE entity atomicity.",
+    "Verify explicit last-write rollback uses the retained compound checkpoint rather than entity-only rollback."
+  ],
+  "implementation": {
+    "files": [
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "dwgRW::writeImage preflights unsupported DataStorage flags before creating a full checkpoint, requires receipts after low-level IMAGEDEF and IMAGEDEF_REACTOR writes as well as the final entity receipt, and marks the retained facade transaction as compound-checkpoint-owned so rollbackLastDwgObjectWrite removes all three frames and class-instance state instead of only the entity frame.",
+    "atomicBoundary": "One full CompoundWriteCheckpoint remains necessary because the public write spans fixed OBJECT, class-associated OBJECT, and ENTITY writer ledgers. Ordinary writer-level frame cleanup remains in place, with the outer checkpoint restoring the complete composed operation.",
+    "generatedControls": [
+      "Unsupported DataStorage state on either supplied definition refuses with zero full checkpoints and no writer/caller mutation.",
+      "Missing IMAGEDEF receipt restores its emitted frame and caller IMAGE state before the compound operation continues.",
+      "Missing IMAGEDEF_REACTOR receipt after IMAGEDEF restores object bytes/maps, emitted handles, class-instance ledgers, and caller IMAGE state.",
+      "Missing final IMAGE receipt after all three frames were emitted restores the full compound graph and caller IMAGE state.",
+      "Successful retry verifies the three-frame graph and reactor class association; explicit last-write rollback removes all frames and restores original caller fields.",
+      "Each admitted file-backed IMAGE attempt takes exactly one comprehensive checkpoint; known unsupported-payload preflight refusals take zero."
+    ],
+    "selector": "tests/dwg_local_roundtrip_tests.cpp --block-owner-membership-index"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "fastSelector": "PASS: build-gcc/libdxfrw_dwg_local_roundtrip --block-owner-membership-index",
+    "ctest": "PASS (4/4): libdxfrw_dwg_block_owner_membership_index, libdxfrw_dwg_local_roundtrip, libdxfrw_dwg_block_record_xref_roundtrip, dwg_dxf_issue_1410_cross_codec",
+    "gitDiffCheck": "PASS: git diff --check on scoped implementation, test, and plan files",
+    "fullSuiteRun": false,
+    "wallClockBenchmarkRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionAndTestChanges": true,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The comprehensive checkpoint is intentionally retained for correctness; checkpoint counts are not throughput measurements.",
+    "No external or new persistent drawing fixture, peer runtime, native CAD application, full suite, or wall-clock benchmark was used.",
+    "The shared worktree contains extensive unrelated dirty changes and Git metadata is read-only in this session; no commit was created."
+  ],
+  "commitCreated": false
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader versioned ACIS writer lifecycle and strict peer evidence",
+  "mode": "primary-source web research and read-only local plan/source reconciliation",
+  "scope": [
+    "Refresh ACadSharp modeler writer issue and pull-request states, including the post-refactor ACDSDATA readback report",
+    "Cross-check recent peer DXF writer, SPLINE, MTEXT, and transform reports against existing libdxfrw plan owners",
+    "Reconcile FreeCAD's current DWG converter route and refine only the existing PAR-07/S8 composed gate"
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp modeler writer",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "status": "issue_and_pull_request_pages_reviewed_2026-10-20",
+      "observation": "Issue #1195 reports silent modeler-entity omission in ACadSharp 3.4.9. PR #1150 describes version-specific SAT/SAB placement, reports author-run TrueView checks for selected target versions, and later reports a post-refactor DXF ACDSDATA readback that retained only the last repeated group-310 chunk. PR #1174's page still displays Open while the #1150 discussion says the refactor was in current master, so exact code identity must be bound before comparison. PR #1240 remains open and undeployed.",
+      "limits": "PR descriptions and author-reported native checks are not released behavior, independently reproduced results, or normative format evidence. No branch was fetched, built, or run."
+    },
+    {
+      "project": "ACadSharp current issue crosswalk",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/DomCR/ACadSharp/issues/1250",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "status": "current_issue_pages_reviewed_2026-10-20",
+      "observation": "The reports describe strict AutoCAD DXF rejection around CLASS/HATCH/DIMSTYLE output, an ARC/ELLIPSE transform discrepancy, whole-file AC1032 MTEXT frame-flag rejection, and DWG-to-DXF SPLINE output later rejected by GDAL. They are mapped to existing local owners; no new libdxfrw defect was established.",
+      "limits": "Issue reports are producer-, version-, and application-specific. The linked SPLINE archive was not downloaded; the text lacks the offending handle and an independent expected curve."
+    },
+    {
+      "project": "FreeCAD DWG/DXF route",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "status": "current_source_and_archived_documentation_reviewed_2026-10-20",
+      "observation": "The current ODA adapter requests ACAD2000 DXF and accepts output based on path existence without checking the child process return code. DWG then flows through a separately selected DXF importer; the published docs state stock FreeCAD does not read ACIS/SAT solid payloads.",
+      "limits": "Mutable source and archived documentation describe route behavior only. No FreeCAD build, converter, importer, or native platform was executed."
+    },
+    {
+      "project": "Local libdxfrw plan/source owners",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/libdxfrw.cpp",
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "status": "read_only_reconciliation_2026-10-20",
+      "observation": "The existing plan already separates carrier bytes, versioned record placement, AcDs owner/key joins, strict external reopen, ACIS semantics, and native consumer evidence. Existing generated test owners cover multiple version/encoding routes; this pass specifies conditional coverage checks for repeated group-310 reconstruction and out-of-order owner/directory ordering rather than adding duplicate tests by default.",
+      "limits": "No local build or test was run. This research does not establish current native acceptance or complete ACIS/AcDs semantics."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Refined the existing PAR-07/S8 gate into a versioned carrier-and-association proof sequence, identified repeated group-310 reconstruction and non-monotonic owner/directory ordering as conditional coverage-audit points, and restated exact FreeCAD converter/importer limits. No local defect was established.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-versioned-acis-writer-lifecycle-2026-10-20.json"
+    ],
+    "limitations": "This update is based on mutable public source and issue/PR pages plus local read-only reconciliation. It does not reproduce peer failures or qualify a local/native route."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the worktree has extensive pre-existing user changes and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "id": "RPP-5xj",
+  "title": "AC1027 reversed mixed MESH/3DLINE LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "6c903ba41c0b4d43aa29106eff058ef4d322ccb9",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One reversed, ordered two-reference composition across all four source/output encoding pairs.",
+    "linetype": "Source-bound EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, flags 0 and alignment 65.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "references": [
+        {"code": 1005, "source_handle": "0xA900", "target": "MESH"},
+        {"code": 1005, "source_handle": "0xA901", "target": "3DLINE"}
+      ]
+    },
+    "targets": [
+      {
+        "type": "MESH",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "subclass": "AcDbSubDMesh",
+        "version": 2,
+        "blend_crease": true,
+        "subdivision_level": 2,
+        "vertices": [[1.0, 2.0, 3.0], [4.0, 2.0, 6.0], [4.0, 5.0, 9.0]],
+        "faces": [[0, 1, 2]],
+        "edges": [],
+        "creases": [],
+        "property_overrides": []
+      },
+      {
+        "type": "3DLINE",
+        "source_handle": "0xA901",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "start": [1.5, -2.0, 3.25],
+        "end": [4.5, 5.5, -6.5],
+        "thickness": 0.75,
+        "extrusion": [0.0, 1.0, 0.0]
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical source records bind the ordered group-1005 references to a model-space MESH and a named-block 3DLINE with distinct owners and exact entity types. Typed import confirms the mesh version/flags, ordered vertices and face indices, plus the 3DLINE endpoints, thickness and extrusion.",
+    "output": "For each ASCII/binary source/output pair, physical output checks both target types, selected geometry/topology fields, owner roles and ordered remapped group-1005 references. Fresh adapter readback checks exact DRW_Mesh and DRW_3DLine dynamic types and their selected fields/topology.",
+    "failure_retry": "Removing either target independently refuses export and preserves the existing destination; restoring it permits same-adapter retry. A late mutation of the named-block 3DLINE handle also refuses without replacing the destination and succeeds after restoration.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 13,
+      "selected_refusals_with_destination_preservation": 9,
+      "selected_same_adapter_retries": 9,
+      "whole_focused_test_profiles": 368,
+      "whole_focused_test_readbacks": 845,
+      "whole_focused_test_refusals": 477,
+      "whole_focused_test_retries": 477
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 20.92 seconds); selector asserts the whole-test counts above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes generated test profiles and assertions only.",
+    "source_bindings": {
+      "implementation_commit": "6c903ba41c0b4d43aa29106eff058ef4d322ccb9",
+      "test_source_sha256": "fb12a5203a2e47514372452eb5071ecd4cb898a85a6c40cb7ea6c71648059886",
+      "normal_executable_sha256": "8cb4d3c1a140f54b35c507f04feafc2af6915726e93450d9207259a9253cf3c9",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one ordered AC1027 code-1005 pair with a model-space MESH followed by a named-BLOCKS 3DLINE, for the selected ASCII/binary input/output combinations. Other pair orderings, target combinations, source/output sections, versions, code-1005 counts and XDATA profiles remain open.",
+    "This is selected source identity, field/topology transport, output/readback and transaction evidence. It does not establish native MESH subdivision or rendering, independent CAD-kernel semantics, complete document closure, or any general DWG/DXF support claim."
+  ],
+  "next": "Select another source-bound P2 witness from remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations; keep semantic and document-closure gates separate."
+}

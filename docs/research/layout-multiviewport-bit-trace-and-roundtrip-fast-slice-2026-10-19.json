@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "LAYOUT viewport count raw-bit trace and two-handle structural slice",
+  "mode": "Deeper cross-peer research, plan update, and focused structural validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "9a569d03c069660fe57d066fa82ebdf6beb2345f9bfbbf824177c6e2eeb64489",
+  "scope": [
+    "Reconcile the ODA v5.4.1 RL field label for the R2004+ LAYOUT viewport count with raw same-cursor reads from existing DWG samples and current independent open-source reader implementations.",
+    "Keep the viewport count/list separate from the common LAYOUT 331 last-active viewport link and from DXF viewport status or native editor state.",
+    "Record the existing two-handle generated structural test slice and its focused validation without registering fixtures or promoting format support claims."
+  ],
+  "sources": [
+    "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+    "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg.spec",
+    "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+    "https://github.com/DomCR/ACadSharp/pull/1024",
+    "https://github.com/DomCR/ACadSharp/pull/1068",
+    "https://github.com/HakanSeven12/OpenCADStudio/issues/1670",
+    "https://github.com/HakanSeven12/OpenCADStudio/commit/2c329b2",
+    "https://github.com/HakanSeven12/opencadcodec/commit/d57097c",
+    "src/drw_objects.cpp: DRW_Layout::parseDwg and DRW_Layout::writeDwg",
+    "tests/dwg_object_vectors_tests.cpp: testLayoutVectors and --layout-vectors",
+    "tests/dwg_local_roundtrip_tests.cpp: generated LAYOUT read/write callback assertions"
+  ],
+  "crosswalk": [
+    {
+      "topic": "Normative versus implementation field type",
+      "evidence": "ODA Open Design Specification v5.4.1 §20.4.84 labels the R2004+ LAYOUT viewport count RL, defined by its bit-code glossary as raw long. LibreDWG master src/dwg.spec declares FIELD_BL(num_viewports), bounds it to 10,000, and reads that many handles. ACadSharp master DwgObjectReader.readLayout calls ReadBitLong() and then reads that many handle references, while its adjacent comment labels the field RL. The two peer codebases converge on the BL primitive; their comments/spec lineage does not constitute an authoritative ODA correction.",
+      "disposition": "Retain the published ODA RL label as an unresolved normative discrepancy. Do not claim a document erratum. Treat peer code as corroborating implementation evidence only."
+    },
+    {
+      "topic": "Same-cursor raw sample probes",
+      "evidence": "Three existing local DWG samples all identify as AC1024 (AutoCAD 2010/2011/2012). For architectural_example-imperial.dwg, SHA-256 52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7: Model count cursor bit 2231 gives RL 17857956 through bit 2263 and BL 0 through bit 2233; Layout1 cursor bit 2383 gives RL 276669504 through bit 2415 and BL 2 through bit 2393. For title_block-iso.dwg, SHA-256 b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2: Model cursor 1221 gives RL 28847524 through 1253 and BL 0 through 1223; Architectural Title Block cursor 1429 gives RL 3089982528 through 1461 and BL 1 through 1439. For visualization_-_conference_room.dwg, SHA-256 0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4: Model cursor 957 gives RL 28847524 through 989 and BL 0 through 959; Layout1 and Layout2 cursor 461 each give RL 20451748 through 493 and BL 0 through 463. On the first sample's Layout1, BL leaves the body cursor exactly at the declared end, 2393/2393 bits. The separately parsed handle stream yields refs {651,656} (0x28B, 0x290), with its cursor at 3812/3816 bits at frame end.",
+      "disposition": "The observed AC1024 sample profile supports the current BL decoder: it yields plausible counts and exact object-body boundary alignment, whereas same-position RL reads yield implausible counts and consume 32 bits. This is evidence about the sampled AC1024 profile, not every R2004+ writer/version. No parser or writer behavior was changed."
+    },
+    {
+      "topic": "Independent reader diagnostic and conversion boundary",
+      "evidence": "Installed LibreDWG dwgread 0.14 run with -v9 -O JSON on architectural_example-imperial.dwg reports Layout1 num_viewports=2 [BL] and handles 0x28B and 0x290. The local parser trace also captures those refs. A strict local dwg2dxf invocation reads the sample but exits 1 because the overall read disposition remains incomplete due to unsupported associative-dimension dependency custom classes (including AssocDimDependencyBody); this is not a successful end-to-end conversion or semantic qualification.",
+      "disposition": "Peer output corroborates, but does not independently decode the exact bits. Keep read-stage/field evidence distinct from complete conversion acceptance and from target graph closure."
+    },
+    {
+      "topic": "Count/list, last-active handle, and consumer meaning",
+      "evidence": "ODA lists repeated viewport handles separately from common handle 331. Autodesk's LAYOUT DXF reference describes 331 as the viewport last active when that layout was current. It does not define list ordinal as an overall-viewport selector or equate the stored handle with a live editor pane. OpenCADStudio issue #1670 and linked codec/application changes discuss a peer implementation that had conflated these roles; ACadSharp #1024/#1068 separately address layout linkage, paper viewport, and DXF viewport status.",
+      "disposition": "Preserve count, ordered list, and 331 as separate values. Do not infer overall viewport, DXF groups 68/69, paper-canvas restoration, or active UCS state from list order or 331 alone. Peer behavior shapes test design but is not normative or native qualification."
+    }
+  ],
+  "localSampleInventory": {
+    "rawBitProbeVersions": ["AC1024"],
+    "availableSampleVersions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027"],
+    "crossVersionRawBitProbe": "NOT_RUN",
+    "fixturePolicy": "No external sample copied into the repository; no fixture added or registered."
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-40 / 7G.3e LAYOUT viewport-count/list implementation readiness",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "normativeOdaCorrectionClaimed": false,
+    "productionWireBehaviorChanged": false
+  },
+  "generatedStructuralSlice": {
+    "vector": "viewportCount=2, viewportHandles=[0xA716, 0xA717], lastActiveViewportHandle=0xA717",
+    "versionBehavior": "AC1018+ asserts two ordered list refs; pre-AC1018 asserts the DWG list is absent/empty while common handle 331 remains separately asserted.",
+    "externalFixtureFiles": 0,
+    "fixtureRegistrations": 0,
+    "ctestRegistrations": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip --parallel 4",
+    "focusedVector": "PASS: build-gcc/libdxfrw_dwg_object_vectors_tests --layout-vectors",
+    "owningTests": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$|^libdxfrw_dwg_object_vectors$' --output-on-failure (2/2; 3.43 seconds)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp tests/dwg_local_roundtrip_tests.cpp",
+    "fullSuite": "NOT_RUN",
+    "nativeCadApplication": "NOT_RUN",
+    "independentRenderer": "NOT_RUN"
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "limitations": [
+    "The local ODA PDF is present as /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, while the AGENTS.md expected filename without the suffix is absent; the online official ODA PDF was also inspected.",
+    "Raw same-cursor probes were run only on three AC1024 files. The repo-local corpus contains AC1015, AC1018, AC1021, AC1024, and AC1027 samples, but no cross-version raw count probe was performed in this slice.",
+    "The exact cursor alignment and plausible count do not prove the complete DWG object is semantically supported or accepted by native CAD.",
+    "Generated local round-trip tests prove structural field serialization only; they do not prove actual viewport target resolution/ownership, list-order semantics, or native save-close-reopen behavior.",
+    "The shared worktree is broadly modified. No files were staged or committed."
+  ],
+  "commitCreated": false
+}

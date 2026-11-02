@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF owner graph versus physical OBJECTS record order",
+  "mode": "Primary-source DXF reference and open-source implementation review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the PAR-20/7G.3 owner/order test lane against Autodesk DXF references.",
+    "Compare graph ownership and exporter ordering models in ezdxf and LibreDWG.",
+    "Refine minimum-fast-slice and optional peer-check criteria without broadening support claims."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5F1372C4-37C8-4056-9303-EE1715F58E67.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+      ],
+      "revision": "Public Autodesk Help pages reviewed 2026-10-20; page revisions are as exposed by the URLs.",
+      "observed": "The OBJECTS section example begins with the named-object root DICTIONARY; common object and per-object tables define owner pointers and specific dictionary ownership. The pages do not establish a universal owner-record-before-child-record rule for all OBJECTS records.",
+      "limits": "The sample is an example, not proof that no specific object/version has additional ordering requirements. Per-object owner definitions remain authoritative for those object types."
+    },
+    {
+      "project": "ezdxf DXF object graph and exporter",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/xref.py"
+      ],
+      "revision": "Moving master sources reviewed 2026-10-20.",
+      "observed": "The source documents owner linking, root owner zero/orphan handling, one-parent ownership, owner-path reconstruction, and ordered tags within an object's own export.",
+      "limits": "This is one peer implementation, not normative DXF text; reviewed sources do not claim a universal cross-record owner preorder. The pass did not build or run ezdxf."
+    },
+    {
+      "project": "LibreDWG DWG-to-DXF writer route",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.pdf",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwg2dxf.c"
+      ],
+      "revision": "Public manual and moving master source reviewed 2026-10-20.",
+      "observed": "The tool has explicit ASCII and binary DXF output routes, while the manual categorizes some object/class states as unstable or unhandled rather than conflating writer availability with complete object support.",
+      "limits": "No pinned LibreDWG build was selected or run; a successful conversion cannot establish libdxfrw behavior or complete typed semantics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G.3: use unique handles, exact dictionary key-to-child identity, exact owner-to-parent identity, reciprocal references where defined, and strict readback as core graph assertions.",
+      "PAR-20/7G.3: reserve broad physical owner-before-child ordering for documented writer contracts or pinned consumer/version regressions; distinguish it from normative DXF conformance.",
+      "PAR-20/7G.3: retain existing order assertions as local serializer regressions unless a specific assertion is shown to encode an unsupported rule or unnecessary cost.",
+      "PAR-07/S8: interpret peer conversion and reopen outcomes with object diagnostics and route boundaries, not process exit alone.",
+      "Validation cadence: changed target, direct selector, and owning fast CTest per slice; peer and native consumer checks only at composed milestones."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Recorded that Autodesk's OBJECTS example makes root-first a separately meaningful shape but does not establish a universal cross-record owner-before-child rule.",
+    "Promoted exact owner/key/handle graph closure and strict readback as the minimum PAR-20/7G.3 semantic test; scoped physical order to explicit writer contracts or pinned consumer regressions.",
+    "Kept existing passing physical-order checks classified as deterministic local serializer regressions rather than deleting them based on absence of a universal rule.",
+    "Kept peer conversion/reopen and full-suite work outside per-slice fast validation; no local code or test changes were made."
+  ],
+  "limitations": [
+    "The review is a focused reference and source review, not a complete per-object audit of every DXF version.",
+    "No peer source checkout or executable was built or run, and no CAD consumer or external drawing was used.",
+    "An object/version-specific ordering constraint may exist outside the reviewed examples and must be checked against its own authoritative reference or a pinned regression.",
+    "J256, J260, J268, J284, J293, and J295 remain external-only, advisory, and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and research receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

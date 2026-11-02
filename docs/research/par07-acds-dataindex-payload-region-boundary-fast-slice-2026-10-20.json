@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 DataIndex payload-region boundary control",
+  "mode": "ODA-guided generated fast regression",
+  "scope": [
+    "Verify DataIndex local offsets cannot reinterpret payload-region bytes as record headers",
+    "Ensure a malformed row does not silently become a modeler payload association",
+    "Preserve adjacent valid record associations in the existing generated DataStorage profile"
+  ],
+  "method": {
+    "webResearchPerformed": false,
+    "localRepositoryInspected": true,
+    "externalSamplesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testsRun": true,
+    "fullTestSuiteRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localCodeInspection": [
+      "src/drw_datastorage.cpp::readDataRecords bounds each DataIndex-referenced record header to the data segment's declared object-data region before reading header fields",
+      "tests/graph_preservation_tests.cpp::testDataStorageRecordCountAlignmentAnchors already generates four records with unsorted DataIndex rows, an explicit object-data anchor, exact payload association, and modeler linking"
+    ],
+    "limitations": "Generated malformed bytes demonstrate parser boundary behavior and retained neighboring records only. They do not establish arbitrary producer compatibility, ACIS semantic validity, or consumer acceptance."
+  },
+  "formatBasis": {
+    "source": "Open Design Specification v5.4.1, §24.2.2.2",
+    "authority": "The DataIndex→record-header lookup is checked against the documented DataStorage layout; no peer implementation is used as the expected-value oracle.",
+    "expectedDisposition": "A row that resolves into the object-data payload region rather than a complete record-header slot is diagnosed as structurally invalid and is not used to associate a record; independently valid rows remain inspectable."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "generatedCase": "In the four-record profile, mutate one DataIndex local offset so its record-header location equals the object-data start; target the 20-byte suffix payload so the prefix could resemble a plausible record-header size if the region bound were bypassed.",
+    "assertions": [
+      "Require datastorage-record-header-outside-data-region.",
+      "Require structurallyValid=false and replayAllowed=false.",
+      "Require the invalid handle to be absent and exactly the other three records to retain their expected payloads."
+    ],
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2 — passed",
+    "focusedExecutable": "build-gcc/libdxfrw_graph_preservation_tests — passed",
+    "owningCTest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure — 1/1 passed in 0.69 seconds",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no files were staged."
+  },
+  "decision": {
+    "localProductionDefectFound": false,
+    "localGeneratedCoverageGapClosed": true,
+    "newTopLevelSubplan": false,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "externalGatesChanged": false,
+    "fixturePolicyRespected": true,
+    "nextAction": "Self-unblock to the next source-backed local PAR-07/S8 invariant; keep independent semantics and native consumer evidence for their separate composed gates."
+  }
+}

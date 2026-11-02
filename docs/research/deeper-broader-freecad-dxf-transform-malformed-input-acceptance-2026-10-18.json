@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper and broader FreeCAD DXF transform and malformed-input acceptance review",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck the current status and final diagnosis of a recent FreeCAD DXF block-transform report",
+    "Ground INSERT scale-factor test vectors in Autodesk DXF/ObjectARX documentation",
+    "Refine valid-file versus malformed-file acceptance in the existing FreeCAD consumer gate",
+    "Preserve the current implementation queue and fast per-slice validation cadence"
+  ],
+  "method": {
+    "kind": "Read current primary project issue/documentation and reconcile the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dwg-dxf-3d-route-native-acceptance-2026-10-18.json",
+      "docs/research/deeper-broader-cross-kernel-semantic-validation-topology-identity-2026-10-18.json"
+    ],
+    "limitations": "The FreeCAD issue attachment was not downloaded or inspected. Issue comments are reporter/maintainer statements, not an independent reproduction. Autodesk API pages document individual scale properties but do not alone establish every version-specific nested transform composition. No current FreeCAD importer or converter was executed."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD DXF importer issue #28905",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/28905"
+      ],
+      "revision": "Issue state and activity reviewed 2026-10-18; opened 2026-03-31 and closed by the reporter 2026-04-21",
+      "observed": "The initial report described mirrored blocks in a Windows FreeCAD development build, with another user confirming on the same build. The reporter later said the supplied DXF was corrupted and closed the issue. The report lacks a minimized malformed tag and normative recovery expectation. It is not a confirmed FreeCAD or libdxfrw transform defect and is not a valid-DXF conformance oracle."
+    },
+    {
+      "project": "Autodesk ObjectARX BlockReference scale factors",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_BlockReference_ScaleFactors.html",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbBlockReference__setScaleFactors_AcGeScale3d_.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+      ],
+      "revision": "Official Autodesk documentation pages reviewed 2026-10-18",
+      "observed": "X/Y/Z block-reference scale factors correspond to DXF group codes 41/42/43 and are applied relative to perceived WCS axes. The native setter rejects zero scale factors. These pages do not by themselves establish all nested INSERT, block-base, rotation, extrusion/OCS, unit, and version interactions."
+    },
+    {
+      "project": "FreeCAD importer and DWG conversion documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Documentation repository reviewed 2026-10-18; archived on 2026-04-01",
+      "observed": "The docs distinguish C++ and legacy Python DXF import paths and describe a converter-followed-by-DXF-import DWG route. They are a route description only, not a qualification of a current application binary, platform, preference, or converter."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines the existing PAR-07/S8 composed FreeCAD consumer gate with locally authored asymmetric/nested INSERT transform controls and independently computed expected geometry. Valid DXF compatibility and malformed-input recovery are separate outcomes. Exact importer backend, converter, platform, version, diagnostics, object disposition, transformed coordinates/bounds, orientation, and units are recorded. No change to local implementation ordering or per-slice cost.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "At the existing composed consumer checkpoint, use a valid locally authored DXF with asymmetric geometry, nonzero block base, nested INSERTs, translation, rotation, nonuniform scale, and only profile-valid reflection/OCS cases.",
+    "Calculate transformed sample points and expected bounds independently from the importer; report orientation/handedness and unit conversion explicitly.",
+    "Validate converter output with the strict local reader and bind its hash and effective version before invoking FreeCAD.",
+    "Run C++ and legacy importer backends separately when each is in the support scope; capture exact FreeCAD build, platform, settings, object inventory, losses, and diagnostics.",
+    "If malformed recovery is studied, use a minimized mutation of a locally generated control and report only recovery/disposition; do not grade it as valid-file compatibility or assume cross-application recovery equivalence.",
+    "Do not use FreeCAD 2D import results to qualify ACIS/AcDs association, B-rep validity, or native 3D support.",
+    "Do not download or commit third-party/customer drawings; preserve the fast local-slice validation cadence and scheduled/composed external checks."
+  ]
+}

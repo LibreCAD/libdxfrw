@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "title": "7S.3 DWG GROUP dictionary registration and emission indexes",
+  "date": "2026-10-20",
+  "scope": "Generated fast implementation slice removing repeated GROUP dictionary registration/emission scans while preserving authoritative order and rollback semantics.",
+  "changes": [
+    "Added lazily derived pending NOD/GROUP name and handle indexes plus emitted GROUP dictionary/frame membership indexes.",
+    "Invalidated derived caches on compound rollback and rebuilt them from authoritative vectors.",
+    "Reserved the emitted GROUP frame vector once after registration callbacks instead of issuing repeated exact-size reserves per entry.",
+    "Extended the existing generated GROUP dictionary control with 128 groups and exact dictionary/callback order, names, handles, owners, and member links across six DWG output versions."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_local_roundtrip --dwg-group-dictionary-controls",
+    "focusedCTest": "PASS: libdxfrw_dwg_group_dictionary_controls (1/1, 0.26 sec)",
+    "libreCAD3Compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "diffCheck": "passed: git diff --check on modified tracked source, test, and plan files; receipt JSON parsed with python3 -m json.tool"
+  },
+  "notPerformed": [
+    "No full suite",
+    "No external peer executable or native CAD consumer",
+    "No persistent DWG/DXF fixture",
+    "No wall-clock benchmark",
+    "No support claim promotion"
+  ],
+  "planInventory": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

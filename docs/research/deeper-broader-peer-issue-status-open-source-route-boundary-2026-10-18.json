@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer issue status and open-source route boundary reconciliation",
+  "mode": "Primary-source issue/PR timeline and project documentation review with local plan crosswalk",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh LibreDWG issue #1355/#1356 and related pull-request status, including reporter corrections and narrowed version scope",
+    "Separate the LibreDWG #1294/#1358 compressed-section report from #1355 handle-map and output-finalization behavior",
+    "Cross-check ACadSharp ACIS writer and LAYOUT issue reports against released versus proposed behavior",
+    "Reconcile ezdxf, GDAL, and FreeCAD ACIS/3D-DXF route boundaries with existing local evidence gates",
+    "Update existing plan crosswalk without creating peer fixtures, dependencies, tests, or support promotions"
+  ],
+  "method": {
+    "kind": "Read public primary project documentation, issue/PR discussion histories, and local plan/receipt crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-conversion-failure-chain-2026-10-17.json",
+      "docs/research/deeper-broader-cross-project-conversion-completeness-handle-identity-2026-10-18.json",
+      "AGENTS.md"
+    ],
+    "limitations": "All peer outcomes are documentary observations. PR #1360/#1358/#1240 were not built, reported comparisons were not independently reproduced, no issue attachments were downloaded, and no stock FreeCAD build was executed. Mutable or archived documentation establishes only its published contract and reviewed snapshot. No result establishes a matching local defect or promotes semantic support."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1355 and PR #1360",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360"
+      ],
+      "revision": "Issue and PR discussion reviewed 2026-10-18; PR head f841167 is open and carries a cla_needed label in the reviewed state",
+      "observed": "The issue's author retracted the initial AcDb:Handles section-size hypothesis and later traced the reported case to failed modular-character handle-offset decoding followed by use of invalid data. The PR proposes a conditional one-byte resynchronization and reports a successful attached-case conversion, but remains unmerged. The independent no-ENTITIES/no-EOF yet exit-zero conversion contract remains in the issue.",
+      "limits": "No peer build, sample execution, ODA comparison, or ODA-spec verification of the proposed byte recovery was performed. This is not evidence of a libdxfrw defect or a normative resynchronization rule."
+    },
+    {
+      "project": "LibreDWG issue #1356",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1356"
+      ],
+      "revision": "Issue history reviewed 2026-10-18; author reports AC1021 cases clean on master commit 56a05f98",
+      "observed": "The author says the original three AC1021 duplicate-handle samples are clean on the cited master snapshot, without bisection, and narrows the remaining failure to duplicate generated BLOCK/ENDBLK handles on two AC1009 paper-space drawings.",
+      "limits": "Current-master results are reporter-observed, not independently reproduced. The remaining AC1009 DWG route is outside this plan's declared AC1012+ DWG support envelope; issue attachments were not downloaded."
+    },
+    {
+      "project": "LibreDWG issue #1294 and PR #1358",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1294",
+        "https://github.com/LibreDWG/libredwg/pull/1358"
+      ],
+      "revision": "Issue and PR status reviewed 2026-10-18; PR remains open",
+      "observed": "The report concerns AC1032 compressed-section/page-span bounds and is independent of the #1355 handle-offset failure. The PR author proposes declared decompressed-size and page-size bounds and reports success on named cases.",
+      "limits": "The PR is unmerged and its inputs/results were not reproduced. No corresponding libdxfrw failure was established."
+    },
+    {
+      "project": "ACadSharp issues #1195/#1184 and PR #1240",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1174",
+        "https://github.com/DomCR/ACadSharp/issues/1184"
+      ],
+      "revision": "Public issue and PR states reviewed 2026-10-18; #1195, #1240, and #1184 are open in the reviewed state",
+      "observed": "#1195 reports silent DXF writer omission of DWG-read 3DSOLID/REGION objects; #1240 proposes ACIS-dependent DXF writing and depends on #1174. #1184 reports that a validating ShadePlotDPI setter can lose LAYOUT objects when the stored non-active DPI value is zero.",
+      "limits": "These are peer-specific issue reports and an unmerged proposal, not released support evidence or local reproductions."
+    },
+    {
+      "project": "ezdxf ACIS tools, GDAL DXF driver, and FreeCAD Draft DXF documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "ezdxf 1.4.5 stable docs and GDAL stable docs reviewed 2026-10-18; FreeCAD documentation repository reports archived/read-only since 2026-04-01",
+      "observed": "ezdxf documents simple/known ACIS data tools without an ACIS kernel and flat-polygon-only mesh extraction; GDAL documents raw group-code exposure when enabled and AC1027+ raw ASM plus transform in 3D extensibility mode; FreeCAD's published Draft DXF contract says stock import cannot read embedded ACIS solids and lists its supported import surfaces.",
+      "limits": "These are route contracts, not executions or B-rep semantic results. FreeCAD's archived documentation must be cross-checked against the exact source/build used for a future native qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingPlanCorrections": [
+      "Replace the initial, retracted #1355 section-size diagnosis with the reporter's corrected handle-offset failure description while preserving the separate incomplete-output/false-success contract.",
+      "Mark #1356's AC1021 duplicate-handle observation as resolved on the cited master snapshot per reporter, and narrow the remaining peer case to AC1009 pre-R13 paper-space output.",
+      "Keep #1294/#1358 compressed-section behavior separate from #1355's handle-map path.",
+      "Keep ACadSharp #1195/#1240 as an unmerged writer lead and peer DXF/ACIS carriers distinct from semantic solid qualification."
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Correct the stale cross-project peer timeline; retain only existing generated local owners for ODA-backed parser boundaries, complete DXF output/publication, handle uniqueness and role-correct roots, LAYOUT retention, and ACIS carrier/writer closure. Do not import customer/peer drawings or copy unmerged peer recovery logic. AC1009 DWG remains outside the declared AC1012+ reader scope; generic handle properties and AC1009 DXF coverage remain separately relevant.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The repository contains extensive pre-existing user modifications. This research pass edited only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this receipt; no files were staged or committed."
+  }
+}

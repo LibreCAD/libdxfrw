@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-broader-peer-capability-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "8cb0a4537cfa455c3ff5b87b62ea5ae656355f7a",
+  "scope": "Broader cross-implementation research to refine the DWG/DXF implementation plan, with focus on capability evidence levels, OBJECTS graph boundaries, CLASSES metadata, and pre-emission readiness",
+  "method": {
+    "kind": "static primary-source, official-format-reference, and local-source review",
+    "runtimeTestsRun": false,
+    "sourceBranches": "LibreDWG/master, LibreCAD/LibreCAD master, ACadSharp/master, and ezdxf stable/master are mutable references; citations identify reviewed pages and do not pin an immutable source snapshot",
+    "principle": "Autodesk DXF and ODA DWG references establish format contracts; peer code/docs/issues are implementation cross-checks and do not independently qualify libdxfrw semantics"
+  },
+  "crossImplementationFindings": [
+    {
+      "project": "LibreDWG",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/issues/1107"
+      ],
+      "evidence": "The project manual self-reports approximately 99% DWG coverage across R1.2-R2018 but separately lists R2007 DWG writing as unavailable, TABLESTYLE as working only pre-2010, and multiple classes as unstable/undertested. Closed issue #1107 preserves a historical conversion log with TABLESTYLE unhandled and MATERIAL/MLEADERSTYLE warnings; the issue's closed state prevents treating that log as proof of current-master failure.",
+      "planUse": "Use family/version-specific values and output warnings/skips, not project percentages or a successful file-open, as differential evidence. The historical issue is a warning-pattern example only."
+    },
+    {
+      "project": "ACadSharp",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "evidence": "Its published matrix separately lists DXF reader/writer and DWG reader/writer capabilities by file version. Reader usage exposes notification callbacks. A version-matrix cell or successful document construction does not establish retention/emission of a specific OBJECTS family.",
+      "planUse": "Keep optional differential runs family-scoped and record exact source/output inventory plus notification and unsupported/skipped-object details. No mandatory runtime/dependency is added."
+    },
+    {
+      "project": "ezdxf",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/concepts/entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "evidence": "Unknown/unsupported DXF records can be preserved as TagStorage without semantic support. The OBJECTS documentation states that extension dictionaries and graphical-entity XRECORDs may reside outside the NOD tree. The XREF route supports a bounded dependency subset and documents unsupported objects/features.",
+      "planUse": "Keep raw retention, typed interpretation, root reachability, and whole-object-graph closure separate. Inventory owner/reactor/xDict/reference edges in addition to NOD traversal; do not use raw save success or XREF copying as whole-conversion proof. This confirms existing graph policy rather than adding a new graph root."
+    },
+    {
+      "project": "LibreCAD bundled libdxfrw",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/src/libdxfrw.h"
+      ],
+      "evidence": "The generated inventory explicitly says it is a deterministic source inventory, not byte-level conformance evidence; it distinguishes typed/raw/unsupported routes and marks rows fixture-needed. The header exposes a broad set of per-family DXF writer methods, including the named resource and visual-style candidates.",
+      "planUse": "Use the in-tree fork as a route/field/test-design reference for convergence, not a semantic qualification source. Port a narrow vertical family slice and verify locally rather than equating type/API counts with demonstrated support."
+    }
+  ],
+  "formatContractReconciliation": {
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/classes_section.html"
+    ],
+    "evidence": "Autodesk's published CLASSES table calls both group 1 (DXF record name) and group 2 (C++ class name) always unique. ezdxf documentation retains a historical empirical note that some Architectural Desktop 2007 files reused group 1 with differing group 2 values. Local preflight currently enforces uniqueness for each field.",
+    "decision": "Keep the standards-based fail-closed uniqueness rule; do not relax it based solely on the conflicting peer note. If a producer-authored counterexample is collected, bind its product/version/hash and reconcile against the exact target contract before changing policy.",
+    "classInstanceCount": "Autodesk identifies group 91 as the custom-class instance count. Local DXF writing validates/freezes and emits CLASSES before OBJECTS, so planned typed/raw class output and AC1018+ counts must be computed before dxfRW::write(), after dedup and refusal decisions; source counts are not output counts. Fixed MLINESTYLE does not require a CLASS record."
+  },
+  "localFindings": [
+    {
+      "source": [
+        "src/libdxfrw.cpp:2506-2545",
+        "src/libdxfrw.cpp:2735-2768",
+        "src/libdxfrw.cpp:9518-9720"
+      ],
+      "evidence": "The writer preflights/finalizes DXF class metadata and emits the CLASSES section before writeObjects. Its preflight rejects duplicate record names and duplicate C++ class names. Therefore adding callbacks/writers alone cannot compute reliable group-91 counts during object emission.",
+      "readiness": "F.4b needs a final admitted-output class manifest prepared before writer entry; class registration/count assertions belong in the fast generated ASCII/binary output/readback checks."
+    },
+    {
+      "source": [
+        "dwg2dxf/dx_iface.cpp:3280-3495",
+        "dwg2dxf/dx_iface.cpp:3450-3490"
+      ],
+      "evidence": "The adapter already computes output class counts for selected ACDS/evaluation-graph routes, while generic copied class metadata is otherwise passed through. New typed named-resource routes need explicit class/count planning after raw/typed dedup and before dxfRW::write().",
+      "readiness": "Reuse the established adapter preflight location and existing class APIs rather than adding a late writer mutation path."
+    }
+  ],
+  "implementationPlanChanges": {
+    "f3c": "Unchanged: exact source/profile/payload admission remains required before typed VisualStyle output.",
+    "f4b0": "Add immutable target custom-CLASS manifest and class identity/count checks to the field/origin/reference/loss matrix.",
+    "f4b1a": "Compute class registrations and AC1018+ instance counts from final admitted SCALE/DICTIONARYVAR output before CLASSES emission; include ASCII/binary parse-back count checks.",
+    "f4b1c": "Compute MLEADERSTYLE class count from the final admitted output set before CLASSES emission, with the existing AC1021/AC1024/AC1027 payload gates.",
+    "graph": "Retain explicit separation of NOD traversal from owner/reactor/xDict/reference graph census; no new object-graph policy is inferred from peers."
+  },
+  "validation": {
+    "build": "NOT RUN; research/plan update only",
+    "tests": "NOT RUN",
+    "fullSuite": "NOT RUN",
+    "peerRuntimes": "NOT RUN",
+    "nativeApplications": "NOT RUN",
+    "drawingFixturesAdded": 0,
+    "newCTestRegistrations": 0
+  },
+  "scopeBoundaries": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "threeDSupportLedgerItems": 149,
+    "supportClaimsPromoted": false,
+    "codeChanged": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "localSourceSha256": {
+    "src/drw_classes.cpp": "f240440405bdd6ec6ff2469108886849deb879551cb321fb31e719042e57b709",
+    "src/drw_classes.h": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932",
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b",
+    "dwg2dxf/dx_iface.cpp": "a173c10979ebf3a84e064ab7ba18addb4cd913347bbd32308f4dd86cc3c373f3",
+    "dwg2dxf/dx_data.h": "2aa5ee5aac9d28a8cb6425871464fc38b6c5a28d45a9a720eed63de5b7b6382e"
+  }
+}

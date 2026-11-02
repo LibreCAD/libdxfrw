@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 MLEADERSTYLE owner order and mixed DICTIONARY adapter codes",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Add physical OBJECTS ordering assertions to the existing rooted MLEADERSTYLE control.",
+    "Align the existing root DICTIONARYVAR adapter assertions with per-entry 350/360 code retention while retaining the explicit NOD 350 route.",
+    "Keep implementation and validation inside the existing selector/CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-mleaderstyle-order-and-dictionary-codes-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "ASCII and Binary MLEADERSTYLE output asserts actual NOD first and the NOD-owned ACAD_MLEADERSTYLE dictionary before every corresponding emitted MLEADERSTYLE object.",
+      "Mixed-code DICTIONARYVAR adapter output asserts regenerated NOD entry 350, source dictionary entry codes 350/360, and strict readback of their SoftOwner/HardOwner metadata."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS (exit 0): --named-resource-import-evidence with existing tests/fixtures/dwg/rtext_arctext.dwg; selector printed existing DWG/parser diagnostics and these are not treated as a complete-read pass",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and adapter test; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Generated local output-order checks for the MLEADERSTYLE root route and adapter-level preservation/readback of mixed nested DICTIONARY entry codes with the NOD's explicit regenerated 350 edge.",
+    "doesNotClose": [
+      "A generic OBJECTS ordering scheduler or every root/owner family.",
+      "A universal 350/360 policy derived from dictionary flag 280.",
+      "Complete DWG sample read, native consumer acceptance, or broad DWG/DXF/3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

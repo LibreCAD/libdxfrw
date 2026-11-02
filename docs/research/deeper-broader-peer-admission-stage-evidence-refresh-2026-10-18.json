@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer admission and stage-specific evidence refresh",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh current LibreDWG security failure classes against existing local safety owners",
+    "Separate FreeCAD DXF importer qualification from converter-mediated DWG qualification",
+    "Recheck ezdxf XREF operation limits without generalizing them to base parsing",
+    "Refine optional peer admission to preserve fast local implementation slices"
+  ],
+  "method": {
+    "kind": "Read current upstream project release notes, source, and documentation and reconcile with local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Upstream main/master documentation is mutable and peer release notes describe peer-specific paths, not libdxfrw defects. FreeCAD behavior was source/documentation-reviewed only; no installed build or native route was qualified."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG 0.14.1 NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Release notes for 0.14.1 dated 2026-07-25; page reviewed 2026-10-18",
+      "observed": "The release notes record distinct decompression logical-size/capacity drift, count-times-size overflow, invalid section page offsets/ranges, object-pointer invalidation across container growth, and malformed pre-R13 no-progress paths. These mechanisms map to existing local bounds, arithmetic, identity, and progress owners, but do not prove corresponding libdxfrw defects."
+    },
+    {
+      "project": "FreeCAD DXF/DWG route documentation and wrapper",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable project docs/source reviewed 2026-10-18",
+      "observed": "Documentation distinguishes native C++ and optional legacy Python DXF importer coverage. DWG is converted to DXF through a selected external converter before the importer is called. The inspected LibreDWG wrapper path waits for the process and then treats expected output-file existence as success; this is a route-stage qualification concern, not an observed failure in a pinned installed build."
+    },
+    {
+      "project": "ezdxf XREF operation documentation",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The cross-document XREF helper documents support for a bounded copyable/transformable subset and identifies ACAD_TABLE and preserved unknown tag-storage entities/objects as unsupported and possibly ignored without exceptions. This scope does not establish behavior of the base reader or general same-document writer."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18; project labels current artifact pre-alpha",
+      "observed": "The project continues to distinguish a more mature DWG container path from alpha entity decoding and reports its own exact corpus/coverage status. This remains an optional structural comparator candidate, not production parity, writer acceptance, or 3D semantic evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Strengthens existing peer and consumer gates: require a named unresolved question, exact version/direction/operation overlap, pinned artifact, and independently authored expected values before an optional peer run. Separates direct FreeCAD DXF import from converter-mediated DWG import, and confines ezdxf XREF omission claims to that operation. Keeps implementation slices on focused local tests and maps LibreDWG failure classes to existing safety owners."
+  },
+  "implementationReadyChecks": [
+    "Name the unresolved field or record, source profile, direction, operation, and expected value before selecting a peer; otherwise record NOT_ADMITTED and continue local work.",
+    "For touched readers, combine independent semantic expectations, bounded exact consumption/progress, and a following-record/object sentinel in the existing owning fast target.",
+    "For touched writers, inspect physical tags/bytes and graph/output closure with test-side checks; reserve independent peer/native validation for the composed checkpoint.",
+    "For FreeCAD, test libdxfrw-produced DXF directly in a pinned selected importer; keep DWG converter status, fresh intermediate DXF validation, and importer outcome as separate stages.",
+    "Treat ezdxf XREF as a cross-document copy operation with explicit omissions, not as evidence about its base parser or same-document writer.",
+    "Do not add external peer/customer drawings, dependencies, CTest registrations, broad per-slice suites, or support-claim promotions from this research."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing user changes. This pass edited only the plan and added this research receipt; all other changes were preserved."
+  }
+}

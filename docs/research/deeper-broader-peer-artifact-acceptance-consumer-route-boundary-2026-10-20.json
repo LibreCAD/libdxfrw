@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer artifact acceptance and consumer-route evidence boundary",
+  "mode": "Primary-source application, writer-policy, peer-claim, and local-harness audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Trace FreeCAD's current DWG converter helper and distinguish converter output creation from downstream DXF importer acceptance.",
+    "Compare documented FreeCAD importer scopes with the separate DXF entity and ACIS carrier families.",
+    "Reconcile LibreCAD_3's read-only DWG policy and ACadSharp/dwg-rs support statements with their evidence limits.",
+    "Audit existing local CLI and opt-in FreeCAD test owners to avoid duplicate tests or mandatory external dependencies.",
+    "Refine PAR-07/S8 artifact and consumer receipts without changing code, fixtures, validation cadence, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD application DWG converter helper",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/AppImportPy.cpp"
+      ],
+      "revision": "Mutable main-branch source pages inspected 2026-10-20; no source commit or FreeCAD binary was pinned in this research pass.",
+      "observed": "convertToDxf invokes the selected converter with Popen/communicate and checks whether the expected DXF path exists before returning it. Its ODA command requests ACAD2000 DXF. convertToDwg invokes the selected LibreDWG/ODA/QCAD helper and returns the requested DWG path without validating the created output in that helper. The module docstring still describes an ODA-only route while the implementation selects among configured converters. The Import.readDXF binding exposes ignore_errors (default true) and option-source arguments for importer-specific validation.",
+      "limits": "Source inspection does not establish installed FreeCAD behavior on any OS, nor does a helper return prove a file was created, strictly parsed, or semantically imported."
+    },
+    {
+      "project": "FreeCAD DXF importer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Accessible documentation branch inspected 2026-10-20; the documentation repository's archival status and exact runtime currency are not treated as qualification evidence.",
+      "observed": "The page describes selectable C++ and legacy Python importers with different entity lists, lists 3DFACE for the legacy route but not C++, and states stock FreeCAD cannot read ACIS/SAT solid blobs in DXF.",
+      "limits": "These are project documentation statements, not tests against a pinned binary; importer support must be measured per exact application build, backend, and settings."
+    },
+    {
+      "project": "Local FreeCAD-form CLI and installed-app tests",
+      "urls": [
+        "workspace:tests/run_freecad_dwg2dxf_compat_test.cmake",
+        "workspace:tests/dwg2dxf_cli_contract_tests.py",
+        "workspace:tests/CMakeLists.txt"
+      ],
+      "revision": "Shared worktree source inspected 2026-10-20.",
+      "observed": "The local command-line harness covers FreeCAD-form argv, conversion status/output/version, self-readback, refusal and atomicity. Separate opt-in installed FreeCAD tests are registered and labelled as integration checks.",
+      "limits": "The default CLI tests do not execute the FreeCAD Python wrapper or independently establish FreeCAD object/geometry semantics."
+    },
+    {
+      "project": "LibreCAD_3 DWG consumer policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master documentation inspected 2026-10-20; its claim counts refer to that document's pinned libdxfrw revision.",
+      "observed": "The document says DWG import is optional and read-only, DWG writing is deliberately not implemented/exposed, and write support would require independent downstream evidence. Its described ledger contains read-direction claims only.",
+      "limits": "Consumer governance is not a DWG writer test or a claim about the current libdxfrw worktree."
+    },
+    {
+      "project": "ACadSharp writer version caveat",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/558"
+      ],
+      "revision": "Mutable repository README and maintainer discussion inspected 2026-10-20; the cited writer caveat comment is dated 2025-02-16 and is not linked to a release artifact in this pass.",
+      "observed": "The README advertises DWG writing across several AC codes. The maintainer comment describes R14/R15 output as unstable/recovery-prone, R21 writer as unimplemented at that time, and R18/R27/R32 as the better writer routes then.",
+      "limits": "The comment is historical and peer-specific; it does not qualify the current release, branch, or a libdxfrw implementation."
+    },
+    {
+      "project": "dwg-rs measured reader status",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable repository README inspected 2026-10-20; its empirical matrix is dated 2026-08-30 and identifies 0.1.0-alpha.1.",
+      "observed": "The project labels itself pre-alpha, reports per-version decoded/skipped/errored totals across 19 files, has only one AC1032 file in that table, and documents that adding record-boundary validation surfaced errors hidden by earlier unbounded decoders.",
+      "limits": "Small corpus, pre-alpha status, no DWG writer or native acceptance, and no 3D semantic evidence; metrics are corpus-specific."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: distinguish a converter process result, artifact existence/integrity, strict independent DXF/DWG reopen, downstream consumer import, and geometry semantics as separate evidence fields.",
+      "PAR-07/S8: pin FreeCAD build/platform, selected converter and importer/backend/options; classify stock FreeCAD ACIS/SAT support as unsupported rather than as a converter defect.",
+      "PAR-07/S8: keep peer capability matrices subordinate to exact artifact, version, operation, corpus denominator, and native acceptance evidence.",
+      "Local fast-validation plan: reuse current FreeCAD-form CLI and opt-in integration owners; add no duplicate test, fixture, routine peer run, or full-suite gate."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-artifact-acceptance-consumer-route-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a PAR-07/S8 evidence split for converter process status, actual artifact integrity, strict reopen, selected importer, and per-source semantic disposition.",
+    "Recorded FreeCAD's ODA-import ACAD2000 DXF target as an explicit downgrade that must be observed and scored against the intended conversion profile.",
+    "Clarified that FreeCAD's actual configured converter route must be observed from the pinned application build; its current source helper and module docstring describe different route breadth.",
+    "Recorded that FreeCAD converter helper return paths, peer support matrices, and same-codec readback cannot independently qualify output.",
+    "Cross-checked existing local FreeCAD-form CLI and opt-in installed-application tests; no duplicate test or routine external validation was added.",
+    "Kept FreeCAD ACIS/SAT as an expected unsupported consumer path, LibreCAD_3 as read-only policy, and peer DWG metrics as route/corpus scoped evidence only."
+  ],
+  "limitations": [
+    "Research used public source and documentation pages only; no current FreeCAD binary, converter, ACadSharp artifact, or dwg-rs executable was run.",
+    "The FreeCAD application pages are mutable main-branch references and must be pinned to a source commit or installed binary at the future composed gate.",
+    "FreeCAD documentation and peer maintainer reports are not normative DWG/DXF byte-layout authorities; ODA v5.4.1 and Autodesk DXF references remain controlling for format questions.",
+    "No external sample or peer test corpus was downloaded; no repository fixture, finding, implementation blocker, or support claim changed.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; receipt trailing-whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains broad existing changes and Git metadata is read-only in this session."
+  }
+}

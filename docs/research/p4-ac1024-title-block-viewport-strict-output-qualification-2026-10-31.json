@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-title-block-viewport-strict-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify title-block physical VIEWPORT through strict output",
+  "status": "PHYSICAL_SOURCE_PROFILE_STRICT_OUTPUT_AND_READBACK_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local input read in place. No DWG/DXF source or output fixture was added to Git; selector outputs were temporary and removed."
+  },
+  "profile": {
+    "record": "VIEWPORT",
+    "objectType": 34,
+    "sourceHandle": "0x52",
+    "layout": "Architectural Title Block",
+    "sourceProjection": "One exact type-34 source identity, unique paper-space entity membership, unique layout viewport-list membership, and reciprocal layout/BLOCK_RECORD owner route.",
+    "extensionDictionary": "Absent in the admitted source profile; a nonzero source handle remains unqualified.",
+    "outputProjection": "Exact typed VIEWPORT fields, mapped emitted identity and BLOCK_RECORD owner, entity-container membership, and derived DXF groups 68/69 (status 1, id 1) are checked after fresh ASCII/Binary import.",
+    "scope": "Exact AC1024 physical source profile. This does not establish native rendering, native CAD acceptance, or format-wide VIEWPORT support."
+  },
+  "qualification": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "opaqueCallbacks": {"total": 109, "qualifiedAfterRetry": 109},
+    "newlyQualified": [{"handle": "0x52", "objectType": 34, "record": "VIEWPORT"}],
+    "result": "PASS; the title-block source now completes strict conversion."
+  },
+  "failureAndRetry": {
+    "negativeControl": "Set source VIEWPORT viewHeight to positive infinity. RequireComplete export refuses and preserves the pre-existing destination sentinel and callback qualification state.",
+    "retry": "Restore the source field and retry with the same adapter. Strict-complete output succeeds; fresh import validates typed fields, owner/container route, extension-dictionary presence, and group 68/69 in both encodings.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "physicalTitleBlock": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/title_block-arch.dwg",
+      "result": "PASS for ASCII and Binary RequireComplete output, full typed readback, owner/layout linkage, derived 68/69, atomic refusal and same-adapter retry."
+    },
+    "physicalMechanicalRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for both existing VIEWPORT identities in ASCII and Binary, including their extension DICTIONARY/XRECORD owner edges and strict same-adapter retry."
+    },
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -v2010 /private/tmp/title_block_strict-final.dxf",
+      "result": "PASS; strict-complete conversion succeeded.",
+      "outputSha256": "7d4c62e177870b6914e417655df1757ac436493c3410078da9d033019533a41a"
+    },
+    "boundedCorpusSweep": {
+      "scope": "Strict-exported the 28 unique SHA-256 inputs under /Users/dli/doc/dwg and the current tests/samples DWGs; the sample-tree files were duplicate byte identities. Outputs stayed under /private/tmp.",
+      "nextSource": {
+        "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "strictResult": "Refused at SORTENTSTABLE ownership/target graph validation.",
+        "sourceProbe": "validateSortEntsGraph narrows the rejection to extension DICTIONARY reciprocity for BLOCK_RECORD 0x1145 (Window - Imperial), dictionary 0x1146. Its ordered entries include ACAD_ASSOCNETWORK, ACAD_ENHANCEDBLOCK, ACAD_SORTENTS targeting table 0x1BBA, and AcDbDynamicBlockRoundTripPurgePreventer 0x116A."
+      },
+      "otherObservedResiduals": [
+        {
+          "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+          "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+          "result": "Strict export refuses typed proxy graphics not preserved: 36 records, first handle 11344 (0x2C50); 607 opaque callbacks were observed. Keep this in P6 proxy/cache work."
+        },
+        {
+          "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+          "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+          "result": "AC1018 read succeeds with 23 opaque callbacks; strict output remains 0/23 qualified. The identity census includes DICTIONARY, DICTIONARYWDFLT/PLACEHOLDER, TABLECONTENT, DICTIONARYVAR, TABLESTYLE and SORTENTSTABLE. Keep this in P4."
+        }
+      ],
+      "boundary": "The sweep selects a source-backed follow-up; it is not a complete document, consumer, platform, or format support claim."
+    },
+    "fullSuites": "NOT RUN; the touched warning-as-error build, two focused physical selectors, strict CLI conversion and bounded local strict-export sweep were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Qualify the exact AC1024 title-block VIEWPORT 0x52 through strict output, mapped paper-space ownership, fresh ASCII/Binary typed readback and rollback/retry."
+    ],
+    "nextPacket": "Close the source-backed AC1024 Window - Imperial dynamic-block owner graph identified by the strict sweep; prove the complete owner dictionary, dynamic descendants and staged output/readback before qualifying the profile.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "05c99b3543d6540f3c3f5d85b9446d5229e6e76f8b2266b30fd762d184e3f4bb",
+    "dwg2dxf/dx_iface.cpp": "cbaa22e47921d59b1fd241bed8702b58297e7b950bd64435703c9b009e87033a",
+    "tests/dwg2dxf_adapter_tests.cpp": "f1865d5c7d2cbad15b2440608bcc477589031c326c14f07bf56c55e9a9e5b168"
+  },
+  "fixturesAdded": 0,
+  "externalItemsPromoted": 0
+}

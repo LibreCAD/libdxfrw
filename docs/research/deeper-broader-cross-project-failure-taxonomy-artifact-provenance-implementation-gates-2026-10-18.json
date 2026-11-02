@@ -1,0 +1,136 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Cross-project failure taxonomy, artifact provenance, and implementation gates",
+  "mode": "primary-source web research and local read-only source/test/plan crosswalk",
+  "scope": [
+    "Refresh DWG/DXF peer artifact provenance and operation-specific capability boundaries",
+    "Reconcile current peer issue patterns with existing local implementation and validation owners",
+    "Refine evidence requirements for value semantics, framing, graph/carrier closure, and consumer acceptance",
+    "Preserve implementation throughput and existing fast/composed validation cadence"
+  ],
+  "method": {
+    "kind": "Read-only review of official repository releases/docs/issues and local source/test/plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testOrProductionSourceChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgbuffer.cpp",
+      "src/intern/dwgbufferw.cpp",
+      "src/drw_objects.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "tests/block_owner_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "limitations": "Peer issues remain report/build-scoped and are not local defect reproductions or normative format rules. The review did not rerun peers or independently validate native consumer behavior."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1415",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1351"
+      ],
+      "revision": "release list and mutable issue/source pages reviewed 2026-10-18",
+      "observed": "The release page identifies 0.14.8612 at f860b0f as a Windows nightly prerelease; mutable NEWS labels 0.14.1 beta. Issue #1415's author withdrew an initially ineffective fix and clarified method-specific CMC decoding; #1409 and #1351 describe distinct block-body and INSERT/ATTRIB/SEQEND writer failure classes. These observations are versioned peer evidence, not libdxfrw failures."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1261",
+        "https://github.com/DomCR/ACadSharp/issues/1264",
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "latest signed release and current issue bodies/index reviewed 2026-10-18",
+      "observed": "Latest signed release is v3.8.0 at 3a1c66b and describes an assembly-visibility change; recent issue reports cite other releases or moving master. Issues identify locale-sensitive codepage lookup, recursive parser stack growth, EED size handling, nested-block copy cost, GEODATA, TABLE cell-state, and standalone MLeader context writer concerns. Local plan owners already cover these as distinct dimensions."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/discussions/1384",
+        "https://github.com/mozman/ezdxf/releases",
+        "https://github.com/mozman/ezdxf/issues/1412",
+        "https://github.com/mozman/ezdxf/pull/1418"
+      ],
+      "revision": "release announcement, releases page and proxy issue/fix reviewed 2026-10-18",
+      "observed": "The latest release announcement located is v1.4.4 dated 2026-05-14; the GitHub releases page does not provide a formal release asset. Issue #1412 documents a Binary-DXF proxy-graphic writer failure in a specific peer route, with fix PR #1418. A peer-produced proxy payload should not be the sole binary seed or oracle."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/index.html"
+      ],
+      "revision": "current stable driver documentation reviewed 2026-10-18",
+      "observed": "GDAL 3.12+ supports Binary-DXF reading and its DXF 3D-extensible mode can expose AC1027+ raw ASM data and a transform, but the driver does not construct solid geometry. The separate DWG CAD driver is read-only/libopencad-based and must not be pooled with the DXF driver."
+    }
+  ],
+  "assessment": {
+    "newLocalDefectConfirmed": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "existingOwnersReconciled": [
+      "PAR-66/7AN CMC method and LAYER output controls",
+      "PAR-05/7AR text/codepage byte and scalar controls",
+      "PAR-14/PAR-26 bounded progress, encoded lengths, and following-record sentinels",
+      "PAR-49/7F.1 output closure and terminal EOF assertion",
+      "PAR-119/7BP GEODATA target-version gate",
+      "PAR-126/7G.3d TABLE value/identity and incomplete-output policy",
+      "PAR-07/S8 writer graph/carrier and native-AUDIT checkpoint"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Pin the exact peer release/commit, platform artifact, direction, file version, and operation before comparing results.",
+    "For a changed local path, use its existing strict target and smallest generated selector; assert raw bytes/tags, decoded value, source identity/owner, exact consumption, and a following sentinel as applicable.",
+    "Keep malformed framing, semantic value mismatch, graph/carrier omission, and native recovery/audit as separate outcomes.",
+    "Run optional peer/native qualification only at existing composed checkpoints; do not add routine peer dependencies, large peer-derived stress counts, or full-suite frequency.",
+    "When source reports conflict with ODA or Autodesk primary documentation, leave the affected profile unqualified and proceed with unrelated implementation slices."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

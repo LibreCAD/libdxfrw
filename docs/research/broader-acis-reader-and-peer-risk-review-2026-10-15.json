@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-broader-acis-reader-and-peer-risk-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the source inventory from DWG/DXF codecs to raw SAT/SAB parsers and shape-conversion stacks; inspect current ACadRust release claims and issue reports; refine optional semantic-oracle readiness.",
+  "method": {
+    "kind": "Static review of primary project documentation, source repositories, and issue reports",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "GitHub main/master pages and active issue trackers are mutable; capture exact commit/release, package hash, platform, options, and relevant issue state before any runtime comparison.",
+    "evidenceRule": "Separate container extraction, exact handle/page/owner association, raw SAT/SAB parsing, complete topology conversion, kernel lineage, known-answer semantics, and native consumer acceptance. A different parser is not automatically a different kernel; a self-roundtrip is not an independent semantic oracle."
+  },
+  "candidates": [
+    {
+      "project": "cq-acis",
+      "role": ["independently authored raw SAT/SAB parser", "restricted analytic geometry converter using CadQuery/OpenCascade"],
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/usage.md"
+      ],
+      "evidence": "The project describes itself as experimental and supports documented SAT versions 105/400/600/700 plus selected SAB/ASM profiles. Its SAB table lists ACIS BinaryFile4 21800 and selected ASM BinaryFile4 versions; ASM BinaryFile8 is only synthetically framed. Unknown records remain raw with diagnostics; unsupported conversion raises rather than returning a partial body. Active references must resolve in the parsed table. Opaque history is retained but its content/terminal framing is not validated. It consumes extracted SAT/SAB bytes, not a DWG/AcDs container.",
+      "doesNotEstablish": ["DWG AcDs section/page extraction", "DWG entity-to-record association", "all SAB/ASM profiles", "history correctness", "complete B-rep conversion for arbitrary producers", "an independent kernel from FreeCAD/OCCT"],
+      "planUse": "Optional parser/converter only after local handle/page/owner closure and exact profile admission. Pin the version; require complete body inventory, no unsupported required topology, closed valid shapes, independently authored metrics, and explicit kernel lineage."
+    },
+    {
+      "project": "InventorLoader",
+      "role": ["open-source FreeCAD SAT/SAB import add-on", "optional parser/consumer exploration"],
+      "sources": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader#limitations"
+      ],
+      "evidence": "The add-on documents importing SAT/SAB and DXF 3D solids through native Part or STEP conversion routes. Its listed limits include unsupported blending surfaces, some helix curves, and law-defined interpolated curves/surfaces without spline data; SAT/SAB export is not supported.",
+      "doesNotEstablish": ["current FreeCAD/Python compatibility", "all ACIS profiles", "lossless export", "a second kernel lineage from FreeCAD/OCCT"],
+      "planUse": "Optional exploratory route after exact source and platform preflight. Record direct Part import separately from STEP translation and do not treat it as an independent-kernel vote."
+    },
+    {
+      "project": "Open CASCADE ACIS exchange components / CAD Assistant",
+      "role": ["optional commercial SAT/SAB importer"],
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://www.opencascade.com/products/cad-assistant/"
+      ],
+      "evidence": "The public OCCT components preview lists ACIS SAT/SAB import-export as an extended commercial component. CAD Assistant advertises ACIS import through commercial XDE components and says model export/conversion is restricted.",
+      "doesNotEstablish": ["availability in a normal FreeCAD/OCCT installation", "export or round-trip capability in CAD Assistant", "independence from OCCT kernel lineage", "user entitlement or local platform availability"],
+      "planUse": "Use only with user-provided/entitled exact build after local architecture/component/profile preflight. Never purchase/install automatically or make it a required dependency."
+    },
+    {
+      "project": "ACadRust and OpenCADStudio consumer family",
+      "role": ["optional DWG/DXF parser/writer differential target", "same implementation lineage across branded consumers"],
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/issues",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/issues/135",
+        "https://github.com/hakanaktt/acadrust/issues/136",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "evidence": "The current project README advertises R12-R2018+ DWG/DXF read/write but qualifies that entity availability varies by version. Current open reports include an AC1032 MLeader-context decode regression on 0.6.4 (#134), orphan entities being re-homed into modelspace (#133), an AC1024 associative dependency layout (#135), and binary DXF code-width errors (#136). Earlier malformed-input reports #123/#124 describe count inflation/allocation failure and a header panic on 0.6.3; #123 has a maintainer-linked bounds-fix commit, so that report alone is not evidence the issue persists in the current release. Tests demonstrate synthetic marker-frame checks and an implementation-self-roundtripped generated cube, not independent B-rep semantics.",
+      "doesNotEstablish": ["current broad read compatibility from the matrix alone", "correct owner graph or error handling in all releases", "all family output acceptance", "independent semantic geometry from self-roundtrip", "a separate parser lineage for OpenCADStudio or known forks/wrappers"],
+      "planUse": "Pin exact release/source SHA and relevant issue state before a scoped optional run. Compare handle-level typed/raw/skipped disposition, owner graph, diagnostics, malformed-input behavior, output reopen and independent expected geometry. Do not use as a normative oracle or per-slice required dependency."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Close local raw-frame/typed-peer/owner and AcDs handle/page association before passing payloads to any external ACIS reader.",
+    "Probe exact inner SAT/SAB signature and save version before selecting cq-acis; if outside documented admission, record NOT_APPLICABLE rather than infer support or fall back silently.",
+    "For an admitted cq-acis case, require full record/reference/body coverage, no unsupported required topology, valid closed shapes, and independent analytic metrics for bounds, area/volume, centroid, units, orientation, and transform.",
+    "Keep parser lineage and geometry-kernel lineage separate. cq-acis, InventorLoader, FreeCAD, and CAD Assistant all use OCCT-derived geometry; two frontends do not create two independent-kernel votes.",
+    "Keep commercial ACIS components optional and entitlement-driven; never assume stock FreeCAD includes them or that CAD Assistant can export/convert.",
+    "Treat ACadRust current issue reports as version-bound test-selection evidence. Pin the exact build, distinguish the fixed or still-open state of older reports, and retain owner-graph and malformed-input checks in any optional comparison.",
+    "Keep per-slice validation to the affected strict build, focused fast CTest, lc3_compat_check, and git diff --check; run peer/native/kernel comparisons only at the composed checkpoint."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "externalRuntime": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "nativeQualification": "NOT RUN"
+  }
+}

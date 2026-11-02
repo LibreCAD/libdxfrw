@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper and broader open-source DWG/DXF capability matrix and implementation readiness",
+  "mode": "primary-source web research and read-only local source/test inspection",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare documented capability boundaries across LibreDWG, ACadSharp, ezdxf, and FreeCAD",
+    "Separate version/entity recognition from decode, retention, output, semantic, and native-consumer evidence",
+    "Refine the local binary-DXF writer audit without speculative behavior changes",
+    "Preserve native Linux/Windows FreeCAD and independent semantic qualification as composed gates"
+  ],
+  "method": {
+    "kind": "Read current upstream project source/documentation and inspect local writer/classifier/test ownership",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "localInventory": {
+      "binaryWriterUsesRequestedTypedWidth": true,
+      "booleanWriterWidthBytes": 1,
+      "canonicalLocalDxfCodeValueClassifier": "src/intern/dxfcode.h",
+      "legacyClassifierProfileExists": true,
+      "typedRawRoutesClassifyGroupCodes": true,
+      "manualTypedWriterCallSitesRequireCensus": true,
+      "existingGeneratedBinaryDxfTestOwner": "tests/dxf_fixture_tests.cpp / libdxfrw_dxf_fixture_tests",
+      "productionReaderAloneIsNotIndependentWireOracle": true
+    },
+    "limitations": "Web sources include mutable master documentation and advertise project capabilities, not pinned release test outcomes. No peer was installed or run. The configured ODA DWG specification remains unavailable locally, so no DWG byte-layout conclusion is made. FreeCAD documentation is not a native qualification run and must be bound to an exact build, converter, importer backend, OS, and test family."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "The object/entity catalog names 3DFACE and 3DSOLID as stable types. Catalog presence is class recognition evidence, not complete field decode, DWG-to-DXF survival, ACIS/AcDs graph closure, or semantic solid evidence."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "The dwg_obj_is_3dsolid helper groups 3DSOLID, REGION, BODY and related types. A family predicate does not show payload decode, writer completeness, or kernel validity."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "project documentation reviewed 2026-10-17",
+      "observed": "Project docs characterize coverage as ongoing and describe DXFB read/write/roundtrip as not much tested. This cautions against using binary-DXF peer self-read as the only oracle."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "revision": "mutable master project capability matrix reviewed 2026-10-17",
+      "observed": "ACadSharp advertises DWG/DXF read/write support and a version-level compatibility matrix. The matrix does not provide an entity-by-entity transfer guarantee or semantic 3D qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+      "revision": "mutable master docs reviewed 2026-10-17",
+      "observed": "Reader examples show notification capture as a diagnostic channel. Any optional differential route should pin release/options and retain diagnostics rather than score only process success."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+      "revision": "mutable master docs reviewed 2026-10-17",
+      "observed": "The project documents ASCII and Binary DXF support and version coverage through R2018, making it a useful separate DXF implementation for strict-read/tag comparisons but not a DWG reader."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "revision": "mutable master docs reviewed 2026-10-17",
+      "observed": "ACIS entity factories exist, but creation of required ACIS data is delegated to an external library. SAT/SAB carrier emission therefore does not itself provide an independent body-semantic oracle."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "revision": "mutable master docs reviewed 2026-10-17",
+      "observed": "The drawing add-on explicitly does not render ACIS and has no 3D rendering engine. Rendering or mesh projection through this route cannot qualify B-rep semantics."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "revision": "mutable master docs reviewed 2026-10-17",
+      "observed": "browse-acis can inspect/export SAT/SAB content; docs distinguish SAT data for DXF R2000-R2010 and SAB for R2013 and later. This is a useful carrier inspection route, not semantic validity evidence."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/discussions/1295",
+      "revision": "maintainer-authored discussion reviewed 2026-10-17",
+      "observed": "The maintainer describes ezdxf ACIS support as basic and points to CAD-kernel/application routes for stronger 3D processing. Treat as a scope statement, not a format specification or proof about every open-source kernel."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "observed": "The documented DWG path uses an external converter to produce DXF, followed by the selected FreeCAD DXF importer. Converter choice and importer limitations are separate stages."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "observed": "Preferences distinguish LibreDWG, ODA and QCAD Pro converter routes and state that the C++ DXF importer has fewer features than the legacy Python importer. The page describes converter selection but is not a native test result."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "observed": "The manual describes stock DXF/DWG paths as 2D-limited, including proprietary 3D DXF content limitations. This is a documentation scope signal that must be tested against the exact selected importer build."
+    },
+    {
+      "project": "Local libdxfrw source and tests",
+      "url": "src/intern/dxfwriter.cpp; src/intern/dxfwriter.h; src/intern/dxfcode.h; src/libdxfrw.cpp; tests/dxf_fixture_tests.cpp; CMakeLists.txt",
+      "revision": "working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The binary writer emits the width requested by its typed method, while writeBool emits one byte. The canonical group-code classifier has standalone-safe and LibreCAD-legacy profiles. Generic typed-variant paths classify codes; manually typed serializers select methods at call sites. Existing generated binary controls belong in libdxfrw_dxf_fixture_tests, where an independent raw byte walker can be added without a new CTest. A universal writer guard is not ready until profile handoff and opaque/legacy exceptions are explicitly accounted for."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": false,
+    "comparisonRule": "Separate version recognition, typed decode, retention, emitted identity/owner/payload, independent semantic validation, and native consumer acceptance. No single stage implies the next.",
+    "binaryDxfDisposition": "The next actionable local audit is a bounded typed-call census plus generated raw-byte scanner in the existing DXF fixture test owner. Do not add an unconditional guard before target compatibility profiles and raw/opaque paths are mapped. Use an independent official DXF code-type map and require EOF/following-sentinel alignment; fix only an observed local mismatch.",
+    "dwgDisposition": "Peer catalogs and matrices do not justify a parseDwg grammar edit. The configured ODA PDF is absent, so DWG layout work remains gated on the authoritative spec plus versioned sample/byte evidence.",
+    "freecadDisposition": "Treat DWG conversion and DXF import as separate stages; qualify exact Linux and Windows build, converter and importer backend on generated or already-authorized samples. A 2D import, mesh, or visible shell cannot promote ACIS/B-rep semantics.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep unrelated local implementation moving; peer comparison is not a blocker or dependency-install request.",
+    "Inventory literal and dynamic typed writer calls by group code, method, owner, target version/profile, and raw-versus-modeled route.",
+    "Add generated ASCII/Binary controls to tests/dxf_fixture_tests.cpp and decode emitted binary records with an independent code-type walker through EOF and a following sentinel.",
+    "Cover binary chunk framing separately from scalar widths; malformed type/code pairs must be refused transactionally if a real local mismatch is established.",
+    "Keep FreeCAD Linux and Windows runs at the composed consumer checkpoint with exact converter/importer configuration and per-family disposition.",
+    "Before any DWG byte-layout edit, obtain and read the authoritative ODA specification and capture versioned sample evidence."
+  ],
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

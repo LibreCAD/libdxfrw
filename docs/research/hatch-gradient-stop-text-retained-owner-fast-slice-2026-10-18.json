@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "HATCH gradient-stop retained text owner fast slice",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge DXF HATCH gradient-stop groups 432/433 to per-stop retained-text ownership",
+    "Preserve transactional replacement and copy/move/reset accounting",
+    "Use generated ASCII controls without adding persistent DWG/DXF fixtures"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DRW_Hatch::parseCode now routes gradient-stop color and color-book names through replaceDxfRetainedStringField with private per-stop byte counters. A positional GradientStop constructor preserves the existing brace-initialization order/defaults while keeping the counters private. Generated controls verify replacement admission and lease lifetime through copy, assignment, move, reader teardown, and reset.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "Two private retained-byte counters were added to the public nested GradientStop layout. A positional constructor preserves known source brace-initialization use; downstream consumers must rebuild and binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "build-gcc/libdxfrw_hardening_tests --dxf-hatch-text-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictHardeningTarget": "passed",
+      "lc3CompatibilityCompile": "passed",
+      "focusedHatchGradientStopTextOwnerBudget": "passed",
+      "owningHardeningCTest": "passed (1/1)",
+      "diffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newCTestRegistrations": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned DXF HATCH gradient-stop color and color-book names are charged to the shared logical retained-byte budget. Replacement at the exact peak succeeds; a one-byte-under attempt preserves the old spelling and lease. Copies retain accounting until final reset/destruction, and moves transfer it.",
+    "coverage": "Generated ASCII controls cover exact-peak admission, reader teardown, copy construction/assignment, move construction/assignment, final reset release, and one-byte-under replacement preservation.",
+    "limitations": "This does not bound allocation capacity or RSS, public post-parse mutation, writer/projection copies, other HATCH fields or semantics, DWG parsing, peer/native acceptance, or full-suite behavior."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

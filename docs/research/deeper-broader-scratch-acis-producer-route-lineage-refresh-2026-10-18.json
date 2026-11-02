@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader scratch ACIS producer and open-source route-lineage refresh",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly surfaced open-source producer and application routes for DWG/DXF/ACIS evidence",
+    "Separate implementation, parser, writer, kernel, application and test-input lineage",
+    "Reconcile current ACadSharp and LibreDWG issue horizons against existing local owners",
+    "Refine the optional ACIS scratch-producer gate without promoting support claims"
+  ],
+  "method": {
+    "kind": "Read-only review of project READMEs, current issue indexes, project route descriptions, and the local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project README and issue pages are mutable and maintainer-reported. No immutable obj2cad revision/artifact was bound; its fetched ACadRust source and patch were not inspected; no route was built or run. The separate scalar-curve implementation progress already present in the worktree is recorded in its own implementation receipt."
+  },
+  "sources": [
+    {
+      "project": "obj2cad",
+      "urls": [
+        "https://github.com/cbassuarez/obj2cad",
+        "https://github.com/cbassuarez/obj2cad/blob/main/README.md"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18; no immutable source/artifact pair bound",
+      "observed": "The README describes a pre-release OBJ-to-DXF/DWG converter with an ACIS SAT/SAB writer and an acis-samples command for plane, box, cylinder, cone, sphere and torus bodies. It says DWG and curved-surface output are beta pending AutoCAD acceptance; the DWG writer is fetched from a patched ACadRust route. The README claims independent input/readback parity and ACIS readback through ezdxf/ACadRust, but those claims were not executed here."
+    },
+    {
+      "project": "ACadRust lineage",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable main project README reviewed 2026-10-18",
+      "observed": "obj2cad's documented build route fetches a patched ACadRust writer, so its DWG writing is not an independent DWG codec lineage. ACadRust's own advertised coverage matrix does not itself establish per-entity interoperability or native acceptance."
+    },
+    {
+      "project": "Application route screens",
+      "urls": [
+        "https://github.com/SedatTelli/cadze",
+        "https://github.com/diskd-ai/dwg2png"
+      ],
+      "revision": "Mutable project descriptions reviewed 2026-10-18",
+      "observed": "The reviewed descriptions route cadze DWG ingestion through LibreDWG and dwg2png through ACadRust. These are downstream application/render routes, not additional independent parser lineages; the dwg2png real-file success counts were not independently run or bound to a semantic manifest."
+    },
+    {
+      "project": "Current peer issue horizons",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/LibreDWG/libredwg/issues",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable issue indexes and current NEWS reviewed 2026-10-18",
+      "observed": "The visible reports cover version-specific MTEXT whole-file rejection, SPLINE projection, recursive DXF input, EED size handling, nested-block copy cost, DWG-to-DXF ownership/framing, ACDSDATA loss, parser safety, and output integrity. Cross-check against the current plan found existing owner mappings; this source-only review did not confirm an additional local defect."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds obj2cad as an optional, exact-pinned scratch ACIS producer candidate at the existing PAR-07/S8 composed checkpoint; keeps its patched-ACadRust DWG writer and pre-release claims below independent parser/kernel/native evidence. Reconciles newly surfaced application routes under their existing parser lineage and retains the current issue-to-owner ledger. No implementation or validation-order change."
+  },
+  "implementationReadyChecks": [
+    "Keep obj2cad off the per-slice path; first pin source, artifact, build/runtime, and the exact fetched/patched ACadRust revision.",
+    "If selected, generate scratch analytic bodies only and retain an independent source expectation manifest instead of trusting project parity hashes or same-family round trips.",
+    "Separate raw DXF modeler payload or DWG AcDs owner-key association, typed parse disposition, analytic geometry checks, and native strict-open/AUDIT outcome.",
+    "If any identity or evidence lane cannot be bound, mark the candidate NOT_RUN and continue local work.",
+    "Do not change fast-test frequency or full-suite cadence; preserve local-generated-only fixture policy and keep all six J items DEFERRED_EXTERNAL."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

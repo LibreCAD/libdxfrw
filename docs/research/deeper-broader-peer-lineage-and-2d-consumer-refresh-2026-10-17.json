@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-lineage-and-2d-consumer-refresh-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Screen a newly surfaced DWG/DXF preview implementation and refine the distinction between parser-code independence, shared format-reference lineage, independent expected values, and downstream consumer evidence.",
+  "method": {
+    "kind": "Primary-source review of project READMEs, current/historical status documents, source histories, and current local parity-plan entries",
+    "ftModelSourceRevision": "408e34e9993e4c5c365675976d77f8c90b04baaf",
+    "dwgRsSourceRevisionPinned": false,
+    "libreDwgManualRevisionPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/hhcme/ft_model",
+      "https://github.com/hhcme/ft_model/commit/408e34e9993e4c5c365675976d77f8c90b04baaf",
+      "https://github.com/hhcme/ft_model/blob/408e34e9993e4c5c365675976d77f8c90b04baaf/docs/V1.0.0-PLAN.md",
+      "https://github.com/hhcme/ft_model/blob/408e34e9993e4c5c365675976d77f8c90b04baaf/PROJECT_STATUS.md",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current peer-lineage, optional comparator, ACAD_TABLE/TABLECONTENT, and fast-versus-composed validation constraints",
+      "Existing plan receipts: dwg-rs coverage-denominator reconciliation and LibreDWG ACAD_TABLE/TABLECONTENT route boundaries"
+    ],
+    "evidenceRule": "A separate parser implementation may reveal implementation divergence without independently resolving ambiguities inherited from the same format reference. Project coverage tables, self-round-trips, renderer output, mutable branch documentation, and peer-generated expected data are not semantic support evidence without exact route, artifact, producer, independently authored expectations, and complete loss diagnostics."
+  },
+  "evidence": [
+    {
+      "topic": "ft_model is a newly surfaced optional 2D preview-consumer candidate",
+      "sources": [
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/hhcme/ft_model/commit/408e34e9993e4c5c365675976d77f8c90b04baaf",
+        "https://github.com/hhcme/ft_model/blob/408e34e9993e4c5c365675976d77f8c90b04baaf/docs/V1.0.0-PLAN.md",
+        "https://github.com/hhcme/ft_model/blob/408e34e9993e4c5c365675976d77f8c90b04baaf/PROJECT_STATUS.md"
+      ],
+      "observed": "The repository describes a self-developed MIT C++20 DWG/DXF parser that produces a SceneGraph, JSON preview data, and 2D Canvas/WebGL rendering. It advertises R2000 through R2018 families. Its project status explicitly calls itself historical/superseded and records incomplete version fixtures, layout/object-link, and annotation semantics; its comparison notes use LibreDWG DWG-to-DXF and ezdxf extraction. The reviewed output route is SceneGraph/JSON/preview, not a DXF/DWG writer or a B-rep/ACIS semantic route.",
+      "doesNotEstablish": [
+        "current release-level or per-family semantic conformance",
+        "an independent expected-data source when its comparator workflow uses LibreDWG and ezdxf",
+        "DWG/DXF writer validity or preservation of unknown objects/carriers",
+        "3D B-rep, ACIS/AcDs, or native CAD application acceptance"
+      ],
+      "planUse": "Keep as an optional composed 2D preview-consumer candidate only. Before any run, pin source/build and audit the current test/input route; use an existing repository sample or locally generated scratch control; compare entity identity, owner disposition, coordinates, units, and diagnostics to a separately authored manifest before rendering metrics. Do not add a routine dependency or per-slice gate."
+    },
+    {
+      "topic": "dwg-rs has implementation diversity but shares the ODA v5.4.1 specification lineage",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The project identifies itself as pre-alpha 0.1.0-alpha.1, describes container parsing as shipping with per-entity decoder gaps, reports coverage from a 19-file corpus, states that it is built from ODA Open Design Specification v5.4.1, and says the crate is not yet published to crates.io. The project describes later DWG write-path stages as planned. Its README has a stale verification percentage that conflicts with its version table, already documented in the existing plan.",
+      "doesNotEstablish": [
+        "a second independent source for ambiguities or TODOs in ODA v5.4.1",
+        "semantic parity from aggregate decoded-record percentages",
+        "a production-ready complete reader or shipped DWG writer",
+        "matching results on this repository's input hashes"
+      ],
+      "planUse": "Classify it as a code-diverse, same-specification-lineage optional structural comparator. Pin exact source, toolchain, corpus/input hashes and raw dispositions before use; never count shared-spec agreement as an independent format witness."
+    },
+    {
+      "topic": "Current LibreDWG documentation narrows its TABLE/TABLECONTENT comparison value",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The current mutable manual separates stable, unstable, unhandled/undertested, halfway, and no-test-coverage classes. It qualifies TABLE as working only before 2010 and lists TABLECONTENT in the unhandled/undertested class. This is a project-maintained status inventory, not an exact-build runtime result.",
+      "doesNotEstablish": [
+        "the behavior of a pinned current LibreDWG binary on a particular AC1021 sample",
+        "cell grammar for observed AC1021 types 16 and 92",
+        "AC1024+ TABLECONTENT semantic preservation",
+        "a local libdxfrw defect or support result"
+      ],
+      "planUse": "Do not use existing LibreDWG JSON output as a TABLECONTENT semantic oracle. Reconsider an AC1021 peer check only if an exact pinned API/output exposes ordered cell type and payload boundaries; otherwise record no independent semantic witness and continue unrelated implementation with unknown types fail-closed."
+    },
+    {
+      "topic": "Comparator evidence needs orthogonal provenance, not a single independence label",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The surveyed projects vary independently in implementation, normative-reference lineage, test-data origin, expected-value source, consumer/render route, and artifact maturity. A distinct parser may still share ODA wording or use LibreDWG/ezdxf-derived baselines; a renderer adds only consumer evidence for its projected output.",
+      "doesNotEstablish": [
+        "that any surveyed peer currently qualifies unresolved J items",
+        "that agreement among readers overrides ODA or producer-authored format evidence",
+        "that screenshots or aggregate entity counts prove field-, graph-, or carrier-level preservation"
+      ],
+      "planUse": "Extend the optional comparator record with implementation lineage, format-reference lineage, producer lineage, expected-manifest provenance, parser/consumer/kernel route, and exact artifact/runtime fields. Keep all six J items external and non-promoting."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

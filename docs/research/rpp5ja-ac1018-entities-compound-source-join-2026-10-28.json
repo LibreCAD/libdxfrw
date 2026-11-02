@@ -1,0 +1,74 @@
+{
+  "schema": "ac1018-entities-compound-source-join-v1",
+  "date": "2026-10-28",
+  "codeCommit": "f1e851f0cbf020f07cd524abef6bfcf587b5e1a4",
+  "scope": "Private source-only selected AC1018 INSERT/ATTRIB/SEQEND field inventory, original identity/owner and dispatch join with an already replayed model. No generic compound, target-name, APPID/LAYER, full namespace, graph, output or native semantic support is promoted.",
+  "route": {
+    "requirements": "Explicit legacy identity and ENTITIES source/delivery opt-ins, authenticated codec-owned publications, exact same-read source/context and owner bindings, successful captured model and decoder-state replay, and no pending XDATA. Default 2D consumers remain opted out.",
+    "profile": "Exact witnessed three-record grammar with source-general nonzero 32-bit handles and ASCII block names, layer names and attribute tags. The XDATA shape is AcDbAttr followed by two signed 1070 values; the values and referenced application are not semantically qualified. Unwitnessed fields and versions remain refused.",
+    "identity": "A bounded canonical original-census index requires one accepted zero-repeat outer self candidate for each selected entity and its observed BLOCK_RECORD owner, matches exact source self-scalar and record spans, section/order and the addInsert delivery event. The selected child/footer original owners equal the INSERT self. This establishes source roles only, not target-by-name uniqueness or a qualified document namespace.",
+    "limits": "Charge census candidate/record storage and work, all lexical input and per-section/per-proof work before scans and allocation; quota or allocation failure clears partial joins. No generic/output path consumes the private result."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_legacy_entities_compound_join",
+      "libdxfrw_entities_ledger_codec",
+      "libdxfrw_entities_ledger_adapter",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_identity_source_namespace"
+    ],
+    "normal": "PASS 9/9",
+    "asan": "PASS 9/9",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normalLogSha256": "884d3b4e127a0338597519b750dd96e41010e3a182467f1ec64171d65347c8a2",
+    "asanLogSha256": "8f4f2b067e167f1ba7b38bafd192c9edd03a4a17d1720c0e0893f7c3e2295c3c",
+    "normalExecutableSha256": {
+      "new": "e7f90012934c44ed3980b707994420c1e5e6ec3baff10a08e34264b45509df4b",
+      "ledgerAdapter": "ae0b44ec54eaa8e8d2af029fed8e2890dd5c9509fd73f01b788b7003face137b",
+      "ledgerCodec": "567d473b92f2d943d85d57e5bcd156fd06d24e117622684ce5f1ef7d4e0dd8da",
+      "existing": "733ebb81b9cec25bf9afb9ebadfd40fd559a8a3309d6066d239d0631bdb7d433"
+    },
+    "asanExecutableSha256": {
+      "new": "2e223aeaf2d3c8cac6ced0997f0a3d2a92c92332d36d5a074d80c703caad406d",
+      "ledgerAdapter": "6803a8c5cd857343de82f16745741c4f7efd7e635daa1f595b3683085ad4eed5",
+      "ledgerCodec": "d04f051c74d21ca9ee21a07ceac82146e49cdb4fc0b9e839274e6b944d2bb8cf",
+      "existing": "d831d8151f5a26f7710c9e192cb7ea8c13299f9311a875c73267b60c90510be6"
+    },
+    "normalAdapterSha256": "e4405d155275b7fa3244fce8f366fd67a6d4326e9d26fd2fc1fcd0f282662dd3",
+    "asanAdapterSha256": "b9d4930eb92f32268a2f1fe1262482b707eed4c4e9dc9c829dbc5c695985ac83",
+    "normalLibrarySha256": "cc5e4c13cabbb65170f6498ed9acf355084ddfdc056e3a017163c694aa32afd2",
+    "asanLibrarySha256": "b707a24f4efc5f606c03b3d77a475be8f517374996fb4809007b6cea244bd1a8",
+    "controls": "Two locally authored ASCII/binary documents; 70 field, sequence, source-scope, dispatch, wrong-owner, version, repeated-admission and leading-zero-alias collision refusals; eight exact/under byte/work checks and six fresh-data retries; 16 injected allocation failures with rollback and retry; two cross-read/context cases, eight altered replay/event-state cases, four cross-section cases and two callback-tamper retries. Same-data reuse refuses prior-generation evidence. A renamed unrelated block record still admits the source-only join, explicitly demonstrating that block-name target resolution remains unqualified."
+  },
+  "realSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "result": "Shared normal adapter/library source join: INSERT 704 [200354,200573) owner 1F, ATTRIB 705 [200573,200794) owner 704, SEQEND 706 [200794,200847) owner 704, with owner 1F physically observed as BLOCK_RECORD [28891,29032). Generic proof remains ProfileMismatch despite successful model replay.",
+    "probeSourceSha256": "e20395a680e6688c225a63b724a71c48e6620411e84afb6fce72945254f81bc5",
+    "probeExecutableSha256": "655628e2cc2759881335ef49655c4119610dcc7af5d2fc91bc8b8d857f4799bd",
+    "probeOutputSha256": "6a20c16f259d8e50d7ab48532193d951aaeecc5687383e1b806b26c995f9efae",
+    "independentScanner": "A separate byte-level ASCII scanner verifies the observed original outer identities, source record ranges, owner values and each selected field span. It is a physical-source oracle, not an independent CAD rendering or complete namespace proof.",
+    "scannerSha256": "39e589887567a8e1d1480867c634a30cd16b8449ec4edb071c16c7f57c5ef640",
+    "scannerOutputSha256": "e1cdc30856000a803513a8cc5f897a70652012d1f605a8a4ede9c80107476823"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "ce11f51890c305b89662fec9bfb82726e250da4598c56590e194b0df782b1620",
+    "dwg2dxf/dx_iface.h": "72187454f143d424aa5b248a8c349cd8590e332fc58f4192bafd27fa8c6933cd",
+    "dwg2dxf/dx_iface.cpp": "6893d4e7d1e3698731f6f3a2d0a9dc2e1ebaeb697f950f15b2299a7ebb04e92f",
+    "dwg2dxf/dx_legacy_attribute_compound_profile.h": "8ebc65a5a36c568bb39f80298167ea7c5ae7e1ff5b201e7d6444f495ca754f1b",
+    "dwg2dxf/dx_legacy_attribute_compound_join.h": "57ea8925f9b513a47c7600a9eeabebdd515d602e81a81a830f891080ccfa16b2",
+    "tests/CMakeLists.txt": "437a7a09264af1598e51cb7ba3da85bb33a9380643a82115b4136270c3049775",
+    "tests/legacy_entities_compound_join_tests.cpp": "0031b40fe69e2dcfe0abcda32a6bccbdc952d83ed775a4edfd9db19a4fc53207"
+  },
+  "limits": [
+    "The INSERT block-name target and BLKREFS relation, XDICTIONARY, XDATA APPID and LAYER target resolution remain open. The selected output, complete recursive graph, independent CAD meaning and native platform qualification remain separate.",
+    "The private adapter data layout changes; dependent binaries must rebuild. No DRW_Interface virtual is added.",
+    "No external or generated drawing fixture was committed."
+  ]
+}

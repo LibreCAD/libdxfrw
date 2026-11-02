@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-evidence-and-acis-route-admission-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "2a96ad9dabadbc5f143ecd80a0911b5b559ae920ebd3f69bff2f62f8fd7db314",
+  "scope": "Deepen and broaden open-source peer evidence, validate exact release-versus-proposal boundaries, screen BRL-CAD as a possible ACIS route, and refine existing implementation owners without promoting support.",
+  "method": {
+    "kind": "Primary project documentation/source and issue-status review plus local plan cross-check",
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "mutableSourceLimit": "Current project pages and issue states are discovery evidence. ACadRust candidate commits were not built or independently retested; private issue corpora are unavailable. Any future comparator must bind exact source/release, toolchain, route, and inputs.",
+    "evidenceBoundary": "Peer issue reports, proposed fixes, project documentation, and mapping references guide test selection but do not establish local defects or libdxfrw support. Unicode mapping files provide expected byte-to-scalar values for their named code pages; they do not establish which DWG/DXF label a producer uses."
+  },
+  "evidence": [
+    {
+      "topic": "Legacy code-page peer failure and mapping authority",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/131",
+        "https://github.com/hakanaktt/acadrust/commit/9f3a8b5",
+        "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/PC/CP437.TXT",
+        "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/PC/CP850.TXT",
+        "https://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/ROMAN.TXT",
+        "https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers"
+      ],
+      "observed": "ACadRust issue #131 supplies literal legacy byte decoding/encoding repros and says the same mapping table is used on both sides; maintainer commit 9f3a8b5 asks the reporter to retest, while the issue remains open. Unicode's published mapping files give stable exact expected byte-to-scalar values for CP437/CP850 and Apple Roman. Microsoft identifies codepage 1361 as Johab and 10000 as Mac Roman.",
+      "doesNotEstablish": [
+        "that the candidate ACadRust change was independently retested or shipped in a particular package",
+        "the correct DWG/DXF codepage-label admission policy for every producer",
+        "a local libdxfrw codec defect",
+        "that naming two codecs the same makes a read/write self-round-trip correct"
+      ],
+      "planUse": "Keep under PAR-05/Slice 3; use official named mapping tables for local wire-byte assertions, split alias selection from mapping and reverse encoding, preserve explicit unavailable behavior for Johab until a validated multibyte decoder exists, and use only the existing focused codec-test owner."
+    },
+    {
+      "topic": "Orphaned DWG ownership and phantom geometry",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/commit/b62555f"
+      ],
+      "observed": "The open peer issue reports 10 model-space entity-count discrepancies in 351 private DWGs and describes one AC1032 case with 51 entities from a dimension block whose owner record was missing being rehomed into model space. The author describes phantom dimensions; the maintainer proposed commit b62555f and requested a corpus retest. The corpus and independent retest are unavailable.",
+      "doesNotEstablish": [
+        "a reproduced libdxfrw behavior or defect",
+        "a normative DWG rule for every orphaned owner class",
+        "the correctness of the peer candidate fix",
+        "that the existing DXF adapter orphan controls prove DWG parser recovery"
+      ],
+      "planUse": "Retain the existing PAR-49/7G.3 owner categories and generated DXF adapter tests. Keep a distinct DWG-origin orphan-with-suffix control on the composed owner gate; do not invent model-space ownership or infer erased-dimension semantics from unavailable private files."
+    },
+    {
+      "topic": "BRL-CAD ACIS-reader route admission",
+      "sources": [
+        "https://github.com/BRL-CAD/brlcad",
+        "https://github.com/BRL-CAD/brlcad/blob/main/ISSUES.adoc",
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter2.html",
+        "https://github.com/BRL-CAD/brlcad/issues/228"
+      ],
+      "observed": "BRL-CAD is a mature open-source solid-modeling kernel and documents DXF conversion into BRL-CAD geometry. Its current development TODO still lists a SAT importer as work to implement; the reviewed documentation does not establish an available SAT/SAB reader. The separate dxf-g importer has an open issue reporting an ASan heap over-read from hostile POLYFACE indices.",
+      "doesNotEstablish": [
+        "an existing BRL-CAD SAT/SAB importer or ACIS profile",
+        "a reproduced libdxfrw defect from issue #228",
+        "safety of sending malformed data to dxf-g",
+        "full DXF graph, DWG, ACIS-carrier, or native-CAD parity"
+      ],
+      "planUse": "Exclude BRL-CAD from ACIS semantic qualification until a real importer exists and is pinned/qualified. Do not run hostile vectors through dxf-g. Preserve only an optional valid explicit-mesh projection check after a fixed safe revision is established."
+    },
+    {
+      "topic": "FreeCAD route and supported consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "FreeCAD's documentation repository is archived by GitHub as of 2026-04-01; the reviewed preferences page identifies itself as updated for version 1.0. It documents distinct C++ and optional legacy Python DXF import/export backends, with different feature and licensing characteristics. The described DWG route uses an external converter followed by a selected DXF importer; the documentation describes 2D scope and inability to read the proprietary ACIS solid payload.",
+      "doesNotEstablish": [
+        "the current behavior of any specific installed FreeCAD binary or its default backend/settings",
+        "which backend or converter an unpinned run selected",
+        "ACIS solid semantics or ACDS attachment",
+        "that converter loss is a libdxfrw loss"
+      ],
+      "planUse": "Retain separate pinned Linux/Windows consumer cells for converter, intermediate DXF, selected importer, settings, and observed 2D entity semantics. Do not treat stock FreeCAD as an ACIS semantic oracle."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "affectedOwners": [
+      "PAR-05 / Slice 3 legacy-codepage mapping and wire policy",
+      "PAR-49 / 7G.3 DWG/DXF ownership and orphan disposition",
+      "external peer/kernel admission and FreeCAD native consumer profile"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "validationBudget": "Only a touched strict build, one focused existing test owner, and git diff --check for a future local implementation slice. Keep peer builds and native/kernel runs at existing composed checkpoints; no per-slice full-suite expansion.",
+    "fixturePolicy": "Use locally authored in-memory byte/record controls. Do not add or download third-party DWG/DXF/SAT/SAB fixtures in this research update."
+  },
+  "planImpact": {
+    "findings": 124,
+    "topLevelSubplans": 71,
+    "externalJDispositionChanged": false,
+    "codeChanged": false,
+    "implementationTestsRun": false
+  },
+  "validation": {
+    "planUpdated": true,
+    "planSha256Recorded": true,
+    "planDiffWhitespaceCheck": "passed",
+    "receiptJsonParsed": "passed",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "geometryKernel": "NOT RUN",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0
+  }
+}

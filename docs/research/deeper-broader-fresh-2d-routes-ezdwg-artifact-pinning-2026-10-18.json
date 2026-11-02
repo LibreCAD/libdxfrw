@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Fresh 2D parser routes and ezdwg artifact pinning",
+  "mode": "primary-source repository, documentation, and package-index review; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the existing ezdwg reader-candidate evidence against its current release artifact and version-specific documentation",
+    "Screen newly visible 2D DXF/DWG parser and projection routes for source lineage and usefulness to existing local gaps",
+    "Add implementation-ready peer admission conditions without introducing routine peer dependencies or support claims"
+  ],
+  "method": {
+    "kind": "Read-only review of primary GitHub repositories, project documentation, Cargo/Python manifests, and PyPI release metadata",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main-branch documents are mutable source claims. PyPI identifies exact ezdwg 0.16.3 wheel and sdist hashes but reports no Trusted Publishing attestation; the reviewed main workspace manifest and Cargo.lock disagree on local crate versions. No runtime behavior, input fixture provenance, or source-to-artifact equivalence was independently verified."
+  },
+  "sources": [
+    {
+      "project": "ezdwg",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/README.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/crates/ezdwg-core/Cargo.toml",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/Cargo.lock",
+        "https://pypi.org/pypi/ezdwg/0.16.3/json"
+      ],
+      "revision": "Mutable GitHub main and PyPI release 0.16.3, uploaded 2026-10-17; PyPI macOS universal2 wheel SHA-256 50414743576011389c2382c7a129da78cdd0b3bf17af05f3beef88597b7ff0c8; sdist SHA-256 77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c",
+      "observed": "The project describes a standalone Rust core and Python API. Its current docs mark AC1012/AC1014 experimental, identify native modern decoding for a bounded set of 2D entities and text string-stream tests, and state that DXF export uses ezdxf and native DWG writing targets an AC1015 subset. PyPI reports that the release did not use Trusted Publishing. The current root workspace version is 0.16.3 while Cargo.lock records ezdwg-core and ezdwg-python 0.12.12."
+    },
+    {
+      "project": "cad2d-ir",
+      "urls": [
+        "https://github.com/monozukuri-ai/cad2d-ir",
+        "https://github.com/monozukuri-ai/cad2d-ir/blob/main/pyproject.toml"
+      ],
+      "revision": "Mutable main; pyproject version 0.12.1, reviewed 2026-10-18",
+      "observed": "The alpha MIT project advertises a built-in DXF parser, typed 2D IR, diagnostics, and deterministic entity-handle correspondence. Its declared core dependency is jsonschema; its optional DWG extra depends on ezdwg, so its DWG evidence is not an independent parser path. Its R12 and R2010 export profiles may transform geometry and record approximations."
+    },
+    {
+      "project": "dwg2geo",
+      "urls": [
+        "https://github.com/milkway/dwg2geo",
+        "https://github.com/milkway/dwg2geo#native-backend-optional-features"
+      ],
+      "revision": "Mutable repository README, reviewed 2026-10-18",
+      "observed": "The route offers a distinct geospatial projection and structured reports, but its native backend uses ACadRust and its external route invokes LibreDWG/GDAL. It contributes no new DWG parser lineage; CRS, units, projection, omissions, and backend must be captured for any optional downstream observation."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newOptionalDXFParserCandidate": "cad2d-ir; source-route candidate only, not runtime-admitted",
+    "ezdwgArtifactPinRequiredBeforeRuntimeUse": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 132,
+      "topLevelSubplans": 75
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an optional version/entity-scoped ezdwg comparator with an explicit artifact/source reconciliation gate; adds cad2d-ir as a possible DXF-only 2D parser candidate while attributing its DWG adapter to ezdwg; excludes dwg2geo wrappers from parser-independence counts. No new local finding, implementation slice, dependency, runtime, fixture, or routine validation is introduced."
+  },
+  "implementationReadyChecks": [
+    "Select a concrete existing local finding and exact format/version/direction/entity/owner/field key before executing any peer.",
+    "Choose at most one optional peer: ezdwg for an explicitly documented DWG read profile, or cad2d-ir for a DXF-only 2D parser comparison.",
+    "Before ezdwg runtime use, pin an immutable source revision and exact artifact checksum, and resolve the main Cargo.toml/Cargo.lock version mismatch; if unresolved promptly, mark NOT_RUN and continue local work.",
+    "Use only an existing admitted or locally generated input and a local/spec-authored expected manifest; do not infer sample provenance from a peer test name or paired-file claim.",
+    "Record every source handle/type/owner and typed, retained, skipped, rejected, approximated, or missing disposition plus diagnostics and following-record survival.",
+    "Do not use ezdwg's ezdxf-backed export, cad2d-ir's DWG adapter, dwg2geo wrappers, self-roundtrips, aggregate counts, or app rendering as independent DWG/3D semantic evidence.",
+    "Preserve one focused local selector/owning CTest per slice, no routine peer install, no committed external drawing, no increased full-suite frequency, and all six J items as DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-fresh-2d-routes-ezdwg-artifact-pinning-2026-10-18.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-fresh-2d-routes-ezdwg-artifact-pinning-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-fresh-2d-routes-ezdwg-artifact-pinning-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

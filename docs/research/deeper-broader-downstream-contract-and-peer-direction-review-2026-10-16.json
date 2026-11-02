@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw-deeper-broader-downstream-contract-and-peer-direction-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden current DWG/DXF implementation research across downstream product contracts, converter/importer routes, and direction-specific peer coverage; refine existing implementation-readiness gates without adding support claims.",
+  "method": {
+    "sourceTypes": [
+      "LibreCAD_3 current DWG support policy",
+      "LibreCAD current command and bundled-library documentation",
+      "FreeCAD current import/export preferences",
+      "ACadSharp version matrix and open TABLE writer issue",
+      "ezdxf version, entity export, and recovery documentation",
+      "LibreDWG project capability documentation"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "AGENTS.md"
+    ],
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": false,
+    "mutableSourceLimit": "Current master/main pages and issue state are discovery evidence only. No exact runtime revision was executed; any future comparator or consumer qualification must bind the source/build, options, and file route.",
+    "evidenceRule": "Separate component source/API compatibility, default versus opt-in product availability, direction, file version, per-class semantics, converter/importer route, and native acceptance. Project-level version tables and documentation do not prove per-feature behavior or libdxfrw parity."
+  },
+  "evidence": [
+    {
+      "topic": "LibreCAD_3 DWG is opt-in and read-only under its documented product policy",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "The current document says DWG import is behind WITH_DWG_IMPORT and off by default, DWG writing is not implemented or planned until explicit gates pass, and its pinned library ledger has 15 read claims (11 EXPERIMENTAL and 4 PENDING_NATIVE), none PROMOTED. It says the ledger is frozen and each EXPERIMENTAL claim has reviewed-target-debt and unresolved-integrity-diagnostic blockers.",
+      "doesNotEstablish": [
+        "the exact bundled source revision behind the current mutable page",
+        "behavior of an installed LibreCAD_3 build with DWG import enabled",
+        "upstream standalone libdxfrw support or any DWG write behavior",
+        "native 2D/3D acceptance"
+      ],
+      "planUse": "Retain a source/API compatibility gate for the downstream adapter and distinguish it from an explicitly enabled DWG-import smoke. Do not count compile-only compatibility as default product support or DWG writer support. Pin the exact downstream commit, vendored snapshot and build option before runtime qualification."
+    },
+    {
+      "topic": "LibreCAD CLI documentation does not identify the DWG conversion implementation",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/README.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/README.md"
+      ],
+      "observed": "The current application README advertises a librecad dwg2dxf command with output version choices through R2018; the bundled libdxfrw README says that its in-tree fork maintains DWG read/write code. Neither document identifies the executable/library or exact route used by every CLI command.",
+      "doesNotEstablish": [
+        "that standalone upstream libdxfrw supplies the application's DWG writer",
+        "that the CLI command uses an external converter or a particular library",
+        "successful output or target-application acceptance"
+      ],
+      "planUse": "Before using the application CLI as writer or end-to-end evidence, trace command dispatch, backend, options and output version. Keep application and standalone-library capability rows separate; README wording alone cannot promote support."
+    },
+    {
+      "topic": "FreeCAD DWG qualification is a converter-plus-DXF-importer pipeline",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observed": "The current preferences document lists external DWG converter choices and states that DWG uses the DXF settings. It documents C++ and legacy Python DXF importer/exporter choices, describing C++ as faster but having fewer features.",
+      "doesNotEstablish": [
+        "the effective converter, importer backend or settings of an installed FreeCAD build",
+        "per-entity acceptance on Linux, Windows or macOS",
+        "that converter loss is a libdxfrw loss"
+      ],
+      "planUse": "Keep direct libdxfrw-emitted-DXF import separate from the user DWG→converter→intermediate-DXF→FreeCAD workflow. Capture exact executables/versions/options, intermediate file identity and version, platform, importer backend/settings, warnings and per-family semantic census at the composed acceptance gate."
+    },
+    {
+      "topic": "Peer version matrices do not imply per-class writer completeness",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/wiki/",
+        "https://github.com/DomCR/ACadSharp/issues/995"
+      ],
+      "observed": "ACadSharp's published matrix lists reader/writer availability by DWG/DXF version; still-open issue #995 says TABLE entities are read but marked unsupported in the DXF and DWG writers inspected by the reporter. The issue was not independently reproduced and the peer was not built.",
+      "doesNotEstablish": [
+        "a libdxfrw TABLE defect",
+        "the current behavior of every ACadSharp release or branch",
+        "semantic/rendering correctness from a reader or writer capability row"
+      ],
+      "planUse": "Keep TABLE parser, adapter, writer, and rendering outcomes separate in existing 7G.3d work. Compare peers using exact input format/version × operation × class × output format/version; distinguish NOT_APPLICABLE, skipped/lost, and pass."
+    },
+    {
+      "topic": "DXF version export and recovery are distinct comparator routes",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/usage_for_beginners.rst"
+      ],
+      "observed": "ezdxf documents DXF read/write support through R2018 but not DWG. Its entity base documents that it does not convert between DXF versions and that unsupported features may be ignored during export. Its user documentation distinguishes ordinary trusted-file loading from recovery for flawed input.",
+      "doesNotEstablish": [
+        "complete version conversion or retention for an arbitrary entity",
+        "strict validity from a recovery-mode success",
+        "independent DWG or ACIS-kernel semantics"
+      ],
+      "planUse": "Pin ezdxf and use it only for exact supported entity/version routes; inventory ignored features and keep strict versus recovery results separate. Do not treat aggregate DXF-version support or parse/export success as a full conversion oracle."
+    },
+    {
+      "topic": "LibreDWG aggregate capability statements are not class-level support evidence",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "The project describes broad DWG reading while acknowledging that some advanced R2010+ objects may be skipped; its tool descriptions also distinguish aggregate DWG-to-DXF coverage and narrower DWG-writer coverage.",
+      "doesNotEstablish": [
+        "per-version/per-entity semantic completeness",
+        "current executable behavior without a source/build pin",
+        "libdxfrw support or parity"
+      ],
+      "planUse": "Retain explicit per-version/per-family decoded, opaque-preserved, skipped, errored and emitted outcomes. Aggregate percentages may help select optional comparator work, but cannot be support denominators or promotion criteria."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "affectedOwners": [
+      "7AG downstream source/API compatibility",
+      "7G.3d ACAD_TABLE parse/write/render separation",
+      "FreeCAD direct-DXF and converter-workflow acceptance",
+      "peer comparator admission and support ledger"
+    ],
+    "fastSlicePolicy": "No change: continue dependency-ordered local work with touched strict targets and one focused existing fast test; do not wait for optional consumer builds or peer installations.",
+    "composedGatePolicy": "At the scheduled consumer gate, pin product, source/build, platform, feature flags, converter, intermediate DXF and importer profile; preserve direct-DXF and user-facing DWG workflows as separate routes.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0
+  },
+  "planImpact": {
+    "findings": 124,
+    "topLevelSubplans": 71,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0
+  }
+}

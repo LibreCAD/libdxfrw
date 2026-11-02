@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-iso8859-1-exact-input-profile-fast-slice-v1",
+  "date": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Add an explicit ExactNamed ISO-8859-1 DXF input decoder without changing historical Compatible behavior or strict complete-conversion producer admission.",
+  "changes": {
+    "sourceProfile": "Appended Iso8859_1 to preserve existing enum values.",
+    "exactAliases": [
+      "LATIN1",
+      "ISO8859-1",
+      "ISO-8859-1",
+      "ISO_8859-1",
+      "CP819",
+      "IBM819",
+      "ISO-IR-100",
+      "L1"
+    ],
+    "inputMapping": "Bytes 0x80-0xFF map identically to Unicode U+0080-U+00FF, distinct from Windows-1252 punctuation mapping.",
+    "strictAdmission": "ISO-8859-1 remains unsupported by the closed strict complete-conversion allowlist pending producer qualification.",
+    "exceptionOutcome": "A callback exception preserves the caller's legacy sourceVersion while the attempt-specific outcome remains UNKNOWN; ordinary failed reads retain reset semantics."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_gbk_codepage_tests lc3_compat_check -j4",
+    "focusedTest": "build/libdxfrw_gbk_codepage_tests --iso8859-1",
+    "fullTest": "build/libdxfrw_gbk_codepage_tests",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+    "checks": [
+      "2,560 exact byte decode/inverse pairs across 10 accepted declaration spellings",
+      "Compatible mode remains Windows-1252",
+      "ASCII and Binary DXF reader routes preserve the ISO-8859-1 distinction",
+      "Strict source admission remains UnsupportedProfile",
+      "Existing callback exception/retry, RAII, lifecycle, and profile tests pass",
+      "lc3_compat_check target builds",
+      "git diff --check passes"
+    ],
+    "results": {
+      "focusedTest": "PASS",
+      "fullTest": "PASS",
+      "ctest": "PASS (1/1)",
+      "lc3CompatBuild": "PASS",
+      "gitDiffCheck": "PASS"
+    }
+  },
+  "fixturesAdded": 0,
+  "dependenciesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "implementationStatus": "local uncommitted slice"
+}

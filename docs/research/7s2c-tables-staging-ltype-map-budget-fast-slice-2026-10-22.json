@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c TABLES staging transfer and LTYPE context-name retained-byte budget",
+  "scope": "Remove parser-owned table-entry staging copies and charge the persistent LTYPE handle-to-name context map to the active DXF read budget.",
+  "files": {
+    "src/libdxfrw.cpp": "e52a7b13813b741c2286ccaa228a0061d70640ecc6d608d31b23029927b490f3",
+    "tests/hardening_tests.cpp": "47251d03a8a3061edc7bc06ff4d1a0d5539bd384a089e31ce4d8495e4d5a2f8b",
+    "CMakeLists.txt": "086d152d9622a71511be71eace24f9433d3a81d00015a101617f21215fd6830d"
+  },
+  "change": {
+    "summary": "LTYPE, LAYER, STYLE, VPORT, VIEW, UCS, and APPID parsed rows now move into their staged vectors. LTYPE name-map publication reserves the aggregate retained bytes before callbacks and transfers the charge to the current read budget for the persistent parsing-context copies.",
+    "fixtureAdded": false,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false,
+    "externalQualificationChanged": false
+  },
+  "generatedControl": {
+    "source": "Existing locally generated LTYPE TABLES ASCII/Binary matrix; temporary binary files are removed by the test.",
+    "checks": [
+      "exact measured limit retains both LTYPE rows and both context name-map entries",
+      "budget used after read includes the persistent context-name copies",
+      "one byte under refuses before LTYPE callbacks or context-map publication",
+      "same-facade exact-budget retry succeeds and both handles resolve",
+      "existing AC1024 profile and malformed group-9 refusal controls remain passing"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_ltype_retained_owner_budget|libdxfrw_hardening)$' --output-on-failure",
+      "result": "PASS (2/2; 0.92 seconds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-ltype-retained-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Parser-owned staged copies are avoided for the named table paths and persistent LTYPE context-name copies are charged within the configured read budget. This does not establish DXF/DWG format conformance or support qualification.",
+  "fullSuiteRun": false,
+  "externalPeersRun": false,
+  "nativeCadRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the exact-source owner audit at compound BLOCK_RECORD staging and any other table registry copy paths. If those audits find no local owner gap, return to evidence-ready PAR-03/PAR-04 associative field-context work or a locally demonstrated HATCH/DWG semantic issue. External qualification remains optional and does not block local implementation."
+}

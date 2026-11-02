@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 codec no-raw-section replay guard",
+  "date": "2026-10-28",
+  "status": "IMPLEMENTED_PREREQUISITE",
+  "codeCommit": "9d8733a8",
+  "scope": "Default-off dxfRW guard rejects raw-section replay for the selected write. It does not authorize an MLINE operation, qualify the original source or live graph, or inspect other sections and their dependencies.",
+  "behavior": "Policy is configured before an operation and latched per admitted write. With the guard enabled, a nonempty codec-owned raw-section vector at the actual replay boundary refuses before emission; after the finalization callback the codec again requires it empty. Active attempts to change the guard fail the write. A tentative no-raw-section receipt is visible only during finalization and expires after the attempt. Default-off writing retains ordinary raw-section behavior.",
+  "controls": {
+    "registeredTest": "libdxfrw_no_raw_sections",
+    "asciiAndBinary": "38 focused controls: ordinary raw replay, strict clean output, initial/callback insertion, in-operation policy change, finalization setter and raw-vector swap, finalizer rejection/exception, nested write, unchanged destination sentinel and corrected same-codec retries. Four concurrent invocations passed using atomically reserved scratch directories.",
+    "extraVersions": "Equivalent scratch test builds passed on AC1015, AC1021 and AC1032 in both encodings; the registered test uses AC1027.",
+    "physicalOutput": "An independent minimal byte decoder verified section framing for default and strict ASCII/binary outputs: default has TEST_PRIVATE after the six ordinary sections; strict has only those six. The decoder checks physical framing, not native semantics or the full contents of those sections.",
+    "physicalReportSha256": "a89a2c14491f8ba2193ccdf57881ba650a6c083529ff1b231a6b3932c43196ca",
+    "physicalAuditScriptSha256": "cb74a548fe2256e6cd1f7c6c1628a6c49bb4b226a3c845aa1635a12517b98076"
+  },
+  "validation": {
+    "sharedNormal": "3/3 focused tests passed; source-release inventory 628 files passed.",
+    "sharedNormalLibrarySha256": "753ad0aaba11ccb3ba0298199cd7ee4a29d0c6bcca4112756121c60033bee1eb",
+    "sharedNormalTestSha256": "307390547fb6065a5a2c7c358c219a9221235a6be3545d8b857ca726fc6aac0a",
+    "sharedNormalLogSha256": "f326a2536f859f9bc37b56d22f3978b02cedf1f45dc90fc911a24bb965df73f5",
+    "sharedAsan": "3/3 focused tests passed with ASAN_OPTIONS=halt_on_error=1:detect_leaks=0.",
+    "sharedAsanLibrarySha256": "50878d1e08494db643e9b13cfc52d44ffc7b388d90d77b5288575b451e2beb2a",
+    "sharedAsanTestSha256": "ef5b869606175e6c6140d649bfb45300a4f135635e21bfbc2f02372db4ca4920",
+    "sharedAsanLogSha256": "8577aacb77034592530335325fd746bbd97797910a9d7c4294ad3f0af58b04ab",
+    "independentReview": "Reviewed guard scope and temporary directory isolation; no bypass found in the stated raw-section replay scope."
+  },
+  "boundaries": "The receipt is tentative before atomic publication; no completed-file or whole-section-grammar claim follows. HEADER staging precedes HANDSEED backpatch and generated CLASSES need independent qualification. A consumer finalizer can deliberately skip its own other checks; the codec replay restriction itself is enforced regardless. Added private dxfRW state requires dependent binaries to rebuild.",
+  "nextWork": "Complete the separately bounded original-to-live carrier and consumer joins, classify generated CLASSES and all staged sections, bind the finalized HEADER/HANDSEED, and qualify the geometry projection before enabling any consumed-style edit.",
+  "fixtures": "All generated DXF outputs remain in ignored local scratch or isolated test directories; no fixture was committed.",
+  "claimsPromoted": false
+}

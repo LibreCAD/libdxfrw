@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw-geodata-borrowed-text-chunks-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.50",
+  "scope": "Avoid temporary substring allocations for compatible GEODATA definition chunks while preserving existing 255-character group boundaries and output order.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "change": "The non-strict-lossless GEODATA path creates a string_view over the existing definition and passes substr views to synchronous group-303 and group-301 writes. The strict-lossless writeUtf8Chunks route is unchanged.",
+    "copyAvoidance": "Removes one temporary owned string per continuation/tail chunk in the selected route. No allocator, RSS, or throughput measurement was made.",
+    "wirePolicyChanged": false,
+    "publicApiOrLayoutChanged": false
+  },
+  "generatedControl": {
+    "targetVersion": "AC1027",
+    "objectVersion": 2,
+    "definitionLengthCharacters": 600,
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "expectedGroups": [
+      {
+        "code": 303,
+        "length": 255
+      },
+      {
+        "code": 303,
+        "length": 255
+      },
+      {
+        "code": 301,
+        "length": 90
+      }
+    ],
+    "assertions": [
+      "exact ordered chunks and joined definition",
+      "ASCII/Binary projection equivalence",
+      "following WIRE_END sentinel",
+      "scratch/in-memory generation only"
+    ],
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_wave1_tests --geodata-versioned-writer",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/geodata-borrowed-text-chunks-fast-slice-2026-10-17.json"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "owningCtestPassed": true,
+    "owningCtestTests": 1,
+    "owningCtestElapsedSeconds": 0.46,
+    "compatibilityTargetBuilt": true,
+    "scopedDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "scopeLimits": {
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

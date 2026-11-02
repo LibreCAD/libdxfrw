@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer capability contradictions and DXF output integrity",
+  "mode": "primary-source documentation, issue-index, and local test-source review",
+  "scope": [
+    "Reconcile LibreDWG 0.14 AC1018 writer claims across NEWS, README, and generated command documentation",
+    "Review the reported LibreDWG 0.14 malformed-DXF exit-success case for text containing carriage returns",
+    "Compare current libdxfrw generated MTEXT refusal/normalization controls with ordinary TEXT coverage",
+    "Refresh ACadRust, ACadSharp, and IxMilia.Dxf version/direction/entity-specific evidence boundaries",
+    "Translate findings into fast local and composed independent-validation gates"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG README, NEWS, and generated dwgwrite manual",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1"
+      ],
+      "observed": "LibreDWG 0.14 NEWS (2026-06-27) announces an AC1018/R2004 DWG writer and records R2004 section/header CRC work. The README describes a broader but qualified writer with R2007 unavailable and R2010-R2018 CRC caveats. The generated dwgwrite.1 still says only R2000 for now while listing R2004 and later in its version list. These project declarations are inconsistent; no executable was run to resolve the actual artifact behavior."
+    },
+    {
+      "name": "LibreDWG issue 1408",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1408"
+      ],
+      "observed": "The open report says LibreDWG 0.14 Windows dwg2dxf returned exit code 0 while emitting malformed ASCII DXF for some complex CR-bearing TEXT/MTEXT, rejected by strict ezdxf 1.4.4 loading, and dropped a leading character. It reports default, R2000, and R2018 output targets. The drawing is not attached and the synthetic reproducer was not completed; this is a version-bound peer report, not a reproduced libdxfrw defect."
+    },
+    {
+      "name": "Local DXF text writer source and tests",
+      "urls": [
+        "tests/dxf_fixture_tests.cpp",
+        "src/intern/dxfwriter.cpp"
+      ],
+      "observed": "Existing generated ASCII/Binary MTEXT tests check LF/CRLF normalization, bare-CR/NUL pre-emission refusal, destination preservation, standalone MTEXT, embedded ATTRIB/ATTDEF, and a following LINE. The reviewed controls do not establish ordinary TEXT coverage for the peer-reported path or independent parser acceptance."
+    },
+    {
+      "name": "ACadRust project declaration and selected issue reports",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/127",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/issues/136"
+      ],
+      "observed": "The project README declares broad DXF/DWG read/write coverage and ACIS/B-rep features. The selected open issue titles report route-specific malformed-input allocation/panic concerns, omitted HEADER variables, an AC1032 MLeader object-context truncation regression, and binary-DXF group-code width errors. These are leads tied to peer builds and are not evidence of the same local defects or complete semantics."
+    },
+    {
+      "name": "ACadSharp v3.8.0 and IxMilia.Dxf published capability boundaries",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "ACadSharp's published version matrix marks AC1021 DWG writing unavailable. IxMilia.Dxf declares R10-R2014 DXF scope with MESH, MLEADER, SURFACE, TABLE, and VIEWPORT exceptions and warns that selected entity outputs may not be accepted by AutoCAD. These declarations qualify comparator routing, not whole-document semantic or native results."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that peer release notes and generated CLI help can disagree, so DWG writer capability requires exact executable/version-signature evidence. Adds an independent strict DXF parse and exact text/identity comparison at the existing composed checkpoint, while reusing the current fast local MTEXT controls and adding ordinary TEXT coverage only when that route is changed or found uncovered. Separates process success, output existence, syntax validity, semantic retention, and native acceptance."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main/master documentation is mutable. The LibreDWG #1408 input drawing is not public, peer reports have not been reproduced here, and no local ordinary-TEXT independent-parser test was run. All comparator conclusions are route-selection/readiness guidance, not support qualification."
+  }
+}

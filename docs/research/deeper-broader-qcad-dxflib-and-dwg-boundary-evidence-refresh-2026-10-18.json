@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "QCAD dxflib and DWG record-boundary evidence refresh",
+  "mode": "primary-source web research and plan-only update",
+  "scope": [
+    "Add a distinct, direction-limited open-source DXF comparator to the existing peer inventory",
+    "Refresh DWG reader record-boundary and coverage-denominator guidance from current project sources",
+    "Preserve fast local implementation cadence and existing external evidence boundaries"
+  ],
+  "method": {
+    "kind": "Read current primary project documentation/source and cross-check against the existing local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "QCAD dxflib feature and API pages establish documented route scope only; no exact peer revision was built or executed. dwg-rs and LibreDWG default-branch documentation is mutable and peer-reported coverage/maturity is not independent correctness evidence. No local format mismatch was reproduced."
+  },
+  "sources": [
+    {
+      "project": "QCAD dxflib",
+      "urls": [
+        "https://www.qcad.org/en/90-dxflib",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/writing.html",
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_entities.h"
+      ],
+      "revision": "Current QCAD feature page and mutable bundled API source, plus published dxflib 2.5 programmer guide; reviewed 2026-10-18",
+      "observed": "dxflib is a callback-based C++ DXF reader/writer and does not retain a document model. QCAD lists supported-entity reading across DXF versions, explicit 3DFACE, and R15/AC1015 writing. It is not a DWG or ACIS/B-rep route."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/examples/coverage_report.rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md"
+      ],
+      "revision": "Mutable README, coverage tool and clean-room note reviewed 2026-10-18",
+      "observed": "The pre-alpha ODA-spec-derived reader documents per-version decoded/skipped/error counts and exact record-boundary checks across legacy and modern stream profiles. Its own README warns against comparing aggregate coverage across changing corpora and records named decoder boundary failures."
+    },
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Mutable current manual and fuzzing guidance reviewed 2026-10-18",
+      "observed": "The manual makes direction and maturity distinctions despite broad coverage prose, including no R2007 DWG writer and unstable/undertested, unhandled, and no-test-coverage classes. HACKING describes route-specific fuzz targets and recommends distinct values in DWG/DXF pairs for unknown-field analysis."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "optionalComparatorAdded": "QCAD dxflib, read-side DXF callback checks and limited AC1015 writer probe only",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds dxflib as a narrow optional DXF comparator and makes record-boundary provenance plus fixed per-version/per-type denominators explicit when interpreting DWG peer evidence. No new local implementation task or mandatory validation is justified."
+  },
+  "implementationReadyChecks": [
+    "Select one exact local format/version/direction/record-family question before considering any peer.",
+    "For each changed DWG reader profile, identify the authoritative version-specific record boundary and separately account for string and handle streams when exposed; do not invent boundaries where the local parser cannot establish them.",
+    "Use stable input hashes and report decoded, skipped, error, not-exercised, and transformed outcomes per file/version/type; do not compare aggregate percentages across different corpora.",
+    "Use dxflib only for a matching DXF callback-read question or verified AC1015 write question; do not treat QCAD as an additional parser lineage if the route uses dxflib.",
+    "Keep all peer, fuzz, native, sanitizer, and full-suite work at existing composed gates; local implementation slices retain generated controls and one focused selector/owning CTest.",
+    "Do not import or commit external peer/customer DWG/DXF fixtures; use repository-owned or locally authored temporary controls."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-qcad-dxflib-and-dwg-boundary-evidence-refresh-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-qcad-dxflib-and-dwg-boundary-evidence-refresh-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

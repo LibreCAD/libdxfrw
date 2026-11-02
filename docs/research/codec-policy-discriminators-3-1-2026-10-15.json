@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "Slice3.1 / PAR-05 codec discriminators",
+  "parent_commit": "3dc16b8",
+  "scope": "Test-only canonical codec/escape/UTF8 controls and opt-in independently expected named-codec audit. No mapping or fallback-policy fix.",
+  "source_sha256": {
+    "tests/gbk_codepage_tests.cpp": "788dee90d9e6fdeec27c40dbc57b5eb6d5272b8c80af888e384962e2d7feb704",
+    "src/intern/drw_textcodec.cpp": "f83f8fdb1e454e7c8edd9674a8dc5adf2909f3684e81012486208addb067ab31",
+    "src/intern/drw_textcodec.h": "cfe0fa8faf55f9a4c1dc5ad66b55227814e1107d430519dafa2fa120e9114300"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw_gbk_codepage_tests": "a3731acc357e40b18de04bb0073e22d70f966426df3e92c809c35862e0c6aca3"
+  },
+  "literal_expectations": "35 alias vectors frozen from independent standard-codec expectations in broader-codec-policy-research-2026-10-15.json; 14 canonical-family anchors checked independently, never derived from local tables.",
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2; exit0",
+    "strict_tu": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -DLIBDXFRW_DWG_FIXTURE_DIR='\"/Users/dli/dev/libdxfrw/tests/fixtures/dwg\"' -fsyntax-only tests/gbk_codepage_tests.cpp; exit0",
+    "canonical": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-policy",
+      "exit_code": 0,
+      "legacy_canonical_cases": 28,
+      "legacy_two_scalar_escape_cases": 8,
+      "modern_utf8_metadata_cases": 6,
+      "scope": "Canonical selection, literal decode/encode, ASCII neighbors; four exact HKSCS two-scalar/CIF wire representations in two configurations; AC1021/AC1032 UTF8 with three distinct legacy declarations."
+    },
+    "named_alias_audit": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-alias-audit",
+      "exit_code": 1,
+      "cases": 70,
+      "mismatches": 46,
+      "byte_stable_but_wrong": 36,
+      "empty": 8,
+      "disposition": "INTENTIONALLY_RED / OPT_IN_ONLY. Not a registered mandatory test and not a promise to support every alias. Resolves mapping versus compatibility policy next."
+    },
+    "iso8859_4_red": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-alias-audit ISO8859-4",
+      "exit_code": 1,
+      "cases": 2,
+      "mismatches": 2,
+      "empty": 2
+    },
+    "absent_filter": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-alias-audit not-a-vector",
+      "exit_code": 2,
+      "cases": 0
+    },
+    "mandatory_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "reported_seconds": 0.11
+    }
+  },
+  "production_changes": false,
+  "new_ctest_registration": false,
+  "new_fixture_or_dependency": false,
+  "full_suite_run": false,
+  "native_or_dwg_format_qualification": false,
+  "support_claim_promotions": 0,
+  "next_gate": "Slice3.2 internal canonical/exact/inexact/unavailable/unknown classification, explicit provenance and bounded diagnostics; no silent default behavior change. Slice3.3 mapping fixes follow the policy gate."
+}

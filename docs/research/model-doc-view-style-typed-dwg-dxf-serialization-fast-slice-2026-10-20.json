@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Typed-only DWG ModelDocViewStyle same-version DXF serialization",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-138",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "Allow a bounded typed-only DWG-origin DetailViewStyle/SectionViewStyle graph to serialize to same-version DXF when its validated NOD child dictionaries and resource references are already present. DXF-origin raw replay remains unchanged.",
+  "behavior": {
+    "supportedProfile": "A successful, single-version DWG style capture with complete typed style values, validated NOD-to-named-child dictionary ownership, closed resource references, and no unrepresented common-object payload.",
+    "output": "Reuse the existing raw overlay/writer path with synthetic style shells for the recognized DWG profile; preserve the target DWG revision and ASCII/Binary DXF encoding.",
+    "dictionaryGraph": "The route consumes the already-validated NOD-to-named-child dictionary graph; it does not synthesize or repair missing/ambiguous child dictionaries.",
+    "failClosed": [
+      "Unknown or cross-version source/target revision",
+      "Missing, duplicate, or wrong-owner style dictionary membership",
+      "Unresolved resource references",
+      "Unrepresented reactors, extension-dictionary metadata, XDATA/appdata, AcDs payload, or pending references",
+      "Capture receipt that is not a single successful DWG-origin style import"
+    ],
+    "compatibility": "Existing DXF raw-carrier replay remains available only under its prior source/target revision and carrier checks; no DRW_Interface pure virtual was added."
+  },
+  "tests": {
+    "selector": "--modeldoc-view-style-callbacks",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "provenanceLimit": "The test starts with the existing generated DXF callback graph, changes its import envelope to a successful DWG-origin capture, clears the raw style carriers, then tests the typed writer route. This is not a DWG-reader or producer qualification.",
+    "coverage": [
+      "DetailViewStyle and SectionViewStyle names and typed non-handle fields survive export and DXF re-import",
+      "Dictionary-derived style naming and NOD child dictionary graph are retained",
+      "Resource-reference closure resolves to the expected text styles, line type, and block record",
+      "Raw style carriers are generated on DXF readback",
+      "A neighboring POINT survives the OBJECTS output path",
+      "Cross-version export is refused while preserving a pre-existing destination",
+      "Wrong style dictionary owner is refused while preserving a pre-existing destination",
+      "Unrepresented extension-dictionary metadata is refused"
+    ],
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 (passed)",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks (exit 0)",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1 passed)",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for changed tracked source, tests, and plan; added receipt checked separately",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_data.h"
+    ],
+    "testFiles": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "planFiles": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "dependenciesAdded": 0,
+    "externalRuns": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

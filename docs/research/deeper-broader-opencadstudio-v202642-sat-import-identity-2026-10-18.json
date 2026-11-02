@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader OpenCADStudio v2026.42 SAT import and repository identity screen",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the current OpenCADStudio release route for standalone SAT/ACIS model import",
+    "Separate direct SAT import from DXF-inline ACIS and DWG AcDs carrier routes",
+    "Screen a same-name repository for release, source ancestry, and artifact identity before counting it as peer evidence",
+    "Refine optional composed-checkpoint readiness without increasing ordinary validation frequency"
+  ],
+  "method": {
+    "kind": "Read project-owned GitHub repository and release pages; compare product identity, release metadata, and README route references",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The v2026.42 release notes advertise SAT/ACIS import, but its tagged Cargo manifest/lock, exact parser route, profile support, loss behavior, and release artifact hash were not resolved or executed in this screen. The same-name repository's source ancestry and maintainer relationship were not established; no allegation about its origin is implied."
+  },
+  "sources": [
+    {
+      "project": "HakanSeven12/OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases"
+      ],
+      "revision": "v2026.42 release page, app commit b6fbac3; published 2026-10-18",
+      "observed": "The release notes advertise new IMPORT/ACISIN workflows and SAT/ACIS model import. This establishes a newly documented standalone-SAT application route, but not its exact SAT grammar/profile, full-body semantic behavior, fallback contract, dependency resolution, or successful execution."
+    },
+    {
+      "project": "tatran0195/OpenCADStudio",
+      "urls": [
+        "https://github.com/tatran0195/OpenCADStudio",
+        "https://github.com/tatran0195/OpenCADStudio/releases"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The repository uses the same product name and overlapping feature prose, has no listed releases, is not presented by GitHub as a fork, and its README points to HakanSeven12's web app and download/release routes. Source ancestry, binary provenance, and a maintainer relationship were not established. It is excluded from independent peer counts pending provenance review."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds an optional standalone SAT-to-application/kernel route for a future composed checkpoint, explicitly separate from DXF-inline ACIS and DWG AcDs extraction. Adds a repository-identity admission guard for same-name project pages. The route remains unqualified until exact source/dependency/artifact provenance and independent semantic results are available.",
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not add OpenCADStudio as a routine dependency, CMake target, CI job, fixture, or per-slice validation prerequisite.",
+    "Before any optional v2026.42 run, bind tag/commit, exact platform artifact and SHA-256, tagged Cargo manifest/lock, toolchain, feature flags, and resolved opencadcodec/opencadkernel revisions.",
+    "Source-audit the standalone IMPORT/ACISIN path and record the actual accepted SAT profile before interpreting an execution result.",
+    "Use only locally authored scratch SAT controls with independently authored topology, units, transforms, bounds, area, and volume expectations; record all unsupported/lost bodies and fallback/refusal outcomes.",
+    "Do not transfer standalone SAT results to DXF-inline SAT/SAB, DWG AcDs ownership, entity-to-payload association, or FreeCAD native qualification.",
+    "Admit same-name repositories only after canonical owner/repository, immutable revision, source ancestry, dependencies, and executable provenance are established.",
+    "Keep findings 133/76 and J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL; no support claim changes from release notes or repository identity alone."
+  ]
+}

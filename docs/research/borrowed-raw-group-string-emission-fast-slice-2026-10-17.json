@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-borrowed-raw-group-string-emission-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.35",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / RAW_GROUP_STRING_COPY_SCOPED",
+  "objective": "Remove per-group owned string materializations from raw DXF group replay while preserving source spellings, typed fallback, remap behavior, and synchronous sink lifetime.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/borrowed-raw-group-string-emission-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Changes the local raw-group string helper to consume std::string_view and pass raw ASCII source spellings directly to the synchronous writer.",
+      "Passes typed DRW_Variant string storage directly in the Binary/fallback route instead of constructing a new std::string per group.",
+      "Borrows original raw or typed text for XDATA 1005 null/identity emission and constructs a formatted string only when a handle is actually remapped.",
+      "Uses a view for translated-handle parsing; caller-owned source groups and spellings remain unchanged."
+    ],
+    "compatibility": "Internal implementation only; no installed API, public class layout, or DRW_Interface callback changed. Writer sinks consume the view synchronously and do not retain it."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-raw-section-writer-common-path",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "shared_writer_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "shared_writer_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated ASCII raw-section replay checks source spelling and caller immutability.",
+    "Generated Binary raw-section replay checks the typed string fallback, multibyte UTF-8 wire bytes, and exact code/value ordering.",
+    "Existing ACDSDATA overlay controls verify actual replacement formatting, refusal, and unchanged original groups."
+  ],
+  "limits": [
+    "No allocator-count, throughput, or peak-RSS measurement was run; copy reduction is established by source structure and output/readback controls.",
+    "The test selector does not independently measure every handle-remap branch; remapped owner behavior remains covered by existing generated overlay controls.",
+    "No full suite, peer runtime, native CAD application, or fuzz/sanitizer campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue source audit for a distinct bounded writer/projection materialization; otherwise advance to the next specialized raw/typed carrier owner. External qualification and caller mutation semantics do not block local work.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

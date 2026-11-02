@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer source audit: AcDs extraction and route-specific semantic evidence",
+  "mode": "deeper/broader primary-source research and implementation-readiness refinement",
+  "scope": [
+    "Trace the current LibreDWG AcDs segment and payload-association paths in source",
+    "Check invalid-handle disposition and safe diagnostics in the peer extraction path",
+    "Refresh ACadSharp's open ACIS writer PR against the separate DXF writer issue",
+    "Reconcile peer roles and existing local Blob01 test ownership without adding duplicate CTests"
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "status": "normative_AcDs_container_layout_sections_24_2_2_2_through_24_2_2_4",
+      "observation": "DataIndex rows identify records in Data segments; Blob01 pages are addressed through large-record descriptor page entries. Page headers carry total length, page start, page ordinal/count, and page data length.",
+      "limits": "Container structure does not define ACIS topology or semantic validity."
+    },
+    {
+      "project": "LibreDWG current master",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "status": "mutable_source_reviewed_2026_10_20;_issue_1411_version_scoped",
+      "observation": "The segment parser reads directory and DataIndex/schema/search metadata, leaves _data_ and blob01 segments unhandled, then scans the section for ACIS BinaryFile/end markers and consumes queued has_ds_data modeler handles. The resolver returns null for invalid handles, while the AcDs scan logs o->name before its null check. Issue #1411 reports SAB loss for a generated AC1032 path pinned to LibreDWG 0.14.8593.",
+      "limits": "No source build or malformed-handle reproducer was run. The log-order concern is an unconfirmed peer hardening lead, not a confirmed defect or a local finding; marker/queue extraction is not an ODA DataIndex-to-owner proof."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "status": "issue_open_and_PR_open_unreleased_at_review",
+      "observation": "Issue #1195 reports DXF writer omission of 3DSOLID/REGION; PR #1240 remains open, has no deployment, and its visible serializer change is in DwgObjectWriter. The PR links to the issue but does not establish a released DXF writer fix.",
+      "limits": "An unmerged branch is a design lead, not a positive comparator result. DWG and DXF writer directions remain separate."
+    },
+    {
+      "project": "ezdxf and FreeCAD",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "status": "documented_route_limits_rechecked",
+      "observation": "ezdxf documents a limited ACIS entity subset and loss of unsupported entity data. FreeCAD's maintainer states stock FreeCAD cannot read embedded ACIS solids and closed the support request as not planned.",
+      "limits": "ezdxf raw-carrier handling is not arbitrary semantic round-trip; stock FreeCAD ACIS remains out of profile."
+    },
+    {
+      "project": "Local libdxfrw",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_datastorage.cpp",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "tests/graph_preservation_tests.cpp"
+      ],
+      "status": "read_only_source_and_test_inventory_audit",
+      "observation": "The existing matrix covers the direct/blob threshold, one-page exact cap, and two pages totaling cap+1. The generated graph-preservation profile additionally checks suffix preservation and malformed page start, absent page segment, and header page-data-size cases.",
+      "limits": "This is structural/byte-preservation evidence only, not independent B-rep semantics or native application qualification. The focused graph test was green in the immediately preceding implementation pass and was not rerun during this research-only turn."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Clarified that LibreDWG's marker/queued-handle extraction is not an ODA record-owner proof, captured an unconfirmed nullable-handle diagnostic concern as peer-only, separated ACadSharp's DXF omission report from its unmerged DWG writer PR, and removed the need for duplicate Blob01 threshold CTests.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "nextImplementation": "Continue with the existing fast local queue. Reuse the matrix and graph-preservation test owners; do not wait for peer merges or native/semantic gates.",
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRunThisPass": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-source-acds-semantic-evidence-2026-10-20.json"
+    ],
+    "limitations": "Peer branches and online documentation are mutable. No peer behavior or semantic geometry result was independently reproduced."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

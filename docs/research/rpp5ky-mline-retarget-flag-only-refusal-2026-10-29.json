@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5ky selected flags-only MLINESTYLE retarget refusal",
+  "date": "2026-10-29",
+  "status": "SELECTED_REFUSAL_GUARD_QUALIFIED",
+  "codeCommit": "66ea6cbe24e86820d9c06be95372a67964aae9b0",
+  "evidenceCommit": "66ea6cbe24e86820d9c06be95372a67964aae9b0",
+  "scope": "Isolates a source-bound AC1027 MLINE retarget where only MLINESTYLE group 70 changes, proves atomic refusal and same-adapter retry after restoring the source flags. This qualifies a refusal guard only and does not implement changed-flag retarget support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 70 bit 2 means display miters; bit 16 means start square end cap. The selected target changes 2 to 18, adding the square-start-cap flag while retaining display miters. This field definition does not prove native rendering or how consumer geometry should be regenerated."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 identifies the MLINESTYLE object and group 2 is the redundant style name. The test retargets both selected consumers by model references and the accepted retry verifies actual target identity and unchanged redundant names."
+    }
+  ],
+  "contract": {
+    "admission": "Runtime-authored AC1027 ASCII source with two MLINESTYLE records. The selected target record begins with flags 2, two elements, offsets [1.25,-0.75], and angles 90/90. Two source-bound MLINE consumers are requested to reference the target style.",
+    "isolatedChange": "Relative to the imported target-record baseline, its only typed/raw style-body edit is flags 2→18. This adds the documented bit 16 square-start-cap request while retaining the display-miters bit; style element count, offsets and angles remain unchanged. No consumer vertex, miter or segment-parameter edit is made.",
+    "failureAndRetry": "For ASCII and binary AC1027 output, the changed-flag request refuses, preserves a sentinel destination, and leaves the caller snapshot unchanged. Restoring flags 2 permits same-adapter retry. The retry's output proof checks the target style body and ownership, both MLINE references, unchanged redundant group-2 names, geometry/parameter fields and fresh readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Inputs and outputs are authored at runtime in a temporary directory; successful runs remove them. No DWG/DXF fixture is committed.",
+    "limits": "The receipt proves only the exact AC1027 refusal boundary for flags 2→18 on the selected two-element, two-consumer profile, across ASCII/binary output. It does not qualify a successful changed-flag retarget, other flag combinations, other versions/carriers, native square-cap rendering, general MLINE geometry projection, complete document closure or a support claim."
+  },
+  "controls": {
+    "outputEncodings": [
+      "ASCII AC1027 source -> ASCII AC1027 retry output",
+      "ASCII AC1027 source -> binary AC1027 retry output"
+    ],
+    "observed": "flags-only refusals=2; destination/caller rollbacks=2; same-adapter retries=2; successful output/readback proofs=2",
+    "runtimeFixturePolicy": "The test writes the source DXF and all outputs at runtime under a temporary directory; it does not add drawing fixtures to the repository."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "The existing angle-retarget selector, including the isolated flags-only guard, passed.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_angle_projection$' --output-on-failure"
+    },
+    "observedSelector": "angle-only profiles=4; readbacks=10; refusals=2; late=2; retries=4; combined profiles=4; readbacks=8; refusals=2; late=2; retries=4; flag-only refusals=2; flag-only retries=2",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "12cd9a28c4ca61711082773f32d12ad1a81f2386527b717ba0869f9832ab1fd6",
+    "tests/dxf_fixture_tests.cpp": "69b4e9141cf019a6179b6c0052c34452fae9a1d52ceae1f2a00229119c5f45b3",
+    "normalLibdxfrwDxfFixtureTests": "338b5def54a02690939e679c07faa32ae19994d695b2357fd7c1f982918432d7"
+  },
+  "next": "Select one distinct source-backed arity or other-geometry retarget refusal; if no precise expected effect is available, return to the bounded dense retained-byte case. Keep changed-flag retargets refused until consumer geometry and emitted semantics are independently justified."
+}

@@ -1,0 +1,103 @@
+{
+  "id": "par27-header-custom-property-pairs",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Preserve ordered repeated $CUSTOMPROPERTYTAG/$CUSTOMPROPERTY header pairs through parse, copy/move, adapter handoff, and DXF write.",
+    "Refuse malformed pair grammar and downlevel output before replacing a destination."
+  ],
+  "sources": [
+    {
+      "title": "Autodesk DXF HEADER section",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EA9CDD11-19D1-4EBC-9F56-979ACF679E3C.htm",
+      "use": "Confirms HEADER variables are introduced by group 9 followed by value groups."
+    },
+    {
+      "title": "ezdxf HEADER reference",
+      "url": "https://ezdxf.readthedocs.io/en/stable/sections/header.html",
+      "use": "Cross-checks pair representation, repeated tags, and the R2004 minimum; not native application acceptance."
+    },
+    {
+      "title": "ACadRust HEADER writer",
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "use": "Cross-project writer reference for placing custom pairs after LASTSAVEDBY; not independent semantic qualification."
+    }
+  ],
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-header-custom-property-pairs-fast-slice-2026-10-22.json"
+    ],
+    "source_version": "AC1021",
+    "target_versions": ["AC1018", "AC1021"],
+    "wire_encodings": ["ASCII", "Binary"],
+    "asserted": [
+      "Ordered pairs and duplicate keys survive exact group-9/group-1 serialization",
+      "Empty tag/value and non-ASCII tag/value survive parse and readback",
+      "DRW_Header copy, assignment, and move preserve the ordered list",
+      "dx_iface/dx_data import-export handoff preserves properties",
+      "Orphan tag/value, repeated tag, and missing value grammars remain readable but are not writable",
+      "R12/R2000-era target refusal preserves an existing destination",
+      "Explicit clear-and-replace repairs malformed custom-property state"
+    ],
+    "selector": "--header-custom-property-roundtrip",
+    "ctest": "libdxfrw_header_custom_property_roundtrip",
+    "public_api_changed": true,
+    "public_layout_changed": true,
+    "downstream_rebuild_required": true,
+    "binary_abi_claim": false,
+    "persistent_fixture_added": false,
+    "support_claim_changed": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+        "result": "PASS",
+        "notes": "Configured strict compiler flags; fixture target and LibreCAD compatibility compile pass."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_header_custom_property_roundtrip$' --output-on-failure",
+        "result": "PASS",
+        "tests_passed": 1,
+        "tests_total": 1,
+        "elapsed_seconds": 0.28
+      },
+      {
+        "command": "ASAN_OPTIONS=abort_on_error=1:detect_leaks=0 build-asan-custom/libdxfrw_dxf_fixture_tests --header-custom-property-roundtrip",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_header.h src/drw_header.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/par27-header-custom-property-pairs-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      }
+    ],
+    "full_fixture_suite_run": false,
+    "independent_producer_run": false,
+    "native_cad_run": false
+  },
+  "assessment": {
+    "evidence_ceiling": "Generated local ASCII/Binary parser, writer, and converter-adapter controls; no independent producer or native application qualification.",
+    "remaining": [
+      "HEADER group160, handle fields, unknown variables, and other repeated groups.",
+      "Independent producer/native acceptance for custom drawing properties."
+    ],
+    "deferred_external": [
+      "J256", "J260", "J268", "J284", "J293", "J295",
+      "FreeCAD Linux qualification",
+      "FreeCAD Windows qualification",
+      "independent ACIS/ACDS semantic qualification"
+    ]
+  },
+  "commit": "not created; no files were staged"
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle hatch-angle cardinality overlay",
+  "mode": "generated local implementation slice",
+  "scope": [
+    "Support same-version SectionViewStyle group-40 hatch-angle vector growth and shrink",
+    "Keep source count/group cardinality consistency fail-closed and update the declared count on typed edits",
+    "Preserve the group-4 hatch-scale first-occurrence contract when adding angles",
+    "Verify raw carrier and typed round trips in ASCII and Binary DXF"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The SectionViewStyle overlay validates the source declared angle count against the raw group-40 angle occurrences, updates the group-90 total to the typed vector length, overlays retained values, erases trailing values on shrink, inserts new values in sequence on growth, enforces the 100000-value bound, and refuses non-finite angles. If a missing scale must precede newly serialized angles, it inserts the scale before group-4 transparency/count fields.",
+    "generatedControls": [
+      "ASCII and Binary typed round trips for angle growth 2 to 3, shrink 2 to 1, and shrink 2 to 0; full ordered raw carriers and typed vectors are checked.",
+      "Generated source with missing scale and zero angles, then typed angle insertion; readback verifies scale, angle, count, and ordered raw carrier.",
+      "Non-finite typed angle refusal preserves an existing output sentinel."
+    ],
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 — passed",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks — passed for ASCII and Binary",
+    "owningCtest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure — passed, 1/1",
+    "fullSuite": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "git diff --check passed for the plan, adapter, and focused adapter test",
+    "jsonValidation": "jq empty passed"
+  },
+  "planImpact": {
+    "findingAdded": false,
+    "topLevelSubplanAdded": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "next": "Continue remaining PAR-138 typed/raw field cases and the broader plan; do not wait for external qualification."
+  },
+  "limitations": [
+    "This is same-version generated DXF writer evidence; it does not establish independent parser acceptance or native CAD behavior.",
+    "Hatch-angle API semantics and unresolved group-290 meanings are not inferred by this slice.",
+    "The worktree is broadly dirty; unrelated changes were preserved.",
+    "Git metadata is read-only, so no staging or commit was possible."
+  ]
+}

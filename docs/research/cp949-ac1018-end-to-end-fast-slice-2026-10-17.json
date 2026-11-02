@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-cp949-ac1018-end-to-end-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Extend the existing generated consumed-codepage matrix through a strict AC1018 CP949 export, literal legacy-byte check, and repeated readback.",
+  "implementation": {
+    "file": "tests/gbk_codepage_tests.cpp",
+    "changes": [
+      "Windows949 joins the existing generated strict export/re-import lane for AC1018 and AC1021, for ASCII and binary source cases.",
+      "The ASCII-source to ASCII-AC1018 case checks the emitted AC1018 declaration, canonical ANSI_949 codepage declaration, and exact B0 A1 bytes in the expected group-1 payload.",
+      "The existing repeated conversion and final readback assert Unicode L가Z and preserve a following LINE with nonzero Z coordinates."
+    ],
+    "productionCodecChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --consumed-text-profiles",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "git diff --check -- tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedMode": "passed; 28 canonical handoffs and 24 strict two-pass exports",
+      "owningCTest": "passed 1/1 in 0.44 seconds",
+      "diffCheck": "passed"
+    }
+  },
+  "limits": {
+    "producerAuthoredFile": false,
+    "independentReaderRun": false,
+    "nativeApplicationRun": false,
+    "binaryOutputWireOracleAdded": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains other user changes"
+  }
+}

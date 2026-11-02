@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK/XREF description field and path round-trip fast slice",
+  "mode": "Local generated DXF implementation and focused verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain optional BLOCK group-4 description through parsing, copy, reset, and DXF writing",
+    "Verify group-1 XREF path and group-4 description in ASCII and Binary AC1021 DXF",
+    "Keep absent and explicitly empty group-4 values distinguishable"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "identity": "Autodesk BLOCK DXF group-code reference",
+      "observation": "The BLOCK table lists group 1 as the Xref path and optional group 4 as the Block description.",
+      "boundary": "DXF semantic field reference; does not establish historical producer/version behavior beyond the documented table."
+    },
+    {
+      "paths": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_data.h",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "identity": "Local implementation and test source",
+      "observation": "DRW_Block now stores description and an explicit presence bit; parse/reset/write paths and generated ASCII/Binary AC1021 controls cover the field. dx_ifaceBlock copies the base DRW_Block state.",
+      "boundary": "Focused local profile evidence, not producer-wide or cross-version qualification."
+    }
+  ],
+  "implementation": {
+    "changes": [
+      "Added bounded-retention accounting for the parsed group-4 UTF-8 description.",
+      "Reset now clears the description, explicit presence flag, and retained-byte counter.",
+      "Writer emits group 4 when explicitly present or when a caller supplies a non-empty description; pre-AC1010 output follows the existing UTF-8-capitalization path used by adjacent BLOCK name fields.",
+      "Generated test covers parser storage, copy/reset, exact ASCII/Binary AC1021 output, ENDBLK boundary, semantic re-import, and explicitly empty group-4 preservation."
+    ],
+    "publicLayoutChanged": true,
+    "binaryAbiClaim": "none; binary consumers must rebuild"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "lc3SourceCompatibilityBuild": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "crossVersionProducerCheck": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "BLOCK trailing XDATA and complete common app/reactor/xDict/layer retention",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure",
+      "Producer/version qualification for description behavior"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

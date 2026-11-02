@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-codec EED bounds, output integrity, and comparator eligibility",
+  "mode": "Primary-source web research and read-only local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh current LibreDWG route/version eligibility from project documentation and 0.14.1 NEWS.",
+    "Read detailed current LibreDWG and ACadSharp reports for EED size overflow, string output integrity, native acceptance, and ACIS payload loss.",
+    "Compare the concrete EED boundary report to local generated size tests and refine the lowest-cost version coverage gap without changing support claims."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "revision": "Open issue pages reviewed 2026-10-20; mutable issue evidence",
+      "observed": "#1282 reports a generated LINE whose one-APPID EED is exactly 32,768 encoded bytes; the peer writer serializes stream length through signed short and the report says AC1015, AC1018, and AC1032 output loses the object on read. #1277 reports standalone annotative MLeader context-object damage found by AutoCAD LT 2026 AUDIT after same-library no-op roundtrip. #1297 reports AC1032 native rejection where one MTEXT group-90 value changes the outcome but the suspected object-graph cause is not established. None proves a libdxfrw defect or a normative DWG limit."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/milestone/22",
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Mutable README/NEWS/issues reviewed 2026-10-20; NEWS identifies LibreDWG 0.14.1 dated 2026-07-25",
+      "observed": "The README says DWG writing works through R2004, dxf2dwg is R2000-only, and dwg2dxf has incomplete broad coverage. NEWS records R2004 DWG writer work and continuing security/fuzz fixes, including decompression/page bounds, EED/XDATA, progress, and 3DSOLID size handling. Milestone wording about 2004-2018 is planning context and conflicts with the documented R2004 limit. #1412 reports C-string output incorporating allocator residue after string rewriting; #1408 reports an unreduced complex CR-bearing text case that corrupts ASCII group framing; #1411 reports an R2013+ AcDs SAB association loss."
+    }
+  ],
+  "localEvidence": [
+    "DRW_Entity::encodeDwgEed writes EED chunks using unsigned BS lengths and splits only between complete items.",
+    "tests/dwg_object_vectors_tests.cpp::testDwgEedSizeBoundaries currently runs the low-level size matrix at AC1021 for 32,767, 32,768, 65,535, and 65,536 encoded bytes; it checks raw chunk lengths, APPID handle, complete-item grouping, and a following-field sentinel, plus indivisible-item refusal and same-buffer retry.",
+    "docs/research/dwg-eed-size-boundaries-fast-slice-2026-10-17.json records the prior focused selector and AC1021 full-file 65,536-byte roundtrip passing. This research pass did not rerun them and found no prior evidence for the same exact size at AC1015, AC1018, or AC1032.",
+    "src/intern/dxfwriter.h takes std::string_view at DXF string sinks; tests/dxf_fixture_tests.cpp and tests/wave1_tests.cpp contain generated newline/framing, refusal, rollback, and following-record controls. These are source/test observations, not a universal transformed-string semantic proof.",
+    "Existing plan gates already separate output syntax/closure, object identity and owner graph, standalone annotation objects, ACIS carrier association, independent strict parsing, native AUDIT, and geometry semantics."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-58/7K: widen the existing fast EED size selector with a 32,768 encoded-byte positive case at AC1015, AC1018, AC1021, and AC1032; use version-specific encoded-byte generation and raw envelope/sentinel assertions.",
+      "PAR-06/PAR-07/PAR-14: maintain length-aware DXF output, explicit artifact/framing validation, and separation between peer issue patterns and local defects.",
+      "PAR-07/S8 and composed native/semantic gates: retain independent object-graph, ACIS carrier, strict-reader, native AUDIT, and geometry-meaning evidence layers."
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "testCommandsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Record ACadSharp #1282's exact 32,768-byte APPID case and contrast its signed-short failure with the local unsigned-BS EED envelope; treat the peer threshold as a bug shape, not a file-format limit.",
+    "Refine the same fast EED selector to exercise a version-specific 32,768 encoded-byte case at AC1015, AC1018, AC1021, and AC1032 while retaining the existing AC1021 65,535/65,536 boundary and refusal tests.",
+    "Refresh LibreDWG eligibility from its current README/NEWS: DWG writing through documented R2004, dxf2dwg R2000-only, and exact pinned revision/direction required for any comparison; do not infer support from milestone text or aggregate entity counts.",
+    "Keep LibreDWG #1412/#1408 as string-length/framing discovery leads; preserve current length-aware sinks and add no duplicate control-character test unless the route changes or a local reproduction establishes a gap.",
+    "Reaffirm that same-library readback, strict syntax, object-graph closure, native AUDIT, ACIS payload bytes, and geometric semantics are separate evidence layers for #1277/#1297/#1411.",
+    "Keep per-slice validation to the touched strict target, focused selector, existing CTest, and scoped diff check; reserve full suite, fuzz/sanitizer, peer builds, and native qualification for existing composed checkpoints."
+  ],
+  "limitations": [
+    "Peer issue pages and default-branch documentation are mutable; no immutable peer source tree/package was pinned or built.",
+    "ACadSharp #1282 is an issue-reported sample/control; it was not independently executed, and the peer's signed-short limit is not a DWG specification rule.",
+    "The local size matrix is currently AC1021-focused; the recommended cross-version selector refinement is planned but not implemented or tested in this pass.",
+    "LibreDWG NEWS and README are project self-documentation, not native acceptance evidence; issue reports do not prove current default-branch behavior.",
+    "No test, benchmark, external drawing, peer binary, sanitizer, native application, or geometry kernel was run."
+  ]
+}

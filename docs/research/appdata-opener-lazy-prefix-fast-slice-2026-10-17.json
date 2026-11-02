@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Application-data opener borrowed emission with lazy brace prefix",
+  "mode": "source-demonstrated copy avoidance with generated local controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Avoid copying unchanged group-102 app-data opener and closer markers during DXF emission",
+    "Preserve the legacy behavior that prepends an opening brace to unbraced app-data names",
+    "Verify emitted marker values, caller immutability, reference resolution, and following-record framing"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "summary": "The app-data writer now borrows the original DRW_Variant marker with std::string_view. Already-braced openers and closing markers are emitted directly; only an unbraced opening marker creates local owned storage with the same leading-brace insertion as before. The focused Wave 1 selector also asserts that unbraced caller-owned ACAD_REACTORS and ACAD_XDICTIONARY markers remain unchanged.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+      "build-gcc/libdxfrw_dxf_fixture_tests --reference-resolver-appdata",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_wave1|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "buildAndCompatibility": "passed",
+      "focusedCommonAppdataBaseScope": "passed, including caller-marker immutability assertion",
+      "focusedReferenceResolverAppdata": "passed",
+      "owningCTest": "passed (2/2; Wave 1 0.45 s, DXF fixtures 3.82 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected app-data emission path avoids temporary string copies for unchanged opener/closer markers. Unbraced opener normalization still allocates only its required emitted spelling. This is not an allocator-count, peak-RSS, or throughput measurement.",
+    "coverage": "Generated controls cover braced and unbraced markers, ASCII/Binary DXF, typed common metadata, reference remapping, caller-input immutability, and following-record framing.",
+    "limitations": "No full suite, peer parser, CAD application, external drawing, or persistent fixture was used."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

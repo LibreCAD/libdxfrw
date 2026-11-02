@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Strict DIMENSION picture-name admission fast slice",
+  "mode": "local implementation and generated focused controls",
+  "scope": [
+    "Reject explicit unresolved DIMENSION group-2 targets in strict converter mode",
+    "Preserve standalone writer behavior and empty-name forms",
+    "Cover ordinary, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION routes",
+    "Use the existing planned BLOCK_RECORD name index without a new graph walk"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "diagnostic": "unresolved-dimension-picture-block",
+    "strictMode": "m_requireResolvedBlockOwners",
+    "lookup": "existing planned BLOCK_RECORD index by normalized symbol name",
+    "legacyWriterChanged": false,
+    "emptyNameClassified": false
+  },
+  "tests": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    {
+      "command": "jq empty docs/research/deeper-broader-dimension-dstyle-picture-block-consumer-route-review-2026-10-18.json",
+      "result": "PASS"
+    },
+    {
+      "command": "scoped git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "remaining": [
+      "matching BLOCK and ENDBLK definition",
+      "block-child ownership and child-set closure",
+      "nested INSERT and referenced style/arrow resource resolution",
+      "constraint and unknown empty-name classification",
+      "independent parsed override dictionary and native rendering/acceptance"
+    ],
+    "limitations": "The BLOCK_RECORD index proves only that a planned named record exists. It is not evidence that BLOCK/ENDBLK geometry was emitted, the entity is owned correctly, child/resource references close, or a CAD application renders the picture."
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

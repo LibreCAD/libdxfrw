@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4c MATERIAL diffuse-map controls generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "7f195bbe5a6eef25f29a51250cdd241acb876aae534d85ad6e76ca48a5eebec6",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": {
+      "42": "Diffuse map blend factor, real, default 1.0",
+      "72": "Diffuse map source, values 0 or 1, default 1",
+      "3": "Diffuse map filename, default empty string",
+      "73": "Projection method, values 1 through 4, default 1",
+      "74": "Tiling method, values 1 through 3, default 1",
+      "75": "Auto-transform bitset with flags 1, 2, and 4, default 1",
+      "464": "Luminance field before the Normal Map block, used as the primary contextual boundary for repeated groups",
+      "465": "Normal Map Strength, used as a fallback contextual boundary if group 464 is omitted"
+    }
+  },
+  "implementation": {
+    "typedFields": [
+      "DRW_Material diffuse-map blend/source/filename/projection/tiling/auto-transform values and presence flags",
+      "Explicit documented defaults with reset behavior",
+      "Bounded typed filename retention through the table-entry string lease"
+    ],
+    "parser": [
+      "Parse diffuse groups 42/72/3/73/74/75 before group 464",
+      "Preserve later repeated Normal Map fields in the ordered raw net after group 464 or fallback group 465",
+      "Do not use group 271 alone as a delimiter because it also occurs as earlier Bump Map Tiling",
+      "Reject invalid source/projection/tiling/auto-transform values and non-finite blend values before callbacks"
+    ],
+    "writer": [
+      "Emit present typed fields in Autodesk order: 42, 72, 3, 73, 74, 75",
+      "Reject invalid typed domains transactionally before output replacement"
+    ],
+    "touchedFiles": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary MATERIAL source records contain distinct diffuse and Normal Map values for repeated codes.",
+    "The Normal Map sequence includes the 464 luminance delimiter before 270/271/465 and repeated map values; a second generated case omits 464 and verifies that 465 still seals repeated fields.",
+    "Assert typed diffuse values, complete raw ordered groups, raw ASCII spelling, same-encoding replay, and ASCII/Binary cross-encoding replay.",
+    "Assert copy/reset/default/presence behavior and a following LINE record sentinel.",
+    "Invalid diffuse projection is rejected before typed or raw MATERIAL publication.",
+    "Direct typed writer emits fields in ASCII and Binary DXF, round-trips non-default values, refuses an invalid projection without replacing the destination, and succeeds on retry."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_fixtures, libdxfrw_hardening, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, and plan files",
+    "receiptJsonValidation": "PASS (jq empty)",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "productionFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "dwgMaterialBodyChanged": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4d: typed 16-value row-major group-43 mapper transform",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ]
+  },
+  "commitCreated": false
+}

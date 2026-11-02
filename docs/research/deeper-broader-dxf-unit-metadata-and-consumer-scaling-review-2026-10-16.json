@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-dxf-unit-metadata-consumer-scaling-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Cross-check DXF INSUNITS and MEASUREMENT contracts against independent ezdxf behavior and FreeCAD import/insertion scaling routes; refine existing 7BJ.4, S3.7, and S8.9 plan details without implementing code.",
+  "method": {
+    "kind": "Primary Autodesk documentation plus current peer documentation/source, issue-history and local-plan crosswalk",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-4C21BD16-8C17-4469-A91C-F7CC105B770F.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-5E9D42F6-CAE4-49BD-8850-E665455EF5CB.htm",
+      "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Blocks-xrefs-or-raster-images-are-scaled-when-inserted.html",
+      "https://help.autodesk.com/cloudhelp/2027/ENG/AutoCAD-Core/files/GUID-1D074C55-0B63-482E-8A37-A52AC0C7C8FE.htm",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "https://ezdxf.readthedocs.io/en/stable/concepts/units.html",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/10253",
+      "https://tracker.freecad.org/view.php?id=3494"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Autodesk documentation is normative for documented system-variable behavior. ezdxf documentation includes behavior learned from BricsCAD experiments and may differ. FreeCAD main source is mutable and issue comments are historical discussion, not a released importer contract. No runtime result or local defect was reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "INSUNITS zero and per-installation insertion defaults",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-4C21BD16-8C17-4469-A91C-F7CC105B770F.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-5E9D42F6-CAE4-49BD-8850-E665455EF5CB.htm",
+        "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Blocks-xrefs-or-raster-images-are-scaled-when-inserted.html"
+      ],
+      "observed": "Autodesk defines INSUNITS as automatic scaling metadata for blocks, images, and xrefs when inserted/attached; 0 means unspecified. Separate registry variables INSUNITSDEFSOURCE and INSUNITSDEFTARGET supply source/target values when the corresponding drawing INSUNITS is zero.",
+      "doesNotEstablish": [
+        "that every consumer applies the same fallback or insertion behavior",
+        "that opening/importing an entire drawing globally rescales coordinates",
+        "that an omitted INSUNITS variable is equivalent to explicit zero",
+        "a libdxfrw parser or writer defect"
+      ],
+      "planUse": "Test file metadata/presence round-trip separately from insertion/attachment. Native insertion checks that use explicit zero must bind the effective source/target profile settings; do not serialize profile defaults into the drawing or libdxfrw geometry."
+    },
+    {
+      "topic": "Independent DXF units and INSERT behavior",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/concepts/units.html"
+      ],
+      "observed": "ezdxf documents raw coordinate values as unitless without context, separate units for block definitions, and explicit INSERT scale attributes when drawing and block units differ. It says MEASUREMENT is independent of INSUNITS and discloses that some behavior is based on BricsCAD experiments.",
+      "doesNotEstablish": [
+        "normative Autodesk behavior for every version",
+        "that a block units field alone automatically changes coordinates",
+        "a global scale rule for file opening"
+      ],
+      "planUse": "Use as a differential test-design lead. Keep block-unit metadata separate from explicit INSERT transform and use independent expected coordinates."
+    },
+    {
+      "topic": "MEASUREMENT is a separate resource-selection variable",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2027/ENG/AutoCAD-Core/files/GUID-1D074C55-0B63-482E-8A37-A52AC0C7C8FE.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+      ],
+      "observed": "Autodesk defines MEASUREMENT as selecting imperial or metric hatch-pattern and linetype resource files. INSUNITS is separately listed as block insertion units.",
+      "doesNotEstablish": [
+        "a MEASUREMENT-to-coordinate conversion",
+        "a universal rule for absent MEASUREMENT or INSUNITS"
+      ],
+      "planUse": "Keep crossed MEASUREMENT/INSUNITS controls; preserve both values and presence and assert that changing either header scalar does not itself rewrite entity coordinates."
+    },
+    {
+      "topic": "FreeCAD importer scaling is configurable and backend-specific",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/10253"
+      ],
+      "observed": "The inspected current C++ importer reads dxfScaling (default 1.0), calls SetAdditionalScaling, and records the selected value. FreeCAD's preference documentation describes the scale as DXF units to millimeters. The legacy importer issue contains proposed precedence rules but no released contract. A literal INSUNITS search in one source file is not enough to characterize the whole parser stack.",
+      "doesNotEstablish": [
+        "a guaranteed INSUNITS auto-detection policy in a specific FreeCAD release",
+        "identical behavior between the C++ and legacy Python importers",
+        "final geometry acceptance for libdxfrw output"
+      ],
+      "planUse": "Pin the FreeCAD release, backend, operation, and effective scaling setting; validate the final document's coordinates/bounds using identity and explicit nonidentity controls. Keep importer behavior separate from file metadata tests."
+    },
+    {
+      "topic": "Version-valid legacy control design",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+        "https://tracker.freecad.org/view.php?id=3494"
+      ],
+      "observed": "Autodesk maps AC1014 to R14 and AC1015 to AutoCAD 2000. The historical FreeCAD tracker says INSUNITS entered the DXF contract with AutoCAD 2000; the tracker is not a complete normative older-format variable table.",
+      "doesNotEstablish": [
+        "a complete legacy-version conformance table from the historical tracker alone"
+      ],
+      "planUse": "Use a legacy DXF only for the omitted-variable control and exercise explicit 0/1/4 in AC1015 or a newer documented profile. Label any injected pre-AC1015 value as out-of-profile robustness testing."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Refine 7BJ.4: legacy controls are omitted-only; modern AC1015+ controls cover absent, explicit 0, 1, and 4 with crossed MEASUREMENT values.",
+    "Separate raw header presence/value and unchanged numeric coordinates in the local read/write fast test from application import scaling and block/xref INSERT/attach scaling.",
+    "Add block-unit metadata and explicit INSERT transform as distinct local generated controls; do not infer scaling from block metadata alone.",
+    "At one composed native insertion checkpoint, bind explicit INSUNITS=0 source/target defaults; in FreeCAD, pin backend and exact dxfScaling and assert final geometry.",
+    "Keep validation cost bounded: focused affected-target checks per slice and one composed native batch; no new full-suite cadence, dependency, fixture, or CTest target."
+  ],
+  "scopeBoundary": {
+    "findingCount": 123,
+    "topLevelImplementationSubplans": 71,
+    "newLocalFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "newCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChanged": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

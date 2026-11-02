@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c LAYER plot-style/material handle token transfer",
+  "scope": "Remove intermediate getString() copies for retained DXF LAYER plot-style and material handle spellings while preserving raw values and owner-budget behavior.",
+  "files": {
+    "CMakeLists.txt": "8cdf1d686afde558fe84f00c97838389c0f3745f60175f9495fe7ad31e082f7e",
+    "src/drw_objects.cpp": "04b2f8a40e55548db2278ae40639ade0f4bdc04282041450d0c39961c796b57c",
+    "tests/hardening_tests.cpp": "a26e8b205aadc78b84f7d59f519fb19e4372849e6ca44e6686fc704a7aaea996",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "783ea9de77ec981efaf5499f31d98be79e0b33260e2bf5599ac6237f3f6b1caf"
+  },
+  "evidence": {
+    "sourceAudit": "Groups 390 and 347 are retained as raw handle-spelling strings by DRW_Layer::parseCode. They are not among takeString()'s semantic-decoding groups, so direct token transfer preserves exact source bytes while removing the owned getString() intermediate.",
+    "generatedControls": "The existing generated LAYER owner-budget sequence runs through ASCII and Binary readers. It verifies final plot-style/material values, exact retained owner bytes, replacement peak admission, copy/reset lease lifetime, one-byte-under refusal preserving prior values, and confirms each current token is empty after parsing groups 390 and 347.",
+    "noPersistentFixture": "Binary DXF test input is generated in memory; no persistent fixture was added."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-layer-text-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_layer_text_owner_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    {
+      "command": "shasum -a 256 CMakeLists.txt src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS; hashes recorded in files"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue exact-source retained-value ownership work only where token transfer preserves raw/semantic spelling and derived values. Keep DWG changes fail-closed absent normative or traceable class-frame evidence."
+}

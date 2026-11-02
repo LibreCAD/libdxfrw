@@ -1,0 +1,122 @@
+{
+  "title": "Deeper/broader DXF view-family reference-graph and peer-contract audit",
+  "date": "2026-10-17",
+  "classification": "research-and-plan-correction",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "VIEW, VPORT, VIEWPORT, LAYOUT, and PLOTSETTINGS reference carriers",
+    "shade-plot mode/API versus published DXF reference discrepancy",
+    "Background, SUN, LiveSection, VisualStyle, and drag-style graph ownership",
+    "local typed-field parsing, serialization, remapping, and adapter closure"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "role": "primary VIEWPORT DXF reference",
+      "finding": "Documents mode 170 values 0-3 and distinct optional 332 background, 333 shade target, 348 VisualStyle, 361 SUN, plus 335/343/344/91 references for layer-per-viewport overrides."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "role": "primary VPORT DXF reference",
+      "finding": "Documents VPORT shade setting 170 and optional 332, 333, and 348 fields; the local DRW_Vport model has no mode-170 or target-333 member/path."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "role": "primary VIEW DXF reference",
+      "finding": "Documents VIEW references 332 background, 334 live section, 348 VisualStyle, and 361 SUN."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPlotSettings__ShadePlotType.html",
+      "role": "current ObjectARX shade mode API",
+      "finding": "Current ShadePlotType enum defines modes 0-5, including VisualStyle (4) and RenderPreset (5), while published DXF tables list only 0-3."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Viewport_SetShadePlot_ShadePlotType_ObjectId.html",
+      "role": "Viewport shade-target API contract",
+      "finding": "Modes AsDisplayed/Rendered null the target; VisualStyle/RenderPreset require VisualStyle/RenderSettings objects. This does not establish release-specific serialized DXF examples."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDb.html",
+      "role": "ObjectARX group-code semantics",
+      "finding": "Identifies 333 ShadePlot, 334 LiveSection, 348 VisualStyle, 349 DragVisualStyle, and 361 SUN as separate code roles."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbBackground.html",
+      "role": "Background class/root contract",
+      "finding": "Backgrounds reside in ACAD_BACKGROUND and should not be shared among viewports; concrete-class list and prose differ in breadth."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSun.html",
+      "role": "SUN ownership contract",
+      "finding": "SUN is a hard-owned child of AcDbViewportTableRecord or AcDbViewport."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/OARX-DevGuide/files/GUID-F2E1C95A-E3D4-497B-8695-1C0E35006B7E.htm",
+      "role": "AutoCAD database ownership rules",
+      "finding": "Non-root objects have owners; dictionary and entity/table-record ownership differs from ordinary pointer reachability."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfentities/viewport.html",
+      "role": "independent DXF structural model",
+      "finding": "Separate viewport reference properties support field-level structural cross-checking, not DWG or native rendering qualification."
+    },
+    {
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "role": "independent open-source schema cross-check",
+      "finding": "LibreDWG's schema offers a useful separate field model but does not independently prove all graph owners or consumer semantics."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp",
+      "role": "candidate DWG/DXF peer scope",
+      "finding": "Reviewed public model does not establish modern shade-mode graph qualification."
+    },
+    {
+      "url": "https://github.com/ixmilia/dxf",
+      "role": "DXF peer scope disclosure",
+      "finding": "Project states a VIEWPORT coverage exclusion; not a comparator for this family."
+    }
+  ],
+  "local_audit": {
+    "confirmed_gaps": [
+      "DRW_Viewport::parseCode assigns code 349 into shadePlotHandle, while writeViewport serializes that member as code 333.",
+      "DRW_Viewport has no dedicated code-334 LiveSection field/parser route.",
+      "DRW_Vport lacks shade-plot mode-170 and target-333 typed/parser/writer fields despite the Autodesk VPORT DXF table.",
+      "writeView emits background 332, LiveSection 334, and SUN 361 handles without remapping those references.",
+      "writeVport emits background 332 and SUN 361 without remapping those references.",
+      "dx_iface has no retained typed Background/SUN collections or callback overrides; the adapter graph guard covers paper-space VIEWPORT 332/361 but not equivalent VIEW/VPORT references."
+    ],
+    "existing_closures": [
+      "Rooted VisualStyle closure for VIEW, VPORT, and VIEWPORT references.",
+      "A bounded VIEWPORT shade mode-4 VisualStyle route.",
+      "A VIEWPORT mode-5 RenderSettings graph check for the bounded DXF route."
+    ],
+    "unresolved_contracts": [
+      "Per-release DXF serialization and target-version gates for shade modes 4/5.",
+      "Exact LiveSection target class/root/version and null/absence policy.",
+      "Background concrete class/version set and ownership edge details.",
+      "Whether VIEW/VPORT SUN fields follow the same ownership contract as VIEWPORT/VPORT table records."
+    ]
+  },
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "new_top_level_subplans": 0,
+    "ledger_totals_changed": false,
+    "support_claim_promotions": 0,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "implementation_sequence": [
+    "Separate VIEWPORT code 349 from code 333 and add generated ASCII/Binary remap/readback controls.",
+    "Add VPORT mode 170/code 333 fields and keep modern mode output blocked pending release-specific wire evidence.",
+    "Complete one context-sensitive graph matrix across VIEW, VPORT, VIEWPORT, LAYOUT, and PLOTSETTINGS.",
+    "Retain typed/raw Background and SUN objects; validate dictionary roots and hard-owner relations before positive output.",
+    "Preplan/remap every supported view-family reference and reject unclosed fields before publication.",
+    "Use generated temporary controls, strict touched target, compatibility target, focused selector, and owning CTest; no new persistent fixture files."
+  ],
+  "validation": {
+    "code_changed": false,
+    "tests_run_in_this_research_pass": false,
+    "peers_installed_or_executed": false,
+    "external_dwg_dxf_fixture_files_added": 0
+  },
+  "worktree_state": "uncommitted"
+}

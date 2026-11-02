@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "3D consumer route and peer-freshness boundary",
+  "mode": "Primary-source cross-project research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile OpenCADStudio's tagged codec/kernel dependency graph with its current ACIS tessellation documentation.",
+    "Refresh BRL-CAD's explicit DXF mesh-conversion route and the current status/semantic limitation of its POLYFACE safety proposal.",
+    "Refine existing PAR-07/S8 evidence admission without introducing new tests, fixtures, peer dependencies, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "OpenCADStudio and OpenCADKernel",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.lock",
+        "https://github.com/HakanSeven12/opencadkernel/blob/a60f18ff033b5a3f7d842e2398f393e4d6cfcd32/README.md",
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md"
+      ],
+      "revision": "OpenCADStudio v2026.42 tag/source commit b6fbac3 and its tagged manifests; OpenCADKernel commit a60f18ff033b5a3f7d842e2398f393e4d6cfcd32; separate tessellation and automation documentation inspected 2026-10-20 and treated as mutable where not tag-pinned. No release artifact was downloaded or executed.",
+      "observed": "The v2026.42 dependency graph pins opencadcodec/acadrust at 5d4f11ae38758caec540bc9819ff2c4120eeadb4, OpenCADKernel at a60f18ff033b5a3f7d842e2398f393e4d6cfcd32, and OpenCADGraph at d9f2aee. The tagged kernel README describes an early B-rep kernel with most operations unwritten. Current separate tessellation notes describe kernel-first handling of Solid3D/Region/Body/Surface plus a per-surface fallback that marks incomplete output; that behavior is not asserted for the tagged release binary. Project self-audit/reopen uses the application's own codec lineage.",
+      "limits": "The application does not add an independent DWG parser lineage. A standalone SAT/ACIS import does not validate embedded DWG AcDs ownership or DXF carrier preservation. Mutable main-branch docs cannot be transferred to the v2026.42 release. No binary hash, runtime result, independent analytic expectation, or per-body completeness result was obtained."
+    },
+    {
+      "project": "BRL-CAD",
+      "urls": [
+        "https://github.com/BRL-CAD/brlcad/releases/tag/rel-7-46-0",
+        "https://brlcad.org/docs/tutorials/converting/chapter4.html",
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm"
+      ],
+      "revision": "BRL-CAD 7.46.0 release and live issue/PR pages inspected 2026-10-20; no BRL-CAD source build or executable run.",
+      "observed": "The dxf-g route is a geometry converter for explicit DXF mesh/facet input, not a whole-document or ACIS/AcDs route. Issue #228 and proposed PR #245 remain open in the inspected GitHub snapshot. The PR description admits only positive in-range face corner indices, while the DXF POLYFACE encoding uses signed corner indices for invisible-edge state and zero terminators.",
+      "limits": "Issue/PR descriptions are not a tested release result or format authority. The exact 7.46.0 converter behavior was not executed. Do not use this peer with malformed input or treat its proposed check as a local parser rule."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Existing PAR-07/S8 route classes, peer lineage ledger, fast-test policy, and fixture policy inspected 2026-10-20.",
+      "observed": "Refined the optional composed checkpoint to bind the app/codec/kernel graph, require observable body completeness before semantic scoring, and restrict BRL-CAD to safe, valid generated explicit-facet questions. External peer availability remains non-blocking.",
+      "limits": "No local code, test, fixture, dependency, executable, or native application was changed, added, built, or run. No support cell or DEFERRED_EXTERNAL item was promoted."
+    }
+  ],
+  "assessment": {
+    "newIndependentDwgParserLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: bind OpenCADStudio's exact tagged application, ACadRust-derived codec, OpenCADKernel/OpenCADGraph revisions, executable hash, input, platform, and per-body outcome; do not treat same-codec reopen or mutable fallback documentation as independent semantic proof.",
+      "PAR-07/S8: distinguish standalone SAT/ACIS import from embedded DWG AcDs owner association and DXF ACIS-carrier handling.",
+      "PAR-07/S8: restrict BRL-CAD dxf-g to optional explicit faceted geometry projection with a declared layer/units/tolerance/facet denominator; exclude malformed input and ACIS/AcDs claims.",
+      "Preserve the existing focused-fast-test cadence, generated-from-scratch fixture rule, and non-blocking external qualification policy."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementationStatus": "PLAN_UPDATED",
+    "evidenceStatus": "NONPROMOTING",
+    "inventory": {
+      "findings": 141,
+      "topLevelSubplans": 78,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    }
+  }
+}

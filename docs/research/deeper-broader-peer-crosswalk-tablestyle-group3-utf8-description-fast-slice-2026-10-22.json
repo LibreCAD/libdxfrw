@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "TABLESTYLE group-3 UTF-8 description edit merge",
+  "mode": "Generated ASCII/Binary description-edit, semantic text re-encoding, and fail-closed validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "abcfa99595e3671633fe86d88fd1238d3eaa56457c0b08bf7691ce3eb9449e1b",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      "Group 3 TABLESTYLE description"
+    ],
+    "encodingEvidence": [
+      "DRW_TableStyle::parseCode decodes group 3 through dxfReader::getUtf8String and independently retains its source raw value.",
+      "dxfWriter::writeUtf8String uses the configured DXF version/code-page encoder and strict text validation."
+    ]
+  },
+  "implementation": {
+    "changes": [
+      "DXF-origin TABLESTYLE export overlays a changed semantic description through the UTF-8 writer path only when the retained group-3 carrier still matches its captured baseline.",
+      "The existing raw group sequence, all untouched source spellings, and absent-slot refusal behavior are preserved.",
+      "Generated ASCII and Binary DXF tests round-trip the non-ASCII description Résumé 表格 and verify typed semantic readback and following-object ordering.",
+      "An embedded-NUL description is refused without replacing a pre-existing destination.",
+      "Temporary TABLESTYLE diagnostics and test-only verbose failure output were removed."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-tablestyle-group3-utf8-description-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_nested_raw_net$' --output-on-failure (1/1; includes ASCII and Binary cases)",
+    "planFastCtest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp src/drw_objects.cpp src/drw_objects.h src/libdxfrw.cpp src/libdxfrw.h",
+    "receiptJsonValidation": "PASS: jq empty docs/research/deeper-broader-peer-crosswalk-tablestyle-group3-utf8-description-fast-slice-2026-10-22.json",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelLayoutChanged": true,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; binary ABI compatibility is not claimed, and downstream consumers must rebuild",
+    "rawCarrierPreserved": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "TABLESTYLE nonzero group-90/group-91 data/unit semantics remain unsupported until valid domains are evidenced.",
+      "Complete custom TABLESTYLE cell-style authoring requires a separately evidenced schema.",
+      "MATERIAL generic procedural-property semantics and the conflicting group-90/group-149 mapping remain raw/untyped.",
+      "DWG TABLESTYLE behavior and cross-version/up-convert capability remain separate from this DXF-origin string edit."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

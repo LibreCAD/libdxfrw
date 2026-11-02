@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5k TABLESTYLE bounded row-field edit merge",
+  "mode": "Generated ASCII/Binary row-edit, optional-slot preservation, and fail-closed validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "f4b45cd9a1f8e27fcc356def7843663a1fdb9d3a9be411ab7a5ff686b7274671",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      "Group 170 cell alignment",
+      "Groups 62/63 text/fill colors",
+      "Group 283 background enabled",
+      "Groups 274-279 border lineweight",
+      "Groups 284-289 border visibility",
+      "Groups 64-69 border color"
+    ],
+    "implementationDomains": {
+      "alignment": "0..65535, matching the existing typed writer's accepted 16-bit wire domain",
+      "colors": "0..255 indexed values",
+      "lineweight": "signed 16-bit values, matching the existing writer contract",
+      "visibilityAndBackground": "Boolean 0/1",
+      "textHeight": "finite and nonnegative"
+    },
+    "presenceRule": "The typed parser requires the core row projection fields; border-family groups are optional. Existing present slots may be edited. Missing slots remain absent and retain their zero model projection; a typed change to a missing slot refuses export instead of synthesizing or dropping the edit."
+  },
+  "implementation": {
+    "changes": [
+      "DXF-origin TABLESTYLE export overlays edits to existing row groups 170, 62/63, 283, 274-279, 284-289, and 64-69; the existing group-140 edit remains enabled.",
+      "Alignment, indexed colors, lineweight, Boolean state, and text-height edits are bounded by the typed writer's accepted domains.",
+      "All six indices of each of the three border families are edited in the generated ASCII/Binary control and verified through typed readback.",
+      "Optional border groups are preserved as sparse raw sequences. A generated control removes row 0 group 279, edits an existing group 140, verifies exact output order/spelling, and refuses a subsequent edit to the absent lineweight slot while preserving an existing destination.",
+      "CMC metadata, group 90/91 data/unit values, row identities, and other unmodeled projection state remain equality-checked; no absent raw groups are inserted."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5k-tablestyle-row-fields-edit-merge-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelLayoutChanged": false,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; no binary-ABI claim is made",
+    "rawCarrierPreserved": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Group-3 TABLESTYLE description edits remain gated on source-text encoding evidence.",
+      "Nonzero group-90/group-91 data/unit values remain unsupported by the current typed writer; valid enum domains need authoritative evidence before enabling edits.",
+      "Complete custom TABLESTYLE cell-style authoring is not inferred from the published repeated-row sequence.",
+      "MATERIAL procedural-property semantics and the group-90/group-149 mapping remain unresolved and raw/untyped.",
+      "DWG TABLESTYLE cross-version/up-convert capability remains separate from this DXF-origin row edit."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

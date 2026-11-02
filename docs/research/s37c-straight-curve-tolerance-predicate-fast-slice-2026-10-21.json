@@ -1,0 +1,59 @@
+{
+  "title": "S3.7c straight-curve point tolerance predicate",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "Decoded ACIS straight-curve fields; parser-fed SAB 21800 rooted projection also exercised",
+    "public_api": "drw_pointWithinToleranceOfAcisStraightCurve tests Euclidean distance to the infinite line p0 + t*p1 against a caller-supplied tolerance and returns the raw parameter on acceptance.",
+    "tolerance_policy": "Tolerance must be finite and nonnegative; no ACIS/modeler default is inferred.",
+    "parameter_policy": "The raw direction is not normalized and the parameter is not clamped to edge endpoint bounds.",
+    "refusal_policy": "Unsupported/unresolved curve, zero direction, non-finite point/tolerance, unrepresentable projection/residual, or out-of-tolerance point returns false without changing the output parameter.",
+    "non_claims": [
+      "ACIS default tolerance selection",
+      "finite edge trim interval validation",
+      "ellipse or intcurve evaluation",
+      "pcurve, surface, or trim evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or native consumer qualification"
+    ]
+  },
+  "coverage": {
+    "exact_line_point_at_zero_tolerance": "PASS",
+    "exact_caller_tolerance_boundary": "PASS",
+    "multi_axis_euclidean_distance_acceptance_and_refusal": "PASS",
+    "just_outside_tolerance_refuses_atomically": "PASS",
+    "negative_nan_and_infinite_tolerances_refuse_atomically": "PASS",
+    "zero_direction_refuses_atomically": "PASS",
+    "parser_fed_sab21800_edge_endpoints_accepted_at_parameters_0_and_1": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.31 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

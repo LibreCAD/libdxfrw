@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "RPP-5ze",
+  "date": "2026-10-30",
+  "title": "Multi-cell TABLECONTENT block attribute composition",
+  "baselineCommit": "588379d9",
+  "mode": "Runtime-generated ASCII/Binary serializer and adapter qualification",
+  "scope": {
+    "profile": "AC1027 2x2 TABLECONTENT grid with one scalar-prefix plus block-content cell carrying one ATTDEF attribute, a second zero-attribute block cell, and two scalar cells.",
+    "wireProof": "Physical output checks both remapped BLOCK_RECORD group-340 targets; the first block content has group 91 = 1 and ordered group 330 ATTDEF, group 301 text, and group 92 index; the second has group 91 = 0.",
+    "typedProof": "Fresh readback checks grid dimensions, cell order, scalar-prefix then block-content order, attribute content index, one-based index, text, ATTDEF identity, and BLOCK_RECORD ownership.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixturePolicy": "All drawings are generated at runtime and removed; no persistent DWG/DXF fixture is added."
+  },
+  "implementation": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "summary": "Qualified the existing rectangular TABLECONTENT block writer and adapter closure path for an ATTDEF-bearing block cell composed after a scalar value. No production-code change was needed; the focused selector now covers combined grid placement, ordered content, per-content attribute association, exact remapping and fresh readback.",
+    "failureAndRetry": "Missing BLOCK_RECORD target, wrong BLOCK owner, missing ATTDEF target, and wrong ATTDEF owner each refuse atomically and preserve a sentinel destination in both encodings. Restoring each source identity/owner permits a corrected export through the same adapter.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R 'libdxfrw_tablecontent_multicell_(block|field)_reference' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "fixtureTargetBuild": "PASS",
+      "focusedCtest": "PASS 2/2; 0.63 seconds",
+      "fullSuite": "NOT_RUN per fast-validation plan",
+      "persistentDrawingFixtures": "NONE"
+    }
+  },
+  "limitations": [
+    "The positive attribute-bearing composition is authored from scratch; it qualifies serializer/readback transport and transaction behavior, not a native producer's semantic use of this composition.",
+    "Multiple block CONTENT records within one cell, TABLE block geometry, native rendering, other source versions and whole-document closure remain open.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "One generated 2x2 grid profile combining a mixed scalar/block cell, one ordered ATTDEF attribute, a second block cell without attributes, exact references, owner refusal, rollback, corrected retry and typed readback.",
+    "remainingP5BlockCellScope": "Multiple block CONTENT records in one cell and source- or consumer-qualified block geometry.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "903c3197d537e38bad229732a3478b1cbdce8d5e7c006f909a71f8fb999cbfb9",
+    "tests/dxf_fixture_tests.cpp": "ffff233c867584c47f1ebdd904ac9af8d8bd16107c8b0226f32aae203e5ad37b"
+  },
+  "commitCreated": true
+}

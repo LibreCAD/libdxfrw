@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "date": "2026-10-15",
+  "planSlice": "Slice3.2b.2b",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parentState": "IN_PROGRESS",
+  "parentCommit": "d20cf7f497967592dfdf5e02d11518a133178a13",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Owned CLI DXF import outcome and RAII lifetime; no new strict/output or charset policy",
+  "sourceHashes": {
+    "dwg2dxf/dx_data.h": "680d0b76c15df7e7e6a0a3f5fdac544674b27e7f6add5e5fbf1ae3bf5b278a78",
+    "dwg2dxf/dx_iface.h": "1a0db796b7395349ac68ff6aaff47a303518d33b7c9ba7a36bcb4438a09ba791",
+    "dwg2dxf/dx_iface.cpp": "ebbed0c1c559a222e4027687c96976f06c5c92b968e8c0922290c5e7415e2912",
+    "tests/gbk_codepage_tests.cpp": "34e8fddc9c0a756fc28bcdca716ec047514d940cb0033036561761c2799389c1"
+  },
+  "unchangedLibrarySources": {
+    "src/intern/drw_textcodec.cpp": "40083823672fd7b2212906e5d1b6134eac725424c41fbf58e6a41e7a85f238f8",
+    "src/libdxfrw.cpp": "9519c050b3439b9a1b248a13f7960588818b40725c0eca023c8cb3afabc2be08"
+  },
+  "artifactHashes": {
+    "build/libdxfrw_gbk_codepage_tests": "5e280cf731d2825d04210de053b35d514c024e61243e35cd1d4907d768e109f6",
+    "build/dwg2dxf/dwg2dxf": "01ada42bb3ad44de20c83583595f98cf3ddba67aea49aaad248b3b1bd0035cf3",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "f7259662f21c29481da446d96a5ac03739009ef582cc70e2ff1242141432539b",
+    "/private/tmp/libdxfrw-dxf-outcome.95BB6D/final-focused-ctest.xml": "4a1921cdb97c2cfe5c009ae6ef605cf9ee9ada8a755200e36422ec34fbab719a"
+  },
+  "contract": {
+    "ownership": "dx_data::dxfReadOutcome owns values, fixed metadata prefixes and copied public diagnostics after the stack dxfRW is destroyed",
+    "statuses": "attempted, readReturned, readThrew and operationSucceeded describe a DXF read attempt, not semantic/export completeness",
+    "revision": "accepted getSourceVersion is separate from codec getVersion and last raw HEADER spelling; early/throwing exits retain UNKNOWNV acceptance",
+    "metadata": "only successfully copied HEADER callbacks set headerDelivered; old reused model metadata is excluded after early/open failure",
+    "prefixes": "three 64-byte owned prefixes retain source byte length and truncation; full declaration remains in headerC's owned capsule",
+    "selection": "last delivered declaration's naming classification/compatibility selection, not the actual per-field decoder or version-specific format admission; absent and empty differ",
+    "observations": "fixed public cumulative values preserve earlier source-loss events despite later metadata or a full secondary diagnostic list",
+    "diagnostics": "all current read code/message producers are fixed implementation strings: mapOperationError, raw handle checks, read budgets and HEADER codepage advisories; secondary rows capped at16; no source filename/declaration/payload copy precedes the snapshot",
+    "diagnosticCopyFailure": "allocation can fail copying the public diagnostic value; diagnosticCaptureFailed marks unavailable evidence, fixed observations remain, original exception is rethrown unchanged",
+    "reset": "both outcome envelopes reset at every fileImport attempt, including invalid extension, missing file, parser failure and format change",
+    "compatibility": "existing Boolean/error/stdout/stderr, sourceVersion fallback and decoder/projection/output policies remain; no pure callback or installed API added"
+  },
+  "tests": {
+    "entryPoint": "build/libdxfrw_gbk_codepage_tests --dxf-import-outcome",
+    "main": {
+      "exitCode": 0,
+      "wallSeconds": 0.252893042
+    },
+    "outputSummary": "Converter DXF outcome: handoffs=36, version controls=5, reuse/context controls=10, exception/retry pairs=3",
+    "handoffs": "9 literal source rows x2 metadata orders x2 file framings; direct public facade versus converter owned outcome, then copies beyond model/facade destruction",
+    "versions": "absent, unknown AC9999, folded AC1018, AC1032 and repeated higher-accepted/lower-raw declaration",
+    "reuseContext": "lossy source, later invalid handle, open failure, early parser failure, corrected reuse, invalid extension, changed DWG format,16-warning cap, long declaration and later canonical metadata",
+    "exceptions": "before HEADER delivery; after completed lossy decode; after lossy decode with allocator failure during diagnostic copying; original nonallocating sentinel and clean same-adapter retry",
+    "testAllocator": "test-executable-only global new/delete replacement, disabled except callback-armed failure during unwind; production allocator unchanged",
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2",
+    "strict": "C++17 -Wall -Wextra -Werror -fsyntax-only dwg2dxf/dx_iface.cpp tests/gbk_codepage_tests.cpp",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures|libdxfrw_diagnostic|dwg2dxf_cli_contract)$' --output-on-failure --output-junit /private/tmp/libdxfrw-dxf-outcome.95BB6D/final-focused-ctest.xml",
+      "tests": 4,
+      "failures": 0,
+      "skipped": 0,
+      "wallSeconds": 4.17,
+      "actualCliControls": {
+        "optionFilename": 48,
+        "batch": 18,
+        "readObservation": 2
+      },
+      "note": "JUnit GBK output is CTest-truncated; the separately executed focused mode supplies its full summary. A diagnostic CTest label is not a native qualification run."
+    },
+    "sanitizer": {
+      "buildRoot": "/private/tmp/libdxfrw-hatch-asan.Nc6BqC",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+      "command": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 /private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests --dxf-import-outcome",
+      "exitCode": 0,
+      "wallSeconds": 0.200521291,
+      "scope": "focused import mode on this macOS host; no full-suite/native/leak qualification"
+    }
+  },
+  "reviewCorrections": [
+    "Initial snapshot classified absent declaration as unknown; absence now bypasses the explicit-name classifier. Explicit empty remains unknown, consistent with the established classifier.",
+    "An added test incorrectly expected unknown AC9999 to retain codec AC1021. Existing source-version controls establish UNKNOWNV; corrected only the new expected value, not production parsing.",
+    "Final metadata lookup avoids constructing a temporary std::string during noexcept unwind; prefix copying and classification allocate nothing.",
+    "Historical pre-correction focused run retained at /private/tmp/libdxfrw-dxf-outcome.95BB6D/focused-ctest.xml, SHA256 fed638c747d4c20a18e0dd74986809dd83ab16495b199d2ba4d8ba645b21836f:3/4, one newly authored test-premise failure; final4/4 supersedes it for acceptance."
+  ],
+  "researchBoundary": {
+    "recheckedPrimarySources": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://www.rfc-editor.org/info/rfc3629/"
+    ],
+    "decision": "Autodesk's version-specific string storage and RFC3629 scalar validity justify separate future source/target policy gates, not automatic admission from a classifier label or empty observation mask.",
+    "frozen140": "not rerun in this CLI-only slice; d20cf7f's codec receipt remains historical, and production codec/facade sources are unchanged",
+    "noPromotion": "no native FreeCAD/platform/independent ACIS, broad charset, binary ABI or full format support claim"
+  },
+  "fixturePolicy": "new inputs are locally authored runtime scratch files; no external DWG/DXF payload, dependency or CTest registration added",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12
+  },
+  "next": "Slice3.2b.2c explicit strict source admission, then2d target transport;3.3 mappings and3.4 DWG metadata remain separate policy/version-witness gates"
+}

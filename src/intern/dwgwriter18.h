@@ -36,9 +36,9 @@ public:
         configureTextCodec();
     }
 
-    /// No-op: R2004 has no R2000-style linear file-header stub.
+    /// Validate Template metadata without a R2000-style linear header stub.
     /// The 0x100-byte file header is written entirely in finalize().
-    bool writeFileHeaderStub() override { return true; }
+    bool writeFileHeaderStub() override;
 
     /// No-op: R2004 does not use a second-header block.
     bool writeSecondHeader() override { return true; }

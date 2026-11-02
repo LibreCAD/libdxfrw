@@ -1,18 +1,10 @@
 # -*- Makefile.am -*-
 ACLOCAL_AMFLAGS = -I m4
-
-dwg2dxfdir = $(srcdir)
-
 bin_PROGRAMS = dwg2dxf
+include $(srcdir)/source-files.am
 
-AM_LDFLAGS = -L../src -ldxfrw
-
-dist_noinst_HEADERS = dx_iface.h dx_data.h
-
-dwg2dxf_SOURCES = dx_iface.cpp main.cpp
-
-AM_CPPFLAGS = ${my_CPPFLAGS} -Wall -I$(top_srcdir)/src
+AM_CPPFLAGS = ${my_CPPFLAGS} -I$(top_srcdir)/src
+AM_CXXFLAGS = -Wall -Wextra -pedantic -Werror $(PTHREAD_CFLAGS)
+dwg2dxf_LDADD = $(top_builddir)/src/libdxfrw.la $(PTHREAD_LIBS) $(COREFOUNDATION_LIBS)
 
 man_MANS = dwg2dxf.1
-
-EXTRA_DIST = $(dwg2dxf_HEADERS) $(dwg2dxf_SOURCES) $(man_MANS) ./vs2013/*

@@ -1,0 +1,87 @@
+{
+  "schema": "remaining-plan-refinement-v1",
+  "date": "2026-10-28",
+  "sourceCommit": "1276f14781dbbb58a6bafe2d46fedc39ef280d1b",
+  "scope": "Open-work plan reconciliation only; historical finding crosswalk is traceability, not an assertion that completed fixes remain defects.",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "before": {
+      "gitObject": "1276f14781dbbb58a6bafe2d46fedc39ef280d1b:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "lines": 135817,
+      "bytes": 14594754,
+      "sha256": "9663a868f3291219a0185e9d2b98f9d4cb4163a3ceda4d90d5e504837a550888",
+      "completedCheckboxes": 1191,
+      "uncheckedCheckboxesIncludingRepeatedHistory": 600
+    },
+    "after": {
+      "lines": 330,
+      "bytes": 23729,
+      "sha256": "6acb904edc8abb59339db88d7568d373c79b5537cb2787bef0355acd40bad01c",
+      "openPackets": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8",
+        "P9"
+      ],
+      "completedCheckboxes": 0
+    }
+  },
+  "review": {
+    "latestRemainingSequencePreserved": {
+      "resourceBodyTransactions": [
+        "P1",
+        "P2"
+      ],
+      "materialSourceAndSchema": [
+        "P3"
+      ],
+      "originalPrimaryCommonDependencyDocumentClosure": [
+        "P4"
+      ],
+      "renderingAndTable": [
+        "P5"
+      ],
+      "platformConsumerExternalQualification": [
+        "P7",
+        "P8",
+        "P9"
+      ]
+    },
+    "historicalFindingIdsReviewed": 144,
+    "historicalFindingScopeCrosswalk": {
+      "P4": "PAR-16,PAR-17,PAR-18,PAR-20,PAR-24,PAR-27,PAR-32,PAR-33,PAR-35,PAR-40,PAR-49,PAR-51,PAR-54,PAR-56,PAR-58,PAR-59,PAR-63,PAR-65,PAR-72,PAR-78,PAR-79,PAR-82,PAR-83,PAR-84,PAR-86,PAR-114,PAR-118,PAR-120,PAR-122,PAR-125,PAR-131,PAR-140,PAR-142",
+      "P5": "PAR-126,PAR-138",
+      "P7": "PAR-07,PAR-124,PAR-137,PAR-144",
+      "P8": "PAR-01,PAR-02,PAR-08,PAR-11,PAR-44,PAR-48,PAR-50,PAR-55,PAR-61,PAR-62,PAR-67,PAR-68,PAR-77,PAR-91,PAR-97,PAR-109,PAR-110",
+      "P6": "PAR-03,PAR-04,PAR-05,PAR-06,PAR-09,PAR-10,PAR-12,PAR-13,PAR-14,PAR-15,PAR-19,PAR-21,PAR-22,PAR-23,PAR-25,PAR-26,PAR-28,PAR-29,PAR-30,PAR-31,PAR-34,PAR-36,PAR-37,PAR-38,PAR-39,PAR-41,PAR-42,PAR-43,PAR-45,PAR-46,PAR-47,PAR-52,PAR-53,PAR-57,PAR-60,PAR-64,PAR-66,PAR-69,PAR-70,PAR-71,PAR-73,PAR-74,PAR-75,PAR-76,PAR-80,PAR-81,PAR-85,PAR-87,PAR-88,PAR-89,PAR-90,PAR-92,PAR-93,PAR-94,PAR-95,PAR-96,PAR-98,PAR-99,PAR-100,PAR-101,PAR-102,PAR-103,PAR-104,PAR-105,PAR-106,PAR-107,PAR-108,PAR-111,PAR-112,PAR-113,PAR-115,PAR-116,PAR-117,PAR-119,PAR-121,PAR-123,PAR-127,PAR-128,PAR-129,PAR-130,PAR-132,PAR-133,PAR-134,PAR-135,PAR-136,PAR-139,PAR-141,PAR-143"
+    },
+    "crosswalkDisposition": "Use current code and matching receipts once; create code work only for a current failing witness. Retain missing semantic/native qualification. Do not reopen a completed local fix from historical text.",
+    "dependencyCycleRemoved": "P4a source/role capture is independent; P5 and P7 consume P4a and feed P4b composed closure.",
+    "sixExternalDispositions": "J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "readiness": "Each packet starts from a source-bound witness, entry points, focused selector, expected output and exit condition; one bounded field/schema family per slice.",
+    "speed": "Reuse configured builds, private helpers and digest-scoped evidence; focused edit-loop tests, affected packet checks, broader suites only for risk/integration/release; no repeat external search without changed state.",
+    "selfUpdating": "Remove completed actions and update dependencies after each item; record evidence and report commit/validation/next action after each slice."
+  },
+  "validation": {
+    "localLinksChecked": 7,
+    "allLocalLinksExist": true,
+    "nineUniquePackets": true,
+    "noCompletedChecklistOrAppendedProgressHistory": true,
+    "fullObjectiveAndUnresolvedGatesPreserved": true,
+    "sourceInventoryCheck": "PASS: 593 released files",
+    "qualifiedSourceInputsVerifiedUnchanged": 593,
+    "codeReceiptFileHashesMatch": true,
+    "ctestRerun": false,
+    "cppRebuild": false,
+    "reason": "Only the plan and this research receipt changed; both are explicitly excluded from the release source inventory."
+  },
+  "limitations": [
+    "No new DWG/DXF support claim or external/platform qualification is established by this documentation change.",
+    "Historical evidence remains in Git and its existing receipts; this receipt does not duplicate the removed execution history."
+  ]
+}

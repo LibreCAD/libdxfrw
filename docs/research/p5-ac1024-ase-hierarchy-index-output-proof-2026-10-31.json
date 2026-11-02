@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-p5-ase-hierarchy-index-output-proof-v1",
+  "date": "2026-10-31",
+  "qualificationEligible": false,
+  "baseCommit": "13eb8e76be5b2466efa6aac22cd680194178a8f7",
+  "scope": "One bounded AC1024 ASE hierarchy-index XRECORD staged-output profile. This receipt does not qualify native dynamic-block semantics, fresh whole-document readback, or a format-support claim.",
+  "input": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "committedAsFixture": false
+  },
+  "sourceProfile": {
+    "version": "AC1024",
+    "handle": "0x1085",
+    "objectType": 79,
+    "record": "XRECORD",
+    "namedObjectDictionary": "0xC",
+    "rootEntry": "ASE_INDEX_DICTIONARY -> 0x1084",
+    "ownerEntry": "ASEBlockHierarchyIndexRecord -> 0x1085",
+    "ownerHandle": "0x1084",
+    "reactorHandle": "0x1084",
+    "payload": "36 ordered group-330 cache handles; each source target is unique and unresolved as a source record identity",
+    "sourceCacheValuesSha256": "87fed97ff4e811ac1ab5b8aa47a9cb8c1e32332a68ec48093896363bf1d76445"
+  },
+  "implementation": {
+    "path": "dwg2dxf/dx_iface.cpp",
+    "sha256": "282cb405da35593b0ac987edf1618b9b7481fc91461b0303cff6aa5acc3ecf1b",
+    "result": "Added a structural source-profile predicate and exact staged comparison for common fields, rooted dictionary membership, owner/reactor roles, ordered group-330 values and compatibility handles. The 36 remapped cache targets are excluded from semantic reference closure and rejected if they alias emitted record identities. Removed temporary diagnostics."
+  },
+  "stagedOutput": {
+    "path": "/tmp/dynamic-strict-ase-final.dxf",
+    "sha256": "90607a25654dd74644d59bd3d5955780c6745b0a0e51448cccc7c2e88353246a",
+    "rootEntryCount": 1,
+    "childEntryCount": 1,
+    "ownerAndReactorMatch": true,
+    "cacheValueCount": 36,
+    "cacheValuesUnique": true,
+    "orderedValuesMatchSource": true,
+    "cacheValuesSha256": "87fed97ff4e811ac1ab5b8aa47a9cb8c1e32332a68ec48093896363bf1d76445",
+    "cacheTargetsAliasingEmittedRecordIdentities": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with the configured warning-as-error build",
+      "dwg2dxfSha256": "895f2560c7968436de6f096128fe45093d12ab98f3ff1ed4385477779716907b",
+      "adapterTestSha256": "57325bb28778ff100371afb16a28c5a0a8d12eddc768d00da508fa147a6d4f03"
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y -d -v2010 /tmp/dynamic-strict-ase-final.dxf",
+      "exitCode": 0,
+      "log": "/tmp/dynamic-strict-ase-final.log",
+      "logSha256": "8c93b7f718d20ba42f4b3d0f73f9ed617216f6cb3f22fab9b0e7554679019d77",
+      "opaqueCallbacksObserved": 490,
+      "completenessGate": "PASS: export returned success; the gate requires one pending output qualification for every source callback identity and exact equality with the 490 observed callbacks."
+    },
+    "focusedControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-dwg-compatibility-codes",
+      "exitCode": 0,
+      "result": "PASS; expected rejection-path diagnostics were printed by negative controls.",
+      "adapterTestSha256": "57325bb28778ff100371afb16a28c5a0a8d12eddc768d00da508fa147a6d4f03"
+    },
+    "outputInspection": "PASS: independently parsed the emitted DXF XRECORD and dictionary entries; all 36 ordered cache values match the source values, and none matches an emitted record identity."
+  },
+  "remaining": [
+    "Dynamic-graph document-level missing-edge, wrong-role/owner, mutation, rollback and corrected-retry controls",
+    "Fresh ASCII/Binary whole-document readback",
+    "Independent native dynamic-block semantic qualification",
+    "All other open P4-P9 gates"
+  ]
+}

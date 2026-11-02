@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c basic TABLES callback list-link retention",
+  "scope": [
+    "Account list-link slots for typed basic-table callbacks retained in std::list<Record>",
+    "Preserve exact aggregate-limit admission and fail-closed one-over behavior"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "The shared typed basic-table retention helper now charges two logical list-link pointer slots per retained record before the aggregate byte preflight.",
+      "The exact generated aggregate-boundary control includes all ten APPID, LAYER, VIEW, UCS, VPORT, STYLE, LTYPE, LAYOUT, BLOCK_RECORD, and DIMSTYLE list records."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --basic-table-typed-capture-limits",
+    "ctests": [
+      {
+        "name": "dwg2dxf_basic_table_typed_capture_limits",
+        "result": "passed"
+      }
+    ],
+    "diff_check": "passed for implementation, adapter test, plan, and receipt",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "List accounting is two logical link slots per value, not allocator-specific node size or RSS.",
+    "This closes the generic basic-table callback lists only; other specialized callback stores require separate audits."
+  ]
+}

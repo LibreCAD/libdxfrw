@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-acad-table-peer-writer-route-refresh-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Reconcile Autodesk ACAD_TABLE DXF syntax with current ACadRust and ACadSharp route-specific table writer evidence; refine the existing 7G.3d/PAR-20 comparison gates.",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "kind": "official DXF reference",
+      "observed": "The TABLE contract distinguishes merge groups 173/175/176, title/header suppression groups 280/281, block/FIELD references, and phase-contextual repeated groups including 91/92.",
+      "doesNotEstablish": ["DWG TABLECONTENT byte layout", "implementation behavior", "native rendering acceptance"]
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/130",
+      "kind": "peer issue with same-implementation public reproducer",
+      "observed": "The reported ACadRust 0.6.3 route loses merged cell spans and title/header suppression when translating between DWG and DXF representations; issue references candidate corrections and remains open in the reviewed page.",
+      "doesNotEstablish": ["current released peer failure", "independent producer truth", "native consumer acceptance"]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/995",
+      "kind": "peer feature request",
+      "observed": "The original request says table entities were read but DWG/DXF writer paths were unsupported; it predates later merged work and its open status is not a current capability verdict.",
+      "doesNotEstablish": ["current-release writer behavior", "complete table semantics"]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1040",
+      "kind": "merged peer implementation change",
+      "observed": "PR #1040 merged DWG TableEntity serialization; its change history explicitly disables linked-data output by writing a zero flag and skipping linked-data details.",
+      "doesNotEstablish": ["DXF ACAD_TABLE entity writer completeness", "linked-data preservation", "semantic parity"]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12",
+      "kind": "formal peer release record",
+      "observed": "v3.6.12 release notes include DWG TableEntity support (#1040) and TABLESTYLE DXF writing (#1066) as distinct work items.",
+      "doesNotEstablish": ["the exact current latest release behavior", "full ACAD_TABLE DXF entity writing", "real-producer conformance"]
+    },
+    {
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "kind": "independent project object schema documentation",
+      "observed": "The object inventory exposes separate linked/formatted table content, style references, geometry, rows/cells, and custom-data structures.",
+      "doesNotEstablish": ["complete writer support", "authoritative format corrections", "semantic correctness"]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "refines": ["PAR-20", "7G.3d"],
+    "findingCountChanged": false,
+    "topLevelSubplanCountChanged": false,
+    "implementationOrderChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peersRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

@@ -31,7 +31,7 @@ from run_native_qualification import (  # noqa: E402
 
 CHECKOUT_SHA = "3d3c42e5aac5ba805825da76410c181273ba90b1"
 UPLOAD_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
-EXPECTED_WORKFLOW_SHA256 = "72c3c75af1d3a8836564bc11ac695d787f9c8fe0f9e132b8c0571d3542f51473"
+EXPECTED_WORKFLOW_SHA256 = "4aaa6948a41bbeeac139f4d1ab4f606997d5133f2f98db2f1a41b25f1a1d9ee8"
 ACTION_RE = re.compile(r"^\s*uses:\s*([^\s#]+)", re.MULTILINE)
 FULL_ACTION_RE = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}")
 EXPECTED_ACTIONS = {

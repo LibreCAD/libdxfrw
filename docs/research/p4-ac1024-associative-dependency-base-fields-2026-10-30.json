@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-dependency-base-fields-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative dependency base-field retention",
+  "status": "LOCAL_AC1024_DEPENDENCY_PREFIX_MODEL_RETENTION_VERIFIED_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "fbb980fb2b6688a04e5494521b9dd2deefde41cc",
+  "scope": "Preserve the typed values already decoded by the ACDBASSOCDEPENDENCY shared-prefix parser, rather than discarding them after parse. This slice does not change the DWG wire layout or enable associative DXF output.",
+  "fields": [
+    "read, write, attached-to-object, and delegating-to-owning-action flags",
+    "dependency order",
+    "optional dependency name, preserving absent versus present-empty",
+    "exact node handle, while retaining the historical writeDependencyHandle alias",
+    "dependency body ID, distinct from the dependency body handle",
+    "completed-prefix state"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "transaction": "The parser reads into body/string/handle probes and publishes the retained fields only after the entire shared prefix and bounds validate. Failure resets the fields; a corrected parse on the same object succeeds.",
+    "copyAndAccounting": "Copy construction and assignment retain all new fields. The associative typed-retention budget now includes the dependency name allocation.",
+    "fixturePolicy": "The AC1024 parser frames are generated in memory from scratch. No DWG/DXF fixture file was added or committed.",
+    "output": "No associative serializer, identity remapper, or readback was added. Strict output refusal remains active."
+  },
+  "generatedProof": {
+    "selector": "--associative-dependency-fields",
+    "profiles": [
+      "nondefault flag combinations and a nonempty optional name",
+      "absent optional name",
+      "present but empty optional name",
+      "positive, zero, and negative body IDs"
+    ],
+    "wireCheck": "An independent bit-stream walk checks class version, status, flags, order, name-presence bit, body ID, and the following body sentinel. The parser cursor also reaches the following handle sentinel after consuming exactly four dependency-prefix handles.",
+    "stateChecks": "Copy and assignment retain the complete field set. A truncated detached name resets previously populated dependency fields and prefix state; reparsing the valid frame on the same object succeeds."
+  },
+  "physicalSourceCheck": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-assoc-base-fields-out.dxf",
+    "exitCode": 1,
+    "logPath": "/private/tmp/libdxfrw-assoc-base-fields.log",
+    "logSha256": "e3cb94bea1b138e34eb33cf13dd9c519c0d49109296d30043db0191ec62c7951",
+    "result": "The same 335 frames are published, all audited associative graph counters remain closed with zero limits exceeded, strict export refuses with dwg-associative-graph-not-serialized, and no DXF output is created.",
+    "limitation": "This regression check confirms the physical AC1024 reader/audit path remains stable. It does not independently report the newly retained field values from that file or qualify output semantics."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_dependency_fields|libdxfrw_associative_dimension_dependency_body|libdxfrw_associative_action_value_kinds)$' --output-on-failure",
+      "result": "PASS 3/3."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN"
+  },
+  "completedScopeRemovedFromPlan": "Retaining the already parsed ACDBASSOCDEPENDENCY base-prefix fields in the typed model, including name presence and separate node/body references.",
+  "remainingP4Scope": "Bind source associative object identities and required fields to emitted records, remap every edge, close required descendants, inspect actual output, and read it back; preserve atomic refusal and failure/retry behavior until those gates pass.",
+  "nextAction": "Implement source-to-emitted identity and field binding for the audited AC1024 associative dependency/node profiles. Keep strict refusal for any required descendant that cannot yet be emitted and independently read back.",
+  "sourceHashesSha256": {
+    "CMakeLists.txt": "bdb61662937cb8f884e48acfc6be93bce1483cd8b07852cf675ba1bde208484a",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "71dfd0cd2790dcaacc65d9531206cc6e94d3e824996051a0a390ebcaa153e2cc",
+    "dwg2dxf/dx_iface.cpp": "eb52d7d83d64e065ec19917481ea77f0f18fc7ea3b0e7589349851ed612c1c36",
+    "src/drw_objects.cpp": "a7c4ec584f3bb8462dfd875ad8ec0e10857f3399b441fb6c7b1d1540a74f4da4",
+    "src/drw_objects.h": "bcca19a24eb1c1807ee923973c48ae8b22d4e924b2e88390ca946eb6665eba1c",
+    "tests/dwg_object_vectors_tests.cpp": "7fb1a2b84b728700ed3dc02df25cd12d281cac063c0f291ef6c88775b3716e7e",
+    "build/dwg2dxf/dwg2dxf": "f591b423759f8eb4be1d85d9b3295178ce054d983166db1954b82097f22b2dba",
+    "build/libdxfrw_dwg_object_vectors_tests": "c9f9d312c68d2b763589295692f55483f668cfa1e9003a2c501a4305f7e7b111"
+  }
+}

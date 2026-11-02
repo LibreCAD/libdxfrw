@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dz original common identities and compound structural roles",
+  "date": "2026-10-25",
+  "parentCommit": "3edcba12",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ORIGINAL_SCOPED_IDENTITIES_AND_COMPOUND_STRUCTURAL_MEMBERSHIP_DELIVERED_CHILD_IDENTITIES_AND_CONTAINER_BINDING_VERIFIED_FULL_BODY_TARGET_LIVE_OUTPUT_OPEN",
+  "scope": {
+    "implementation": "Converter-private immutable audit over original physical children and validated dispatch partition",
+    "identity": "Exact outer self/owner group indices, dispatch/logical parent indices, member and physical-owner roles; common/base field interleaving allowed",
+    "scopes": "Application-scoped and entity-body/embedded 5/330 fields are not outer identity aliases",
+    "profiles": "Existing modern AC1021/AC1024/AC1027/AC1032 opt-in path; nonzero 32-bit common identities; not universal legacy/header-order or 64-bit handle qualification",
+    "roles": "Primary, POLYLINE/VERTEX/SEQEND and INSERT-or-MINSERT/ATTRIB/SEQEND; names/order/termination, declared/default INSERT follow state and known parser routes/aliases",
+    "footer": "Logical sequence parent and observed compound-parent/BLOCK_RECORD wire owner retained separately, never normalized",
+    "compatibility": "POLYLINE obsolete group 66 ignored; unflagged INSERT attribute chains still ordinary compatible reads but not qualified declared sequences",
+    "gaps": "Raw orphan VERTEX/ATTRIB/SEQEND and zero-callback dispositions explicit; unknown raw membership is not a geometry/schema certificate",
+    "uniqueness": "Per-BLOCK duplicate self IDs, including collisions with BLOCK/BLOCK_RECORD/ENDBLK; not complete whole-document alias/target closure",
+    "delivered": "Actual child counts/order/self/owner, null/missing/reordered/changed children and footer identity; real compound parent required even for attribute-free INSERT",
+    "owners": "Exact immutable physical/delivery/endpoint shared owners, generation and actual data-container identity",
+    "query": "Successful whole import, first-generation consistent DXF context, complete observed replay and retention state; stale/copied successful context refused",
+    "attdef": "Original primary/self/owner role and complete enclosing structural membership required by selected immutable ATTDEF origin; audit owner pinned",
+    "bodyLimit": "Same-ID geometry edits intentionally retain structural fact; complete modeled child bodies/common fields, dependencies, editable state and output remain separate",
+    "budgets": {
+      "maxPhysicalMembers": 100000,
+      "maxLogicalBytes": 67108864,
+      "maxLogicalWork": 67108864
+    },
+    "accounting": "Precharge vector/control owners, transient sorted identity indices and visits; bounded aggregate observed-child work",
+    "costLimit": "Logical allowances, not every allocation, allocator capacity, process RSS or strict CPU theorem; sorted indices avoid per-record map allocation/quadratic uniqueness scan",
+    "failure": "Own quota/allocation refuses evidence without setting ordinary format-read errors; inherited reader failures remain separate",
+    "installedEntityModelLayoutsChanged": false,
+    "publicInterfaceVtableChanged": false,
+    "nativeDwgParserOrEncoderChanged": false,
+    "outputWriterChanged": false,
+    "distribution": "New private helper listed in CMake and Autotools; full distribution build not repeated",
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "Only locally authored runtime scratch controls"
+  },
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "role": "Common outer identities/owners versus application groups; common field order can vary"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "role": "INSERT follow flag/default and SEQEND termination"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "role": "POLYLINE group 66 is obsolete/ignored, not INSERT semantics"
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/subentity.py",
+      "role": "Linked child ownership and different link_seqend/take_ownership paths; preserve observed footer-owner forms separately from logical parent"
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/tests/test_02_dxf_graphics/test_210_polyline_2.py",
+      "role": "Open-source parent-owned VERTEX/SEQEND example; viewed only, no drawing fixture copied"
+    }
+  ],
+  "owningControlsPerConfiguration": {
+    "ctest": "libdxfrw_block_original_membership",
+    "selector": "--block-membership",
+    "actualProfiles": 36,
+    "axes": "Four modern versions x empty/single/mixed x ASCII LF/CRLF/Binary",
+    "independentOriginalScalarSpans": 2712,
+    "exactMixedMemberFacts": "All ten self/owner/dispatch/logical-parent/header-group-index/member/owner roles checked",
+    "independentLimit": "Local independent original scalar/span walker, not independent external CAD semantics or kernel evidence",
+    "positiveVariants": 16,
+    "positiveAxes": "Two observed footer-owner forms, reordered common owner, nested opaque IDs/subclasses, ignored POLYLINE 66, standalone INSERT default, explicit empty attributes, MINSERT alias, multiple ATTRIB",
+    "originalWireFaultAndCorrectedRetryCases": 32,
+    "compatibleImportFaultCases": 30,
+    "existingReaderAdmissionRefusals": 2,
+    "admissionLimit": "Duplicate ENDBLK identity remains refused by existing reader; audit never sets format-read errors; no pristine-parent rerun claimed",
+    "wireAxes": "Wrong/missing/duplicate IDs, root/footer collisions, body aliases, conflicting/implicit follow state",
+    "deliveredCompoundFaultAndCorrectedRetries": 20,
+    "callbackAxes": "Dropped/reordered/null/identity-mutated VERTEX/ATTRIB/footer",
+    "attributeFreeInsertWrongClassRouteAndCorrectedRetries": 2,
+    "exactOneUnderQuotaAndCorrectedRetries": 6,
+    "isolatedObservedAllocationFaultAndCorrectedFreshImportRetries": 8,
+    "allocationLimit": "Observed new vector/control sites with weak teardown; uses actual immutable snapshots but synthetic unqualified recapture, not every allocator or leak detector",
+    "staleAuditRefusalsAndRestorations": 2,
+    "copiedSuccessfulContextRefusals": 2,
+    "reportReplayExceptionAndCorrectedRetries": 8,
+    "optOutLaterInputCleanupBoundaries": 8,
+    "noCallbackDispositionGaps": 2,
+    "rawOrphanRefusals": 6,
+    "sameIdCoordinateEditBodyProofBoundaryControls": 2,
+    "attdefOriginTupleCorruptionAndRestorationCases": 54,
+    "attdefLimit": "Historical RPP-5dy receipt retains its original 52; new two cases replace audit owner with identical-valued clone"
+  },
+  "findings": [
+    {
+      "status": "NEW_PATH_EMPTY_PARENT_CLASS_ROUTE_GAP_REPRODUCED_AND_FIXED",
+      "before": "Substituted POINT with INSERT public eType/self/owner matched one-record empty-attribute INSERT structural range",
+      "redLog": "/tmp/rpp5dz-empty-insert-route-red.log",
+      "after": "Original POLYLINE/INSERT names require real matching compound parent class even when child list is empty",
+      "limit": "Executable included new structural audit; not a pristine-parent or released-support defect claim"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 15.4
+    },
+    "asan": {
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 30.27
+    },
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sequentialRuntimeCohorts": true,
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_block_owners",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check"
+    ],
+    "intermediate": [
+      {
+        "normalPassed": 34,
+        "normalSeconds": 14.78,
+        "limit": "Before container pin/copied-context controls; not final-source evidence"
+      },
+      {
+        "normalPassed": 34,
+        "normalSeconds": 15.19,
+        "asanPassed": 34,
+        "asanSeconds": 33.46,
+        "limit": "Before empty-parent class/route correction; not final-source evidence"
+      }
+    ],
+    "fullProjectSuiteRepeated": false,
+    "autotoolsDistributionSuiteRepeated": false,
+    "consumerLimit": "Local mirrored API/source compilation and CLI compatibility, not native LibreCAD/LibreCAD_3/FreeCAD execution or formal binary ABI certification"
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "supportClaimsPromoted": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "next": [
+    "Freeze complete immutable compound parent/child/footer bodies under nested-owner estimates and replay original/typed fields: points, widths, bulges, flags, meshes/faces, attribute/embedded text and common payloads",
+    "Keep aliases/defaults/implicit sequences, original scalar spellings and non-SORT/XRECORD/embedded roles explicit; structural complete is not body proof",
+    "Finish ENTITIES model/paper/BLOCK_RECORD and selected common/style/APPID/LAYER/object/default/opaque closure, pointer remapping and proxy text/codepages; extend actual-context guards to further source proofs",
+    "Finish all B2b/B3/C graph/live/output/immutable/editable/compound identity, exact fields/references and atomic rollback/retry/destination",
+    "Retain original IMAGE/document/native bit/decimal/carrier/schema/owner, speed/ownership/allocation, LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD and independent semantic/platform requirements",
+    "Self-update and safely unblock, use owning fast checks and exact built affected normal/ASan cohorts at slice boundaries, commit/report progress; no external drawing fixtures or local-test support promotion"
+  ],
+  "sourceSha256": {
+    "dwg2dxf/CMakeLists.txt": "7a72ee482860841914a41ff6d3d93c68e93cbad700cb13439d007b7b52a0b5b3",
+    "dwg2dxf/Makefile.am": "d8400292706de0a41e5ac6a07429a492560dd7f6db2ed588f545091b1e575aaa",
+    "dwg2dxf/dx_data.h": "618976e08db29e24f5b16494dea93f3cdcb9a63444b985ea8c359e8271557f38",
+    "dwg2dxf/dx_iface.h": "299a405645b3a543a8b2bac34f276ec0041e100b2826ba4e1ffa3e21e642e07d",
+    "dwg2dxf/dx_iface.cpp": "21cebdbd9c52691c3b8a12fb8d5b51e6a2bdab06da9091ccb200a8ce655ec1f9",
+    "dwg2dxf/dx_block_membership.h": "84953ba7156309265aa375f227029e10cf9ca550b11e73b8b71aceb3ed1516b5",
+    "tests/CMakeLists.txt": "cdaa3e6ea1c55ec3ed116eebd32a503a9f2aba6fa5e7d9b7f247021c24bdd0b0",
+    "tests/attdef_source_tests.cpp": "ffcc625cff48364cb6c2a2ab4763cb902f19300216b1d10266e989bdc2e86b48",
+    "tests/attdef_origin_controls.h": "9164f96eac489e69f12621dc78279c289cb7173250f942de1c7242cf2209a92a",
+    "tests/block_membership_controls.h": "3877010d24fdbc0ea20d67564e32cac57953d7f0edac93e9cfff1d41643d064e"
+  },
+  "logSha256": {
+    "/tmp/rpp5dz-qualified-normal-build.log": "66bb81782a4e37bff1aa18bf40fb4a38fd587876834fa6ef25fb1c4e6ede2e2e",
+    "/tmp/rpp5dz-qualified-asan-build.log": "2e54251adda8ee5410ad937e97c288959e0c617d13e3b52534c2ece5f1564bea",
+    "/tmp/rpp5dz-qualified-normal-ctest.log": "789d0d3bc9e13f83ce231e03c413524e6582237f4986e9402d6093f2954328a8",
+    "/tmp/rpp5dz-qualified-asan-ctest.log": "4571fdf10dea51003fe4514a88b93835c884f469dee2244e4e71ec0c2a34d5f3",
+    "/tmp/rpp5dz-qualified-owning-counts.log": "0776bddb45275c2489dad31ad89dc25fd418de487aea2aa4ab6cc7132d34f530",
+    "/tmp/rpp5dz-qualified-origin-counts.log": "45e3c9dd29b3a8f8488d3999c2cae86399803482e027b4930156b66bd1b8e52a",
+    "/tmp/rpp5dz-empty-insert-route-red-build.log": "5e386b1924c55115935b865c50d20cd8582023efc94d5811b842823821b6ba0b",
+    "/tmp/rpp5dz-empty-insert-route-red.log": "0667983c7fe80df1165d255099d5395cb206fc701d8d7474f6ec358b0feee91c",
+    "/tmp/rpp5dz-final-normal-ctest.log": "f8dd44b8ec86872e1e20be368af51fb47a00bab3d14c31235990b51efde70a19",
+    "/tmp/rpp5dz-verified-normal-ctest.log": "dd2475ec5a23ce35142c4d756d08e67a61a15d667cea36cdb820e0865f7133f1",
+    "/tmp/rpp5dz-verified-asan-ctest.log": "1dba61fce040451a46d58427d30132f1e33f1b390446173e94bacc9d66e65261"
+  }
+}

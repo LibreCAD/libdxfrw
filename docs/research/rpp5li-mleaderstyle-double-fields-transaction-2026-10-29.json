@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE mapped DOUBLE fields",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "299c116ba39a5d7ea3b283a9f4f575669139b96c",
+  "scope": "Extends the existing AC1027 single-field MLEADERSTYLE transaction from group codes 42 and 45 to every existing mapped DOUBLE field represented by the DXF model and writer: groups 40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142 and 143. Each edit is a separate operation on one existing unique source group; the other twelve mapped scalar values remain unchanged.",
+  "fieldEvidence": {
+    "source": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "codes": {
+      "40": "First Segment Angle Constraint",
+      "41": "Second Segment Angle Constraint",
+      "42": "Landing Gap",
+      "43": "Dogleg Length",
+      "44": "Arrowhead Size",
+      "45": "Text Height",
+      "46": "Align Space",
+      "47": "Block Content Scale on X-axis",
+      "49": "Block Content Scale on Y-axis",
+      "140": "Block Content Scale on Z-axis",
+      "141": "Block Content Rotation",
+      "142": "Scale",
+      "143": "Break Gap Size"
+    },
+    "classification": "DXF field-role corroboration. The authored controls validate this adapter path; no independent producer or native semantic acceptance is claimed."
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain exactly one finite DOUBLE for the selected code inside exactly one AcDbMLeaderStyle subclass. Exactly one mapped DOUBLE may change on a record. Common fields, handles, application/extension data and every other encoded payload field must match the baseline.",
+    "projection": "Select the changed code from an explicit allowlist of the thirteen mapped DOUBLE fields, then replace only its existing physical group in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. Missing/repeated selected fields, multiple scalar edits, unlisted typed changes, unknown subclass grammar and non-AC1027 routes remain refused or on their prior raw-replay route.",
+    "outputAndReadback": "A runtime-authored AC1027 source contains all thirteen fields once. Each field is edited separately. Staged-output inspection checks the retained raw groups; fresh import requires the selected typed value, the exact literal group/value, and all other twelve typed scalar values to match their source values. Target encoding is alternated across ASCII and binary source runs; the group-42/group-45 receipts separately cover both target encodings for those selected fields.",
+    "failureAndRetry": "Representative field-specific controls from RPP-5lg/RPP-5lh cover raw-versus-typed conflicts, simultaneous group-42/group-45 typed edits, late typed mutation, destination sentinel rollback, corrected same-adapter retry, and cross-format readback. A boolean landingEnabled edit outside the DOUBLE allowlist is also verified to refuse atomically. These controls are not claimed as independent producer coverage for every field code.",
+    "compatibility": "Untouched MLEADERSTYLE records retain raw replay. Only AC1027 source-to-AC1027 target edits are admitted. Other source/target versions and non-DOUBLE changes are unchanged. No drawing fixture is committed; controls are authored at runtime in a temporary directory and removed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "Extended generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp writes one value for each listed group code into STANDARD and preserves a second root-reachable style; ASCII and binary source files are generated locally from scratch.",
+    "implementationCommit": "299c116ba39a5d7ea3b283a9f4f575669139b96c",
+    "dwg2dxf/dx_iface.cpp": "a6f1df2ff3ed5a02942f73411f0f78e602ac5f8bd751af8c52fe19881451ea84",
+    "tests/dwg2dxf_adapter_tests.cpp": "772d71d25e1e1422bda0838a5a1d6380fe1bf6850a8f58492d8fec75add02566",
+    "adapterTestExecutableSha256": "1867b65dab145912bde50f05ec75ebbd43be040bceeee15e21bfc3eae6b2e75b"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Ninja, Clang with -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The selector independently edits each of the thirteen mapped fields, confirms exact group-code/value output and typed readback, checks the other twelve scalar values stayed unchanged, and exercises ASCII/binary source and output combinations. Representative conflict, multiple-edit refusal, rollback and retry checks pass for groups 42 and 45."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The evidence is one authored AC1027 adapter route. It does not establish independent producer variation, native interpretation or rendering, cross-version edits, full MLEADERSTYLE schema coverage, DWG editing, consumer acceptance, or complete document closure.",
+    "No support claim is promoted; the support ledger remains closed."
+  ],
+  "next": "Select a current P2 witness outside the mapped DOUBLE fields, such as a distinct object field type/provider or MLINE schema profile. Preserve the one-field AC1027 restriction until other field types and source grammars have independent evidence."
+}

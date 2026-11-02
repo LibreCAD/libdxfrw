@@ -1,0 +1,94 @@
+{
+  "id": "RPP-5wk",
+  "title": "MLINE LTYPE XDATA code-1005 reference to a BLOCKS LINE",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "af17722cfad68526190a529bba8263ce74431601",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture was added.",
+    "source_encoding": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "output_encoding": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "cross_product": "One selected profile was exercised for all four ASCII/binary source and output combinations.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID group 1001, one group 1000 payload, and one ordered group 1005 soft pointer.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_target": {
+      "type": "LINE",
+      "source_handle": "0xA900",
+      "source_section": "BLOCKS",
+      "block_name": "AuthorityBlock",
+      "block_record_handle": "0x203",
+      "owner_handle": "0x203",
+      "geometry": "Start (100.5, 2, 0), end (101.5, 3, 0)"
+    }
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The generated physical LTYPE XDATA sequence is checked against the APPID row. The target LINE is bound through BLOCKS physical record fields, captured block-child and delivery spans, its single addLine dispatch, structural membership role and owner, and the unique live typed LINE in AuthorityBlock.",
+    "output": "Across all four encoding pairs, the exact ordered XDATA sequence is checked against the emitted/remapped LINE handle. The output LINE must occur in BLOCKS, have the emitted AuthorityBlock BLOCK_RECORD owner, and have a unique source-to-output identity. Fresh typed readback verifies the LTYPE XDATA, LINE handle, owner and geometry.",
+    "failure_retry": "For each encoding pair, removing the target from the live block makes export refuse while preserving the prior destination; restoring it allows same-adapter retry. A separate ASCII-input/ASCII-output case mutates the target handle after APPID output; finalization refuses and preserves the destination, and a corrected same-adapter retry succeeds.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 212,
+      "whole_focused_test_readbacks": 470,
+      "whole_focused_test_refusals": 258,
+      "whole_focused_test_retries": 258
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 13.23 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded source capture and proof state but does not introduce ownership transfer or a new parser buffer. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_source_sha256": "8ab8dbcfc835f17e12d31306cc03cf47f99ac12cc7192c78db3cca9891b07b9c",
+      "implementation_header_sha256": "506ebc1c1c92b2d2865fdf37be40a225a57a27b39dfcc2210d4e6857890f83b0",
+      "test_source_sha256": "d9a76a67c3d4d338b66cd87aa77a996594830ce5ffb7b229bce35636d24eb04b",
+      "normal_executable_sha256": "e185d7e7ff4121226a1220a8f1a9dece3d03aa3c2af51d626d566b806ca4922f",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This receipt qualifies one AC1027 simple-LTYPE XDATA profile targeting one source-bound LINE in a named BLOCK. Other target entity types and sections, target multiplicities, versions, block schemas and application meanings remain unqualified.",
+    "This is selected transport, identity, readback and transaction evidence only; it does not establish recursive document closure, broader XDATA semantics, native MLINE rendering or format support claims."
+  ],
+  "next": "Select a distinct current P2 witness from the remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations. Continue only with source-bound requirements and focused evidence; do not infer broader support from this selected BLOCKS LINE profile."
+}

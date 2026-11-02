@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deep/broader peer 3D interoperability, display, and scale evidence refresh",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Separate 3D parser, ACIS semantic, native interoperability, display, and resource-scaling evidence",
+    "Refresh current OpenCADStudio and ACadRust artifact/lineage boundaries",
+    "Recheck LibreDWG modern AcDs limits, cq-acis profile limits, and stock FreeCAD importer scope",
+    "Refine the existing composed consumer gate without increasing per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read current primary project source, test, documentation, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Public peer reports and source-authored capability claims are not independent local qualification. No attached OpenCADStudio issue drawing was available or inspected. The current FreeCAD route and peer pages are mutable; pin exact application, codec, kernel, and source revisions at the existing composed checkpoint. The local ODA v5.4.1 specification remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio and opencadcodec",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1542",
+        "https://github.com/HakanSeven12/OpenCADStudio/pull/404"
+      ],
+      "revision": "Mutable main manifest reviewed 2026-10-18; issue #1615 open, #1542 open, and #404 merged on 2026-07-17",
+      "observed": "The app manifest reports version 2026.42.0 and pins its acadrust-named codec to opencadcodec revision 5d4f11a. The open 3D AutoCAD-compatibility report has no hash-bound drawing pair; the maintainer reports one separate strict-reader success. A large-file memory report describes duplicate application-side wire storage and enum padding but lacks same-input post-fix measurements. A separate merged GPU fill-buffer fix shows that file open and shaded rendering are distinct outcomes. These reports refine consumer qualification; they are not libdxfrw defects."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://docs.rs/crate/acadrust/latest"
+      ],
+      "revision": "Mutable README/main reviewed 2026-10-18; published docs.rs package identifies 0.5.5",
+      "observed": "Current main advertises broad DWG/DXF R12-R2018+ and ACIS read/write, while published package identity is older. The checked-in synthetic marker SAB and planar-body DWG writer-to-same-reader tests establish local self-consistency and linkage only, not a second codec, AutoCAD acceptance, or independent kernel result. OpenCADStudio uses a derived codec fork."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Current master NEWS and README reviewed 2026-10-18",
+      "observed": "NEWS says AcDsPrototype_1b is not fully parsed and modern R2013+ SAB extraction is brute-force, while describing v2-to-legacy-SAT conversion for pre-R2013 DXF. README states narrower DWG writer and dxf2dwg version limits. LibreDWG is therefore route/version-specific structural evidence, not a complete AcDs semantic oracle."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/README.md"
+      ],
+      "revision": "Pinned source commit e05a8f470d2f6799277f7b7df467d2fc35625889",
+      "observed": "The project documents exact ACIS 21800 and selected ASM profiles with limited native SAB coverage and synthetic-only BinaryFile8 coverage; typed decode and shape conversion are separate. It uses CadQuery/OpenCascade, sharing the OCCT kernel family with FreeCAD. External corpus provenance is useful for scope review but does not authorize copying peer samples into libdxfrw."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Current published importer contract and mutable source reviewed 2026-10-18",
+      "observed": "The stock DXF importer contract excludes embedded ACIS solid reading; the current DWG importer converts through an external converter and then calls the DXF importer. Treat this as a consumer route for explicit supported content, not a native DWG or ACIS semantic oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Strengthens the existing composed 3D consumer gate by separating same-codec self-roundtrip, source-distinct parsing/kernel semantics, native external open/audit, optional shaded rendering, and application-scale resource observations. No peer runs or additional checks are added to ordinary local implementation slices."
+  },
+  "implementationReadyChecks": [
+    "Pin application, codec, kernel, and package/source identities together before an optional composed run.",
+    "Require the exact same hash-bound drawing pair and native audit for cross-application interoperability; unresolved peer reports remain NOT_REPRODUCED.",
+    "Keep same-codec roundtrip separate from external parser/kernel evidence and native application acceptance.",
+    "For explicit display acceptance only, exercise a non-wireframe style and target layers; score rendering separately from file parse and shape validity.",
+    "For large-file acceptance, record bytes, object/face counts, peak RSS, duration, and hardware; do not adopt a generic ratio from another application.",
+    "Do not add peer dependencies, fixtures, peer builds, native runs, or full-suite execution to per-slice validation.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; the reviewed peer reports do not satisfy their evidence gates."
+  ],
+  "validation": {
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEditedForResearch": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer artifact-lineage and ACIS-route readiness refresh",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Separate ACadRust releases, mutable source, and application-pinned codec/kernel revisions",
+    "Refresh the maturity and evidence ceiling of open-source ACIS semantic routes",
+    "Turn the LibreDWG AC1027 AcDs-loss reproducer into a scratch-only composed-gate control",
+    "Preserve fast local implementation gates and existing external qualification boundaries"
+  ],
+  "method": {
+    "kind": "Read current primary project release, source, issue, package documentation, and local plan pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Mutable repository pages and issue reports are discovery evidence, not runtime qualification. LibreDWG issue #1411 was not reproduced; its real R2018 drawing is confidential and unavailable. No ACIS profile, native consumer result, or local defect was inferred. The repository-pinned ODA v5.4.1 specification remains authoritative for DWG layout."
+  },
+  "sources": [
+    {
+      "project": "ACadRust artifact identity and release",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://docs.rs/crate/acadrust/latest",
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "revision": "Release/source/docs pages reviewed 2026-10-18; latest GitHub release v0.6.4 at 8d5c46d; mutable Cargo.toml says 0.6.5; issue #134 open",
+      "observed": "The published release, mutable source package version, and current issue state are not interchangeable. Issue #134 describes a version-specific AC1032 MLeader-context truncated-stream regression against 0.6.4. The test suite includes fabricated SAB framing and same-codec round-trip controls; those are useful writer/parser regressions but not independent solid-semantic evidence."
+    },
+    {
+      "project": "OpenCADStudio and OpenCADKernel dependency lineage",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "Mutable application manifest and kernel README reviewed 2026-10-18",
+      "observed": "OpenCADStudio aliases a separately pinned opencadcodec revision 5d4f11a as acadrust and pins OpenCADKernel a60f18f with acis/offset features. Current kernel documentation describes an ACIS lift/lower layer but also labels the project early and states most operations are not yet written. Neither application tessellation nor README capability prose alone proves complete, valid B-rep semantics."
+    },
+    {
+      "project": "LibreDWG AcDs issue reproducer",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue page reviewed 2026-10-18; report pins LibreDWG 0.14.8593 at 8a1ae764 on Linux x86-64",
+      "observed": "The reporter constructs an AC1032 DXF REGION with a 5,489-byte SAB payload through ezdxf, converts DXF-to-DWG-to-DXF, and reports silent loss of the AcDs payload. A separate real R2018 drawing is confidential and not attached. The report suggests a scratch-only, identity-keyed interoperability control but was not independently reproduced."
+    },
+    {
+      "project": "Open ACIS route boundaries",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/MC-Meesh/opensolid-fable"
+      ],
+      "revision": "Current official project pages reviewed 2026-10-18",
+      "observed": "cq-acis remains a limited bare SAT/SAB parser and CadQuery/OCCT conversion route; OpenSolid is a downstream STEP/kernel candidate without direct DWG, DXF, SAT, or SAB input. Neither can validate the outer entity-to-AcDs association, and they do not constitute two independent ACIS kernels."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies exact artifact lineage for optional peer runs and refines the existing AC1027 composed AcDs/ACIS evidence gate to use a scratch-generated analytic solid with per-object identity, exact carrier bytes, owner/key association, geometry validity, and consumer acceptance scored independently. Existing local queue and fast validation cadence are unchanged."
+  },
+  "implementationReadyChecks": [
+    "Record exact release/tag or commit, repository URL, package version, features, OS/toolchain, operation/direction/version, hashes, diagnostics, and parser/kernel lineage for every peer run.",
+    "Do not transfer results among standalone ACadRust, mutable main, OpenCADStudio's opencadcodec fork, or its pinned kernel revision.",
+    "At the existing composed gate, generate an asymmetric analytic solid in memory or scratch storage and compare source handle/type/owner, modeler flag, AcDs record/key, exact payload length/hash, B-rep validity/closure, units/transforms, and native result separately.",
+    "Do not commit generated DWG/DXF/SAT/SAB/STEP outputs or download the confidential issue drawing.",
+    "Keep peer/native checks out of the routine fast slice loop; record unavailable or profile-incompatible cells as NOT_RUN/NOT_QUALIFIED and continue local implementation.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; this research does not meet their platform or independent semantic evidence requirements."
+  ],
+  "workingTree": {
+    "planFilesUpdated": true,
+    "receiptAdded": true,
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

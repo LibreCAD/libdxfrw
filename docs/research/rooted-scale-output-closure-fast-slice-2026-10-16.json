@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-rooted-scale-output-closure-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Implement and fast-validate the existing 7G.3f.4b.1 SCALE writer path for a rooted ACAD_SCALELIST graph.",
+  "implementationSlice": {
+    "existingSubplan": "7G.3f.4b.1",
+    "status": "LOCAL_FAST_SLICE_PASSING_UNCOMMITTED",
+    "filesChangedForSlice": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "testCases": [
+      "Generated ASCII and binary DXF with NOD to ACAD_SCALELIST DICTIONARY to SCALE at fixed output handle 0x1C.",
+      "DXF-origin raw replay retains an opaque group-302 tag and closes the remapped root/dictionary/scale handles and owners.",
+      "The synthetic typed DWG-origin adapter route emits SCALE values without a raw companion and reads back the edited drawingUnits value.",
+      "A typed/raw owner mismatch is refused before replacing an existing destination."
+    ],
+    "limitations": [
+      "The typed DWG-origin branch is a synthetic adapter control, not a real DWG parser/readback result.",
+      "This slice does not qualify other named-resource families, downstream consumers, or semantic 3D support.",
+      "No new drawing fixture, CTest registration, dependency, full-suite run, or external peer runtime was added or used."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "ctest --test-dir build -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md tests/dwg2dxf_adapter_tests.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h src/libdxfrw.cpp",
+      "python3 -m json.tool docs/research/rooted-scale-output-closure-fast-slice-2026-10-16.json"
+    ],
+    "adapterTargetBuildPassed": true,
+    "lc3CompatibilityTargetPassed": true,
+    "focusedCTest": {
+      "name": "libdxfrw_named_resource_import_evidence",
+      "passed": true,
+      "passedTests": 1,
+      "failedTests": 0,
+      "generatedEncodings": ["ASCII DXF", "binary DXF"]
+    },
+    "scopedDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "fullSuiteRun": false
+  },
+  "planDelta": {
+    "findingsAdded": 0,
+    "topLevelImplementationSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommitted": false
+  }
+}

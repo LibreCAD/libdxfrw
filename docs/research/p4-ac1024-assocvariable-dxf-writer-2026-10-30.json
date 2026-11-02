@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assocvariable-dxf-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 AcDbAssocVariable direct DXF encoder",
+  "status": "DIRECT_RECORD_ENCODER_VERIFIED_GRAPH_ROUTE_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "661742dd",
+  "scope": "Add a transactional direct DXF record primitive for a fully consumed AC1024 AcDbAssocVariable class-version-2 profile whose EvalVariant is a finite real or signed 32-bit integer. Do not admit the physical mechanical witness while its object-body suffix is unclassified, and do not enable document-level associative output.",
+  "sourceEvidence": {
+    "parserReceipt": "docs/research/p4-ac1024-assocvariable-prefix-2026-10-30.json",
+    "physicalSource": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "version": "AC1024",
+      "objects": 17,
+      "wireEligibility": "Not eligible: typed known fields are captured, but the full object span is not accounted for and wireComplete remains false."
+    },
+    "independentSchema": {
+      "implementation": "LibreDWG",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "references": [
+        "../libredwg/src/dwg2.spec:5726 (ASSOCVARIABLE body order)",
+        "../libredwg/src/dwg2.spec:1809 (EvalVariant discriminator and payload forms)"
+      ],
+      "independentDxfSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+      "observation": "The prior prefix receipt records independent DXF field order as class version, four strings, value discriminator/payload, has_t78, t78 and b290. The independent schema supports real and signed 32-bit integer EvalVariant forms.",
+      "limits": "Neither source nor schema explains the physical witness's remaining body bits or establishes associative consumer semantics."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "profile": {
+      "version": "AC1024",
+      "record": "ACDBASSOCVARIABLE",
+      "classVersion": 2,
+      "evalVariantCodes": [40, 90],
+      "asciiAndBinary": true,
+      "mappedReferences": ["self", "owner", "reactor", "owning network"],
+      "wireOrder": [
+        "record name and self handle",
+        "reactors and owner",
+        "AcDbAssocAction common fields",
+        "AcDbAssocVariable class version and four strings",
+        "EvalVariant discriminator and payload",
+        "has_t78, t78 and b290",
+        "XDATA"
+      ]
+    },
+    "refusal": [
+      "physical or generated records without complete bounded-body status",
+      "unqualified output versions or EvalVariant forms",
+      "unresolved required owner/reactor/network references",
+      "extension dictionaries until their graph edge is source-bound",
+      "unsupported associative body/dependency profiles"
+    ],
+    "routeStatus": "Direct dxfRW record primitive only; it is not dispatched by whole-document output and does not promote the physical source profile. P4 graph-planner routing remains open."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j2",
+      "result": "PASS with -Werror"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_variable_writer$' --output-on-failure",
+      "result": "PASS 1/1; covers ASCII/Binary real and int32 records, exact group/value readback, handle remapping, incomplete/unsupported/xdictionary refusal, unresolved-network refusal, record rollback and corrected retry on the same object."
+    },
+    "readback": "The test reparses serialized ASCII/Binary bytes through dxfReader and compares the complete ordered numeric group/value projection, including a following sentinel record.",
+    "fixturesAdded": 0,
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN; only the owning focused writer selector was required for this slice."
+  },
+  "remaining": "Classify and consume the mechanical witness's residual body/handle span before marking it wire-complete. Route the direct encoder through source-bound graph planning, close all required descendants, inspect staged output independently, and verify document-level readback and whole-operation publication rollback/retry."
+}

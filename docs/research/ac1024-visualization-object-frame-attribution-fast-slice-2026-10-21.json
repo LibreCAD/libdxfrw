@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-ac1024-visualization-object-frame-attribution-v1",
+  "date": "2026-10-21",
+  "status": "DIAGNOSTIC_ONLY",
+  "scope": "PAR-06/PAR-133 sample failure attribution; no production wire-layout change",
+  "observations": {
+    "aerial": {
+      "ctest": "PASS",
+      "objectParseFailures": 0,
+      "classesCrcMismatch": 1
+    },
+    "condominium_with_skylight": {
+      "ctest": "FAIL",
+      "objectParseFailures": 3,
+      "failures": [
+        {
+          "class": "AcDbShLoft",
+          "record": "ACSH_LOFT_CLASS",
+          "handles": [3577, 3566],
+          "fieldTrace": {
+            "numCrossSections": 272,
+            "numGuides": 1380040704,
+            "countDomain": "REJECTED"
+          }
+        },
+        {
+          "class": "AcDbShRevolve",
+          "record": "ACSH_REVOLVE_CLASS",
+          "handle": 3180,
+          "field": "revolve_angle",
+          "bodyBit": 1045,
+          "bitDoubleCode": 3,
+          "odaMeaning": "unused"
+        }
+      ],
+      "classesCrcMismatch": 1
+    },
+    "conference_room": {
+      "ctest": "FAIL",
+      "objectParseFailures": 3,
+      "acshRevolveHandles": [1706, 1747, 1788],
+      "failure": {
+        "field": "revolve_angle",
+        "bodyBit": 1301,
+        "bitDoubleCode": 3,
+        "odaMeaning": "unused"
+      },
+      "classesCrcMismatch": 1
+    },
+    "sun_and_sky_demo": {
+      "ctest": "FAIL",
+      "objectParseFailures": 2,
+      "failures": [
+        {"class": "BLOCKLOOKUPACTION", "type": 528, "handle": 559},
+        {"class": "AcDbPersSubentManager", "type": 515, "handle": 363}
+      ],
+      "classesCrcMismatch": 1
+    }
+  },
+  "change": {
+    "file": "src/drw_objects.cpp",
+    "behavior": "Added DRW_DBG traces for ACSH_LOFT_CLASS numCrossSections and numGuides start/end bit positions, parsed values, success, and count-domain result.",
+    "decodeBehaviorChanged": false,
+    "rawRetentionChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "build": [
+      "PASS: cmake --build build-gcc --target dwg2dxf -j4",
+      "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4"
+    ],
+    "ctests": {
+      "dwg_acsh_revolve_opaque_frame_capture": "PASS",
+      "dwg_acsh_failed_frame_retention": "PASS",
+      "visualization_reader_lane": "1/4 PASS; the three failures remain observable"
+    },
+    "fixtureFilesAdded": false,
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": [
+    "ODA v5.4.1 §2.5 defines BD prefix 11 as unused; it does not define these application-specific AcDbSh* body layouts.",
+    "The Classes CRC warning is also present on the passing aerial sample and is not the discriminator for these three failing reader tests.",
+    "Peer parser behavior is corroborative only and is not used to normalize reserved BD code 11 or infer LOFT count alignment.",
+    "The output still reports partial observed coverage; no 3D semantic, native application, or external qualification follows."
+  ],
+  "nextAction": "Continue another locally evidenced implementation item; keep these three sample failures visible until an authoritative AcDbSh body layout or independent producer trace is available."
+}

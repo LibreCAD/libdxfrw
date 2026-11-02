@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-2 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "699ca5d6b1e010d4972c11c0e7e4bcdebe71e806382b1dd3cd09bf94a3be06b4",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-2.TXT",
+      "role": "Primary byte mapping for ISO/IEC 8859-2:1999; includes explicit C1 identity mappings at 0x80-0x9F."
+    },
+    {
+      "source": "https://www.gnu.org/software/libredwg/refman/globals_c.html",
+      "role": "LibreDWG 0.13.4 public API lists CP_ISO_8859_2; peer corroboration of a distinct DWG code-page identity only."
+    },
+    {
+      "source": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html",
+      "role": "The DXF-specific legacy encoding table lists its ANSI_* declarations but not ISO-8859 labels."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "role": "Autodesk identifies $DWGCODEPAGE but does not enumerate or qualify ISO-8859-2 as a producer/native-consumer DXF label."
+    }
+  ],
+  "scope": {
+    "change": "Added a distinct ISO-8859-2 table, exact-name resolution/factory path, and per-consumption source profile. Exact names are ISO8859-2 and ISO-8859-2.",
+    "compatibilityBehavior": "Compatible selection/decode behavior remains unchanged: ISO8859-2 retains its historic Windows-1250 fallback; ExactNamed uses the standards-based ISO-8859-2 decoder.",
+    "testedBytes": "Every byte 0x80-0xFF decoded and inverse-encoded for both exact labels; generated full-range batch and ASCII/Binary DXF import included.",
+    "sourceAdmission": "The new ISO-8859-2 source profile remains outside the exact-source allowlist and returns UnsupportedProfile.",
+    "fixturesAdded": false,
+    "publicApiChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --iso8859-2-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --consumed-text-profiles",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_2_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "a873f6a37646c66302742749f6a239f43942104c2fed7e583a6a879463f27ca7",
+    "src/drw_base.h": "31ef20af03dc64890cd65048ad0d7542dd874dbdce985737e12275c0f481df19",
+    "src/intern/drw_cptables.h": "2374be25462de67deedec538854c40b862d0407691cd3912ff600fafcf5bceae",
+    "src/intern/drw_textcodec.cpp": "99b7f6ae4cffcc1c1b3c3bf8a839487d2155400b8cf651d927e418c71de5c296",
+    "tests/gbk_codepage_tests.cpp": "b626e5fa032fe31aa1cca6af29045e61b4bd270fa4b8c11781dfe5f4cb8c3da7"
+  },
+  "evidenceLimits": [
+    "Unicode mapping verifies byte/scalar behavior only; it does not establish CAD producer emission or native application acceptance of either DXF label.",
+    "LibreDWG's enum is peer corroboration, not independent producer-authored semantic qualification.",
+    "Exact ISO-8859-2 decoding does not qualify the source profile for strict semantic export admission.",
+    "No persistent fixture, external peer executable, native CAD consumer, or full format suite was run."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

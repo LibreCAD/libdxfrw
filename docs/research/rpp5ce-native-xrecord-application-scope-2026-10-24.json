@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ce native XRECORD application-scope preservation",
+  "date": "2026-10-24",
+  "parentCommit": "968f269bc0244c6a365f48b0b0c088a6adb26ee2",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "LIVE_NATIVE_IMPORT_FACADE_APPLICATION_SCOPE_BLOCKER_FIXED_SOURCE_QUALIFICATION_UNCHANGED",
+  "baseline": {
+    "result": "LIVE_COMPATIBLE_FACADE_EXPORT_REFUSAL_REPRODUCED",
+    "testExitCode": 8,
+    "sourceRevision": "AC1015",
+    "targetRevision": "AC1015",
+    "encoding": "ASCII",
+    "applicationMarker": "BODY_CONTROL",
+    "nativeAuthorImportExactApplicationCaptureAndCorrelationSucceeded": true,
+    "compatibleFacadeExportSucceeded": false,
+    "refusalStage": "OBJECTS emission",
+    "precedingDefaultStrictRefusalExpected": true,
+    "firstTestWallSeconds": 0.35,
+    "totalWallSeconds": 0.36,
+    "allMatrixCellsExercisedBeforeAbort": false,
+    "buildLog": "/tmp/rpp5ce-baseline-build.log",
+    "testLog": "/tmp/rpp5ce-baseline-tests.log"
+  },
+  "implementation": {
+    "scope": "Independent dx_raster_output::inspect framing only: XRECORD application102 after outer subclass is not common-group syntax",
+    "commonPrefixGroupingPreserved": true,
+    "genuinelyUnclosedXrecordCommonGroupRefusedAtCompletion": true,
+    "application102AfterCommonXdataRefused": true,
+    "otherObjectFamiliesGroupingRulesUnchanged": true,
+    "observerUsesProductionClassifierOrDecoder": false,
+    "independentCursorWidthSubsetChanged": false,
+    "selectedRecordModelIdentityOwnerReferenceFrozenSourceAndBudgetChecksUnchanged": true,
+    "writerEncodingOrNativePredicatesParserEncoderChanged": false,
+    "sourceEligibilityIssueMasksOrSemanticSupportClaimsPromoted": false,
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "documentMergePolicyChanged": false
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_native_xrecord_application_scope",
+      "dwg2dxf_native_xrecord_scope_faults",
+      "dwg2dxf_raster_xrecord_scope_framing"
+    ],
+    "selectors": [
+      "--native-xrecord-application-scope",
+      "--native-xrecord-scope-faults",
+      "--raster-xrecord-scope-framing"
+    ],
+    "source": "Scratch public native writer/import, actual facade export/readback and actual parsed DXF cross-encoding reexport; no fabricated native receipts",
+    "positiveMatrix": {
+      "nativeSourceRevisions": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "targetRevisions": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "binary"
+      ],
+      "application102Markers": [
+        "BODY_CONTROL",
+        "{literal",
+        "}",
+        "{ACAD_REACTORS",
+        "{application-pair followed by }"
+      ],
+      "additionalApplicationFields": [
+        "Repeated100 AcDbXrecord",
+        "Later280 integer7",
+        "Mapped330 GROUP reference",
+        "Trailing application1 string"
+      ],
+      "scratchNativeSources": 30,
+      "actualNativeToDxfProjections": 360,
+      "actualParsedCrossEncodingReexports": 360,
+      "legacySourceCellsRemainUnqualified": 120,
+      "modernSourceCellsRetainThreeExistingStandardObjectFacts": 240,
+      "defaultStrictPolicyDestinationSentinelRefusals": 60,
+      "exactApplicationValuesOrderMappedReferencesAndCommonMetadataChecked": true,
+      "reexportDictionaryMembershipOwnershipAndCommonEedTransportChecked": true,
+      "originalNativeSourceUnchanged": true
+    },
+    "lateSourceFaultMatrix": {
+      "representativeNativeRevisions": [
+        "AC1015",
+        "AC1032"
+      ],
+      "scratchNativeSources": 10,
+      "markerModes": 5,
+      "encodings": [
+        "ASCII",
+        "binary"
+      ],
+      "phases": [
+        "After facade writeObjects before inspection",
+        "Before base finalizeDxfWrite"
+      ],
+      "edits": [
+        "Application102 text",
+        "Application280 integer7 to9"
+      ],
+      "atomicRefusalAndRestoredReadbackRetries": 80,
+      "destinationSentinelsPreserved": true,
+      "sourceRestoredByPublicRecordCopy": true,
+      "privateSourceReceiptsRefreshedOrFabricated": false,
+      "retryContext": "Same facade; each fileExport operation creates its own codec",
+      "originalEligibilityCaptureAndCorrelationCheckedAfterRestoration": true
+    },
+    "framingMatrix": {
+      "scratchPositiveCases": 10,
+      "malformedAndRestoredByteControls": 50,
+      "rawFramingRefusals": 48,
+      "ambiguousShiftedHeaderModelRefusals": 2,
+      "ambiguity": "An application literal } balances a deliberately deleted common-prefix closer; raw syntax cannot infer intended scope, but unchanged modeled subclass/cloning validation rejects the shifted header",
+      "restoredOriginalBytesRequiredAfterEveryControl": true,
+      "familyIsolationRejectionProbes": 8,
+      "families": [
+        "DICTIONARY",
+        "IMAGEDEF",
+        "IMAGEDEF_REACTOR",
+        "IMAGE"
+      ],
+      "faults": [
+        "Plain102 before subclass",
+        "Stray closing102 before subclass",
+        "Deleted intended common-prefix closer",
+        "Duplicate common-prefix closer",
+        "Application102 after common XDATA"
+      ],
+      "evidenceBoundary": "Framing/model controls, not valid IMAGE semantic fixtures, atomic wire-fault cases or independent native producer/source qualification"
+    },
+    "existingBinaryTransportAndMaterialProfileIsolationBehaviorAndCountsPreserved": true,
+    "existingFixtureExactApplicationAndOwnerAssertionsStrengthened": true,
+    "independentNativeProducerOrApplicationSemanticQualification": "NOT_RUN"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedConsumersRebuiltOrRelinkedBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5ce-final-build.log",
+      "asanLog": "/tmp/rpp5ce-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 40,
+      "total": 40,
+      "wallSeconds": 21.79,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_native_xrecord_application_scope",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "libdxfrw_public_header_hygiene",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "dwg2dxf_native_xrecord_scope_faults",
+        "libdxfrw_standard_dwg_output_allocation",
+        "dwg2dxf_standard_dwg_binary_transport",
+        "libdxfrw_xrecord_legacy_double_codes",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_xrecord_legacy_boolean_codes",
+        "dwg2dxf_generated_root_common_closure",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "libdxfrw_xrecord_normal_string_codes",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_material_root_output_compatibility",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "dwg2dxf_raster_xrecord_scope_framing",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "libdxfrw_standard_dwg_group_metadata",
+        "dwg2dxf_standard_output_framing_controls",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_standard_object_wire_comparison",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_extension_graph_limits"
+      ],
+      "log": "/tmp/rpp5ce-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 9.67,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_hardening",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5ce-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 2.16,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_3d_consumer_probe",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_dwg_reader_matrix"
+      ],
+      "log": "/tmp/rpp5ce-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 21,
+      "total": 21,
+      "wallSeconds": 46.44,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_generated_root_common_closure",
+        "libdxfrw_xrecord_legacy_double_codes",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_xrecord_normal_string_codes",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "libdxfrw_xrecord_legacy_boolean_codes",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "dwg2dxf_standard_output_framing_controls",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_group_metadata",
+        "dwg2dxf_raster_xrecord_scope_framing",
+        "dwg2dxf_native_xrecord_scope_faults",
+        "dwg2dxf_native_xrecord_application_scope"
+      ],
+      "log": "/tmp/rpp5ce-asan-final.log",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN",
+    "independentProducerPlatformSemanticOrBenchmarkQualificationClaim": false
+  },
+  "remaining": [
+    "Reproduce whole-OBJECTS width/profile parity for accepted rooted DXF XRECORD normal103/104/106..109 and explicit legacy widths; code-inspection hypothesis only until live failure",
+    "If reproduced, independently qualify required observer widths/profile boundaries without sharing production classifier or admitting unknown binary widths",
+    "Preserve exact selected IMAGEDEF/reactor field-span/reference-role proof, actual rooted-object coexistence and failure/restoration controls",
+    "Authoritative DWG specification and actual bounded source traces before native XRECORD predicate/parser/encoder changes",
+    "Independent APPID/LAYER/XRECORD name/body/path/EED evidence, sparse class cardinality, full IMAGE/common geometry and broader document closure",
+    "Explicit source ownership/generation/remapping contracts before multi-document composition",
+    "Self-update plan and immutable receipt, self-unblock safe in-scope dependencies, commit each verified slice and show progress with fast scoped validation"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

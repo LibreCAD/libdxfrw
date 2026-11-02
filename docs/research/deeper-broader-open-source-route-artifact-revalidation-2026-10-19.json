@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader open-source route and artifact-claim revalidation",
+  "mode": "Primary-source project documentation and local-plan review; research-only update",
+  "scope": [
+    "Revalidate candidate DWG/DXF reader, writer, converter, and application routes",
+    "Separate parser lineage from wrappers, ports, scene/render projections, and external conversion",
+    "Check license eligibility and test-corpus provenance before peer admission",
+    "Distinguish historical project metrics from current release/source qualification",
+    "Refine the existing PAR-07/S8 optional peer admission protocol without changing local implementation order"
+  ],
+  "sources": [
+    {
+      "name": "ft_model current README and historical project status",
+      "urls": [
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/hhcme/ft_model/blob/main/PROJECT_STATUS.md",
+        "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+        "https://github.com/hhcme/ft_model/blob/main/docs/ALGORITHMS.md"
+      ],
+      "observed": "The project describes a C++20 direct DWG/DXF parser and a 2D SceneGraph/render path. PROJECT_STATUS.md explicitly labels itself historical/superseded and gives 2026-04-23 file-level comparison figures whose reference route is LibreDWG DWG-to-DXF plus ezdxf entity extraction. The current documented export is SceneGraph JSON. The README's planar SOLID route does not establish ACIS 3DSOLID/REGION/BODY, AcDs association, a B-rep kernel, or DWG/DXF writing. Treat this as a source-distinct but reference-correlated optional 2D projection candidate, not current or independent semantic qualification."
+    },
+    {
+      "name": "UnCAD current route and scope",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad#scope"
+      ],
+      "observed": "Current project documentation says UnCAD is read-only and exports a normalized model as JSON/SVG/PNG. DWG parsing uses LibreDWG through FFI; ASCII/Binary DXF R2007+ uses the separate undxf parser. No DWG/DXF writing or conversion is offered. Deduplicate the DWG route under LibreDWG and admit undxf only for an exact pinned DXF-read question."
+    },
+    {
+      "name": "Zephyr current format-operation split",
+      "urls": [
+        "https://github.com/joseph-montanez/zephyr",
+        "https://github.com/joseph-montanez/zephyr/blob/main/README.md"
+      ],
+      "observed": "The README identifies DXF I/O as a Swift port of libdxfrw and DWG I/O as an ODA File Converter CLI bridge. These may support an optional application-consumer observation, but they are separate lineages and the reviewed README did not bind exact converter artifacts/arguments to an immutable application release. Do not count this as an independent open-source parser route."
+    },
+    {
+      "name": "codelibs/libdxfrw fork and test provenance",
+      "urls": [
+        "https://github.com/codelibs/libdxfrw",
+        "https://github.com/codelibs/libdxfrw#testing",
+        "https://github.com/codelibs/libdxfrw/blob/master/SPECIFICATIONS.md"
+      ],
+      "observed": "The repository identifies itself as a fork of original libdxfrw and advertises test programs, but says test files are hosted in the separate fess-testdata repository. The reviewed docs do not bind the corpus license/provenance or establish release-bound behavior for current later DWG versions. Keep it as same-family source comparison; pin and audit source and test-data revisions before any optional run."
+    },
+    {
+      "name": "Sea-DXF-Core / SeaCad stated license boundary",
+      "urls": [
+        "https://github.com/seaflower205/Sea-DXF-Core"
+      ],
+      "observed": "The README explicitly says the visible source is under a proprietary license and that visibility grants no permission to use, modify, or redistribute it; the first stated target is DXF. Exclude it from the open-source implementation matrix, code/test reuse, runtime dependencies, and support evidence unless a license change is documented and re-reviewed."
+    },
+    {
+      "name": "Local DWG/DXF parity plan",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "These routes map to existing PAR-07/S8 evidence and consumer lanes. The update sharpens source eligibility, lineage, age, corpus provenance, and result-surface requirements without adding a local issue or mandatory peer execution."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing optional PAR-07/S8 peer-admission protocol. Each route must be scored by exact operation, parser lineage, immutable artifact, corpus/expected-result provenance, evidence age, and exposed result surface. Historical ft_model metrics remain historical and correlated with LibreDWG/ezdxf; UnCAD DWG is LibreDWG-derived; Zephyr splits libdxfrw-port DXF and ODA CLI DWG; codelibs is same-family; SeaCad is excluded under its stated proprietary license. No candidate promotes DWG/DXF semantic support or any deferred external J item."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation review plus focused crosswalk against the existing local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "All peer descriptions and metrics are project-authored documentation, not independent runtime results. No commit/release archives were built or run; test-corpus licensing and provenance were not independently audited; mutable main-branch docs can change. The results qualify candidate admission only and are not format authority, local defect evidence, or semantic support qualification."
+  }
+}

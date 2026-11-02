@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated multi-chunk DXF modeler carrier readback and final-tail sentinel",
+  "mode": "local generated fast-test implementation following broader peer failure-mode research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close the direct public-readback coverage gap for long repeated DXF modeler text chunks",
+    "Check final carrier tail retention independently of merely observing a modeler entity or output file",
+    "Keep LibreDWG's reported dropped-final-SAT-block failure as peer context, not a reproduced libdxfrw defect",
+    "Use generated local inputs and the existing focused modeler writer test owner"
+  ],
+  "implementation": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--modeler-dxf-long-carrier",
+    "payload": {
+      "byteLength": 511,
+      "chunkProfile": [255, 255, 1],
+      "finalSentinel": "FINAL-PAYLOAD",
+      "claim": "Opaque printable text carrier only; not a SAT grammar or B-rep semantic witness"
+    },
+    "routes": [
+      {"dxfEncoding": "ASCII", "version": "AC1018"},
+      {"dxfEncoding": "Binary", "version": "AC1021"}
+    ],
+    "assertions": [
+      "Public dx_iface export/import round-trip",
+      "Exact concatenated retained carrier bytes including final sentinel and parser newline contract",
+      "Expected chunk count, contiguous offsets, first group 1 then group 3 continuation ordering",
+      "Each text value is non-empty and no longer than 255 bytes",
+      "Existing --modeler-dxf-matrix continues to check emitted writer tags over its version/encoding matrix"
+    ],
+    "relatedCompileRepair": "Corrected an existing test aggregate initializer to explicitly set the newly added m_hasObjectOsnapType presence flag false before the object handle.",
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-long-carrier",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "focusedSelectorResult": "DXF modeler multi-chunk final-carrier readback: PASS for generated ASCII AC1018 and Binary AC1021 cases",
+    "neighborMatrixPassed": true,
+    "neighborMatrixResult": "Existing multi-version ASCII/Binary modeler DXF writer matrix: PASS",
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "owningCtestRun": false,
+    "repairNote": "The first target build stopped at a stale aggregate initializer where a uint32 object handle narrowed into the newly added bool presence field. After explicitly setting that presence flag false, the strict target build and both focused selectors passed."
+  },
+  "assessment": {
+    "newConfirmedProductionDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds a fast generated public-readback regression for exact multi-chunk text carrier retention and final-tail integrity. It neither reproduces a peer bug nor qualifies SAT/SAB semantics, AcDs association, native CAD consumption, or the external J items."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout has extensive existing tracked and untracked work. Only the local test, plan progress entry, and this receipt were changed for this slice; unrelated work was preserved."
+  }
+}

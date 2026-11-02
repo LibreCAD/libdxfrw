@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Proxy-object adapter shared capture budget fast slice",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound both typed DRW_ProxyObject and raw ACAD_PROXY_OBJECT adapter copies.",
+    "Charge both callback forms to one aggregate budget.",
+    "Verify typed-first and raw-first rejection fail closed before output publication."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": true,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "The typed callback estimates common table-entry/XDATA content, proxy subclass, three binary payload vectors, object-ID reference slots, and two logical list-link slots. The raw callback estimates the raw carrier plus two list-link slots. Both charge one dx_data counter, with a 100,000-record ceiling per vector and DRW::kMaxDxfBinaryPayloadBytes aggregate logical bytes. Any rejection/allocation failure sets a sticky flag checked by fileExport.",
+    "generatedTest": "The selector verifies typed and raw retention and shared charge, then tests an over-budget typed first callback and an over-budget raw first callback in separate empty dx_data objects; neither is appended and neither can publish a DXF. No drawing fixture is used.",
+    "limits": "Logical retained payload/container slots and list links are estimated, not implementation-specific allocator metadata or process RSS."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelectors": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_(proxy_object_capture_limits|dynamic_block_capture_limits|dynamic_block_fail_closed|acsh_history_capture_limits|evaluation_graph_capture_limits|named_object_callback_storage)$' --output-on-failure",
+      "result": "passed 6/6"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fb657d5ad135dfe4e17f744b61c367d35fbae0259f5efac89321c3aba8349e46",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "No arbitrary proxy-data fidelity or modeler/ACIS semantic support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No external drawings or repository fixtures were added.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

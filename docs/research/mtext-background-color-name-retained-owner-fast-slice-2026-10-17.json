@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "MTEXT background color-name retained owner",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the parser-owned DXF MTEXT group-431 background color name to the entity retained-string owner",
+    "Clear the field charge when MTEXT parser state is reset",
+    "Leave color semantics, MTEXT text-chunk accounting, DWG decoding, caller mutation, and writer/projection copies outside this slice"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_MText::parseCode now admits group-431 m_backgroundColorName through replaceDxfRetainedStringField using a dedicated per-field byte counter. resetDwgState clears the counter. Implicit copy and move operations preserve accounting together with the value and shared base lease. Generated ASCII controls discover the minimum accepted budget for OLD-to-COLOR-NAME and cover cap success, one-byte-under preservation, copies, moves, and final reset release.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_MText layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-mtext-background-color-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-geopositionmarker-notes-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedMTextAndNeighborSelectors": "passed (2/2)",
+      "owningHardeningCTest": "passed (1/1; 0.30 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned DXF group-431 string is charged to the shared logical retained-byte budget and follows copied or moved model values. The one-byte-under control stops before replacing the prior name and preserves its charge. No process-RSS/capacity, color-interpretation, complete-DXF-read, DWG, caller-mutation, writer/projection-copy, or native CAD claim follows.",
+    "coverage": "Generated ASCII direct-parser controls verify minimum-cap discovery, exact-cap replacement, refusal without replacing the prior value, copy construction/assignment, move construction/assignment, and final reset release. The owning hardening CTest passes.",
+    "limitations": "The main MTEXT text-chunk lease remains a separate owner. No external drawing, peer parser, native CAD application, full suite, allocation benchmark, or support/J promotion was used. Public post-parse mutation of m_backgroundColorName is not covered by parser-retained accounting."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

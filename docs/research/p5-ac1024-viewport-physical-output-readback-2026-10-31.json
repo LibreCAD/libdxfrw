@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-viewport-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 census VIEWPORT typed output/readback profiles",
+  "status": "TWO_PHYSICAL_VIEWPORT_PROFILES_OUTPUT_READBACK_PROVED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "opaqueCensusIdentities": [
+      {
+        "sourceOffset": 16411,
+        "objectType": 34,
+        "handle": "28B"
+      },
+      {
+        "sourceOffset": 16577,
+        "objectType": 34,
+        "handle": "290"
+      }
+    ],
+    "typedRecord": "DRW_Viewport",
+    "fixturePolicy": "Reused the existing local DWG witness; no DWG or DXF fixture was added."
+  },
+  "formatAuthority": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "version": "5.4.1",
+    "section": "20.4.38 VIEWPORT ENTITY (34)",
+    "finding": "The DWG body lists viewport geometry/view/render fields and handle references; DXF groups 68 and 69 are not fields in this DWG entity body. Their output values are adapter projections derived from paper-space ordering."
+  },
+  "implementation": {
+    "change": "Added focused physical-source output/readback for the two AC1024 census VIEWPORTs.",
+    "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
+    "sourceSha256": "f82860810f8011167f76183ac283ff236a5603ad13b82832d2b01293dabb9b77",
+    "selector": "--viewport-physical-output-readback"
+  },
+  "outputReadback": {
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "route": "Import the physical DWG, export the full source in explicit AllowPartial mode, then freshly import each exact DXF output.",
+    "identityJoin": "DXF output handles are allocated anew. Each of the two source handles must match exactly one output by its unique admitted typed field projection and the same ENTITIES adapter container; output handles must be valid and non-aliased.",
+    "checked": [
+      "space, container, layer/linetype, color, transparency, lineweight, linetype scale, material/plot-style/shadow and visibility fields",
+      "viewport geometry, center, view target/direction, clipping, snap/grid, view length/height, status flags, stylesheet, render mode, UCS fields, shade mode, default lighting and effective ambient color",
+      "frozen-layer and viewport target references",
+      "extension dictionary owner role, complete entry count/order/names, and each XRECORD target existence, owner and field count",
+      "DXF-only group 68/69 projections are exactly the two values 1/1 and 2/2; they are not compared as source DWG body fields"
+    ]
+  },
+  "failureAndRetry": {
+    "negativeControl": "Set the first source VIEWPORT viewHeight to positive infinity; the writer refuses and preserves a pre-existing destination sentinel.",
+    "retry": "Restore the original value and retry with the same adapter; both encodings export and freshly reimport.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; both census profiles, selected fields, container membership, extension dictionary/XRECORD owner links, derived group 68/69 projection, atomic refusal and same-adapter retry verified.",
+      "executableSha256": "b1d3f49b2a4ac4bc7289c10299c46ec3d35b38f9a499c653c9cec4c87f8535b3"
+    },
+    "fullSuites": "NOT RUN; touched warning-as-error target build and focused physical selector were sufficient for this profile slice."
+  },
+  "limitations": [
+    "Export uses AllowPartial; strict complete-export remains closed by 228 opaque callback views and zero retained correlation frames.",
+    "The output comparison proves the listed selected typed profile and owner edges; it is not independent CAD, native-platform or rendered viewport qualification.",
+    "No support claim or external item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind physical AC1024 VIEWPORT handles 0x28B and 0x290 to their unique selected typed output profiles and fresh ASCII/Binary readback, including derived DXF 68/69 values, extension dictionary owner edges, atomic refusal and retry.",
+    "nextAction": "Close the two P5 LAYOUT and one rich R24 TABLESTYLE census profiles, then refresh the composed strict-export checkpoint without relaxing the completeness gate.",
+    "externalItemsPromoted": 0
+  }
+}

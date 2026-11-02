@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF XRECORD typed-payload variant-node admission",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Charge selected typed XRECORD payload variants before materialization",
+    "Count compatibility and ordered mirrored views separately",
+    "Verify the shared aggregate across HEADER and XRECORD records in ASCII and Binary DXF"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.7",
+    "files": [
+      "src/drw_objects.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "DRW_XRecord::parseCode charges two shared variant nodes before adding mirrored compatibility and ordered values, one before adding a handle-valued ordered variant, and two before creating a coordinate tuple. Subsequent coordinate components mutate existing tuples. Separate m_handleValues pairs, vector capacities, raw carriers, custom object maps, and caller/container copies are not counted.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "privateHeaderMethodSignatureChanged": false,
+    "downstreamRebuildRequiredByThisSlice": false,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "temporaryGeneratedBinaryInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-xrecord-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/xrecord-typed-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_objects.cpp src/intern/dxfreader.h src/libdxfrw.h tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/xrecord-typed-variant-node-budget-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedXrecordSelector": "PASS: ASCII/Binary exact cap, typed payload coverage, one-under callback refusal, ResourceLimit diagnostic, and same-facade retry",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.28 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "The counter covers selected typed DRW_Variant materializations only; it is not a global allocation, memory, capacity, or RSS limit.",
+    "The separate handle pair vector, raw carriers, custom object maps, callback/user copies, and uninstrumented parser allocations are outside the counted unit.",
+    "Generated exact caps use locally created ASCII/Binary controls; no external drawing was downloaded or committed.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this verified slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

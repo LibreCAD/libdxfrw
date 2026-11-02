@@ -1,0 +1,58 @@
+foreach(_required IN ITEMS READER_TEST DWG2DXF OUTPUT_DIR)
+    if(NOT DEFINED ${_required})
+        message(FATAL_ERROR "${_required} is required")
+    endif()
+endforeach()
+foreach(_path IN ITEMS READER_TEST DWG2DXF)
+    if(NOT EXISTS "${${_path}}")
+        message(FATAL_ERROR "${_path} does not exist: ${${_path}}")
+    endif()
+endforeach()
+
+string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _run_id)
+set(_test_root "${OUTPUT_DIR}/r11-paper-space-${_run_id}")
+file(MAKE_DIRECTORY "${_test_root}")
+set(_input "${_test_root}/generated-ac1009.dwg")
+set(_output "${_test_root}/generated-ac1009-r12.dxf")
+
+execute_process(
+    COMMAND "${READER_TEST}" --write-r11-paper-space-control "${_input}"
+    RESULT_VARIABLE _generate_result
+    OUTPUT_VARIABLE _generate_stdout
+    ERROR_VARIABLE _generate_stderr
+    TIMEOUT 15)
+if(NOT "${_generate_result}" STREQUAL "0")
+    message(FATAL_ERROR
+        "Could not generate the AC1009 control (${_generate_result}).\n"
+        "${_generate_stdout}\n${_generate_stderr}\nEvidence: ${_test_root}")
+endif()
+
+execute_process(
+    COMMAND "${DWG2DXF}" "${_input}" -y -d -R12 "${_output}"
+    RESULT_VARIABLE _convert_result
+    OUTPUT_VARIABLE _convert_stdout
+    ERROR_VARIABLE _convert_stderr
+    TIMEOUT 15)
+if("${_convert_result}" STREQUAL "0")
+    message(FATAL_ERROR
+        "The deliberately minimal AC1009 control unexpectedly passed the "
+        "strict-complete CLI gate. Re-audit its completeness before treating "
+        "it as a positive CLI fixture.\n${_convert_stdout}\n${_convert_stderr}\n"
+        "Evidence: ${_test_root}")
+endif()
+if(EXISTS "${_output}")
+    message(FATAL_ERROR
+        "Strict-complete CLI refusal published an output: ${_output}")
+endif()
+set(_diagnostics "${_convert_stdout}\n${_convert_stderr}")
+string(FIND "${_diagnostics}"
+    "strict-complete conversion requires successful, complete DWG read disposition"
+    _strict_refusal_position)
+if(_strict_refusal_position EQUAL -1)
+    message(FATAL_ERROR
+        "CLI failed for a reason other than the expected strict-complete "
+        "refusal (${_convert_result}).\n${_diagnostics}\nEvidence: ${_test_root}")
+endif()
+
+file(REMOVE_RECURSE "${_test_root}")
+message(STATUS "AC1009 minimal control was refused before CLI output publication")

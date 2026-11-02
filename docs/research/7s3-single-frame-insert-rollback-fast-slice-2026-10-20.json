@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 single-frame INSERT rollback checkpoint fast slice",
+  "mode": "Local implementation slice with generated in-memory controls",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid the facade's growing compound writer snapshot for an ordinary INSERT that emits one frame and has no ATTRIB or SEQEND children.",
+    "Preserve caller rollback state, owner/insert indexes, and full fallback for compound/unsupported paths."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "routes": [
+      "dwgRW::writeInsert"
+    ],
+    "behavior": [
+      "For no-attribute/no-sequence INSERTs with a writer that advertises retained entity rollback, capture the caller's pre-allocation state and use encodeEntityForWrite instead of checkpointing all writer ledgers in the facade.",
+      "Restore original caller fields after failed encoding; on success replace the post-normalization mutation journal entry with the original pre-write state for implicit and outer transaction rollback.",
+      "Leave attribute-bearing INSERTs, preserved legacy empty sequences, and writers without entity rollback support on the existing comprehensive transaction path; dwgWriter15 retains its custom-class-associated full fallback."
+    ],
+    "testChanges": [
+      "Extends the existing --block-owner-membership-index selector with an ordinary single-frame INSERT on a clean AC1015 writer and asserts zero full checkpoints plus emitted-object, block-owner, and insert-reference membership.",
+      "Injects a missing frame receipt and verifies output bytes, object map, emitted-handle index, owner ledgers, insert-reference ledgers, caller handle, and SEQEND fields are restored.",
+      "Writes an auto-handle INSERT inside a caller-mutation-tracking transaction and rolls back; verifies the caller's original zero handle/SEQEND metadata and all frame/index state return to baseline, with only the explicit transaction's checkpoint."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip|dwg_dxf_issue_1410_cross_codec)$' --output-on-failure",
+      "result": "PASS (4/4)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fullCheckpointCallsAssertedForOrdinarySingleFrameInsert": 0,
+    "outerTransactionCheckpointCallsExpected": 1,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "newTestsOrCtestRegistrations": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "fullSuiteRun": false,
+    "benchmarkRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The zero-full-checkpoint assertion is deterministic work evidence, not wall-clock throughput measurement.",
+    "The fast facade path covers only no-attribute/no-sequence INSERTs; compound attributes and preserved legacy sequences intentionally retain full snapshots.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Keep attribute-bearing INSERT and POLYLINE/VERTEX sequence rollback comprehensive; audit the next high-cardinality path for a bounded append/rollback boundary before changing it."
+}

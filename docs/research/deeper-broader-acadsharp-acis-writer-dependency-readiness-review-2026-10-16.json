@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw-deeper-broader-acadsharp-acis-writer-dependency-readiness-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile the released ACadSharp baseline, the open ACIS DXF writer PR, and its ACDS schema prerequisite; refine existing optional peer-comparison readiness without asserting a local defect or promoting 3D support.",
+  "method": {
+    "kind": "Primary project release, issue, and pull-request state review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "reportingBoundary": "The ACDS unit-test failure is a contributor comment about the open #1174 branch; it was not independently reproduced and is not attributed to ACadSharp master, released v3.8.0, or PR #1240.",
+    "evidenceRule": "A release, issue report, open PR, or peer self-test does not establish local libdxfrw behavior, current deployed capability, cross-version carrier preservation, B-rep validity, or native application acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "Released ACadSharp baseline",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": "The release page identifies v3.8.0 at signed commit 3a1c66b and lists InternalsVisibleTo as the release change. It does not announce ACIS DXF-writer support.",
+      "doesNotEstablish": [
+        "that a later release has not appeared after this research snapshot",
+        "that mutable master behaves identically to the v3.8.0 package",
+        "runtime behavior on any ACIS DXF/DWG witness"
+      ],
+      "planUse": "Use v3.8.0 as the released comparison baseline only after verifying that it is still the desired pin when a composed peer run is scheduled."
+    },
+    {
+      "topic": "ACIS DXF writer issue and candidate PR",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Issue #1195 describes omitted 3DSOLID/REGION content on ACadSharp 3.4.9, including blocks that become empty. The maintainer says the entities are not yet supported by the DXF writer. Linked PR #1240 is open, has no review/deployment shown, and depends on #1174. Its description mentions ACIS serialization, version checks, warnings for unsupported binary payloads, and pre-2013 compatibility.",
+      "doesNotEstablish": [
+        "that v3.8.0 reproduces issue #1195",
+        "that PR #1240 builds or passes its prerequisite tests",
+        "complete R2013+ SAB/ACDSDATA output or block/INSERT closure",
+        "native CAD acceptance or B-rep semantic correctness"
+      ],
+      "planUse": "Treat #1240 only as an experimental candidate; distinguish its exact source/build and emitted-version profile from released behavior."
+    },
+    {
+      "topic": "ACDS schema prerequisite readiness",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": "PR #1174 remains open and describes ACDS schema/storage refactoring and embedded-record parsing. An August 12 contributor comment says a focused owner-attachment test failed on that PR branch because readAcdsRecord threw NotImplementedException, with the post-2013 DXF path losing the payload. This report was not rerun here.",
+      "doesNotEstablish": [
+        "current master failure",
+        "the exact state of PR #1240's dependency checkout",
+        "that the owner-attachment failure persists in a later revision"
+      ],
+      "planUse": "Make exact dependency resolution plus a focused ACDS owner-attachment read test the first readiness gate before spending time evaluating #1240."
+    },
+    {
+      "topic": "Consumer and parser stage separation",
+      "sources": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "FreeCAD's documented stock DXF path does not construct proprietary ACIS solids. ezdxf documents raw ACIS access and limited faceted projections rather than a general B-rep kernel.",
+      "doesNotEstablish": [
+        "any current FreeCAD or ezdxf runtime result for the local generated controls",
+        "that carrier-byte preservation implies valid geometry",
+        "any relationship between these tools and the ACadSharp writer branch"
+      ],
+      "planUse": "Keep record identity, payload transport, ACDS ownership, B-rep validity, and downstream consumer acceptance as independent evidence stages."
+    }
+  ],
+  "implementationReadiness": {
+    "optionalPeerGateOrder": [
+      "Recheck current release/tag and pin the released package separately from the PR build.",
+      "Pin PR #1240 head/base SHAs, dependency commits, toolchain/target framework, and artifact hash.",
+      "Resolve #1174 at the exact dependency revision and run the focused ACDS owner-attachment test first.",
+      "If ready, test pre-2013 inline SAT separately from R2013+ SAB/ACDSDATA using existing locally authored controls.",
+      "Include a solid-only block and INSERT closure; compare source owner/handle, emitted entity, diagnostics, payload digest/length, ACDS linkage, and strict readback.",
+      "Report transport, entity recognition, ACDS association, B-rep semantics, and native acceptance separately."
+    ],
+    "fastValidation": "No new per-slice test cadence. Keep the default loop on touched strict builds, focused generated tests, compatibility compile checks where applicable, and diff checks; run the peer only at its existing composed checkpoint.",
+    "planImpact": {
+      "existingOwnersOnly": true,
+      "newFindings": 0,
+      "newTopLevelSubplans": 0,
+      "supportClaimsPromoted": 0,
+      "externalJDispositionChanged": false,
+      "deferredExternal": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

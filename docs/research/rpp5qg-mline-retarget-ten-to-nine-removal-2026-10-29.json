@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 ten-to-nine MLINESTYLE retarget removal positions",
+  "date": "2026-10-29",
+  "status": "AC1027_TEN_TO_NINE_RETARGET_ALL_DELETIONS_QUALIFIED",
+  "codeCommit": "aa5d846b977f6c7df2b36e942b58163ae56b9e62",
+  "scope": "Qualify source-count-ten to target-count-nine AC1027 MLINESTYLE retargets for each of the ten single-deletion positions. The target is an ordered offset subset of a separately named style; both open, unfilled, uncut consumers (one in ENTITIES and one in a BLOCK) are reprojected.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Extend the runtime-generated retarget-removal proof to source count ten and qualify every retained ordered subset produced by one deletion. Each position receives the ASCII/binary input/output cross-product, exact target tuple and MLINE reference/parameter checks, fresh readback, non-subset refusal with destination/caller preservation and retry, and late-mutation rollback/retry. Source-count-three through source-count-nine profiles remain in the same selector.",
+    "productionBehavior": "No production behavior changed in this slice; the AC1027-only ordered-offset-subset projector is exercised at all ten source-count-ten deletion positions."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS (existing configured build tree; CMake reconfigured during build)",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_removal_projection$' --output-on-failure",
+      "result": "PASS: 40 source-count-ten positive profiles, 20 refusal/retry profiles and 20 late-failure/retry profiles; selector totals profiles=200, readbacks=240, refusals=20, late=20, retries=40; elapsed=4.55s"
+    },
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF inputs and outputs are generated at runtime in a system temporary directory and removed after success. No DWG/DXF fixture was committed.",
+  "limits": [
+    "Only source count ten to target count nine across all ten single-deletion positions is newly qualified here; source counts three through nine are retained from RPP-5pz and RPP-5qa through RPP-5qf.",
+    "The profile is AC1027, flags 2, equal 90/90 angles, and one ENTITIES plus one BLOCKS consumer. Other source counts, versions, flags, angles, MLINE carriers and native rendering remain open.",
+    "Field output and libdxfrw readback do not establish native MLINE rendering, complete-document conversion, or a broader format-support claim."
+  ],
+  "next": "Qualify source-count-eleven to ten-element AC1027 style retargets across all eleven single-deletion positions using exact output/readback, refusal, rollback and retry controls."
+}

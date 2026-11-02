@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-126 direct DWG TABLE encoder refusal",
+  "mode": "Generated six-version local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified and untracked. This slice adds a DRW_Table encoder refusal, its generated regression, plan updates, and this receipt. Nothing was staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/par126-table-direct-dwg-encoder-refusal-fast-slice-2026-10-21.json"
+    ]
+  },
+  "research": {
+    "source": "Open Design Specification for .dwg files, v5.4.1, section 20.4.96 (ACAD_TABLE)",
+    "finding": "TABLE has a distinct object layout and version transition to TABLECONTENT; DRW_Table inheriting INSERT encoding can produce an INSERT/MINSERT-shaped frame that silently omits TABLE-specific content.",
+    "evidenceCeiling": "The ODA layout supports refusing the wrong encoder path; it does not provide a completed, tested local TABLE writer implementation. No version-specific TABLE output is claimed."
+  },
+  "implementation": {
+    "change": "Add a DRW_Table::encodeDwg override that returns false without changing the entity or supplied data, string, or handle buffers. Preserve the existing higher-level transactional refusal in dwgRW::writeTable.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "assertions": [
+      "Direct encoding refuses on all six writer versions.",
+      "Entity type, handle, and semantic-content state remain unchanged.",
+      "Data, string, and handle buffers retain their seeded bytes and healthy state.",
+      "The existing high-level save refusal still preserves the destination, reports the unsupported-table diagnostic, and allows following ordinary INSERT/LINE callbacks to be individually written."
+    ],
+    "claimBoundary": "Fail-closed identity protection only. Versioned TABLE/TABLECONTENT frames, anonymous display block, linked-object graph, readback, and native acceptance remain unimplemented or unqualified."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dwg-table-writer-refusal",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_table_writer_refusal$' --output-on-failure",
+        "result": "PASS (1/1, 0.06 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_local_roundtrip_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": true,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-126 TABLE writer identity/loss guard",
+    "completedSlice": "Direct lower-level TABLE encoding can no longer fall through to INSERT/MINSERT encoding; all supplied output buffers remain untouched on refusal.",
+    "remainingLocalWork": "Implement complete versioned TABLE/TABLECONTENT frame and linked-object graph only from ODA v5.4.1 layouts plus empirical producer traces, with independent readback and explicit failure/atomic-publication controls.",
+    "nextAction": "Self-unblock to the next dependency-ready local implementation slice; do not wait for external/native qualification.",
+    "supportClaimsPromoted": 0
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Current ACadSharp failure shapes and MTEXT isolation",
+  "mode": "Primary-source web research and read-only local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh ACadSharp's repeated-DXF-record, classic VERTEX, and AC1032 MTEXT writer reports.",
+    "Reconcile each report with local generated controls and authoritative DXF documentation without treating peer reports as format rules.",
+    "Refine the existing composed MTEXT/native gate into a low-cost isolation procedure while preserving reduced validation cadence and self-unblocking."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "revision": "Open issue pages reviewed 2026-10-20; mutable issue evidence",
+      "observed": "#1281 reports three stack-recursion shapes (comment runs, repeated XDATA application blocks, and consecutive WIPEOUT/IMAGE clip-boundary group 91 records) against ACadSharp 3.8.0/master v3.8.10. #1279 reports an AC1014 POLYLINE/VERTEX lacking AcDb2dVertex after AcDbVertex, with whole-document cast failure; the reporter says IxMilia.Dxf accepts the case. #1297 reports AC1032 writer output rejected by AutoCAD 2025 Core Console V.189.0.0 when only TextFrame/group-90 value 16 is set, while 17 and the AC1027 frame-only profile reportedly open; the author says the MTEXT frame/handle stream was made byte-identical but the whole-file rejection remained, and labels missing VisualStyle/detail-view objects as unproven suspects. No issue artifact was downloaded or run."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+      ],
+      "revision": "Published 2020 English DXF reference accessed 2026-10-20",
+      "observed": "The published MTEXT table describes group 90 as background-fill settings 0, 1, or 2; it does not define the reported 16 value. This does not settle any later DWG-only or R2018 extension, so it is a reason not to infer semantics, not proof that the peer's value is invalid."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "revision": "Mutable project README accessed 2026-10-20",
+      "observed": "The README describes a DXF/DXB-only R10-R2014 scope and lists entity exclusions. ACadSharp #1279's assertion that IxMilia reads its exact case is not bound to a release, commit, or executed test in this research pass."
+    }
+  ],
+  "localEvidence": [
+    "src/intern/dxfreader.cpp::dxfReader::readRec skips post-SECTION comments iteratively and consumes a physical-record budget before value decoding.",
+    "tests/hardening_tests.cpp::testRepeatedDxfRecordRobustness generates 20,000 ASCII comments, 20,000 ordered XDATA application/value pairs in ASCII and Binary, and a 20,000-count repeated WIPEOUT group-91 sequence in ASCII and Binary; it checks ordering, neighboring records/callbacks, rejection atomicity, and same-reader retry. This research pass did not run the selector or owning CTest.",
+    "src/drw_entities.cpp::DRW_Image::parseCode validates the group-91 count before reserve and enforces the clip-vertex bound; source inspection is not a measured stack-depth result.",
+    "docs/research/ac1014-omitted-vertex-subtype-marker-fast-slice-2026-10-17.json records generated AC1014 ASCII/Binary coverage and a passing focused selector; its broader fixture CTest failed at that historical snapshot for unrelated assertions/segmentation, and this pass did not rerun it.",
+    "Existing plan sections already classify #1281/#1279 as failure-shape leads and #1297 as unresolved whole-file native rejection; the new addition narrows the #1297 isolation procedure rather than creating a duplicate finding."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-14/PAR-26/7BA/7S: reuse the one repeated-record fast owner; do not copy peer-specific recursion thresholds or duplicate covered stress vectors.",
+      "PAR-14/7BS: keep AC1014 omitted-subtype handling as a bounded compatibility/malformed-input question pending authoritative format or admitted-producer evidence.",
+      "PAR-07/S8 and PAR-19/29: use a scratch-generated AC1027/AC1032 by group-90 16/17 matrix, compare exact MTEXT bytes and complete object-graph closure, and defer native no-recovery open/AUDIT to the existing composed platform lane."
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "testCommandsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Record that the existing repeated-record hardening owner already covers the three #1281 shapes with locally generated controls, including ASCII-only comments and ASCII/Binary XDATA and WIPEOUT runs; do not add duplicate tests or peer-derived maxima.",
+    "Preserve the existing AC1014 VERTEX control while treating the peer's IxMilia observation as unpinned DXF-only evidence, not a standards interpretation.",
+    "Specify a future AC1027/AC1032 x group-90 16/17 generated isolation matrix for #1297, with raw MTEXT/handle bytes, OBJECTS inventory/ownership, and version/header/section differences. Require a demonstrated cause before changing format code.",
+    "Keep peer strict parse and native AutoCAD 2025 no-recovery open/AUDIT optional and at existing composed checkpoints; absent tools/artifacts are NOT_RUN, not blockers for unrelated implementation slices.",
+    "Keep findings/subplans at 141/78 and J256, J260, J268, J284, J293, and J295 explicitly DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "limitations": [
+    "Peer issue pages and README are mutable; no immutable peer source tree/package was pinned or built.",
+    "ACadSharp #1297 supplies no public DWG artifact and no proven root cause; object-graph and MTEXT-field explanations remain hypotheses.",
+    "The Autodesk reference page reviewed does not define group-90 value 16 but also does not establish the full semantics of later DWG profiles.",
+    "Local source and existing test code were inspected only; no local test command or native application was run.",
+    "No external sample, peer fixture, or new fixture was added."
+  ]
+}

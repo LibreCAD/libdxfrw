@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-geom-dependency-physical-identity-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical geometry-dependency source-to-output identity and role binding",
+  "status": "PHYSICAL_54_SOURCE_IDENTITIES_AND_TARGET_ROLES_BOUND_TO_STAGED_OUTPUT",
+  "supportClaimEffect": "none",
+  "baselineCommit": "6474b3f7",
+  "implementationCommit": "c9fc499bbd089c00f36363d255db2a97f9b5122b",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "ACDBASSOCGEOMDEPENDENCY",
+    "count": 54,
+    "targetEntityCounts": {
+      "CIRCLE": 8,
+      "LINE": 39,
+      "ARC": 7
+    }
+  },
+  "operation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/mechanical-after-geodep-binding.dxf",
+    "route": "libdxfrw AC1024 DWG to explicit-partial ASCII DXF",
+    "exitCode": 0,
+    "output": {
+      "path": "/private/tmp/mechanical-after-geodep-binding.dxf",
+      "sha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
+      "bytes": 161368,
+      "debugLog": "/private/tmp/mechanical-after-geodep-binding.log",
+      "debugLogSha256": "79f1b97f235fdd7ba437cca262abc6b1cefc46410b739ddae87204f93d4a57e0",
+      "valueDependencyRecordBoundaryCensus": {
+        "record": "ACDBASSOCVALUEDEPENDENCY",
+        "sourceCountFromCallbackCensus": 30,
+        "stagedCount": 30,
+        "countMethod": "Parse ASCII DXF group-code/value pairs and count only code 0 records with this record name.",
+        "temporaryCounterpartTextLineMatchCount": 31,
+        "interpretation": "The additional exact-text line is a group value, not an extra record."
+      }
+    }
+  },
+  "identityAndReferenceProof": {
+    "stage": "Selected OBJECTS record inspection, followed by finalized writer record-inventory checks",
+    "sourceIdentityToEmittedObject": "54/54 unique source handles map to unique ACDBASSOCGEOMDEPENDENCY OBJECTS records; every selected typed record is inspected exactly once.",
+    "ownerRole": "54/54 emitted owner references match the source parent handle after writer remapping; each source object has a unique emitted identity and owner.",
+    "targetRole": "54/54 dependency target handles map to emitted entities with the source-derived record type and ENTITIES/BLOCKS section; finalization confirms each source entity identity in the writer inventory.",
+    "fields": "The staged decoder compares common header/XDATA fields and the complete admitted dependency and SingleEdge profile, including status, flags, order, name presence/value, dependency/read/node/write/body references, body id, geometry class version, enabled state, persistent-subentity class and compound-object flag.",
+    "sourceMutation": "The export snapshot binds the source generation and captured geometry-dependency fields; mutation after entity serialization fails before publication."
+  },
+  "freshReadback": {
+    "method": "dx_iface::fileImport of the exact physical partial output",
+    "probeSource": "/private/tmp/geom_dependency_readback_probe.cpp",
+    "probeSourceSha256": "4146a06658a48dced4b0d40e16e7733a746f5e1d2e9908514463052fd0eef69a",
+    "probeBinary": "/private/tmp/geom_dependency_readback_probe",
+    "probeBinarySha256": "4d55829e3afd213a58f84a7857bedaa8b5fb51704d05f1316db98edd4f4b18c0",
+    "result": "PASS: 138 associative records read; all 54 ACDBASSOCGEOMDEPENDENCY records have unique handles and match the source-bound dependency/SingleEdge typed profile."
+  },
+  "failureAndRetry": {
+    "selector": "dwg2dxf_associative_geometry_dependency_graph_export",
+    "encodingCoverage": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "Invalid reachable dependency graph refuses while preserving a pre-existing destination sentinel.",
+      "A one-shot dependency target mutation after entity serialization refuses while preserving the sentinel.",
+      "Restoring the source target allows corrected retry through the same adapter and fresh typed readback."
+    ],
+    "fixturePolicy": "Generated in memory; no investigation DWG/DXF fixture was added."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "7c847f176f49febb08764a1f95b096a5a0d13b21d0a9c8e629fe890f95b91495",
+      "adapterTestSha256": "644c29a298b9bca29288d43875ab9a652f2e91f66f62290605f92f2c2720a37a"
+    },
+    "focusedNormalTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_geometry_dependency_graph_export$' --output-on-failure",
+      "result": "PASS 1/1; 0.52 seconds."
+    },
+    "focusedAsanTest": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "buildFlags": "-fsanitize=address -fno-omit-frame-pointer",
+      "testCommand": "ctest --test-dir build-asan-custom -R '^dwg2dxf_associative_geometry_dependency_graph_export$' --output-on-failure",
+      "result": "PASS 1/1; 0.89 seconds.",
+      "adapterTestSha256": "fb2769061d59271b2b93bff521855db21ce165e0e9bce4bf7fd47ed25ecd55bb"
+    },
+    "fullSuites": "NOT_RUN per the focused validation plan."
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "cbb739c303fd114ad400fb7b4afbe273041e4b488c95fc7ca86eef82ef3fe767",
+    "dwg2dxf/dx_iface.h": "b1086160a8b07ae9a79b37d190220627894256da19fa2a173c7ed00678fc2d04",
+    "dwg2dxf/dx_standard_output.h": "1b4d0bedd0c9b91422e63c8372faa2f8b4d2fadde7c6f1d00ae4683e937f35c8",
+    "tests/dwg2dxf_adapter_tests.cpp": "9eecb5e9f5bd1989855c2bb9ccb92bf8e344881f1c26c16f370a5f72d69075df"
+  },
+  "remaining": "The geometry-dependency identity/reference-role packet is complete. The value-dependency identity/field packet is recorded in p4-ac1024-value-dependency-physical-identity-binding-2026-10-31.json. The physical source strict-complete gate remains blocked by 228 opaque callbacks and zero retained correlation frames; the next audited output gap is the seven missing DICTIONARY records and reachable XRECORD children recorded in p4-ac1024-dictionary-output-gap-audit-2026-10-31.json.",
+  "limitations": [
+    "This proves one AC1024 physical partial-output profile; it does not establish strict complete document conversion.",
+    "The reader census still reports 228 opaque callbacks and zero retained correlation frames; the strict-complete predicate remains unchanged.",
+    "No support claim, LibreCAD/LibreCAD_3 or FreeCAD qualification, native-platform, ABI/package, or 3D semantic qualification is promoted."
+  ]
+}

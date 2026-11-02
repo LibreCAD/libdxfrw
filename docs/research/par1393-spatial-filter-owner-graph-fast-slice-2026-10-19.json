@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-139.3 bounded SPATIAL_FILTER owner-graph preflight",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve INSERT extension dictionaries to ACAD_FILTER dictionaries and SPATIAL_FILTER targets independent of callback order",
+    "Reject ambiguous identities, case-folded dictionary key collisions, dangling targets, and incorrect owners",
+    "Follow filter-owned extension dictionaries only when all children resolve to owned typed XRECORDs",
+    "Retain fail-closed output until graph serialization is implemented"
+  ],
+  "localEvidence": [
+    "Generated ASCII and Binary inputs contain two INSERT instances of one block name with separate clip owner graphs",
+    "The complete generated graph sets ownerGraphComplete but remains refused with spatial-filter-serializer-not-implemented",
+    "Generated dangling-target and cross-owned-filter mutations are rejected before publication",
+    "The existing dwg2dxf_named_object_callback_storage CTest passes 1/1"
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an executable bounded owner-closure check for the known XCLIP dictionary route. A closed graph still cannot emit output and does not qualify visual clipping or inversion semantics."
+  },
+  "validation": {
+    "strictBuildTarget": "libdxfrw_dwg2dxf_adapter_tests",
+    "strictBuildPassed": true,
+    "ctest": {
+      "name": "dwg2dxf_named_object_callback_storage",
+      "passed": true,
+      "passedCount": 1,
+      "failedCount": 0
+    },
+    "scopedDiffCheckPassed": true
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": true,
+    "temporaryGeneratedAsciiBinaryInputs": true,
+    "temporaryInputsRemoved": true,
+    "repositoryFixturesAdded": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "limitations": "The generated graph exercises typed DICTIONARY and XRECORD identity checks. No serializer, XCLIP geometry evaluation, native CAD display, or external consumer qualification is implemented in this slice."
+  },
+  "nextAction": "Implement PAR-139.4 serializer scheduling for the complete graph with role-aware handle remapping; preserve the existing destination and permit retry on the same adapter after correction."
+}

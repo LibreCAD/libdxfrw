@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Independent DXF reader diversity and LibreDWG loss boundaries",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen additional open-source DXF readers for independent route value",
+    "Separate uncad's LibreDWG-backed DWG path from its undxf DXF path",
+    "Bound Binary-DXF subset tooling and modeler coverage",
+    "Refresh official LibreDWG class and conversion loss caveats",
+    "Refine the existing implementation-ready peer and local validation gates"
+  ],
+  "sources": [
+    {
+      "project": "uncad README and caveats",
+      "reference": "https://github.com/iyulab/uncad",
+      "relatedReferences": [
+        "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md"
+      ],
+      "status": "current-main-reviewed-2026-10-21",
+      "observation": "The project is read-only. Its DWG path uses vendored/patched LibreDWG through FFI, while ASCII/Binary DXF uses the separate undxf crate. Its caveats describe legacy SAT groups and modern ACDSDATA/SAB DXF paths, bounded ACIS wireframe projection, and explicit unsupported/unknown dispositions. Its reported corpus counts and capabilities are self-reported and were not reproduced here."
+    },
+    {
+      "project": "undxf crate",
+      "reference": "https://docs.rs/crate/undxf/0.2.0/source/Cargo.toml.orig",
+      "relatedReferences": [
+        "https://docs.rs/undxf/latest/undxf/enum.ReadError.html"
+      ],
+      "status": "0.2.0-metadata-reviewed-2026-10-21",
+      "observation": "The published manifest identifies an MIT, safe-Rust DXF reader for the uncad-model schema. The uncad project describes this as its independent ASCII/Binary DXF route, distinct from LibreDWG. Normalized model equality alone may conceal raw-record or omitted-field differences."
+    },
+    {
+      "project": "dxfscan",
+      "reference": "https://github.com/xorgy/dxfscan",
+      "status": "current-repository-reviewed-2026-10-21",
+      "observation": "The ISC-licensed repository documents one-pass R13+ Binary-DXF scanning, a bounded common-entity list, borrowed strings, and Unknown preservation for unrecognized types. The repository shows one commit and no release; it does not document modeler/ACDSDATA semantics, writing, whole-document validation, or external acceptance."
+    },
+    {
+      "project": "SeaCad / Sea-DXF-Core license and design statement",
+      "reference": "https://github.com/seaflower205/Sea-DXF-Core",
+      "status": "license-and-readme-reviewed-2026-10-21",
+      "observation": "The project states that its source is proprietary and that source visibility does not grant permission to use or redistribute it. It was excluded from implementation/code comparison; no code or corpus was accessed or reused."
+    },
+    {
+      "project": "LibreDWG current README and manual",
+      "reference": "https://github.com/LibreDWG/libredwg",
+      "relatedReferences": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html"
+      ],
+      "status": "official-current-source-and-manual-reviewed-2026-10-21",
+      "observation": "LibreDWG documents version- and class-specific read/write caveats, including ignored/unhandled or proxy/placeholder classes and conversion coverage that is not a lossless parity claim. These statements are peer self-documentation and were not reproduced against a pinned executable/input."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06/PAR-07/S2: distinguish parser lineage, class dispatch, conversion, writer, and consumer loss stages",
+      "PAR-07/S7: admit undxf only as an optional pinned DXF parser differential; compare raw groups and normalized typed values separately",
+      "PAR-07/S8: preserve per-source entity, handle, block occurrence, carrier, and unsupported/loss disposition",
+      "PAR-07/S8: keep wireframe projection distinct from B-rep, analytic geometry, independent-kernel, and native-consumer evidence"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add no peer dependency. Treat undxf as an optional independent DXF syntax/carrier candidate only; uncad's DWG path shares LibreDWG and its ACIS output is wireframe evidence. Treat dxfscan as a narrow Binary-DXF subset candidate. Preserve LibreDWG class/converter degradation as stage-local, per-object disposition requirements. Keep local generated fast tests first and external semantic/native gates composed."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-dxf-reader-diversity-libredwg-loss-2026-10-21.json"
+    ],
+    "limitations": "Project README/caveat statements and published crate metadata were reviewed but not independently reproduced. uncad's corpus statistics and ACIS behavior remain peer claims; its DWG reader shares LibreDWG. dxfscan has a limited documented entity set and an immature repository state. No new geometry truth, native application outcome, or local parser defect was obtained."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check and trailing-whitespace scan on the plan and receipt paths)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

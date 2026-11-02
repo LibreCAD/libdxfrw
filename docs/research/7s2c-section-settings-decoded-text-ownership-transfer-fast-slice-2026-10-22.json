@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c SECTION_SETTINGS decoded-text ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move each decoded SECTION_SETTINGS group-1 value into its selected retained string owner, preserving the separate legacy mirror owner when present.",
+    "routes": [
+      "DRW_Section::parseCode group 1 SectionGeometrySettings plot-style field",
+      "DRW_Section::parseCode group 1 SectionTypeSettings destination field",
+      "DRW_Section::parseCode group 1 first-destination top-level mirror"
+    ],
+    "ownership": "The decoder result is moved into the nested plot-style or type destination. If the first type destination must also populate m_destinationFile, that independent owner is copied once from the type-owned value. The exact decoded logical length is saved and charged before publication.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no parser meaning or DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-section-text-owner-budget",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_section_text_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Existing generated ASCII/Binary controls verify nested plot-style retention, destination mirror and replacement owners, exact peak, one-byte-under refusal, copy/assignment, and reset release.",
+    "diff_check": "PASS (src/drw_objects.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue with the next local, source-demonstrated 7S.2c copy or ownership boundary; retain semantic decoding and actual live-owner accounting, and use only the owning fast validation for each narrow slice."
+}

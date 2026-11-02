@@ -1,0 +1,49 @@
+{
+  "id": "RPP-5yc",
+  "date": "2026-10-30",
+  "scope": "One adapter-authored AC1027 TABLECONTENT block cell with one ATTDEF attribute, emitted and read back through ASCII and binary DXF.",
+  "grammar": {
+    "basis": "The existing typed decoder in src/intern/dxftablecontent.h reads content type 4's group-340 BLOCK_RECORD handle, then group 91 attribute count and repeated group-330 ATTDEF handle, group-301 text, and group-92 one-based index. The writer now emits this same decoded field sequence.",
+    "contentType": 4,
+    "contentBlockReference": [340, "remapped BLOCK_RECORD handle"],
+    "attributes": [
+      [91, 1],
+      [330, "remapped ATTDEF handle"],
+      [301, "table cell attribute"],
+      [92, 1]
+    ],
+    "selectedProfile": "Exactly one content, exactly one attribute, content ordinal 0, attribute index 1, one unique named BLOCK_RECORD/BLOCK pair, and one uniquely source-bound ATTDEF owned by that record."
+  },
+  "transaction": {
+    "adapterClosure": "Before TABLECONTENT emission, resolve the referenced BLOCK_RECORD and unique matching named block, find the unique ATTDEF in that block and verify its owner, then require that the ATTDEF source identity was emitted exactly once and is not ambiguous.",
+    "writerClosure": "Require the content block handle to map to the planned BLOCK_RECORD output handle and the ATTDEF handle to map to the emitted entity identity.",
+    "negativeControls": [
+      {
+        "mutation": "Replace the ATTDEF target with an absent source handle.",
+        "result": "Adapter export refuses and preserves the existing destination."
+      },
+      {
+        "mutation": "Change the ATTDEF's declared parent handle to another BLOCK_RECORD.",
+        "result": "Adapter export refuses and preserves the existing destination."
+      }
+    ],
+    "retry": "After restoring each source relation, the same adapter successfully exports the corrected document."
+  },
+  "outputAndReadback": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "version": "AC1027",
+    "physicalOutput": "The test compares the emitted group-340 value with the read-back block's parent handle, and group 330 with the read-back ATTDEF handle; it also checks exact group order, text, count, and one-based index.",
+    "typedReadback": "The content remains type 4, references the named block's emitted owner, and retains one attribute with matching ATTDEF identity, owner, content ordinal, index, and text.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only one content and one attribute at index 1 are admitted; multiple attributes, later indices, multiple block contents, mixed cells, and arbitrary content formats remain refused or unqualified.",
+    "The evidence is authored transport plus this library's typed readback; it does not establish native CAD rendering or source-file semantic parity.",
+    "FIELD, TABLESTYLE, CELLSTYLEMAP, and other referenced-resource dependency families remain open."
+  ]
+}

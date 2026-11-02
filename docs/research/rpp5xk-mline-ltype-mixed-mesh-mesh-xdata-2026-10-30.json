@@ -1,0 +1,99 @@
+{
+  "id": "RPP-5xk",
+  "title": "AC1027 repeated-type MESH/MESH LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "4f29e7a6e0a4459df9062c4b764a2536d9d4d678",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One ordered, repeated-type two-reference composition across all four source/output encoding pairs.",
+    "linetype": "Source-bound EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, flags 0 and alignment 65.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "references": [
+        {"code": 1005, "source_handle": "0xA900", "target": "model-space MESH"},
+        {"code": 1005, "source_handle": "0xA901", "target": "named-block MESH"}
+      ]
+    },
+    "targets": [
+      {
+        "type": "MESH",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "subclass": "AcDbSubDMesh",
+        "version": 2,
+        "blend_crease": true,
+        "subdivision_level": 2,
+        "vertices": [[1.0, 2.0, 3.0], [4.0, 2.0, 6.0], [4.0, 5.0, 9.0]],
+        "faces": [[0, 1, 2]],
+        "edges": [],
+        "creases": [],
+        "property_overrides": []
+      },
+      {
+        "type": "MESH",
+        "source_handle": "0xA901",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "subclass": "AcDbSubDMesh",
+        "version": 2,
+        "blend_crease": true,
+        "subdivision_level": 2,
+        "vertices": [[100.5, 2.0, 0.0], [101.5, 2.0, 0.0], [101.5, 3.0, 0.0]],
+        "faces": [[0, 1, 2]],
+        "edges": [],
+        "creases": [],
+        "property_overrides": []
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical source records bind the ordered group-1005 references to two exact MESH records with distinct handles, source owners and section roles. Typed import confirms each MESH version/flags, ordered vertices and face indices.",
+    "output": "For each ASCII/binary source/output pair, physical output checks both target identities, section owners, selected MESH fields/topology, and the ordered remapped group-1005 references. Fresh adapter readback checks both exact DRW_Mesh types and their distinct field/topology payloads.",
+    "failure_retry": "Removing either MESH target independently refuses export and preserves the existing destination; restoring it permits same-adapter retry. A late mutation of the named-block MESH handle also refuses without replacing the destination and succeeds after restoration.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 13,
+      "selected_refusals_with_destination_preservation": 9,
+      "selected_same_adapter_retries": 9,
+      "whole_focused_test_profiles": 372,
+      "whole_focused_test_readbacks": 858,
+      "whole_focused_test_refusals": 486,
+      "whole_focused_test_retries": 486
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 21.12 seconds); selector asserts the whole-test counts above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds a generated profile and assertion only.",
+    "source_bindings": {
+      "implementation_commit": "4f29e7a6e0a4459df9062c4b764a2536d9d4d678",
+      "test_source_sha256": "fa49f4ca3c558e979c8a99b3216cd03c1836421c664f415f5a3842ce98669d44",
+      "normal_executable_sha256": "79ab3ae7509e8471692bb1ce26b4951a5d99b8ec495bba4765474182b410cebf",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 ordered pair of MESH targets split between model-space ENTITIES and named AuthorityBlock BLOCKS, for the selected ASCII/binary input/output combinations. Other target pairings, section combinations, versions, code-1005 counts and XDATA profiles remain open.",
+    "This is selected source identity, field/topology transport, output/readback and transaction evidence. It does not establish native MESH subdivision or rendering, independent CAD-kernel semantics, complete document closure, or any general DWG/DXF support claim."
+  ],
+  "next": "Select another source-bound P2 witness from remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations; keep semantic and document-closure gates separate."
+}

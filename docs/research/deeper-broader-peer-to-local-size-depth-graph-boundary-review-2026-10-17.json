@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-peer-to-local-size-depth-graph-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile current ACadSharp repeated-record, EED-size and nested-block-copy issue leads; ODA EED/BS contracts; LibreDWG 0.14.1 safety changes; and local libdxfrw source/test coverage, then refine 7K implementation readiness without expanding the routine validation loop.",
+  "method": {
+    "kind": "Read-only web research and local source/test inventory audit",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localProductionSourceAudited": true,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "individualACadSharp1282And1283IssueBodiesRetrieved": false,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/DomCR/ACadSharp/issues/1282",
+      "https://github.com/DomCR/ACadSharp/issues/1283",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "src/drw_entities.cpp",
+      "src/intern/dwgbufferw.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfwriter.cpp",
+      "src/drw_entities.h",
+      "tests/wave1_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "evidenceRule": "Peer issue titles/reports are route-specific discovery leads, not format rules or evidence of matching local defects. ODA v5.4.1 controls DWG byte-layout conclusions. Local writer/reader symmetry and generated self-readback can prove local wire behavior only, not independent or native acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp #1281 repeated-record stack exhaustion",
+      "observed": [
+        "The detailed report describes recursion per comment, XDATA APPID block, and IMAGE/WIPEOUT clip-boundary group 91, with process-crash claims at peer-specific thresholds.",
+        "The local plan already records generated 20,000-record comment, XDATA, and WIPEOUT controls in the hardening owner and a passing focused CTest receipt.",
+        "The local regression does not assert a format maximum or peer equivalence."
+      ],
+      "doesNotEstablish": [
+        "A DXF record-count limit",
+        "A corresponding libdxfrw production defect",
+        "That peer crash thresholds are suitable local resource caps"
+      ],
+      "planUse": "Keep the existing repeated-record slice closed and avoid repeating it or adding per-slice crash/fuzz work."
+    },
+    {
+      "topic": "ACadSharp #1282 EED size and ODA application-length contract",
+      "observed": [
+        "The current ACadSharp issue index title says the DWG writer loses an object when extended data exceeds 32,767 bytes per application; the issue body was not retrieved.",
+        "ODA v5.4.1 §28 defines per-application EED length as BS, excluding its own prefix and the application handle; §2.2 describes BS as a 16-bit encoding.",
+        "Local encodeDwgEed uses uint16_t and flushes before app data would exceed UINT16_MAX; the local decoder uses unsigned BS sizes and bounds chunks.",
+        "The test inventory includes reader-side EED boundary vectors but no direct DWG-writer test at 32,767/32,768 or 65,535/65,536."
+      ],
+      "doesNotEstablish": [
+        "A normative 32,767-byte EED maximum",
+        "That repeated chunks with the same APPID are accepted by an independent producer/native application",
+        "A local writer overflow/loss defect"
+      ],
+      "planUse": "Add generated local writer boundary tests around the reported signed threshold and unsigned 16-bit boundary; keep continuation semantics LOCAL_WIRE_ONLY until externally accepted. Do not change limits from the issue title."
+    },
+    {
+      "topic": "DXF XDATA group-1004 physical chunk boundary",
+      "observed": [
+        "The local XDATA writer splits group-1004 hex payloads into chunks of at most 127 bytes, and the binary DXF writer rejects a single group-1004 value above that size.",
+        "Existing 127-byte application-group tests in wave1_tests exercise group 310, not group 1004.",
+        "No explicit local 1004 126/127/128 writer boundary test was found."
+      ],
+      "doesNotEstablish": [
+        "A production defect in the current splitter",
+        "That group-310 test coverage proves the group-1004 code path"
+      ],
+      "planUse": "Add small ASCII/Binary controls under the current XDATA writer selector; inspect emitted groups and following-record alignment."
+    },
+    {
+      "topic": "ACadSharp #1283 nested block copying and LibreDWG safety cross-check",
+      "observed": [
+        "ACadSharp's live issue index title reports quadratic nested-block copying and stack exhaustion; its issue body was not retrieved.",
+        "Local DRW_Insert stores a block name/reference and core blocks are represented as separate records; no equivalent recursive block-deep-copy API was identified.",
+        "LibreDWG 0.14.1 NEWS lists independent capacity/logical-size, checked arithmetic, progress, stale-pointer, and loss fixes, reinforcing that byte limits, traversal work, depth, and identity are distinct safety concerns."
+      ],
+      "doesNotEstablish": [
+        "A local nested-block complexity defect",
+        "A common root cause between ACadSharp and LibreDWG reports",
+        "A reason to add broad performance or sanitizer work to the fast loop"
+      ],
+      "planUse": "Keep #1283 as a discovery prompt under current graph/work-budget owners. Any future flatten/copy path gets a bounded work/identity test at its owner; optional peer/fuzz evidence stays at the composed checkpoint."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-14/PAR-26 parser and encoder bounds/progress",
+      "PAR-19/7K DXF XDATA/APPID and DWG EED writer boundary",
+      "7S aggregate resource and graph work accounting",
+      "Existing nested block identity/traversal owners"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "peerInstallOrRunAddedToFastLoop": false,
+    "testsOrRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "currentTotals": {
+      "findings": 127,
+      "topLevelSubplans": 71
+    },
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

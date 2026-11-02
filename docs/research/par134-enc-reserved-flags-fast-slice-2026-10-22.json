@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 ENC reserved-bit refusal",
+  "mode": "generated in-memory ENC fast slice",
+  "scope": [
+    "Refuse undocumented ENC flag bits before they can shift following entity fields",
+    "Preserve the existing locally handled ACI, ByLayer, RGB, AcDbColor-reference, and transparency paths",
+    "Keep the disputed inline-RGB field width out of scope"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 ENC", "20.4.1 common entity parameters"],
+      "finding": "ODA lists ENC flags 0x80 for complex/RGB color, 0x40 for an AcDbColor reference, and 0x20 for transparency. It defines no payload grammar for flag bits 0x04, 0x08, or 0x10."
+    },
+    "localCode": {
+      "files": ["src/intern/dwgbuffer.cpp", "tests/dwg_object_vectors_tests.cpp", "CMakeLists.txt"],
+      "finding": "getEnColor previously ignored bits 0x04/0x08/0x10 and returned a scalar, allowing bounded callers to continue at an unverified cursor. It now invalidates the candidate buffer before reading later fields when any of those bits is set."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Reject ENC reserved flag bits 0x04, 0x08, and 0x10 before consuming optional payloads or subsequent entity fields.",
+      "Leave the existing 0x01/0x02 locally handled name/index behavior and documented 0x20/0x40/0x80 paths unchanged."
+    ],
+    "testFiles": ["tests/dwg_object_vectors_tests.cpp"],
+    "focusedSelectors": ["--enc-reserved-flags-refusal"],
+    "focusedCtests": ["libdxfrw_enc_reserved_flags_refusal", "libdxfrw_dwg_object_vectors"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireAndParser": "Generated ENC vectors cover ordinary ACI, the ByLayer index-256 bit, the existing inline-RGB path, the AcDbColor reference bit pair, transparency, and each reserved flag bit. Valid controls assert the following 3-bit sentinel; reserved controls assert the buffer becomes invalid before sentinel parsing.",
+    "evidenceBoundary": "Generated vectors validate the local fail-closed boundary only and are not producer-authored DWG evidence."
+  },
+  "openSpecQuestion": {
+    "finding": "The local ODA PDF text describes the inline RGB payload as BS while saying it contains the last 24 bits; a bit-short cannot encode an arbitrary 24-bit RGB value. The existing local reader consumes this field as BL.",
+    "disposition": "This slice does not alter the field width. Resolve it only with an erratum or authoritative field trace plus a producer-authored sample; do not treat the generated BL control as evidence for the specification."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target dxfrw libdxfrw_dwg_object_vectors_tests -j4",
+    "strictBuildResult": "PASS",
+    "focusedCommands": [
+      "ctest --test-dir build-gcc -R '^(libdxfrw_enc_reserved_flags_refusal|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/intern/dwgbuffer.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+      "jq empty docs/research/par134-enc-reserved-flags-fast-slice-2026-10-22.json"
+    ],
+    "focusedResults": ["PASS (2/2; 0.25 sec)", "PASS", "PASS", "PASS"]
+  },
+  "evidenceLimits": [
+    "No persistent drawing fixture, external producer, independent reader, native CAD application, full suite, or platform qualification was used.",
+    "No public API/layout change or support promotion was made.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice remains uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the exact-source PAR-03/PAR-04 associative-action context audit without changing value widths until an authoritative grammar or traceable producer witness is available."
+}

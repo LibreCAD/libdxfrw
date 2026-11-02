@@ -1,0 +1,162 @@
+{
+    "schema": "libdxfrw.research-receipt.v1",
+    "id": "p4-ac1024-assoc-node-dependency-source-links-2026-10-30",
+    "date": "2026-10-30",
+    "title": "AC1024 associative geometry-dependency source links",
+    "status": "OBSERVED_AC1024_DEPENDENCY_AND_SOURCE_LINK_PROFILE_AUDITED_OUTPUT_OPEN",
+    "supportClaimEffect": "none",
+    "scope": "For the two named AC1024 witnesses, join each non-null inline constrained-geometry reference to its ACDBASSOCGEOMDEPENDENCY, owning constraint group/action list, dependent-on entity, owner route and persistent-reactor backlink. Audit the non-null readdep/node references without promoting their meaning beyond the source field labels and observed link consistency.",
+    "semanticReferences": {
+        "autodeskAssocDependency": {
+            "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbAssocDependency.html",
+            "meaning": "Autodesk documents dependencies as owned by actions and attached to dependent objects as persistent reactors. The parser's dep_on reference is checked against the observed entity and its reactor backlink."
+        },
+        "autodeskAssocGeomDependency": {
+            "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbAssocGeomDependency.html",
+            "meaning": "AcDbAssocGeomDependency represents a dependency on a subentity of geometric data. This supports checking that the source object reference resolves to a drawing entity; it does not establish application-level geometric meaning."
+        }
+    },
+    "independentReader": {
+        "name": "LibreDWG dwgread",
+        "version": "0.14",
+        "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "sourceFields": "/Users/dli/dev/libredwg/include/dwg.h: Dwg_Object_ASSOCDEPENDENCY dep_on, readdep, node; ASSOCGEOMDEPENDENCY inherits the common dependency fields",
+        "command": "/opt/homebrew/bin/dwgread -O JSON <source.dwg> -o <scratch.json>",
+        "limitation": "LibreDWG independently exposes the dependency objects, common references, action arrays, source entities and reactor arrays. It does not decode the inline associative constraint node bodies; the local adapter supplies those node-to-dependency references."
+    },
+    "sourceProfiles": [
+        {
+            "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+            "version": "AC1024",
+            "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+            "localAudit": {
+                "constraintGroups": 3,
+                "inlineNodeGeometryDependencyReferences": 29,
+                "dependencyObjectsAndGroupTargetsVerified": 29,
+                "constraintGroupActionEdgesVerified": 29,
+                "dependentOnEntityTargetsVerified": 29,
+                "dependentOnEntityOwnerRoutesVerified": 29,
+                "dependentOnEntityReactorBacklinksVerified": 29,
+                "readdepReferences": 9,
+                "nodeReferences": 9,
+                "readdepAndNodeTargetsVerified": 18,
+                "sameGroupDependencyActionEdgesVerified": 16,
+                "reciprocalReaddepNodeEdgesVerified": 16,
+                "entityTargetsVerified": 2,
+                "entityOwnerRoutesVerified": 2,
+                "entityReactorBacklinksVerified": 2,
+                "nestedInsertBlockOwnerEdgesVerified": 1,
+                "auditComplete": true
+            },
+            "independentPeerProjection": {
+                "jsonPath": "/private/tmp/civil-assoc-dependency.json",
+                "jsonSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+                "constraintGroups": 3,
+                "groupOwnedGeometryDependencies": 29,
+                "groupActionMembershipsVerified": 29,
+                "dependentOnObjectsResolved": 29,
+                "dependentOnPersistentReactorBacklinks": 29,
+                "readdepNodeNonNullReferences": 18,
+                "readdepNodeTargetsResolved": 18,
+                "sameGroupGeometryDependencyTargets": 16,
+                "reciprocalDependencyChainEdges": 16,
+                "entityReaddepNodeTargets": 2,
+                "entityReactorBacklinks": 2
+            }
+        },
+        {
+            "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+            "version": "AC1024",
+            "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+            "localAudit": {
+                "constraintGroups": 4,
+                "inlineNodeGeometryDependencyReferences": 31,
+                "dependencyObjectsAndGroupTargetsVerified": 31,
+                "constraintGroupActionEdgesVerified": 31,
+                "dependentOnEntityTargetsVerified": 31,
+                "dependentOnEntityOwnerRoutesVerified": 31,
+                "dependentOnEntityReactorBacklinksVerified": 31,
+                "readdepReferences": 0,
+                "nodeReferences": 0,
+                "readdepAndNodeTargetsVerified": 0,
+                "sameGroupDependencyActionEdgesVerified": 0,
+                "reciprocalReaddepNodeEdgesVerified": 0,
+                "entityTargetsVerified": 0,
+                "entityOwnerRoutesVerified": 0,
+                "entityReactorBacklinksVerified": 0,
+                "nestedInsertBlockOwnerEdgesVerified": 0,
+                "auditComplete": true
+            },
+            "independentPeerProjection": {
+                "jsonPath": "/private/tmp/architectural-assoc-dependency.json",
+                "jsonSha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f",
+                "constraintGroups": 4,
+                "groupOwnedGeometryDependencies": 31,
+                "groupActionMembershipsVerified": 31,
+                "dependentOnObjectsResolved": 31,
+                "dependentOnPersistentReactorBacklinks": 31,
+                "readdepNodeNonNullReferences": 0,
+                "readdepNodeTargetsResolved": 0,
+                "sameGroupGeometryDependencyTargets": 0,
+                "reciprocalDependencyChainEdges": 0,
+                "entityReaddepNodeTargets": 0,
+                "entityReactorBacklinks": 0
+            }
+        }
+    ],
+    "fieldInterpretation": {
+        "m_dependencyHandle": "The local bounded parser maps the first dependency reference to LibreDWG's dep_on. It resolves to the observed LINE, ARC or INSERT entity and has one matching persisted-reactor backlink in each audited source profile.",
+        "m_readDependencyHandle": "The source field readdep can point to a preceding ACDBASSOCGEOMDEPENDENCY or, in the INSERT profile, to an LWPOLYLINE entity. The audit checks target type, same-group/action relation and reciprocal node link where the target is another dependency; it does not assign additional semantic meaning to readdep.",
+        "m_writeDependencyHandle": "The existing compatibility field stores LibreDWG's node reference. In the civil witness it points to the next dependency in the same-group chain or the observed INSERT. The audit checks reciprocal readdep/node links for dependency targets and owner/reactor resolution for entity targets; the public legacy field name is not reinterpreted."
+    },
+    "implementation": {
+        "files": [
+            "dwg2dxf/dx_data.h",
+            "dwg2dxf/dx_iface.cpp"
+        ],
+        "behavior": "The bounded AC1024 graph audit indexes typed entities by unique handle and containing block, verifies source owner routes using BLOCK_RECORD membership, and follows each non-null inline node geometry reference to one typed geometry dependency in the same group and action list. It resolves dep_on entity targets and validates owner context/reactor backlinks. Non-null readdep/node links must resolve either to reciprocal same-group geometry-dependency links in the action list or to typed entities with owner and reactor backlinks. The INSERT/LWPOLYLINE pair must share the INSERT's referenced BLOCK_RECORD owner route.",
+        "strictOutput": "dwg-associative-graph-not-serialized remains enforced. No associative DXF object is written and no DXF output is created.",
+        "persistentDrawingFixturesAdded": 0,
+        "supportClaimEffect": "none"
+    },
+    "validation": {
+        "normalBuild": {
+            "command": "cmake --build build --target dwg2dxf -j 4",
+            "result": "PASS"
+        },
+        "normalSourceRuns": {
+            "civilLog": "/private/tmp/assoc-dependency-audit-civil.log",
+            "civilLogSha256": "84be661aea9928a540de5e9760bc1fc3245728cdc6c668b242b1a528af38680d",
+            "architecturalLog": "/private/tmp/assoc-dependency-audit-architectural.log",
+            "architecturalLogSha256": "91124313e2078f71c89d0d887c92a878b772f8da2271504dfeb9e355bbad9fbf",
+            "result": "Both source imports report geometry-dependency closure complete, then refuse export because associative graph serialization is not implemented. Neither output DXF exists."
+        },
+        "asanBuild": {
+            "command": "cmake --build build-asan-custom --target dwg2dxf -j 4",
+            "result": "PASS with AddressSanitizer"
+        },
+        "asanSourceRuns": {
+            "civilLog": "/private/tmp/assoc-dependency-audit-asan-civil.log",
+            "civilLogSha256": "84be661aea9928a540de5e9760bc1fc3245728cdc6c668b242b1a528af38680d",
+            "architecturalLog": "/private/tmp/assoc-dependency-audit-asan-architectural.log",
+            "architecturalLogSha256": "91124313e2078f71c89d0d887c92a878b772f8da2271504dfeb9e355bbad9fbf",
+            "result": "Each ASan source log is byte-identical to its normal counterpart; no sanitizer diagnostics; neither output DXF exists."
+        },
+        "diffCheck": "PASS",
+        "automatedTestSuites": "Not run; the decisive focused validation is the normal and ASan import of both source witnesses plus independent LibreDWG JSON projections."
+    },
+    "limitations": [
+        "Coverage is limited to the represented AC1024 inline-node profiles in these two physical witnesses; it is not family-wide or version-wide qualification.",
+        "The OARX references establish API roles, not DWG byte layout or DXF writer semantics.",
+        "Remaining dictionary, XRECORD, group, layout, picture-block, nested INSERT, attribute and compound-child recursive closure is open.",
+        "Associative source-to-emitted identity, DXF serialization, readback and consumer meaning are unqualified."
+    ],
+    "nextAction": "Close remaining recursive references outside the audited geometry-dependency profiles, then implement complete reachable-graph serialization and independent readback while retaining strict refusal until every output gate passes.",
+    "sourceHashesSha256": {
+        "dwg2dxf/dx_data.h": "ec35f260df7a6ee07edff76fb03aa374067b98088bb4e44d7b6190e13fd0dca9",
+        "dwg2dxf/dx_iface.cpp": "e20974866c02831775ed7247d493177c7f27426da4cbc0d6f8ceeb362fdb2ef3",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "14490f9258203271e4d8625c29a7d910cdba18a921c7518363ffdac06a3dbb7a",
+        "build/dwg2dxf/dwg2dxf": "e2d5d4edee11b4d1a9ef33b03ff58fa03128b26a124ff259d25ef024068d9fc5",
+        "build-asan-custom/dwg2dxf/dwg2dxf": "0598c90c21ef7610709601fafd57a39c6f0bdf6eac38a5388b2831a9cc9e39ff"
+    }
+}

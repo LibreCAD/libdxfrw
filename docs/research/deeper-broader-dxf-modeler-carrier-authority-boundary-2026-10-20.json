@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF modeler-carrier authority boundary and peer status",
+  "mode": "Primary-source web research and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Distinguish the published DXF 3DSOLID entity contract from DWG AcDs DataStorage and modern observed DXF ACDSDATA routes.",
+    "Refresh current LibreDWG, ACadSharp, and FreeCAD evidence relevant to ACIS carrier retention and consumer qualification.",
+    "Refine existing PAR-07/S8 and PAR-14 execution guidance without adding a new local finding or external gate."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "status": "official_public_3DSOLID_entity_reference_reviewed_2026-10-20",
+      "observation": "The documented entity route lists modeler version 1, proprietary group-1 data split into lines shorter than 255 characters, optional group-3 continuation, and group-350 history soft-owner. It does not document modern ACDSDATA section schema/index/association semantics.",
+      "limits": "The published table establishes its listed DXF fields only; absence of an ACDSDATA description is not proof that no application-specific or later-version route exists."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "status": "ODA_v5_4_1_DWG_AcDs_sections_24_2_2_3_to_24_2_2_4_reviewed_2026-10-20",
+      "observation": "The specification describes DWG AcDs DataStorage SAB records, handle-associated record headers, large blob references and Blob01 pages, with ACIS BinaryFile prefix and versioned suffix behavior.",
+      "limits": "The cited chapter is DWG container documentation and says detailed ACIS/SAB semantics are outside its scope; it is not a DXF ACDSDATA specification or geometry-validity oracle."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "status": "mutable_current_source_and_named_issue_route_reviewed_2026-10-20",
+      "observation": "NEWS describes historical incomplete/heuristic AcDs SAB extraction and separately records a DXF last-SAT-block fix. Issue #1411 reports a named 0.14.8593 route losing R2013+ SAB/AcDs payload. The current source has an AcDs reader path, so the issue summary is not evidence that no section reader exists at all.",
+      "limits": "No peer executable or external drawing was run. Mutable main, release notes, source shape, and an issue reproduction are distinct evidence and cannot be merged into a universal support verdict."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "status": "current_issue_and_open_PR_state_reviewed_2026-10-20",
+      "observation": "Issue #1195 reports DXF writer omission of DWG-read 3DSOLID/REGION entities, including block-only solids. PRs #1150 and #1240 remain open and are branch/design evidence rather than merged-release behavior.",
+      "limits": "Peer-authored reports and unmerged branches are not libdxfrw defects, normative format rules, or independent semantic acceptance."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "status": "current_documented_consumer_boundary_reviewed_2026-10-20",
+      "observation": "The stock DXF importer does not read embedded ACIS/SAT solid blobs; DWG is converted to DXF before the selected importer runs.",
+      "limits": "Documentation and issue discussion are not native Linux/Windows execution evidence or a modeler semantic oracle."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "status": "existing_PAR-07_S8_and_PAR-14_crosswalk_refined_2026-10-20",
+      "observation": "The plan now separates documented DXF group-1/3 inline data, observed modern DXF ACDSDATA, legacy DWG inline payload, and DWG AcDs DataStorage. Per-source identity, owner/key association, carrier bytes, and semantic outcomes remain separate gates.",
+      "limits": "No local production or test code was changed in this research pass; no peer runtime, native application, kernel, or external drawing was used."
+    }
+  ],
+  "planImpact": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Modern DXF ACDSDATA is explicitly treated as an observed version/profile route until its serialization and association contract is established by normative or pinned native evidence. DWG AcDs rules are not transferred to DXF, and carrier preservation remains distinct from geometry semantics.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-modeler-carrier-authority-boundary-2026-10-20.json"
+    ],
+    "limitations": "The Autodesk public table documents listed DXF fields but not every later/application-specific extension. ODA is authoritative here for DWG byte layout only. Peer source and issue status are mutable or route-specific; no behavior was reproduced."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check for the plan; receipt syntax validated with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only plan update; no commit requested. The shared worktree contains extensive pre-existing edits and Git metadata is read-only in this session."
+  }
+}

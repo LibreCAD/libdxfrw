@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 composed unmarked MATERIAL normal-map edits",
+  "date": "2026-10-28",
+  "codeCommit": "81bdb407b4d97cbf2823d5c3e715087f7bfc30c4",
+  "scope": "Previously accepted unmarked modern DXF MATERIAL with unchanged captured raw and common carrier, complete inferred normal tuple, no unqualified procedural field, and a nonempty subset of typed normal blend, projection and tiling edits.",
+  "contract": {
+    "operation": "Independently bind each selected role to its original host field across the inferred second-42 boundary; replace only selected normal 42, 73 and/or 74 groups and preserve diffuse fields and untouched source spellings.",
+    "atomicity": "Validate all edited values, re-decode actual output, and compare its entire represented model to the desired state. Unsupported or conflicting edits preserve destination and caller and allow corrected same-facade retry.",
+    "unqualified": "Changed raw bodies, other typed normal fields, invalid values, unqualified procedural/ambiguous/incomplete source, cross-format caret strings, global markerless writer grammar, native rendering and whole-document fidelity remain outside this packet."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "22c8a25ff8c69ab11248a30bb140155f4320c6a7b968846f9c8903d534a3b924",
+    "testSourceSha256": "81a0bcd3ebf5fd001b68c47a10662dd4081f67b5fae4234ecb5215278a911e27",
+    "adapterSourceSha256": "a37e8fc3e04b972cb9fe9338273b950d6fbf5fa6cc7eecee1d7d125b303fe79b",
+    "normalAdapterObjectSha256": "b6cb7072e63f4e055b7c5c2ee2d87b4dfb460bda940e47809d7a7d4948156f69",
+    "normalLibrarySha256": "037d1e3e04781f7c778117318a0b9c3bcdad5baf1066932062aa7477de480b43",
+    "normalTestExecutableSha256": "c6e7907bd56b38812ae76c8f021171b1add49ce064ff71d3431a9d0ecc92076f",
+    "tableWriterSourceSha256": "dd18c40873412bc8501e48292395b8976609cc719688a2de115304ba12d506ac",
+    "tableEntitiesSourceSha256": "cf2e2af4e1530bdee4f9bae534adb630593d08da4e2bca1ab3dff707d28b0368",
+    "tableCodecHeaderSha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e",
+    "concurrentTableCommit": "ca271fed1002e016c7c92a8e24e2d28f1f4b76b5",
+    "asanAdapterObjectSha256": "0295e32b2157e1f1fa0cdd1501a1ab20794f9ce9d0a5dbedfcbe60f9ac913f2b",
+    "asanLibrarySha256": "a03ad77600aa122b59ef18793c4b9a1713225d4b9f62ab89f1ddb32853605fe9",
+    "asanTestExecutableSha256": "e5d68b42aa35b6edec7a1f35fb582bce709f6b76351e8a215da6851a0161d596"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "4/4",
+      "note": "Final shared checkpoint passed 4/4 with the current TABLE budget source."
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "4/4",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "All 7 nonempty edit masks × 4 source/output encodings (28 positive routes); 40 invalid-value, unsupported-extra-field and raw-conflict refusal/retries; 24 procedural-source composite refusals; 24 changed common-carrier refusals; 4 original APPID/application/XDATA readbacks; 6 late callback refusal/retries. Previously qualified isolated and explicit-boundary controls remain.",
+    "sourceChronology": "Both shared builds include the concurrent TABLE revision committed separately as recorded in sourceBindings; hashes bind the combined state."
+  },
+  "independentPeer": {
+    "version": "1.4.5",
+    "reportPath": "build/p3-material-compose-research/independent-final.json",
+    "reportSha256": "529866f720417f3a92a3193533e372c3e76f5b301484036607dfea688ddad769",
+    "reportScriptSha256": "8ebfaf8394b0cdac2e8e9b82592ac261484d4ca71f18c04e28ac9df82ac06a01",
+    "probeSourceSha256": "078c7b9d81e3ae2266203489c9f6ea73daa3c0c7e5bd7eb915a71402e760bed6",
+    "probeExecutableSha256": "59eb53b60cc18f7822cb7530cd859ca55efa88a1ef97761a2c9ab7974bc7d309",
+    "projectionToolSha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+    "originalSourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "derivedInputSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "derivation": "Removed EZDXF_META root entry and its DICTIONARY/DICTIONARYVAR objects from a copy; exact selected MATERIAL fields and identity verified unchanged before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "sourceHostBodyTagCount": 55,
+    "sourceRoleValues": {
+      "42": [
+        0.25,
+        0.75
+      ],
+      "73": [
+        2,
+        4
+      ],
+      "74": [
+        2,
+        3
+      ]
+    },
+    "outputRoleValues": {
+      "42": [
+        0.25,
+        0.875
+      ],
+      "73": [
+        2,
+        1
+      ],
+      "74": [
+        2,
+        1
+      ]
+    },
+    "outputs": [
+      {
+        "format": "asc",
+        "sha256": "831a01aed7e956bf6eaa0d8b052ea2d8ad0f787fd0ba2ff1e0cd84fb98dc25e2"
+      },
+      {
+        "format": "bin",
+        "sha256": "a16c6314ed0a166e530753de538d26f629836c8baaff28ac92007a43612ccd7d"
+      }
+    ],
+    "observations": "Independent ezdxf physical tag loader before document setup verified original/derived selected MATERIAL identity and 55 host tags; ASCII and binary outputs matched every host tag except the three selected normal values."
+  },
+  "limitations": [
+    "The peer input removes unrelated EZDXF_META DICTIONARYVAR records from a previously independently authored source; original whole-document export is not qualified.",
+    "The selected physical role evidence does not qualify omitted-boundary behavior in native CAD applications, rendering or untested versions.",
+    "No drawing fixture is committed."
+  ]
+}

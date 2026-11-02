@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-dwg-leader-annotation-hard-pointer-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Prevent DWG LEADER serialization from silently dropping an associated-annotation hard pointer that the writer cannot yet resolve and emit.",
+  "research": {
+    "source": "Open Design Specification for .dwg files v5.4.1, section 20.4.47",
+    "documentPages": [156, 157],
+    "facts": [
+      "Annotation type values are 0=MTEXT, 1=TOLERANCE, and 2=INSERT.",
+      "The code-340 associated annotation is a hard pointer, activated in R14."
+    ],
+    "sourceReadLocally": true
+  },
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.cpp",
+      "tests/writer_primitives_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Leader::encodeDwg refuses nonzero annotHandle, AnnotH.ref, or AnnotH.ref64 before emitting the entity body; null annotation references retain the existing encoding route.",
+    "positiveControl": "After clearing the unsupported annotation edge, the same DWG writer successfully encodes the LEADER.",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_writer_primitives_tests -j2",
+      "build-gcc/libdxfrw_writer_primitives_tests",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference"
+    ],
+    "results": {
+      "strictWriterPrimitivesBuild": "passed",
+      "writerPrimitivesTests": "passed",
+      "strictDxfFixtureTargetBuild": "passed",
+      "focusedDxfLeaderMatrix": "passed"
+    }
+  },
+  "limits": {
+    "dwgAnnotationGraphSerializationImplemented": false,
+    "mtextToleranceInsertDwgTargetsQualified": false,
+    "externalReaderOrNativeConsumerRun": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

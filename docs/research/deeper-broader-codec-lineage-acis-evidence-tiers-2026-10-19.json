@@ -1,0 +1,171 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Codec lineage, ACIS evidence tiers, and current candidate screen",
+  "mode": "Deeper/broader primary-source web research and local plan reconciliation; research only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Expand the open-source DWG/DXF comparator screen to current Rust codec, application-consumer, and geometry-kernel projects.",
+    "Resolve actual application-to-codec-to-kernel source pins where public manifests permit.",
+    "Separate ACIS byte parsing, model/reference validation, analytic geometry, kernel B-rep construction, and native acceptance.",
+    "Reconcile newly reviewed evidence with existing PAR-07/S8 and six external-only qualification items without adding implementation dependencies or routine validation cost."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "revision": "Mutable current repository README and release listing reviewed 2026-10-19",
+      "observed": "The project publishes a direction-specific DWG/DXF version matrix, including unavailable AC1021 DWG writing. The matrix is a project declaration, not per-family run evidence."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://docs.rs/crate/acadrust",
+        "https://docs.rs/crate/acadrust/0.4.0/source/README.md"
+      ],
+      "revision": "Current repository source and 0.6.5 release listing reviewed 2026-10-19; earlier docs.rs package material used for the stated ACadSharp inspiration relationship",
+      "observed": "Current public README declares ASCII/Binary DXF and DWG R12-R2018+, 48 top-level entity variants, ACIS SAT/SAB parsing and writing, optional failsafe diagnostics, and Linux/Windows/macOS/WASM CI. The manifest does not show a direct ACadSharp runtime dependency. Earlier crate documentation describes ACadSharp as inspiration; this is correlated design lineage, not proof of shared source code. Declared support and CI configuration do not establish successful per-family semantic interoperation."
+    },
+    {
+      "project": "OpenCADStudio / opencadcodec / opencadkernel",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "Release v2026.42 and current mutable main manifests/source reviewed 2026-10-19; Cargo manifest reports package 2026.42.0",
+      "observed": "Current OpenCADStudio Cargo.toml pins package acadrust from HakanSeven12/opencadcodec at rev 0dcd5aa and opencadkernel at rev 98d012c, plus opencadgraph at c0e16d6. The current main manifest is not by itself proof that a release installer was built from those exact dependency commits. opencadkernel describes itself as early and says most operations are unwritten; its ACIS feature depends on opencadcodec."
+    },
+    {
+      "project": "OpenCADStudio issue reports",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1896",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases"
+      ],
+      "revision": "Issue pages and current release listing reviewed 2026-10-19",
+      "observed": "Issue #1078 reports Layout-object corruption/recovery in v2026.36 and carries a maintainer statement that a main-branch change fixed entity-header and Layout field ordering/widths and retained AcDs links, with issue-specific semantic counts. This is a report and branch-fix claim, not an independently reproduced or release-bound result. Current issue-list title #1896 reports an AC1027 ACIS-solid read failure at one type code; its exact issue body/reproducer was unavailable, so no root cause or local defect can be inferred."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "Mutable current project documentation reviewed 2026-10-19; no package or kernel executed",
+      "observed": "The project calls itself experimental, documents selected SAT versions and SAB/ASM profiles, retains unsupported records, and raises conversion errors outside its geometry subset. Shape conversion targets CadQuery/Open CASCADE, which is the same kernel family used by FreeCAD; it is not an independent kernel-family vote for FreeCAD semantics."
+    },
+    {
+      "project": "acis-core",
+      "urls": [
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "docs.rs 0.3.11 API and linked current SAB/ASM profile documentation reviewed 2026-10-19",
+      "observed": "The Rust-owned model exposes a bounded SAB/ASM reader, raw records, reference-closure validation, and analytic helpers without CadQuery or an external parser dependency. Its own API states that reference closure does not prove B-rep validity or producer/Inventor/ASM compatibility and that it does not construct OCCT solids. This supports a lower parser/model evidence tier only."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/tree/main/docs"
+      ],
+      "revision": "Mutable current repository README and architecture pages reviewed 2026-10-19",
+      "observed": "The project identifies itself as a safe Rust FFI over LibreDWG and declares read-only DWG/DXF-to-model/JSON/SVG/PNG routes. It may supply a different binding or projection observation but is not an independent DWG codec or writer."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1210",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "revision": "Official current data-exchange discussion and component-boundary statement reviewed 2026-10-19",
+      "observed": "OCCT's own data-exchange matrix places ACIS SAT/SAB read/write in a commercial component, distinct from the open-source default. Any entitlement-based run must be labeled as a commercial route."
+    },
+    {
+      "project": "LibreDWG / existing AcDs peer signal",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Existing issue and current project README reviewed for cross-reference only",
+      "observed": "The existing plan already records issue #1411 as a version/build-scoped report of R2013+ AcDs SAB loss. This pass did not reproduce or reclassify that report."
+    }
+  ],
+  "localEvidence": [
+    "The plan already distinguishes peer declaration, code/test evidence, binary parsing, retained carrier, writer output, independent reopen, ACIS semantics, and native-consumer acceptance.",
+    "The plan already records cq-acis as experimental and OCCT as a commercial ACIS exchange boundary; this pass sharpens their kernel-family relationship and adds acis-core's lower model/reference-validation tier.",
+    "Current OpenCADStudio Cargo source binds an application to explicit codec and kernel commits, but a released binary's correspondence to those current-main pins remains unverified.",
+    "No reviewed peer issue or support declaration alone establishes a new libdxfrw defect or closes an external qualification gate."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "planSha256": "cf8c1e462d4969eefe5b42eb59de36243d6248c8d2d9f021b211cce892e8c9d2",
+    "planImpact": "Adds source-pinned codec/consumer/kernel provenance and refines ACIS evidence ceilings. acadrust and its application consumers do not multiply independent codec votes; cq-acis shares the OCCT kernel family with FreeCAD; acis-core proves reference closure/analytic helper results only, not B-rep validity. No implementation defect, gate, support claim, or routine validation cost changes."
+  },
+  "method": {
+    "kind": "Read primary project repositories, source manifests, release pages, issue reports, docs.rs API documentation, then crosswalk claims to the local plan",
+    "localPlanAudit": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main/master manifests and issues are mutable. The current OpenCADStudio main Cargo pins are not bound here to a particular published installer; issue #1078's fix is a maintainer report, and issue #1896's body was unavailable. Feature declarations, API reference closure, kernel validity, independent semantic evidence, and native application acceptance remain separate. No peer behavior was independently reproduced."
+  },
+  "implementationReadyChecks": [
+    "At the existing optional composed peer checkpoint, bind the exact consumer artifact/tag, codec and kernel commits, build features, OS/runtime, input/output hashes, operation, direction, and source-object dispositions.",
+    "Do not count applications using the same codec, wrappers over LibreDWG, parsers inspired by a peer, or multiple OCCT-based consumers as independent codec/kernel votes without an explicit source-lineage review.",
+    "For ACIS, record exact SAT/SAB/ASM profile, source payload and AcDs owner/key join, parser diagnostics/unsupported records, full topology disposition, kernel construction/validity, analytic invariants, independent reopen, and native acceptance as separate outcomes.",
+    "Use acis-core only for bounded model/reference/analytic claims; use cq-acis only inside its documented experimental geometry profile and do not treat it as a separate kernel family from FreeCAD.",
+    "Keep local implementation slices on generated tests, strict touched-target build, focused selector, owning CTest, and scoped diff checks; do not add peer dependencies, external fixtures, native runs, or full suites to each slice.",
+    "J256, J260, J268, J284, J293, and J295 stay DEFERRED_EXTERNAL and non-promoting until their specifically required independent evidence is acquired."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

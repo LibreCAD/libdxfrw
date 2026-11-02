@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader DXF 3D carrier-loss and consumer-claim boundaries",
+  "mode": "primary-source research only",
+  "scope": [
+    "Compare open-source DXF/DWG read, write, carrier, projection, rendering and semantic-solid claims",
+    "Identify implementation failure modes hidden by headline format-support claims",
+    "Refine existing carrier round-trip, writer-loss diagnostics and native-consumer gates",
+    "Keep external-only qualification items non-promoting"
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local plan/code-path cross-check",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRunForResearch": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedByResearch": false,
+    "limitations": "ACadSharp #1195 is a user report and #1150 is an unmerged proposal; neither was independently reproduced. ezdxf, GDAL, FreeCAD and LibreDWG conclusions are scoped to their published source/documentation and do not establish local libdxfrw behavior. Mutable master pages were not pinned to immutable commits. No independent semantic reader or native CAD operation was run."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp issue #1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "Open issue page observed 2026-10-17; reports ACadSharp 3.4.9",
+      "observed": "The report says DWG reader recognizes 3DSOLID/REGION but the DXF writer silently omits them, including block-contained solids. This is a peer failure report, not a local reproducer or confirmed defect in another release."
+    },
+    {
+      "project": "ACadSharp pull request #1150",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "revision": "Open PR page reviewed 2026-10-17; latest visible discussion 2026-10-01",
+      "observed": "The proposal describes versioned SAT/SAB and AcDs writer paths, reports an out-of-order owner-handle AcDs search-index bug and a post-refactor multi-310 readback issue, and records TrueView checks. The PR remained unmerged and was awaiting upstream schema/writer restructuring at review time. These are implementation leads only."
+    },
+    {
+      "project": "ezdxf ACIS tool documentation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+      "revision": "Mutable master documentation reviewed 2026-10-17",
+      "observed": "The docs describe parsing/creating simple known ACIS structures, explicitly exclude arbitrary existing ACIS editing, state that there is no ACIS kernel, and limit flat-face mesh extraction such that curved boundaries are lost."
+    },
+    {
+      "project": "ezdxf ACIS container-version and browse documentation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "revision": "Mutable master documentation reviewed 2026-10-17",
+      "observed": "The browse-acis tool displays/exports raw SAT or SAB; docs identify SAT for R2000-R2010 DXF and SAB for R2013 and later. This establishes a published container profile, not normative byte-layout authority."
+    },
+    {
+      "project": "ezdxf rendering limitations",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "revision": "Mutable master documentation reviewed 2026-10-17",
+      "observed": "The drawing add-on does not render ACIS and has no 3D rendering engine; its 3D entities are projected to the XY plane. It is not a 3D semantic or visual acceptance oracle."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "revision": "Stable documentation reviewed 2026-10-17",
+      "observed": "GDAL skips ASM-backed 3DSOLID/REGION/BODY/SURFACE by default because it cannot convert them to OGR geometry; AC1027+ extensible mode exposes raw bytes and a 12-value transform. This is carrier/projection support only."
+    },
+    {
+      "project": "FreeCAD DWG/DXF documentation and importer",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "Mutable main documentation reviewed 2026-10-17",
+      "observed": "The project docs describe DWG and DXF as 2D-geometry-only and DWG import via an external converter followed by DXF import."
+    },
+    {
+      "project": "FreeCAD issue #18454",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "revision": "Closed as not planned, observed 2026-10-17",
+      "observed": "A maintainer says stock FreeCAD cannot read the proprietary ACIS blob in DXF and closes the request as not planned. This is evidence about stock FreeCAD, not third-party add-ons or all FreeCAD installations."
+    },
+    {
+      "project": "LibreDWG README and documentation",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "Mutable master pages reviewed 2026-10-17",
+      "observed": "The project advertises broad DWG reading but notes advanced R2010+ objects may be skipped; its coverage documentation differentiates handled, unhandled, unstable and untested classes. Build profile, operation and source/target versions must be pinned for comparisons."
+    }
+  ],
+  "assessment": {
+    "claimLanes": [
+      "explicit typed geometry",
+      "opaque SAT/SAB/ASM carrier preservation",
+      "structural projection or mesh conversion",
+      "semantic B-rep/topology acceptance",
+      "native application acceptance"
+    ],
+    "peerAdmissionRule": "A successful read is not evidence of complete write preservation. Count handles, entity types, block ownership and carrier hashes through read-write-read; record omissions, lowering, warnings and refusals. Pin version/profile/operation.",
+    "semanticRule": "Raw carrier access, limited ACIS record parsing, GDAL projection and 2D rendering cannot promote semantic-solid support. Require a pinned independent reader/kernel plus known analytic controls for that lane.",
+    "freecadRule": "Preserve FreeCAD as a 2D compatibility/converter-chain target; do not use stock FreeCAD as an ACIS semantic pass criterion.",
+    "versionRule": "Treat peer-reported DXF subclass floors and AcDs writer layouts as hypotheses; validate against ODA authority and local captured/generated vectors before implementation."
+  },
+  "planImpact": {
+    "existingGatesRefinedOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  }
+}

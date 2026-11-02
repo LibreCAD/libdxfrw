@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ODA MLeader root framing and cross-peer evidence reconciliation",
+  "mode": "Primary format specification review with current open-source issue/commit crosswalk",
+  "scope": [
+    "Resolve whether embedded MLeader root connection/direction coordinates are conditional on flags 290/291 under the ODA v5.4.1 profile.",
+    "Refresh cross-peer evidence boundaries for LibreDWG string and CMC issues, ACadSharp whole-file MTEXT and SPLINE reports, and ezdxf ACIS limits.",
+    "Turn the resolved ODA-profile question into a fast local implementation subplan while preserving standalone object-context and 3D qualification boundaries."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "local_files_reviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "docs/research/deeper-broader-ac1032-renderer-and-peer-recovery-boundary-2026-10-19.json"
+    ],
+    "primary_local_spec": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, ODA Open Design Specification v5.4.1, §§20.4.48, 20.4.71, 20.4.86, 20.4.89",
+    "plan_updated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-oda-mleader-root-cross-peer-reconciliation-2026-10-19.json"
+    ],
+    "limitations": "ODA documents the field sequence and notes that it writes both root flags true; generated false-flag vectors are conformance controls for the specified unconditional field sequence, not producer-authored compatibility evidence. GitHub issues are mutable reporter/maintainer records. The linked LibreDWG commits were inspected but no released package was checked for inclusion. ACadSharp issue reports and ezdxf documentation are not independent AutoCAD or ACIS-kernel runs."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "local_reference": "ODA Open Design Specification v5.4.1, §§20.4.48, 20.4.71, 20.4.86, 20.4.89",
+      "observed": "§20.4.86 lists B290, B291, 3BD10 connection point, and 3BD11 direction in sequence without conditional guards. The table labels the flags but does not make either coordinate conditional; ODA notes it writes both flags true. This resolves the ODA-profile embedded MLeader field order, not producer-specific variants or standalone object-context graph serialization."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474",
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "observed": "#1412 remains listed open while linking commits for actual-buffer termination and zero-length group emission; commit notes distinguish the reachable heap-tail defect from the latent/unreachable state and do not identify a released package. #1414 remains an unresolved peer TV/TU escape-policy question. #1415 reports palette reverse-lookup loss of distinct stored ACI indices. These are peer shapes, not local libdxfrw findings or normative contracts."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observed": "#1277 concerns standalone MLeader context objects and does not make the embedded entity body interchangeable with the standalone context preamble/scale/owner graph. #1297 reports whole-file AC1032 AutoCAD rejection with an MTEXT flag shape even though the object reportedly matches a native-saved object; missing style objects remain an unproven hypothesis. #1299 reports a DWG-to-DXF SPLINE that GDAL rejects but provides no exact curve arrays or independent expected curve in the issue body."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "The current documentation describes a limited ACIS entity count, says unsupported entities load as NONE_ENTITY with data lost, and warns arbitrary ACIS data cannot be loaded and re-exported. Its generation APIs can create test carriers but do not qualify arbitrary ACIS semantics."
+    },
+    {
+      "project": "libdxfrw local source",
+      "urls": [],
+      "files": [
+        "src/drw_entities.cpp::parseMLeaderRoot",
+        "src/drw_entities.cpp::encodeMLeaderRoot",
+        "src/drw_entities.h::DRW_MLeaderRoot"
+      ],
+      "observed": "The current embedded parser and writer conditionally consume/emit the connection and direction 3BDs based on flags 290/291. The plan now calls for a symmetric ODA-profile correction and four generated flag-pair controls with cursor and suffix sentinels."
+    }
+  ],
+  "plan_impact": {
+    "existing_owner_refinement": "Resolve the embedded MLeader root field-order question under ODA §20.4.86 and make it the next local PAR-20/7F.1 behavior-bearing slice. Preserve the separate fail-closed standalone OBJECTCONTEXTDATA graph gate, and reuse existing ASCII string, CMC, spline, and whole-file acceptance owners.",
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "new_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_runs": 0,
+    "native_runs": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 139,
+      "top_level_subplans": 77
+    }
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Only the plan and research receipt were edited in the existing broadly dirty shared worktree. No files were staged or committed."
+}

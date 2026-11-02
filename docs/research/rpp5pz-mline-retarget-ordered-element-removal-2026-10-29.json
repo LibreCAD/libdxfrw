@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINESTYLE ordered-element-removal retarget",
+  "date": "2026-10-29",
+  "status": "AC1027_ORDERED_STYLE_REMOVAL_RETARGET_QUALIFIED",
+  "codeCommit": "ebd57d2846246534a8d00868aead0c6f8987c175",
+  "scope": "Qualify a selected AC1027 source-bound MLINE retarget from a three-element source style to a separately named two-element target style formed by removing the middle offset. Both open, unfilled, uncut consumers (one in ENTITIES and one in a BLOCK) are reprojected. This is not general MLINE retarget or native-rendering qualification.",
+  "references": [
+    {
+      "authority": "Autodesk AutoCAD DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Defines MLINESTYLE group 70 geometry flags, group 71 element count, and ordered per-element groups 49, 62, and 6. It identifies entity group 340 and the MLINESTYLE dictionary key as the authoritative retarget references; group 2 names are redundant."
+    },
+    {
+      "authority": "Autodesk AutoCAD DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Defines group 73 element count; groups 74/41/75/42 parameter arrays; per-vertex geometry groups; and states that group-41 lists do not depend on linetypes. This supports the selected offset-based reprojection field model, not native rendering acceptance."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Add an AC1027-only retarget-removal admission path for open, unfilled, uncut MLINEs with flags 2 and unchanged start/end angles. It accepts a nonempty ordered target offset subset, reprojects group-41 parameters and group-73 arity, and preserves redundant group-2 names while the authoritative group-340 reference changes. Target colors and linetypes remain those of the selected target style. Add exact physical-field/reference checks, fresh readback, a non-subset refusal, late-mutation failure, destination preservation, and same-adapter retry controls.",
+    "compatibility": "No public API or DRW_Interface changes. The new retarget-removal path is explicitly gated to AC1027; other source versions retain existing refusal behavior. Runtime-generated inputs/outputs are removed after successful test runs."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_removal_projection$' --output-on-failure",
+      "result": "PASS: profiles=4; readbacks=8; refusals=2; late=2; retries=4"
+    },
+    "regressionCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_(offset_projection|angle_projection|append_projection|removal_projection)$' --output-on-failure",
+      "result": "PASS: 4 tests; 2.03s total"
+    },
+    "directFocusedRun": "PASS: profiles=4; readbacks=8; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "The test authors its AC1027 DXF input and outputs at runtime in a system temporary directory and removes successful-run artifacts. No drawing fixture was committed.",
+  "limits": [
+    "Only the source-count-three to target-count-two profile removing the middle offset is newly qualified; this receipt does not qualify every ordered subset or count even though the bounded projector admits them.",
+    "The exact profile uses flags 2, equal 90/90 angles, one ENTITIES consumer, and one BLOCKS consumer. Other flags, angle changes, carriers, source versions and native rendering remain open.",
+    "This field/readback evidence does not establish native MLINE rendering, complete-document conversion, or a format-support claim."
+  ],
+  "next": "Qualify source-count-four to three-element AC1027 style retargets across all four single-deletion positions using the same exact field/reference, readback, refusal, rollback and retry controls."
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-mleader-typed-reference-containing-owner-closure-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Preflight typed target-kind, rooted style, and containing BLOCK_RECORD owner closure for retained DXF MLEADER entities while keeping final output fail-closed.",
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "sha256": "3ac31dba7792024e303d9745182f47796c55b47d8605e394234cbbc823800070",
+    "behavior": [
+      "Requires each MLEADER style target to be unique, MLEADERSTYLE-typed, and reachable from ACAD_MLEADERSTYLE.",
+      "Checks entity groups 341-344, context text/block references, leader-line linetype/arrowhead references, and AC1021 legacy reference arrays against unique expected target kinds.",
+      "Checks entity group-330 against the containing named-block BLOCK_RECORD or the unique model/paper-space BLOCK_RECORD implied by entity space.",
+      "Preserves the existing fail-closed serializer boundary and destination-before-publication behavior."
+    ]
+  },
+  "tests": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "f1b07083f4137350dab0748d0fd42d0236c2f5cb4ed991c678f0d8cde9e79f9d",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "reportedElapsedSeconds": 0.29
+    },
+    "diffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+    "controlTypes": [
+      "generated ASCII and binary rooted MLEADER graphs reach the final serializer fail-closed gate",
+      "wrong-kind and dangling MLEADERSTYLE/entity/context/leader-line edges are refused",
+      "a group-330 owner inconsistent with the containing model-space BLOCK_RECORD is refused",
+      "rejected export preserves a pre-existing destination sentinel"
+    ],
+    "fixturesCommitted": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "limits": {
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "peerRun": false,
+    "serializerQualified": false,
+    "dwgAcdbMLeaderContextQualified": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; Git metadata is read-only in this task"
+  }
+}

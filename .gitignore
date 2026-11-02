@@ -6,6 +6,21 @@ autom4te.cache/
 CMakeCache.txt
 CMakeLists.txt.user
 dwg2dxf
+# Keep the historical directory ignore, but expose new implementation sources.
+!/dwg2dxf/
+/dwg2dxf/*
+!/dwg2dxf/dx_raster_dwg_wire.h
+!/dwg2dxf/dx_dwg_class_wire.h
+!/dwg2dxf/dx_dwg_class_section_wire.h
+!/dwg2dxf/dx_dwg_class_evidence.h
+!/dwg2dxf/dx_raster_output.h
+!/dwg2dxf/dx_standard_output.h
+!/dwg2dxf/dx_symbol_output.h
+!/dwg2dxf/dx_symbol_name_key.h
+!/dwg2dxf/dx_attdef_source_profile.h
+!/dwg2dxf/dx_block_source_profile.h
+!/dwg2dxf/dx_batch_output_names.h
+!/dwg2dxf/dx_batch_output_names.cpp
 libdxfrw.pro*
 Makefile*
 *.o
@@ -17,6 +32,9 @@ Makefile*
 *.dll
 *.exe
 *.cmake
+!/cmake/libdxfrwTestAdapter.cmake
+!/cmake/libdxfrwAdapterContext.cmake
+!/cmake/libdxfrwRootTestAdapters.cmake
 tools/__pycache__/
 *.patch
 *~

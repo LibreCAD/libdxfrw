@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-07/S8 modeler/DataStorage replay closure",
+  "related_owner": "7S.3 retained-work and membership lookup",
+  "slice": "ACIS replay owner-membership lookup",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Each pending modeler/DataStorage payload join re-scanned a complete space entity list or user-block entity vector to confirm owner membership.",
+  "implementation": {
+    "files_changed": [
+      "src/intern/dwgwriter15.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/7s3-acis-replay-owner-membership-lookup-fast-slice-2026-10-20.json"
+    ],
+    "details": [
+      "Map NoHandle/model-space and paper-space identities to their existing writer owner keys; preserve user BLOCK_RECORD identity directly.",
+      "Replace repeated vector membership searches with lookup in the existing owner+entity-handle set populated only after successful entity emission.",
+      "Reuse existing rollback bookkeeping and the set's 1,000,000-entry bound; add no new persistent index or copied vector."
+    ],
+    "complexity": "Per-pending-payload entity ownership lookup changes from linear owner-vector scan to O(log N) ordered-set lookup. No benchmark or elapsed-time claim is made.",
+    "semantic_behavior": "No admission rule, owner mapping, payload association, serialized field, or support claim changed; this is not ACIS semantic validation."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "selectors": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-block-census",
+        "result": "PASS (positive=8, negative=14)"
+      }
+    ],
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-acis-replay-owner-membership-lookup-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "performance benchmark or RSS measurement",
+      "peer executable or independent producer",
+      "native CAD application or geometry kernel"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Continue the next locally actionable 7S.3 repeated-membership or retained-work audit; external ACIS and platform evidence remain non-blocking for local implementation.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

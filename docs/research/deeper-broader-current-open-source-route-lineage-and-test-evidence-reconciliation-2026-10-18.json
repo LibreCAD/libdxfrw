@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Current open-source route lineage and test-evidence reconciliation",
+  "mode": "Deeper/broader primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current DWG/DXF peer feature claims with the parser/writer implementation actually invoked",
+    "Separate source branch, release, registry documentation, and wrapper lineage for optional comparisons",
+    "Make missing fixture/submodule and ignored-test visibility part of peer evidence readiness",
+    "Preserve the fast local implementation cadence and existing support-evidence boundaries"
+  ],
+  "method": {
+    "kind": "Read current primary project documentation, format matrices, package API pages, issue reports, and compare against the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project READMEs, issue reports, docs.rs latest pages, and mutable main/master URLs are discovery evidence, not immutable executable artifacts or normative format sources. No peer behavior was reproduced. ODA v5.4.1 remains authoritative for DWG byte layout; Autodesk references remain authoritative for documented DXF grammar. No local parser defect is inferred from peer reports alone."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/index.html"
+      ],
+      "revision": "Mutable README/manifest and docs.rs latest page reviewed 2026-10-18; no source commit or crate archive pinned",
+      "observed": "README/main advertises a 0.6.5-facing R12–R2018+ DWG/DXF matrix, 48 top-level entity variants, and SAT/SAB parsing/writing; it also states AC1009 DWG fidelity is incomplete and R12 DXF export is promoted to R13 or later. The docs.rs ACIS module page identifies 0.6.4, demonstrating that generic documentation and mutable branch evidence must not be combined as one artifact result."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/Cargo.toml"
+      ],
+      "revision": "Mutable README/scope and workspace instructions reviewed 2026-10-18; no commit or build pinned",
+      "observed": "The documented DWG route uses LibreDWG through FFI; DXF ASCII/Binary uses the separate undxf crate; output is JSON/rendering rather than DWG/DXF, and its former write API was removed. Real-file workspace tests require test inputs from the LibreDWG test-data submodule. These are separate parser and test-availability routes, not one independent DWG/DXF codec."
+    },
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel",
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "revision": "Mutable project README and detailed format matrix reviewed 2026-10-18; no source path or executable pinned",
+      "observed": "Broad project prose advertises many formats; the detailed matrix labels DWG read/write as a DXF fallback and marks ACIS SAT/SAB read/write unsupported. The project is therefore not admitted as an independent native DWG or ACIS comparator on this evidence."
+    },
+    {
+      "project": "ACadSharp issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1250",
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "Public issue reports accessed 2026-10-18; report-specific builds/input artifacts were not independently reproduced",
+      "observed": "Reports cover silent 3DSOLID/REGION DXF omission, ARC/ELLIPSE transform inconsistency, and an AC1032 no-op MLEADER context rewrite reportedly rejected by AutoCAD LT audit. These serve only as scoped failure-mode/test-design evidence and map to existing local plan owners."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies the exact parsing/writing route and artifact identity required before using a peer as evidence; distinguishes ACadRust branch/docs artifacts, uncad's separate LibreDWG and undxf paths, and CADKernel's DXF fallback from native DWG or ACIS implementations. Adds test-input availability and ignored/skipped-test reporting to the optional peer recipe. No new local implementation issue or support claim was established."
+  },
+  "implementationReadyChecks": [
+    "Choose a precise format, version, direction, record family, and semantic question before selecting an optional peer.",
+    "Record the exact parser/writer code path and lineage, not only the product or wrapper name; separate forks and downstream renderers from independent codec implementations.",
+    "Pin an immutable commit, release, or registry archive hash. Keep branch, release, and docs.rs/package evidence separate when version labels differ.",
+    "Record test command, required fixture-submodule availability, run/ignored/skipped counts, diagnostics, and per-version/per-record denominator; a green default suite with absent drawing inputs is not corpus qualification.",
+    "Keep local implementation slices on generated local controls, strict touched-target build, focused selector, owning CTest, and scoped diff check; peer/native/full-suite work remains at composed gates.",
+    "Do not import or commit external peer/customer DWG/DXF/SAT/SAB fixtures; use repository-owned or locally authored temporary controls."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-current-open-source-route-lineage-and-test-evidence-reconciliation-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-current-open-source-route-lineage-and-test-evidence-reconciliation-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

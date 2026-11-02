@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL diffuse mapper scalar edits",
+  "date": "2026-10-28",
+  "codeCommit": "1817026c1f4020f027a725574919179ecd22214b",
+  "scope": "Unchanged captured modern-DXF MATERIAL source with complete diffuse and inferred normal tuples; finite typed diffuse blend, projection, tiling and auto-transform edits, alone or composed with selected normal fields and both mapper matrices.",
+  "contract": {
+    "operation": "Bind first and second outer 42/73/74/75 fields around the inferred normal boundary and validate captured values. Replace changed diffuse or normal roles only and re-decode the complete represented output model.",
+    "admission": "Finite diffuse blend, projection 1\u20134, tiling 1\u20133 and existing 0x07 auto-transform mask; the zero mask is an admission policy, not a claim about native behavior.",
+    "atomicity": "Invalid ranges, nonfinite values, changed field presence, conflicting raw roles and late mutation refuse without replacing the destination or caller state; corrected retry uses the same adapter."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "6d6cfd8998bd2cd951a09d82cff5dfddb58b6f9d5c3ff54e54e89fecfdea3616",
+    "testSourceSha256": "2298405c00fe08e7a8419c77077ad100413999e9324cc67ed51622bbfc562f15",
+    "normalAdapterObjectSha256": "5ecf8c1fd3385fa1adaa23023e8ea403f6bbfe629dbbf3db378e946aae3d3e66",
+    "normalLibrarySha256": "cc5e4c13cabbb65170f6498ed9acf355084ddfdc056e3a017163c694aa32afd2",
+    "normalTestExecutableSha256": "89030313ab97b8f1c708ab90a4955a3df069272811f95478b962daefd7c3ea35",
+    "asanAdapterObjectSha256": "2d95857256fe31c8ac5264f8239edbca541d29297a73a2e448b426c3bfd273cc",
+    "asanLibrarySha256": "b707a24f4efc5f606c03b3d77a475be8f517374996fb4809007b6cea244bd1a8",
+    "asanTestExecutableSha256": "befba4eb5a7618c7ea444d709330bcc3faece9600cbe50ccc2a4a5f17a02f131"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS"
+    },
+    "asan": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Every nonempty subset of the four diffuse scalar edits composed with normal roles and both matrix edits across four ASCII/binary routes; all admitted projection, tiling and mask values; 16 invalid, presence and raw-conflict refusal/retries per route; three late-mutation stages per source format, preserving sentinel destinations.",
+    "chronology": "Normal and ASan ran frozen code committed above; independent physical projection was refreshed against the rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p3-diffuse-roles/independent.json",
+    "reportSha256": "338fdaa14b2a0dd817f545e50d89e4c4205d808dcb7872674039b65362bbebaa",
+    "reportScriptSha256": "5daefd2ec05eda16e181ec67385d9ee237562a209e00be01b7292a59222b5a80",
+    "probeSourceSha256": "acd5065d2676d721b9f71dd99de1ddf28bc3b4486a0065bd5ab31844b2a3bbf7",
+    "sharedLinkedProbeSha256": "eac3aba43076d93e5908d9b13af5ef82fce54ccfa9887aaa2bb6c3316e7cc674",
+    "originalSourceSha256": "c9e44c4fea58eee1dd7c3e4c96f50e75f62101ad014a797dbb38cb7a7109f715",
+    "derivedInputSha256": "8ff19bb76258f63a11478e5f93efe0998f5dc5b954f43201bdcb2285523580bc",
+    "derivation": "Separately authored AC1027 source with distinct diffuse/normal sentinels; specular producer code corrected to 76. The derived input removes unrelated EZDXF_META root and DICTIONARY/DICTIONARYVAR objects; selected MATERIAL tags match the original before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "results": [
+      {
+        "case": "blend",
+        "format": "asc",
+        "sha256": "189eabcb9835a40b77a9604f931fcadfe9c38c7de22fe87a02296ad9769811f7",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "blend",
+        "format": "bin",
+        "sha256": "bd5d3b119d3d307a9e8c4f10b28fa9200876a37910032106a8963c7943b114d9",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "projection",
+        "format": "asc",
+        "sha256": "c003d03588fba5f81b050f48635b00737dc5ec84ba2b74cb69b8cb781f993b60",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "projection",
+        "format": "bin",
+        "sha256": "9975e300114dec6af56c3bb0a3d63be3102ae31bcb541093a3d14139c94e5101",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "tiling",
+        "format": "asc",
+        "sha256": "3a96046fc7c8b045fcc2338ce509ab476f51daf81428b772440b4b1df26e0b81",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "tiling",
+        "format": "bin",
+        "sha256": "dc60dc1f275ae83e7b95ff700936913df0af38bc6311fbe3f6ba95519513760e",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "auto",
+        "format": "asc",
+        "sha256": "fefb1bf759923351b82c4addf5cc5e6e930a27812590022889a2d33e015387d4",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "auto",
+        "format": "bin",
+        "sha256": "496810d8b6a2684930aadeaa56645b0fbf11e396c2928a1a58bda022ad7ae8d3",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "all",
+        "format": "asc",
+        "sha256": "f62b516d26874159e00c2024ed999fc811958ce2620eaff1ab816a6171eab7c5",
+        "selectedTagCount": 94
+      },
+      {
+        "case": "all",
+        "format": "bin",
+        "sha256": "23bd2b0728d560f698691e8965266105ba6e136af6b7b7cbfe76bf013b982793",
+        "selectedTagCount": 94
+      }
+    ],
+    "observations": "Independent pre-setup physical-tag projection compared all 94 selected tags across individual edits and their four-field composition in each encoding. Only selected first/diffuse roles changed; second/normal roles and other selected fields remained unchanged."
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    }
+  ],
+  "limitations": [
+    "Autodesk documents the first diffuse roles and named bit values; this evidence does not certify every combination or native rendering. The 0x07 mask follows existing admission policy.",
+    "The inferred normal boundary is qualified only for this selected source; omitted/repeated and other producer profiles require separate evidence.",
+    "The source is derived by removing unrelated objects. No full-document fidelity, DWG parity, arbitrary source version, native CAD rendering or broad support claim follows; no drawing fixture is committed."
+  ]
+}

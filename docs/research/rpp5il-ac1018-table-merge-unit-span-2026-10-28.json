@@ -1,0 +1,67 @@
+{
+  "schema": "ac1018-table-merge-unit-span-review-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "67c7674a5302346d0dd0e39408f688d6aa65a15b",
+  "supportClaimsPromoted": false,
+  "scope": "Reject non-unit spans on unoccupied cells in selected inferred AC1018 merged TABLE output; retain existing explicit-anchor and other profile guards.",
+  "priorEvidence": "docs/research/rpp5ik-ac1018-table-merge-output-2026-10-28.json",
+  "preFixReproduction": {
+    "authoredInputPath": "build/table-merge-writer-review/source.dxf",
+    "authoredInputSha256": "a54ddb2e03c4c88cab16ef6fc10ee6019e9aa27f5e792e68afc344e6fb591c09",
+    "setup": "Locally authored AC1018 1x3 table: two merged cells and one unoccupied cell. Input has unit width for the latter; probe changes its in-memory width to zero before export.",
+    "probeSourceSha256": "21fa1dd676fff09ab3072145d125228d2ed7a70fa4ddee3b71c8537afa56e14a",
+    "probeExecutableSha256": "c76546c3f2b3c10c7960a91f1bdcc8703f2c40f1a0a2e0567754e5cdcbd63184",
+    "libraryAtLinkSha256": "9a7babaf49ef0f2c20392ffa6f7053303042482bd295f49147a9601d67c298a9",
+    "adapterAtLinkSha256": "6855fb035c20c9d3a27dee93dd6ee2ed08b54b174a3d5e6e2edbd39e7ceaa0",
+    "observed": "source-width=0 export=1 caller-width=0 readback-width=1",
+    "logSha256": "812730b4618c263437453ad159feb519783fb51aa844013f8a3dae38088e2a0e",
+    "interpretation": "Typed descriptor silently changed on export; no native geometric or rendering change is established."
+  },
+  "postFixReproduction": {
+    "sourcePath": "build/table-merge-writer-review/postprobe.cpp",
+    "sourceSha256": "bf9ed6146e7ba5e34547baff68e851c2d953f8cfac646adb8d327fc7b075ae80",
+    "executableSha256": "6713b8674404015c264f682329be92044a47034df8aa60845fcd4478c08a428a",
+    "normalLibraryAtLinkSha256": "b2b91d755e8d02d83629854730e00ba75eedb97216a9e61355ee11c3928a7c4a",
+    "normalAdapterAtLinkSha256": "7d60560ea1694d6ba62cde3b3ea6fe26d0ecb7ba2567fd5bc0b45360569e62dd",
+    "observed": "refused=1 sentinel=1 caller-width=0 retry=1 readback-width=1 one-range=1",
+    "logSha256": "c4e05eaccebc1bd511c470925850028db7beaa57f552d17ce77b7893ea7806f2",
+    "retryOutputSha256": "57611dfa494652433fd3c13abff7132b7e7065cdf15b3580e9b36cfcce2824e0",
+    "interpretation": "The attempted zero span is refused with sentinel and caller width preserved; correcting to one on the same writer permits export and typed readback with one range."
+  },
+  "codeBindings": {
+    "src/libdxfrw.cpp": "5a77b2cf4fb3c4c64e28ca6b9c408002882056583d702de3601aa687bd8f7293",
+    "tests/table_legacy_merge_controls.h": "e00b5eb85869d9ba9099c01f63f0457f72456e1f0467b91c0f59aad6985bb494"
+  },
+  "focusedControls": {
+    "coverage": "ASCII and binary source and target, strict and compatible modes; unoccupied width and height independently set to zero",
+    "positiveUnitSpanBaselines": 8,
+    "atomicRefusals": 16,
+    "correctedSameWriterRetries": 16,
+    "checks": "Destination sentinel and caller model preserved on refusal; successful corrected retries read back."
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof|record_legacy_observation)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "result": "Initial cohort 9/9 passed; strengthened BLOCK_RECORD observation separately rebuilt and passed 1/1. Results reported by coordinated build; no retained test-log hash asserted.",
+    "tableExecutableSha256AtProbeLink": "f7ec96b4895e00699d05b5688604c256bfeb363437ab4f46c7e24771534dc495"
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof|record_legacy_observation)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "Final cohort 9/9 passed as reported, after BLOCK_RECORD comparator strengthening; no retained test-log hash asserted.",
+    "tableExecutableSha256": "e88a90529f93713fb0e0d17049d45f6dd87d4637317896355546ceec85439126",
+    "librarySha256": "91b882e9ef6b82e535b595ea3e9f227be00f50109ec4202a0b859042cf406fa7",
+    "adapterObjectSha256": "00f4fce00df82b7b1deaefa34d7031a8792d0beb2b64e239a94d39df4deeba9f"
+  },
+  "simultaneousWork": {
+    "material": "MATERIAL common metadata guard source was frozen during both cohorts and committed subsequently as 2d17db67. dx_iface.cpp SHA-256 96cd80b949a09949613cadd4d3f89f313e1bda7c03dc754efcef77e42d87d45c; dx_material_body.h 73b135bfca8194f4872fea05efc95f58d552c3c51d419593d90f0b14d032cac7.",
+    "blockRecord": "Concurrent BLOCK_RECORD observation comparator strengthened between initial normal cohort and separately passing normal selector, then included in final ASan cohort; test header SHA-256 df1a9ff8a299a3323c4b32d60f3c035a27906e669ff02219705e3e22dabfc2b5, subsequently committed as edf69bd8."
+  },
+  "limitations": [
+    "Source-specific anchor/covered polarity remains an inference; no native TABLE merge rendering semantics established.",
+    "Cell visibility 289 absence and other unsupported masks/borders remain unresolved; explicit 177=0 omission remains separately unproven.",
+    "No complete TABLE or document, LibreCAD/LibreCAD_3 or FreeCAD qualification follows from these focused tests.",
+    "Prior DRW_Table layout change requires consumer rebuild and formal ABI/API qualification.",
+    "Probe inputs and outputs are locally authored and remain in ignored build scratch; no new external fixture is committed."
+  ]
+}

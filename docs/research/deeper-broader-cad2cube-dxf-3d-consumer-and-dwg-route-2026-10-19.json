@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "CAD2Cube DXF 3D-consumer and DWG-route revalidation",
+  "mode": "Primary-source open-source repository and consumer-route review; research-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktreeState": "Dirty shared worktree; preserved existing changes",
+  "scope": [
+    "Screen an additional Blender-based explicit-geometry DXF consumer.",
+    "Reconcile current repository description, README, and extension manifest for version and DWG route scope.",
+    "Distinguish consumer projection from independent parser, DWG conversion, MESH, ACIS/AcDs, and B-rep claims.",
+    "Add a bounded optional composed-check recipe without changing implementation order or validation cadence."
+  ],
+  "sources": [
+    {
+      "name": "CAD2Cube current README",
+      "urls": [
+        "https://github.com/lylongfts/CAD2CUBE"
+      ],
+      "observed": "The mutable main README identifies its documented source as v1.5.0 and describes a standalone DXF importer after removal of its ODA-based DWG conversion. It documents 3DFACE, SOLID, 2D/3D POLYLINE, and HATCH projection; 3DSOLID is planned, and MESH is not listed. Its optional 3DFACE merge changes many face records into a Blender mesh, so post-merge object counts are not source-entity disposition evidence. These v1.5.0 statements are not attributed to the newer v1.5.1 release without immutable source/artifact binding."
+    },
+    {
+      "name": "CAD2Cube Blender extension manifest",
+      "urls": [
+        "https://github.com/lylongfts/cad2cube/blob/main/blender_manifest.toml"
+      ],
+      "observed": "The mutable main manifest identifies version 1.5.0, Blender 4.2+, and bundled ezdxf 1.4.4. This is a package declaration, not an immutable artifact/source binding or an execution result."
+    },
+    {
+      "name": "CAD2Cube GitHub releases and v1.5.1 release notes",
+      "urls": [
+        "https://github.com/lylongfts/cad2cube/releases/tag/v1.5.1"
+      ],
+      "observed": "The release page lists v1.5.1 at signed/verified tag commit d07bdb0 as Latest, released 2026-09-28. Its notes mention curve-data and linetype changes but do not bind a tagged README, Blender manifest, bundled ezdxf wheel, or extension asset to the inspected mutable main files. Therefore v1.5.1 source/artifact identity and its DWG route remain LATEST_RELEASE_SOURCE_UNBOUND; do not infer that the v1.5.0 ODA-converter removal applies to it. The tagged files and release asset were not retrieved in this pass."
+    },
+    {
+      "name": "Autodesk MESH DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm"
+      ],
+      "observed": "The MESH record is an AcDbSubDMesh schema with version, subdivision level, vertices, face-list, edges, crease values, and property-override fields. This is a distinct record family from 3DFACE and does not establish a consumer's support."
+    },
+    {
+      "name": "FreeCAD Draft DXF consumer guide",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "FreeCAD documents separate built-in C++ and legacy Python importer entity lists and says embedded ACIS solids cannot currently be read by stock FreeCAD. The CAD2Cube route is not a replacement for importer-specific native FreeCAD qualification."
+    },
+    {
+      "name": "ezdxf ACIS API",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "CAD2Cube's bundled parser lineage is ezdxf. ezdxf's bounded ACIS carrier/projection behavior does not make the add-on an independent DXF parser or complete B-rep geometry oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "planSha256": "fc80c279ff0f9cb4749b855f446617855b737cc82787016ac4061b0b41cd40f9",
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Reconciles a latest-release/source mismatch for the already-tracked CAD2Cube candidate: the release page lists v1.5.1 at d07bdb0, but only mutable v1.5.0 README/manifest evidence was inspectable. Keep the candidate source/artifact and current DWG route unqualified until bound. The inspectable v1.5.0 route bundles ezdxf and projects selected explicit DXF geometry into Blender; merge-induced identity loss and undocumented MESH/planned 3DSOLID prevent independent-parser or solid-semantic credit. Implementation order, fast/full validation cadence, and support claims remain unchanged."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review and local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "The v1.5.1 release page and release notes were inspected, but the tagged README/manifest and release asset were not retrieved; mutable main README and manifest identify v1.5.0 and remain unbound to v1.5.1. No Blender/add-on execution occurred. The v1.5.0 route is a downstream geometry projection that bundles ezdxf; neither its documentation nor this source review qualifies v1.5.1 behavior, raw DXF preservation, a current DWG route, MESH, ACIS/AcDs, B-rep semantics, or FreeCAD behavior."
+  }
+}

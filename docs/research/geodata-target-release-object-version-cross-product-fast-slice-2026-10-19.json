@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "GeoData target-release by object-version cross-product fast slice",
+  "base_revision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "Generated in-memory test-only implementation slice",
+  "scope": [
+    "Exercise the ODA GeoData target-release Civil-tail gate independently from GeoData object body version.",
+    "Add AC1024/object-version-1/tail and AC1027/object-version-1/no-tail read/write cases to the existing vector test owner."
+  ],
+  "implementation": {
+    "files_changed": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "reader_cases_added": [
+      {
+        "target_version": "AC1024",
+        "object_version": 1,
+        "mesh": true,
+        "civil_tail": true
+      },
+      {
+        "target_version": "AC1027",
+        "object_version": 1,
+        "mesh": false,
+        "civil_tail": false
+      }
+    ],
+    "writer_cases_added": [
+      {
+        "target_version": "AC1024",
+        "object_version": 1,
+        "mesh": true,
+        "civil_tail": true
+      },
+      {
+        "target_version": "AC1027",
+        "object_version": 1,
+        "mesh": false,
+        "civil_tail": false
+      }
+    ],
+    "production_code_changed": false,
+    "fixture_added": false,
+    "dependency_changed": false,
+    "test_registration_changed": false,
+    "plan_self_updated": true
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS",
+        "tests_passed": 1,
+        "tests_total": 1,
+        "elapsed_seconds": 0.27
+      },
+      {
+        "command": "git diff --check -- tests/dwg_object_vectors_tests.cpp src/drw_objects.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/geodata-target-release-object-version-cross-product-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "full_suite_run": false,
+    "sanitizer_run": false,
+    "peer_executable_run": false,
+    "native_cad_run": false
+  },
+  "assessment": {
+    "new_confirmed_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "support_claim_promoted": false,
+    "findings": 137,
+    "top_level_subplans": 77,
+    "external_only_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commit_state": "UNCOMMITTED_GIT_METADATA_READ_ONLY"
+  }
+}

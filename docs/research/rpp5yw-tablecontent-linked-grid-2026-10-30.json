@@ -1,0 +1,54 @@
+{
+  "id": "RPP-5yw",
+  "date": "2026-10-30",
+  "title": "Bounded multi-cell TABLECONTENT linked-cell DATALINK writer",
+  "scope": {
+    "operation": "Write one linked-data cell inside a bounded rectangular TABLECONTENT grid while preserving scalar peer cells.",
+    "profile": "Generated 2x2 AC1032 table: one empty-local-content cell linked to one DATALINK and three scalar string cells; ASCII and binary DXF.",
+    "handle_remap": {
+      "table_content": "0x5A0 to 0x15A0",
+      "data_link": "0x710 to 0x1710"
+    },
+    "limits": [
+      "One linked cell in the generated profile",
+      "One unique emitted DATALINK target",
+      "Linked cells carry no local contents, block references, attributes or geometry"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no native application semantics or DWG encoding claim."
+  },
+  "implementation": [
+    "Admit a linked cell in the multi-cell writer only when its handle is valid and its local contents are empty; unlinked cells still require default DATALINK fields.",
+    "Emit each linked cell's group 92 flag, remapped group 340 DATALINK target and exact groups 93, 94 and 96 metadata.",
+    "Retain adapter preflight graph closure so absent or non-unique DATALINK targets are refused."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": [
+      "One emitted DATALINK record uses handle 0x1710.",
+      "The linked cell carries 92=1, 340=0x1710, 93=2, 94=3 and 96=-5.",
+      "The other three grid cells retain scalar/unlinked encoding."
+    ],
+    "typed_readback": "The TABLECONTENT handle is 0x15A0; the linked cell points to the emitted DATALINK at 0x1710 with row count 2, column count 3 and unknown value -5; scalar peer content is preserved.",
+    "failure_control": "Changing the linked-cell target to absent handle 0x799 is refused; an existing destination sentinel and the caller model remain unchanged.",
+    "retry_control": "Restoring the valid source target lets the same adapter export again; the result reads back with the remapped graph intact."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-linked-grid-write",
+    "focused_ctest": "ctest --test-dir build -R '^libdxfrw_table_content_(grid_write|linked_grid_write)$' --output-on-failure",
+    "focused_ctest_result": "2/2 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "This receipt does not qualify multiple linked cells, nonempty local content in a linked cell, broader DATALINK semantics, native table rendering, or DWG output."
+  ]
+}

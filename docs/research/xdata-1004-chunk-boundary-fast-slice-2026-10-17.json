@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-xdata-1004-chunk-boundary-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Close the local DXF XDATA group-1004 physical chunk-boundary gap identified in 7K, without adding a drawing fixture or promoting external support claims.",
+  "formatReference": {
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "observation": "Autodesk documents group 1004 binary data as variable-length chunks with a maximum of 127 bytes per chunk; ASCII DXF represents each byte as two hexadecimal digits."
+  },
+  "method": {
+    "kind": "Source-generated ASCII and Binary DXF writer/readback controls",
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --xdata-writer-validation",
+        "result": "passed"
+      }
+    ],
+    "localFilesChanged": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/xdata-1004-chunk-boundary-fast-slice-2026-10-17.json"
+    ],
+    "temporaryOutput": "Generated ASCII/Binary DXF outputs were written under the system temporary directory and removed after the test."
+  },
+  "controls": [
+    {
+      "encoding": "ASCII and Binary DXF",
+      "payloadBytes": 126,
+      "expectedWireChunks": [126],
+      "assertions": [
+        "Export succeeds.",
+        "Raw code-1004 tag contains exact uppercase hexadecimal bytes.",
+        "Readback preserves the APPID and exact binary chunk content.",
+        "The following LINE is parsed with its expected coordinates and no XDATA."
+      ]
+    },
+    {
+      "encoding": "ASCII and Binary DXF",
+      "payloadBytes": 127,
+      "expectedWireChunks": [127],
+      "assertions": [
+        "Export succeeds at the physical group-1004 chunk limit.",
+        "Raw and decoded chunk bytes match exactly.",
+        "The following LINE remains aligned and readable."
+      ]
+    },
+    {
+      "encoding": "ASCII and Binary DXF",
+      "payloadBytes": 128,
+      "expectedWireChunks": [127, 1],
+      "assertions": [
+        "Export splits the payload into two physical group-1004 chunks.",
+        "Raw and decoded chunk ordering/content match the source bytes exactly.",
+        "The following LINE remains aligned and readable."
+      ]
+    }
+  ],
+  "doesNotEstablish": [
+    "independent producer or native CAD acceptance",
+    "a drawing-wide XDATA or DWG EED size limit",
+    "same-APPID DWG EED continuation semantics",
+    "broader DWG/DXF feature completeness or support parity"
+  ],
+  "planImpact": {
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextSlice": "Generated DWG EED writer-size boundaries around 32,767/32,768 and 65,535/65,536 encoded bytes, kept distinct from DXF 1004 and resource limits."
+  }
+}

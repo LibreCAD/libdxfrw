@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACIS writer branch, carrier closure, and comparator freshness review",
+  "mode": "primary-source web research with local implementation-plan crosswalk",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the status and merge-base ambiguity of ACadSharp ACIS writer/schema PRs",
+    "Cross-check open-source reports about modern AcDs/SAB loss and DXF NOD selection",
+    "Reassess the exact limits of ezdxf and FreeCAD as carrier and consumer comparators",
+    "Refine existing implementation gates without adding a new finding or validation burden"
+  ],
+  "method": {
+    "kind": "Review public primary repository, issue, pull-request, and project documentation pages; reconcile findings with the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptAdded": "docs/research/deeper-broader-open-source-acis-writer-branch-carrier-closure-and-comparator-freshness-2026-10-18.json",
+    "limitations": "Peer claims were not reproduced. ACadSharp #1150's report about repeated group-310 reads is not attributed to merged master because linked PR #1174 remains open on its page; exact source revisions and merge-base must be pinned before any future execution. LibreDWG #1411/#1413 are issue-author reports. FreeCAD source/docs review is not an application qualification. No DWG/DXF samples or attachments were downloaded."
+  },
+  "sources": [
+    {
+      "project": "DomCR/ACadSharp PR #1150",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "revision": "Live PR page reviewed 2026-10-18; five commits, latest visible force-push 098d7a3; PR open",
+      "observed": "Contributor describes SAT/DXF and SAT/SAB DWG writer paths, reports manual opens across R2000/R2004/R2007/R2010/R2013 except R2007 DWG writer unavailability, and records TrueView-driven SAT group-boundary and subclass fixes. Oct. 1 discussion says the branch conflicts with the refactored reader and reports that the DXF ACDSDATA reader retained only the last repeated group-310 chunk; maintainer prefers a schema-driven writer rather than raw section replay.",
+      "limits": "Unmerged branch; no peer build/test/review was performed here. The group-310 observation is contributor-reported and must not be called current-master behavior without pinning and checking the exact merged source revision."
+    },
+    {
+      "project": "DomCR/ACadSharp PR #1174",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Live PR page reviewed 2026-10-18; PR marked open",
+      "observed": "The proposal introduces structured ACDS storage/schema and updates DXF/DWG reader infrastructure; its page still shows open status.",
+      "limits": "The status conflicts with wording in #1150 that says '#1174 is in'. No inference about whether the code is in a different master commit is safe without exact base/master SHA and merge-base inspection."
+    },
+    {
+      "project": "DomCR/ACadSharp PR #1240",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Live PR page reviewed 2026-10-18; PR marked open and depends on #1174",
+      "observed": "Proposes DXF writer support for ACIS-dependent Region, CadBody, and Solid3D entities.",
+      "limits": "Unmerged implementation proposal, not released writer capability or independent acceptance evidence."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Open issue reviewed 2026-10-18; reported peer build 0.14.8593 at 8a1ae764",
+      "observed": "Issue author gives a scratch-generation recipe for an AC1032 DXF REGION with a 5,489-byte SAB body and reports loss of SAB/AcDs through that LibreDWG build. A separate confidential R2018 drawing is mentioned.",
+      "limits": "Not independently reproduced; build- and route-scoped negative report, not evidence about current master or libdxfrw. Confidential sample is unavailable and was not downloaded."
+    },
+    {
+      "project": "LibreDWG issue #1413",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413"
+      ],
+      "revision": "Open issue reviewed 2026-10-18",
+      "observed": "Reporter says the writer chooses a first/lowest-handled DICTIONARY instead of the NOD and reports patched-vs-unpatched differences in two of 43 production files.",
+      "limits": "Issue-author diagnosis/counts only; production samples unavailable, no independent reproduction, and not a normative specification."
+    },
+    {
+      "project": "ezdxf ACIS tools documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-18",
+      "observed": "Documents SAT/SAB helpers and scratch body generation; mesh extraction handles flat polygonal faces only, with curved/spline surfaces requiring an ACIS kernel.",
+      "limits": "Useful for deterministic carrier controls and bounded parsing, not a general ACIS/B-rep semantic oracle."
+    },
+    {
+      "project": "FreeCAD DWG importer source and DXF import documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable main source and published DXF contract reviewed 2026-10-18",
+      "observed": "DWG import is converter-mediated and feeds a DXF importer; published documentation states stock DXF import does not consume embedded ACIS solids.",
+      "limits": "Source and documentation review only; no native FreeCAD app, platform package, converter, or plugin was run. Qualify the exact app/build/platform path before any consumer claim."
+    },
+    {
+      "project": "Local plan crosswalk",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Working-tree plan at baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "Existing plan already contains multi-chunk carrier, NOD identity/owner, exact consumer-route, scratch-fixture, and validation-cadence gates; the update makes the peer revision pinning and layer-by-layer pass criteria explicit.",
+      "limits": "Local plan is an implementation artifact, not external evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "At already-planned composed checkpoints, pin peer head/base/master SHA and merge-base before interpreting branch reports; test every repeated group-310 chunk, length/hash, owner/key association, reachability, and following-record sentinel separately; treat LibreDWG #1411 as an exact-build negative control; preserve NOD-by-identity/owner; use ezdxf for scratch carrier controls rather than curved B-rep semantics; keep FreeCAD on its exact converter-to-DXF consumer path.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check)",
+    "fullSuiteRun": false
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-deeper-broader-mtext-spline-wire-profile-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile ODA native-DWG MTEXT flag layout, Autodesk and ezdxf DXF MTEXT profiles, and current ACadSharp MTEXT/SPLINE reports with existing local source, tests, and implementation-readiness gates.",
+  "method": {
+    "kind": "Primary-source web research plus targeted local source/test/plan inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+      "https://github.com/DomCR/ACadSharp/issues/1297",
+      "https://github.com/DomCR/ACadSharp/issues/1299",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfentities/spline.html"
+    ],
+    "localFilesInspected": [
+      "src/drw_entities.cpp: DRW_MText DWG read/write flag gating and DWG MTEXT parsing",
+      "src/libdxfrw.cpp: dxfRW::writeMTextBackground",
+      "tests/dwg_object_vectors_tests.cpp: testMTextFrameFlagVersionVectors (AC1027/AC1032, flags 0/16/17, following-handle sentinel)",
+      "tests/dxf_fixture_tests.cpp: testMTextBackgroundModesWriteOnlyTheirOwnGroups",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-19/29, 7D/7E/7M, PAR-22/7H/7I/7AB owners"
+    ],
+    "peerArtifactStatus": "ACadSharp #1299 links a source-DWG/output-DXF ZIP. Opening the link returned a cache miss; the archive was not downloaded or inspected."
+  },
+  "evidence": [
+    {
+      "topic": "Native DWG MTEXT flag 0x10 is R2018+ text-frame state with a version-scoped body payload",
+      "observed": "ODA Open Design Specification §20.4.46 describes MTEXT background flags as BL/group 90. It defines bit 0x10 as text frame for R2018+ and places scale, CMC color, and transparency in the body when bit 0x01 is set or when the R2018+ 0x10 condition is met.",
+      "localObservation": "Local top-level DRW_MText parseDwg/encodeDwg has the AC1032 condition. Existing object-vector tests cover record-body roundtrip and the following handle for flags 0/16/17 in AC1027 and AC1032.",
+      "disposition": "Keep pre-AC1032 0x10 as raw-bit preservation only; do not call it native DWG frame-semantic support. Keep the existing AC1032 version/body-length tests and do not generalize the top-level rule to embedded MTEXT."
+    },
+    {
+      "topic": "DXF group 90 documentation/profile discrepancy is not evidence that frame mode is invalid",
+      "observed": "Autodesk's current public DXF MTEXT table lists values 0/1/2. ezdxf 1.4.5 documents 3 and frame flag 16, citing ODA §20.4.46, and describes legacy pre-R2018 frame XDATA with linked LWPOLYLINE records that ezdxf does not preserve through its later load stage.",
+      "localObservation": "Local DXF serializer/parser and generated tests treat group-90 frame-only and frame-plus-fill as separate from color-fill payload tags; legacy linked frame-XDATA remains a separate route.",
+      "disposition": "Keep DXF group 90, native DWG flags, and legacy XDATA/linked-entity framing as separate versioned profiles. Do not infer rejection from Autodesk's abbreviated public table or use ezdxf normalized output as raw-XDATA truth."
+    },
+    {
+      "topic": "ACadSharp #1297 is a whole-document AC1032 acceptance report, not a proven entity-layout defect",
+      "observed": "The reporter says AutoCAD 2025 Core Console rejects AC1032 with frame-only 0x10, accepts 0x11, and accepts frame-only AC1027. A rewritten file retaining matching MTEXT bytes still fails; absent VISUALSTYLE/section/detail-view styles are an unproved hypothesis.",
+      "localObservation": "Existing local MTEXT vector tests qualify only record-body framing and local read/write behavior, not AutoCAD opening, audit, full object graph, or the cause of the peer rejection.",
+      "disposition": "Retain the external whole-document gate and use matched complete-document 0x10/0x11 AC1032 controls with style/object inventories. Do not force 0x11 or fabricate style records."
+    },
+    {
+      "topic": "ACadSharp #1299 is an unlocalized SPLINE-to-GDAL failure lead",
+      "observed": "The v3.8.0 reporter links a source DWG/output DXF pair and says GDAL GeoJSON conversion fails. No offending handle, knots/weights/control points, exact GDAL diagnostic/options, or independently expected curve is stated. The linked AI-chat explanation is not evidence; the ZIP could not be fetched.",
+      "localObservation": "Existing PAR-22/7H/7I/7AB already require exact ordered curve fields and an independent analytic-point check; GDAL is only an optional projected-geometry consumer.",
+      "disposition": "Do not add a peer-specific finding or block local work. If the archive becomes necessary, hash and inspect only in scratch, compare exact source/output arrays, bind GDAL version/options, and evaluate against independent curve expectations."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastNextAction": "Continue the existing implementation queue. Reuse the focused DWG object-vector and DXF fixture MTEXT tests; reserve native whole-document acceptance and optional GDAL comparison for the existing composed checkpoints.",
+    "qualificationBoundary": "ODA body-layout rules, DXF profile observations, generated local serializer tests, peer application reports, independent SPLINE expectations, and native consumer acceptance are separate evidence classes."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "gitDiffCheck": true,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

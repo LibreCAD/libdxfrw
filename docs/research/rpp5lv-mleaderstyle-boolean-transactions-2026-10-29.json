@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE Boolean-field transactions",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "1c3006fb2cadaa3f16a5969ef85568f6e2da9022",
+  "scope": "Runtime-authored AC1027 ASCII and binary DXF sources each contain a root-reachable STANDARD MLEADERSTYLE with unique Boolean-coded groups 290 through 298. Each isolated transaction flips exactly one typed field, including both false-to-true and true-to-false cases across the nine codes. All other typed payload fields and raw body groups remain source-matched.",
+  "fieldEvidence": {
+    "groupCodes": [290, 291, 292, 293, 294, 295, 296, 297, 298],
+    "fieldRoles": {
+      "290": "landingEnabled / Enable Landing",
+      "291": "autoIncludeLanding / Enable Dogleg",
+      "292": "textFrameEnabled / Enable Frame Text",
+      "293": "blockScaleEnabled / Enable Block Content Scale",
+      "294": "blockRotationEnabled / Enable Block Content Rotation",
+      "295": "propertyChanged / Overwrite Property Value",
+      "296": "isAnnotative / Is Annotative",
+      "297": "alwaysAlignTextLeft / Text Align Always Left",
+      "298": "textExtended (recognized by the current local MLEADERSTYLE parser/writer; field-specific role is not listed in the cited Autodesk table)"
+    },
+    "valueTypeSource": "Autodesk AutoCAD DXF Group Code Value Types Reference identifies 290-299 as Boolean flag values",
+    "valueTypeUrl": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "fieldRoleSource": "Autodesk AutoCAD DXF MLEADERSTYLE table identifies groups 290-297 as the corresponding landing, dogleg, frame, block-scale, block-rotation, overwrite, annotation and text-alignment fields",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "classification": "Autodesk DXF type and field-role evidence for groups 290-297 plus locally recognized group-298 parser/writer mapping; authored source-bound adapter/output evidence only, not independent producer, native behavior, or semantic support qualification"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The record must be uniquely reachable from the validated ACAD_MLEADERSTYLE dictionary and match its captured raw body and immutable baseline. Exactly one existing group among 290-298 may change; its raw source value must match the parsed Boolean and the selected value is necessarily 0 or 1. Identity, common fields, handles, application data, extension data and all other encoded style fields must remain source-equal.",
+    "projection": "Replace only the selected existing physical group in a copy of the captured body. Emit it through the Boolean BodyWriter path and retain the raw integer carrier used by DRW_Variant. Preserve other ordered fields and opaque groups. Missing/repeated groups, raw/typed conflict, simultaneous edits, non-AC1027 routes and other fields remain outside this transaction.",
+    "outputAndReadback": "For each group 290-298, the focused test checks an exact unique output group value, fresh typed readback, same-format output, and opposite-format output/readback. ASCII and binary source/output cross-products are covered. Runtime-generated source DXFs are created from scratch in temporary storage; no drawing fixture is committed.",
+    "failureAndRetry": "For each group, changing the raw source value to conflict with the typed request refuses before replacing a sentinel destination. Restoring the original raw body permits the same adapter instance to retry successfully. Boolean members cannot represent an out-of-domain typed value; all selected values are Boolean and the source raw value is checked against its parsed baseline.",
+    "compatibility": "Untouched MLEADERSTYLE bodies continue raw replay. This transaction is source/target AC1027-only and permits one selected field per record. DWG-origin writing and consumer support claims are unchanged. Group 298's local field role remains separately qualified from the Autodesk-published group-specific rows."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits Boolean-coded groups 290-298 in the STANDARD style; test inputs and outputs are generated at runtime and removed from temporary storage.",
+    "implementationCommit": "1c3006fb2cadaa3f16a5969ef85568f6e2da9022",
+    "dwg2dxf/dx_iface.cpp": "b820021fbceb685fa253d7f0fbc37cfe7d505508aa097c11a970e59a531ed37d",
+    "tests/dwg2dxf_adapter_tests.cpp": "eaa7c54bbb444e7a3f2be716228f834ba711697387bf799285151ed255a6964d",
+    "adapterTestExecutableSha256": "64ecc6f9564103564299b302ceeadb4ae6847ae3a0337593a9d9279c11549ce9"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang version 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The writer-closure selector covers each Boolean code in ASCII and binary, raw conflict rollback, same-adapter retry, exact field readback and cross-format conversion; the fail-closed selector passed."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies the selected one-field AC1027 transactions only. It does not prove independent producer variation, field behavior in native CAD applications, cross-version validity, DWG editing, full MLEADERSTYLE schema support, annotation behavior or complete document closure.",
+    "Group 298's local textExtended mapping has no field-specific citation in the cited Autodesk MLEADERSTYLE table; its presence and behavior are supported here by the local parser/writer mapping and authored round-trip only.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select one source-backed remaining MLEADERSTYLE integer, string or handle field profile, or a distinct P2 geometry/provider witness; bind its exact field, output, rollback and retry controls before widening admission."
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "SUPERSEDED — historical DIMSTYLE DIMCLRD/E/T bit-short correction",
+  "status": "superseded; do not use as format evidence",
+  "supersededBy": "dimstyle-dimclr-cmc-ac1021-correction-fast-slice-2026-10-22.json",
+  "correction": "The earlier ODA interpretation was incorrect. ODA v5.4.1 §20.4.68 specifies DIMCLRD, DIMCLRE, and DIMCLRT as CMC; the generated BS-only test was self-consistent but not independent wire evidence.",
+  "mode": "generated AC1024 writer-wire-parser fast slice",
+  "scope": [
+    "Correct R2000+ DIMCLRD, DIMCLRE, and DIMCLRT DWG encoding from CMC to ordinary BS",
+    "Preserve DIMTFILLCLR as the distinct R2007+ CMC field",
+    "Verify independent field order, production parse round-trip, and following stream boundaries"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["20.4.68 DIMSTYLE"],
+      "finding": "SUPERSEDED: the prior claim that DIMCLRD/E/T are BS was a misread. ODA §20.4.68 specifies all three as CMC; see the corrective 2026-10-22 receipt."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.cpp"],
+      "finding": "The modern DIMSTYLE parser and writer now use bounded BS reads and putBitShort for DIMCLRD/E/T. The separate DIMTFILLCLR remains on the existing bounded CMC reader and CMC writer path.",
+      "compatibility": "No public layout or virtual interface changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024"],
+      "finding": "Generated values 42, 0, and 256 are independently decoded as the three consecutive BS fields, followed by a distinct DIMADEC sentinel. Production parse retains the values and parent handle; an independent handle-stream walk checks the following generated sentinel.",
+      "limit": "Generated writer/parser controls establish local codec consistency only; they are not producer-authored or native-consumer evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Read modern DIMCLRD/E/T values with readBodyShort rather than readBodyColor.",
+      "Write DIMCLRD/E/T with putBitShort rather than putCmColor.",
+      "Keep DIMTFILLCLR on the CMC path as specified by ODA."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_dimstyle_dimclr_bs",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dimstyle_dimclr_bs|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimstyle-dimclr-dwg-bs-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "Continue the PAR-134 audit of scalar-only CMC consumers and class-specific DXF color mappings; DIMSTYLE DIMTFILLCLR remains CMC, but this slice does not establish its semantic or DXF mapping.",
+    "SECTIONOBJECT group 411 and HATCH C5 producer semantics remain separate evidence gaps.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

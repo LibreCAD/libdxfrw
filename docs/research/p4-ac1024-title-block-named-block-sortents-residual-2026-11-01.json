@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-title-block-named-block-sortents-residual-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Current AC1024 title-block strict-output SORTENTSTABLE residual",
+  "status": "STRICT_COMPLETE_REFUSED_NAMED_BLOCK_SORTENTSTABLE_SCHEMA",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "fixturePolicy": "Read the existing local DWG in place. No fixture or generated drawing was added to the repository."
+  },
+  "observation": {
+    "opaqueCallbacks": 109,
+    "qualified": 106,
+    "refusedSortEnts": [
+      {
+        "handle": 4202,
+        "ownerHandle": 4081,
+        "ownerName": "*U3"
+      },
+      {
+        "handle": 4380,
+        "ownerHandle": 295,
+        "ownerName": "Title_Block-ARCH"
+      },
+      {
+        "handle": 4637,
+        "ownerHandle": 4516,
+        "ownerName": "*U6"
+      }
+    ],
+    "classification": "All three unqualified records are SORTENTSTABLE instances owned by named block records. The applicable DXF owner schema admits *MODEL_SPACE or *PAPER_SPACE; source graph closure and internally consistent bytes do not widen that schema."
+  },
+  "validation": {
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/libdxfrw-title-block-arch.dxf",
+      "result": "Expected strict refusal after serialization: qualified=106/109; handles 4202, 4380, and 4637 are reported as unqualified SORTENTSTABLE records."
+    },
+    "viewportSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback tests/samples/AC1024/title_block-arch.dwg",
+      "result": "FAIL as a whole-source strict-output selector because the final 3 named-block SORTENTSTABLE callbacks remain unqualified. No support claim is inferred from the prior VIEWPORT-only physical projection."
+    },
+    "classesStage": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/libdxfrw-title-block-arch.dxf",
+      "result": "The trace reaches dwgReader24::readDwgClasses END; the refusal is in later strict output qualification, not the AC1024 CLASSES size-extension parser."
+    }
+  },
+  "planImpact": {
+    "completedItemsRemoved": [],
+    "remainingAction": "Preserve strict refusal for these named-block SORTENTSTABLE records unless an authoritative eligible DXF mapping is established; continue with independent ready P4/P5 work.",
+    "supersedesCurrentUseOf": "The 2026-10-31 title-block VIEWPORT receipt is historical source-profile evidence only and must not be read as current whole-source strict closure after applying the owner-scope restriction.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  }
+}

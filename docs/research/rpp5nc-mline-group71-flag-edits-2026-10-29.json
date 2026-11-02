@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE group-71 closed and cap flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_FLAG_EDIT_PROFILES_QUALIFIED; OTHER_FLAG_AND_RENDERING_PROFILES_OPEN",
+  "codeCommit": "4887b9bd3e172e48de2d9864ae38134ba046fe9e",
+  "scope": "Qualify direct edits to the documented MLINE group-71 closed, suppress-start-cap, and suppress-end-cap bits for the generated AC1027 profile. Preserve bit 1, the has-vertices bit, and all unrelated entity fields. The existing writer already emits the typed field; this slice adds reproducible output/readback and failure/retry evidence without claiming native rendering or broad support.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2024, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": {
+      "bit1": "Has at least one vertex; group 72 is greater than zero",
+      "bit2": "Closed",
+      "bit4": "Suppress start caps",
+      "bit8": "Suppress end caps"
+    },
+    "relatedInvariant": "Group 2 is a redundant MLINE style name; the group-340 MLINESTYLE reference identifies the style object. The physical output observer verifies both the redundant name and the actual style target."
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Add a runtime-generated AC1027 transaction test for edits 1→3, 1→5, and 1→9 across ASCII/binary source and output encodings. Inspect group 71 and the style/owner references in emitted records, reimport and compare all modeled consumer fields other than regenerated identity handles, and check invalid-state destination rollback and same-adapter retry.",
+    "productionBehavior": "No production-code change was required: dxfRW::writeMLine already serializes DRW_MLine::openClosed to group 71 and rejects out-of-range values before commit."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_flag_edits$' --output-on-failure",
+      "result": "PASS; 12 positive encoding/flag profiles and 4 destination-preserving refusal/same-adapter retry profiles"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "Input DXFs are authored from scratch by the test at runtime under the system temporary directory. No DWG/DXF fixture was added to Git.",
+  "limits": [
+    "Only AC1027 and the selected two-consumer source profile are covered.",
+    "Bits 2, 4, and 8 are separately edited while bit 1 remains set; mixed edits, closed-geometry consequences, cap rendering, other flag combinations and other source versions remain open.",
+    "This receipt proves field output and semantic reader round-trip only. It does not establish native rendering, complete-document conversion, or a format-support claim."
+  ],
+  "next": "Select a distinct angle, offset, or schema witness for P2; leave other group-71 combinations and native closed/cap rendering explicitly open."
+}

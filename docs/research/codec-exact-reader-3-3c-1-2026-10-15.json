@@ -1,0 +1,303 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "parentCommit": "a06447c4ad2229d2ff52a8b69fa23494f8ed3a95",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "planSlice": "Slice3.3c.1",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parent3_3": "IN_PROGRESS",
+  "parent3_2": "IN_PROGRESS",
+  "supportPromotion": false,
+  "scope": "Functional explicit input-only DXF Compatible/ExactNamed reader API, original raw declaration selection, owned read-entry policy/cumulative mapping observations and consumer contract. No adapter/CLI exact-input selection or producer/native qualification.",
+  "sourceHashes": {
+    "src/drw_base.h": "f8aeceaec12ed15990feba179fdc8627c515efb9b50a12865ffafe4a3d7ec060",
+    "src/drw_header.cpp": "0479d21bb73c5fde605fed24c7f1a618a1bd308f9d42e089d773b2a4f2f7c555",
+    "src/intern/drw_textcodec.cpp": "8b1e0d8b04c3c093eb1d2052993077e49c0b414a40550a4038ffc211f330a09e",
+    "src/intern/drw_textcodec.h": "4a072e48fae933ae9d04eff12db4c2d6b1457061b30febcaebf43eccf5df8ddb",
+    "src/intern/dxfreader.cpp": "a68fdea3a0d87501f0bb20abc33e89f8bc1eb237490e05fd2fd9ce142f9c3ed5",
+    "src/intern/dxfreader.h": "6bb66a27064a135474ce9b9bd9bcef33faef71720105c69ae2065b86351a6d65",
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b",
+    "tests/gbk_codepage_tests.cpp": "d875a2818ff07feda44df20faee539df66f427a524421e458ed8917dd012684b",
+    "tests/lc3_compat_check.cpp": "4683a5681da4156b5856f96e90a05ce0c91a436b077877bc28b1c524cfa709bc",
+    "README.md": "721f66075c23142c16267158f8b21d1fdb57cc17c0b45025f1b5c1eeba70d8f5",
+    "docs/3D_CONSUMER_CONTRACT.md": "8d0794c9b8660da69335b02da739f6744ceb4d91bdf4f76e841aac7eb9909062",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c9ca6618597664b52f54e56d67a91be28179c46889398bd4004c12a17a6f2c16",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "591c4833b2432e3f37d24314e8e17e6d7c5e89ddcc74489c8c7f4620931164ad"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "e40076cd91d59c4f53a496a597d9079f7739a03ffa7c4d9b5d5ce94c0e3c7fc6",
+    "build/dwg2dxf/dwg2dxf": "4917725bcac58ae60e79f1ae21a5ce4690244121d37ef7d08052ad97655a7b93",
+    "build/libdxfrw_gbk_codepage_tests": "250d40807dc19c516d63e9db54ed2b07a50365135acc05251166aa9c77239edf",
+    "/private/tmp/libdxfrw-exact-reader.kG3YMe/compat-probe": "c955f33cd935fd639014a429f124ef3458e54741ee7f43f129453ad63348f965",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a": "da0ad22a0b359782a3668f1966ffe5232a6df9d2cfe5f65ae2711771a244e5f0",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "33a4cfa74e5ef1657949faae81d1fe5e7b79c399d8c2707d2e88d5857f36d9fb"
+  },
+  "behavior": {
+    "publicApi": [
+      "DRW::DxfCodePagePolicy {Compatible, ExactNamed}",
+      "dxfRW::setDxfCodePagePolicy(policy) noexcept",
+      "dxfRW::dxfCodePagePolicy() const noexcept"
+    ],
+    "default": "Compatible",
+    "policySnapshot": "Admitted file/non-null memory reads snapshot before reader construction/callbacks. Early file failure exposes requested snapshot with no invented decode events. Persistent callback mutation affects only a later read.",
+    "observations": "Appended codePagePolicy/exactNamedDecodeCalls/unavailableNamedDecodeCalls preserve older aggregate prefixes. Counters overlap, count semantic calls, saturate and survive reader teardown/returned failure/reuse as owned snapshots.",
+    "rawDeclaration": "ExactNamed resolves full physical HEADER group3, not decoded/deleted metadata or normalized output label. Reapplication preserves original exact resolution.",
+    "exactMapping": "Available exact input decoder is selected lazily; ISO8859-4 compact/hyphen names deliver independently anchored U+0104/U+0138/U+02D9.",
+    "unavailable": "Unknown/unimplemented high-byte fields preserve ASCII lexemes and replace each uninterpretable high byte with U+FFFD, observing UnavailableCodePage/ReplacedSource. Mixed-field escapes are not guessed through unknown multibyte grammar. ASCII-only represented CIF/MIF can be decoder-independent.",
+    "noninterference": [
+      "Modern DXF uses existing UTF8 independently of legacy metadata.",
+      "DWG/non-DXF byte channels and fromUtf8 output codec remain unchanged.",
+      "Actual eligible CP1252 explicit LibreCAD UTF8 recovery remains independent; ISO compatibility fallback does not become recovery.",
+      "Raw carriers, tolerant read Boolean/error policy and default library/adapter/CLI behavior remain unchanged.",
+      "Legacy UTF8/UTF16 decoder availability does not admit unsupported DXF Unicode wire interpretation."
+    ],
+    "lifetime": "Writes/rejected nesting/null-interface memory reads preserve last-read observations. Swap/move own policy/resolution/cache without borrowing source declaration strings."
+  },
+  "tests": {
+    "readerHeaderTextHandoffs": 24,
+    "mtextFileRoutes": 4,
+    "unavailableNamedFileRoutes": 6,
+    "legacyModernUnicodeProfileControls": 4,
+    "additionalControls": [
+      "callback policy mutation versus read snapshot",
+      "write and rejected null-memory-read snapshot preservation",
+      "changed next-read policy/copied previous result",
+      "cumulative earlier unavailable loss followed by later exact HEADER",
+      "late handle failure and corrected same-facade retry",
+      "original ISO resolution versus normalized HEADER/recovery/output codec",
+      "decoder-independent ASCII CIF with unavailable name",
+      "swap/move and DWG byte-channel noninterference",
+      "early file failure policy with zero events",
+      "old aggregate initialization prefix",
+      "both new counter saturation"
+    ],
+    "packets": [
+      {
+        "name": "accepted-ctest.xml",
+        "path": "/private/tmp/libdxfrw-exact-reader.kG3YMe/accepted-ctest.xml",
+        "sha256": "dee8bdf6cf0c3d4013b8c89e1cad5d67a03832257377158fd150746cc5feec96",
+        "suite": {
+          "name": "(empty)",
+          "tests": "6",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "22",
+          "timestamp": "2026-10-15T15:07:43"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "classname": "libdxfrw_public_header_hygiene",
+            "time": "10.2719",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "8.1983",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.33344",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_hardening",
+            "classname": "libdxfrw_hardening",
+            "time": "0.280352",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_diagnostic",
+            "classname": "libdxfrw_diagnostic",
+            "time": "0.181013",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dxf_fixtures",
+            "classname": "libdxfrw_dxf_fixtures",
+            "time": "3.22158",
+            "status": "run"
+          }
+        ]
+      },
+      {
+        "name": "final-codec-ctest.xml",
+        "path": "/private/tmp/libdxfrw-exact-reader.kG3YMe/final-codec-ctest.xml",
+        "sha256": "89ad439d1afbf84a0be4e0e1128481552e8d2c3b3e67bdc606e4d8502a774afc",
+        "suite": {
+          "name": "(empty)",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-10-15T15:12:11"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.339431",
+            "status": "run"
+          }
+        ]
+      },
+      {
+        "name": "acceptance-codec-ctest.xml",
+        "path": "/private/tmp/libdxfrw-exact-reader.kG3YMe/acceptance-codec-ctest.xml",
+        "sha256": "8b33a7128e4ad73b73140164f1143005fe595ec4705165f88add5d199defd1ab",
+        "suite": {
+          "name": "(empty)",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-10-15T15:34:47"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.349665",
+            "status": "run"
+          }
+        ]
+      }
+    ],
+    "retainedIntegration": {
+      "tests": 6,
+      "failures": 0,
+      "skips": 0,
+      "reportedWallSeconds": 22.5,
+      "scope": "Selected reader/header/CLI/codec/hardening/diagnostic/fixture gate, before later test-only four-MTEXT expansion. Production source bindings remain unchanged; not rerun as a full suite."
+    },
+    "laterTestOnlyPacket": {
+      "tests": 1,
+      "reportedWallSeconds": 0.34,
+      "scope": "Existing codec CTest after MTEXT test-only expansion."
+    },
+    "freshAcceptancePacket": {
+      "tests": 1,
+      "failures": 0,
+      "skips": 0,
+      "reportedWallSeconds": 0.36,
+      "scope": "Existing codec CTest after docs and compile-only API signature checks; direct --exact-codepage-reader also passes."
+    },
+    "strict": {
+      "translationUnits": [
+        "src/drw_header.cpp",
+        "src/intern/dxfreader.cpp",
+        "src/intern/drw_textcodec.cpp",
+        "src/libdxfrw.cpp",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/lc3_compat_check.cpp"
+      ],
+      "exitCode": 0,
+      "command": "clang++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I. -Isrc -Idwg2dxf -fsyntax-only <source>"
+    },
+    "build": {
+      "targets": [
+        "libdxfrw_gbk_codepage_tests",
+        "lc3_compat_check"
+      ],
+      "exitCode": 0,
+      "scope": "Affected main target and unlinked compile-only consumer mirror/API signatures; no full LibreCAD/LC3 native/ABI qualification."
+    },
+    "asanUbsan": {
+      "exitCode": 0,
+      "mode": "--exact-codepage-reader",
+      "buildFlags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "scope": "Fresh focused mode on retained identical final-source instrumented library/test artifacts; no repeated broad suite."
+    },
+    "compatibility": {
+      "rows": 140,
+      "locales": [
+        "C",
+        "tr_TR.ISO8859-9"
+      ],
+      "mismatches": 0,
+      "evidence": "docs/research/broader-consumer-oracle-readiness-2026-10-15.json",
+      "scope": "Retained research-time current-source probe. All nine candidate source hashes and bound compatibility executable agree; no fresh run is invented."
+    }
+  },
+  "corrections": [
+    "Initial candidate harness used const authored strings with existing mutable readAscii(string&) and attempted inheritance from final PreparedDxInterface. Harness changed to mutable strings and a concrete dx_iface callback sink; no production API/assertion weakened.",
+    "Final production review moved policy capture to read entry so early file failure/debug callback timing cannot relabel the active read.",
+    "Acceptance strict command initially lacked -I. needed by the test's dwg2dxf/dx_data.h include. Corrected include path; all six TUs then pass unchanged -Werror flags."
+  ],
+  "delivery": {
+    "documentation": [
+      "README.md explicit named input mappings",
+      "docs/3D_CONSUMER_CONTRACT.md read-entry mapping/counter/projection contract"
+    ],
+    "consumerRebuildRequired": true,
+    "binaryAbiClaim": false,
+    "newPureCallbacks": false,
+    "sourceFixtureOrDependencyChange": false,
+    "newTestRegistration": false,
+    "cliExactInputEnabled": false,
+    "defaultAdapterExactInputEnabled": false
+  },
+  "next": {
+    "item": "Slice3.3c.2a",
+    "action": "Explicit defaulted adapter input policy, before-read application and owned requested/applied outcome across return/unwind/reuse. Then separately reviewed3.3c.2b source-profile/CLI admission; no zero-mask/last-HEADER producer qualification."
+  },
+  "notRun": [
+    "Full test suite",
+    "New native FreeCAD/Linux/Windows/LibreCAD/LC3 application run",
+    "Independent ACIS/AcDs semantic qualification",
+    "DWG parser/byte-layout change",
+    "New package/consumer installation"
+  ],
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "deferredExternal": [
+    {
+      "id": "J256",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    },
+    {
+      "id": "J260",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    },
+    {
+      "id": "J268",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    },
+    {
+      "id": "J284",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    },
+    {
+      "id": "J293",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    },
+    {
+      "id": "J295",
+      "status": "DEFERRED_EXTERNAL",
+      "supportPromotion": false
+    }
+  ],
+  "fixturePolicy": "No downloaded/new binary fixture is committed. Existing user-owned untracked samples preserved; tiny DXF inputs are authored at runtime by the existing test target."
+}

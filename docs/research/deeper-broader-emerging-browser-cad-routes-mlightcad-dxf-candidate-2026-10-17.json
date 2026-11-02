@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-emerging-browser-cad-routes-and-dxf-candidate-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden current open-source DWG/DXF route research to newer CAD/viewer applications, identify the actual parser and converter lineages, and update the existing optional comparator plan without adding required tests or promoting support.",
+  "method": {
+    "kind": "Read-only primary-source review of project documentation, manifests, npm metadata, and issue reports, reconciled against the existing peer matrix",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "peerIssueReproductionsRun": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionImplementationChanged": false,
+    "sources": [
+      "https://www.npmjs.com/package/%40mlightcad/data-model",
+      "https://github.com/mlightcad/realdwg-web/blob/main/packages/data-model/README.md",
+      "https://github.com/mlightcad/realdwg-web/blob/main/README.md",
+      "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/README.md",
+      "https://github.com/mlightcad/cad-viewer",
+      "https://github.com/mlightcad/cad-viewer/blob/main/package.json",
+      "https://github.com/mlightcad/cad-viewer/issues/619",
+      "https://github.com/backkem/codecad/blob/main/README.md",
+      "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml",
+      "https://github.com/backkem/codecad/blob/main/Cargo.lock",
+      "https://github.com/cadcraft-app/cadcraft",
+      "https://github.com/kjarada/OpenCAD",
+      "https://github.com/flyfish-dev/cad-viewer",
+      "https://github.com/flyfish-dev/cad-viewer/blob/main/package.json"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current optional DXF-reader candidates, parser-lineage rules, CADCraft/ACadRust entries, and composed consumer checkpoint",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing large-document/resource-safety owners and 3D carrier/ACIS/AcDs evidence gates"
+    ],
+    "limitations": "Mutable repository pages and package metadata establish declared dependencies and project scope, not executable conformance. The MLightCAD DXF converter source was not source-audited or run, and exact npm tarball-to-source correspondence was not resolved. MLightCAD issue #619's drawing was not available to this review."
+  },
+  "routeFindings": [
+    {
+      "route": "MLightCAD AcDbNativeDxfConverter",
+      "observed": "The current npm page lists @mlightcad/data-model 1.15.8. Project documentation identifies an MIT built-in AcDbNativeDxfConverter registered by default and describes it as streaming DXF into an AutoCAD-like database. The public documentation does not establish exact ASCII/Binary coverage, unknown-record retention, raw carrier preservation, graph closure, or 3D semantics.",
+      "evidenceCeiling": "Optional candidate for direct DXF structural comparison only; exact package/source binding and parser lineage remain unaudited. No DWG evidence follows from this converter.",
+      "planUse": "Consider as an alternative—not an additional run—to already-listed undxf/other candidates at the existing composed comparator checkpoint. Pin npm integrity and source revision; confirm exact input-mode support; compare direct parsed fields and unknown/owner disposition to a locally authored manifest."
+    },
+    {
+      "route": "MLightCAD public DWG path",
+      "observed": "The public project documentation says DWG loading is opt-in and uses a separate @mlightcad/libredwg-converter based on LibreDWG compiled to WebAssembly. A private @mlightcad/dwg-converter is not present in the public repository/CI and is not available as an open-source route. The maintainer identifies LibreDWG converter OOM as a known limitation in issue #619.",
+      "evidenceCeiling": "LibreDWG-lineage application route and peer-reported resource-risk observation; not an independent DWG parser or a reproduced libdxfrw defect. No customer drawing or peer-specific cap is available as an admissible test input/limit.",
+      "planUse": "Keep within existing LibreDWG lineage and parser resource-admission owners. Do not add the converter as a dependency or introduce external samples/full-suite runs."
+    },
+    {
+      "route": "CodeCAD and CADCraft",
+      "observed": "CodeCAD's cadview-core manifest declares acadrust = 0.3 and its checked-in Cargo.lock resolves ACadRust 0.3.4 from crates.io. CADCraft's README states that its DWG read/write route uses ACadRust; its own DXF feature/loss matrix is already covered in the plan.",
+      "evidenceCeiling": "Separate application packages and possible consumer projections, but no new DWG parser lineage. A product-level successful open or render is not semantic or native acceptance evidence.",
+      "planUse": "Retain as ACadRust-family applications; record exact app/package/lock when an optional composed consumer test is already warranted. Do not count them as independent parser votes or duplicate CADCraft findings."
+    },
+    {
+      "route": "flyfish CAD Viewer",
+      "observed": "The package manifest lists @mlightcad/libredwg-web 0.7.9 and dxf-parser with a fallback. Its README documents browser projection/rendering and partial preview forms such as splines as polylines.",
+      "evidenceCeiling": "A downstream app route over the existing LibreDWG and dxf-parser lineages; viewer output does not establish full object graph, carrier, or solid semantics.",
+      "planUse": "Optional composed deployment/viewer observation only; no additional codec vote, dependency, or routine runtime."
+    },
+    {
+      "route": "kjarada/OpenCAD VS Code extension",
+      "observed": "The README documents an explicit DXF subset, including 3DFACE and planar SOLID entities. Its DWG support is marked experimental and directs users to export DWG as DXF.",
+      "evidenceCeiling": "DXF subset renderer/consumer only. The documented SOLID and 3DFACE entities do not establish 3DSOLID/ACIS/SAB/AcDs semantics or a native DWG reader.",
+      "planUse": "Only a trigger-based DXF projection/coordinate observation if a named consumer question warrants it; do not use for DWG or 3D-solid qualification."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "optional direct DXF parser/structural comparator intake",
+      "ACadRust and LibreDWG parser-lineage attribution",
+      "large-document resource-admission / PAR-92 and 7S boundaries",
+      "explicit 3D carrier, ACIS/AcDs, and native consumer evidence gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newRequiredPeerGates": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planUpdated": true,
+    "scopedDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

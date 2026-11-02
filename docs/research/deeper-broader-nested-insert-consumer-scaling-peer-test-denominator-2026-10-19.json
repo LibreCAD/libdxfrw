@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Nested-INSERT consumer scaling and peer-test denominator audit",
+  "mode": "Primary-source issue, repository, and local source review; research-only plan refinement",
+  "worktreeState": "Dirty shared worktree; preserved existing changes",
+  "scope": [
+    "Screen a current open-source DWG/DXF consumer report for nested block expansion and resource behavior.",
+    "Compare the reported application stage with libdxfrw's structural block/INSERT conversion boundary.",
+    "Check peer test-data disclosures so default test success is not mistaken for real-file/native qualification.",
+    "Add a bounded optional consumer checkpoint without expanding the per-slice test loop or adding a parser feature."
+  ],
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1698",
+        "https://github.com/HakanSeven12/OpenCADStudio/commit/29c0d1d",
+        "https://github.com/HakanSeven12/OpenCADStudio/commit/df22824",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml"
+      ],
+      "revision": "Issue and mutable main/Cargo.toml checked 2026-10-19; issue-linked changes are maintainer-reported on mutable main",
+      "observed": "Open issue #1698 reports that a private AC1032 customer drawing parsed in about 1.9 seconds but eager model-space INSERT expansion produced 6,128,569 primitives and reached about 8.94 GiB. The maintainer reports shared prototype/stub instances and duplicate-memo removal, with a synthetic 2.4M-line case improving from 5.4 GB/2.4 seconds to 0.37 GB/36 milliseconds. Differing rotation/scale still expands separately. The mutable manifest declares version 2026.42.0 and pins opencadcodec revision 5d4f11a and opencadkernel revision a60f18f; its binding to the v2026.42 release artifact was not verified.",
+      "evidenceCeiling": "Application-side report and maintainer-reported synthetic benchmark only. The customer file was unavailable, the issue remains open, and release inclusion/artifact binding and independent reproduction were not established. Does not establish a libdxfrw defect, file-format rule, consumer scalability guarantee, or parser-independent semantic result."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable project README reviewed 2026-10-19",
+      "observed": "The project says tests requiring drawings absent from the repository are marked ignored and that CI runs default/all-feature tests across supported platforms.",
+      "evidenceCeiling": "A default green test command can omit external-file cases; no ACadRust build or test command was run. ACadRust and its application descendants remain one codec lineage."
+    },
+    {
+      "project": "CADCraft",
+      "urls": [
+        "https://github.com/storytold/cadcraft/blob/main/docs/gaps.md"
+      ],
+      "revision": "Mutable gap ledger reviewed 2026-10-19",
+      "observed": "The ledger states its 36 file tests are synthetic and that output has not been checked in AutoCAD; it also lists current ACadRust-lineage DWG preservation gaps.",
+      "evidenceCeiling": "Project-authored readiness disclosure, not an independent parser or native acceptance result."
+    },
+    {
+      "project": "Local libdxfrw source and plan",
+      "urls": [
+        "dwg2dxf/dx_iface.cpp",
+        "tests/block_owner_tests.cpp",
+        "docs/3D_CONSUMER_CONTRACT.md"
+      ],
+      "revision": "Current shared worktree source reviewed 2026-10-19",
+      "observed": "The adapter retains block definitions, owner identities, INSERT placement and attribute sequences as document graph records; generated tests include nested and attributed block references. The consumer contract assigns nested placement composition to downstream consumers and records MINSERT spacing as source data.",
+      "evidenceCeiling": "Bounded local structural evidence only; no renderer/consumer expansion or memory qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "localBuildRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Separates libdxfrw's retained block/INSERT graph from downstream primitive expansion, adds an optional source-bound consumer-scale checkpoint, and requires peer comparisons to disclose ignored/external test inputs. No parser limit, runtime dependency, required peer run, new defect, or support promotion follows."
+  },
+  "implementationReadyChecks": [
+    "Keep per-slice validation limited to the touched strict target, focused generated selector, owning CTest, and scoped diff check.",
+    "For a touched block/INSERT path, use a bounded locally generated graph and assert definition/INSERT cardinality, source identity, owner closure, placement, attributes, and following-record integrity before any downstream expansion.",
+    "At the existing composed checkpoint only, use a pinned consumer if already available; record artifact/codec/kernel identity, source/output hashes, read diagnostics, graph counts, transform classes, expanded primitive count, memory/time, and omissions separately.",
+    "Do not use private/customer samples or peer memory measurements as a local threshold; do not add a parser expansion cap for work the library does not perform.",
+    "For peer suites, record exact command and ignored-test list/count. Green synthetic/self-round-trip tests do not establish real-file/native or independent geometry semantics.",
+    "If the consumer or exact artifact is unavailable/unbound, report NOT_RUN and continue local work; do not wait on external availability."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local source/plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "OpenCADStudio's OOM case is an unavailable customer drawing and its reported optimization/performance result is maintainer-authored for a synthetic case. The release manifest binds source dependency revisions but this pass did not run the app or independently test release contents. Peer test-data statements were read from mutable documentation. Results refine the qualification plan only."
+  },
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/deeper-broader-nested-insert-consumer-scaling-peer-test-denominator-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0
+  },
+  "planSha256": "404467beb3ce724591fdd4d1f3ac25177e8d8988089d644ef9ee5fb658cd46f6"
+}

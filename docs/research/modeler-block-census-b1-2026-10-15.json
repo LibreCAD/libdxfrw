@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "S2.3.9.4.29.B1",
+  "parent_commit": "cf2c3b6",
+  "scope": "test-only stored definition/entity/owner/INSERT/payload census, independent literal expectations and bounded reachability; no codec/CLI preservation verdict yet",
+  "source_sha256": {
+    "tests/modeler_block_census_tests.cpp": "9b50b3fb601a6f90c53e878c8b77b4e895c59fcd9307837114281ab4e3809505",
+    "tests/dwg_local_roundtrip_tests.cpp": "082764ae5134776760b1b4605c9373887977a0ae61d4ba65196ee9e2d0bfe19d",
+    "CMakeLists.txt": "bd656a7119af063f7f957e00e7ed009cccffb02077cad1efde6e38ef85c5dcd5"
+  },
+  "executable_sha256": "8fbcc16b238fd75c8f037f7e66048dba09f7ce5e588025a3a24310acb53c9ec8",
+  "authoring": {
+    "origin": "locally created from scratch; no external drawing",
+    "tool": "existing ezdxf 1.4.4, api.body_from_mesh and api.export_sat(version=700)",
+    "recipe": "unit cube from forms.cube(); single planar rectangle face (0,0,0),(2,0,0),(2,3,0),(0,3,0); fixed creation date and stripped line-end whitespace",
+    "cube_plain_sat_sha256": "7b4ff7f43548b5c654402bde60ae7ef3171174f4ac732cc04d8ea09884badc39",
+    "region_plain_sat_sha256": "ee3ca81c07435202a2cf836988e2912a5bb2f27ffbfeae9b314509342e2591bc",
+    "api_source_sha256": "3f635580fc958b89363f05c78373fc18d0e45cfb202bb83b053a771ce287c069",
+    "mesh_source_sha256": "9be32b3e1f471b96e87791638eaf0e4690ff071d6527305c29802206d80fde7b",
+    "consistency_check": "literal text equals freshly regenerated recipe; same-stack load gives one body each with six/one projected faces",
+    "independent_semantic_evidence": false,
+    "ordinary_fast_test_requires_peer_runtime": false,
+    "carrier_model": "encoded SAT-v1 bytes with explicit group-1 chunk boundaries; caret escaping remains the writer responsibility"
+  },
+  "graph": {
+    "stored_entities": 13,
+    "stored_definitions": 6,
+    "insert_edges": 7,
+    "reachable_definitions": 5,
+    "definition_and_model_reachability_visits": 6,
+    "shape": "modeler-only, mixed LINE/REGION, nested shared-definition diamond, two distinct root INSERT placements, direct BODY and unreachable BODY definition",
+    "nonmonotonic_handles": true,
+    "block_and_entity_order_variants": 4,
+    "instance_geometry_expanded": false
+  },
+  "validation": {
+    "focused_command": "build/libdxfrw_dwg_local_roundtrip --modeler-block-census",
+    "positive_checks": 8,
+    "negative_checks": 14,
+    "negative_scope": "seven equal-count oracle mutations; four invalid source-census graphs; three exact-minus-one resource refusals with unchanged prior census",
+    "corrected_limit_reuse": true,
+    "reference_cycle": "bounded once-only definition reachability, not ownership rejection or geometry qualification",
+    "build": "existing libdxfrw_dwg_local_roundtrip and lc3_compat_check, exit 0",
+    "strict_tu": "clang++ -std=c++17 -Wall -Wextra -Werror -I src -I . -fsyntax-only tests/modeler_block_census_tests.cpp, exit 0",
+    "focused_ctest": {"name": "libdxfrw_dwg_local_roundtrip", "passed": 1, "failed": 0, "seconds": 2.14},
+    "diff_check": "pass"
+  },
+  "production_codec_changed": false,
+  "new_ctest_or_dependency": false,
+  "drawing_fixture_files_added": false,
+  "next_gate": "B2 ASCII/binary raw/typed codec and actual CLI owner/carrier/INSERT correspondence; B3 genuine converter rejection controls",
+  "support_claim_promotions": 0
+}

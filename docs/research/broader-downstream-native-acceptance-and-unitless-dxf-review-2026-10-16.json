@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-broader-downstream-native-acceptance-and-unitless-dxf-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden open-source comparison to downstream application loss inventories, user-reported AutoCAD round-trip outcomes, DXF INSUNITS presence/default handling, reader lineage, and the limits of visible 3D tessellation; refine existing plan gates only.",
+  "method": {
+    "kind": "Primary project-documentation/source and issue-report review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "GitHub default-branch documentation and issue pages are mutable. The reviewed AutoCAD report is a user contribution, not an independently reproduced run; future comparator execution must pin the application build, source revision, exact inputs and expected output version.",
+    "evidenceRule": "Peer loss reports identify failure modes and test vectors, not libdxfrw defects. Separate requested/actual file version, open result, audit/repair outcomes, semantic object/owner inventory, visual result, parser lineage, and geometric-kernel evidence."
+  },
+  "evidence": [
+    {
+      "topic": "CADCraft downstream loss inventory and parser lineage",
+      "sources": [
+        "https://github.com/storytold/cadcraft/blob/main/docs/gaps.md",
+        "https://github.com/storytold/cadcraft/blob/main/README.md",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "CADCraft documents ACadRust as its DWG read/write backend. Its gap inventory was reviewed 2026-10-10 and says its 36 file tests were synthetic with no AutoCAD check at that time; it lists remaining DWG-path losses including custom-class entities/objects, table/block XDATA, color-book names and reactors.",
+      "doesNotEstablish": [
+        "a libdxfrw defect or matching loss",
+        "an independent DWG parser lineage from ACadRust",
+        "current CADCraft behavior after later code or reports",
+        "complete DWG round-trip semantics"
+      ],
+      "planUse": "Use the loss list to select object/graph routes and reconcile it with newer dated evidence. Classify CADCraft and ACadRust as one DWG parser family. Do not count app and library results as independent parser votes."
+    },
+    {
+      "topic": "User-reported AutoCAD 2027 acceptance has multiple independent outcomes",
+      "sources": [
+        "https://github.com/storytold/cadcraft/issues/604"
+      ],
+      "observed": "An issue opened 2026-10-11 reports a Windows 11 / AutoCAD 2027 round trip: AutoCAD-origin AC1032 input was saved by CADCraft as AC1018; the output reopened and looked visually correct, but AutoCAD AUDIT reported six errors, including AcDbTableStyle(1109) - not fixed, with zero repairs and zero erased objects. The issue remained open at review. This post-dates the CADCraft gap inventory's 2026-10-10 review date.",
+      "doesNotEstablish": [
+        "independent reproduction of the user report",
+        "a maintainer-run AutoCAD regression suite",
+        "a libdxfrw output defect",
+        "clean output merely because the file opens or looks correct"
+      ],
+      "planUse": "For the existing composed native gate, record requested and actual output code, native open, AUDIT errors/fixes/erasures/messages, source-handle and owner disposition, and visual/geometry outcome as separate fields. Files offered by the reporter were not fetched or retained."
+    },
+    {
+      "topic": "Legacy DXF absent INSUNITS may inherit a peer application's document template",
+      "sources": [
+        "https://github.com/storytold/cadcraft/issues/1209",
+        "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm"
+      ],
+      "observed": "CADCraft issue #1209, opened 2026-10-14, reports that CLI 0.6.2 on Linux ARM64 rewrote 17 public R2.6-R14 DXFs with no $INSUNITS as $INSUNITS=1. The maintainer attributes the behavior to starting an import from an imperial new-drawing template and proposes making absent input unitless; that fix is not verified here. Autodesk documents explicit INSUNITS=0 as unspecified/no units, with initial values 1 (imperial) or 4 (metric).",
+      "doesNotEstablish": [
+        "that omitted $INSUNITS is equivalent to explicit zero for every producer/version",
+        "a libdxfrw defect",
+        "$INSUNITS being normative input to $MEASUREMENT",
+        "any required coordinate rescaling"
+      ],
+      "planUse": "Refine existing 7BJ.4/header test family with locally authored absent, explicit 0, 1 and 4 DXF controls in legacy and one modern profile. Preserve the omission-vs-value distinction until a producer/version contract resolves the omitted case; test header read/write and unchanged geometry without deriving $MEASUREMENT from $INSUNITS. Do not copy third-party issue samples."
+    },
+    {
+      "topic": "Optional parser candidates and lineage",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/iyulab/uncad"
+      ],
+      "observed": "dwg-rs reports per-version decoded/skipped/errored counts for 19 sample drawings (3,911 decoded, 525 skipped, 9 errored), with the measurement dated 2026-08-30; its documentation says new boundary checks exposed several record failures. uncad documents DWG input through LibreDWG FFI, DXF input through the separate undxf crate, and removal of its DWG/DXF write API.",
+      "doesNotEstablish": [
+        "production completeness from dwg-rs aggregate decode rates",
+        "an independent DWG decoder lineage for uncad",
+        "writer acceptance from uncad",
+        "a directly comparable corpus or per-family denominator"
+      ],
+      "planUse": "If dwg-rs is used in a composed comparison, pin its revision and overlapping inputs and report per-version/per-family decoded, skipped, errored, and boundary-checked denominators. Treat uncad's DWG path as LibreDWG lineage; consider only its undxf route for an optional DXF-specific projection. Add no required Rust toolchain or dependency."
+    },
+    {
+      "topic": "OpenCADStudio visual tessellation is not complete-body evidence",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": "The application documentation separates ACIS body lift into its early B-rep kernel from per-surface tessellation fallback and says a mesh is marked incomplete when all faces do not lift. The kernel describes itself as early and says most operations remain unwritten.",
+      "doesNotEstablish": [
+        "complete ACIS body reconstruction from visible display",
+        "an independent DWG/DXF parser from the ACadRust/opencadcodec lineage",
+        "exact topology, dimensions, volume, or history semantics",
+        "support outside a separately executed profile"
+      ],
+      "planUse": "Keep it an optional, exact-revision visible-disposition probe. Any narrow analytic witness requires full-face lift, no fallback/incomplete state, and independently specified shape invariants; a rendered/partially sampled body is not a pass."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Refine 7BJ.4 with source-generated DXF cases for absent $INSUNITS and explicit 0/1/4, in legacy and one modern profile; preserve variable presence/value policy and unchanged coordinates.",
+    "Keep absent $INSUNITS distinct from explicit unitless 0 until producer/version evidence resolves omission semantics; never derive $MEASUREMENT or coordinate scaling from the peer report.",
+    "At the existing composed native checkpoint, report expected/actual code, open, audit errors/fixes/erasures, object/owner outcomes and visual/geometry separately; pin exact application/build and input/output hashes.",
+    "Refresh parser lineage: CADCraft/OpenCADStudio share the ACadRust family; uncad uses LibreDWG for DWG; dwg-rs remains optional/pre-alpha with a small, dated self-reported corpus.",
+    "Retain affected-fast-test per slice, one composed external/native batch, and scheduled full-suite/fuzz validation; no mandatory peer install or new fixture is added."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "newLocalFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

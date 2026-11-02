@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c appData raw-handle token ownership transfer",
+  "scope": "Remove intermediate getString() copies from entity and table-entry application-group handle values while preserving typed reactor/xDictionary extraction and exact raw spelling.",
+  "files": {
+    "CMakeLists.txt": "d8336def2d1b325555ce7396a9e9237441706c22c5e25b81bd979c5c0faf8fc4",
+    "src/drw_entities.cpp": "fd5567d31e7bcc4b110d7c6a486fb1d46b0205e7e0b6591cd585864aef022c35",
+    "src/drw_objects.cpp": "2bbc7f87005a73646dbeac6757f24951361538be69d653549574d358077fed9f",
+    "tests/hardening_tests.cpp": "4cea9527e1e03b2c46d71a9ce440eeb2fc1ba92f3ddf1eabd561cf880fc697ee",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1ac47df3f83859b90aa3a42ad35a4ac5a16d970f62f61ab9d35fb3ee165cae42"
+  },
+  "evidence": {
+    "sourceAudit": "For top-level ACAD_REACTORS group 330 and ACAD_XDICTIONARY group 360 values, getHandleString reads the original current token without mutating it. The parser now computes that derived handle first, then transfers the exact current string token into the final raw DRW_Variant. Other handle-spelling groups retain their spelling without unnecessary parsing.",
+    "generatedControls": "Generated ASCII and Binary groups exercise entity and table-entry parsers with two reactor handles and one xDictionary handle. Tests verify raw variant order/codes/spellings, derived handle lists/field, consumed reader tokens, and equal retained owner bytes.",
+    "noPersistentFixture": "Binary DXF records are generated in memory with dxfWriterBinary."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-appdata-handle-token-transfer",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_appdata_handle_token_transfer$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue exact-source retained-value ownership work where raw/semantic spelling and any derived side-channel value are both preserved. Keep DWG changes fail-closed absent normative or traceable class-frame evidence."
+}

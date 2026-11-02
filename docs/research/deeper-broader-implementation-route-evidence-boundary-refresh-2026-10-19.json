@@ -1,0 +1,168 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader implementation-route and evidence-boundary refresh",
+  "mode": "Primary-source web review plus local plan/repository-state audit; plan update only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the open-source DWG/DXF comparator set across codec, structural-retention, application-import, and geometry-semantics routes.",
+    "Reconcile current project claims with the existing PAR-07/S8, PAR-20, PAR-138, DXF, and downstream-consumer gates.",
+    "Improve comparator admission and implementation readiness without creating duplicate findings, new dependencies, or routine peer-test work."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local plan audit; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This is a source/documentation comparison, not a run of the peer artifacts. Current issue boards are mutable; no issue report is treated as a local reproduction or normative file-format rule. The worktree already contains broad user changes, which were left untouched; only the plan and this receipt were edited."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1128",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observed": "The project README separates DXF and DWG reader/writer support by AC version. The current issue board contains distinct whole-file/native rejection, data loss, parser robustness, and legacy-framing reports. Issue #1128 proposes recovery for bare top-level TABLE records but supplies no inspectable producer sample in its body; this remains a compatibility report, not a canonical-format rule.",
+      "evidenceCeiling": "Version/direction declarations and issue reports guide route selection and local tests only. They do not establish a libdxfrw defect, normative grammar, current released behavior, or independent acceptance."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "The class documentation distinguishes stable, unstable, debugging, and unhandled support. Unknown-class persistence is described as limited to same-version rewriting when the full raw unknown-bit blob is retained. The README separately discloses DWG-writer version limitations.",
+      "evidenceCeiling": "Class maturity and project-level support statements are not per-handle semantic or native-acceptance evidence. Raw same-version replay is not typed or cross-version support."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/issues"
+      ],
+      "observed": "The project documents ASCII and Binary DXF read/write across a stated set of DXF versions and retention of unfamiliar tags except comments. Its issue board contains route-specific binary-proxy and rendering reports.",
+      "evidenceCeiling": "Independent DXF syntax/tag-structure evidence only for a pinned route. It is not a DWG reader, native CAD application, or general ACIS B-rep validator."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The documentation describes separate C++ and legacy DXF importers, states that stock FreeCAD cannot read embedded ACIS/SAT blobs, and routes DWG through an external converter followed by DXF import. The same page's generic no-loss DXF statement is broader than its importer-specific entity lists.",
+      "evidenceCeiling": "Only the exact selected importer/backend and converter route can qualify. A format-level no-loss statement cannot establish that a specific importer consumes every entity or ACIS payload."
+    },
+    {
+      "project": "Autodesk ObjectARX/.NET reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html"
+      ],
+      "observed": "The public API inventories include named show/label/hatch switches in addition to the style scalar, color, text-style, linetype, and hatch properties. The inventories establish exposed semantic properties, not DWG bit positions or DXF group-code mapping.",
+      "evidenceCeiling": "Use as a completeness checklist only. Wire mapping still requires the repository-authoritative ODA specification and/or a pinned producer trace."
+    },
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "observed": "Broad compatibility prose advertises DWG/DXF and ACIS among many formats, while the detailed table labels DWG as a DXF fallback and ACIS SAT/SAB read/write as planned/unsupported.",
+      "evidenceCeiling": "Candidate-screen evidence only; not an admitted independent DWG parser, ACIS route, or geometry-semantic result."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The project describes a pre-alpha, specification-based DWG container/section reader with entity-decoder gaps. It documents consulting ACadSharp algorithm comments for one LZ77 ambiguity, which limits independence for that specific algorithm question.",
+      "evidenceCeiling": "Potential pinned structural differential for implemented container questions only; not a complete semantic or native reader vote."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "PAR-07/S8 comparator admission and composed qualification",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Existing owners already separate version/direction, peer artifact maturity, per-record outcomes, recovery, opaque retention, consumer import, and semantic geometry evidence. The refreshed project sources reinforce that route labels must be bound to an actual entry point and output disposition.",
+      "disposition": "Add a compact comparator-row checklist at the existing composed checkpoint: artifact/revision, build/profile, route, direction, source/target version, exact source identity and ownership, diagnostics, and per-object outcome. Do not add a peer runtime to fast slices."
+    },
+    {
+      "owner": "PAR-138 / PAR-20 ModelDocViewStyle completeness",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_objects.h",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "observed": "The latest local implementation slice closes generated same-version DICTIONARY hierarchy and raw replay only. The existing plan still requires a property-to-field/raw/unsupported matrix before typed serializer completeness, with DWG-origin wire interpretation and native rendering separate.",
+      "disposition": "Retain this as the next local readiness artifact. Source review shows aggregate style flags and two SectionViewStyle group-290 booleans stored under unnamed members; map each exposed show/label/hatch property independently before calling it typed-complete. Group-71 DXF context, ordered repeated tags, DWG field streams, raw replay, and graph closure are separate columns. No typed support claim follows from broad peer class labels or same-codec output."
+    },
+    {
+      "owner": "2D consumer compatibility and 3D/ACIS qualification boundary",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/3D_CONSUMER_CONTRACT.md",
+        "dwg2dxf/dx_iface.cpp"
+      ],
+      "observed": "LibreCAD and LibreCAD_3 are downstream compatibility consumers, not independent codec lineages. FreeCAD's stock DXF route cannot qualify embedded ACIS; carrier retention, AcDs association, modeler parsing, geometry semantics, and native acceptance remain distinct.",
+      "disposition": "Preserve 2D compatibility gates and keep each optional 3D consumer/importer named explicitly. Do not let absence from a consumer supported set count as parser loss, or let raw payload presence count as geometry support."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "PAR-20",
+      "PAR-138",
+      "PAR-129",
+      "PAR-05/7AR"
+    ],
+    "planEffect": "Makes route identity and per-source-object disposition explicit at the existing composed comparator gate; sharpens PAR-138's readiness matrix with the public style-property inventory and unresolved named-flag mapping; preserves the separation between 2D consumers, DXF structural readers, DWG structural readers, ACIS carrier association, geometry semantics, and native acceptance.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "commitAttempted": false
+  }
+}

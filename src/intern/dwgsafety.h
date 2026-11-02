@@ -15,9 +15,79 @@
 #define DWGSAFETY_H
 
 #include <cstdint>
+#include <cstddef>
+#include <functional>
+#include <iterator>
 #include <limits>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
 
 namespace dwgSafety {
+
+/// Ordered set of disjoint, non-empty half-open intervals [start, end).
+/// Insertions preserve adjacency and reject any overlap in O(log n). The
+/// comparator/allocator template parameters keep the helper independently
+/// testable without changing reader policy or format-specific window checks.
+template <typename Compare = std::less<std::uint64_t>,
+          typename Allocator = std::allocator<
+              std::pair<const std::uint64_t, std::uint64_t>>>
+class DisjointRangeIndex {
+public:
+    using Map = std::map<std::uint64_t, std::uint64_t, Compare, Allocator>;
+
+    explicit DisjointRangeIndex(
+        const Compare& compare = Compare{},
+        const Allocator& allocator = Allocator{})
+        : m_ranges(compare, allocator) {}
+
+    bool insert(std::uint64_t start, std::uint64_t end) {
+        if (start >= end)
+            return false;
+        const auto successor = m_ranges.lower_bound(start);
+        if (successor != m_ranges.end() && successor->first < end)
+            return false;
+        if (successor != m_ranges.begin()
+            && std::prev(successor)->second > start)
+            return false;
+        m_ranges.emplace_hint(successor, start, end);
+        return true;
+    }
+
+    std::size_t size() const noexcept { return m_ranges.size(); }
+    bool empty() const noexcept { return m_ranges.empty(); }
+    void clear() noexcept { m_ranges.clear(); }
+
+private:
+    Map m_ranges;
+};
+
+/// Exact, case-sensitive name admission for unknown section descriptors.
+/// The caller keeps its source-ordered vector separately for later replay.
+template <typename Compare = std::less<std::string>,
+          typename Allocator = std::allocator<std::string>>
+class ExactNameIndex {
+public:
+    using Set = std::set<std::string, Compare, Allocator>;
+
+    explicit ExactNameIndex(
+        const Compare& compare = Compare{},
+        const Allocator& allocator = Allocator{})
+        : m_names(compare, allocator) {}
+
+    bool insert(const std::string& name) {
+        return m_names.insert(name).second;
+    }
+
+    std::size_t size() const noexcept { return m_names.size(); }
+    bool empty() const noexcept { return m_names.empty(); }
+    void clear() noexcept { m_names.clear(); }
+
+private:
+    Set m_names;
+};
 
 constexpr std::uint64_t MaxBufferSize = 0x2f000000;
 // ODS describes HANDLES groups as 2032 bytes, but real legacy files and
@@ -36,6 +106,13 @@ constexpr std::uint32_t MaxReactorCount = 1000000;
 // handle sequences. Keep the allocation ceiling aligned with reactor lists;
 // the enclosing object-body bound remains the primary format limit.
 constexpr std::uint32_t MaxOwnedObjectCount = 1000000;
+// Temporary sorted-index, ordered-pointer, duplicate-marker, and child-handle
+// storage used while preparing one compound POLYLINE commit. This bounds the
+// preparation peak separately from the retained staged-child state.
+constexpr std::size_t MaxPolylinePreparationScratchBytes = 64u * 1024u * 1024u;
+// Aggregate retained POLYLINE child vectors and declared-membership indexes.
+// This is a reader resource ceiling, not a format-level child-count limit.
+constexpr std::size_t MaxPolylineStagingBytes = 256u * 1024u * 1024u;
 // A HANDLE map can contain many individually valid frames. Bound the total
 // object-map work per read while allowing callers to raise the ceiling for
 // intentionally larger drawings.
@@ -78,12 +155,82 @@ inline bool add(std::uint64_t lhs, std::uint64_t rhs, std::uint64_t& result) {
     return true;
 }
 
+enum class SectionPageRangeResult : std::uint8_t {
+    Inserted,
+    Empty,
+    Overflow,
+    Overlap,
+    ResourceFailure
+};
+
+/// Validate and add one version-specific logical section window. Callers pass
+/// R2004's maxSize/size window or R2007's page uncompressed size; this helper
+/// only owns checked half-open interval admission and allocation-failure
+/// classification.
+template <typename Index>
+SectionPageRangeResult tryInsertSectionPageRange(
+    Index& index, std::uint64_t start, std::uint64_t length) noexcept {
+    if (length == 0)
+        return SectionPageRangeResult::Empty;
+    std::uint64_t end = 0;
+    if (!add(start, length, end))
+        return SectionPageRangeResult::Overflow;
+    try {
+        return index.insert(start, end)
+            ? SectionPageRangeResult::Inserted
+            : SectionPageRangeResult::Overlap;
+    } catch (...) {
+        return SectionPageRangeResult::ResourceFailure;
+    }
+}
+
+enum class ExactNameInsertResult : std::uint8_t {
+    Inserted,
+    Duplicate,
+    ResourceFailure
+};
+
+template <typename Index>
+ExactNameInsertResult tryInsertExactName(
+    Index& index, const std::string& name) noexcept {
+    try {
+        return index.insert(name)
+            ? ExactNameInsertResult::Inserted
+            : ExactNameInsertResult::Duplicate;
+    } catch (...) {
+        return ExactNameInsertResult::ResourceFailure;
+    }
+}
+
 inline bool multiply(std::uint64_t lhs, std::uint64_t rhs,
                      std::uint64_t& result) {
     if (lhs != 0 && rhs > (std::numeric_limits<std::uint64_t>::max)() / lhs)
         return false;
     result = lhs * rhs;
     return true;
+}
+
+inline bool bitPosition(std::uint64_t byteOffset, std::uint8_t bitOffset,
+                        std::uint64_t& result) {
+    if (bitOffset > 7u)
+        return false;
+    std::uint64_t byteBits = 0;
+    return multiply(byteOffset, 8u, byteBits)
+        && add(byteBits, bitOffset, result);
+}
+
+/// Return the total written bits represented by a byte-buffer size and its
+/// partial trailing-byte cursor. A zero bit offset means byte-aligned; a
+/// non-zero offset counts only the used bits in the final byte.
+inline bool bufferBitCount(std::uint64_t byteCount, std::uint8_t bitOffset,
+                           std::uint64_t& result) {
+    if (bitOffset > 7u || (byteCount == 0u && bitOffset != 0u))
+        return false;
+    if (bitOffset == 0u)
+        return multiply(byteCount, 8u, result);
+    std::uint64_t completeByteBits = 0;
+    return multiply(byteCount - 1u, 8u, completeByteBits)
+        && add(completeByteBits, bitOffset, result);
 }
 
 inline bool range(std::uint64_t offset, std::uint64_t length,

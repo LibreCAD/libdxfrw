@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "kind": "research-only-plan-update",
+  "date": "2026-10-19",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Pin ACadSharp #1253 HATCH sample lineage and compare the observed profile against issue-era/current peer writer source, Autodesk's DXF contract, ezdxf's optional field model, and local writer/tests.",
+  "sources": [
+    "https://github.com/DomCR/ACadSharp/issues/1253",
+    "https://github.com/DomCR/ACadSharp/commit/c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "https://github.com/DomCR/ACadSharp/commit/286495a395715fe26f0b7e8452755fe9c32d1ced",
+    "https://github.com/DomCR/ACadSharp/commit/d5c9dc196d08d7f0ffa8dc2dcbe6947aab980d90",
+    "https://images.autodesk.com/adsk/files/autocad_2012_pdf_dxf-reference_enu.pdf",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/hatch.py",
+    "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/hatch.rst"
+  ],
+  "artifact_lineage": {
+    "issue_time_nearest_master_commit": "286495a395715fe26f0b7e8452755fe9c32d1ced",
+    "issue_time_nearest_master_date": "2026-09-23T18:24:06Z",
+    "current_master_commit": "d5c9dc196d08d7f0ffa8dc2dcbe6947aab980d90",
+    "sample_commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "issue_time_tree": "3072b116a43f6866bc0dc435523139601a21c672",
+    "current_master_tree": "39b18283a2bc899b6240706f052978c89a71160a",
+    "files": [
+      {
+        "path": "samples/sample_AC1032.dwg",
+        "git_blob_sha": "4cfa790d6719acf3aad9818bacbd693ac3ab71b8",
+        "size_bytes": 1081979
+      },
+      {
+        "path": "samples/sample_AC1032_ascii.dxf",
+        "git_blob_sha": "e4401ec6d62d940c11c9346a39a84887344797c9",
+        "size_bytes": 2566547
+      }
+    ],
+    "writer_source_blobs": {
+      "issue_time": "eecf481924e641ed66e3405d4d0f7b7f24d508cc",
+      "current_master": "be5cb02bfe8f68cb9f4321607fd10b0e66d9e0e5"
+    },
+    "sha256_computed": false
+  },
+  "observed_hatch_profile": {
+    "hatch_count": 8,
+    "handles": ["35A", "36E", "371", "376", "BBB", "BC0", "BC2", "BC4"],
+    "derived_paths_with_group47": [
+      {"handle": "BBB", "associative": false, "path_flags": 7, "pixel_size": 0.0491582611840805},
+      {"handle": "BC2", "associative": true, "path_flags": 7, "pixel_size": 0.0338625257082454},
+      {"handle": "BC4", "associative": true, "path_flags": 7, "pixel_size": 0.0338625257082454}
+    ],
+    "group47_immediately_precedes_group98": true,
+    "non_derived_hatches_have_group47": false,
+    "associative_derived_zero_case_present": false
+  },
+  "crosswalk": [
+    {
+      "peer": "ACadSharp #1253",
+      "local_owner": "src/libdxfrw.cpp writeHatch; tests/hatch_reference_tests.cpp --hatch-pixel-presence",
+      "disposition": "The issue-era and current peer writer sources use !IsSolid || hasDerivedPath || PixelSize != 0. The pinned AutoCAD-saved profile has only nonzero derived values. The issue's strict-consumer result remains reported and was not independently rerun."
+    },
+    {
+      "peer": "ezdxf",
+      "local_owner": "HATCH group-47 wire-presence policy",
+      "disposition": "ezdxf models pixel_size as optional and exports it if explicitly present, but documents that it does not use pixel_size and does not maintain associative hatch behavior; not an oracle for native derived-zero semantics."
+    },
+    {
+      "peer": "Autodesk DXF reference",
+      "local_owner": "HATCH group-47 writer predicate",
+      "disposition": "Defines group 47 purpose and group-92 bit meanings; does not specify a universal presence rule for an associative derived path with zero pixel size."
+    }
+  ],
+  "plan_delta": {
+    "artifact_provenance_status": "PINNED",
+    "observed_nonzero_derived_profile_status": "OBSERVED",
+    "remaining_question": "Whether group 47 must be present for associative=1, path flags 92=7, pixelSize=0",
+    "new_confirmed_findings": 0,
+    "new_top_level_subplans": 0,
+    "finding_count_after": 137,
+    "top_level_subplan_count_after": 77,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claim_promoted": false
+  },
+  "verification": {
+    "repository_api_and_source_review": true,
+    "peer_sample_copied_to_workspace": false,
+    "peer_executable_run": false,
+    "native_cad_run": false,
+    "local_build_run": false,
+    "test_run": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "production_code_changed": false,
+    "commit_attempted": false
+  }
+}

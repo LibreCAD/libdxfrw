@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cy bounded table compound source capture",
+  "date": "2026-10-25",
+  "parentCommit": "d8ee47bdc934689698490555409953f743a6ee03",
+  "priorImplementationCommit": "b657ef17ef2a5e37d21b0541ddc6f225786f90af",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "BOUNDED_FROZEN_COMPOUND_SOURCE_CHAIN_IMPLEMENTED_DEPENDENCY_LIVE_EQUIVALENCE_OUTPUT_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "previousGoalTurn": "PROGRESS: committed the implementation-ready source/dependency/output sequence as d8ee47bd",
+  "scope": {
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "libraryFacet": "Opt-in DRW_DxfTableSourceHandler, separate from DRW_Interface vtable",
+    "publication": "Accepted complete TABLE parent boundary, after typed ATTRIB/SEQEND parsing and before addTable; never duplicate addRawDxfEntity",
+    "default2DPath": "No full raw TABLE copy if not opted in; existing typed callback and converter INSERT projection retained",
+    "sourceBaselines": "Private paired typed/raw TABLE, full rich TABLECONTENT and TABLEGEOMETRY; selected literal TABLE XRECORD and candidate dictionaries",
+    "report": "Frozen selected owner-chain and dimensions only; allocation-free bounded structural report",
+    "reportDoesNotCompareEditableState": true,
+    "reportDoesNotProveAllRawTypedFields": true,
+    "auxiliaryReferencesResolved": false,
+    "outputEligible": false,
+    "converterLossRefusalEnabledInBothModes": true,
+    "publicDrwInterfaceVtableChanged": false,
+    "existingPublicDtoLayoutsChangedThisSlice": false,
+    "nativeDwgLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "primarySources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm"
+    ],
+    "scope": "Generic XRECORD application data and hard-ownership ranges; literal marker/order are actual witnessed source facts, not a universal TABLE schema",
+    "findings": [
+      "TABLE parent previously lacked full raw source capture; children previously only latched loss flags",
+      "Preserve literal 102 ACAD_ROUNDTRIP_2008_TABLE_ENTITY and ordered hard-owner 360 content / 361 geometry",
+      "AC1027 has other entity-family dictionaries with the same ACAD_XREC_ROUNDTRIP key; key alone cannot identify a TABLE wrapper",
+      "Unknown wrapper scalar 19 is preserved even in generated one-row sources, without assigning guessed row-range semantics"
+    ],
+    "dwgSpecLayoutChangeRequired": false,
+    "externalImplementationCodeCopied": false
+  },
+  "implementation": {
+    "retention": {
+      "maxRecords": 100000,
+      "maxGroups": 4000000,
+      "maxRetainedBytes": 67108864,
+      "maxCandidateSelectionSlots": 4000000,
+      "maxStructuralReportSlots": 4000000,
+      "policy": "Logical owned bytes, not capacity/RSS; includes nested rich companions, full strings after NUL, subrecord names, variants, map/list links and conservative shared-owner overhead",
+      "prechargeBeforeCopies": true,
+      "inPlaceParentMapConstruction": true,
+      "stickyFailure": true,
+      "counters": "Accepted reservations, including reservations preceding allocation failure; not publication counts",
+      "existingWrapperLanePreservedOnOptionalCaptureFailure": true
+    },
+    "context": "Actual active facade/read, first fresh table generation only; scope closes on returns and exceptions; appended/stale/direct/failed contexts cannot authorize readiness",
+    "graphChecks": [
+      "Unique selected typed-family identities",
+      "Exact narrow self/owner header and source version",
+      "TABLE extension dictionary reciprocal owner",
+      "Exact selected dictionary key and hard-owner role",
+      "Literal wrapper marker and eight ordered logical entries/types",
+      "Ordered unique 360 TABLECONTENT and 361 TABLEGEOMETRY targets",
+      "Reciprocal child ownership",
+      "Matching entity/content/geometry row/column/cell dimensions",
+      "Reject self/compound-child TABLE parents",
+      "Refuse unknown wrapper and attribute/footer source profiles"
+    ],
+    "knownLimits": [
+      "All rich raw/typed field equivalence and auxiliary resource binding remain slice B",
+      "Editable state intentionally does not refresh frozen baselines; report is not live equality",
+      "Separate ATTRIB/SEQEND raw records not retained or qualified; typed views remain owned",
+      "No complete compound emitter, staged/final field/reference proof or output admission",
+      "Other-family dictionary candidates do not receive table qualification",
+      "Native DWG proof, table evaluation and semantic/kernel support are not established"
+    ]
+  },
+  "controls": {
+    "newCTest": "libdxfrw_table_compound_source",
+    "fixtureAuthoring": "All regular drawing controls generated locally from scratch; no external drawing payload committed",
+    "sourceRoutes": 16,
+    "malformedGraphRefusals": 448,
+    "correctedSameFacadeFreshDrawingImports": 448,
+    "atomicExportRefusals": 32,
+    "destinationSentinelsPreserved": 32,
+    "correctedSameExporterActualLineTypeAndXYZReadbacks": 32,
+    "captureAndReportBoundaryCases": 80,
+    "unrelatedCandidateSectionOrderMultipleTableAttributeBoundaryRoutes": 64,
+    "additionalControls": [
+      "Appended generation refusal",
+      "Edited generation refusal",
+      "Callback unwind and same-facade recovery",
+      "Non-opt-in callback compatibility",
+      "Frozen parent before typed callback mutation",
+      "Frozen nested content core and wrapper despite editable copies",
+      "Direct source callback cannot fabricate import",
+      "Actual byte lengths after embedded NUL charged before snapshot",
+      "Cumulative candidate selection limit"
+    ],
+    "finalTestStrengthening": {
+      "encodings": 2,
+      "rawParentReadByteBudgetRefusals": 2,
+      "samePublicReaderCorrectedBudgetReadbacks": 2,
+      "nonOptInNoFullRawCopyChecks": 2,
+      "currentTokenAndSemanticOutputReservationAccounted": true,
+      "retainedBudgetBoundary": 650000,
+      "largeIgnoredPayloadBytes": 100000,
+      "explanation": "Initial 4096/550000-byte opt-out budgets underestimated existing current-token/raw-token/worst-case semantic reservation. Corrected generated control to distinguish that base cost from additional retained parent copies; no production budget weakened"
+    },
+    "initialAuthoringCorrections": [
+      "Expected raw parent has 16 groups, not 19",
+      "Binary test author must encode 280/281 in two bytes, not one; no DWG width inference or reader change"
+    ],
+    "reviewCorrections": [
+      "Preserve original wrapper callback lane on new optional raw-source capture failure",
+      "Avoid a second temporary deep TABLE copy during map insertion",
+      "Charge object appData list links and content subrecord names"
+    ]
+  },
+  "externalObservations": [
+    {
+      "version": "AC1027",
+      "source": "https://github.com/LibreDWG/libredwg/blob/0.14/test/test-data/example_2013.dxf",
+      "sourceSha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+      "sourceChain": {
+        "table": "4F2",
+        "dictionary": "E43",
+        "xrecord": "E44",
+        "content360": "E41",
+        "geometry361": "E42"
+      },
+      "state": "StructurallyComplete",
+      "compounds": 1,
+      "rows": 20,
+      "columns": 9,
+      "cells": 180,
+      "contents": 8,
+      "dictionaryCandidates": 3,
+      "tableWrappers": 1,
+      "chargedRecords": 14,
+      "rawGroups": 10940,
+      "retainedLogicalBytes": 2592320,
+      "otherDictionaryCandidates": [
+        {
+          "handle": "E4F",
+          "owner": "2B1"
+        },
+        {
+          "handle": "E51",
+          "owner": "2B3"
+        }
+      ],
+      "log": "/tmp/rpp5cy-external-AC1027.log",
+      "independentGeometryAndChainObserver": "/tmp/rpp5cy-independent-AC1027.json"
+    },
+    {
+      "version": "AC1032",
+      "source": "https://github.com/LibreDWG/libredwg/blob/0.14/test/test-data/example_2018.dxf",
+      "sourceSha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+      "sourceChain": {
+        "table": "4F2",
+        "dictionary": "9B7",
+        "xrecord": "9B8",
+        "content360": "9B5",
+        "geometry361": "9B6"
+      },
+      "state": "StructurallyComplete",
+      "compounds": 1,
+      "rows": 20,
+      "columns": 9,
+      "cells": 180,
+      "contents": 8,
+      "dictionaryCandidates": 1,
+      "tableWrappers": 1,
+      "chargedRecords": 10,
+      "rawGroups": 10926,
+      "retainedLogicalBytes": 2588312,
+      "log": "/tmp/rpp5cy-external-AC1032.log",
+      "independentGeometryAndChainObserver": "/tmp/rpp5cy-independent-AC1032.json"
+    }
+  ],
+  "independentObservation": {
+    "tool": "ezdxf 1.4.4 via existing table_geometry_source_observer.py",
+    "status": "SCOPED_SOURCE_FIELDS_MATCH",
+    "qualificationEligible": false,
+    "perSourceCellsCompared": 180,
+    "perSourceContentsCompared": 8,
+    "scope": "Exact geometry source fields and selected reciprocal dictionary/wrapper/child roles only; not every rich TABLECONTENT field, model evaluation or emitted output",
+    "previousNativeDecimalBitDisagreement": "Unresolved; no tolerance applied or new native equivalence claim"
+  },
+  "externalFullPolicyCli": {
+    "exitCode": 1,
+    "diagnostic": "standalone TABLECONTENT has no qualified replay path; output would be incomplete",
+    "outputAbsent": true,
+    "outputPath": "/private/tmp/libdxfrw-rpp5cy-evidence.mAtNL8/cli-output.dxf",
+    "log": "/tmp/rpp5cy-external-cli.log"
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is not Linux/GCC",
+    "normal": {
+      "passed": 44,
+      "total": 44,
+      "elapsedSeconds": 25.09,
+      "log": "/tmp/rpp5cy-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 44,
+      "total": 44,
+      "elapsedSeconds": 55.87,
+      "log": "/tmp/rpp5cy-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "finalTestOnlyStrengthening": {
+      "productionCodeUnchangedSince44TestCohorts": true,
+      "normal": {
+        "passed": 2,
+        "total": 2,
+        "elapsedSeconds": 1.73,
+        "log": "/tmp/rpp5cy-final-owning-normal.log"
+      },
+      "asan": {
+        "passed": 2,
+        "total": 2,
+        "elapsedSeconds": 3.37,
+        "log": "/tmp/rpp5cy-final-owning-asan.log"
+      }
+    },
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compatibility only"
+    },
+    "cliOptionalRegistration": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 2.72,
+      "log": "/tmp/rpp5cy-cli-optional.log"
+    },
+    "buildLogs": [
+      "/tmp/rpp5cy-build-gcc-verified-build.log",
+      "/tmp/rpp5cy-build-asan-custom-verified-build.log",
+      "/tmp/rpp5cy-normal-test-strengthening-build.log",
+      "/tmp/rpp5cy-asan-test-strengthening-build.log"
+    ],
+    "owningCohortsSequentialAcrossBuildTrees": true,
+    "newOwningTestScratch": "Unique per process; source controls isolated",
+    "tests": [
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "dwg2dxf_named_object_callback_storage",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_section_passthrough",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_tables_write_inspection",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_material_root_output_compatibility",
+      "dwg2dxf_acds_raw_dxf_source_baseline",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_extension_graph_limits",
+      "dwg2dxf_typed_entity_capture_limits",
+      "dwg2dxf_dictionary_typed_capture_limits",
+      "dwg2dxf_xrecord_typed_capture_limits",
+      "libdxfrw_xrecord_normal_string_codes",
+      "libdxfrw_xrecord_xdata_channels",
+      "libdxfrw_xrecord_coordinate_writer_domain",
+      "dwg2dxf_xrecord_application_chunk_controls",
+      "dwg2dxf_xrecord_owned_extension",
+      "dwg2dxf_xrecord_owned_extension_faults",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_xrecord_string_owner_budget"
+    ],
+    "testRegex": "^(libdxfrw_table_geometry_dxf_projection|libdxfrw_table_geometry_observer_selftest|dwg2dxf_named_object_callback_storage|libdxfrw_table_content_dwg_object_roundtrip|libdxfrw_table_content_dwg_payload_encoder|libdxfrw_table_content_style_id_domains|libdxfrw_table_callback_owner_order|libdxfrw_tablestyle_nested_raw_net|dwg2dxf_basic_table_typed_capture_limits|dwg2dxf_sort_table_style_raw_capture_limits|dwg2dxf_table_style_typed_capture_limits|dwg2dxf_table_content_style_reference_census|dwg2dxf_table_base_style_id_dxf_refusal|dwg2dxf_raw_dxf_object_list_node_accounting|dwg2dxf_raw_dxf_entity_capture_limits|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_proxy_object_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_3d_consumer_probe|libdxfrw_dimstyle_optional_handles|libdxfrw_dimstyle_compatible_resource_remap|dwg2dxf_acds_strict_material_closure|libdxfrw_material_raw_scalar_wire_controls|libdxfrw_dxf_source_table_identities|libdxfrw_dxf_tables_write_inspection|dwg2dxf_generated_root_common_closure|libdxfrw_material_root_output_compatibility|dwg2dxf_acds_raw_dxf_source_baseline|dwg2dxf_acds_history_reexport_faults|libdxfrw_dxf_proxy_object_id_terminator|libdxfrw_table_content_dxf_projection|libdxfrw_table_compound_source|libdxfrw_extension_graph_limits|dwg2dxf_typed_entity_capture_limits|dwg2dxf_dictionary_typed_capture_limits|dwg2dxf_xrecord_typed_capture_limits|libdxfrw_xrecord_normal_string_codes|libdxfrw_xrecord_xdata_channels|libdxfrw_xrecord_coordinate_writer_domain|dwg2dxf_xrecord_application_chunk_controls|dwg2dxf_xrecord_owned_extension|dwg2dxf_xrecord_owned_extension_faults|libdxfrw_dxf_table_cell_text_owner_budget|libdxfrw_dxf_xrecord_string_owner_budget)$",
+    "codeSha256": {
+      "src/drw_interface.h": "d8dfd574b8dbf13ddd3bed60a252662878815ae81480e09a21082ec1b0348c98",
+      "src/libdxfrw.cpp": "c87507aa8c28a49003201481f19713639ab9b00b50e59c4ef7958855263e99a3",
+      "dwg2dxf/dx_data.h": "56538f0c0ba7b490542a94f9ec1ff3a24d909685e48fa84dc5ab5893ea346d0c",
+      "dwg2dxf/dx_iface.h": "1bd97a7fbf20dbc7996329056433d907013b8f8fb69c12c5ca7c086fba0d998e",
+      "dwg2dxf/dx_iface.cpp": "651ac8ffdacd5beeaac381b537826f5390d87fd31747c02cb0b9c7f747aeb48e",
+      "tests/table_content_dxf_tests.cpp": "35f7dfce79ee759e56620f42c4f5199e3ba3434abcb07d25034f83bccbf9cd2d",
+      "tests/CMakeLists.txt": "0a47f97e355dcc92ba2a0e0f5e74c2ba1b3d11939a418c0e6222c6bf45bf7385"
+    },
+    "gitDiffCheck": "PASS",
+    "werrorRetained": true,
+    "fullProjectSuiteRun": false,
+    "leakCheck": false
+  },
+  "remainingWork": [
+    "Exact rich raw/typed and editable/frozen-source comparison",
+    "Auxiliary resource/local-ID/EED dependency closure",
+    "Complete atomic compound emission and exact staged/final reference proof",
+    "Independent rich-field/output and native source/writer evidence",
+    "Original SWEEP/EXTRUSION, carrier/schema/owner, IMAGE and document closure",
+    "LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD qualification"
+  ],
+  "supportBoundary": {
+    "ledger": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsKernelSemantics": "NOT_RUN",
+    "supportPromotion": false
+  },
+  "integrity": {
+    "olderReceiptsModified": false,
+    "externalDrawingPayloadsCommitted": false,
+    "preExistingUserFilesOrDrawingsModified": false,
+    "generatedBuildAndScratchOutputsUpdated": true,
+    "remoteWritePerformed": false,
+    "goal": "ACTIVE_NOT_COMPLETE"
+  }
+}

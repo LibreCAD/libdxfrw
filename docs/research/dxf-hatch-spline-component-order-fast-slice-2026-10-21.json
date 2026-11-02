@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-dxf-hatch-spline-component-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source schema review and generated ASCII/Binary regression",
+  "scope": [
+    "HATCH spline-edge control/fit point component order",
+    "Nested boundary-path framing, declared counts, and item caps",
+    "Following-entity framing and refusal before callback publication"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2024 Boundary Path Data table",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "framing": "Spline boundary edges include degree 94, knot count 95 and values 40, control count 96 and OCS control points 10/20, optional weights 42, fit count 97 and OCS fit points 11/21, and start/end tangents 12/22 and 13/23.",
+        "ordering": "DXF group-code dispatch must not assume table/display order; generated movement kept same-code occurrence order and all nested boundary delimiters fixed."
+      },
+      "limitation": "Schema and parser regression do not establish closed hatch topology, area correctness, DWG encoding, or native CAD rendering."
+    }
+  ],
+  "localAudit": {
+    "path": "src/drw_entities.cpp: DRW_Hatch::parseCode",
+    "reproducedFailure": "The old spline-edge coordinate path mutated the latest point, so Y-before-X control/fit arrays failed to associate with the intended point or caused parse rejection in generated ASCII and Binary DXF.",
+    "correction": "Use independent bounded control-X/control-Y and fit-X/fit-Y ordinals to populate indexed point slots. Continue to validate declared counts and item caps. Only active spline coordinate groups bypass the regular HATCH coordinate-pair transition; loop/edge/weight/tangent framing remains unchanged.",
+    "apiCompatibility": "No public member, callback, or virtual changed. New private counters change the installed DRW_Hatch class layout; downstream binaries must rebuild against the updated header/library.",
+    "generatedCoverage": [
+      "One degree-1 HATCH spline edge with explicit knot, control-point, and fit-point counts",
+      "Scratch-generated ASCII and Binary encodings",
+      "Control and fit Y arrays precede their X arrays while same-code order and all HATCH framing remain fixed",
+      "Exact knot, control point, and fit point assertions",
+      "Following LINE sentinel verifies entity framing",
+      "Excess control-Y mutation is rejected before addHatch callback publication",
+      "No persistent fixture added"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --hatch-spline-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_hardening_tests --dxf-spline-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --mesh-raw-field-tags",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --lwpolyline-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --leader-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^(libdxfrw_hardening|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 2,
+      "testsFailed": 0
+    }
+  ],
+  "planDelta": {
+    "existingOwnerOnly": true,
+    "newFindingOrSubplan": false,
+    "nextLocalProbe": "Audit MLEADER scoped context points and MLINE repeated vertex, segment-direction, and miter-direction arrays; preserve delimiters and only implement reproduced valid-profile failures.",
+    "selfUnblock": "If a candidate permutation does not reproduce loss or rejection, record the bounded negative and proceed to the next source-audit candidate without waiting for external peer/native qualification."
+  },
+  "limits": {
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "renderedGeometryEstablished": false,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredStatus": "All six remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

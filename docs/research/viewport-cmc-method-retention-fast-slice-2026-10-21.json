@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134/7Q VIEWPORT ambient CMC method retention",
+  "mode": "generated AC1024 parser-field fast slice",
+  "scope": [
+    "Audit a scalar/RGB CMC consumer whose public model already contains a method field",
+    "Reproduce loss of the CMC method through the production VIEWPORT parser",
+    "Retain the parsed method without changing scalar projection or writer behavior"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.38 VIEWPORT ENTITY"],
+      "finding": "The R2007+ VIEWPORT ambient-light field is CMC; CMC carries its color method in the packed BL."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.cpp", "src/drw_entities.h", "src/intern/dwgbuffer.cpp"],
+      "finding": "DRW_Viewport::parseDwg requested scalar, RGB, and optional names from getCmColor but not its existing outMethod result. The existing ambientColorMethod field remained at reset value 0 for all decoded colors. The parser now retains the method in that pre-existing field.",
+      "limit": "This changes no encoder behavior and does not establish the packed payload of a real producer."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "version": "AC1024",
+      "finding": "Generated VIEWPORT frames cover C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB. Each asserts the retained method plus existing scalar/RGB projection and verifies the following handle sentinel remains aligned.",
+      "baseline": "Before the parser change, all four method-field assertions failed while frames parsed successfully.",
+      "limit": "Frames are locally generated through the production encoder/parser; they are not producer-authored samples."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Pass the existing getCmColor outMethod destination from DRW_Viewport::parseDwg.",
+      "Store the decoded method in the existing ambientColorMethod field after bounded CMC parse succeeds."
+    ],
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Add generated AC1024 VIEWPORT frame builder and C0-C3 method/scalar/RGB assertions.",
+      "Add following-handle alignment sentinel and focused --viewport-ambient-color-method selector."
+    ],
+    "focusedCtestAdded": "libdxfrw_viewport_ambient_color_method",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_viewport_ambient_color_method$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "Generated AC1024 VIEWPORT parsing retains the CMC method for ByLayer, ByBlock, ACI, and RGB while preserving the existing scalar/RGB values and following-handle alignment.",
+    "unresolved": [
+      "The wider scalar-only CMC consumer audit remains open.",
+      "HATCH/MPOLYGON C5 payload and producer behavior remain unqualified.",
+      "C4 and C6-C8 remain unsupported for third-party semantic projection; no generic fallback policy is promoted.",
+      "DRW_Light::parseDwg also requests only scalar CMC output; its DWG RGB retention and the exact class-specific DXF color mapping remain to be audited.",
+      "The associative-action dwgResbufValueKind payload layout still requires its exact ODA consumer field description.",
+      "Independent semantic and native/platform qualification remain separate gates."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Add a generated C2 DRW_Light parser control, retain RGB in the DWG model/encoder if confirmed, and establish the class-specific DXF color contract before changing its writer; separately seek the exact ODA field layout for associative-action value kinds."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

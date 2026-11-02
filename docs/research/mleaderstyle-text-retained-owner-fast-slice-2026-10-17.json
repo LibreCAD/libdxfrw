@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-mleaderstyle-text-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Account DXF MLEADERSTYLE description/default text on the existing retained-string lease and verify direct parsing/lifetime boundaries.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fields": [
+      {
+        "field": "DRW_MLeaderStyle::description",
+        "dxfCode": 3,
+        "accounting": "Independent live-byte counter on the shared DRW_TableEntry retained-string lease; reserve before replacement and preserve the prior value/charge on refusal."
+      },
+      {
+        "field": "DRW_MLeaderStyle::textDefault",
+        "dxfCode": 300,
+        "accounting": "Independent live-byte counter on the shared DRW_TableEntry retained-string lease; reserve before replacement and preserve the prior value/charge on refusal."
+      }
+    ],
+    "reset": "Clears both derived counters before base reset releases the shared lease.",
+    "copyAssignment": "Implicit copy construction and assignment preserve counters and the shared lease.",
+    "contractLimits": [
+      "Logical parsed DXF string lengths only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner.",
+      "Full OBJECTS callback refusal/retry is not covered by this slice.",
+      "DRW_MLeaderStyle public layout changed; downstream consumers must rebuild and binary ABI compatibility is not claimed."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-mleaderstyle-text-owner-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/hardening_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated ASCII/Binary direct-parser streams cover code 2 base name plus replacement of code 3 description and code 300 default text.",
+      "Exact replacement-peak admission succeeds; one-byte-under refusal preserves the previous default text and its live-byte charge.",
+      "Copy construction and assignment preserve both charges after source reset; final reset releases the shared lease.",
+      "All controls are generated in memory; no persistent test fixture or CTest registration was added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-xdata-repeated-record-local-audit-v1",
+  "observedAt": "2026-10-21",
+  "slice": "PAR-06/PAR-20 ACadSharp XDATA/repeated-record threat applicability audit",
+  "question": "Does the local DXF path share a 16-bit aggregate-XDATA length or recursive repeated-record path, and is a new test needed?",
+  "localAudit": {
+    "xdataStorage": "Entity and table-entry XDATA values are retained as individual typed values in vectors; the local limit is DRW_TableEntry::kMaxExtendedDataItems (1,000,000), with per-read byte/node budgets also enforced.",
+    "xdataWriter": "validateDxfXdataGroups iterates the existing value range and the writer emits individual group-code records; the audited route has no 16-bit aggregate-XDATA byte-length field.",
+    "recordTraversal": "The DXF reader consumes group records through iterative read/dispatch loops. The repeated-record reports identify a peer failure shape, not a matching local recursive path.",
+    "existingControl": "tests/hardening_tests.cpp::testRepeatedDxfRecordRobustness generates 20,000 XDATA APPID/value pairs (40,000 values) in ASCII and Binary DXF and checks exact order plus a following LINE; it also checks 20,000 ASCII comments and repeated WIPEOUT records."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_hardening_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_hardening_tests --repeated-dxf-record-robustness",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/acadsharp-xdata-repeated-record-local-audit-2026-10-21.json",
+      "result": "PASS"
+    }
+  ],
+  "disposition": {
+    "classification": "NOT_APPLICABLE_LOCAL_PATH; existing generated stress control already covers large iterative XDATA and repeated-record handling",
+    "productionChange": false,
+    "newTestAdded": false,
+    "persistentFixtureAdded": false,
+    "peerOrNativeRun": false,
+    "supportClaimPromoted": false,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "next": "Self-unblock to the next source-backed local PAR-07/PAR-14 item; do not wait for unavailable peer samples or native qualification."
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-07/S3.5 DataStorage boundary no-duplicate audit",
+  "mode": "Local implementation-readiness and focused fast-test audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Determine whether the DWG DataStorage direct-record/blob threshold and Blob01 page-chain cases need another implementation slice",
+    "Verify that existing generated tests cover positive boundary values, malformed descriptor/page references, and following-record preservation",
+    "Self-unblock from any already-covered work without adding duplicate tests"
+  ],
+  "sources": [
+    {
+      "project": "Local generated DataStorage tests",
+      "references": [
+        "tests/graph_preservation_tests.cpp DataStorage inline-limit and following-record controls",
+        "tests/dwg_reader_matrix_tests.cpp testModelerAcDsBlobPageChain",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md prior PAR-07/S3.5 direct/blob and page-cap implementation record"
+      ],
+      "observation": "Existing generated controls cover one byte below and at the inline threshold, first-byte-over refusal, following-record preservation, reverse-physical-order Blob01 page assembly, the first byte over the inline threshold, exact one-page capacity, first two-page spill, and atomic rejection of missing-page, duplicate-ordinal, incorrect-start, and mismatched-page-length mutations."
+    },
+    {
+      "project": "Focused local validation",
+      "references": [
+        "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+        "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure"
+      ],
+      "observation": "Both focused test targets built successfully; the reader-matrix test passed 1/1 in 1.82 seconds and the graph-preservation test passed 1/1 in 0.94 seconds. No full suite was run."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S3.5: close the proposed threshold/page-chain duplicate slice and retain the generated tests as its fast owner",
+      "Implementation self-unblock: continue to the next uncovered local source-backed slice without waiting for external qualification"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 2,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "validation": {
+      "focused_builds": "PASS: reader-matrix and graph-preservation test targets",
+      "focused_ctests": "PASS: 2/2 owning tests",
+      "receipt_json": "PASS: jq empty",
+      "plan_diff_check": "PASS: scoped git diff --check",
+      "upgrade_plan_check": "PASS: python3 tools/update_upgrade_plan.py --check"
+    }
+  }
+}

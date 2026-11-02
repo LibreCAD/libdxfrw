@@ -1,7 +1,2320 @@
+**Newest local S3.7c vertex-to-edge incidence identity check (2026-10-22; generated fast slice, uncommitted):** coverage now reconciles a resolved vertex ordinal-1 edge link against that edge’s retained endpoint links; null adjacency is left observable without asserting it is invalid. A generated snapshot with a structurally present but nonincident edge is rejected, while focused graph-preservation CTest and `lc3_compat_check` pass. This is parsed-identity consistency only, not manifold/B-rep validity or native ACIS semantics. No fixture or support claim changed. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-vertex-to-edge-incidence-identity-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-vertex-edge-incidence-fast-slice-2026-10-22.json).
+
+**Newest local S3.7c rooted graph-link cross-row identity reconciliation (2026-10-22; generated fast slice, uncommitted):** the coverage classifier now joins retained graph-link rows to the typed body, lump, shell, face, loop, and coedge identities, including next/first-child/owner/surface/pcurve targets. A compact sorted source-group index removes traversal-order assumptions. Generated controls independently mutate all 21 typed-link targets and reorder complete pointer groups; the focused graph-preservation CTest and `lc3_compat_check` pass. This is projection-consistency evidence only—not source completeness, native ACIS semantics, B-rep validity, or consumer support. No fixture or support claim changed. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-rooted-graph-link-cross-row-identity-reconciliation-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-rooted-graph-link-cross-row-identity-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1021/AC1024 TABLE cell-content type domain (2026-10-22; generated fast slice, uncommitted):** ODA v5.4.1 §20.4.97 defines `0` as Unknown and `1/2/4` as Value/Field/Block. The Unknown state now marks TABLE semantics incomplete; unlisted type values fail closed instead of assuming an empty payload. Generated AC1021/AC1024 tests pass with the strict target, `lc3_compat_check`, and focused table CTests (18/18). This is a 2D TABLE correctness change and promotes no 3D or support claim. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1021-ac1024-table-cell-content-type-domain-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-cell-content-type-domain-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1021/AC1024 TABLE cell-state flag domain (2026-10-22; generated fast slice, uncommitted):** ODA v5.4.1 §20.4.97 defines the documented cell-state mask as `0x7F`; unknown bits now remain preserved but make the semantic projection incomplete. Generated AC1021/AC1024 controls cover `0`, `0x7F`, `0x80`, and `-1`; AC1024's atomic-withholding contract is unchanged. The strict target, `lc3_compat_check`, and focused table CTests pass (17/17). This improves 2D TABLE correctness and promotes no 3D or format-support claim. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1021-ac1024-table-cell-state-flag-domain-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-cell-state-flag-domain-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1024 TABLE manual-position count completeness (2026-10-22; generated fast slice, uncommitted):** negative and over-cap manual-position counts now mark the optional break-data tail incomplete while preserving TABLECONTENT; negative diagnostic counts no longer wrap. Generated count controls, focused table/object-vector CTests (15/15), strict build, and `lc3_compat_check` pass. Payload semantics remain opaque; no fixture, API/layout, support claim, or J disposition changed. [Detailed implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1024-table-manual-position-count-completeness-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-manual-position-count-completeness-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1024 TABLE row-range minimum and count bounds (2026-10-22; generated fast slice, uncommitted):** the reader now requires the ODA-mandated minimum of one row range and marks zero/negative/over-cap counts incomplete while preserving TABLECONTENT. Generated count controls, focused fast CTest, aggregate object-vector test, strict build, and `lc3_compat_check` pass. No fixture, API/layout, support claim, or J disposition changed. [Detailed implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1024-table-row-range-minimum-and-count-bounds-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-row-range-count-domain-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1024 TABLE break-option and flow-direction domains (2026-10-22; generated fast slice, uncommitted):** the reader validates the ODA option mask (`0x1F`) and discrete flow values `{1,2,4}`, while leaving unknown tail fields opaque. Generated complete frames test valid and invalid profiles; malformed values preserve TABLECONTENT and mark only the optional tail incomplete. Focused fast CTest, aggregate object-vector test, strict build, and `lc3_compat_check` pass. No fixture, API/layout, support claim, or J disposition changed. [Detailed implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1024-table-break-option-and-flow-direction-domains-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-break-option-flow-domain-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1024 TABLE break-data Boolean domain (2026-10-22; generated fast slice, uncommitted):** the ODA-defined break-data `BL` now accepts only `0` or `1`; full frames reproduce and refuse `-1`, `2`, and `INT32_MAX`, retaining valid TABLECONTENT while marking the malformed optional tail incomplete. Focused fast CTest, aggregate object-vector test, strict build, and `lc3_compat_check` pass. This is parser hardening only; no fixture, API/layout, support claim, or J disposition changed. [Detailed implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1024-table-break-data-boolean-domain-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/table-break-data-boolean-domain-fast-slice-2026-10-22.json).
+
+**Newest local implementation progress — PAR-134 AC1032 TABLESTYLE margin-override flag domain (2026-10-22; generated fast slice, uncommitted):** R24 `BS 171` now accepts only the documented bit-1 values `0` and `0x01`; full generated frames reproduce and reject `0x02`, `0x8000`, and `0xFFFF`. Focused selector/CTest, aggregate object-vector test, strict build, and `lc3_compat_check` pass. This is parser-domain hardening only: no fixture, API/layout, support claim, or J disposition changed. [Detailed implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par134-ac1032-tablestyle-margin-override-flag-domain-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/tablestyle-margin-override-flag-domain-fast-slice-2026-10-22.json).
+
+**Newest implementation progress — DWG callback null-writer guard / focused HATCH gradient CMC matrix (2026-10-22; generated fast slice, uncommitted):** ASan traced the HATCH selector crash to the DXF-only `dx_iface::writeObjects()` path dereferencing `dxfW` while called by `dwgRW`, where it is intentionally null. The callback now returns in that context and the generated CMC selector is registered as a fast CTest. Generated AC1018 direct and AC1024 detached-string DWG roundtrips cover all 20 opaque C4–C8 method × flags-0..3 combinations with raw-field, optional-name, alignment, and replay assertions. Strict adapter/roundtrip and LibreCAD_3 compatibility builds, the focused CTest, and a clean focused ASan run pass. C4–C8 semantics remain opaque; no 3D support claim is promoted and no fixture is added. All six J items remain `DEFERRED_EXTERNAL`. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-dwg-callback-null-writer-guard-and-hatch-gradient-cmc-fast-test-2026-10-22) · [receipt](docs/research/dwg-callback-null-writer-hatch-cmc-fast-slice-2026-10-22.json).
+
+**Newest local S3.7c rooted graph-link null-sentinel validation (2026-10-22; generated fast slice, uncommitted):** coverage now rejects graph-link targets below `-1`, the documented null sentinel; valid nonnegative target identities remain intact. A generated `-2` mutation is caught by the focused graph-preservation test, while the gap-free projection still passes. This only guards internal projection snapshots and adds no source-format, B-rep, ACIS semantic, or consumer evidence. No fixture or support claim changed. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-rooted-graph-link-null-sentinel-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-rooted-link-null-sentinel-fast-slice-2026-10-22.json).
+
+**Newest local S3.7c rooted reachable-node/link-source identity consistency (2026-10-22; generated fast slice, uncommitted):** projection coverage now rejects negative/duplicate reachable-node IDs, graph-link source groups not admitted by the rooted traversal, and stale lump/shell/face/loop/coedge row identities outside that set. The sorted lookup is bounded to one integer per reachable node; allocation failure conservatively marks a coverage gap. Generated mutations remove a geometry source from the reachable set while keeping the cached count consistent and duplicate the body identity with a corrected count; the focused graph-preservation CTest and `lc3_compat_check` pass. This is internal projection consistency only—not source completeness, B-rep validity, native ACIS semantics, or consumer qualification. No fixture or support claim changed. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-rooted-reachable-link-source-identity-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-rooted-reachable-link-source-identity-fast-slice-2026-10-22.json).
+
+**Newest local S3.7c rooted graph-link census framing (2026-10-22; generated fast slice, uncommitted):** coverage validates contiguous graph-link source groups, nonnegative sources, sequential zero-based pointer ordinals, and unique source groups; it conservatively reports a known gap if the bounded scratch index cannot be allocated. Generated controls cover negative sources, malformed ordinals, and a non-adjacent duplicate group. Together with the prior geometry-row joins this is internal projection/census consistency only—not source completeness, B-rep validity, ACIS semantic qualification, or consumer support. No drawing fixture, layout, callback, or support claim changed. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-rooted-graph-link-census-framing-2026-10-22-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-rooted-graph-link-census-framing-fast-slice-2026-10-22.json).
+
+**Newest local S3.7c rooted ACIS projection-coverage field validation (2026-10-21; generated fast slice, uncommitted):** closed a false “no known gaps” path for absent endpoint/curve/surface/loop observations and for non-finite or degenerate analytic geometry fields, even when counters remain zero. The helper directly checks the required observations and validates line, ellipse, intcurve, plane, sphere, cone, and torus fields; generated positive/negative controls and the focused graph-preservation CTest pass. This improves diagnostic completeness only—not full SAB parsing, trim/pcurve interpretation, B-rep validity, or consumer qualification. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-rooted-acis-projection-coverage-field-validation-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-rooted-acis-projection-coverage-field-validation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-edge endpoint incidence (2026-10-21; parser-fed generated fast slice, uncommitted):** added an explicit-tolerance check that both decoded edge endpoints lie on the full untrimmed analytic ellipse. Parser-fed generated exact, tolerance-boundary, just-outside, missing-endpoint, invalid-input, and wrong-profile controls pass the focused graph-preservation CTest. This establishes endpoint/curve incidence only—not the finite arc trim, native parameter direction, pcurve semantics, B-rep validity, or consumer support. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-edge-endpoint-incidence-2026-10-21-parser-fed-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-edge-endpoint-incidence-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-evaluator cancellation correction (2026-10-21; parser-fed generated fast slice, uncommitted):** aligned the ellipse evaluator's major/minor basis construction and changed summation order after an extreme finite-radius control exposed a one-ULP frame discrepancy that obscured a small center under exact offset cancellation. The generated parser-fed control and focused graph-preservation CTest pass. This is local numerical utility evidence only; native parameter semantics, trims/pcurves, B-rep validity, and external qualification remain open. No fixture or support claim changed. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-evaluator-cancellation-correction-2026-10-21-parser-fed-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-evaluator-cancellation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-curve distance predicate (2026-10-21; parser-fed generated fast slice, uncommitted):** added an explicit-tolerance Euclidean distance query for the full untrimmed ellipse locus. It uses the shared closest-point solver and correctly answers distance for nonunique medial-axis/circle-center cases without publishing a tied projection. Exact/zero and just-outside tolerance, off-plane, invalid-input, and ambiguous-distance tests pass. This is not trim/B-rep or external semantic qualification. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-curve-distance-predicate-2026-10-21-parser-fed-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-curve-proximity-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-curve projection (2026-10-21; parser-fed generated fast slice, uncommitted):** added bounded closest-point projection onto the full untrimmed ellipse locus. The solver handles arbitrary positive axis ratios, oblique/non-unit frames, off-plane queries, and tiny representable ellipses; it refuses nonunique medial-axis results atomically. Parser-fed SAB checks and a dense generated query grid pass. This does not infer native ACIS parameter direction, edge trims, B-rep validity, or external semantics. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-curve-projection-2026-10-21-parser-fed-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-curve-projection-fast-slice-2026-10-21.json).
+
+**Newest local S2.3 AC1027 ACDSDATA multi-record ordering gate (2026-10-21; generated ASCII/Binary fast slice, uncommitted):** the generated three-modeler/two-thumbnail projection now deliberately orders records differently from modeler entities and places unowned thumbnails before/interleaved with owner-keyed records; the writer/readback still matches each SAB by explicit owner handle. The new focused CTest passes. This strengthens local association coverage only; the pinned external ODA/FreeCAD multi-entity control remains pending, with no support claim promoted. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s23-ac1027-acdsdata-multi-record-order-independence-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s23-ac1027-acdsdata-multi-record-order-independence-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-curve evaluator (2026-10-21; parser-fed generated fast slice, uncommitted):** added a bounded analytic evaluator using the decoded center, normal, major axis, and positive ratio; it exposes an explicit radians/right-handed parameterization contract, caller-owned frame tolerance, robust finite output, and atomic refusal. Parser-fed ellipse controls, oblique/non-unit frames, invalid inputs, and extreme-coordinate checks pass the focused graph-preservation test. This evaluates an untrimmed analytic locus only; native ACIS parameter direction, edge trims, B-rep validity, and external semantics remain unqualified. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-curve-evaluation-2026-10-21-parser-fed-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-curve-evaluation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c canonical cylinder operations (2026-10-21; parser-fed generated fast slice, uncommitted):** added projection and explicit-tolerance signed-distance helpers for the narrow ACIS `cone-surface` cylinder profile (`ratio=1`, `sinAngle=0`, `cosAngle=1`), using major-axis magnitude as radius. Parser-fed X/Y/Z-axis tiny-radius cases, maximum finite and overflowing axial offsets, a true oblique non-unit-axis analytic projection/distance case, inside/outside/boundary, ambiguity, malformed-profile, overflow-difference, and output-overflow controls pass the focused graph-preservation CTest; `lc3_compat_check` builds. The versioned ACadRust 0.5.5 source is implementation corroboration only, with its newer release/source identity mismatch unresolved. These narrow locus operations do not evaluate general cones, trims/UVs, placement/units, or B-rep validity and promote no support claim. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-canonical-cylinder-surface-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-cylinder-surface-projection-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c torus projection (2026-10-21; generated/parser-fed fast slice, uncommitted):** `drw_projectPointToAcisTorusSurface` handles positive-radius ring, horn, and spindle loci with scaled-coordinate arithmetic and atomic refusal where the closest point is nonunique. Parser-fed outer/inner/oblique, horn-pinch, spindle, ambiguity, invalid-input, and overflow-difference controls pass the focused graph CTest; `lc3_compat_check` builds. OCCT was a mathematical cross-check only; no trim, signed horn/spindle classification, B-rep, or support qualification is implied. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-torus-surface-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-torus-surface-projection-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c regular ring-torus surface distance (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_pointWithinToleranceOfAcisTorusSurface` for the untrimmed regular ring-torus locus (`majorRadius > minorRadius > 0`), with explicit tolerance, normalized axis, atomic invalid/outside refusal, and overflow-safe fallback. Parser-fed SAB 21800 boundary/interior/hole, non-unit-axis, invalid-domain, and extreme-coordinate controls pass the focused graph-preservation CTest; `lc3_compat_check` builds. No trims, placement, B-rep validity, or support qualification is claimed; external J gates remain deferred. [Parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-regular-ring-torus-surface-distance-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-torus-surface-distance-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c finite straight-edge evaluation (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_evaluateAcisStraightEdge` for normalized endpoint-fraction evaluation on a decoded straight edge. It validates both retained endpoint coordinates against the supporting curve with a caller tolerance, respects reversed endpoint order, and interpolates extreme opposite-sign parameters without overflow. Generated/parser-fed SAB 21800 tests, focused CTest, and `lc3_compat_check` pass. This remains straight-edge geometry only, with no trim, transform, B-rep, or consumer qualification. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-finite-straight-edge-evaluation-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c finite straight-edge proximity predicate (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_pointWithinToleranceOfAcisStraightEdge` for Euclidean distance to the finite bounded straight edge. It uses separate explicit endpoint-consistency and query-distance tolerances, tests inclusive boundary/just-outside and endpoint clamping, and keeps unsupported/malformed results atomic. Generated and parser-fed SAB 21800 controls, the focused graph-preservation CTest, and `lc3_compat_check` pass. No fixture, public layout, 2D callback, or support claim changed. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-finite-straight-edge-proximity-predicate-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c finite straight-edge projection (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_projectPointToAcisStraightEdge`, clamping the decoded line projection to the interval established by both topological endpoints. It validates endpoint-on-curve consistency with an explicit caller tolerance, including exact-boundary acceptance, and preserves outputs on missing/off-curve endpoint refusal. Generated and parsed SAB 21800 tests, the graph-preservation CTest, and `lc3_compat_check` pass. No fixture, layout/vtable, or support claim changed. This remains straight-edge math only, not curved trims, pcurves, B-rep validation, or consumer qualification. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-finite-straight-edge-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c plane-surface distance predicate (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_pointWithinToleranceOfAcisPlaneSurface` to measure signed distance to the decoded infinite plane against an explicit finite/nonnegative caller tolerance. The stored normal is untouched and normalized only for calculation; malformed inputs/out-of-tolerance points fail atomically. Parser-fed SAB 21800, signed/boundary/non-unit/invalid/extreme-coordinate controls pass the graph-preservation CTest; `lc3_compat_check` builds. Rooted coverage marks zero/non-finite plane normals as known gaps. No fixture, struct/vtable, trim, placement/unit, B-rep, or external support claim changed; downstream consumers must rebuild for the additive symbol. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-plane-surface-distance-predicate-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-plane-surface-distance-predicate-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c plane-surface point projection (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_projectPointToAcisPlaneSurface` for orthogonal projection onto the decoded infinite plane. The calculation uses a temporary normalized normal and scale-safe arithmetic for overflowing coordinate differences/corrections, with atomic refusal when the input is invalid or the final coordinate is unrepresentable. Parser-fed SAB 21800, oblique, extreme-cancellation, unrepresentable-output, and wrong-surface controls pass the graph-preservation CTest; `lc3_compat_check` builds. No fixture, struct/vtable, trim/UV, placement/unit, B-rep, or external support claim changed; consumers must rebuild for the additive symbol. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-plane-surface-point-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-plane-surface-point-projection-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c sphere-surface point projection (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_projectPointToAcisSphereSurface` for closest projection to the untrimmed sphere locus using the decoded center and absolute value of its signed radius. Center/zero-radius ambiguity, malformed inputs, and nonrepresentable outputs refuse atomically; a scaled-coordinate direction path handles overflowing subtraction. Parsed SAB 21800, positive-vs-negative signed radius, center/degenerate/overflow, and extreme-delta controls pass the graph-preservation CTest; `lc3_compat_check` builds. Sphere coverage marks zero/nonfinite radii as a known gap, retaining finite negative values. No fixture, layout/vtable, trim/orientation, transform/unit, B-rep, or support claim changed; consumers must rebuild. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sphere-surface-point-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sphere-surface-point-projection-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c sphere-surface tolerance predicate (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_pointWithinToleranceOfAcisSphereSurface` for signed radial distance (negative inside) within an explicit finite/nonnegative caller tolerance. The center returns `-abs(radius)` for distance but remains ambiguous for point projection. Exact boundary, just-outside refusal, invalid-input atomicity, parser-fed SAB 21800 and overflow-safe cancellation controls pass the graph-preservation CTest; `lc3_compat_check` builds. Finite negative radius is measured by magnitude; zero radius remains a known coverage gap. No fixture, layout/vtable, trims, transform/units, B-rep, or external support claim changed. [Parity plan and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sphere-surface-tolerance-predicate-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sphere-surface-tolerance-predicate-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c oriented straight-coedge evaluation (2026-10-21; generated fast slice, uncommitted):** added `drw_evaluateAcisStraightCoedge`, mapping normalized traversal fractions through retained coedge sense to the bounded straight-edge evaluator. Forward/reversed endpoint and quarter-point controls plus unknown-sense, range, and tolerance refusals pass the focused graph-preservation CTest; `lc3_compat_check` builds. No layout/vtable, fixture, or support claim changed. This evaluates only straight-edge locus points in coedge order, not pcurves, trims, face surfaces, transforms/units, B-rep validity, or external semantics. [Details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-oriented-straight-coedge-evaluation-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-oriented-straight-coedge-evaluation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c face-sense utility (2026-10-21; parser-fed generated fast slice, uncommitted):** added a bounded helper that normalizes a caller-provided surface normal and applies the face's already-decoded reversal flag. Parser-fed forward/reversed controls and generated extreme, subnormal, invalid-input, and atomicity cases pass the focused graph-preservation CTest and LibreCAD_3 compatibility build. This does not derive ACIS surface normals or qualify native orientation semantics, trims, B-rep validity, or consumer support. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-face-normal-sense-application-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
 # DWG/DXF 3D Support Review and Fix Plan
 
+**Latest local S3.7c cone-face normal slice (2026-10-21; parser-fed generated fast slice, uncommitted):** added a local differential normal for the cone evaluator, including elliptic ratio and nappe sign, then applied retained face sense. Parser-fed circular/elliptic cases, reversed sense, negative nappe, and singular-apex refusal pass the focused graph-preservation CTest. It does not qualify native ACIS parameter/orientation semantics, trims, B-rep validity, or consumers. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-cone-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**Latest local S3.7c plane-face normal slice (2026-10-21; parser-fed generated fast slice, uncommitted):** added a helper to normalize the decoded plane normal and apply the retained face-sense flag. Parser-fed forward/reversed face checks and generated wrong-type, degenerate, non-finite, and unknown-sense refusals pass the focused graph-preservation CTest. This does not qualify native ACIS orientation semantics, trimmed faces, B-rep validity, or consumer support. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-plane-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**Latest local S3.7c sphere-face normal slice (2026-10-21; parser-fed generated fast slice, uncommitted):** added a local helper that checks an explicit distance tolerance against the untrimmed sphere, derives its radial unit normal with overflow-safe center subtraction, and applies the parsed face-sense bit. Parser-fed forward/reversed, tolerance, ambiguity, degenerate-radius, unknown-sense, and extreme-difference controls pass the focused graph-preservation CTest. This does not qualify native ACIS orientation semantics, trims, B-rep validity, or downstream support. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sphere-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**Newest local S3.7c torus/sphere evaluator cancellation correction (2026-10-21; parser-fed generated fast slice, uncommitted):** the local torus/sphere evaluators now use the exact documented `axis × U` basis without a second normalization and accumulate surface offsets before the center. Parser-fed large-radius controls verify that symmetric tangent terms cancel without losing a small center coordinate; focused graph-preservation and `lc3_compat_check` pass. No fixture or support claim is added; native ACIS parameters/trims, B-rep validity, placement/units, and consumer qualification remain open. See the [parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-torus-sphere-evaluator-cancellation-correction-2026-10-21-parser-fed-generated-fast-slice-uncommitted) and [receipt](docs/research/s37c-torus-sphere-evaluator-cancellation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c plane-surface evaluation (2026-10-21; parser-fed generated fast slice, uncommitted):** added `drw_evaluateAcisPlaneSurface` with an explicit local origin/U/V parameterization and a caller-bounded plane frame. Parser-fed SAB 21800 controls exercise decoded field order, oblique/non-unit coordinates, malformed/missing frame, invalid parameter/tolerance, representable overflow-sized cancellation, and atomic unrepresentable-output refusal. The cancellation test caught and fixed small-origin loss by summing tangent offsets before adding the origin. This is not native ACIS parameter/trim, transform/unit, B-rep, or consumer qualification; no support claim is promoted. See the [parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-plane-surface-evaluation-2026-10-21-parser-fed-generated-fast-slice-uncommitted) and [receipt](docs/research/s37c-plane-surface-evaluation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c oriented straight-coedge projection/proximity (2026-10-21; generated/parser-fed fast slice, uncommitted):** added finite-edge projection and proximity helpers that return a normalized traversal fraction in forward or reversed coedge order. Generated controls plus a parser-fed rooted SAB 21800 graph cover exact-boundary, clamping, reversed projection/distance fractions, unknown-sense, degenerate-range, extreme-parameter, and atomic-refusal behavior; the focused graph-preservation CTest passes and `lc3_compat_check` builds. This is straight-edge geometry only, not pcurve/trim or B-rep support. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-oriented-straight-coedge-projection-and-proximity-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-oriented-straight-coedge-projection-proximity-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c zero-radius sphere-locus slice (2026-10-21; parser-fed fast slice, uncommitted):** the point-projection helper now returns the unique center point for a zero-radius locus, and the distance predicate measures radial distance to it. Parser-fed SAB 21800 tests cover exact and just-outside tolerance. Rooted coverage still marks zero radius as a model-validity gap, so this is math-utility behavior only, not a valid-solid/support claim. Focused graph-preservation CTest and `lc3_compat_check` pass. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-zero-radius-sphere-locus-projection-and-distance-2026-10-21-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-zero-radius-sphere-locus-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c straight-curve tolerance predicate (2026-10-21; generated/parser-fed fast slice, uncommitted):** added `drw_pointWithinToleranceOfAcisStraightCurve`, checking Euclidean distance to the decoded infinite line against an explicit finite, nonnegative caller tolerance and returning the raw parameter only when accepted. It applies no ACIS default and does not clamp to edge endpoints. Exact/zero-tolerance, exact boundary, just-outside, invalid-tolerance, zero-direction, and parsed SAB 21800 endpoint cases pass the graph-preservation CTest; `lc3_compat_check` builds. No fixture or public struct/vtable change; consumers must rebuild to link the additive symbol. This is a point-to-line predicate only, not trim/B-rep or support qualification. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-straight-curve-tolerance-predicate-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-straight-curve-tolerance-predicate-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c ellipse-coverage validity floor (2026-10-21; generated snapshot fast slice, uncommitted):** rooted ACIS coverage now marks an ellipse as a known gap when its normal or major-axis vector is zero/non-finite, or its ratio is nonpositive/non-finite. It deliberately chooses no ratio direction/range, unit-normal rule, or orthogonality tolerance. The same-snapshot positive and malformed-field mutations pass the graph-preservation CTest; `lc3_compat_check` builds. This is coverage accounting only, not ellipse evaluation or B-rep validity. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-ellipse-curve-coverage-guard-2026-10-21-generated-snapshot-fast-slice-uncommitted) · [receipt](docs/research/s37c-ellipse-curve-coverage-guard-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c straight-curve projection (2026-10-21; generated/parser-fed, uncommitted):** added `drw_projectPointToAcisStraightCurve`, which computes an orthogonal projection onto the decoded infinite line and returns its raw `p0 + t*p1` parameter. It applies no modeler tolerance; the caller owns any endpoint-distance decision. Generated perpendicular/extreme-scale/atomic-refusal controls and a parsed SAB 21800 rooted edge with exact endpoint parameters 0 and 1 pass the graph-preservation CTest; `lc3_compat_check` builds. No drawing fixture, public struct-layout, or 2D callback change. This does not evaluate other curve types, trims, surfaces, placement/units, or B-rep validity; no support claim is promoted. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-analytic-straight-curve-projection-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-analytic-straight-curve-projection-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c analytic-curve slice (2026-10-21; generated/parser-fed, uncommitted):** `drw_evaluateAcisStraightCurve` now evaluates the decoded straight-curve profile as `p0 + t*p1` using its raw direction and parameter. Wrong curve kinds, zero direction, non-finite inputs, and non-finite results fail without mutating output; rooted coverage classifies a decoded zero direction as a known gap. Both the existing generated model and a parsed SAB 21800 body projection exercise the API, and the focused graph test passes. This does not test endpoint-on-curve agreement or evaluate pcurves/trims, surfaces, transforms, or a complete B-rep. No drawing fixture or public data-layout change. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-analytic-straight-curve-evaluation-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-analytic-straight-curve-evaluation-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c SAB 21800 coedge-oriented endpoints and endpoint-chain continuity (2026-10-21; parser-fed generated fast slice, uncommitted):** added traversal-direction endpoint identities derived from exact raw edge endpoints and retained per-coedge sense, plus a reciprocal-ring/open-chain observation comparing adjacent topological vertex identities. Closed rings include the wraparound join; open chains check internal joins; incomplete sense/endpoints withhold the observation and known mismatches mark a coverage gap. Connected/disconnected, independently missing endpoint, unknown-sense, parser-fed equivalence, coverage-consistency, graph-preservation CTest, and LibreCAD_3 compatibility controls pass. This is not geometric curve/pcurve continuity, trim evaluation, face-normal winding, B-rep validation, or support qualification; downstream consumers must rebuild for the public struct layout change. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-coedge-oriented-endpoint-identities-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [ACIS Topology Manual](https://manualzz.com/doc/23441667/acis-modeling-software-topology-manual).
+
+**PAR-21 DXF OCS extrusion fast gate (2026-10-21; generated, uncommitted):** reconciled the older finding against current source: the ELLIPSE test uses the actual `applyExtrusion` argument, and accepted non-unit normals are normalized only for the temporary arbitrary-axis basis. Added `dxf_ellipse_extrusion_policy`, a focused CTest for the mode/invalid-input matrix, ASCII/Binary OCS projection, independent ARC start-point reconstruction, angular sweep, and exact 1/64 branch boundary. It passes in 0.30s. No drawing fixture or support claim was added; native/per-family qualification remains open. [Parity plan and evidence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par21-dxf-ellipse-ocs-extrusion-fast-gate-2026-10-21-generated-fast-slice-uncommitted) · [Autodesk algorithm](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm).
+
+**Newest local S3.7c SAB 21800 edge→endpoint-vertex identity (2026-10-21; parser-fed generated fast slice, uncommitted):** rooted edges retain exact ordinal-1/2 vertex identities independently; null-start and null-end cases preserve the opposite endpoint in its original slot. Missing identity remains a known coverage gap; wrong-type links refuse at their exact source/ordinal. The legacy unrooted search is unchanged. Parser-fed positives/both missing-slot controls, parsed/in-memory identity comparison, `lc3_compat_check`, and graph-preservation CTest pass. This is raw edge-order identity only—not coedge orientation, trims, B-rep semantics, or support qualification. Public layout changed. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-endpoint-identity-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-edge-endpoint-identity-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c SAB 21800 edge→curve identity (2026-10-21; parser-fed generated fast slice, uncommitted):** rooted edges retain the exact ordinal-4 curve node, including unsupported curve types; null slots remain `-1`, and wrong-type non-null targets refuse at the exact pointer. The legacy unrooted lookup remains unchanged. Parser-fed supported/unsupported/null cases, parsed-SAB/in-memory equality, coverage-gap and wrong-type controls pass; `lc3_compat_check` builds and the graph-preservation CTest passes. This is identity only—not curve evaluation, trim semantics, or B-rep support. Public layout changed; consumers must rebuild. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-curve-identity-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-edge-curve-identity-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c SAB 21800 vertex→point identity (2026-10-21; generated fast slice, uncommitted):** rooted ACIS vertices now retain exact ordinal-2 point-record identity beside raw coordinates; strict rooted extraction uses that slot, while the flexible unrooted compatibility path remains unchanged. Parsed-SAB/in-memory checks, exact wrong-type ordinal refusal, `lc3_compat_check`, and the graph-preservation CTest pass. This is structural link identity, not transformed geometry, source completeness, or semantic support. Public layout changed; consumers must rebuild. [Implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-vertex-point-identity-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest local S3.7c SAB 21800 loop-coedge owner census (2026-10-21; parser-fed generated fast slice, uncommitted):** rooted loops compare their exact coedge walk with a source-ordered parsed-model census of ordinal-5 coedge→loop owners. Source/traversal-order, detached/missing/null/wrong-type, coverage mutation, parsed/in-memory equality, and exact/one-under output/work controls pass; graph-preservation CTest passes and `lc3_compat_check` builds. This remains structural incidence only, not source completeness, trim/manifold/B-rep validation, or support qualification. Public layout changed; consumers must rebuild. [Implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-loop-coedge-owner-census-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-loop-coedge-owner-census-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c shell-face owner census (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted SAB 21800 output now retains exact shell first-face/face next-link identities and compares the chain with the parsed-model face→shell owner index. Detached/unclassifiable faces and cycles prevent a match; malformed traversed links refuse at their exact pointer; exact/one-under output and work budgets pass. The graph-preservation CTest passes and `lc3_compat_check` builds. Structural coverage only—not source completeness, shell validity, or B-rep support. Public layout changed. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-shell-face-owner-census-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-shell-face-owner-census-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c lump-shell owner census (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted SAB 21800 output retains each lump's exact first-shell and next-shell identities and compares the chain against all parsed shells that name the lump as owner. Detached shells and unclassifiable owners prevent a match; valid cycles remain explicit gaps and malformed traversed links refuse transactionally. The focused graph CTest passes and `lc3_compat_check` builds. This is parsed-model structural incidence, not a complete source census, body/lump validity, or B-rep support. Public layout changed. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-lump-shell-owner-census-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-lump-shell-owner-census-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c body-lump owner census (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted SAB 21800 body projections now retain the exact ordinal-1 first-lump/next-lump chain and compare it with a source-ordered parsed-model census of lump ordinal-3 body owners. Detached or unclassifiable lumps and cycles cannot match; malformed traversed links refuse at their exact pointer. The focused graph CTest passes and `lc3_compat_check` builds. This remains parsed-model structural evidence—not source completeness, body validity, or B-rep support. Public layout changed. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-body-lump-owner-census-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-body-lump-owner-census-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c malformed face-loop next-link refusal (2026-10-21; generated parser-fed fast test, uncommitted):** corrected the wrong-type and truncated loop-next controls to require atomic `InvalidReference` refusal at the exact loop node/ordinal, consistent with rooted graph validation and the existing consumer contract. The graph-preservation CTest and `lc3_compat_check` pass; no production change, fixture, or support promotion. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-malformed-face-loop-next-refusal-2026-10-21-generated-fast-test-uncommitted) · [receipt](docs/research/s37c-sab21800-malformed-face-loop-next-refusal-fast-test-2026-10-21.json).
+
+**Newest local S3.7c face-loop use census completeness (2026-10-21; generated parser-fed fast slice, uncommitted):** the rooted SAB 21800 projection compares every parsed loop's exact face-owner reference with each projected face's observed next-loop chain. Missing/null/wrong-type owners and detached loops remain explicit known gaps; an exact/one-under output-budget check passes with the focused graph CTest and `lc3_compat_check`. This is parsed-model structural coverage only, not full source-record completeness or B-rep validity. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-face-loop-use-census-completeness-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-face-loop-use-census-fast-slice-2026-10-21.json).
+
+**Newest deeper/broader peer research (2026-10-21):** ezdxf's ACIS graph vocabulary is useful structural corroboration but its own docs exclude arbitrary ACIS editing and warn of unsupported-record loss; LibreDWG's generated AcDs report does not exercise its reader if the prior writer omitted the section; ACadSharp's solid omission is a writer-side peer report; and OpenCADStudio shares ACadRust's DWG parser lineage. No new local finding or support evidence; the six J items remain `DEFERRED_EXTERNAL`. [Research/readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-topology-crosswalk-and-peer-evidence-ceilings-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-acis-topology-peer-evidence-ceilings-2026-10-21.json).
+
+**Newest local S3.7c closed-ring reciprocity (2026-10-21; generated parser-fed fast slice, uncommitted):** observed closed rings now require each next target to match the neighboring coedge's previous target; observed open chains require reciprocal interior links and null endpoints. Parser-fed closed-ring mismatch remains a known gap; focused graph CTest and `lc3_compat_check` pass. This is chain consistency only, not complete topology or B-rep validation. [Implementation record and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-closed-ring-next-previous-reciprocity-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Previous local S3.7c edge/coedge reciprocity (2026-10-21; generated parser-fed fast slice, uncommitted):** the rooted SAB 21800 projection verifies the selected edge→coedge link against the coedge→edge back-link. Missing back-links remain explicit known gaps; conflicting non-null back-links fail with exact diagnostics. Generated parser-fed controls and the focused graph-preservation CTest pass; `lc3_compat_check` builds. This is one reciprocal pair only, not a complete edge-use census or B-rep validation. [Implementation record and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-coedge-reciprocity-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Previous local S3.7c coedge previous/partner identities (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted SAB 21800 face-loop rows now retain the exact previous-link and partner-link target identities aligned with coedge next-order. Generated multi-loop positives, null previous/partner controls, parsed-vs-in-memory equivalence, misaligned-row coverage checks, exact and one-under output-budget controls, and an exact wrong-type partner refusal pass; the focused graph-preservation CTest and `lc3_compat_check` build pass. This is structural link preservation only—not reciprocal-link, manifold, trim, or B-rep validation. [Implementation record and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-coedge-previous-partner-identities-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.5 AC1027 AcDs container prerequisite (2026-10-21; generated in-memory controls):** the `0x40000` direct-record / `0x40001` Blob01 boundary and a physically out-of-order two-page chain both pass focused tests. The latter verifies retained bytes and handle-linked modeler callback ownership; malformed page metadata refuses atomically. This closes only the parser-control prerequisite, not SAB semantics, broader AC1027+ association, native acceptance, or writer readiness. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s35-acds-blob-page-controls-2026-10-21-generated-fast-slice).
+
+**Previous local S3.7c face-to-surface identity (2026-10-21; generated parser-fed fast slice, uncommitted):** the rooted projection preserves the exact SAB 21800 face pointer ordinal 5 surface node, including unsupported surface types, without implying decoded parameters. A parser-fed absent-slot control retains `-1` and known-gap coverage; graph CTest and `lc3_compat_check` pass. Public struct layout changed; downstream consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-face-surface-identity-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Previous local S3.7c face-to-shell incidence (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted faces now retain their exact parent-shell node identity from the SAB 21800 face pointer ordinal 3. A parser-fed missing-shell control preserves `-1` and marks coverage as a known gap; graph CTest and `lc3_compat_check` pass. This preserves grouping only—not shell closure, face orientation semantics, B-rep validity, or support. Public struct layout changed; downstream consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-face-shell-incidence-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Previous local S3.7c edge-endpoint incidence (2026-10-21; generated parser-fed fast slice, uncommitted):** SAB 21800 coedge rows now include the exact edge's raw start/end vertex identities in edge order. An unresolved endpoint remains `-1` and classifies coverage as a known gap; coedge sense is not applied to endpoint order. Parser-fed generated negative/positive checks, graph CTest, and `lc3_compat_check` pass. This is structural incidence only, not an oriented boundary, trim, valid B-rep, or support claim. Public struct layout changed; downstream consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-coedge-edge-endpoint-incidence-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c exact coedge next-ring closure (2026-10-21; generated parser-fed fast slice, uncommitted):** SAB 21800 loop starts and coedge-next traversal now use their exact pointer ordinals instead of the first coedge-typed link. Rooted output reports whether each observed ring returns to its start; the parser-fed missing-next control proves previous/partner links are not borrowed and classifies the partial row as a known gap. Focused graph CTest and `lc3_compat_check` pass. This is structural closure observation only, not B-rep validity or support promotion; public struct layout changed and downstream consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-exact-coedge-next-ring-closure-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c coedge-to-loop/pcurve incidence (2026-10-21; generated parser-fed fast slice, uncommitted):** the exact SAB 21800 face-loop row now carries validated owning-loop and optional pcurve node identities alongside coedge, edge, and sense rows. Parser-fed and multi-loop checks pass, and a null owning-loop negative remains explicit and classifies as a known gap; null pcurve is recorded as optional absence. The graph CTest and `lc3_compat_check` pass. No trim evaluation or B-rep claim; public struct layout changed and downstream consumers must rebuild. [Implementation progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-loop-coedge-loop-and-pcurve-incidence-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest local S3.7c orientation-field slice (2026-10-21; generated parser-fed fast slice, uncommitted):** exact SAB 21800 projections now capture face sense, double-sided/conditional-containment flags, and per-coedge sense only at reviewed ordered token positions. Parser-fed misordering controls confirm unknown values stay unknown and count as known gaps; the graph-preservation CTest and `lc3_compat_check` pass. This is not trim evaluation, independently validated face orientation, B-rep validity, or support qualification. Public struct layout changed; downstream rebuild is required. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-face-and-coedge-orientation-flags-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest deeper/broader peer-evidence refinement — Binary DXF and C++ lineage (2026-10-21; research only):** LibreDWG's current DXB code path is explicitly warned as highly experimental and untested, so it is not a positive Binary-DXF oracle by default. ACadSharp and ezdxf advertise Binary-DXF routes but only support route-specific, pinned comparison claims; archived `libezdxf` is a non-production design reference in the ezdxf lineage, with no DWG exporter. The plan now requires encoding-specific peer identity, exact `$ACADVER`, payload/disposition accounting, and independent strict reopen at the existing composed checkpoint. No code, fixture, dependency, test, new finding/subplan, or support promotion; the fast implementation queue is unchanged. [Research/readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-binary-dxf-peer-maturity-and-cpp-lineage-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-binary-dxf-peer-maturity-cpp-lineage-2026-10-21.json). All six J items remain `DEFERRED_EXTERNAL`.
+
+**Newest local S3.7c face-loop coedge-to-edge incidence (2026-10-21; generated parser-fed fast slice, uncommitted):** the admitted 21800 rooted projection now has an edge-node index aligned to each ordered coedge identity, with null/unresolved entries explicit as `-1` and cache/copy storage budgeted. Parser-fed multi-loop and rooted null-edge tests, graph CTest, and `lc3_compat_check` pass. This is structural incidence, not coedge orientation, pcurve/trim evaluation, B-rep validity, or consumer qualification; the public struct layout changed and consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-loop-coedge-edge-incidence-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest local S3.7c face-loop coedge identity mapping (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted 21800 projections now include exact coedge node identities per face loop in next-link order, with budgeted cached and per-face storage. Generated graph/parser-fed tests, the owning CTest, and `lc3_compat_check` pass. This is structural incidence only—not coedge orientation, pcurve/trim evaluation, B-rep validity, or application qualification. The public struct layout changed; downstream consumers must rebuild. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-loop-coedge-identities-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest local S3.7c point finite-value attribution (2026-10-21; generated parser-fed fast slice, uncommitted):** rooted SAB 21800 projection now identifies non-finite referenced coordinates at the exact point record and fails transactionally; the unrooted API retains its existing whole-result validation. Nine parser-fed NaN/infinity XYZ cases pass with the focused graph CTest and `lc3_compat_check`. This is validation/diagnostic hardening only, not point or solid support promotion. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-nonfinite-point-node-attribution-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-nonfinite-point-field-attribution-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c intcurve finite-point attribution (2026-10-21; generated parser-fed fast slice, uncommitted):** the existing intcurve control-point extractor now rejects non-finite points at the curve node before cache/emission. Generated SAB 21800 tests cover all XYZ coordinates of both control points (18 cases); the graph-preservation CTest and `lc3_compat_check` pass. This preserves existing grammar and only improves finite-value refusal/error localization; it does not claim curve evaluation or B-rep support. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-nonfinite-intcurve-node-attribution-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-nonfinite-intcurve-field-attribution-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c analytic-surface finite-field attribution (2026-10-21; generated parser-fed fast slice, uncommitted):** strict SAB 21800 plane/torus readers and the existing scan-based cone projection now reject non-finite consumed fields at the surface boundary. Parser-fed generated tests cover 96 NaN/infinity field mutations across all vector coordinates and scalar parameters, clear output, and require exact surface-node reporting. The focused graph CTest and `lc3_compat_check` pass. Cone continuation/order remains unresolved; no geometry or B-rep support is claimed. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-nonfinite-analytic-surface-node-attribution-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-nonfinite-analytic-surface-field-attribution-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c sphere finite-field attribution (2026-10-21; generated parser-fed fast slice, uncommitted):** the strict SAB 21800 sphere reader rejects non-finite center/radius/U/pole values at the record boundary. Its 30-case parser-fed matrix now requires failure at the exact sphere node and transactional output clearing; focused graph-preservation CTest and `lc3_compat_check` pass. This improves finite-value diagnostics only; it does not establish sphere evaluation, B-rep validity, or external support. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-nonfinite-sphere-node-attribution-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-nonfinite-sphere-field-attribution-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c finite-curve hardening (2026-10-21; generated parser-fed fast slice, uncommitted):** strict SAB 21800 straight/ellipse projection rejects non-finite fields at the curve boundary and reports the exact curve node. Generated tests cover 48 NaN/infinity mutations over every analytic vector coordinate and the ellipse ratio; graph-preservation CTest and `lc3_compat_check` pass. This improves finite-value refusal and diagnostics only; it does not establish ACIS curve semantics, B-rep validity, or platform/external qualification. [Implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-nonfinite-scalar-curve-node-attribution-2026-10-21-generated-parser-fed-fast-slice-uncommitted) · [receipt](docs/research/s37c-sab21800-nonfinite-scalar-curve-field-attribution-fast-slice-2026-10-21.json).
+
+**Newest broader peer-source refresh (2026-10-21; research only):** ACadRust v0.6.5's release and versioned docs now agree on source commit `289a616`; the plan records explicit R12 entity downgrade behavior, bounded-mesh/recovery configuration, and ignored external-input tests as comparison constraints—not qualification. Cross-project version matrices and callback-only DXF routes remain direction-specific and cannot promote 3D/B-rep claims. No local finding, fixture, dependency, peer run, or support promotion; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Parity-plan research update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-peer-release-route-and-evidence-boundary-refresh-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-open-source-peer-route-evidence-refresh-2026-10-21.json).
+
+**Newest S3.7c production hardening (2026-10-21; generated parser-fed fast slice, uncommitted):** recognized sphere-surface records now require ordered center/radius/U/pole fields, skipping only pointer slots; malformed shifted/truncated fields fail the rooted projection at the surface node and clear prior output. Focused graph-preservation CTest and `lc3_compat_check` pass. This is strict local profile handling, not full ACIS/B-rep support or external qualification. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab-21800-sphere-surface-ordered-fields-fail-closed-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest S3.7c curve-field hardening (2026-10-21; generated parser-fed fast slice, uncommitted):** strict SAB 21800 projection now consumes straight/ellipse parameter fields in order, accepts the stream's recognized vector tag variants, and rejects shifted fields transactionally with the exact curve node. The graph-preservation CTest and `lc3_compat_check` pass. This is parser disposition only—not curve evaluation, trimming, B-rep validity, or external qualification. The peer typed layout is mutable SAT documentation and is not normative SAB evidence. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab-21800-ordered-scalar-curve-fields-fail-closed-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**Newest S3.7c test-coverage slice — sphere analytic-frame finite-value matrix (2026-10-21; generated parser-fed fast test, uncommitted):** NaN, +infinity, and -infinity are now tested independently in all ten sphere center/radius/U-direction/pole-direction components through parse→model→rooted projection (30 cases); each refuses at the body and clears prior output. The strict graph-preservation build and CTest pass. No production behavior or 3D-support claim changed. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sphere-analytic-frame-nonfinite-matrix-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest local implementation — PAR-126 direct DWG TABLE encoder refusal (2026-10-21; generated six-version fast slice, uncommitted):** `DRW_Table` now refuses its inherited INSERT-shaped DWG encoder without mutating entity/output state across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. This is fail-closed behavior only; TABLE/TABLECONTENT frame and linked-object writing remain open. Focused build and selector pass, with no fixture/full-suite run or support promotion. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par126-direct-dwg-table-encoder-refusal-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest local S3.7c implementation — bounded SAB 21800 sphere-surface parameters (2026-10-21; generated fast slice, uncommitted):** rooted projection now recognizes and records a sphere's center, signed radius, U direction, and pole direction; the existing finite-value gate rejects a non-finite radius transactionally. The generated positive and negative controls pass the strict graph-preservation CTest. This is not tessellation, a complete surface/face model, B-rep validation, native consumer qualification, or support promotion. J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab-21800-sphere-surface-parameters-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest broader source-level peer audit (2026-10-21):** refine the external
+evidence lanes before the next composed checkpoint. LibreDWG has a real
+R2007+ AcDs section/parser path, but the explicit “not reliably yet” SAB
+statement found in `NEWS` is historical (the 0.11 entry), and issue #1411's
+public reproducer cannot isolate the read path because its own `dxf2dwg`
+producer omits the section. ACadSharp's Prototype_1b reader (#1154) is included
+in released v3.6.51 and is a viable pinned structural comparator; its later
+schema refactor remains open and the dependent modeler writer is not released.
+ACadRust adds a second source route worth auditing, but its visible AcDs tests
+are synthetic or same-codec round trips, not independent semantic evidence.
+ezdxf can generate simple polyhedral SAT/SAB bodies but explicitly has no ACIS
+kernel; stock FreeCAD cannot read embedded ACIS. Keep section framing, payload
+association, topology/shape semantics, and native consumer acceptance as
+separate gates. No peer evidence promotes support or any of the six external J
+items. [Research details and readiness delta](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-source-level-dwg-acds-acis-route-capabilities-and-consumer-qualification-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-source-level-acds-acis-route-capabilities-2026-10-21.json).
+
+**Newest S3.7c parser-fed mixed unsupported-curve row (2026-10-21; generated
+fast test, uncommitted):** a three-slot `parabola-curve` row containing a
+null and two references to the same target proves exact ordinal/target
+preservation without deduplicating distinct pointer slots; the raw-only point
+target is not traversed as interpreted body geometry.
+The graph-preservation target and owning CTest pass. Structural evidence only;
+no geometry support is promoted. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-pointer-row-order-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c mixed-row output-budget boundary (2026-10-21; generated fast
+test, uncommitted):** a paired parser-fed model differs only by the
+unsupported curve's three outgoing pointer slots; exact minimum output
+budgets differ by three, and one-under refuses transactionally. This is
+resource-accounting evidence only. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-row-output-budget-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c mixed-row extraction-work boundary (2026-10-21; generated fast
+test, uncommitted):** the same row adds exactly three extraction-work units;
+one-under refuses and clears output. This is a separate resource budget, not
+geometry evidence. [Implementation details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-row-extraction-work-budget-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c graph-retention follow-through (2026-10-21; generated fast tests,
+uncommitted):** the rooted SAB projection preserves outgoing pointer slots for
+referenced unsupported nodes without interpreting them; parser-fed controls
+exercise unsupported `spline-surface` and `parabola-curve` branches, including
+null slots; malformed out-of-range curve pointers are refused at their exact
+node/ordinal with transactional output clearing. A paired projection-budget
+control confirms each newly retained outgoing link consumes one output item
+and that one-under limits refuse atomically. The graph-preservation target,
+CTest, and LibreCAD_3 compatibility check pass. This closes structural/resource
+cases only, not surface/curve geometry, B-rep, or consumer support.
+[Implementation details and latest receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-link-output-budget-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c multi-root fast test (2026-10-21; parser-fed generated case,
+uncommitted):** one unsupported `parabola-curve` shared by two body roots now
+has its raw ordinal-0 null pointer row retained exactly once in each body's
+projection; each root independently reports the unsupported curve, with no
+cross-body row leakage. The focused graph CTest and LibreCAD_3 compatibility
+target pass. This verifies per-root structural ownership only, not curve
+semantics or support promotion. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-shared-unsupported-curve-per-root-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c shared-row resource boundary (2026-10-21; generated fast test,
+uncommitted):** the paired two-body SAB controls show the shared unsupported
+curve row costs exactly two output items—one emitted row in each rooted body.
+The exact cap succeeds and one item below fails with transactional clearing.
+This is bounded output-accounting evidence only. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-shared-unsupported-curve-output-budget-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest S3.7c later-root refusal control (2026-10-21; parser-fed generated
+test, uncommitted):** when the first body projects successfully but a shared
+unsupported-curve row in the second body contains an out-of-range pointer, the
+call fails at the exact later node/ordinal and clears all caller-visible
+projections. This closes a cross-root transaction boundary only. [Progress and
+receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-invalid-later-root-transactional-refusal-2026-10-21-generated-fast-test-uncommitted).
+
+**Newest local S3.7c matrix slice (2026-10-21; generated fast test,
+uncommitted):** parser-fed `sphere-surface` records are now explicitly
+checked as reachable but unsupported: the projection counts the branch,
+emits no surface geometry, and leaves B-rep validity false. The owning graph
+CTest passes 1/1. This is coverage of a non-promotion boundary, not sphere
+surface support or a production-code change. See [implementation progress and
+receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-sphere-surface-unsupported-branch-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest schema-and-consumer boundary review (2026-10-21):** Autodesk's DXF
+tables make the lane split concrete: `MESH` has subdivision-cage, edge-crease,
+and subentity-override fields; modeler entities carry SAT/SAB through group 1/3,
+while `3DSOLID` group 350 is a separate history reference. Current FreeCAD docs
+list different built-in and legacy DXF entity sets and explicitly exclude
+embedded ACIS; ezdxf's ACIS browser exposes raw payload but its drawing add-on
+has no 3D renderer. LibreDWG 0.14.1 still labels AcDs extraction incomplete,
+and ACadSharp #1038's fix is release-specific. The implementation plan now
+keeps schema, carrier, topology, shape, and native-acceptance evidence in
+separate rows; no new local defect or support claim was found. See the
+[expanded research and fast readiness refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-autodesk-3d-dxf-schema-contracts-and-open-source-peer-evidence-boundaries-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-autodesk-3d-dxf-schema-peer-boundaries-2026-10-21.json).
+All six external J items remain `DEFERRED_EXTERNAL`.
+
+**Newest external SAT/SAB route reconciliation (2026-10-21):** reuse the
+existing exact-payload InventorLoader STEP/Part witness (ODA cone plus ACadSharp
+D65/D69/D6A); no duplicate run is needed. The add-on's native shell/face/wire
+builder, STEP conversion, standalone SAT import, stock FreeCAD DXF importer,
+and DWG `dwg2dxf` handoff are separate routes. Current upstream issues #100,
+#102, and #110 are unresolved, version/input-specific failure reports; the
+current package metadata and repository license text conflict, and a reachable
+Python `eval` still requires source-wide safety review before another payload
+is supplied. Keep the candidate `SCREENED_NOT_ADMITTED`: it does not qualify
+stock FreeCAD, the AcDs join, or an independent kernel. See the
+[parity-plan reconciliation](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-open-source-sat-sab-reader-inventorloader-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-inventorloader-independent-acis-reader-2026-10-21.json).
+
+**Newest independent-kernel and AcDs research update (2026-10-21):** ACadSharp's
+Prototype_1b history identifies multi-schema, split/non-sequential blob, and
+blob-versus-index-entry cases for the existing optional structural checkpoint.
+OpenCADKernel is a future independent-kernel candidate, but its own project
+labels it early and its ACIS bridge depends on `opencadcodec`; it is not ready
+to qualify. OpenCADStudio's kernel/fallback ACIS tessellation can at most be a
+per-face projection diagnostic under the ACadRust codec lineage. No new local
+finding or support claim; all six external J items remain `DEFERRED_EXTERNAL`.
+See the [parity-plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-acis-kernel-candidates-and-acds-reader-boundaries-2026-10-21-research-only)
+and [research receipt](docs/research/deeper-broader-open-source-acis-kernel-candidates-acds-boundaries-2026-10-21.json).
+
+**Newest cross-project research convergence (2026-10-21):** the latest peer
+issue/release recheck found no uncovered local 3D defect. Preserve the ODA
+v5.4.1 SPLINE boundary: R2013+ `splFlag1` and `knotParam` are BL, matching
+the current parser and generated S6.2 tests; do not change width based on the
+stale contrary note. For GEODATA, keep the internal `objectVersion` field
+layout separate from the target-DWG CIVIL-tail gate; the existing AC1021/
+AC1024 versus AC1027/AC1032 vectors already cover the peer-reported seam.
+No external fixture, peer dependency, test cadence, support claim, or J-item
+status changes. See the [convergence audit in the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-research-convergence-and-no-duplicate-work-audit-2026-10-21).
+
+**Newest local ACIS boundary control (2026-10-21):** generated the negative
+signed-limit companion to the existing `LLONG_MAX` ACIS pointer regression.
+The model builder retains an unresolved slot for `LLONG_MIN`, and rooted
+projection refuses the raw reference with its exact source and pointer ordinal.
+The graph-preservation target, focused CTest, and direct test binary pass. This
+is pointer-boundary validation only; no file-format, geometry, or support claim
+changes. The slice remains uncommitted because `.git/index` is not writable.
+[Implementation receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-07-s37-acis-signed-pointer-limit-controls-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest broader peer-lineage refinement (2026-10-21):** CADCraft PR #781 now
+has a more precise evidence label: it reports byte-identical ACDSDATA/SAB
+retention for 627 bodies in one real drawing, but its DWG bridge is ACadRust
+0.6.4-backed, so this is same-lineage opaque preservation—not independent
+DWG decoding, B-rep validity, or native acceptance. The new `acis-core` API is
+the structural model/parser component of the already-counted `cq-acis`
+lineage; model reference closure is not B-rep validity. ProGPU's ACIS reader
+claim remains a source-audit candidate, while `dxf-json` and `dxf-kit` are
+optional narrow DXF-only candidates with no DWG/ACDS or general ACIS semantics.
+No mandatory peer, fixture, dependency, test, or support claim was added; the
+six external J items remain `DEFERRED_EXTERNAL`. [Detailed research and
+implementation-ready gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadcraft-acds-retention-and-new-acis-dxf-peer-screen-2026-10-21-research-only)
+· [receipt](docs/research/deeper-broader-cadcraft-acds-retention-and-peer-screen-2026-10-21.json).
+
+**Newest broader implementation crosswalk (2026-10-21):** capability declarations from open-source readers are now explicitly separated from operation-specific output evidence: ACadSharp's read/write-by-version matrix is not a release-level semantic guarantee (latest signed release shown is v3.7.1; newer issue reports target v3.8.x/master), LibreDWG may skip/proxy unsupported classes, IxMilia.Dxf is a bounded DXF route, and ezdxf's limited ACIS subset / XY renderer is not a general solid kernel. FreeCAD's DWG converter creates DXF for a separately selected importer, and stock DXF import cannot qualify embedded ACIS. The implementation ledger therefore stays per source entity + owner/block occurrence + carrier + field/geometry outcome, with strict native acceptance separately recorded. Local peer-inspired risk shapes (codepage bytes, legacy VERTEX markers, repeated records, modeler writer/block loss) already have generated fast-test owners; do not add duplicate tests or peer dependencies. No implementation order or support claim changes, and J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Detailed research and readiness gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-capability-lineage-and-native-acceptance-refresh-2026-10-21-research-only).
+
+**Newest deeper/broader peer-status reconciliation (2026-10-21):** a fresh
+primary-source pass confirms the important open-source signals remain
+route-specific: LibreDWG issue #1411's public reproduction sends a generated
+AC1032 DXF through LibreDWG's own DWG writer and then its reader, so a missing
+AcDs section does not isolate the reader; ACadSharp #1154 is merged, but its
+corpus comparison is contributor-reported and the separate schema refactor
+#1174 and modeler writer #1240 remain open; OpenCADStudio #1078's closed fix
+preserves an unchanged source AcDs section on same-version saves, not a
+rebuilt/translated AcDs graph; CADKernel's detail table still marks SAT/SAB
+read/write planned despite broad DWG/DXF claims; LibreCAD's inventory still
+marks its MESH route `fixture-needed`. No peer status supplies an end-to-end
+DWG→DXF→ACIS-semantic→native-acceptance result. The existing PAR-07/S8,
+PAR-59, and PAR-144 gates already separate those stages, so no local defect,
+duplicate test, new subplan, or admission change is warranted. Continue the
+dependency-ready S3.7c local fast lane; all six J items remain
+`DEFERRED_EXTERNAL`. [Evidence and readiness details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-status-reconciliation-and-route-evidence-ceilings-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-peer-status-reconciliation-route-evidence-2026-10-21.json).
+
+**Newest semantic-reader route research (2026-10-21):** Ansys 2025 R2 documents a direct commercial SAT/SAB reader on Windows/Linux for solid, surface, and line bodies. This is a possible one-time external semantic cross-check, not an open-source implementation or an admitted independent kernel: lineage and reproducible geometry extraction remain unknown and licensing/platform access is unverified. Stock FreeCAD explicitly cannot read embedded ACIS/SAT solids, so keep it on the DWG-converter/2D-import acceptance lane. Current ACadSharp #1195/#1150/#1240/#1174 pages remain open-branch evidence only. The readiness gate is added to the parity plan; no tests, dependencies, fixtures, claims, or J statuses change. [Research/gate details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-acis-reader-alternatives-and-peer-writer-state-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-independent-acis-reader-alternatives-2026-10-21.json).
+
+**Newest explicit-facet contract cross-check (2026-10-21):** Autodesk's POLYFACE guidance makes reader tolerance broader than producer ordering: read unusual/interleaved vertex and face records against the completed coordinate pool, but write coordinates before faces; 71/72 counts are advisory. The existing generated ASCII/Binary fast test covers interleaved/forward faces, stale counts, signed visibility, writer normalization, and transactional bad-index refusal (focused CTest PASS 1/1). Keep `3DFACE`, classic POLYLINE/PFACE, and MESH as distinct schema/consumer lanes; no new defect, topology claim, or support promotion. MESH old-version record naming remains `UNQUALIFIED`; all six J items remain `DEFERRED_EXTERNAL`. [Research and implementation-ready refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-autodesk-polyface-order-and-explicit-mesh-contract-2026-10-21-research-only) · [receipt](docs/research/deeper-broader-autodesk-polyface-explicit-mesh-contract-2026-10-21.json).
+
+**Newest DWG reader implementation slice (2026-10-21):** the generated
+R2007+ class-string footer checks now include the unextended size form,
+truncated high-word refusal, out-of-range footer, and atomic cursor/output
+preservation, with a focused `fast;dwg;framing;generated` CTest. No parser
+behavior or fixture changed; the known AC1024 RTM classes-stage report remains
+unresolved. See the [implementation progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-r2007-class-string-footer-atomic-boundaries-2026-10-21-generated-fast-slice-uncommitted).
+
+**Newest cross-project acceptance refinement (2026-10-21):** recent LibreDWG and ACadSharp reports reinforce that decode success, writer completion, object/owner conservation, output finalization, and native application acceptance are separate gates. The new pass updates only the existing PAR-06/PAR-07/S8/PAR-14 risk and evidence rules; it adds no local finding or test. Keep solid-only block contents in the per-source disposition check, and do not let FreeCAD's stock 2D/explicit-entity importer qualify ACIS semantics. All six J items remain `DEFERRED_EXTERNAL`. See the [cross-project research/readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-failure-boundary-refresh-and-fast-gate-refinement-2026-10-21-research-only) and [receipt](docs/research/deeper-broader-cross-project-failure-boundary-refresh-2026-10-21.json).
+
+**Newest peer-evidence ceiling (2026-10-21):** `cadkit-dwg` now advertises a lossless native/raw DWG view in current docs.rs, but its published version surfaces disagree and its format notes explicitly retain REGION/3DSOLID/BODY as ACIS header/SAT-byte data rather than decoded geometry. Treat it only as a possible structural/raw-record comparator after exact artifact/source binding. It supplies no ACIS semantic, kernel, FreeCAD, or J-item qualification; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details are in the [parity-plan research update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadkit-035-artifact-refresh-and-par33-diagnostic-ceiling-2026-10-21-research-only).
+
+**Optional comparator freshness (2026-10-21):** CADMPEG v0.6.3 supersedes v0.6.2 as the latest artifact candidate; the Apple Silicon macOS archive and checksum are pinned in the [parity-plan research/readiness record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadmpeg-v063-artifact-freshness-and-optional-gate-readiness-2026-10-21). No ACIS-specific release delta or v0.6.3 runtime/profile qualification was established. It remains a composed-checkpoint-only bare-payload comparator; if the exact artifact/source/profile cannot be verified, mark that lane `NOT_QUALIFIED` and continue local work. No plan ordering, support claim, or J-item status changes.
+
+**Newest DXF parser-order implementation and audit status (2026-10-21):** generated
+ASCII/Binary controls reproduced and fixed component-order failures in
+SPLINE control/fit points, MESH vertices, LWPOLYLINE per-vertex fields, LEADER
+3D vertices, HATCH spline-edge control/fit points, and all three MLINE
+repeated-vector families, and MLEADER scoped leader-line vertices. Exact
+coordinates, nested MLINE parameters, MLEADER context closure, count bounds,
+malformed excess-component refusal, and following-record sentinels are
+asserted; nested framing remains covered. Focused tests, owning CTests, and
+`lc3_compat_check` pass. The suspected NURBSURFACE grid-point array was
+audited against the DXF schema and an independent field map; it does not exist
+in the mapped DXF fields, which consist of fixed vectors and modeler payload.
+The candidate is closed as not applicable, not as a parser defect or support
+claim.
+FreeCAD's native DXF route is a bounded explicit-entity/2D check and cannot
+qualify embedded ACIS-solid semantics. The research contract,
+composed-checkpoint readiness, and receipts are in the
+[parity-plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-group-order-and-repeated-coordinate-assembly-2026-10-21-research-only)
+and [HATCH progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-dxf-hatch-spline-component-order-2026-10-21-generated-fast-slice-uncommitted), with [research receipt](docs/research/deeper-broader-dxf-group-order-coordinate-assembly-2026-10-21.json)
+and [HATCH slice receipt](docs/research/dxf-hatch-spline-component-order-fast-slice-2026-10-21.json), plus the [MLINE slice receipt](docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json).
+The MLEADER slice and broader peer/consumer boundary refresh are summarized in
+the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-dxf-mleader-scoped-vertex-component-order-2026-10-21-generated-fast-slice-uncommitted)
+and [peer crosswalk receipt](docs/research/deeper-broader-open-source-dxf-peer-crosswalk-2026-10-21.json).
+The broader peer/consumer boundary refresh is summarized in the
+[parity-plan section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-open-source-dxf-peer-and-consumer-boundary-refresh-2026-10-21)
+and [receipt](docs/research/deeper-broader-open-source-dxf-peer-crosswalk-2026-10-21.json).
+The NURBSURFACE negative audit and completed local component-order queue are
+recorded in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-nurbsurface-dxf-wire-schema-negative-audit-2026-10-21)
+and [research receipt](docs/research/deeper-broader-nurbsurface-dxf-schema-negative-audit-2026-10-21.json).
+These are parser-local results only: no rendering, kernel, native-consumer, or
+support claim is promoted. J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`.
+
+
+**Newest broader open-source peer cross-check (2026-10-21; research-only):**
+Autodesk's DXF rules require code-keyed dispatch while preserving entity and
+nested-scope framing. LibreDWG's current changelog provides useful audit
+prompts for path-local HATCH associations, rational spline knot/weight
+cardinality, and terminal SAT-block retention; these are peer-reported risk
+patterns, not libdxfrw findings. ezdxf is useful for selected raw-field
+inspection, but its own documentation limits arbitrary ACIS/SAB and kernel
+semantics. The next MLINE probe must include a rooted MLINESTYLE object graph;
+MLEADER work remains scope-specific. See the [expanded peer crosswalk and
+fast sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-dxf-peer-risk-crosswalk-and-fast-sequence-2026-10-21-research-only)
+and [research receipt](docs/research/deeper-broader-open-source-dxf-peer-crosswalk-2026-10-21.json).
+
+**Newest open-source ACIS reader/kernel and artifact-lineage refresh (2026-10-21; research-only):** the broader primary-source screen still finds no admitted open-source route that jointly closes the exact DWG AcDs owner/key association, a complete ACIS body, and a kernel-independent semantic result. `cadmpeg-asm` 0.6.1 is a separately versioned bare-stream parser/neutral-B-rep route; docs.rs' top-level crate listing and nested module pages currently expose different version labels, so bind the CLI release, lockfile, crate source, and runtime together. `acis-core` 0.3.11 validates model/reference closure but is not a B-rep kernel; `cq-acis` converts only its documented subset through CadQuery/OCCT, sharing the OCCT kernel family with FreeCAD. OCCT's official component catalog identifies ACIS SAT/SAB import-export as a commercial add-on, not stock open-source OCCT. OpenCADKernel remains explicitly early and its ACIS bridge depends on the ACadRust-derived codec family. At the existing one-time composed gate, admit only an exact pinned artifact and observed profile, report unsupported/loss records separately, and require locally authored analytic expectations; otherwise mark the peer route `NOT_RUN`/`NOT_QUALIFIED` and continue local work. No peer was installed or run, no fixture/dependency/test was added, and no support/J status changed. See the [lineage, evidence ceilings, and fast gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-acis-reader-kernel-and-artifact-lineage-refresh-2026-10-21-research-only) and [receipt](docs/research/deeper-broader-open-source-acis-reader-kernel-lineage-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Newest S3.7c semantic-offset coverage (2026-10-21; generated tests, uncommitted):** the 21800 wire-prefix controls cover null/non-null attribute pointers, separate malformed-tag negatives with pre-seeded output clearing, and exact rooted-transform prefix/entity-ID plus all 12 parsed candidate components. The transform remains `ParsedUnapplied`; no placement interpretation is asserted. Focused graph CTest, `lc3_compat_check`, and scoped whitespace validation pass. No production behavior, fixture, or support claim changed; all six J items remain `DEFERRED_EXTERNAL`. [Progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab-21800-rooted-transform-candidate-offset-control-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/acis-sab-rooted-transform-candidate-offset-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c implementation slice (2026-10-21; generated fast test, uncommitted):** closed the shared-record-header alignment gap identified below. For the exact admitted Autodesk-modified `ACIS BinaryFile` 21800 profile, the parser validates the common `[EntityType, attribute Pointer, entity ID]` prefix and all graph/geometry readers now begin semantic fields at raw token index 3. Raw tokens and the installed `DRW_SabRecord` layout are preserved. Generated controls cover wire parsing, non-null attribute exclusion, rooted-body projection, transform token indexing, malformed-prefix rejection, terminal handling, and caller-built offset-zero records. Focused graph and ACDS modeler projection tests plus `lc3_compat_check` pass. This is structural/parser evidence only: no full suite, external/native consumer, kernel, or support/J promotion; all six J items remain `DEFERRED_EXTERNAL`. Details: [implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab-21800-shared-record-header-alignment-2026-10-21-generated-fast-slice-uncommitted) · [receipt](docs/research/acis-sab-record-header-alignment-fast-slice-2026-10-21.json).
+
+**Newest deeper SAB record-layout finding (2026-10-21):** for the admitted
+Autodesk-modified `ACIS BinaryFile` 21,800 profile, pinned ezdxf preserves each
+record as `[entity-type, attribute-pointer, entity-id, type-data…]`; therefore
+the semantic data offset is raw token index **3**, not 2. ODA distinguishes
+20,800+ modified SAT/SAB from native Spatial ACIS, so this is a profile-bounded
+structural rule, not a claim about native ACIS or other SAB/ASM profiles. The
+current libdxfrw decoder keeps all tokens together and counts every pointer as
+a semantic field ordinal; hand-built graph controls omit the wire prefix. The
+local S3.7 fast slice preserves raw tokens, validates the exact common prefix,
+derives offset 3 internally without changing the installed public record
+layout, and proves rooted projection from a generated wire-form SAB body. ODA
+§24 remains authoritative
+for the DWG AcDs envelope; external ACIS semantics, native FreeCAD, and
+independent-kernel qualification remain open. No fixture is to be added. See
+[research and implementation readiness](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-research-sab-common-record-header-and-type-field-alignment-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-sab-record-header-alignment-2026-10-21.json).
+
 Status: implementation in progress; DWG reader edits remain evidence-gated.
-Review date: 2026-09-28.
+Review date: 2026-10-15. Historical evidence retains its original date/source.
+
+**Newest broader 3D evidence crosswalk (2026-10-21):** keep 3DFACE, MESH,
+SPLINE, and modeler-backed entities as separate schema/semantic lanes;
+Autodesk's DXF tables also prohibit assuming group-code order and distinguish
+3DSOLID group-1/3 carrier chunks from group-350 history. Current LibreDWG's
+AcDs source demonstrates why parsing the section and finding a marker are not
+equivalent to key-correct attachment or complete data retention. ezdxf is a
+bounded producer, not a kernel; stock FreeCAD does not import embedded ACIS;
+InventorLoader is a limited parser-to-Part/OCCT route, not an independent
+kernel vote. The active implementation sequence is refined in the
+[parity-plan crosswalk](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-3d-dxf-entity-taxonomy-acds-attachment-and-semantic-reader-crosswalk-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-3d-entity-acis-consumer-crosswalk-2026-10-21.json).
+
+**Newest deeper/broader peer-evidence refinement (2026-10-21):** distinguish
+parser diversity, topology/reference closure, geometric interpretation,
+kernel validation, outer DWG/DXF carrier association, and native consumer
+acceptance as separate evidence layers. The v0.6.2 CADMPEG evidence below was
+the then-current bounded bare-stream comparator candidate and is superseded
+for future artifact selection by v0.6.3; its documented limits remain relevant
+until the newer source/profile is audited. Meanwhile `acis-core` 0.3.11 documents that
+reference closure is not B-rep validity and its experimental SAB author emits
+ASM 23200 rather than the admitted ACIS BinaryFile 21800 profile. GDAL's
+AC1027+ raw-ASM mode preserves bytes plus an affine transform but explicitly
+does not convert modeler entities into OGR geometry. The focused generated
+test now checks each of the five declared rooted owner links through the SAB
+parser, exercises wrong-type and out-of-table references, and refuses
+20800/22300/23200 profiles. No geometry, carrier, external, or native support
+claim follows. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-peer-evidence-layers-and-profile-boundaries-2026-10-21-research-only),
+[implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-owner-mismatch-negative-2026-10-21-generated-fast-slice-uncommitted),
+and [receipts](docs/research/deeper-broader-acis-peer-evidence-layers-profile-boundaries-2026-10-21.json).
+
+**Newest local S3.7c topology regression (2026-10-21; generated fast test,
+uncommitted):** strengthened the multi-loop body graph so the face points to
+a higher-indexed loop and its next-loop link reaches a lower-indexed loop.
+The test now asserts exact loop-node order and each loop's coedge-ring count,
+preventing record-index sorting from masquerading as graph-order preservation.
+It makes no inner/outer-containment inference because that role is not modeled
+by this raw structural projection. Focused graph-preservation CTest passes;
+no production behavior, fixture, or support claim changed. [Implementation
+progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-face-loop-order-and-coedge-association-2026-10-21-generated-fast-slice-uncommitted)
+· [receipt](docs/research/acis-face-loop-order-fast-slice-2026-10-21.json).
+
+**Newest local S3.7c implementation slice (2026-10-21; generated fast test,
+uncommitted):** the additive inline `drw_acisProjectionCoverage()` helper
+classifies a rooted projection as not projected, projected with known gaps,
+or projected with no *currently reported* gaps. The generated graph test
+checks every unsupported-branch/unresolved-geometry counter independently,
+and explicitly keeps body transforms, unit scaling, and B-rep validation
+false. The helper adds no data member, exported symbol, callback, fixture, or
+support claim. The focused graph-preservation CTest and compile-only
+`lc3_compat_check` pass. This closes only the coverage-label ambiguity; the
+remaining S3.7c structural matrix and all external/native semantic gates stay
+open. The worktree is broadly dirty and `.git` is read-only, so this slice is
+uncommitted. Self-unblock to the next generated S3.7c matrix case; do not wait
+for external qualification. [Implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-acis-projection-coverage-label-2026-10-21-generated-fast-slice-uncommitted)
+· [receipt](docs/research/acis-projection-coverage-label-fast-slice-2026-10-21.json).
+
+**Current consumer-boundary refresh (2026-10-21):** LibreCAD_3 `master` still
+describes a 2D DXF-persistence consumer, with experimental DWG import opt-in
+and off by default. Its current adapter intentionally no-ops 3DFACE/plain
+SOLID callbacks and has no modeler/ACIS callback; keep it as a 2D/API
+non-regression target, not a 3D acceptance route. Its implemented SPLINE
+mapping is a useful consumer integration check only when paired with analytic
+curve expectations. The refreshed ACadSharp #1299 complaint remains
+scenario-only; its attached customer file is not to be imported. The exact
+readiness sequence is in the [parity-plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-librecad3-current-adapter-contract-and-spline-peer-risk-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-librecad3-adapter-spline-risk-2026-10-21.json).
+
+**Deeper/broader peer-route correction (2026-10-20):** separate current branch
+docs from released artifacts and actual processing routes. The pinned
+`cq-acis` 0.3.12 geometry document labels some seam/shell and oblique-cylinder
+profiles unreleased; do not score them as published-wheel capabilities.
+`uncad`'s current README says read-only, with DWG delegated to LibreDWG and DXF
+parsed separately by `undxf`, despite its stale repository About text.
+`dwg-rs`'s per-record boundary checks are useful reader diagnostics, not native
+or geometry proof. These updates add no peer gate or support claim. Details
+and the one-time comparator sequence are in the
+[parity-plan research entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-open-source-peer-artifact-profile-and-route-boundaries-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-open-source-peer-artifact-profile-route-boundaries-2026-10-20.json).
+
+**Newest local transaction-integrity slice (2026-10-20):** ordinary DWG
+generic and fixed-frame DWG OBJECT transactions now require a fresh frame
+generation and output growth as well as a valid receipt, so a prior frame
+cannot certify unrelated appended bytes. The explicitly idempotent duplicate
+MLINESTYLE route still succeeds without appending a second frame. The generated
+ownership selector and focused CTest pass; no fixture or support claim was
+added. Details are in the [implementation progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-7s3-object-frame-receipt-freshness-2026-10-20-generated-fast-slice-uncommitted)
+and [receipt](docs/research/7s3-object-frame-receipt-freshness-fast-slice-2026-10-20.json).
+
+**Parser-safety research cross-reference (2026-10-20):** a release-pinned
+LibreDWG 0.14.1 security-advisory review adds adversarial shapes for R2004
+decompression capacity/cursor accounting, checked page-map offsets, and
+record-loop progress/resource bounds. These are parser-hardening probes, not
+ACIS/B-rep evidence. libdxfrw's existing decoder guards and generated test
+surfaces should be audited first; add only uncovered scratch-generated
+controls under the existing fast-test cadence. Do not use the published
+external PoC drawing as a fixture. Details: [crosswalk and readiness
+sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-libredwg-security-advisory-crosswalk-and-generated-negative-controls-2026-10-20-research-only)
+and [research receipt](docs/research/deeper-broader-libredwg-security-advisory-crosswalk-2026-10-20.json).
+
+**Newest local parser-safety slice (2026-10-20):** the R2004 decompressor now
+keeps extended literal/copy lengths in 64-bit counters and clips against the
+remaining output window without cursor-plus-length overflow. A generated
+16 MiB AC1018 long-copy and long-literal control each target former 32-bit
+wrap cases and assert that the 64-byte output window is filled exactly.
+Earlier in the same PAR-14 work, both
+DWG decompressor entry points were also guarded against 64-bit compressed/output
+sizes that cannot be represented by their 32-bit cursor state; AC1018/AC1021
+controls preserve output sentinels and valid retries. The focused fast test,
+DWG reader-matrix CTest, and `lc3_compat_check` pass. No DWG fixture or support
+claim was added. The existing R2004 file-header offset guard now also has a
+generated CRC-valid overflow control: refusal occurs before descriptor or
+callback publication and succeeds on corrected retry, reusing the same reader
+matrix CTest.
+[Implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par14-r2004-decompressor-extended-length-overflow-2026-10-20-generated-fast-slice-uncommitted)
+· [receipt](docs/research/par14-dwg-decompressor-extended-length-overflow-fast-slice-2026-10-20.json).
+The offset-control [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par14-r2004-file-header-page-map-offset-overflow-control-2026-10-20-generated-fast-slice-uncommitted)
+and [receipt](docs/research/par14-r2004-file-header-page-map-offset-overflow-fast-slice-2026-10-20.json) extend the same security crosswalk.
+
+**Newest deeper/broader writer-boundary research (2026-10-20):** four
+independent implementation/doc routes now converge on the AC1021/R2007
+`3DSOLID` history-pair threshold, but Autodesk's current DXF tables do not
+explicitly date that historical change. The unresolved compatibility question
+is SAT group-1/3 chunking: ACadSharp #1150 proposes whitespace/token-safe cuts;
+libdxfrw's current writer uses a 255-byte budget except for atomic SAT-v1
+caret escapes. Existing tests cover both crossing and adjacent-token controls,
+but only establish local reconstruction. Keep this open for one generated,
+exact-pinned PAR-07/S8 composed check; no new test lane or per-slice external
+validation. Findings/subplans remain 141/78 and J256/J260/J268/J284/J293/J295
+remain `DEFERRED_EXTERNAL`. See the [source crosswalk and execution sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-dxf-history-boundary-and-sat-chunk-policy-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-acis-dxf-history-boundary-sat-chunk-policy-2026-10-20.json).
+
+**Newest source-level SAT framing cross-check (2026-10-20):** the current
+LibreDWG `master` DXF writer emits SAT records as repeated group-1 lines,
+prefers existing SAT newlines, otherwise caps a value at 255 bytes, and
+performs SAT-v1 caret-space conversion. Its SAB-to-SAT converter also documents
+and fixes a terminal-block off-by-one that had dropped the final payload block.
+For long SAT lines this differs from the group-1/group-3 continuation behavior
+described by Autodesk and implemented by ezdxf; it is a peer source observation,
+not proof that repeated group 1 is universally accepted. Refine the
+existing composed SAT checkpoint to compare exact tag sequences and payload
+reconstruction using locally generated inputs and exact-pinned tools; do not
+change production policy from source comparison alone. No new test lane,
+external fixture, support claim, or per-slice peer run. See the [source-level
+crosswalk and self-unblocking execution detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-libredwg-ezdxf-sat-dxf-framing-and-terminal-block-crosscheck-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-libredwg-ezdxf-sat-dxf-framing-terminal-block-2026-10-20.json).
+
+**Newest consumer-route research (2026-10-20):** refined the FreeCAD platform
+gate from fresh source and maintainer evidence. Its documented C++ DXF importer
+does not list `3DFACE`; the legacy Python importer does, while both stock paths
+exclude ACIS/SAT solids. The maintainer closed the corresponding ACIS-import
+issue as not planned. Therefore qualify only the selected importer and its
+explicit entity subset; classify stock FreeCAD ACIS/AcDs as expected
+unsupported, not as a required 3D pass/fail. Keep independent ACIS semantics on
+the separate kernel gate, and keep LibreCAD_3 as read/2D/API compatibility
+because its DWG import is optional and experimental. No support claim was
+promoted and J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`. See the [detailed route matrix](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-importer-matrix-and-downstream-claim-boundary-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-freecad-importer-matrix-downstream-claim-boundary-2026-10-20.json).
+
+**Newest sibling-fork reconciliation (2026-10-20):** LibreCAD master’s
+in-tree libdxfrw fork documents DWG read/write implementation and keeps a
+large versioned roadmap/inventory, while LibreCAD_3 builds a vendored fork
+with DWG import disabled by default and no DWG write policy. Treat the first
+as a correlated migration/feature-discovery baseline and the second as a
+2D/read-only consumer route—not independent codec or 3D semantic evidence.
+The local `lc3_compat_check` remains compile-only; the plan now reserves one
+pinned adapter/persistence integration checkpoint after shared API work,
+separate from the fast per-slice gate. Findings/subplans and support/J status
+are unchanged. See the [reconciliation and execution sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-librecad-fork-and-librecad3-consumer-reconciliation-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-librecad-fork-lc3-consumer-reconciliation-2026-10-20.json).
+
+**Newest local PAR-07/S8 fast slices (2026-10-20):** DataStorage now rejects
+both a header DataIndex reference to the wrong segment kind and a DataIndex row
+that targets Blob01 as a record-bearing segment. The latter has a generated
+AC1027 wrong-kind control with plausible record bytes, and the focused
+graph-preservation executable and CTest pass. ODA §24 distinguishes Data
+segments from Blob01 pages. See the [latest implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par07s8-dataindex-rejects-blob01-as-record-segment-2026-10-20-generated-fast-slice-uncommitted),
+[earlier role guard](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par07-acds-dataindex-segment-kind-fast-slice-2026-10-20-generated-uncommitted),
+and [receipt](docs/research/par07-acds-dataindex-record-segment-kind-fast-slice-2026-10-20.json).
+
+**Newest deeper/broader research update (2026-10-20):** cross-checked the
+ODA v5.4.1 DataStorage association contract against LibreDWG's current
+`acds.spec`/R2007 decoder and refreshed native-consumer routes. The spec's
+DataIndex row, record-header handle, ordered Blob01 pages, and separate
+schema-search visibility requirement are not equivalent to LibreDWG's
+marker-scan/queued-handle fallback. FreeCAD's documented DWG→DXF→import path
+does not read ACIS/SAT solids; OpenCADStudio v2026.42 adds a separate
+SAT/ACIS import route but remains an optional ACadRust-family application
+observation, not independent DWG AcDs or semantic proof. The implementation
+sequence now requires a keyed association and complete payload before any
+semantic projection, while preserving the existing fast-first cadence and
+self-unblocking behavior. No code, tests, fixtures, dependencies, or support
+claims changed; all six J items remain `DEFERRED_EXTERNAL`. See the [new
+association and consumer-boundary review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-acds-association-peer-fallback-native-consumer-boundaries-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-dwg-acds-association-peer-fallback-native-consumer-boundaries-2026-10-20.json).
+
+**Newest implementation slice (2026-10-20):** the generated PAR-07/S8 DWG
+DataIndex-order test now joins mixed `ACIS BinaryFile` and `ASM BinaryFile4`
+marker payloads by owner handle across distinct directory, physical, numeric,
+and callback orders, then verifies that a following LINE retains its expected
+coordinates. Its focused selector and CTest pass. Payload markers are
+intentionally not valid SAB: this is association and stream-continuity
+regression coverage only, not ACIS geometry evidence. No new fixture,
+dependency, peer run, or support claim was added. See the [implementation
+progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-07s8-dwg-acds-mixed-signature-owner-join-and-line-sentinel-2026-10-20-generated-fast-slice-uncommitted)
+and [receipt](docs/research/par07-acds-mixed-signature-owner-join-line-sentinel-fast-slice-2026-10-20.json).
+
+**Additional peer-route research (2026-10-20):** a broader scan found
+`uncad` as a useful but tightly bounded candidate: its DXF path uses the
+separate pure-Rust `undxf` parser, while its DWG path is LibreDWG-backed; its
+3DSOLID/REGION output is an ACIS-derived wireframe, not a B-rep. Its own
+engineering notes describe a record-order association failure and a handle-keyed
+DataStorage correction, which corroborates the existing PAR-07/S8 keyed-join
+requirement but is not an independent DWG implementation or semantic witness.
+The existing local DWG order-permutation and SAB-signature tests already cover
+the broad failure shape; a small generated test seam remains worth auditing:
+bind an `ASM BinaryFile4` payload to its owner through the actual DataStorage
+join and retain a following-entity sentinel, adding coverage only if the current
+owner has no equivalent. The optional peer screen belongs only at the existing
+composed checkpoint. No new finding, support claim, external gate, dependency,
+or per-slice validation requirement is introduced. See the [peer-route and
+test-seam review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-dxf-reader-and-acds-peer-route-boundary-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-independent-dxf-acds-peer-route-boundary-2026-10-20.json).
+
+**Earlier deeper/broader research update (2026-10-20):** cross-checked the
+official AutoCAD 2013 DXF reference against the current Autodesk 3DSOLID group
+table and ezdxf 1.4.5's detailed ACIS API. The Autodesk tables list the generic
+`AcDbModelerGeometry`/group-1/3 layout but do not document the R2013+ SAB/
+ACDSDATA carrier route; the 2013 reference contains no `ACDSDATA` or
+`ACDSRECORD` entry. ezdxf's detailed guide describes version-specific SAT
+(R2000–R2010) versus SAB (R2013/R2018) and offers a bounded mesh-to-ACIS author
+route, while its FAQ still says it only writes SAT. Treat this as a documented
+but unresolved source conflict, not a format-spec change or semantic oracle.
+The implementation plan now requires every modeler receipt to distinguish
+DXF version, ACIS version, inline payload, ACDSDATA key/owner, and exact bytes;
+generated faceted controls must carry independently checked mesh expectations.
+No local defect, test, dependency, fixture, support promotion, or deferred-J
+transition is introduced. See the [research analysis and readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-r2013-dxf-acis-storage-source-conflict-and-carrier-evidence-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-r2013-dxf-acis-storage-source-conflict-2026-10-20.json).
+
+**Newest implementation slice (2026-10-20):** the SectionViewStyle
+typed-over-raw overlay now has generated ASCII/Binary coverage for inserting
+all five missing `AcDbModelDocViewStyle` fields after typed edits (class
+version, description, recompute flag, display name, and view-style flags).
+The focused adapter target, selector, and owning CTest pass. The PAR-07/S8
+ACDSDATA multi-record selector also now checks that a following POINT survives
+ASCII/Binary import, replay, and corrected retry output; the DWG DataIndex
+ordering permutations were already covered. These are local carrier/ordering
+checks only and do not promote DWG/DXF/3D support. Details:
+[implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-138-sectionviewstyle-modeldoc-fields-insertion-2026-10-20-generated-asciibinary-fast-slice-uncommitted)
+and [receipt](docs/research/sectionviewstyle-modeldoc-fields-insertion-fast-slice-2026-10-20.json), plus [ACDSDATA progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-07-s8-acds-multi-record-following-entity-sentinel-2026-10-20-generated-fast-slice-uncommitted)
+and [receipt](docs/research/par07-acds-multi-record-following-entity-fast-slice-2026-10-20.json).
+
+**2026-10-20 peer-state and partial-read update:** the S2.2.5b comparison-only
+diagnostic now distinguishes captured ENTITIES from a complete document parse:
+partial callbacks remain visible for failure analysis, but an OBJECTS-stage
+error cannot produce a positive ASCII/Binary result. The focused target build,
+boundary selector, and owning CTest pass. The scratch Binary-DXF candidate
+remains `NOT_QUALIFIED`; its nonzero comparison result is an expected negative
+diagnostic, not an interop pass. The current peer review found no additional
+qualified modeler-semantic route or new local defect. ezdxf PR #1418 is merged
+at `c87c87e`; tag v1.4.5 points to `84ae319` and its PyPI source archive hash
+is known, but archive-to-fix correspondence remains unverified. Details:
+[peer-state and partial-read refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-state-and-admission-refresh-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-peer-state-partial-read-admission-refresh-2026-10-20.json).
+
+**Newest implementation/research status (2026-10-20):** PAR-115 rational weights now roundtrip locally through DWG HATCH/MPOLYGON and HATCH ASCII/Binary DXF, with independent writer-byte checks. PAR-140 / 7N.4 HATCH and MPOLYGON boundary-reference counts/handles now roundtrip through the local DWG codec for AC1018/AC1021/AC1024/AC1027, ASCII/Binary DXF, graph preflight, and version-matched DWG re-readback; this establishes field/reference transport only, not geometric boundary agreement or native associative editing. S2.2.5b now has generated AC1018 ASCII and AC1021 Binary exact chunk-boundary controls at 254/255/256 and 509/510/511 decoded bytes, with whitespace-adjacent and token-crossing variants. The general SAT cut policy, independent/native acceptance, and legacy binary-SAT acceptance remain open. No support claims are promoted; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. See [PAR-115 writer evidence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-115-7n2b-hatch-dwg-writer-weight-authority-2026-10-20-local-fast-slice-uncommitted), [PAR-140 implementation evidence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-140-7n4-dwg-boundary-reference-retention-2026-10-20-generated-fast-slice-uncommitted), and [S2.2.5b boundary progress](#implementation-progress--s2-2-5b-asciibinary-carrier-cut-boundary-matrix-2026-10-20-local-fast-slice).
+
+**Broader peer/loss-gate refresh (2026-10-20):** fresh issue/release checks reaffirm that a surviving 3DSOLID/REGION record is not evidence that its SAT/SAB body survived. The installed LibreDWG 0.14 `dxfwrite` binary-DXF candidate and its local reader both fail whole-file admission in OBJECTS; libdxfrw delivers modeler records but also returns `BAD_READ_OBJECTS`, and the translated payload differs from the ASCII source by three trailing bytes. This is a negative/partial diagnostic, not a binary-SAT positive or a cut-policy oracle. The peer review also finds no new open-source end-to-end semantic route: FreeCAD stock import remains non-ACIS; GDAL's AC1027+ 3D mode exposes raw ASM bytes plus transform; ezdxf can author a bounded flat-polyhedron SAT/SAB control from a mesh and parse a limited known ACIS subset, but supplies no general B-rep kernel and its FAQ conflicts with its detailed SAB API; ProGPU's current DXF.md parser claims conflict with its architecture's explicit rejection of its older ACIS reader as incomplete. See [research and the revised fast unblock path](#deeperbroader-modeler-loss-and-binary-dxf-route-audit-2026-10-20-research-only) and [receipt](docs/research/deeper-broader-modeler-loss-binary-dxf-route-audit-2026-10-20.json). Historical “next S5.18 / S2.3.9.4.29” pointers are superseded: both slices are complete. The binary-SAT external gate does not block another ready local slice; choose the next action from the live dependency ledger.
+
+The LibreCAD sibling checkout's bundled `libraries/libdxfrw` also contains
+the current DWG boundary-reference loss. Upstream implementation and bundled
+consumer adoption must therefore be tracked as separate integration steps;
+this pass only audited the sibling sources and did not modify or build them.
+
+The 2026-10-20 broader peer scan corrects CADKit's published crate split
+(`cadkit-dwg` 0.3.0, `cadkit-dxf` 0.3.3), marks its R2007 container path as
+ACadSharp-derived, and keeps its native decode, neutral-model projection, and
+output evidence separate. It adds no independent ACIS/B-rep witness and does
+not change the implementation queue or external qualification gates; see the
+[peer research update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadkit-current-artifact-lineage-and-open-source-peer-boundary-2026-10-20-research-only)
+and [research receipt](docs/research/deeper-broader-cadkit-current-artifact-lineage-open-source-boundary-2026-10-20.json).
+
+The deeper 2026-10-20 release-pinning pass resolves the OpenCADStudio
+`v2026.42` source graph: its tag lockfile binds ACadRust-derived
+`opencadcodec` to commit `5d4f11ae38758caec540bc9819ff2c4120eeadb4` and
+`opencadkernel` to `a60f18ff033b5a3f7d842e2398f393e4d6cfcd32`. This corrects
+the earlier source-dependency uncertainty, but does not bind a published
+executable hash or add a parser vote. The pinned kernel README says the B-rep
+project is early and most operations are not written; therefore OpenCADStudio
+remains an optional exact-profile consumer, not a general ACIS/3D semantic
+qualification. ACadSharp #1195 / #1240 also remain unresolved writer evidence.
+See the [release-pinned peer review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-release-pinned-opencadstudio-acis-kernel-and-peer-writer-boundaries-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-release-pinned-opencadstudio-acis-peer-writer-boundaries-2026-10-20.json).
+
+**Newest deeper/broader peer-artifact correction (2026-10-20):** a direct
+GitHub API lookup confirms CADMPEG v0.6.2 at source commit
+`7bcc95276548de4e4876894b9a650a84ea9c4d6d`, with official platform asset
+digests. Its exact-tag manifest includes the read-only SAT codec in the default
+release features; the same tag documents ACIS 217/218 as the verified bare
+stream profiles and keeps other branches unverified. This corrects the prior
+stale release-index note, but does not make CADMPEG a DWG/DXF/AcDs or native
+FreeCAD oracle, and no peer executable was run. Findings/subplans remain
+141/78; no support claim is promoted and all six J items remain
+`DEFERRED_EXTERNAL`. See [the parity-plan reconciliation](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadmpeg-v062-tag-source-release-digest-and-sat-comparator-refresh-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-cadmpeg-v062-tag-source-release-digest-2026-10-20.json).
+
+**Broader repository-lineage closure (2026-10-20; primary-source scan):** a
+fresh screen of open-source DWG/DXF and ACIS projects found no additional
+implementation that spans DWG section parsing, modern AcDs owner/key-to-payload
+association, ACIS B-rep semantics, independent geometry validation, and native
+Linux/Windows consumer acceptance. The new search results resolve to already
+tracked evidence roles: `uncad` routes DWG through LibreDWG and DXF through
+`undxf`; MLightCAD's documented open DWG route is LibreDWG-based; `dwg-rs` is
+an ODA-spec-led pre-alpha structural reader; `codelibs/libdxfrw` is a same-family
+fork; CADKernel's own matrix leaves SAT/SAB unchecked; and OCCT's ACIS exchange
+is a commercial component, not part of the open-source core. No new peer is a
+required gate. Continue the local implementation queue; use one exact-pinned,
+question-specific comparator only at the existing composed checkpoint. The
+full source/lineage crosswalk and stop rule are in the [parity-plan research
+entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-route-coverage-closure-and-evidence-ceilings-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-open-source-route-coverage-closure-2026-10-20.json).
+No code/test/fixture/dependency or support claim changed; findings/subplans
+remain 141/78 and J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`.
+
+The next note is a point-in-time research diagnosis from before the 7N.2a-b
+implementation slice. Its weight-loss diagnosis and its then-current
+no-new-finding/count statements are superseded by the status above, including
+the later PAR-140 / 7N.4 finding.
+
+**Historical cross-route research — HATCH rational-weight handoff (2026-10-20; point-in-time plan):** ODA's DWG grammar stores each rational HATCH control as 2D XY followed by a scalar BD weight; Autodesk's HATCH DXF grammar stores XY plus optional group-42 weights. LibreDWG models point and weight separately, ezdxf exposes HATCH OCS points and a separate weights list, and ACadSharp's current mutable reader mirrors the scalar through control Z. Local code still fills only the legacy nested-control Z carrier on DWG read, while DXF HATCH output consumes `weightlist`; existing focused tests cover DXF HATCH weights but not that DWG handoff. Refine existing PAR-115/7N.2 only: generate AC1018 zero-fit and AC1027 one-fit controls from scratch, assert both representations, ASCII/Binary DXF roundtrip and quarter-circle semantics, plus edge/entity cursor sentinels. Keep the R24 zero-fit tangent dispute (7N.3), DWG-writer authority (7N.2b), persistent external samples, and support claims separate. This point-in-time gap has since been implemented locally; current counts/status are in the status above. [Detailed research and fast slice](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-hatch-rational-weight-ownership-across-dwg-and-dxf-2026-10-20-research-only) · [receipt](docs/research/deeper-broader-hatch-rational-weight-cross-route-2026-10-20.json).
+
+**Newest peer-evidence boundary (2026-10-19; research only):** the newly detailed go-cad screen remains an optional DWG/DXF structural differential: its published alignment is measured against LibreDWG-generated gold, its source revision/corpus are not yet immutably bound, and its README explicitly excludes ACIS reconstruction. It adds no 3D semantic, AcDs-join, native-consumer, or FreeCAD qualification. Findings/subplans and support claims are unchanged; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. See the [parity-plan research and admission checklist](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-go-cad-gold-oracle-and-cadcraft-flag-freshness-2026-10-19-research-only) and [receipt](docs/research/deeper-broader-go-cad-gold-oracle-cadcraft-flag-freshness-2026-10-19.json).
+
+**Newest implementation progress — 7S.2c Background/SUN writer callback retention (2026-10-19; local fast slice):** `fileExport()` now keeps the validated Background/SUN handle lists alive through `dx_iface::writeObjects()` while copying separate validation views into the codec. This fixes ASCII/Binary exports that emitted the ACAD_BACKGROUND root dictionary but omitted its raw Background/SUN carriers; the local-vector-to-adapter handoff avoids one unnecessary copy. Focused Background/SUN selector and owning DXF-fixtures CTest pass, dwg2dxf/fixture targets build, and `lc3_compat_check` passes. No fixture, support promotion, or J transition; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Implementation details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-7s2c-background-sun-handle-list-retention-2026-10-19-fast-slice) · [receipt](docs/research/background-sun-handle-list-retention-fast-slice-2026-10-19.json).
+
+**Previous deeper/broader peer failure-shape update (2026-10-19; plan only):** OpenCADStudio issue [#1896](https://github.com/HakanSeven12/OpenCADStudio/issues/1896) reports an AC1027 customer drawing failing on one ACIS-bearing 3DSOLID record. The issue's app commit matches the v2026.42 release; the later tag-lock review now resolves that release's source codec revision to `5d4f11ae38758caec540bc9819ff2c4120eeadb4`, while the release executable remains un-hash-bound. The ACadRust-derived codec path is not an independent vote. The file is unavailable, and its reported `type_code=37` must not be copied into local dispatch. Refine only the existing PAR-07/S8 readiness: on a future local body-parser change, prove the local ODA-derived frame boundary, record-level failure disposition, and later 2D continuity where safe; otherwise require deterministic whole-file refusal without partial callbacks. The OpenCADStudio API hang is application-level and out of scope. No local finding/subplan, code/test/fixture/dependency, support promotion, or J-item transition; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed research and test sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-opencadstudio-ac1027-acis-record-failure-shape-and-2d-continuity-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-opencadstudio-ac1027-acis-failure-shape-2026-10-19.json).
+
+**Newest deeper/broader author-route screen (2026-10-19; research only):** a newly surfaced ACadRust-derived fork advertises SAT/SAB primitive writing, but its README is self-reported, its immutable source/test route was not bound, and its lineage is not independent of ACadRust. Keep it `DISCOVERY_ONLY`; do not add a peer dependency or delay local implementation. The upstream same-codec cube test checks payload/link presence, not B-rep topology or analytic semantics. Existing carrier, entity/owner, independent geometry, and native-consumer gates remain unchanged; no finding/subplan, fixture, test, dependency, support claim, or J status changed. [Detailed cross-route research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-derived-acis-authoring-fork-and-cross-route-evidence-ceiling-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-acadrust-derived-acis-authoring-fork-and-cross-route-evidence-ceiling-2026-10-19.json).
+
+**Newest deeper/broader research — provenance-centered kernel design and evidence boundary (2026-10-19; primary-source review):** OpenCADKernel’s current README proposes source-record provenance and dirty tracking so untouched B-rep nodes can be replayed byte-for-byte, but explicitly labels the project early, says most operations are not written, has no release, and uses the ACadRust-related `opencadcodec` for its ACIS bridge. Record it as an architecture lead only; it is neither a qualified ACIS interpreter nor an independent parser/kernel witness. Refine existing PAR-07/S8 accounting to preserve carrier bytes and source/owner provenance when no qualified semantic edit route exists, and require supported exact re-emission or atomic refusal for dirty geometry. No finding, implementation-order/cadence, dependency, fixture, peer/native run, support claim, or J status changes; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-peer-operation-matrix-and-provenance-centered-acis-kernel-screen-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-current-peer-operation-matrix-acis-provenance-2026-10-19.json).
+
+**Newest broader freshness correction (2026-10-19; research only):** refreshes the already-listed `cad2d-ir` route: PyPI's 0.13.0 package has an exact sdist hash, but reviewed mutable `main` metadata remains 0.10.6, so package/source identity is unresolved. Its DWG adapter still delegates to `ezdwg`; it remains an optional 2D DXF projection route only, with no ACIS/3D evidence. The residual `mghohoo/pydwg` screen found only an early R18/R21 metadata parser with disclosed memory-management issues. No new route or support claim; no dependency, fixture, peer run, implementation-order, or validation-cadence change. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research and disposition](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-2d-ir-adapter-and-residual-standalone-dwg-candidate-screen-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-current-2d-ir-adapter-and-residual-standalone-dwg-candidate-screen-2026-10-19.json).
+
+**Newest broader explicit-geometry consumer screen (2026-10-19):** GitHub currently lists signed CAD2Cube v1.5.1 (`d07bdb0`) as latest, but the mutable README/manifest still identify v1.5.0 and bundle ezdxf 1.4.4. The exact v1.5.1 source/artifact and its DWG route are therefore `LATEST_RELEASE_SOURCE_UNBOUND`; only the inspectable v1.5.0 README says the ODA DWG converter was removed. That source documents `3DFACE`/`SOLID`/polyline projection while leaving `MESH` undocumented and `3DSOLID` planned. Keep CAD2Cube as an optional downstream mesh-projection probe only, not an independent parser, currently qualified DWG route, or B-rep witness. Use only at the existing composed checkpoint with generated scratch DXF and per-handle accounting before any face merge; if exact source/artifact/runtime binding is unavailable, mark `NOT_RUN/LATEST_RELEASE_SOURCE_UNBOUND` and continue. [Research details and bounded admission recipe](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cad2cube-dxf-3d-consumer-and-dwg-route-revalidation-2026-10-19-research-only). No implementation-order, validation-cadence, support-claim, or J-status change.
+
+**Newest broader research — ACIS route and native-consumer boundary (2026-10-19):** current ProGPU architecture disclaims its older ACIS reader as incomplete, stock FreeCAD documents no embedded ACIS-solid import, and Open CASCADE lists SAT/SAB exchange as a commercial extension. Qualify FreeCAD only for the selected importer's documented or runtime-proven entity set; keep any modeler/add-on path separate, and continue local carrier/owner preservation without waiting on a full open-source ACIS kernel. Detailed crosswalk and readiness steps are in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-reader-provenance-and-actual-consumer-boundaries-2026-10-19-research-only). No support claim or deferred J-item status changes.
+
+**Newest entity-family consumer correction (2026-10-19; primary-source review):** FreeCAD's current DXF guide documents different built-in C++ and legacy Python importer sets: the legacy list includes `3DFACE`, while neither list names `MESH`; both exclude embedded ACIS solids. Do not describe stock FreeCAD as a general DXF-mesh consumer. Qualify only the exact importer/entity rows documented or exercised, and record `MESH` as `NOT_DOCUMENTED` until a pinned native run establishes it. FreeCAD's documented DXF exporters do not provide a general solid round-trip oracle: the C++ exporter emits selected edge linework (with curved-edge constraints and possible duplicate lines), while the legacy exporter flattens 3D views. ezdxf's current ACIS API can author/parse bounded SAT/SAB and derive flat-face meshes, but explicitly loses faces with curved boundaries; it is a carrier/limited projection route, not complete B-rep semantics. [Detailed cross-peer evidence and implementation-ready matrix](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-3d-entity-family-consumer-and-peer-test-boundary-audit-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-3d-entity-family-consumer-and-peer-test-boundary-2026-10-19.json). No code/test/fixture/dependency change or support promotion; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Newest deeper/broader research — peer lineage, corpus independence, and capability denominators (2026-10-19; primary-source review):** `cq-acis` remains a bounded open-source SAT/SAB-to-OCCT candidate, but its own third-party notices disclose CADMPEG/ezdxf references and its corpus includes ezdxf examples; it is implementation-distinct, not reference-free, and shares the OCCT kernel family with FreeCAD. `dwg-rs`'s useful decoded/skipped/error matrix is based on only one to three files per version. OpenCADStudio stays in the ACadRust parser lineage and is an application route, not another parser vote. Record implementation ancestry, corpus provenance, kernel lineage, exact operation/profile, and typed/raw/skipped/error denominators separately; use only scratch-generated geometry with pre-authored analytic expectations at an existing composed checkpoint. This cannot validate the DWG/AcDs owner/key join or satisfy native FreeCAD Linux/Windows qualification. No finding, fixture, dependency, peer run, support claim, or external-J transition; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed parity-plan protocol](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-lineage-corpus-independence-and-capability-denominator-audit-2026-10-19-primary-source-review) · [receipt](docs/research/deeper-broader-peer-lineage-corpus-independence-and-capability-denominator-audit-2026-10-19.json).
+
+**Newest deeper/broader cross-codec failure-chain update (2026-10-19; research only):** LibreDWG #1361's “bad LWPOLYLINE arrays” report was corrected to uncompressed AC1021 pages that still required Reed–Solomon decoding; #1363 merged the peer fix, and #1357's original truncation symptom receded as those objects decoded. The separate #1359 unresolved-reference guard remains defensive, not an explanation of that corpus result. Locally, `dwgReader21` already has generated page-transform controls, but the existing tablet CRC/sample gate remains unresolved and is not promoted. ACadSharp #1297 also demonstrates why object-byte equality is weaker than whole-AC1032 document acceptance; its missing-style explanation remains unproven and concerns a peer DWG writer, not libdxfrw. No local defect, test, fixture, dependency, queue/cadence, or support claim changed. [Detailed crosswalk and readiness sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-codec-dwg-failure-chain-and-whole-file-acceptance-audit-2026-10-19-research-only) · [receipt](docs/research/deeper-broader-cross-codec-failure-chain-and-whole-file-acceptance-2026-10-19.json).
+
+**Newest broader DWG peer-safety and ownership refresh (2026-10-18; research only):** ACadRust #123/#124 remain open reports against 0.6.3 despite candidate bounded-decoder/header fixes, #133's orphan-owner correction is post-v0.6.4 and still awaits corpus retest, and #134's bounded MLEADER-context fallback has no published private-corpus retest. Keep these mapped to the parity plan's PAR-14/PAR-26/7BE, PAR-49/7G, and PAR-07/S8 owners; do not transplant peer recovery behavior or weaken bounds. ACadRust and OpenCADStudio's descended codec count as one parser lineage. No 3D finding, subplan, fixture, dependency, test run, or support claim changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Detailed crosswalk and implementation-ready protocol](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-reader-safety-ownership-and-auxiliary-record-peer-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-acadrust-reader-safety-ownership-auxiliary-peer-refresh-2026-10-18.json).
+
+**Newest deeper/broader ACIS-reader candidate refresh (2026-10-18; research only):** the previously tracked `cadaclysm-sdk` route has a current PyPI release, 0.10.0, whose product claims ACIS SAT input and exact B-rep output but does not list SAB; only the wrappers are open-source, while the runtime libraries are proprietary/EULA. Ansys Workbench 2026 R1 documents a Linux/Windows SAT/SAB reader through ACIS versions up to 2023 and solid-body import, making it a more profile-relevant optional external candidate if the payload version and licensed installation qualify. A broader screen found no new open-source ACIS route among emerging generic B-rep kernels: CADKernel's detailed matrix leaves SAT/SAB unsupported, and OpenSolid/Keel do not document those importers. These are discovery results, not completed semantic evidence; no package was installed, no application was run, and no support claim or J status changed. No finding/subplan, fixture, dependency, implementation-order or fast-validation-cadence change; all six external items remain `DEFERRED_EXTERNAL`. [Research protocol](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-commercial-acis-reader-freshness-and-sab-qualification-boundary-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-commercial-acis-reader-freshness-and-sab-qualification-boundary-2026-10-18.json).
+
+**Newest peer-freshness update (2026-10-18; primary-source review):** LibreDWG #1411 remains an open report against `0.14.8593` (`8a1ae76`), while a later `0.14.8612` Windows-nightly prerelease (`f860b0f`, Oct 13) is available but has not been tested against that reproducer. The `0.14.1` NEWS item about dropping the final SAT block concerns inline DXF SAT export, not the modern AcDs/SAB section. Keep report, later artifact, source-visible AcDs reader, writer scope, carrier association, B-rep semantics, and native acceptance as separate statuses. The parity plan adds an optional scratch-only exact-artifact comparison at the composed checkpoint; no new local finding, fixture, dependency, support claim, or J transition. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research and run protocol](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-libredwg-acds-peer-freshness-and-reproducer-protocol-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-libredwg-acds-peer-freshness-2026-10-18.json).
+
+**Newest broader ACIS/AcDs research correction (2026-10-18; source review):** LibreDWG issue #1411 is pinned to release 0.14.8593, while current `master` source has an R2013+ AcDs reader that scans `ACIS BinaryFile` spans and associates them through a handle queue. The inspected AcDs schema has no encoder block and current project docs do not establish a modern DWG writer. Keep that release-specific negative, current-source structural reader, writer support, exact SAB carrier, and semantic solid validation as distinct rows. Do not conflate `ACIS BinaryFile`, `ASM BinaryFile`, and ACIS 21800 profiles. The local binary-DXF oracle attempt is `NOT_RUN`: LibreDWG conversion emitted warnings and ODA aborted before readback. No local implementation or support claim changed; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Research and implementation-ready consequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-libredwg-acds-reader-source-vs-releasewriter-boundary-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-libredwg-acds-reader-source-vs-release-writer-boundary-2026-10-18.json).
+
+**Newest broader peer-state correction (2026-10-18; research only):** ACadSharp dynamic-block writer issue #1133 is closed by merged PR #1151, but the merged PR describes a partial state: original dynamic definitions are writable while modified instances can lose parameter relationships. Keep original graph preservation, edited-instance preservation, live parameter/visibility behavior, and new-block authoring separate. Its suggested AutoCAD `open → AUDIT → enumerate properties → toggle visibility → REGEN` route is an optional native gate; write-read-write fixed-point is only same-codec stability. ACIS writer issue #1195 and PRs #1150/#1240/#1174 remain open, so this does not alter the local SAT/SAB/AcDs status. Stock FreeCAD still excludes ACIS blobs, and LibreCAD 3 documents DWG import as read-only. No implementation/test/dependency/fixture/support claim changed. [Research and readiness refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-dynamic-block-merge-and-modeler-writer-status-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-acadsharp-dynamic-block-and-modeler-writer-status-2026-10-18.json).
+
+**Latest local implementation slice (2026-10-18):** rooted ACIS projection separately charges each ordered reachable-index output slot in addition to its `discovered` membership-set node. The generated body/two-lump cycle preserves reachable order, graph links, and cycle count at exact 36-item admission; 35 fails closed. The owning graph-preservation CTest passes. No fixture, public API, or 3D support claim changed. Details: [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s3s37-reachable-index-output-slot-accounting-2026-10-18-local-fast-slice-uncommitted) · [receipt](docs/research/acis-reachable-index-vector-slot-accounting-fast-slice-2026-10-18.json).
+
+**Latest cross-peer evidence-quality update (2026-10-18):** the parity plan now distinguishes strict read, malformed-input recovery, cross-document projection/import, same-codec roundtrip, and independent semantic readback. This matters for 3D claims as well: successful conversion or a recovered file is not proof of raw AcDs/SAB retention, owner/key closure, valid B-rep semantics, or native acceptance. No local finding, test, dependency, support promotion, or J-item transition resulted; details are in the [peer validation protocol](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-peer-validation-protocol-and-dxf-loss-boundary-audit-2026-10-18-research-only) and [research receipt](docs/research/deeper-broader-cross-peer-validation-protocol-review-2026-10-18.json).
+
+**Latest deeper/broader peer review and local implementation update (2026-10-18):** the composed 3D consumer checkpoint now explicitly separates same-codec roundtrip, source-distinct ACIS parsing/kernel conversion, native external open/audit, optional shaded rendering, and large-document resource observations. The new peer pass found no confirmed libdxfrw defect, adds no finding or top-level subplan, and leaves J256, J260, J268, J284, J293, and J295 `DEFERRED_EXTERNAL`. A local 7S.3/S3.7 slice now validates each shared ACIS pointer row once and reuses the immutable resolved-reference view; its tight-budget generated graph regression and owning CTest pass. The slice remains uncommitted because the shared worktree contains broad pre-existing changes. Details: [peer evidence and ready acceptance sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deepbroader-3d-peer-interoperability-display-and-scale-evidence-refresh-2026-10-18-research-only) · [implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s3s37-shared-sab-pointer-row-validation-cache-2026-10-18-local-fast-slice-uncommitted) · [research receipt](docs/research/deeper-broader-peer-3d-interoperability-display-scale-review-2026-10-18.json) · [implementation receipt](docs/research/acis-shared-pointer-row-cache-fast-slice-2026-10-18.json).
+
+**Newest deeper/broader peer update — ACadSharp Prototype1b reader and DataStorage ownership (2026-10-18; research only):** ACadSharp v3.8.0 includes merged full DWG Prototype1b section reading and handle/schema-based payload lookup. Its public thread first reports extraction discrepancies, then later byte-matching for referenced R2013+ payloads, including multi-page Blob01; those contributor reports have no public hash-bound corpus and remain structural peer evidence only. ACIS writer PR #1240 and its schema/storage dependency #1174 remain open. A #1174 branch comment reports missing post-2013 DXF payloads on that unmerged branch only; do not transfer the report to the released v3.8.0 artifact. Use ACadSharp only as an optional exact-version AcDs comparison at the existing composed gate. Locally, compare its central-section/lookup design with the existing bounded section-to-entity copy; preserve the owned path unless a lifetime-safe alternative retains legacy consumer behavior. No peer run, source/test/dependency/fixture changes, support promotion, or J transition. [Detailed research and ready steps](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-prototype1b-release-corpus-evidence-and-payload-ownership-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-acadsharp-prototype1b-release-payload-ownership-2026-10-18.json).
+
+**Newest deeper/broader research — ACadRust AcDs writer-control route and artifact freshness (2026-10-18; research only):** current-main tests contain a generated AC1032 planar-body DWG writer→reader self-roundtrip, useful only as a conditional scratch-producer lead; the synthetic ASM marker helper is not valid geometry. Artifact identity is unresolved: GitHub lists v0.6.4, mutable main's manifest says 0.6.5, the docs.rs crate index says 0.6.4, a docs.rs primitive API page says 0.6.5, and cached docs pages still show 0.5.5; neither the peer test's exact main commit nor the relevant registry archive was pinned. Use the route only after immutable source pinning, actual output/carrier inspection, and confirmation that the selected local reader profile is usable (AC1032 is currently a pass-through stub). The source-generated route must keep identity/owner/SAB association, independent analytic semantics, and native acceptance separate. No peer run, fixture, dependency, support promotion, or J transition; all six external J items remain `DEFERRED_EXTERNAL`. [Research and implementation-ready checkpoint](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-acds-writer-control-route-and-artifact-freshness-recheck-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-acadrust-acds-writer-control-route-review-2026-10-18.json).
+
+**Latest implementation slice — modeler raw-frame ownership transfer (2026-10-18; local fast slice, uncommitted):** REGION/3DSOLID/BODY move the parsed frame allocation into the typed modeler entity; the separate raw companion remains byte-identical and moves into the internal journal. Generated AC1027 REGION/3DSOLID controls, the focused selector, owning reader-matrix CTest, adapter fallback, strict build, `dwg2dxf`, and `lc3_compat_check` pass. No public API, fixture, CTest registration, or support claim changed. This removes one typed-frame copy only; consumer and AcDs page-attachment copies remain. [Implementation record and checks](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-07s83-modeler-raw-frame-ownership-transfer-2026-10-18-local-fast-slice-uncommitted) · [receipt](docs/research/datastorage-modeler-raw-frame-ownership-transfer-fast-slice-2026-10-18.json).
+
+**Latest local S3.7a boundary slice — profile-specific SAB zero-count exception (2026-10-18; generated fast test, uncommitted):** the existing ACIS 21800 count-zero stream remains accepted through its explicit terminal record, while the same zero count under `ASM BinaryFile4` is rejected and clears preexisting output state. This prevents generalizing one profile's observed count policy to another signature; it does not add ASM support or change production behavior. The graph-preservation target builds and its focused CTest passes. No fixture, registration, support promotion, or J transition. See the S3.7a framing details and [research receipt](docs/research/acis-asm-count-zero-nonpromotion-fast-slice-2026-10-18.json).
+
+**Newest deeper/broader research — reader route boundaries and scratch SAB authoring (2026-10-18; research only):** the parity-plan refresh distinguishes `dwg-rs` container/object inspection from alpha entity decoding, `ezdwg`'s per-version read scope from its AC1015-only native writer and ezdxf-backed DXF export, and `uncad`'s LibreDWG-backed DWG route from its separate DXF parser. It also identifies an experimental source-free `acis-core` SAB box encoder for optional scratch controls; its reference-closure validation is not B-rep or native compatibility evidence. No new gate, dependency, fixture, peer run, or 3D support promotion. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Detailed evidence and readiness plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-reader-portfolio-and-scratch-sab-authoring-review-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-current-reader-portfolio-scratch-sab-review-2026-10-18.json).
+
+**Newest parser-robustness research (2026-10-18; research only):** current LibreDWG NEWS and its documented AFL++/OSS-Fuzz workflow show ongoing malformed-input and error-path memory-safety fixes across read/write/conversion code. This supports keeping bounded sanitizer/fuzz campaigns at the scheduled robustness gate, not in every implementation slice; a crash-free result is not entity, carrier, or solid-semantic support evidence. No local defect, fixture, dependency, support promotion, or J transition was inferred. [Research and implementation-ready gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-parser-robustness-and-fuzz-evidence-review-2026-10-18-research-only) · [receipt](docs/research/peer-dwg-parser-fuzzing-risk-review-2026-10-18.json).
+
+**Newest deeper/broader research — independent-reader licensing, parser safety, and actual consumer routes (2026-10-18; research only):** a current-source review confirms that LibreDWG has a separate AC1021+ AcDs section decoder, but release history also records parser memory/bounds fixes and the project is GPL-3.0-or-later. Treat it as an exact-revision optional comparator, not a source-port candidate absent license review or a proof of ACIS body semantics. IxMilia.Dxf's typed 3DSOLID API does not promise AutoCAD-accepted writer output. FreeCAD's route is converter→DXF→a selected C++ or legacy Python importer, and stock FreeCAD does not import ACIS solids; LibreCAD 3's DWG import is opt-in and read-only. The plan now requires exact route/configuration pins and keeps four claims separate: 2D compatibility, explicit 3D entity fidelity, opaque ACIS/AcDs carrier preservation, and independent solid semantics. Per-slice validation remains the existing fast target + focused selector + owning CTest; no new local finding, fixture, dependency, support promotion, or J transition. [Detailed evidence and ready gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-reader-license-parser-safety-and-consumer-route-review-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-independent-reader-license-safety-consumer-route-review-2026-10-18.json).
+
+**Newest broader evidence-source audit (2026-10-18; research only):** `ezdwg` 0.16.3 remains only an optional common-2D DWG reader comparator: do not project current `main`'s Unreleased native-decoder work onto the published artifact, and do not treat its 3DFACE/3D-polyline/mesh coverage as 3DSOLID/ACIS semantics. Official OCCT documentation places SAT/SAB exchange in a commercial component; that route is optional, shares the OCCT kernel lineage with FreeCAD, and cannot count as an independent-kernel result. No new gate, dependency, fixture, native run, or 3D support promotion; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research and route boundaries](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-reader-release-boundary-and-3d-evidence-source-audit-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-dwg-reader-release-boundary-and-3d-evidence-source-audit-2026-10-18.json).
+
+**Newest broader 3D research — optional non-OCCT STEP/B-rep validation lane (2026-10-18; plan-only):** CADMPEG's bare-SAB profile can transfer admitted ACIS 217/218 geometry into STEP; the newly screened OpenSolid project implements a separate STEP AP203/B-rep reader, topology checker, and mass properties. Together they are a possible downstream geometry cross-check only when CADMPEG reports no required losses and OpenSolid stays on its exact B-rep path rather than mesh fallback. Neither reads DWG/AcDs ownership or establishes native CAD acceptance; OpenSolid's source/release identity and STEP import must be pinned and audited before use. This is one optional composed S8 route, not a blocker or per-slice dependency; no fixture, test, support claim, or J status changed. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research detail and readiness steps](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-non-occt-step-kernel-candidate-for-an-acis-semantic-cross-check-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-non-occt-step-kernel-crosscheck-2026-10-18.json).
+
+**Latest local 2D/3D view-graph progress (2026-10-18; generated fast slices):** the local PAR-40 path now covers rooted VPORT code-348 VisualStyle references, Background consumers and IBL secondary references, and VPORT/VIEWPORT→SUN owner-edge remapping in generated ASCII/Binary DXF controls. The owning `libdxfrw_dxf_fixtures` CTest was rerun against the current worktree and passes (1/1); `lc3_compat_check` also builds. These checks establish only the exercised structural capture, graph closure, handle remapping, and fail-closed behavior—not native producer ownership, plotting/rendering, DWG parsing, or geometric 3D support. VIEW→SUN and Skylight→SUN output remain refused pending their separate ownership evidence. [Latest progress and receipts](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-40--7g2-vport-and-viewportsun-owner-edge-replay-2026-10-18-local-fast-slices-uncommitted).
+
+**Newest modeler local implementation slice — S2.2.5b AC1015 SAT-v1 caret escape at the 255-byte cut (2026-10-18):** the generated AC1015 public DXF round-trip now includes a plaintext `A` placed so its SAT-v1 transform becomes `^` after 254 ordinary encoded bytes. The `^ ` pair must remain indivisible and move wholly into the group-3 continuation; the focused selector checks decoded carrier bytes, group sequence, and final decoded continuation length. This local test does not decide native/independent chunk policy or qualify binary-SAT acceptance. [Implementation and receipt](#implementation-progress--s2-2-5b-ac1015-sat-v1-caret-escape-boundary-2026-10-18-local-fast-slice) · [receipt](docs/research/sat-v1-caret-escape-boundary-fast-slice-2026-10-18.json).
+
+**Newest peer-scope refinement (2026-10-18; research only):** compare peer evidence by exact operation and acceptance layer, not aggregate coverage/version claims: LibreDWG documents material writer/audit caveats; IxMilia's typed 3DSOLID support is not AutoCAD writer acceptance; ezdxf's ACIS browsing is not 3D rendering; and `obj2cad` remains a pre-release scratch-control-author candidate with an ACadRust-derived DWG path. This sharpens the existing external evidence ladder only; implementation order and fast per-slice validation stay unchanged, and J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed peer-role matrix and implementation-ready gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-advertised-scope-and-acis-authoring-readiness-review-2026-10-18-research-only) · [research receipt](docs/research/deeper-broader-peer-advertised-scope-acis-authoring-readiness-2026-10-18.json).
+
+**Newest deeper/broader research and live 3D handoff (2026-10-17; research only):** the earlier MESH override and AcDs page-chain tasks are covered. A broader peer scan found ACadRust's documented `build_box` + `SabWriter` route as a possible scratch-only SAB author, while ACadRust #130/#132 report peer-only TABLE/color/XDATA transfer gaps and #134 reports strict-boundary regressions on private AC1032 files. The local environment has no Rust toolchain or ezdxf install, so SAB generation is not runnable here and must not block implementation. Keep it as an optional composed checkpoint: inspect/pin the exact author API, assert source-authored asymmetric box metrics and the complete entity→AcDs→SAB association, and score native/kernel semantics separately. Continue the next ready local slice meanwhile; no new local finding or test is justified by the peer reports. [Research and readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-transfer-loss-and-source-authored-sab-readiness-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-peer-transfer-loss-and-sab-author-readiness-2026-10-17.json).
+
+**Adjacent peer correctness screen (2026-10-17; research only):** newly surfaced ACadRust #135/#136 concern a DWG associative-object layout hypothesis and binary-DXF group-width call-site errors. These are not ACIS, B-rep, or 3D consumer evidence; the local DWG grammar remains evidence-gated, and the local binary writer needs a focused source census/raw-byte check before any claim of parity. No 3D support claim or J disposition changed. [Cross-route gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#fresh-acadrust-cross-route-issue-screen-and-local-binary-dxf-dwg-associative-path-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-acadrust-135-136-and-local-wire-audit-2026-10-17.json).
+
+**Broader open-source capability and FreeCAD route reconciliation (2026-10-17; research only):** LibreDWG type names, ACadSharp version matrices, and ezdxf SAT/SAB inspection are route-scoped capabilities, not proof of end-to-end 3D semantics. Current FreeCAD docs describe the stock DWG converter→DXF importer route as 2D-limited, while importer backend and converter are configurable. Keep exact Linux and Windows FreeCAD checks pinned to the selected converter/importer and capture family-level entity/payload disposition; a successful 2D import or mesh projection cannot promote ACIS/B-rep claims. Independent semantic evidence and J256/J260/J268/J284/J293/J295 remain deferred. [Research and local gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-and-broader-open-source-capability-matrix-and-local-implementation-readiness-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-open-source-capability-matrix-2026-10-17.json).
+
+**Latest local fast slice — 7S.2c.d.17.61 HATCH gradient-name retained owner (2026-10-17; uncommitted):** DXF group-470 `gradName` now uses the shared entity retained-byte lease and follows HATCH copy/move/reset ownership. Generated replacement, exact-cap, one-byte-under preservation, and final-release controls pass with the strict hardening and compatibility builds, focused selector, and owning hardening CTest. Per-stop color strings and gradient semantics are unchanged; this adds no 3D/ACIS evidence. The private counter changes public layout and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd17511-hatch-gradient-name-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/hatch-gradient-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Previous local fast slice — 7S.2c.d.17.60 HATCH pattern-name retained owner and base-reset release (2026-10-17; uncommitted):** DXF group-2 `name` now uses the shared entity retained-byte lease; HATCH reset also calls the standard `DRW_Point` reset after a generated owner test exposed that the old reset left the base lease charged. Copy/assignment/move and reset controls pass with strict hardening/compatibility builds, hardening and DXF-fixture CTests, and ASCII/Binary HATCH CLI regressions. This is parser-owned DXF text accounting only, not boundary semantics or 3D/ACIS evidence. The private counter changes public layout and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd17510-hatch-pattern-name-retained-owner-and-base-reset-release-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/hatch-pattern-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Previous local fast slice — 7S.2c.d.17.59 MTEXT background color-name retained owner (2026-10-17; uncommitted):** DXF group-431 `m_backgroundColorName` now uses the shared entity retained-byte lease; reset, replacement refusal, copy/move, and final-release controls pass with strict hardening/compatibility builds and the owning CTest. This is parser-owned DXF string accounting only, not color interpretation, DWG decoding, or 3D/ACIS evidence. The private counter changes public layout and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1759-mtext-background-color-name-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/mtext-background-color-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Previous local fast slice — 7S.2c.d.17.58 GEOPOSITIONMARKER DXF notes retained owner (2026-10-17; uncommitted):** DXF group-1 notes now use the shared retained-byte lease with exact-cap/replacement refusal and copy/move/reset controls; focused hardening selectors, `lc3_compat_check`, and the owning hardening CTest pass. This is parser-owned DXF text accounting only, not typed-variant or DWG note decoding, and adds no 3D/ACIS evidence. The private counter changes public layout and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1758-geopositionmarker-dxf-notes-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/geopositionmarker-dxf-notes-retained-owner-fast-slice-2026-10-17.json).
+
+**Latest research refinement — whole-file failure localization (2026-10-17; research only):** current peer reports on AC1032 MTEXT/MLEADER writers and converter success reinforce that exact entity-body bytes, a successful same-library reopen, or a visible entity do not prove whole-document graph acceptance. Keep standalone DWG MLeader context objects separate from DXF MLEADER records; at the existing composed gate, compare object/owner closure, fresh output, strict read, and native audit independently. No new 3D finding or support claim; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Detailed research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-interoperability-and-failure-localization-refresh-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-cross-project-interoperability-failure-localization-2026-10-17.json).
+
+**Latest local implementation slice — 7S.2c.d.17.57 SHAPE DXF style-name retained owner (2026-10-17; fast, uncommitted):** group-2 style/glyph text now uses shared retained-byte accounting, and reset clears both field and charge. Generated minimum-cap, refusal, copy, and release controls pass with strict hardening/compatibility builds and the owning CTest. This does not resolve SHX resources or alter 7AZ glyph identity; the private counter changes public layout, requiring downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1757-shape-dxf-style-name-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/shape-dxf-style-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Latest local implementation slice — 7S.2c.d.17.56 SECTIONOBJECT DXF name retained owner (2026-10-17; fast, uncommitted):** the `AcDbSection` group-1 name now uses shared retained-byte accounting with replacement, copy/assignment, and reset coverage. Generated minimum-cap and one-byte-under controls pass; the latter stops before the new value is admitted and preserves the old name. Strict hardening/compatibility builds and the owning CTest pass. No DWG byte changes or support promotion; the new private counter changes layout and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1756-sectionobject-dxf-name-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/sectionobject-dxf-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Latest local implementation slice — 7S.2c.d.17.55 DXF modeler UID retained owner (2026-10-17; fast, uncommitted):** the opaque DXF group-2 UID on `DRW_ModelerGeometry` now uses the shared retained-byte lease, with replacement/copy/reset controls at exact minimum and one-byte-under budgets. Strict hardening build, focused selector, `lc3_compat_check`, and owning hardening CTest pass. This changes no ACIS/AcDs interpretation or 3D support claim; it adds a private model-layout counter and requires downstream rebuild. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1755-dxf-modeler-uid-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/dxf-modeler-uid-retained-owner-fast-slice-2026-10-17.json).
+
+**Latest local implementation slice — 7S.2c.d.17.54 DIMENSION group-2 block-name retained owner (2026-10-17; fast, uncommitted):** DXF DIMENSION anonymous-block names now use the shared retained-byte lease with replacement-peak, copy, and reset accounting. Generated exact-minimum/cap-minus-one controls pass, preserving the previous name on refusal; `lc3_compat_check` and the owning hardening CTest pass. Public setter mutation and writer/projection copies remain outside scope; no DWG bytes, fixture, dependency, or support claim changed. [Implementation detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7s2cd1754-dimension-group-2-block-name-retained-owner-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/dimension-block-name-retained-owner-fast-slice-2026-10-17.json).
+
+**Latest implementation slice — 7AA.1 DIMASSOC intersection-object DXF edge (2026-10-17; focused local verification, uncommitted):** group 332 and its groups 74/92 attributes now round-trip for documented intersection osnap types 6/11, each of which requires both nonzero group-331 main and group-332 intersection geometry handles; the second geometry handle passes through the normal resolver and emitted-graph closure. Missing/unemitted targets are refused atomically. Focused ASCII/Binary tests, `lc3_compat_check`, and the hardening CTest pass. XREF 301/302, live updates, complete DIMASSOC semantics, and DWG body support remain open; no DWG bytes, fixtures, dependencies, or support claims changed. [Progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7aa1-dimassoc-intersection-object-dxf-edge-2026-10-17-local-fast-slice-uncommitted) · [receipt](docs/research/dimassoc-dxf-intersection-object-edge-fast-slice-2026-10-17.json).
+
+**Latest deeper/broader reader-lineage refinement (2026-10-17; research only):** `uncad` splits its routes: DWG reads are LibreDWG-backed, while DXF reads use the separate pure-Rust `undxf` parser. The latter is only an optional, pinned DXF structural comparator; its documented 3DSOLID/REGION output is an isometric wireframe, not B-rep semantics, and several types remain experimental. `acad-ts` is an ACadSharp port at a pinned upstream commit, not an independent parser vote; converter-based DWG extraction wrappers likewise do not add DWG-reader evidence. The parity plan adds a low-cost, source-manifest procedure at the existing composed checkpoint only. No peer run, fixture, dependency, local finding, support promotion, or J-status change; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-uncad-dxf-route-and-acadts-lineage-readiness-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-uncad-dxf-route-and-acadts-lineage-audit-2026-10-17.json).
+
+**Latest deeper/broader peer-evidence refinement (2026-10-17; research only):** LibreDWG documents release/debug build switches that alter class availability and separately labels classes stable, unstable, debug-only, or unhandled. Unstable-class same-version replay may be opaque `unknown_bits` retention or a lowered placeholder—not typed semantic support. ACadSharp #1195 and ezdxf's XREF helper independently illustrate route-scoped silent loss; the latter's limitation is specific to its copy/import helper, not the base parser. The parity plan now requires exact build-profile provenance and a per-version/class/operation typed-vs-opaque/lowered/omitted/refused grade at the existing composed comparator checkpoint. No local finding, peer run, fixture, dependency, queue/cadence change, or support promotion; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-libredwg-build-profile-and-per-class-evidence-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-libredwg-build-profile-class-evidence-review-2026-10-17.json).
+
+**Latest deeper/broader consumer-route refinement (2026-10-17; research only):** FreeCAD's current DWG export wrapper returns the requested path after invoking LibreDWG/ODA/QCAD without verifying process success or a newly created output; issue #31835 remains open. A separate dangling `$CMLSTYLE` source-DXF problem from #31836 was fixed upstream by merged #31896 (`3389881`). For the existing Linux/Windows composed gate, pin the FreeCAD build and exact converter, validate the intermediate DXF, use a fresh destination, and independently verify output existence/hash/magic before native readback. This clarifies converter provenance only—no ACIS/AcDs, B-rep, or native 3D evidence is added; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Parity-plan research and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-converter-success-and-source-dxf-validity-gate-2026-10-17-research-only) · [receipt](docs/research/freecad-dwg-export-provenance-gate-2026-10-17.json).
+
+**Latest f.3c implementation slice (2026-10-17; focused local verification):** the existing VisualStyle candidate-map CTest now validates generic DXF group value-width classes for all R2010/R2013b candidate groups and companion fields, while preserving the unresolved semantic grades and serializer-denial gate. The object-vector/manifest CTests pass 2/2 and `lc3_compat_check` succeeds. This is descriptor consistency only; no 58-property serializer, 3D support claim, or J disposition changed. Details and receipt: [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--visualstyle-candidate-group-code-typewidth-guard-2026-10-17-local-fast-slice) · [receipt](docs/research/visualstyle-slot-wire-value-width-descriptor-fast-slice-2026-10-17.json).
+
+**Latest deeper/broader 2D peer-evidence refresh (2026-10-17; research only):** revisited `ft_model`'s optional 2D-reader/preview role. Its historical status reports entity-match rates but names LibreDWG DWG→DXF plus ezdxf as comparison references; its current version matrix still marks AC1015 missing, AC1018/AC1021 partial, and AC1032 partial. The README references `test_dwg/big.dwg`, while the public root tree reviewed here does not expose that directory or a hash-bound DWG manifest. Keep the candidate discovery-only and composed-checkpoint-only; require a new immutable source pin and independently authored expectations before any result. This adds no 3D route, implementation work, test, fixture, dependency, or support promotion. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-ft_model-evidence-age-and-2d-comparator-readiness-refresh-2026-10-17-research-only).
+
+**Implementation handoff (2026-10-17):** parity 3.3a's exact-name mapping policy/identity gate is now locally complete: explicit exact decoder selection never silently falls back to Compatible, and it does not qualify the source producer profile. The ordinary Compatible default and closed strict-admission allowlist remain unchanged; ISO8859-1/4 decoding therefore does not promote complete-conversion support. The 3.3 parent and producer/native qualification remain open. This handoff does not reorder the implementation queue: select the next slice from the latest ready local owner in the live ledger, and do not repeat the resolved mapping-policy investigation or revive a historical pointer without checking its status. No 3D evidence, support claim, or J disposition changes. [Policy decision and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-handoff--exact-name-mapping-policy-decision-2026-10-17).
+
+**Latest deeper/broader peer-evidence correction (2026-10-17; research only):** the current ACadRust README's version table does not establish AC1009 DWG support (`—`), despite broader R12–R2018+ prose; its default `cargo test` also marks some missing-drawing tests ignored. Keep that route `NOT_ESTABLISHED` until an exact artifact/input run, and record ignored-test counts at the optional composed checkpoint. Synthetic marker SAB and same-codec round-trip tests remain transport/internal-consistency evidence, not independent solid semantics. OpenCADStudio remains one ACadRust-related parser lineage and an optional app/kernel route. No new subplan, test, fixture, dependency, queue/cadence change, support claim, or J transition; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research section and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-peer-matrix-and-test-coverage-audit-2026-10-17-research-only).
+
+**Latest cross-peer 3D evidence reconciliation (2026-10-17; research only):** ODA v5.4.1 §24 still governs AcDs container layout but not SAB grammar or solid semantics. The current peer screen finds no open-source route that proves, in one result, the DWG entity→AcDs record/key→payload join, complete SAT/SAB interpretation, valid B-rep geometry, and native Linux/Windows consumer acceptance. The parity plan now records one minimum-cost composed-checkpoint ledger separating these stages, with LibreDWG #1411 reserved as a negative-control route and ezdxf/InventorLoader/GDAL constrained to their documented profiles. Local per-slice fast testing and queue order are unchanged; no external peer/native run, fixture, dependency, support promotion, or J-status transition. [Detailed evidence ledger and research receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deep-cross-peer-3d-evidence-reconciliation-and-fast-qualification-sequence-2026-10-17-research-only).
+
+**Latest route and implementation update (2026-10-17; peer-status correction added 2026-10-18):** refreshed ACadSharp's release-versus-branch boundary and hardened the existing explicit-MESH lane. The released v3.8.0 reader includes earlier ACIS/Prototype1b structural-read work, but its ACIS writer is not released. The Oct. 1 #1150 discussion describes schema-refactor work on a writer branch; the current #1174 pull-request page still shows that refactor open, so it must not be treated as integrated into master/release. No new peer route closes AcDs owner joins, independent B-rep semantics, or native Linux/Windows FreeCAD acceptance. Locally, MESH vertices now require a complete, non-duplicated XYZ tuple, with generated ASCII/Binary rejection controls passing before callbacks. This is malformed-DXF handling, not 3D support promotion. No fixture, dependency, test registration, or external run was added; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research/implementation details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-acis-release-and-mesh-coordinate-contract-update-2026-10-17) · [receipt](docs/research/deeper-broader-acadsharp-acis-and-mesh-coordinate-contract-2026-10-17.json).
+
+**Historical consumer-provenance snapshot (2026-10-17; superseded by the 2026-10-19 source/release recheck):** CAD2Cube was already an optional explicit-DXF consumer candidate, not a new independent parser. The prior extension-registry scan recorded v1.5.1, while the GitHub page then identified v1.5.0 at verified tag `a09e6b3` as Latest and its README marked `3DSOLID` planned; registry retrieval failed in that pass. This dated snapshot is retained for audit only. The current release/source binding and admission boundary are recorded in [the 2026-10-19 revalidation](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cad2cube-dxf-3d-consumer-and-dwg-route-revalidation-2026-10-19-research-only); do not use the 2026-10-17 release status as current evidence.
+
+**Latest deeper/broader peer-route review (2026-10-17; research only):** official OCCT sources place DXF and ACIS SAT/SAB exchange in commercial components rather than the open-source core; ezdxf is a carrier/authoring path, not an ACIS renderer or semantic kernel; FreeCAD's stock ACIS limit is distinct from importer-specific explicit `3DFACE` support; BRL-CAD's `dxf-g` remains optional and its malformed-POLYFACE fix is still unmerged. Keep the existing staged gates and implementation order; continue local fast slices without peer setup. No new issue, fixture, dependency, test registration, support promotion, or J transition. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research details](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-route-availability-and-evidence-ceiling-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-open-source-route-availability-and-evidence-ceiling-2026-10-17.json).
+
+**Latest deeper/broader FreeCAD consumer-applicability audit (2026-10-17; research only):** current `FreeCAD/src/Mod/Draft/importDWG.py` makes DWG a converter→DXF→selected importer pipeline; its converter wrapper records neither subprocess return status nor strict intermediate-DXF validity before treating output-path existence as conversion success. FreeCAD's maintainer has explicitly said stock FreeCAD cannot read the proprietary ACIS blob in DXF, and the corresponding issue is closed as not planned. Keep stock FreeCAD as an explicit-geometry/native-consumer gate only; classify stock ACIS consumption `CONSUMER_NOT_APPLICABLE` until a named modeler integration is tested. The parity plan now separates direct-DXF importer mode from DWG converter handoff and binds converter executable/status, fresh DXF hash/version, importer backend, and resulting geometry at the one composed Linux/Windows checkpoint. No test, fixture, dependency, support promotion, or J-state change. [Detailed research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-3d-consumer-applicability-and-converter-success-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-freecad-3d-consumer-applicability-converter-audit-2026-10-17.json).
+
+**Latest peer capability-grade cross-check and AcDs fast control (2026-10-17):** current LibreDWG/ezdxf documentation distinguishes parser, copy/rewrite, rendering, and test-coverage states; FreeCAD's stock DWG route is converter→DXF importer and remains 2D for proprietary ACIS payloads. The generated in-memory `0x40000` direct / `0x40001` two-page Blob01 prerequisite now passes via `--datastorage-page-boundaries`; it proves AcDs container reconstruction only, not valid SAB, solid semantics, external qualification, or native acceptance. No support/J promotion. See [updated peer plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-capability-grades-and-acds-validation-gate-2026-10-17) and [receipt](docs/research/deeper-broader-peer-capability-grades-and-acds-validation-gate-2026-10-17.json).
+
+**Latest broader peer-lineage research (2026-10-17; research only):** CAD-Viewer's open-source DWG route is an opt-in LibreDWG/WASM wrapper, while its FAQ says 3D DWG viewing is planned despite general Three.js/3D-renderer wording; the proprietary parser documents only partial SAB extraction and wireframe/bounds fallback. Do not treat this as an independent parser or 3D semantic route. `ezdwg`'s current graph API adds a possible *optional* high-level common-2D graph observation, but its model/paper-space handles are described as inferred; use its raw decode separately and only at the existing composed checkpoint. No new gate, fixture, dependency, support promotion, or change to the six `DEFERRED_EXTERNAL` items. [Detailed research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-browser-viewer-lineage-and-dwg-graph-observation-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-browser-viewer-lineage-and-dwg-graph-observation-audit-2026-10-17.json).
+
+**Latest DXF peer-route research (2026-10-17; research only):** `ixmilia/dxf-rs` 0.6.1 is an optional R2018 DXF structure comparator with a Windows/ODA-converter test caveat; `DXF-Renewed` is a TypeScript text-DXF/JSON/SVG route whose parsed/rendered inventory does not establish 3D semantics; `js-dxf` is a narrow writer with no documented target-version guarantee. `uncad`'s actual README scope is read-only (LibreDWG for DWG; `undxf` for DXF). None adds DWG/ACIS/AcDs or native CAD evidence, and none enters the fast loop. [Details and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-r2018-rust-and-typescript-dxf-peer-routes-and-validation-boundaries-2026-10-17-research-only).
+
+**Latest deeper/broader route-composition research (2026-10-17; research only):** consolidated the external evidence routes into a staged checkpoint. Stock FreeCAD remains a DWG-converter→selected-DXF-importer route and is not an ACIS blob reader; qualify its Linux and Windows builds only against the exact explicit-entity subset/backend exercised. `cadmpeg` is a separate bare-payload parser (not a kernel), `cq-acis` is a bounded parser/OCCT shape route sharing kernel lineage with FreeCAD, and licensed HOOPS/Ansys routes remain optional. The entity→AcDs owner/key→payload join, ACIS shape semantics, and native FreeCAD handoff remain distinct. No new fixtures, dependencies, tests, support promotions, or external-J transitions; details in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-route-composition-and-minimum-cost-acisfreecad-evidence-sequence-2026-10-17-research-only) and [research receipt](docs/research/deeper-broader-route-composition-fastest-evidence-sequence-2026-10-17.json).
+
+**Latest deeper/broader DWG peer refresh (2026-10-17; research only):** `dwg-rs` is a newly detailed optional, ODA-spec-derived structural comparator with per-record bit-boundary checks, but remains pre-alpha and its 3DSOLID projection is only a bounding-box placeholder; do not treat it as a solid oracle or add it to the fast loop. Current ACadRust `main` advertises broader ACIS/B-rep capabilities than its pinned v0.6.4 release, so keep claims revision-bound and its consumers in one codec lineage. FreeCAD automatic converter fallback can mix LibreDWG/ODA/QCAD output and only checks output existence; pin one converter and validate exit/output before import. The implementation queue, tests, fixtures, dependencies, support claims, and six `DEFERRED_EXTERNAL` J statuses do not change. [Detailed research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-record-boundary-peer-and-consumer-route-refresh-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-dwg-record-boundary-peer-and-consumer-route-refresh-2026-10-17.json).
+
+**Latest local 7G.3d parser correction (2026-10-17; fast, uncommitted):** ODA §20.4.97 classifies TABLECONTENT FIELD and block cell-content `H 340` handles as hard pointers; the parser now rejects wrong-role handles. Generated AC1021 standalone and AC1024 inline positive/wrong-role controls pass, including the AC1024 prefix-only fallback. Strict object-vector build, focused selector, owning CTest, and `lc3_compat_check` pass. This validates wire-reference roles only, not FIELD graph closure, linked TABLE support, producer parity, or 3D support. No fixture, CTest registration, dependency, or support claim was added; no commit attempted. [Parity-plan detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7g3d-tablecontent-hard-pointer-role-validation-2026-10-17-local-fast-slice) · [receipt](docs/research/tablecontent-hard-pointer-role-validation-fast-slice-2026-10-17.json).
+
+**Latest external sample-route research — DATALINK/ACAD_TABLE (2026-10-17; research only):** Autodesk's ObjectARX documentation describes how a native application can create an Excel-backed `AcDbDataLink`, set persistence/update options, and attach it to a table cell. The public example does not disclose the saved DWG's DATALINK owner, NOD/extension-dictionary route, TABLECONTENT graph, or a reproducible binary. Treat this as a conditional source-free sample-generation recipe, not as confirmation of wire semantics. Until a pinned native artifact is produced and its graph independently inventoried, linked TABLE remains fail-closed for export. No fixture, native qualification, support promotion, or external-J status change. [Parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-autodesk-datalink-authoring-path-and-sample-provenance-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-autodesk-datalink-authoring-path-sample-provenance-2026-10-17.json).
+
+**Latest local 7BA safety test (2026-10-17; fast, uncommitted):** generated AC1021 object frames now exercise valid unique-owner POLYLINE admission and malformed cross-block shared-VERTEX rejection through the mapped ownership preflight. The invalid case removes both parent frames, the shared child, and both SEQEND frames, and attributes the two failures to their block records. The focused reader-matrix target/CTest and `lc3_compat_check` pass. This is a source-framing/quarantine regression only—not 3D geometry or support evidence; no external fixture or support claim was added. Git metadata is read-only, so it remains uncommitted. [Parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7ba-cross-block-polyline-ownership-quarantine-2026-10-17-local-fast-test-uncommitted) · [receipt](docs/research/polyline-cross-block-ownership-source-frames-fast-slice-2026-10-17.json).
+
+**Latest local 7BA follow-up (2026-10-17; generated fast regression, uncommitted):** the AC1021 frame owner now tests a parent repeating one VERTEX handle and two distinct parents within one `BLOCK_RECORD` sharing a child. Both paths are quarantined with the correct invalid parents and owner-scoped aggregate diagnostics. The focused reader-matrix build/test, owning CTest, and `lc3_compat_check` pass. This is bounded malformed-reference quarantine only; it does not establish producer semantics, geometry, or 3D support. No fixture, CTest registration, production change, or support claim was added, and no commit was attempted. [Progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--7ba-same-owner-duplicate-child-quarantine-2026-10-17-local-fast-regression) · [receipt](docs/research/polyline-same-owner-duplicate-child-fast-slice-2026-10-17.json).
+
+**Latest deeper/broader parser-artifact and ACIS-pair route audit (2026-10-17; research only):** `@dxfjs/parser`'s source-to-package provenance is not bound (npm v0.3.2 was published three years ago), and a prior source review found its OBJECTS reader drops records; do not count its 3DSOLID entity label as payload or kernel evidence. Browser wrappers are lineage-correlated (`dxf-renderer` embeds `gdsestimating/dxf-parser`; `libredwg-web` wraps LibreDWG). LibreDWG #1411's generated SAB DXF→DWG→DXF recipe is a reported loss case, not a positive source of qualified DWG pairs; any such pair remains non-promoting until AcDs/SAB owner association and independent semantics are verified. No new route, dependency, fixture, test, implementation-order, support, or J-status change. [Parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-language-dxf-parser-artifact-and-acds-pair-lineage-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-cross-language-dxf-parser-artifact-acds-lineage-audit-2026-10-17.json).
+
+**Latest broader DXF-peer discovery (2026-10-17; research only):** `kedazo/dxf-go` v0.3.3 documents explicit MESH/3DFACE/SOLID/polyface DXF APIs but declares itself a fork of IxMilia `dxf-go`; its DWG conversion helper uses LibreDWG. `cadkit-dxf` 0.3.3 separately claims ASCII/Binary DXF read and ASCII write, but growing entity coverage, shared ACadSharp/ezdxf knowledge references, and ACadSharp-derived corpus prevent treating it as an independent support vote; its published package/API version labels also need pin reconciliation. These DXF package reviews add no evidence about an independent DWG parser or ACIS/AcDs/B-rep path. Keep both optional at the composed DXF checkpoint only, with no peer install/run or fast-loop cost. No finding, 3D gate, fixture, dependency, implementation-order, support, or J-status change. [Research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-new-dxf-peer-lineage-and-explicit-mesh-scope-review-2026-10-17-research-only) · [new DXF peer review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-rust-dxf-peer-artifact-lineage-and-version-resolution-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-rust-dxf-peer-artifact-lineage-review-2026-10-17.json).
+
+**Latest deeper/broader peer-safety and ACIS-reader availability refresh (2026-10-17; research only):** BRL-CAD issue #228 remains open and proposed PR #245 is still open/unmerged; its published summary describes `>=1`/upper-pool checks, which must be reviewed against DXF's legal negative one-based PFACE indices (invisible-edge flags) and zero terminator before treating that route as corrected. Do not send malformed controls to BRL-CAD. The local `PAR-37/7V` guard already widens signed indices, validates against actual coordinate children, and has generated ASCII/binary adversarial coverage; reuse its existing test owner if changed. Open CASCADE's official CAD Assistant page confirms SAT/SAB import is supplied by commercial components and disallows export/conversion of such imported models; this is not an open-source baseline or a freely redistributable parser dependency. No new workstream, dependency, fixture, test, support promotion, or `J` disposition change. [Research detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-parser-safety-and-acis-reader-availability-refresh-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-peer-parser-safety-and-acis-reader-availability-refresh-2026-10-17.json).
+
+**Latest ACIS evidence-route reconciliation (2026-10-17; research only):** the already-reviewed `acis-core` source-free author is explicitly an experimental `ASM23200MetricBox` encoder that emits `ASM BinaryFile4`; this is distinct from the current pinned 21800 control profile and cannot stand in for the ODA-authored AC1027/ACDS tuple. CADMPEG remains a bare-stream L1 reader; LibreDWG #1411 reports loss despite an existing, incomplete AcDs code path; GDAL exposes raw ASM and transforms without OGR solids. These sources sharpen stage boundaries, but add no route that closes container association plus independent B-rep semantics. Keep them optional and out of the fast loop; no implementation-order, dependency, fixture, support-claim, or J-status change. [Detailed delta and gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#2026-10-17-acis-control-author-and-peer-route-delta) · [receipt](docs/research/deeper-broader-acis-source-free-sab-authoring-route-2026-10-17.json).
+
+**Latest local S3.7c transform-token cap control (2026-10-17; focused fast test):** added a generated 17-byte transform-literal/16-byte per-string-limit case; rooted extraction must refuse with `ResourceLimit` and clear caller output. The graph-preservation target, focused CTest, `lc3_compat_check`, and scoped diff check pass. This protects bounded raw-token capture only; transform interpretation/application, units, WCS, B-rep validity, and 3D support remain unqualified. No fixture, registration, dependency, or production parser change. The broad shared worktree remains uncommitted; repository `.git` metadata is read-only in this environment. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-sab-transform-token-string-cap-boundary-2026-10-17-local-uncommitted) · [receipt JSON](docs/research/acis-rooted-transform-string-cap-fast-slice-2026-10-17.json).
+
+**Latest local S3.7c cumulative transform-string budget control (2026-10-17; focused fast test):** added a generated 17-byte literal case where `maxStringBytes` permits that individual value but `maxCumulativeStringBytes` is only 17 bytes; retaining the same literal in the raw token snapshot and observation must fail with `ResourceLimit` and clear caller output. The graph-preservation target, `lc3_compat_check`, focused CTest (1/1), and scoped diff check pass. This checks aggregate retained-string accounting only; no transform meaning, placement, units, B-rep, or support claim is promoted. No fixture, registration, dependency, or production parser change. Repository `.git` metadata is read-only, so the broad shared worktree remains uncommitted. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-sab-cumulative-transform-string-budget-boundary-2026-10-17-local-uncommitted) · [receipt JSON](docs/research/acis-rooted-transform-cumulative-string-fast-slice-2026-10-17.json).
+
+**Latest deeper/broader renderer-route admission (2026-10-17; research only):** ProCad's tree lists custom SAT/SAB decoder/parser/tessellator components, but its DWG/DXF IO uses the `wieslawsoltes/ACadSharp` fork; the components' source and runtime were not audited. Treat this only as a possible optional renderer projection after source-pin and payload-path audit—not as an independent DWG/DXF parser, kernel, or B-rep witness. ProGPU's custom edge path is described as legacy and its mutable fallback schema conflicts with the pinned ezdxf 21800 profile; keep it `DISCOVERY_ONLY / NOT_ORACLE`. Preserve fast local validation; no setup, fixture, dependency, support promotion, or J status change. [Detailed route and speed gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-procad-renderer-acis-route-and-progpu-architecture-reconciliation-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-procad-renderer-acis-route-reconciliation-2026-10-17.json).
+
+**Latest migration-target matrix check (2026-10-17; research only):** LibreCAD's generated DWG version-status report is a separate static readiness inventory from its entity/callback census; its dispatched reader/writer rows still carry positive/negative fixture blockers. It helps locate version-family work but is not runtime or 3D evidence. Keep version, operation, feature, and semantic/native claim statuses distinct; no support promotion, test-cadence change, or J disposition. [Parity-plan crosswalk](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-librecad-version-readiness-matrix-and-source-overlay-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-librecad-version-readiness-crosswalk-2026-10-17.json).
+
+**Latest deeper/broader FreeCAD qualification refinement (2026-10-17; research only):** FreeCAD's current C++ DXF importer source contains a generic `TopoDS_Shape` path explicitly naming 3DFACE, while its published matrix assigns 3DFACE only to the legacy importer. Reclassify this as `SOURCE_SCOPE_SPLIT / RUNTIME_PENDING`, not a support pass: pin the importer build/backend and verify generated asymmetric face geometry in the composed native checkpoint. The DWG wrapper's file-existence success message is only handoff evidence; capture converter status/logs and independently validate output DXF and imported geometry. Stock ACIS remains `CONSUMER_NOT_APPLICABLE` unless a separately identified modeler route is tested. No native run or support promotion; [parity-plan detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-dxf-importer-source-scope-and-dwg-handoff-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-freecad-importer-source-scope-handoff-audit-2026-10-17.json).
+
+**Latest broader peer screen — newly surfaced 2D/mesh consumers (2026-10-17; research only):** CodeCAD's current architecture declares ACadRust as its DWG parser and maps a listed entity set into 2D `kurbo` paths; its self-reported coverage percentages have no reviewed corpus binding and do not cover modeler semantics. DXF2CAD uses ezdxf for selected explicit mesh entities, explicitly excludes ACIS 3DSOLID/BODY/REGION, and emits planar STEP faces as an `OPEN_SHELL`. Neither is a new independent parser/kernel or 3D-solid evidence route. `uncad`, `dwg-rs`, CADKernel, and OpenCADStudio remain as previously classified. No new finding/subplan, validation step, fixture, dependency, implementation-order change, support promotion, or J disposition. Findings/subplans remain 127/71; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Research detail](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-newly-surfaced-downstream-cad-route-screen-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-new-peer-route-screen-2026-10-17.json).
+
+**Latest cross-peer TABLE/DATALINK boundary update (2026-10-17; research only):** broadened PAR-126 readiness using Autodesk's current DXF/API contract and current ACadSharp, ezdxf, and LibreDWG sources. TABLE's cell values, anonymous block rendering, style/owner references, fields, ATTDEF values, and linked ranges form separate graph edges. ACadSharp's merged DWG TABLE writer explicitly suppresses linked data, while its general DXF/DWG writer issue remains open; this is not a complete peer route. Preserve the present link fail-closed behavior and keep table/object interoperability distinct from 3D support claims. No new finding/subplan, reordering, fixture, dependency, or support promotion. [Detailed research and implementation sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acad_table-and-datalink-cross-peer-readiness-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-acad-table-datalink-cross-peer-readiness-review-2026-10-17.json).
+
+**Latest PAR-126 implementation progress (2026-10-17; local fast slice, uncommitted):** `dx_iface` now owns parsed DATALINK callback values, and export fails before publication while the linked TABLECONTENT/DATALINK owner/range graph has no qualified serializer. A generated ASCII parse plus ASCII/binary refusal-and-retry control passes in the existing fast adapter target. This is loss-prevention only—not DATALINK serialization, linked-table semantic support, or 3D evidence. [Progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-126-datalink-callback-capture-and-fail-closed-export-2026-10-17-local-fast-slice).
+
+**Latest deeper/broader cross-project 3D route refresh (2026-10-17; research only):** current ezdxf 1.4.5 exposes version-specific SAT and SAB export APIs, but unsupported ACIS records are lost and mesh extraction covers flat polygonal faces only. GDAL 3.12+ can read binary DXF and optionally expose AC1027+ raw ASM plus a 12-value transform; it does not make OGR solids and its writer targets AC2004. FreeCAD's importer/backend must be pinned, and stock ACIS consumption is not established. LibreDWG #1411 and ACadSharp #1195/#1240 remain peer loss/patch signals, not local defects or semantic proof. Refine existing carrier, explicit-geometry and consumer gates only; no new finding/subplan, implementation-order change, support promotion, fixture or dependency. J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL`. [Detailed parity research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-3d-route-and-peer-maturity-reconciliation-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-cross-project-3d-route-and-peer-maturity-reconciliation-2026-10-17.json).
+
+**Latest exact-source 3D route audit (2026-10-17; research only):** confirmed GDAL's AC1027+ ASM path is raw carrier + a column-major transform with block expansion/feature caps that must be fixed in comparison profiles; FreeCAD remains converter→DXF→selected-importer; ACadSharp v3.8.0 excludes open ACIS writer PR #1240; and current LibreDWG source has an AcDs parser path without evidence that it fully resolves #1411's per-owner SAB loss. The optional comparator and transform evidence contract is refined, but no support claim, finding/subplan count, implementation order, dependency, fixture, or J disposition changed. [Detailed audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-3d-route-source-provenance-and-transform-boundary-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-3d-route-source-provenance-and-transform-boundary-audit-2026-10-17.json).
+
+**Latest open-source route/consumer acceptance-boundary audit (2026-10-17; research only):** LibreDWG's public version/writer summaries are not a single consistent route contract; its R2007+ source includes an ACDS section reader, which is not proof of complete owner-to-body association. ezdxf's limited ACIS parser can lose unsupported records; its raw browser is carrier evidence only, and its drawing add-on does not render ACIS or 3D. FreeCAD documents stock DWG as converter→DXF→selected importer and identifies CAD Exchanger as its 3D DWG workflow; stock ACIS must stay `CONSUMER_NOT_APPLICABLE`, while any modeler plugin is a separate optional route. Tighten existing S2/S3/S5/S8 result classification and exact artifact/runtime provenance; no finding, subplan, order, fixture, dependency, or support promotion. J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL`. [Detailed audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-route-and-consumer-acceptance-boundary-audit-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-open-source-route-consumer-acceptance-audit-2026-10-17.json).
+
+**Latest parser-safety validation clarification (2026-10-17; research only):** the local extended lane is deterministic generated-input smoke, not coverage-guided mutation; fuzz signals test crash/progress/resource safety only and cannot promote geometry or format-support claims. Keep per-slice checks fast. Any future coverage-guided target requires a named gap, route separation, locally authored seeds, harness self-validation, direct-reader crash replay and scheduled-only bounded runtime. [Research and readiness gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-coverage-guided-fuzzing-and-harness-trust-review-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-coverage-guided-fuzzing-and-harness-trust-review-2026-10-17.json).
+
+**Latest deeper/broader DXF peer-route and peer-report reconciliation (2026-10-17; research only):** netDxf's archived documentation gives an explicit-geometry read/write scope but expressly excludes proprietary ACIS 3DSOLID/REGION/SURFACE; IxMilia.Dxf lists R10–R2014 entity/version gaps and warns that some typed modeler output may not open in AutoCAD. dxf-rs issue #96 remains open, but the local generated polyface test already checks its cited group-70 wire distinction directly. dwg-rs's current table is arithmetically 88.0% over 4,445 records and 92.2% for AC1032; its separate 90.3%/85.9% verification line appears stale. Keep explicit meshes, modeler carriers, parsed semantics and native acceptance distinct; use matching per-version denominators, with no implementation-order change, support promotion, fixture, dependency, or J disposition change. [Detailed review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-peer-route-and-peer-report-reconciliation-2026-10-17-research-only) · [receipt](docs/research/deeper-broader-dxf-peer-route-and-peer-report-reconciliation-2026-10-17.json).
+
+**Latest deeper/broader OpenCADStudio route audit (2026-10-16; research only):** OpenCADStudio v2026.41 is an optional app/kernel candidate, not a second DWG/DXF parser vote: `opencadcodec` is an ACadRust fork, while its separate `opencadkernel` is explicitly early and the mutable tessellation guide permits incomplete per-surface fallback. A reported same-version AcDs byte-preservation result is carrier evidence only. At the existing composed checkpoint, pin the exact tag/artifact, lockfile-resolved codec/kernel revisions and API; require per-source carrier/owner accounting, complete no-fallback B-rep lift, and independent analytic expectations. It does not satisfy the separate native FreeCAD Linux/Windows gate. No local implementation order, support claim, finding/subplan count, fixture, dependency, test registration, or external-J status changed. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-opencadstudio-release-lineage-and-acis-evidence-boundary-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-opencadstudio-release-lineage-and-acis-evidence-boundary-review-2026-10-16.json).
+
+**Latest local MLINESTYLE assertion (2026-10-16; generated fast test):** the populated-style route now checks `$CMLSTYLE` against the sole NOD-rooted style as well as MLINE's group-2/340 links in the existing ASCII/binary control. This does not settle the no-style/default policy or qualify DWG-origin MLINESTYLE or any 3D consumer behavior. Focused adapter build and CTest pass; no fixture, registration, support claim, or J transition. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--populated-cmlstyle-mlinestyle-linkage-test-2026-10-16-local-fast-slice).
+
+**Latest local MLEADERSTYLE writer slice (2026-10-16; generated fast test):** the low-level DXF serializer applies the AC1021 floor, R2010 group-179 and R2013 group-298 target gates, handle remapping, null-reference omission, and pre-publication refusal for nonzero references mapped to null. This does not yet integrate the rooted style graph, CLASS count, MLEADER reference closure, or qualify DWG/3D-consumer semantics. Focused ASCII/binary tests and the MLINESTYLE regression pass; no fixtures, CTest registrations, support claims, or external-J transitions. [Parity-plan progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--mleaderstyle-low-level-version-and-handle-writer-slice-2026-10-16-local-fast-slice).
+
+**Latest deeper/broader ACDSDATA transport-test refinement (2026-10-16; research only):** Autodesk limits each group-310 binary chunk to 127 bytes, and ACadSharp's open #1150 branch reports a repeated-chunk readback loss after an ACDS refactor; that report is not evidence of a released-peer or libdxfrw defect. Local code emits 127-byte chunks and the AC1027 modeler-writer admission accumulates repeated group-310 chunks with a group-94 length check, but current generated positives are all single-chunk. Add a 256-byte/three-chunk ASCII/binary owner/readback/replay assertion in the existing fast ACDSDATA test; keep the payload marker transport-only. No fixture, registration, implementation reorder, support claim, or external-J transition. [Parity-plan research and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acdsdata-multi-chunk-writer-and-peer-readback-review-2026-10-16-research-only).
+
+**Latest peer-contract and operation-level ACIS refinement (2026-10-16; research only):** the broader DXF peer screen confirms that versioned export is not necessarily version conversion (ezdxf may ignore unsupported features), and that MESH/SUBDIVISION, classic POLYMESH/POLYFACE, and modeler solids must be compared as distinct entity families. ACIS consumer acceptance is operation-specific: opening, display, mass-property queries, editing, and Boolean operations are separate outcomes. Refine existing PAR-07/S8 and mesh-profile evidence only; no implementation order, support claim, finding/subplan total, dependency, fixture, test registration, or external-J status changed. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-contract-and-acis-operation-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-peer-contract-and-acis-operation-review-2026-10-16.json).
+
+**Latest deeper/broader peer-evidence closure (2026-10-16; research only):** a fresh cross-layer scan did not identify a new open-source route that closes the missing end-to-end evidence chain. `@dxfjs/parser`'s advertised `3DSOLID` input is only an entity-dispatch claim: its 0.3.2 package is over three years old and the project still lists `OBJECTS` parsing as unfinished. The current `acis-core` contract explicitly limits its validator to reference closure, and its SAB reader consumes a bare payload—not DWG/DXF containers, AcDs ownership, or a geometry kernel. `cadmpeg-codec-sat` is likewise a pinned payload parser/IR route; ACadRust/OpenCADStudio remains one codec lineage, with display fallback separately disqualifying a render as semantic proof. Keep all these at their existing evidence grades. Add a research stop rule: resume peer discovery only when a primary-source change, reproducible failure, or already-authorized exact candidate can fill a named evidence gap; otherwise record the bounded negative result and continue local slices. No finding/subplan, fixture, dependency, support claim, or external-J disposition changed. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-layer-open-source-route-closure-and-research-stop-rule-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-open-source-route-closure-and-stop-rule-2026-10-16.json).
+
+**Latest ACIS corpus/parser refresh (2026-10-16; research only):** the current `cq-acis` corpus manifest is a provenance-rich optional source for exact SAT/SAB profile coverage (upstream pin, blob/file hashes, version metadata, and per-source license notices), including NIST models and ezdxf-created controls. Those manifest counts are not geometric truth; the NIST collection is as-is and model-specific third-party terms still need review. Keep any downloaded sample in scratch only, never as a new repository fixture. `cq-acis` remains an experimental, bounded payload parser/converter using the same OCCT kernel family as FreeCAD; it cannot establish DWG AcDs ownership or replace exact Linux/Windows FreeCAD checks. Use only at the existing composed checkpoint with independent analytic expectations. No dependency, fixture, new gate, support claim or J transition; J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-corpus-and-parser-boundary-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-acis-corpus-and-parser-boundary-review-2026-10-16.json).
+
+**Latest independent-route and peer-maturity refresh (2026-10-16; research only):** LibreDWG's manual explicitly lists AcDs record/schema types as unhandled and names DWG coverage gaps, so aggregate format/version claims are not family parity. ACadSharp v3.8.0 does not announce ACIS writing; writer PR #1240 remains open/undeployed and depends on open schema PR #1174. FreeCAD's documented DWG route remains converter → selected DXF importer, whose documented stock route cannot read ACIS solid blobs. The open-source candidates still divide into structural payload readers, carriers/projections, and OCCT-family conversion; none closes independent AcDs association through B-rep and native acceptance. Keep the current local fast-test implementation order; do not make peer branches a blocker. No findings/subplans, fixture/dependency, support promotion or external-J transition. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. [Parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-route-and-peer-maturity-refresh-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-independent-route-peer-maturity-refresh-2026-10-16.json).
+
+**Latest deeper/broader entity-name and Assimp projection-boundary review (2026-10-16; research only):** Autodesk explicitly distinguishes the legacy `SOLID` entity (2D, with optional thickness/extrusion) from `3DSOLID`/`BODY` modeler entities carrying proprietary data; do not treat a peer issue titled “DXF Solid support” as evidence about ACIS `3DSOLID`. A static scan of Assimp's current mutable DXF source confirms a narrow ASCII projection route: it rejects binary DXF, dispatches LINE/3DLINE, POINT, 3DFACE and POLYLINE/PFACE, and does not show routes for SOLID, 3DSOLID, MESH, REGION or BODY. Its PFACE path caps face references at four and drops negative-reference visibility signs. The parity plan now routes legacy planar entities, explicit meshes, subdivision cages, and modeler carriers to separate evidence gates, while preserving source-to-output omission counts. Assimp remains ineligible for B-rep, binary, and full graph-closure qualification. No new finding/subplan, peer runtime, fixture, dependency, support claim, or J disposition. [Research entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-solid-versus-3dsolid-and-assimp-dxf-projection-boundary-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-solid-versus-3dsolid-and-assimp-dxf-projection-boundary-review-2026-10-16.json).
+
+**Latest deeper/broader unknown-record route review (2026-10-16; research only):** CADCraft's current matrix distinguishes DXF raw-group preservation from DWG output and documents lossy projections/omissions for several entity families; its percentages are self-estimates and it shares ACadRust's parser lineage. Its `REGION` polyline fallback is not native REGION/ACIS output. Public ACadRust documentation also separates raw DXF groups from same-profile DWG record passthrough, but the visible docs.rs source is version-skewed from the repository's advertised release. The implementation ledger now makes four outcomes explicit—typed-native, opaque-native, lossy projection, omitted/refused—while retaining class/owner/handle closure as separate checks. This is a classification refinement only: no new finding/subplan, peer run, fixture, dependency, support claim, or J disposition. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadcraft-route-matrix-and-unknown-record-output-boundary-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-cadcraft-route-matrix-and-unknown-record-boundary-2026-10-16.json).
+
+**Latest local rooted object-callback handoff (2026-10-16; fast test):** the existing named-object adapter CTest now covers a generated NOD with DICTIONARYWDFLT→PLACEHOLDER and all seven observed descendant families, checking exact identities, owned copies, root-entry order, and duplicate callback/raw counts. The focused CTest passes. This proves callback retention only—not writer emission, 3D semantics, or consumer support—and adds no fixture or test registration. Details: [parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-named-object-callback-retention-graph-2026-10-16-local-fast-slice) · [receipt](docs/research/named-object-callback-rooted-graph-fast-slice-2026-10-16.json).
+
+**Latest local rooted DICTIONARYVAR output closure (2026-10-16; fast test):** generated ASCII/binary DXF cases now exercise a direct NOD→DICTIONARYVAR edge through both raw DXF replay (including an opaque group-300 tag) and the adapter's typed DWG-origin writer route. Readback verifies fixed-handle remapping and owner closure. The focused named-resource CTest passes 1/1; this is not evidence from a real DWG read and does not qualify other named-resource writers or semantic 3D support. No fixture, registration, dependency or support claim was added. Details: [parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-dictionaryvar-output-closure-2026-10-16-local-fast-slice) · [receipt](docs/research/rooted-dictionaryvar-output-closure-fast-slice-2026-10-16.json).
+
+**Latest local rooted SCALE output closure (2026-10-16; fast test):** generated ASCII/binary controls now round-trip NOD→`ACAD_SCALELIST`→SCALE through raw DXF replay and the synthetic typed DWG-origin adapter route. Tests cover owner/self-handle remapping, an opaque group-302 tag, edited typed value readback, and destination-preserving refusal on an owner mismatch. The focused named-resource CTest passes 1/1. This is not real-DWG or semantic 3D qualification; no fixture, registration, dependency or support claim was added. Details: [parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-scale-output-closure-2026-10-16-local-fast-slice) · [receipt](docs/research/rooted-scale-output-closure-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader explicit-MESH and appearance-scope review (2026-10-16; research only):** Autodesk's DXF table documents `AcDbSubDMesh` topology, crease data and material-mapper override framing; ACadSharp's released v3.6.35 notes add material writing and MESH texture-coordinate round-trip, but do not identify whether those coordinates are standard DXF, DWG-only, or extension data. Keep this appearance question `UNQUALIFIED` and out of topology/B-rep support scoring until the pinned source path is inspected. The AC1024 proxy regression reported in ACadSharp #1038 and fixed by #1067 reinforces the existing ready local profile: emit `SUBDIVISION` for AC1024 and `MESH` for AC1027/AC1032, assert raw record/subclass/class identity and creases in ASCII and binary, and leave older-target behavior unchanged pending its source audit. FreeCAD results remain bound to importer/backend and geometry family; its documented ACIS limitation is not a reason to weaken carrier preservation or infer semantic success. No code, tests, new finding/subplan, fixture, dependency, support claim or J disposition changed. See [research entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-mesh-appearance-and-consumer-scope-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-mesh-appearance-and-consumer-scope-review-2026-10-16.json).
+
+**Latest local S3.7c rooted output-budget boundary (2026-10-16; uncommitted):** added a nonzero `maxOutputItems` exhaustion control to the rooted ACIS projection test; a pre-populated caller output is cleared when the generated graph exceeds a four-item logical budget. The strict graph target, focused CTest (1/1), and `lc3_compat_check` pass. This is test-only and makes no ACIS geometry, 3D support, or external-evidence claim. No fixture, registration, or dependency was added. The shared Git metadata is read-only, so the slice remains uncommitted. See the [implementation receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-acis-nonzero-output-budget-boundary-2026-10-16-local-fast-test) and [machine-readable evidence](docs/research/acis-rooted-nonzero-output-budget-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader ACIS-control research (2026-10-16; research only):** ACadRust v0.6.4 (8d5c46d) is a plausible optional author for locally generated analytic ACIS controls, including curved solids, so the existing ezdxf mesh-derived cube need not be the only valid-body test path. Its primitive-builder docs currently lag at 0.5.5, and the library is not a geometry kernel; pin the source, inspect emitted SAT/SAB profiles, and validate with independent analytic expectations plus a separately qualified parser/kernel. ACadRust issue #134 also reports unconfirmed whole-document AC1032 read failures in 70/351 private files. Keep its full-DWG route advisory, do not commit generated files or add a dependency, and leave all six J items deferred. [Research entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-analytic-acis-control-author-and-peer-release-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-analytic-acis-control-author-review-2026-10-16.json).
+
+**Latest deeper/broader independent ACIS payload-reader review (2026-10-16; research only):** `cadmpeg-codec-sat` 0.6.1 is a separate, cross-platform bare SAT/SAB reader with prebuilt macOS ARM64, Linux x64/ARM64, and Windows x64 artifacts; release `v0.6.1` resolves to `9e8f6d6`. Its docs identify ACIS 217/218 as the verified binary profiles and preserve explicit `Admission::Unverified`/loss reporting outside them. It can provide a useful, optional cross-parser/model-transfer observation on the exact payload extracted by libdxfrw, but the project advertises only L1 aggregate support, has no DWG/DXF or AcDs ownership reader, no SAT/SAB writer, and no separate geometric kernel. Pin and hash the artifact/source/dependencies before any run; require full loss/body accounting, and do not count a nonempty B-rep as closed-solid validity or native acceptance. It is not a per-slice dependency or blocker and cannot satisfy native FreeCAD or producer-native AcDs evidence. [Research entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-acis-payload-reader-and-release-pinning-review-2026-10-16-research-only) · [receipt](docs/research/deeper-broader-independent-acis-payload-reader-review-2026-10-16.json).
+
+**Latest local modeler-carrier status integration (2026-10-16; fast test):** the existing ASCII/binary DXF modeler-carrier round-trip now asserts that the parsed public `DRW_ModelerGeometry` reports `CarrierBytesPresent` in addition to validating bounded group-1/3 chunk order and payload bytes. The marker bytes remain transport-only and do not prove valid ACIS. The strict `libdxfrw_dwg_local_roundtrip` target builds and its focused CTest passes (1/1, 3.04 s). No fixture, dependency, registration, support claim, or external-J disposition changed. This is locally verified but uncommitted because the shared checkout's Git metadata is read-only. Receipt: [progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--parsed-dxf-modeler-carrier-status-integration-2026-10-16-local-fast-slice) and [slice receipt](docs/research/modeler-payload-status-dxf-read-integration-fast-slice-2026-10-16.json).
+
+**Latest broader projection-versus-solid-consumer research (2026-10-16; research only):** ezdxf 1.4.5 documents that `mesh_from_body()` extracts only flat polygonal faces (curved faces are lost), while `body_from_mesh()` creates a polyhedral ACIS body with open/closed classification based on two adjacent faces per edge. SOLIDWORKS 2026 documentation describes a separate DXF 3D translator that imports embedded ACIS to parts/assemblies, but does not import wireframe and is not a 2D-to-3D converter. Refine the existing composed gate to treat the former strictly as a derived mesh projection and admit the latter only as an optional, exact-version consumer run if already licensed; neither changes the open-source parser/kernel evidence or 2D LibreCAD compatibility goals. No local runtime, fixture, dependency, support claim, finding/subplan, or J disposition changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-mesh-projection-and-documented-dxf-solid-consumer-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-acis-mesh-projection-and-solid-consumer-route-review-2026-10-16.json).
+
+**Latest broad open-source route qualification (2026-10-16; research + local fast slice):** the peer screen now explicitly separates narrow GDAL/libopencad DWG projection, GDAL DXF's documented MESH/MPOLYGON gaps, FreeCAD explicit-face import from ACIS-solid acceptance, and ezdxf raw SAT/SAB inspection from 3D rendering/kernel semantics. Peer admission now requires a named route role, exact parser/kernel/control-author lineage, and per-family omission/projection counts; no additional peer runtime is added to the per-slice loop. Locally, `DRW_ModelerGeometry` now exposes a computed five-state carrier-evidence status (unknown, explicitly empty, bytes present, expected but unavailable, contradictory), with generated checks and a compatibility-aware semantic-adapter field. Strict local target, focused CTest (1/1), adapter self-test, and `git diff --check` pass. The accessor is not ACIS validation, and the external scan makes no 3D support promotion. Totals remain 125 findings / 71 subplans; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research and implementation entries](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-3d-route-and-consumer-qualification-refresh-2026-10-16-research-only) and [research receipt](docs/research/deeper-broader-open-source-3d-route-and-consumer-qualification-refresh-2026-10-16.json).
+
+**Latest cross-layer loss-accounting and kernel-admission refinement (2026-10-16; research only):** peer evidence now makes the silent-loss boundary concrete: LibreDWG issue #1411 reports an R2018 REGION surviving conversion without its SAB/AcDs payload, while ACadSharp release notes list read-side ACIS extraction and open issue #1195 reports solids omitted by the DXF writer. Both are unverified peer reports, not libdxfrw defects. The plan now makes parsed entity, attached modeler bytes, emitted payload/owner closure, and consumer-created shape four separate per-handle observations; unsupported writes must refuse atomically instead of silently emitting empty shells. ACIS semantic qualification stays an optional composed milestone because OCCT lists ACIS exchange as a commercial extension; no such dependency is implied. Fast generated tests remain the per-slice default. No findings/subplans, code, fixture, support claim, or external-J disposition changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-layer-loss-accounting-and-acis-kernel-admission-review-2026-10-16-plan-refinement) and [research receipt](docs/research/deeper-broader-peer-cross-layer-loss-and-kernel-admission-review-2026-10-16.json).
+
+**Latest local modeler-carrier refusal controls (2026-10-16; fast test):** the existing modeler writer now has focused transactional-preservation checks for three generated invalid inputs: unassociated AC1027 SAB bytes, a retained DWG frame without a supported DXF representation, and an AC1027 entity declaring modeler data without its linked payload. Each attempt must fail without changing a pre-existing destination. The strict local-roundtrip target builds and its focused CTest passes (1/1). No production behavior, fixture, dependency, test registration, support claim, or J state changed; all six J items remain `DEFERRED_EXTERNAL`. Details: [parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--modeler-missing-carrier-atomic-refusal-controls-2026-10-16-local-fast-slice) and [receipt](docs/research/modeler-missing-carrier-refusal-atomicity-fast-slice-2026-10-16.json).
+
+**Latest broader route-maturity reconciliation (2026-10-16; research only):** a fresh cross-project scan found no newly qualified end-to-end 3D witness. LibreDWG, ACadSharp, ACadRust/OpenCADStudio, GDAL/OGR, ezdxf, and OCCT-based routes provide different parser, carrier, projection, or kernel evidence and have distinct versions, lineage, or licensing boundaries. In particular, raw AC1027+ ASM extraction is not solid geometry; ACadSharp's ACIS DXF writer work is still an unmerged dependency chain; OCCT's current ACIS exchange is a commercial component; and CAD Assistant/FreeCAD tools sharing OCCT do not make independent-kernel evidence. Keep the local queue moving with fast tests; defer peer/native checks to existing composed gates. No implementation order, finding, support claim, or external-J status changed. Full route matrix: [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-project-route-and-evidence-independence-review-2026-10-16-research-only), [research receipt](docs/research/deeper-broader-cross-project-route-evidence-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest broader DXF projection-peer screen (2026-10-16; research only):** added DIME as a legacy, independent DXF-parser candidate for a narrow explicit-geometry/unknown-record comparison, not a DWG or ACIS reader; its published support history is old and its `DXF`/`DXB` wording must not be mistaken for binary-DXF qualification. Blender's archived DXF add-on can project explicit `3DFACE`/mesh-family records into BMesh, but it has no ACIS path and its merge/split/recenter behavior makes it projection evidence only. OpenSCAD's project documentation describes DXF import as 2D. These candidates do not alter implementation order or the semantic gates. See the [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-dxf-parser-and-mesh-consumer-screen-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-independent-dxf-projection-routes-review-2026-10-16.json). All six J items remain `DEFERRED_EXTERNAL`.
+
+**Latest local AC1027 block-carrier closure slice (2026-10-16; generated fast tests):** extended the existing ASCII/binary DXF owner test to cover a solid-only inner block, a mixed outer block with nested INSERT plus LINE, two differently transformed modelspace INSERTs sharing that definition, and second-pass replay. Added ASCII/binary refusal controls for an orphaned ACDSDATA handle-key association; both seed and verify unchanged destination contents. The strict `libdxfrw_dwg_local_roundtrip` target and focused CTest pass (1/1). Marker payload is transport-only, not valid ACIS or solid semantics; no fixture, implementation dependency, test registration, or support claim was added. Detail and receipt: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--ac1027-block-modeler-nested-shared-and-orphan-association-fast-slice-2026-10-16-local-uncommitted), [receipt](docs/research/acds-block-owner-nested-shared-orphan-fast-slice-2026-10-16.json). The slice is local/uncommitted in the shared dirty worktree; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest broader AcDs-loss and SAB-authoring review (2026-10-16; research + local fast control):** LibreDWG issue #1411 is explicitly pinned by its reporter to 0.14.8593 and describes an R2018 conversion where the REGION remains but its 5,489-byte SAB/ACDSDATA carrier disappears; it is not independently reproduced here or proof about another build. Current LibreDWG docs still describe AcDs as incomplete/partially extracted. ezdxf 1.4.5's detailed API publishes `export_sab` for SAB 21800/R2013-R2018, while its same-release FAQ still says SAT-only; its parser can lose unsupported ACIS nodes and its mesh projection drops curved faces. The optional composed check now has a precise rule: compare per-handle owner/INSERT closure and payload presence/hash, and score carrier loss even if the entity count survives; ezdxf remains an exact-pinned, optional authoring/polyhedral-control path, not an arbitrary or curved B-rep oracle. The existing fast local test now also covers an AC1027 modeler inside a BLOCK reached by INSERT through ASCII and binary DXF, including replay; DXF import is checked via its raw ACDSDATA owner key, not DWG-only typed DataStorage fields. The strict target and focused CTest pass (1/1). No production code, fixture, dependency, registration, support promotion, or J transition; totals remain 125/71 and J256, J260, J268, J284, J293, J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-acds-loss-case-and-sab-authoring-route-review-2026-10-16-research--fast-local-control) and [receipt](docs/research/deeper-broader-acds-loss-ezdxf-sab-authoring-review-2026-10-16.json).
+
+**Latest deeper/broader downstream 3D-route reconciliation (2026-10-16; research only):** Autodesk's DXF `3DSOLID` table defines the outer proprietary-data chunks and a separate history-owner handle, not ACIS grammar or solid validity. Current FreeCAD documentation says DWG/DXF are 2D-only, while its mutable C++ importer source contains explicit shape-construction paths; keep claims bound to exact importer backend, version, and runtime instead of treating either source surface as a universal verdict. FreeCAD `MeshObject` is explicitly not a solid `Shape`; ezdxf can author a mesh-derived polyhedral ACIS control and project flat polygonal faces, but documents loss of curved faces. The readiness delta is to add a pinned, optional FreeCAD explicit-face recertification at the existing composed gate and to label any tessellation as a derived projection, never as ACIS/B-rep preservation. No finding/subplan, fixture, dependency, support claim, or J disposition changes; totals remain 125/71 and J256, J260, J268, J284, J293, J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-carrier-freecad-consumer-and-mesh-projection-reconciliation-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-dxf-carrier-freecad-consumer-and-mesh-projection-review-2026-10-16.json).
+
+**Latest local S3.2.4 AC1018/R2004 inline-SAB slice (2026-10-16):** generated AC1018 version-2 frames now exercise bounded extraction through the tagged SAB terminal while keeping wireframe/silhouette tail, common handles, and the next-record sentinel outside the payload. Missing, truncated, duplicate, and non-SAB variants remain opaque; the strict touched target and focused `libdxfrw_dwg_local_roundtrip` CTest pass. The local `ET-Drawing-with-Border.dwg` has no modeler record and `Extruder2.dwg` fails at the existing table-read stage, so source-bound positive evidence remains unavailable. AC1018 stays `VERSION_WITNESS_REQUIRED`; no writer, SAT conversion, or semantic 3D claim is promoted. No fixture or dependency was added. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--ac1018r2004-bounded-inline-sab-extraction-2026-10-16-local-uncommitted) and [receipt](docs/research/ac1018-inline-sab-extraction-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader DWG-reader and AC1018 modeler-carrier review (2026-10-16; research only):** ODA v5.4.1 §20.4.41 confirms the version-2 inline ACIS stream has no declared length and ends at its tagged ACIS terminator, before the remaining wireframe/silhouette fields and handle/history tail. ODA's ModelerGeometry API describes R2004 DWG→R15 DXF conversion from SAB to SAT 700; ACadRust explicitly notes the R2004–R2006 no-length SAB case. This refines the existing AC1018 self-unblock row into a generated, fast-test extraction slice, but a successful exact-source trace remains required. Also screened `cadkit-dwg` 0.3.0 as a discovery-only optional DWG structural reader; its own docs say the modeler entities are partial and it has no DWG writer, so it cannot qualify solids or AcDs. No code, fixture, dependency, test registration, support promotion, or J disposition changed; totals remain 125/71 and all six J items remain `DEFERRED_EXTERNAL`. See the [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-reader-and-ac1018-modeler-carrier-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-ac1018-modeler-carrier-and-cadkit-reader-review-2026-10-16.json).
+
+**Latest downstream consumer-route refresh (2026-10-16; research only):** the current LibreCAD 2 source stores modeler geometry in opaque advanced metadata and optionally projects decoded SAB wireframe edges into XY 2D entities; this is not editable 3D-solid support. LibreCAD_3's current pinned persistence integration has no modeler/ACIS callback path, and its DWG policy remains opt-in read-only with no promoted read claims. Keep both as 2D consumer/API compatibility targets, separate from carrier and semantic 3D gates. `cad2d-ir` is a possible optional 2D loss-diagnostic route but its DWG path uses `ezdwg` and the current package/source version relationship is unresolved; it adds no independent DWG or ACIS evidence. No new finding, subplan, test, fixture, dependency or support claim; J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL`. See the [research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-downstream-consumer-route-and-2d-ir-boundary-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-downstream-consumer-route-review-2026-10-16.json).
+
+**Latest local SAB signature-scan slice (2026-10-16; uncommitted):** replaced
+repeated per-offset signature comparisons with a linear KMP scan for each
+signature/bit alignment while preserving ACIS-before-ASM and bit-shift
+precedence. Generated controls cover byte-aligned and shifted ASM headers and
+ACIS selection when an earlier ASM marker is present. The strict graph test
+target, focused CTest, and LibreCAD compatibility check pass; no fixtures,
+dependencies, CTest registrations, support claims, or external-J statuses
+changed. See the
+[implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--linear-sab-signature-scan-2026-10-16-local-uncommitted)
+and [receipt](docs/research/acis-signature-scan-linear-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader peer-release freshness review (2026-10-16; research only):** ACadSharp's latest tagged release is v3.8.0 (`3a1c66b`); the v3.6.51 release notes already include raw 3DSOLID/REGION/BODY ACIS extraction and full DWG Prototype1b reading, while the newer #1270 activity closing issue #822 post-dates the tag and its merge SHA was not verified in this pass. Keep tagged release, current `master`, and open PR evidence as separate lanes; use ACadSharp only as an optional read-side structural comparator until exact owner/payload attachment is demonstrated. Its ACDS schema refactor #1174 and ACIS DXF writer #1240 remain open. LibreDWG's latest visible `0.14.8612` is a nightly prerelease, not a new stable capability claim. GDAL's AC1027+ ASM route is raw-data projection only; ezdxf is bounded to selected SAT/SAB structures and flat polygon faces; FreeCAD remains a named consumer path with explicit DXF importer and external DWG converter choices. No finding/subplan, fixture, dependency, support claim, or J status changed; totals remain 125/71 and all six J items remain `DEFERRED_EXTERNAL`. See the [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-peer-release-and-route-maturity-reconciliation-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-current-peer-release-and-route-maturity-review-2026-10-16.json).
+
+**Latest broader ACIS route discovery (2026-10-16; research only):** the expanded candidate screen found no open-source route that independently validates the full DWG/AcDs-to-solid chain. `SatModelViewer` requires a separately licensed Spatial SDK; CADKernel marks SAT/SAB unsupported; `cq-acis` is the best current profile-bounded parser-to-OCCT candidate but shares OCCT kernel lineage with FreeCAD; `cadmpeg-codec-sat` parses payloads but not DWG/DXF/AcDs containers and is not a geometry kernel. Keep all optional and composed-checkpoint-only; add a peer-admission stop-rule, then continue local S2/S3/S5/S8 work without waiting for external qualification. No new subplan, test, fixture, dependency, code, support promotion, or J transition. Totals remain 125/71; all six J items remain `DEFERRED_EXTERNAL`. Details: [parity research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-acis-route-discovery-and-implementation-readiness-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-open-acis-route-discovery-and-implementation-readiness-review-2026-10-16.json).
+
+**Latest cross-peer graph-closure and mutation-boundary review (2026-10-16; research only):** ACadSharp #1195 remains open and its linked ACIS DXF-writer PR #1240 remains unmerged/undeployed behind ACDS refactor #1174; this is a peer limitation, not a libdxfrw defect. The prior local S2.3.9.4.29 census is complete only for its generated legacy-SAT transport profile and must not be read as AC1027+ ACDSDATA/SAB block support. ACadSharp's merged #1151 dynamic-block work separately reports that unmodified graphs can survive while modified instances lose their parameter relationship, so a no-op round trip is not enough to enable object-graph writing. Refine existing S2.3.2/S2.3.9.4/S8 gates: require per-handle owner/payload/reference closure, no dangling dictionary or block links, and either complete preservation or transactional refusal; test a supported read-modify-write case before enabling mutable graph output. No new finding/subplan, peer runtime, fixture, dependency, support claim, or J transition. Details: [parity review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-writer-graph-closure-and-mutation-boundary-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-writer-graph-closure-and-mutation-boundary-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper/broader control-author route screen (2026-10-16; research only):** `obj2cad` documents a custom SAT/SAB writer, an R2018 ASCII/binary DXF writer, known analytic sample bodies, and an optional surface-from-mesh route. Its own README still marks DWG and curved surfaces beta pending AutoCAD acceptance; its parity hash and ezdxf/ACadRust readbacks are useful structural checks, not B-rep or native-consumer proof. The current `acis-core` docs.rs version is 0.3.11 (superseding the previously recorded 0.3.8 snapshot) and documents only an experimental bounded SAB/analytic authoring profile, not general ACIS or native compatibility. Both remain optional one-time control-author candidates; do not add to CI/per-slice validation or commit generated files. The ABC dataset licensing needs model-specific verification—the dataset points to Onshape terms, which vary by public-document permissions—so prefer local from-scratch controls. No finding/subplan, fixture, dependency, support claim, or implementation order changed; totals remain 125/71 and all six J items remain `DEFERRED_EXTERNAL`. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-obj-to-cad-acis-producer-and-control-author-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-obj2cad-acis-producer-control-author-review-2026-10-16.json).
+
+**Latest local HATCH target-floor slice (2026-10-16; uncommitted):** Autodesk's AutoCAD 2004 API history marks gradient hatch properties as new in 2004, and the official AutoCAD 2005 DXF Reference documents the HATCH gradient group block. Using the repository's AC1018 = R2004 mapping, active-gradient output now fails transactionally for older targets; ASCII/binary regressions cover AC1015 refusal for HATCH and MPOLYGON and successful HATCH output at AC1018. `libdxfrw_wave1` passes. This is a conservative output floor, not universal gradient rendering qualification; groups 431/432/433 semantics remain open. See the [7Q progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--hatchmpolygon-gradient-target-floor-2026-10-16-local-uncommitted).
+
+**Latest deeper/broader producer-and-kernel route screen (2026-10-16; research only):** Formus 0.1.0 is a newly screened Rust B-rep-kernel candidate paired with ACadRust. Its own package page calls the project very early, labels its sample API “Planned API,” places the bidirectional ACadRust bridge in a later roadmap phase, and reports zero documented examples; its commercial-CAD recovery and watertight-solid statements are not independent acceptance evidence. Treat it only as a discovery-stage future analytic control-author candidate, not a proven DWG/DXF/ACIS writer, parser, or independent product route. The current ACadRust docs also explicitly qualify format-level R/W rows by entity/version availability, so pinning a crate version alone does not prove per-entity behavior. This changes no implementation gate or order; totals remain 125 findings / 71 top-level subplans and all six J items remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-formus-acadrust-producer-and-kernel-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-formus-acadrust-producer-and-kernel-route-review-2026-10-16.json).
+
+**Latest deeper/broader open-source capability calibration (2026-10-16; research only):** Autodesk's current DXF entity tables confirm `3DSOLID`, `REGION`, and `BODY` share `AcDbModelerGeometry`, group 70 modeler-format version, and ordered proprietary group 1/3 chunks; `3DSOLID` additionally has a history-owner handle. This defines carrier framing, not embedded ACIS version or B-rep semantics. ezdxf 1.4.5 is a DXF interface rather than a DWG converter or CAD kernel, and its ACIS projection is limited to flat polygonal faces; curved faces are lost. LibreDWG's current public docs advertise broad version coverage but explicitly retain skipped advanced R2010+ objects, DWG writer/version caveats, and entity test-coverage gaps. Normalize all peer comparisons by exact entity, version, direction, and disposition; do not compare headline coverage percentages. The current S2/S3/S5/S8 owners already contain the required carrier, semantic, and consumer separation, so this adds no finding, subplan, dependency, fixture, test registration, support claim, or implementation-order change. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-dwg-dxf-3d-capability-and-claim-normalization-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-open-source-dwg-dxf-3d-claim-normalization-2026-10-16.json).
+
+**Latest local HATCH/MPOLYGON gradient wire-type correction (2026-10-16; uncommitted):** Autodesk's HATCH grammar does not define a per-stop integer `colorMethod` at group 431, and the group-code type table classifies 430–439 as strings. The parser no longer interprets 431 as an integer; the writer no longer emits it and fails closed when the active DXF gradient carries a nonzero DWG-side color method. Generated ASCII/binary checks verify group 431's string type, subsequent group 432 parsing, supported gradient output without 431, and transactional refusal for the unmapped method. `libdxfrw_wave1` passes. This does not resolve undocumented name/book semantics or promote HATCH rendering/interoperability support. See the [PAR-34 implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--hatch-gradient-group-431-string-type-boundary-2026-10-16-local-fast-slice) and [receipt](docs/research/hatch-gradient-431-string-type-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader downstream 3D-consumer audit (2026-10-16; research only):** ArrayCAD adds a useful application-level route for explicit 3D entities, blocks/arrays, units, and ACIS-derived outer-volume projections, but its own source says ACIS solids become convex hulls and reports `acad-ts` 3.2 reading only 5 of 45 solids from one AC1032 DWG (none with body/wires), while 2.4 returned all 45. Its DWG reader is an ACadSharp port lineage; the private reported drawing is not an admitted fixture. Use ArrayCAD only at an existing composed checkpoint with exact source/lock pins and generated controls, scoring entity disposition and projection separately from B-rep semantics. `pyvista-cad` offers a different DXF-to-PyVista route through ezdxf, but returns geometry projections and has no DWG/ACIS route. No new finding/subplan, dependency, fixture, support claim, or external-J status was added; totals remain 125/71, and J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-application-level-3d-consumer-and-versioned-solid-disposition-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-application-level-3d-consumer-and-versioned-solid-disposition-review-2026-10-16.json).
+
+**Latest deeper/broader open ACIS candidate triage (2026-10-16; research only):** the new NativeCAD page describes a SAT-text-only route and expressly refuses SAB; its source/license are not verifiable from the page, and its examples are not independent proof. CADKernel's detailed matrix still marks ACIS unsupported; OpenCADStudio's optional kernel lift remains in the ACadRust-derived codec family; entity-recognition-only or ASCII-only DXF readers add no modern-solid semantic evidence. Keep these out of per-slice validation and focus any later optional run on the already pinned/profile-audited ACIS reader plus independent analytic expectations. No finding/subplan, dependency, fixture, support claim, or J status changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-acis-candidate-and-semantic-evidence-triage-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-open-acis-candidate-and-semantic-evidence-triage-2026-10-16.json).
+
+**Latest modeler-kernel availability and qualification-cost refinement (2026-10-16; research only):** the current route review makes the external ACIS gate fail-fast: ezdxf 1.4.5 is a bounded carrier/polyhedron tool; the open OCCT core is not its separately licensed ACIS SAT/SAB exchange component; and FreeCAD's documented DWG path is converter-to-DXF followed by a selected DXF importer. At the composed checkpoint, screen exact route, version, platform, license/authorization, and structured-shape/metrics capability before invoking any external tool. Mark ineligible routes `NOT_AVAILABLE`/`NOT_RUN` and continue local implementation. This adds no finding/subplan, fixture, dependency, runtime, support claim, or external-J transition. Full evidence and stop rule: [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-modeler-kernel-route-and-qualification-cost-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-modeler-kernel-route-and-qualification-cost-review-2026-10-16.json).
+
+**Latest explicit-mesh implementation slice (2026-10-16; local, uncommitted):** Added generated open-quad, concave-pentagon, and closed 2×3×4 box controls to the existing DXF fixture test owner. ASCII and binary AC1027 runs assert native MESH/subclass identity, following-LINE framing, exact typed cage topology, and distinguish open from closed topology; the closed box checks area 52 and volume 24 from independent authored expectations. The strict fixture target and focused CTest pass 1/1. Files are generated under the system temp directory and removed. This is codec/topology and small analytic-control evidence only—not subdivision evaluation, DWG MESH override output, a peer-kernel result, or native CAD acceptance. Details: [implementation receipt](docs/research/explicit-mesh-topology-controls-fast-slice-2026-10-16.json) and [parity-plan entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--explicit-mesh-topology-controls-2026-10-16-local-fast-slice).
+
+**Latest local S3.7 resource-admission slice (2026-10-16; local, uncommitted):** Rooted SAB traversal now charges new deduplication, queued, cross-root ownership and expanded-cycle-guard set entries before inserting them; repeated entries do not consume a second admission. Added a zero-output-budget refusal control. The strict graph-preservation target, focused CTest (1/1), and `lc3_compat_check` build pass. This closes a charge-after-growth gap for these bounded set entries only; logical item ceilings are still not allocator/RSS bounds, and broader capacity accounting/profile history remains open. Details: [implementation receipt](docs/research/acis-rooted-set-admission-fast-slice-2026-10-16.json) and [parity-plan entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--sab-rooted-set-admission-before-growth-2026-10-16-local-fast-slice).
+
+**Latest deeper/broader explicit-mesh semantics refinement (2026-10-16; research only):** Autodesk's DXF references and ezdxf's mesh conversion docs confirm that `MESH`/`SUBDIVISION`, classic POLYLINE mesh, and PFACE are distinct representations; converting an MESH n-gon to PFACE/3DFACE requires triangulation and may fail on concave faces. CGAL and Manifold expose useful optional topology/solid checks but impose different manifold/closed-mesh preconditions, so their acceptance cannot be imposed on open-surface codec inputs or used after repair as lossless evidence. Keep strict local wire/topology tests dependency-free, with broader generated shape semantics in the existing owner, and reserve optional no-repair kernel metrics for a composed checkpoint. DWG overrides remain fail-closed. No finding/subplan, fixture, dependency, test registration, support claim, or implementation-order change; totals remain 125/71 and all six J items remain `DEFERRED_EXTERNAL`. Details: [parity research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-explicit-mesh-topology-and-geometry-evidence-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-explicit-mesh-topology-and-geometry-evidence-review-2026-10-16.json).
+
+**Latest polyface raw-wire implementation slice (2026-10-16; local, uncommitted):** generated AC1009 and AC1021 ASCII/Binary VERTEX output is checked directly for parent flag 64, coordinate-before-face flags 192/128, explicit zero face location, and signed face indices/zero terminator. The raw scanner uses the R12-specific binary group-code reader for AC1009. The strict fixture target, focused invocation, and owning CTest pass; no production code, fixture, external peer, or support claim changed. See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--generated-polyface-raw-wire-role-and-index-checks-2026-10-16-local-uncommitted) and [receipt](docs/research/polyface-vertex-wire-flags-fast-test-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper/broader polyface wire-output and Rust peer-lineage review (2026-10-16; research only):** IxMilia `dxf-rs` issue #96 reports a polyface coordinate VERTEX emitted with group-70 flags 128 instead of 192; Autodesk's DXF contract confirms coordinate and face records have distinct required flags. libdxfrw already constructs the intended flags, but its generated ASCII/binary checks can gain a raw-wire group-70 assertion so local readback cannot normalize away a writer regression. `dxf-tools-rs` resolves to the ACadRust lineage, not an independent peer. This is a narrow test-precision refinement only: no new finding/subplan, fixture, dependency, support claim, or external-J promotion; totals remain 125/71 and J256, J260, J268, J284, J293, J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-polyface-wire-output-and-rust-peer-lineage-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-polyface-wire-output-and-rust-peer-lineage-review-2026-10-16.json).
+
+**Latest deeper/broader ACadSharp ACIS-writer dependency review (2026-10-16; research only):** the current tagged release remains v3.8.0 and does not advertise ACIS DXF writing. ACadSharp issue #1195 is linked to open PR #1240, which itself depends on open PR #1174 for ACDS/ACIS schema and embedded-record handling. A contributor reports that the #1174 branch's owner-attachment test still fails because `readAcdsRecord` throws `NotImplementedException`; this is a report about that PR branch, not a reproduced result for `master` or #1240. PR #1240's own description also calls out version checks and warnings for unsupported binary data, especially around pre-2013 writing. Keep v3.8.0 as the released baseline and any PR build as experimental. At the existing composed peer checkpoint only, first resolve/pin the dependency graph and pass the focused ACDS owner-attachment read test, then separately test inline SAT and R2013+ SAB/ACDSDATA output, solid-only blocks plus INSERT closure, loss diagnostics, and exact payload/readback identity. No peer was built, no local defect or new implementation subplan was established, and no dependency, fixture, support claim, or J status changed. Details and receipt: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-acis-writer-dependency-readiness-review-2026-10-16-research-only) and [`deeper-broader-acadsharp-acis-writer-dependency-readiness-review-2026-10-16.json`](docs/research/deeper-broader-acadsharp-acis-writer-dependency-readiness-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper/broader DXF peer taxonomy review (2026-10-16; research only):**
+IxMilia documents typed `3DSOLID`/`REGION`/`BODY` classes but warns that
+AutoCAD may reject its writer output for those entities, and lists `MESH` and
+`SURFACE` as exceptions to its broad R10–R2014 support statement. The archived
+netDxf `Solid` class is the classic four-vertex OCS `SOLID`, not an ACIS
+`3DSOLID`. Keep planar SOLID/TRACE, explicit face/mesh entities, and
+proprietary ACIS carriers separate in the support matrix; peer type names do
+not establish raw-carrier retention or B-rep semantics. This only refines the
+existing optional peer checkpoint—no dependency, fixture, finding/subplan,
+support claim, or J status changed. Details and receipt:
+[parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-peer-entity-taxonomy-and-advertised-capability-review-2026-10-16-research-only)
+and [`deeper-broader-dxf-peer-entity-taxonomy-review-2026-10-16.json`](docs/research/deeper-broader-dxf-peer-entity-taxonomy-review-2026-10-16.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+**S3.7c unsupported-curve mixed-row output budget (2026-10-21):** the exact
+minimum rooted output budget increases by three for a three-slot
+null/reference/repeated-reference outgoing row; one item below the bound
+fails with `ResourceLimit` and clears caller output. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-row-output-budget-2026-10-21-generated-fast-test-uncommitted)
+and [receipt](docs/research/s37c-unsupported-curve-mixed-row-output-budget-fast-test-2026-10-21.json).
+
+**S3.7c unsupported-curve mixed-row extraction-work budget (2026-10-21):**
+the three raw pointer tokens add exactly three extraction-work units relative
+to the paired row-free model; one unit under the exact limit refuses with
+`ResourceLimit` and clears caller output. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-row-extraction-work-budget-2026-10-21-generated-fast-test-uncommitted)
+and [receipt](docs/research/s37c-unsupported-curve-mixed-row-extraction-work-budget-fast-test-2026-10-21.json).
+
+**S3.7c unsupported-curve raw-row order (2026-10-21):** a parser-fed
+generated control confirms that an unsupported `parabola-curve` preserves a
+mixed three-slot null/reference/repeated-reference pointer row at its source
+ordinals while not traversing the referenced point. The focused graph CTest
+passes. This is structural retention only, not curve/B-rep validity or
+consumer support.
+Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-unsupported-curve-mixed-pointer-row-order-2026-10-21-generated-fast-test-uncommitted)
+and [receipt](docs/research/s37c-unsupported-curve-mixed-pointer-row-order-fast-test-2026-10-21.json).
+
+**Explicit-facet vs subdivision-surface evidence refinement (2026-10-21):**
+keep classic POLYFACE (explicit face topology), `MESH`/`SUBDIVISION`
+(`AcDbSubDMesh` level-0 control cage plus crease/override metadata), and ACIS
+SAT/SAB/AcDs solids as separate support claims. Autodesk's DXF references and
+the current GDAL DXF docs show that GDAL can project POLYFACE to an OGR
+`POLYHEDRALSURFACE`; that is not proof of MESH evaluation or ACIS semantics.
+An optional GDAL run must keep block definitions/references separate for
+identity checks, or disable geometry merging and remove the default
+10,000-features-per-block cap when separately testing expanded INSERT output;
+bind results by handle and block occurrence and compare against independently
+known generated faces. No new local
+finding, test, dependency, fixture, or support claim was added; the full
+implementation-ready protocol is in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-explicit-facet-peer-geometry-and-subdivision-evidence-boundaries-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-explicit-facet-peer-geometry-subdivision-boundaries-2026-10-21.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest MESH identity refinement (2026-10-16; research + fast regression):** ACadSharp #1038 was closed by #1067; v3.6.12 release notes describe fixes to MESH version handling, DXF assertions, and edge creases. The reported proxy-with-DXF-name-MESH behavior is therefore a historical peer failure, not a current-release claim. The local generated ASCII/binary MESH wire test now requires exactly one `MESH` record and exactly one `AcDbSubDMesh` subclass marker; the strict target build and focused CTest pass. This guards native DXF identity only; it does not qualify DWG MESH layout, subdivision evaluation, ACIS/B-rep support, or any external J item. See the [research receipt](docs/research/deeper-broader-mesh-peer-release-and-dxf-identity-review-2026-10-16.json) and [detailed peer comparison](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#mesh-peer-release-and-dxf-identity-review-2026-10-16).
+
+**Latest MESH DXF version-profile implementation (2026-10-16; research + fast regression):** Autodesk's AutoCAD 2010 DXF Reference identifies `SUBDIVISION`/`AcDbSubDMesh` for AC1024; its 2013 reference identifies `MESH`/`AcDbSubDMesh` for AC1027. The writer now selects those documented names by target version, the reader maps both names into one `DRW_Mesh`, and `dwg2dxf` emits a matching local `AcDbSubDMesh` CLASS row. Runtime-generated ASCII/binary tests check `$ACADVER`, native record/subclass, the selected class tuple, mesh fields, typed readback, and following-LINE framing for AC1014/1015/1018/1021 compatibility characterizations plus AC1024/1027/1032 profiles. AC1012 is not included because it is not an enabled DXF write target in the current API. The writer emits CLASS group 91 instance counts from AC1018 onward, so the local regression checks that field's version-gated presence rather than requiring it for older outputs. The class tuple is a serialization invariant only, not independently qualified against Autodesk output: the generic Autodesk CLASSES table describes field meanings but not a normative `AcDbSubDMesh` tuple, and peer tuples differ. The older-version peer evidence also remains unresolved: ezdxf's internals page says MESH was introduced in R13/R14, while its API documents R2000 as the minimum export version; LibreDWG's generated census points to `test/test-data/2004/Surface.dxf`; none of these establishes a verified old-version sample and acceptance. Pre-AC1024 writer behavior is therefore preserved and explicitly unqualified—not asserted valid or invalid. The owning strict build and focused CTest pass; no full suite, peer CAD runtime, or external fixture was used. This does not qualify DWG MESH layout, subdivision evaluation, FreeCAD mesh geometry, ACIS/B-rep support, or any external J item. Detailed evidence and progress: [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--versioned-mesh-dxf-record-and-class-profiles-2026-10-16-local-fast-slice), [version-name research receipt](docs/research/deeper-broader-mesh-dxf-version-name-and-writer-policy-review-2026-10-16.json), and [class/version research receipt](docs/research/deeper-broader-mesh-class-and-version-evidence-review-2026-10-16.json); implementation receipt: [versioned MESH slice](docs/research/versioned-mesh-dxf-record-and-class-profile-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader ACIS witness refinement (2026-10-16; research only):** the exact OpenCADStudio v2026.41 README classifies STEP AP203 output as mesh, so it cannot witness B-rep preservation; the release's B-rep `MASSPROP` remains an optional metric candidate requiring exact imported-solid selection and no fallback. A newly published, PyPI-attested `cq-acis` 0.3.12 ARM64 wheel is a reproducible separate parser/OCCT candidate, but is unrun here and shares OCCT with FreeCAD. Use only at the existing composed checkpoint, with byte-identical locally generated payload, exact DWG/AcDs association, and independent analytic expected values. No new gates, dependencies, fixtures, support claims or J transitions; totals remain 125/71 and J256, J260, J268, J284, J293, J295 remain `DEFERRED_EXTERNAL`. See the [parity research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-and-broader-acis-semantic-route-and-b-rep-witness-qualification-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-acis-semantic-route-and-brep-witness-qualification-2026-10-16.json).
+
+**Latest source-free SAB-control route (2026-10-16; research + fast checkpoint):** `acis-core` 0.3.8 documents an experimental source-free, bounded SAB encoder for asymmetric metric boxes (and a narrow analytic B-rep authoring path), without Python/CadQuery/OCCT. It may lower setup cost for an ephemeral control if the exact crate/toolchain is already available at a composed checkpoint; it is not a reader or independent semantic witness, and its `cq-acis` relationship means it is one project lineage. Its authored box has fixed profile limits, no general transforms/attributes/history, and no native-application qualification. The existing local modeler DXF matrix still passes; no dependency, generated fixture, support claim, or J transition was added. All six J items remain `DEFERRED_EXTERNAL`. Details: [parity research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-source-free-sab-authoring-and-fast-control-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-source-free-sab-authoring-review-2026-10-16.json).
+
+**Latest OpenCADStudio B-rep metric-route refresh (2026-10-16; research only):** the pinned v2026.41 release advertises `MASSPROP` from solid B-rep, making it a concrete optional metric candidate, but it does not establish that imported ACIS is lifted into that path. The mutable tessellation guide documents an incomplete per-surface fallback; the current kernel README still labels the project early. At the existing composed checkpoint only, first audit the exact tag's lockfile/features/API, then use a locally generated asymmetric control and independently authored metric manifest. Capture topology, import/fallback/repair status, units, transforms and metrics separately. This remains same ACadRust-related parser lineage and cannot qualify as an independent parser or promote arbitrary 3D support. No new plan item, fixture, dependency, support claim, or J transition; totals remain 125/71 and J256, J260, J268, J284, J293, J295 remain `DEFERRED_EXTERNAL`. Details: [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-opencadstudio-b-rep-massprop-and-exact-release-readiness-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-opencadstudio-brep-massprop-route-review-2026-10-16.json).
+
+**Latest local S3.7b step (2026-10-16; uncommitted):** upgraded the in-memory SAB 21800 fast control from an unresolved vertex-only record to an actual point→vertex graph. The positive path now asserts valid finite coordinates and exact bounds; wrong-type/out-of-table pointers are reported as unresolved with no bounds, and NaN/infinity refuse projection. Strict target build, `lc3_compat_check`, and focused CTest pass. This narrows a decoder regression gap only; no B-rep, transform, unit, consumer, or format-support claim is promoted. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--sab-vertexpoint-finite-projection-fast-slice-2026-10-16-local-uncommitted) and [receipt](docs/research/acis-vertex-point-finite-projection-fast-slice-2026-10-16.json).
+
+**Latest deeper/broader ACIS carrier and peer-state review (2026-10-16; research only):** Autodesk's 3DSOLID fields, ezdxf's limited SAT/SAB parser/generator, the exact LibreDWG #1411 reproduction commit, current LibreDWG AcDs reader source, and still-open ACadSharp writer PRs have been reconciled. This corrects a stale inference: #1411 demonstrates loss on the cited build, but current LibreDWG master contains an AcDs reader path; current semantic round-trip behavior remains unverified. ezdxf's mesh-derived cube is acceptable only as an ephemeral structural/carrier control, never as arbitrary B-rep evidence. Plan refinement adds a generated SAT→SAB/AcDs version ladder and per-entity owner/payload accounting at existing gates, with optional peers only at a composed checkpoint. No finding, subplan, fixture, dependency, support claim, or external-J disposition changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-carrier-reproduction-and-peer-current-state-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-acds-peer-reproduction-and-carrier-evidence-review-2026-10-16.json).
+
+**Latest deeper/broader cross-engine lane review (2026-10-16; research only):**
+GDAL is an optional independent DXF projection/raw-ASM comparator (including
+Binary DXF from 3.12 and AC1027+ `DXF_3D_EXTENSIBLE_MODE`), not an open-source
+DWG parser or solid kernel; its DWG driver is ODA-backed. ezdxf 1.4.5's strict
+read, recovery/audit, raw SAT/SAB, and flat-face mesh projection are separate
+evidence grades—faceting/recovery cannot qualify arbitrary B-rep semantics.
+LibreCAD_3 documents DWG import as experimental/off by default and does not
+offer DWG writing, so its gate is reader integration only. The plan now puts
+these optional peer runs at composed checkpoints after focused local fast
+tests, without adding per-slice dependencies. No new finding, fixture,
+dependency, support claim, or external-J disposition; J256, J260, J268, J284,
+J293, and J295 remain `DEFERRED_EXTERNAL`. Details and comparator order:
+[parity plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-engine-evidence-lane-and-comparator-order-review-2026-10-16-research-only)
+and [receipt](docs/research/cross-engine-evidence-lane-and-comparator-order-review-2026-10-16.json).
+
+**Latest broader upstream-hardening reconciliation (2026-10-16; research only):** LibreDWG 0.14.1's current beta notes identify adversarial size/cursor/non-finite-output failure classes; map them only to existing bounded-reader and transactional-writer fast-test owners, not as local defects. Its unresolved-owner truncation report was later verified fixed on master, while separate string-tail output remains an open peer report. This reinforces per-entity/owner disposition and strict framing checks without changing the ACIS/AcDs evidence bar or implementation order. See [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-upstream-hardening-and-cross-project-matrix-review-2026-10-16-research-only) and [`deeper-broader-upstream-hardening-and-cross-project-matrix-review-2026-10-16.json`](docs/research/deeper-broader-upstream-hardening-and-cross-project-matrix-review-2026-10-16.json). No 3D support claim changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper/broader POLYFACE safety-source correction (2026-10-16; research only):** BRL-CAD #228 remains open and its proposed fix PR #245 is unmerged. Its text cites CVE-2022-0496, but NVD/MITRE identify that CVE with OpenSCAD, not BRL-CAD. The proposed `>=1` face-index guard also conflicts with Autodesk's legal negative 71–74 invisible-edge markers; the first zero terminates the face list. The local signed-magnitude validator and generated ASCII/binary controls already cover those boundaries and the peer's out-of-range cases. Keep PAR-37/7V closed, do not run malformed input against the unmerged peer, and do not change 3D claims or the ACIS/AcDs gates. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-polyface-peer-patch-and-cve-attribution-review-2026-10-16-research-only) and [`deeper-broader-polyface-peer-fix-and-cve-attribution-review-2026-10-16.json`](docs/research/deeper-broader-polyface-peer-fix-and-cve-attribution-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper/broader evidence reconciliation (2026-10-16; research + plan correction):** the f.3c descriptor now records the earlier paired ODA/LibreDWG VisualStyle observations instead of implying no writer output was captured: their ordered primary tag sequences agree for all 58 candidate slots, while only 52 complete slot tuples match; group-176 companion and CMC/value policies remain unresolved. This is not a semantic mapping or serializer pass. Refreshed ezdxf 1.4.5 guidance also makes strict parsing, recovery/audit diagnostics, raw-tag retention, and limited ACIS decoding distinct outcomes; recovery and partial ACIS loading cannot qualify clean readback or arbitrary solid semantics. No support claim, implementation order, fixture, dependency or external-J status changed. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-recovery-and-visualstyle-evidence-reconciliation-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-dxf-recovery-and-visualstyle-evidence-reconciliation-2026-10-16.json). J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest deeper transform-grammar and producer-route review (2026-10-16; research only):** ACadRust v0.6.4 documents a 13-number transform payload with explicit scale and multiple SAB token shapes, while the pinned ezdxf profile documents a 12-number literal reconstructed as Matrix44. This unresolved profile conflict does not authorize transform math. Keep local 12-value data unapplied; next characterize 12/13/triplet variants and require producer-authored asymmetric expected coordinates before placement. obj2cad is a potential distinct SAT/SAB DXF writer but pre-release, with DWG/curved surfaces beta pending AutoCAD acceptance; optional composed lane only. No code, fixture, dependency, finding/subplan, support claim or J status changed. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-transform-grammar-and-open-source-acis-producer-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-transform-grammar-and-open-source-acis-producer-route-review-2026-10-16.json). J256, J260, J268, J284, J293 and J295 remain DEFERRED_EXTERNAL.
+
+**Latest deeper/broader reader and kernel-route review (2026-10-16; research only):** clarified that DXF `3DSOLID` group 70 is not the embedded ACIS save version; groups 1/3 carry proprietary chunks and group 350 links history. Current OCCT DXF/ACIS translators are commercial; healing and read/write version limits must be recorded if used. Stock FreeCAD's ACIS route is not planned, while InventorLoader's optional path composes ezdxf extraction, its own ACIS parser, and FreeCAD Part/STEP conversion without a proven source owner/block/transform crosswalk. New Cadze/`ft_model` discoveries are 2D only. Keep explicit 3D geometry, opaque carrier, structural SAB projection, B-rep semantics, and consumer acceptance as separate tiers; no new finding, support claim, J disposition, dependency, fixture, or implementation-order change. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-independent-3d-reader-and-kernel-route-review-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-open-source-reader-and-kernel-route-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest local S3.7c step (2026-10-16; uncommitted):** rooted extraction now
+projects the exact reviewed SAB 21800 body graph with separate per-body raw
+wireframes, source-indexed links, null slots, cycle counts, outside-root and
+multiply-rooted node counts, unsupported-branch counts, and categorized
+failure context. Generated tests cover multi-body/lump/shell/loop cases,
+cycles, owner/type/ref failures, unsupported branches and resource caps. Body
+transforms, units and B-rep validity remain unapplied/unverified, so this is
+structural graph projection only. A raw transform-token observation preserves
+the candidate literal and trailing hint tokens; exactly twelve finite numeric
+values remain `ParsedUnapplied`, bounded 13-value/structured-triplet and
+non-literal forms are explicitly `UnsupportedVariant`, and empty/malformed,
+non-finite or beyond-census forms are `Invalid`. Absent, unresolved and
+wrong-type transform references have distinct generated controls. Numeric
+classification is a single bounded pass. No matrix is interpreted or applied.
+Focused graph-preservation CTest and
+`lc3_compat_check` pass. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--rooted-sab-body-graph-projection-2026-10-16-local-uncommitted)
+and [`acis-rooted-body-projection-fast-slice-2026-10-16.json`](docs/research/acis-rooted-body-projection-fast-slice-2026-10-16.json).
+Transform inventory details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--raw-acis-transform-token-inventory-2026-10-16-local-uncommitted)
+and [receipt](docs/research/acis-transform-raw-inventory-fast-slice-2026-10-16.json); bounded parse details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--bounded-acis-transform-candidate-parser-2026-10-16-local-uncommitted)
+and [receipt](docs/research/acis-transform-candidate-matrix-fast-slice-2026-10-16.json).
+Raw grammar census details: [implementation-ready research plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-transform-grammar-and-open-source-acis-producer-route-review-2026-10-16-research-only)
+and [`acis-transform-raw-grammar-census-fast-slice-2026-10-16.json`](docs/research/acis-transform-raw-grammar-census-fast-slice-2026-10-16.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest rooted-ACIS profile research (2026-10-16; plan-only):** the
+rooted-projection implementation profile is now scoped to SAB
+`ACIS BinaryFile` save version 21800, cross-checked against the pinned ezdxf
+1.4.4 source profile (implementation evidence, not normative ACIS authority).
+S3.7c must traverse the body→lump→shell→face→loop→coedge→edge→vertex/point
+graph, preserve multiple loops/lumps and cyclic coedge/partner relationships,
+validate only profile-defined ownership, and visibly report unsupported
+wire/subshell/p-curve/pattern branches and unapplied body transforms. In
+particular, do not require `vertex.edge` to reverse-reference the current edge:
+the peer profile explicitly says an endpoint vertex's parent edge need not be
+that edge. ACIS 20800/22300 and other profiles stay fail-closed until their
+version deltas are reviewed. ODA §24 remains authoritative for DWG AcDs
+container/linkage but explicitly does not define SAB internals. No code,
+fixture, test registration, finding/subplan, dependency, or support/J status
+changed. Details: [parity-plan research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-rooted-sab-projection-profile-and-version-boundary-review-2026-10-16-research-only)
+and [`deeper-rooted-sab-projection-profile-and-version-boundary-review-2026-10-16.json`](docs/research/deeper-rooted-sab-projection-profile-and-version-boundary-review-2026-10-16.json).
+
+**Latest broader peer-profile and transform-boundary review (2026-10-16; research only):** ProGPU's public `DXF.md` contains a SAB fixed-pointer fallback that conflicts with the pinned ezdxf 21800 shell/face reference counts, while its architecture document says ACadSharp owns the active file model and legacy `ProGPU.Dxf` code remains during migration. Treat ProGPU as `DISCOVERY_ONLY / NOT_ORACLE`; its described edge projection is not B-rep validation. The pinned ezdxf profile reads 12 transform numbers from a literal string and reconstructs an omitted matrix column, but that is not normative authority for our matrix convention, placement, or units. Keep S3.7c transforms raw and unapplied until generated asymmetric vectors verify convention/order; keep unit scaling separate. No finding/subplan/support/J status changes. Details: [parity-plan research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-profile-and-acis-transform-boundary-review-2026-10-16-research-only) and [`deeper-broader-progpu-and-acis-transform-profile-review-2026-10-16.json`](docs/research/deeper-broader-progpu-and-acis-transform-profile-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest native-consumer evidence refinement (2026-10-16; research only):** current FreeCAD importer source can publish edge-shaped results, and open FreeCAD issue #31716 reports a “3D-DXF” appearing as lines despite a solid-like icon; the report has no drawing/entity census, so it is only a failure-mode lead. At the composed consumer gate, distinguish parser delivery and object creation from actual topology. Require entity-appropriate coordinates/topology for explicit meshes/faces and validity/closedness plus analytic metrics for solid claims. Keep the 3DSOLID proprietary payload/history carrier separate from `SOLID`, 3DFACE, mesh, and line callbacks. No support/J status changed. Details: [parity-plan research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-native-dxf-consumer-and-shape-evidence-review-2026-10-16-research-only) and [`deeper-broader-native-dxf-consumer-shape-evidence-review-2026-10-16.json`](docs/research/deeper-broader-native-dxf-consumer-shape-evidence-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest broader open-source route review (2026-10-16; research only):**
+keep parser support, exact ACIS/ASM carrier retention, projection/tessellation,
+B-rep semantics, and native application acceptance as separate gates. GDAL's
+AC1027+ route exposes raw ASM plus transform; ezdxf's geometry extraction is
+limited to planar faces; InventorLoader supplies a distinct SAT/SAB parser but
+uses FreeCAD Part for shape construction; FreeCAD's stock DXF/DWG path remains
+separate. ODA v5.4.1 remains authoritative; LibreDWG's newer spec diff is a
+delta lead only. The implementation queue does not change: refine existing
+PAR-07/S8.4/S8.5/S8.9.5, retain fast local validation and composed-only peer
+runs, and keep support claims closed. Details: [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)
+and [research receipt](docs/research/deeper-broader-open-source-3d-route-and-spec-delta-review-2026-10-16.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest DXF unit/consumer-scaling refinement (2026-10-16; research only):**
+keep `$INSUNITS`/`$MEASUREMENT` header preservation and numeric coordinates
+separate from application behavior. AutoCAD can apply installation-specific
+source/target defaults during insertion when `INSUNITS=0`; FreeCAD has its own
+backend-specific `dxfScaling` import setting. Use omitted-only legacy DXF
+controls and explicit absent/0/1/4 controls in a modern profile; bind actual
+consumer settings and assert final coordinates in composed checks. No local
+defect or support claim was promoted. See the [parity-plan research
+section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-unit-metadata-and-consumer-scaling-review-2026-10-16-research-only)
+and [`deeper-broader-dxf-unit-metadata-and-consumer-scaling-review-2026-10-16.json`](docs/research/deeper-broader-dxf-unit-metadata-and-consumer-scaling-review-2026-10-16.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest local unit-header slice (2026-10-16; uncommitted):** the existing
+7BJ.4 presence gate now has a fast generated ASCII/binary check, and the DXF
+writer no longer synthesizes `$INSUNITS=0` when the source header omitted the
+variable for AC1015+; explicit values remain. The focused mode and full
+`libdxfrw_dxf_fixture_tests` executable pass. This checks local metadata and
+coordinate preservation only—not FreeCAD scaling, insertion defaults, or
+native 3D qualification. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--preserve-dxf-insunits-presence-in-the-writer-2026-10-16-local-uncommitted)
+and [`dxf-insunits-presence-wire-fast-test-2026-10-16.json`](docs/research/dxf-insunits-presence-wire-fast-test-2026-10-16.json).
+
+**Latest FreeCAD/OCCT route-boundary refresh (2026-10-16; research only):**
+the open-source OCCT core and its commercial ACIS/DXF exchange components are
+separate; stock FreeCAD's standard DXF importer is distinct from optional
+licensed routes. FreeCAD's documentation repository is archived, so its
+importer matrix is a historical capability index rather than a current
+release guarantee. Keep S8.9.5 Linux/Windows runs limited to converter
+installation/handoff unless the selected importer creates independently
+expected geometry. CAD Exchanger is a separately licensed optional
+reader/consumer candidate, not an open-source peer, default dependency, or
+proof of the exact ACIS/AcDs path. No implementation order, finding/subplan
+count, support claim, or J status changed. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecadocct-and-licensed-3d-route-boundary-review-2026-10-16-research-only)
+and [`deeper-broader-freecad-occt-licensed-3d-route-review-2026-10-16.json`](docs/research/deeper-broader-freecad-occt-licensed-3d-route-review-2026-10-16.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest ACadRust release and peer-loss refresh (2026-10-16; research only):** the exact ACadRust v0.6.4 tag (`8d5c46d`) is now the preferred optional structural comparison target over mutable `main`; its release notes report ACIS/AcDs improvements and BricsCAD checks but provide no hash-pinned per-family semantic report. ACadRust, OpenCADStudio, and CADCraft remain one parser lineage. ACadSharp #1195/#1240 reinforces the existing no-silent-loss check for ACIS entities nested in blocks. Keep source/owner inventory, byte transport, B-rep semantics, and consumer acceptance as separate gates. No peer run, fixture, dependency, support claim, or J status changed. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-release-and-peer-loss-review-2026-10-16-research-only) and [`deeper-broader-acadrust-release-and-peer-loss-review-2026-10-16.json`](docs/research/deeper-broader-acadrust-release-and-peer-loss-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest OpenCADStudio consumer/tessellation and peer-test refresh (2026-10-16; research only):** current OpenCADStudio v2026.41 is an eligible optional *single peer family* candidate because it combines a Rust DWG/DXF codec with ACIS-to-kernel tessellation. Its own tessellation guide distinguishes successful kernel surface lifting from a direct per-surface fallback and notes explicit `incomplete` state; MESH/POLYFACE display fill uses fan triangulation. Those renderer outputs are not a substitute for source topology, closedness, or analytic shape metrics. The already recorded v2026.38 carrier/history read is not a v2026.41 run, and issue #1615 has no hash-pinned drawing or independent shape manifest; neither the project's self-roundtrip tests nor its app claims promote support. At the composed gate only, pin the exact release and locked codec/kernel commits, compare a locally generated asymmetric control, record fallback/diagnostics and full owner/block/INSERT disposition, then verify topology/analytic metrics with a separate expected-geometry source. No code, dependency, fixture, test registration, finding/subplan, support claim, or `DEFERRED_EXTERNAL` status changed. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-cad-peer-tessellation-and-polyface-guard-review-2026-10-16-research-only) and [`deeper-broader-opencad-peer-and-polyface-guard-review-2026-10-16.json`](docs/research/deeper-broader-opencad-peer-and-polyface-guard-review-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest ACIS kernel and candidate-claim triage (2026-10-16; research only):** the review distinguishes OpenCADStudio's ACadRust-related codec/parser from its separate but explicitly early `opencadkernel`; the kernel's ACIS feature pins `opencadcodec` and cannot count as an independent DWG/DXF reader. It is only a conditional second-kernel lead after an exact operation is implemented and produces complete, non-fallback analytic results. CADKernel's detailed table marks ACIS SAT/SAB unsupported, and the newly surfaced Aetheris README describes a STEP AP242-oriented kernel without a documented SAT/SAB, DWG, or DXF input route. Neither advances the semantic gate; RWSAT still requires the commercial ACIS Modeler and only extracts SAT splines/trims. No candidate ran or changed any support gate. Details: [parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-acis-kernel-and-candidate-claim-triage-2026-10-16-research-only) and [`deeper-broader-acis-kernel-and-candidate-claim-triage-2026-10-16.json`](docs/research/deeper-broader-acis-kernel-and-candidate-claim-triage-2026-10-16.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Latest broader separate-reader and 3D application-route review (2026-10-16; research only):** `dwg-rs` is a separately implemented ODA-spec-led DWG reader but remains pre-alpha: its README reports conflicting aggregate coverage totals, its entity graph is partial, and its glTF surface tessellation is approximate. Open CAD Studio advertises native DWG/DXF plus 3D/ACIS tessellation, but its file engine is ACadRust-lineage and its application claims are not independent parser or B-rep evidence. Keep the existing explicit-mesh, ACIS-carrier, kernel-shape, and native-consumer gates separate; no 3D support or external-J status changed. Details: [parity-plan research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-separate-dwg-reader-and-application-route-maturity-review-2026-10-16-research-only) and [`deeper-broader-independent-dwg-reader-and-application-route-review-2026-10-16.json`](docs/research/deeper-broader-independent-dwg-reader-and-application-route-review-2026-10-16.json).
+
+**Latest writer-boundary and FreeCAD profile refresh (2026-10-16; research only):** the still-open ACadSharp #1150 branch now provides concrete but unmerged test leads for the DXF `AcDb3dSolid` subclass boundary (claimed from R2007), SAT group-1/3 token-safe chunking, and format/version-specific SAT/SAB versus AcDs/ACDSDATA routes. Its author reports TrueView checks at several DXF targets, but the peer does not provide released capability evidence and lacks R2007 DWG writing. The plan keeps AC1021 as a candidate boundary pending ODA/output reconciliation, and keeps stock FreeCAD's explicit-geometry consumer profile separate from ACIS: its maintainer says proprietary ACIS blobs are not read by stock FreeCAD. No implementation finding, test, fixture, dependency, support claim, or `DEFERRED_EXTERNAL` status changed. Details: [parity-plan research review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-writer-version-boundary-and-freecad-consumer-profile-review-2026-10-16-research-only) and [`deeper-broader-acis-writer-version-boundary-and-freecad-profile-review-2026-10-16.json`](docs/research/deeper-broader-acis-writer-version-boundary-and-freecad-profile-review-2026-10-16.json).
+
+**Latest broader test-lane and peer-lineage review (2026-10-16):** a newly surfaced `codelibs/libdxfrw` fork advertises version/entity tests but shares libdxfrw ancestry, reports no DWG writer, and points to external test data. It is now classified discovery-only: test names can suggest scenarios, but its parser cannot count as an independent oracle and its drawing bytes are not fixture candidates. Current LibreCAD CMake's fast/slow split and LibreDWG's route-specific fuzz/class-status guidance reinforce the existing fast-slice plus scheduled broad-validation plan; ezdxf recovery remains a diagnostic lane, not clean readback. No 3D/ACIS claim, local finding, subplan, fixture, dependency, or J disposition changed. Details: [parity-plan research review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-test-lane-and-correlated-fork-review-2026-10-16-research-only) and [`deeper-broader-source-test-lanes-and-correlated-libdxfrw-fork-review-2026-10-16.json`](docs/research/deeper-broader-source-test-lanes-and-correlated-libdxfrw-fork-review-2026-10-16.json).
+
+**Latest cross-kernel, AcDs, and native-render review (2026-10-16):** official
+OCCT sources place ACIS SAT/SAB exchange in commercial extensions, so stock
+OCCT/FreeCAD is not an assumed open-source ACIS oracle. Current LibreDWG source
+does parse part of AcDs but leaves `_data_`/`blob01` payload segments unhandled
+and has a marker-scan recovery path; issue #1411 remains pinned to an older
+release and is neither a current-master finding nor proof of resolution.
+ACadRust's visible fabricated-SAB self-roundtrip is transport evidence only.
+The merged ACadSharp TrueView crash fix corrects its initial VisualStyle/Material
+diagnosis to an active-VPORT ambient-color default, so the composed native gate
+now checks viewport defaults and one supported shaded/realistic transition
+without speculative object-count requirements. Existing 3D gates, 2D
+LibreCAD/LibreCAD_3 compatibility, and the six `DEFERRED_EXTERNAL` items remain
+unchanged. Detailed evidence and readiness steps are in the [parity-plan
+research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-cross-kernel-current-acds-and-native-render-state-review-2026-10-16-research-only)
+and [`cross-kernel-render-state-and-current-acds-source-review-2026-10-16.json`](docs/research/cross-kernel-render-state-and-current-acds-source-review-2026-10-16.json).
+
+**Latest deeper downstream-importer / ACIS-profile review (2026-10-16):**
+FreeCAD's native C++ and optional legacy Python DXF importers are distinct
+consumer routes, and the DWG adapter delegates through an external converter
+to one selected DXF importer; successful conversion/open therefore does not
+qualify per-entity or solid semantics. ezdxf 1.4.5's current API documents
+SAT and SAB export plus R2013+ ACDSDATA assignment; its SAT-only FAQ is marked
+as the old FAQ and is stale, not an unresolved current API conflict. ezdxf
+still has no ACIS kernel and its mesh projection is limited to flat polygonal
+faces. Keep the exact-version runtime probe at the composed checkpoint only;
+do not gate local implementation on it. Curved ACIS semantics remain
+separate from exact carrier preservation. No code, fixture, dependency,
+support claim, finding, subplan, or J status changed. See the [parity-plan
+research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-ezdxf-1_4_5-acds-and-acis-boundary-review-2026-10-16-research-only)
+and [`deeper-broader-ezdxf-1_4_5-acds-and-acis-boundary-review-2026-10-16.json`](docs/research/deeper-broader-ezdxf-1_4_5-acds-and-acis-boundary-review-2026-10-16.json).
+
+
+**Latest deeper AcDs/polyface/kernel review (2026-10-15; baseline
+`873eb76`):** local ODA v5.4.1 §24 defines the `0x40000` direct-record/blob
+boundary, page-index/offset invariants and a writer search-index requirement;
+the parser has blob validation/assembly, but the fast test suite has no
+generated `blob01` page-chain vector. Autodesk also requires tolerant polyface
+readers despite inaccurate declared counts and unusual child order. Reader
+lineage and kernel lineage are now explicit qualification fields: an
+independent parser sharing OCCT with FreeCAD is parser corroboration, not an
+independent-kernel result. The parity plan records the exact proposed controls
+and source limits; no code, fixture, external product, support claim or J
+status changed. Receipt:
+[`broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json`](docs/research/broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json).
+
+**Latest deeper carrier/writer research (2026-10-15):** the broader review
+now includes an executed LibreDWG 0.14 AC1032→R2018 DXF conversion compared
+with the hash-matched ODA R2018 output from the same already-tracked drawing.
+All58 Flat VisualStyle primary group codes align, but six property tuples do
+not; LibreDWG omits two group176 companions, produces three group420 values
+outside the documented 24-bit range, and differs in extended-lighting/CMC
+values. This is a strong warning against copying peer output as the wire
+contract, not a producer-authored or CAD-acceptance result. ACadSharp's merged
+ACIS read route and still-open schema/write proposals expose concrete segment,
+handle-order and chunk-boundary cases for the container-specific test plan.
+The existing local MESH field test also lacks property-override records, so
+the plan adds a generated fast vector before broad native qualification. No
+new fixture/dependency/support claim or external J transition is allowed.
+See [the detailed parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-3d-carrier-runtime-and-peer-writer-readiness-review-2026-10-15),
+[`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
+
+**Implementation slice — explicit MESH property overrides (2026-10-15):**
+commit `f8d802d` adds generated ASCII/binary wire and typed-readback checks for
+two override records with different subentity markers/property types, plus a
+following-entity sentinel. The existing local MESH implementation now has
+focused coverage of overrides as well as vertices, faces, edges and creases;
+this remains structural field preservation, not rendered/surface semantics or
+ACIS parity. The DXF fixture target, executable, and registered CTest pass; no
+fixture, production code, callback contract, or support claim changed. Exact
+source/artifact hashes are in
+[`mesh-property-overrides-fast-test-2026-10-15.json`](docs/research/mesh-property-overrides-fast-test-2026-10-15.json).
+
+**Latest broader peer-capability / CLASS readiness review (2026-10-15):**
+cross-implementation version matrices, type inventories, raw-preservation
+routes, and semantic qualification are now explicitly kept as separate
+evidence levels. The current f.4b sequence also requires the final admitted
+custom-class manifest and AC1018+ instance counts to be computed before
+CLASSES emission, after graph admission and raw/typed dedup; peer source shows
+why input inventory counts can diverge from records actually written. The
+FreeCAD gate now explicitly captures converter return status, output
+validation, fallback selection, and effective import preferences. Autodesk's
+published uniqueness contract remains the gate despite a conflicting ezdxf
+historical note; no policy was relaxed. This was static source/spec research
+only—no code, tests, support claims, findings, ledger counts, or external J
+statuses changed. Details and source-bound receipts are in the [parity plan's
+broader peer-capability audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-peer-capability-object-graph-and-class-contract-audit-2026-10-15-research-only),
+[`broader-peer-capability-readiness-2026-10-15.json`](docs/research/broader-peer-capability-readiness-2026-10-15.json),
+and [`class-emission-contract-readiness-2026-10-15.json`](docs/research/class-emission-contract-readiness-2026-10-15.json).
+
+**Broader representation/consumer research (2026-10-15):** a fresh
+cross-project pass separates opaque-byte retention, typed/graph preservation,
+explicit WCS geometry, kernel-level ACIS semantics, and named-consumer
+acceptance. LibreDWG issue #1411 reports silent R2013+ AcDs/SAB geometry loss
+while the `REGION` entity survives; ACadSharp issue #1195 reports real solids
+silently omitted inside block definitions and links open serializer work. The
+new ordering therefore makes per-handle/container loss census and block-nested
+cases precede writer claims, and requires AC1027+ AcDs owner/prototype closure
+before assuming inline SAT/SAB serialization covers modern DWG. Autodesk's
+3DFACE/MESH/OCS tables also make connectivity, edge flags, and coordinate
+frame tests explicit—not just entity/vertex counts. FreeCAD qualification is
+split by stock converter/importer versus its optional commercial 3D route;
+current source and its archived importer guide do not justify treating every
+3D entity or ACIS body as consumed. Detailed source limits and the revised
+five-slice sequence are in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-3d-representation-and-consumer-boundary-review-2026-10-15-research-only)
+and [`broad-3d-consumer-capability-review-2026-10-15.json`](docs/research/broad-3d-consumer-capability-review-2026-10-15.json).
+No fixtures, dependencies, code, qualification receipts, support claims,
+ledger counts or J statuses changed; the six external items remain
+`DEFERRED_EXTERNAL`.
+
+**Implementation follow-through (2026-10-15):** a tracked AC1032 conversion
+triage isolated a separate adapter handoff defect: LAYOUT 330 targets were
+decoded, but their associated BLOCK_RECORDs were not delivered from
+`readDwgBlocks()`. The transactional callback now preserves that record and
+its full BLOCK name; the existing-fixture fast test asserts the reciprocal
+LAYOUT/BLOCK_RECORD identity and passes. This unblocks layout preflight only.
+The same FreeCAD-form CLI test next rejects 24 typed AC1032 VISUALSTYLE objects
+without DXF carriers. The plan therefore keeps typed source capture, validated
+58-slot DXF serialization, rooted graph closure, and composed CLI acceptance
+as separate steps; the research crosswalk's group-176/Boolean disagreements
+must be resolved before emitting any carrier. This does not change the six
+external J dispositions or any 3D/consumer support claim.
+
+**Latest implementation slice — f.3c.1 source-profile classifier (2026-10-15):**
+the adapter now has a narrow structural gate for a complete AC1032
+DWG-origin VisualStyle capture (decoded body, R2013b expansion, 58 companion
+operations, eight modern CMC captures, un-clamped source isolines, bounded
+extended-lighting word). Existing-fixture mutation controls pass alongside
+the named-resource provenance and extension-graph fast tests (3/3); production
+and LC3 compatibility targets build. This is not a serializer, field mapping,
+proof that captured values are unchanged, CMC output qualification, graph
+closure, 3D semantic support or a promoted support claim. No test drawing was
+added. The separate `dwg2dxf_freecad_cli_compat` composed test still fails on
+integrity checks for the tracked AC1032 fixture (`classesCrcMismatch=1` and
+reported offsets 16/773); the new predicate is unused by that conversion path,
+so keep its gate open and diagnose the reader/fixture evidence independently.
+See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3c1-ac1032-visualstyle-source-profile-completeness-2026-10-15)
+and [source/test receipt](docs/research/visualstyle-source-profile-7g-3f-3c-1-2026-10-15.json).
+**Completed local f.3c evidence-grade slice (2026-10-16):** the existing
+58-slot candidate crosswalk has a checked evidence-grade sidecar for local
+source/model capture, same-profile DWG no-op replay, R2010b DXF groups, R2013b
+candidate groups, per-property companions, CMC policy, and serializer
+admission. A paired-writer evidence reconciliation now additionally records
+that ODA and LibreDWG outputs had the same ordered primary tag-code sequence
+across 58 candidate slots, but only 52 complete slot tuples matched; this is
+output observation, not a semantic group assignment. ODA emitted 58 group-176
+companions and LibreDWG 56 (missing at 31/33), with further group-177 and CMC
+differences. The Autodesk table specifies the conventional R2010b groups
+except slot 6, where candidate group 63 conflicts with its dedicated group-421
+“Face style mono color” entry; that slot stays unresolved. R2013b semantic
+value-group assignments, group-176 policy, CMC policy, and serializer
+admission remain unresolved. The existing manifest test checks exact slot
+coverage/name alignment and refuses silent promotion. This is descriptor and
+policy evidence only, not a serializer or support claim. No external J gate
+changes; all six remain `DEFERRED_EXTERNAL`.
+
+**Deeper f.3c evidence update (2026-10-15):** a pinned LibreDWG crosswalk now
+provides candidate DXF groups for all58 AC1032 VisualStyle values, with source
+primitive types and the eight CMC slots. It also exposes source-path
+asymmetries: Boolean slots31 and33 are tagged 290 with companion group0 in
+`dwg2.spec`, tagged with companion176 by generated API metadata, but read as
+90/176 by the DXF importer; actual runtime writer output remains unverified.
+Slot45's primary Boolean is skipped by the importer. The public Autodesk table
+does not define these extended groups; LibreDWG also normalizes absent group177
+lighting values. Accordingly the next step is not
+to emit this candidate map: validate the local 58-field model against the
+crosswalk, resolve those conflicts against producer-authored ASCII/binary
+documents and independent readback, and refuse unqualified profiles. Details,
+all58 candidate slots, pinned file hashes, and bounded sub-plan are in the
+[parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-visualstyle-slot-map-and-peer-asymmetry-audit-2026-10-15-research-only)
+and [`visualstyle-slot-map-readiness-2026-10-15.json`](docs/research/visualstyle-slot-map-readiness-2026-10-15.json).
+The tracked LibreDWG AC1027 example shows a group290/176 encoding, but its
+history identifies cross-version conversion rather than an independent
+producer; it is a parser-path probe, not validation. No peer runtime, native
+CAD, ACIS, full-suite or semantic support claim was added. All six external J
+gates remain deferred.
+
+**Latest named-root implementation state (2026-10-15):**
+f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
+deeper writer/readback review found that SCALE, DICTIONARYVAR, MLINESTYLE and
+MLEADERSTYLE raw companions are discarded by the CLI adapter, no current
+adapter call site reaches their typed writers, and the named-root graph does
+not index these record kinds. MLEADERSTYLE also needs 179/298 version gates
+and all four 340–343 references remapped/validated; MLINESTYLE needs code-71
+count and complete repeated-element validation plus R2018+ linetype-handle to
+name resolution. The refreshed implementation-ready order is documented in
+the [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-named-resource-emitter-and-cross-implementation-readiness-review-2026-10-15)
+with source-bound receipt
+[`named-resource-emitter-readiness-2026-10-15.json`](docs/research/named-resource-emitter-readiness-2026-10-15.json).
+The visual-style-only f.3b.1 import provenance slice is now implemented: it
+binds exact typed/raw collection bounds to one successful, versioned import
+and refuses authored, reused/mixed, failed, incomplete or source-format-
+mismatched style sets. This receipt is not output admission or payload
+completeness. f.3b.2 now also binds SCALE, DICTIONARYVAR, MLINESTYLE and
+MLEADERSTYLE to one successful source generation and validates their DXF
+typed/raw owner-handle joins; other OBJECTS families remain outside this
+receipt. f.3c source-profile serialization admission remains a prerequisite
+to typed f.4b output.
+Separately, `dx_data` retains raw DXF companions and has a bounded one-to-one
+typed/raw join for SCALE, DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE. A fast
+test verifies the typed-only DWG route using the existing tracked
+`rtext_arctext.dwg`; graph and emitter dispatch remain open.
+No writer behavior, full conversion, external qualification, or support claim
+is implied. All six J gates remain `DEFERRED_EXTERNAL`. Focused implementation
+status and commands are recorded in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3b1-visual-style-import-provenance-2026-10-15).
+
+**Current parity7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE (baseline`7b753cf`):**
+Typed DXF VISUALSTYLE description/type respect subclass and291 boundaries;
+post-tail70 no longer aliases type, even across repeated markers. Markerless
+older controls, ordinary tolerance and raw tag preservation remain intact;
+no full property-body decode or grammar validator is added. Eight authored
+ASCII/binary profiles plus copy/reset/suffix and failed same-facade retry pass.
+Current probe matches72 literal producer types, repairing the48 modern
+collisions while leaving24 older types/other observed fields unchanged.
+Focused fixture/reader/object gates3/3 in5.15s and strict two-TU/build/lc3 pass.
+Receipt: `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
+f.4a owned family handoff is now complete. f.3b.1 binds the VisualStyle range,
+and f.3b.2 binds exact typed/raw ranges for SCALE, DICTIONARYVAR, MLINESTYLE
+and MLEADERSTYLE. Other OBJECTS families are not yet covered. f.3c serializer
+admission precedes whole-root f.4b and CLI f.4c closure;9d and six external J
+gates remain open/non-promoting. No new
+fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
+Private public-class state requires rebuild; no callback/default2D policy change.
+
+**Broader named-root readiness refresh (baseline`f6fb033`):** Autodesk's DXF
+object contracts and the current writers expose additional closure requirements:
+preserve DICTIONARY code280, DICTIONARYWDFLT's copied code340-presence proof,
+LAYOUT's independent block/viewport/UCS/shade links, entity-to-MATERIAL code347
+edges, complete MATERIAL map/color state, and TABLESTYLE row/cell subrecords.
+The current MATERIAL path emits only name/description; TABLESTYLE's nested DXF
+state is raw-net-only and has no typed writer. These are existing7G.3f.4/.5
+payload blockers, not new support findings. The detailed mapping and order are
+in the [parity plan's named-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#named-root-payload-and-writer-contract-readiness-review-2026-10-15)
+and [source-bound research receipt](docs/research/broader-named-root-readiness-2026-10-15.json).
+This was static review only: no code/test/application run, support matrix
+promotion, fixture or count change. All six external J gates remain deferred.
+
+**Latest research-only handoff (baseline`91d0a88`):** the
+[typed-readback and whole-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
+reproduces48 typed style-type collisions across two captured modern DXF
+profiles, with24 older-profile controls unaffected. Three tracked DWGs each
+publish29 selected callbacks inherited as CLI no-ops: DICTIONARYWDFLT and its
+required PLACEHOLDER plus27 children in seven other families. Two LAYOUTs and
+three MATERIALs are retained but outside the extension planner. A typed style
+writer alone therefore cannot close full CLI9d.
+
+Two audit-disabled ODA27.1 saves of12 locally authored controls expose the
+profile boundary:177=0/1/2 with a58-property tail changes six property slots
+and type7→58 while reporting success. Nine corrected177=3 controls preserve
+all58 operations/non-ACI values, including explicit RGB black420=0; fallback
+ACI may normalize. ODA also adds24 standard styles (12→36). This is scoped
+profile preservation/mutation evidence, not general177 meaning, arbitrary
+palette/renderer/native/ACIS qualification or a successful libdxfrw conversion.
+
+Parity7G.3f.3a–c and4a–c now specify typed-readback repair, reuse of existing
+import-origin state, descriptor/color admission, owned family retention,
+type-preserving graph emitters and one composed CLI checkpoint. Start with
+ready f.3a/f.4a, or the independent f.2b writer root fix; do not repeat full
+suites/ODA batches or wait on external-only cells. f.1/f.2 remain separately
+locally accepted; full9d and all six J gates stay open/non-promoting. Receipt:
+`docs/research/broader-style-closure-readiness-2026-10-15.json`.
+No drawing fixture, dependency, registration, top-level subplan or ledger
+item is added. Keep LibreCAD/LC3 optional callbacks and tolerant2D defaults.
+
+**Prior parity7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE (baseline `49427d0`):**
+DWG HEADER retains the complete source NOD H; absent/null/wrong-role/wide
+states are distinct. Only its matching complete zero-parent DICTIONARY
+publishes the existing optional root callback once. Ordinary failures warn;
+strict/visual-style output refuses unresolved non-null roots before publication,
+with corrected same-model retries. No physical-order/lowest-handle guessing.
+Diagnostic kind26 appends,0–25/schema1 remain stable, and unknown HEADER field
+offsets are explicitly absent. Authored HEADER/OBJECTS lifecycle/negative
+controls and four tracked files pass: main4/4 in4.83s, strict four-TU/build/lc3,
+ASan/UBSan2/2 in1.49s. Six authored style component streams remain unchanged.
+Receipt: `docs/research/dwg-nod-identity-7g-3f-2-2026-10-15.json`.
+Next f.3a readback/f.4a retention, typed same-version serialization and composed full CLI9d, which stays
+open (one actual RTEXT FreeCAD-form conversion still exits1/no output).
+Separate writer f.2b must bind its regenerated HEADER NOD to its emitted root;
+the current null placeholder cannot be repaired by reader inference. Rebuild
+consumers; no new virtual, fixture/registration, native/ACIS or J promotion.
+
+**Prior research-only handoff (committed baseline `6c5666c`):** the
+[source-fidelity and graph-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#source-fidelity-versioned-visualstyle-and-graph-oracle-review-2026-10-15)
+adds eight authored ezdxf component controls, reproduced with bounded capture,
+and three actual audit-disabled ODA27.1 conversions of the existing tracked
+RTEXT DWG. Each output has24 styles:58-property AC1032/AC1027 profiles versus
+28-property AC1024 plus a witnessed round-trip extension XRECORD for Flat's
+additional properties. Literal C8→257, explicit RGB-black zero and changed
+ext-lighting metadata show why normalized scalars/property truncation are not
+an exact serializer. These are scoped conversion/tag observations, not native
+appearance or independent ACIS semantics. Current ACadSharp skips VISUALSTYLE
+DXF output; ezdxf preserves malformed property tails and can repair away a
+dangling dictionary entry with zero remaining errors. Do not use either result
+as whole-conversion qualification.
+A separate all24-style handle join passes3,456 companion,2,952 non-color and
+384 modern-color observations against the retained LibreDWG0.14 source fields;
+its explicit exclusions and extended-lighting normalization stay in the receipt.
+
+Existing parity7G.3f.1–4 now separates source-metadata acceptance, validated DWG
+HEADER NOD retention/publication, witnessed typed DXF serialization and composed
+graph/CLI acceptance. The three existing production/test WIP files are left
+unchanged and uncommitted. HEADER7BE.9bc stays locally complete;9d remains open.
+Use focused object/reader/graph targets, then one composed CLI/lc3 checkpoint;
+no new fixture, comparator dependency, registration, top-level subplan or3D
+ledger item. Native Linux/Windows FreeCAD, independent known-dimension ACIS/
+AcDs association and the six `DEFERRED_EXTERNAL` J gates remain separate and
+non-promoting. Durable receipt:
+`docs/research/broader-visualstyle-graph-readiness-2026-10-15.json`.
+
+**Subsequent parity7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE:** owned VISUALSTYLE
+source companions, complete CMC prefixes/decoded color-book names and raw
+isolines now coexist with unchanged legacy normalized views. Literal three-
+version vectors cover exact bits, copy/reset, truncation/retry, explicit color
+replacement, metadata guards, upgrade and downgrade refusal.72 tracked styles
+retain4,176 operation fields/576 packed colors; their576 raw CMC shorts are
+zero, unlike342 interpreted peer JSON indices. This corrects the earlier raw-
+index comparison premise, not the parser or recorded peer values. Six authored
+writer profiles remain byte-identical to the parent. Focused main3/3 in4.58s,
+strict three-TU/build/lc3 and ASan/UBSan2/2 in1.50s pass. Public layout requires
+consumer rebuild, with no new pure callback or binary-ABI promise. The receipt
+is `docs/research/visualstyle-source-metadata-7g-3f-1-2026-10-15.json`.
+Next f.2 DWG NOD identity, then typed DXF serialization/closure; full CLI9d,
+native/ACIS semantics and all six external J gates remain open/non-promoting.
+The preceding research candidate/WIP statements describe that checkpoint,
+not current acceptance. No drawing fixture or CTest registration was added.
+
+**Prior HEADER research-only handoff (committed baseline `2063b50`):** the
+[HEADER, AcDs and projection-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#header-acds-and-projection-oracle-readiness-review-2026-10-15)
+adds a source/artifact-bound12-cell packet over four already tracked drawings.
+All three archived ODA-converted AC1032 fixtures fail first HEADER admission;
+matching CRC/end sentinels lie four bytes beyond the current computed offset,
+followed by739 nonzero-containing logical bytes. The AC1027 writer control
+matches current framing.7BE.9 now separates profile/suffix resolution, bounded
+stream repair and full CLI acceptance; no general size-check relaxation or
+entity-dispatch fix is inferred. Five actual ezdxf helper controls distinguish
+empty unsupported primitives and un-clipped decomposition from shape/display
+semantics. ACadSharp's merged multi-page blob fix motivates a tiny S3.2 cursor/
+following-record calibration, not a demonstrated local defect or kernel pass.
+The dwg-rs strict-prefix helper is excluded as a HEADER-conformance oracle.
+No production/test source, fixture, registration, dependency,3D ledger count
+or support claim changes; all six J items remain`DEFERRED_EXTERNAL`. Receipt:
+`docs/research/broader-header-acds-oracle-readiness-2026-10-15.json`.
+
+**Subsequent parity7BE.9bc implementation:** full HEADER parsing now uses
+bounded DATA/string/handle windows for all full-section versions. The witnessed
+AC1032 alternate size form requires zero unknown word, matching CRC and exact
+fixed-offset sentinel; unclaimed logical bytes remain explicit warnings, not
+decoded/preserved content or zero padding. Canonical CRC warnings, compact
+callers and2D callbacks remain compatible. Optional debug-only unknown shorts
+do not consume modern string bytes. Four permanent tracked-file API regressions
+verify16 selected HEADER values, physical frame accounting and concrete
+RTEXT/ARCTEXT/MPOLYGON callbacks. Final selected gate3/4 in4.29s retains the
+unchanged full CLI failure; strict/build/lc3 and focused ASan/UBSan1/1 pass.
+The remaining CLI failure is later output preflight:24 typed DWG VISUALSTYLEs
+lack raw DXF companions. Next existing7G/7F must bridge that source format and
+rooted graph without dropping styles or fabricating raw evidence;9d stays open.
+Receipt: `docs/research/header-compatibility-7be-9bc-2026-10-15.json`.
+No new3D ledger item/count, native tuple, fixture, registration or support/J
+promotion. Earlier research/failed HEADER packets retain their original state.
+
+**Prior consumer-semantics research-only handoff (committed baseline `a06447c`):** the
+[consumer-semantics and executable-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-consumer-semantics-and-executable-oracle-readiness-review-2026-10-15)
+adds eight authored Assimp6.0.5 runtime controls, ten exact extracted FreeCAD
+helper observations and140 unchanged Compatible-codec observations, with
+separate source/master/runtime bindings. Rotation, nested/later-sibling loss,
+polyline segments, unsupported entities and binary input now have explicit
+optional-oracle eligibility controls. FreeCAD C++/legacy text projections and
+full non-XY text placement are not interchangeable qualification profiles.
+At that research boundary the nine-file3.3c.1 reader/API candidate was uncommitted;
+retained6/6 and later1/1 codec/MTEXT checks were candidate context, not a
+research-time full suite or integration. Subsequent acceptance is recorded below.
+Parity3.3c splits reader/API acceptance,
+default-Compatible explicit adapter handoff and separately reviewed profile/CLI
+admission. No3D count, native tuple, fixture/dependency or support status changes;
+all six J items stay`DEFERRED_EXTERNAL`. Durable evidence:
+`docs/research/broader-consumer-oracle-readiness-2026-10-15.json`.
+
+**Prior exact-mapping research handoff (committed baseline `5886b48`):** the
+[exact-mapping, text-carrier and comparator-readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-exact-mapping-text-carrier-and-comparator-readiness-review-2026-10-15)
+adds2,560 exhaustive byte-codec observations,28 authored CLI command-carrier
+calibrations and a pinned Rust-DXF source comparison. It provides3.3a policy,
+3.3b offline ISO8859-4 table and3.3c HEADER/CLI handoff substeps, preserving
+ordinary LibreCAD/LC3 defaults and separating exact input mapping from target
+transport/native rendering. At that research checkpoint,3.2b.2d production/test
+WIP was preserved uncommitted; its historical receipt is not relabeled as a
+fresh or clean-HEAD run. Subsequent integration is recorded below; next3.3a.
+No3D item/support counts or six deferred J dispositions change.
+
+**Previous research-only handoff (committed baseline `704832b`):** the
+[conversion-loss, graph and oracle-readiness refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-conversion-loss-graph-and-oracle-readiness-refresh-2026-10-15)
+adds32 authored actual-CLI routes/64 final-run processes and four executed
+ezdxf transform controls. It distinguishes source loss, target scalar loss,
+valid CIF transport, projected-geometry omissions and raw ACIS carriers;
+none is independent native solid evidence. At that research checkpoint,
+HEADER-provenance WIP was preserved/uncommitted, with recovered integration4/5 and a stale GEODATA
+fixture premise to reconcile before acceptance. The bounded3.2b.1–3.2b.2d
+delivery sequence requires no new external tool or full suite per substep.
+Durable evidence: docs/research/broader-conversion-readiness-2026-10-15.json.
+All six J gates remain`DEFERRED_EXTERNAL`; ledger/support claims are unchanged.
+
+**Subsequent implementation:** parity Slice3.2b.1 now integrates the owned
+HEADER declaration snapshot and corrects the stale hardening fixture premise.
+Final focused acceptance is5/5 in13.62s plus strict/build/lc3 and focused
+ASan/UBSan; docs/research/codec-provenance-3-2b-1-2026-10-15.json binds the
+actual source/artifacts. Earlier research WIP/failure evidence remains frozen.
+Slice3.2b.2a now implements fixed-size source-text observations and owned facade
+snapshots without changing decoder/read policy:33 literal/four UTF16 controls,
+84 handoffs/16 reader roles/saturation and15 lifecycle/context controls pass.
+Final5/5 in22.13s, strict/build/lc3 and focused ASan/UBSan pass; all140 frozen
+codec outputs remain unchanged. Its binding is
+docs/research/codec-source-observations-3-2b-2a-2026-10-15.json.3.2b.2b now
+retains owned converter outcomes through returned failure/callback unwind,
+separating accepted/codec revisions, diagnostics, bounded final metadata and
+cumulative text observations.36 handoffs/five revision/ten context controls and
+three exception/retry pairs pass, including diagnostic-copy allocation failure.
+Final focused4/4 in4.17s, strict/build and focused ASan/UBSan pass; binding:
+docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json.3.2b.2c now implements
+explicit CLI source-text admission independently of owner resolution.40 API
+handoffs/one profile/17 envelope controls and actual CLI208 refusals/104 retries/
+40 positives/one mixed batch pass. Later metadata or full warning caps cannot
+erase earlier loss/encoding ambiguity. Final focused5/5 in32.46s, strict/build/
+lc3 and focused ASan/UBSan pass; binding:
+docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. Ordinary facade/default
+adapter2D/3D behavior is compatible; fixed-array growth requires rebuilding.
+Slice3.2b.2d now implements separate explicit target scalar transport. Library/
+default adapter writes remain Compatible; CLI DXF/DWG routes require lossless
+required semantic text.40 wire/14 rejection-modern/40 chunk controls and32
+owner refusals with corrected same-model retry pass, along with repeated
+literal/GEODATA/policy/mixed-role checks. Actual DXF CLI24 refusals/12 retries/
+12 modern positives/16 two-pass routes and authored DWG eight refusals/four
+two-pass routes/eight exact verifiers pass. Retained source/artifact-bound
+selected writer gate10/10 in25.68s remains unchanged; fresh focused/CLI/DWG/
+ASan-UBSan/five strict-TU checks pass and affected/lc3 build is up to date.
+Receipt: docs/research/codec-target-transport-3-2b-2d-2026-10-15.json.
+No repeated full suite/native run is claimed. Policy state requires consumer
+rebuild; no new pure callback. Parent3.2 remains IN_PROGRESS; next3.3a exact
+mapping identity/policy, then3.3b offline table/3.3c HEADER/CLI handoff. The
+scalar guard does not close caret/native semantics, Compatible-default7AR,
+full102 migration or DWG numeric metadata. No3D ledger/support count changes.
+
+Parity3.3a.1 now implements allocation-free internal mapping resolution,
+separating original classification, requested family, eligible decoder and
+availability. Missing exact ISO/DBCS families have no decoder, not a Windows
+approximation; production configuration still explicitly uses Compatible.
+84 policy selections/six unknown/three invalid-policy-ownership-allocation and
+178 historical selection controls pass. Fresh codec/CLI2/2 in9.40s,
+strict two-TU/affected/lc3 build pass; all140 frozen output observations remain
+unchanged across two format flags/two locales. Receipt:
+docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json.
+This is an internal resolution contract only: parent3.3a remains IN_PROGRESS,
+with the usable public input policy/HEADER/observation handoff reserved for
+functional3.3b/c. Next3.3b offline ISO8859-4 table and exact factory; no installed
+API, parser layout, callback, support or3D ledger change in this substep.
+
+Parity3.3b now adds the actual ISO8859-4 exact input-side factory and fixed table
+from a hash-pinned Unicode source, with offline deterministic generation and
+associated Unicode notice.1,024 byte/inverse pairs across four spellings,
+244 defined/12 undefined Windows controls, mixed CIF/batch/lifecycle and nine
+canonical input-factory controls pass. All256 Unicode/CPython/table/test scalar
+expectations agree independently; generator source/header negatives pass.
+Focused codec/CLI2/2 in9.20s, strict/build/lc3 and focused ASan/UBSan pass;
+all140 frozen compatibility outputs remain unchanged. CMake/Automake manifests,
+notice installation and Conan source exports are complete locally; scratch
+install/package self-tests verify source-identical notices, manifest omission,
+modified-content refusals and relocation. Receipt:
+docs/research/codec-iso8859-4-3-3b-2026-10-15.json.
+The existing UTF16 converter remains read-only; a mistaken new inverse-smoke
+premise was corrected to its actual input contract, not a DWG write expansion.
+Default codecs/installed API/native/3D qualification are unchanged. Next3.3c
+functional public input snapshot, HEADER/observation and owned converter handoff;
+parent3.3a/3.2 and all six external J dispositions remain open.
+
+Parity Slice3.3c.1 now implements explicit Compatible/ExactNamed DXF input
+selection, raw declaration handoff and functional exact typed text decoding.
+Applied policy and appended saturating mapping counters are owned read-entry
+snapshots; callback changes affect only later reads.24 HEADER/TEXT handoffs,
+four MTEXT routes, six unavailable-name/four Unicode-profile controls and
+lifecycle/recovery/move/saturation checks pass. Retained6/6 in22.50s precedes
+test-only MTEXT expansion; final codec1/1 in0.36s, fresh focused ASan/UBSan,
+strict six-TU and affected/lc3 build pass. All140 frozen Compatible outputs
+remain identical. README/consumer contracts document rebuild/no ABI, tolerant
+replacement, raw/normalized metadata and modern/DWG/output noninterference.
+Receipt: docs/research/codec-exact-reader-3-3c-1-2026-10-15.json.
+This closes only local reader/API delivery. Next3.3c.2a adapter input/outcome
+handoff, then3.3c.2b separately reviewed source-profile/CLI admission; default
+adapter/CLI input remains Compatible. No3D ledger, native qualification, fixture,
+registration, dependency, DWG layout or six deferred J/support status changes.
+
+Parity Slice3.3c.2a now implements explicit defaulted adapter input selection
+and owned requested/applied policy evidence across return/unwind/reset/reuse.
+Unknown/disagreeing evidence rejects strict source admission; coexisting exact
+decoder/non-ASCII counts conservatively refuse pending closed profile review,
+without letting later canonical HEADER values qualify earlier text. Modern
+inert metadata and ASCII represented escapes retain admission; default adapter/
+CLI input remains Compatible. Eight handoffs/16 two-pass exports/readbacks/eight
+atomic strict-source refusals plus failure/reuse/unavailable/callback-allocation
+controls pass. Existing outcome/source handoffs36/40, final codec/CLI2/2 in8.90s,
+strict two-TU and focused ASan/UBSan pass. Receipt:
+docs/research/codec-exact-adapter-3-3c-2a-2026-10-15.json.
+Next3.3c.2b records closed cumulative profile identity/eligibility before broader
+CLI opt-in; local contract/evidence work needs no new external run. Counts,
+native tuples, DWG layout, fixtures/dependencies/registrations and six deferred
+J/support states remain unchanged.
+
+Parity Slice3.3c.2b.1 now replaces the temporary overlapping-counter guard
+with23 closed effective primary input profiles and fixed per-call counters/
+mask. Counts partition semantic conversions, not source records/characters;
+metadata/raw roles remain excluded and actual decode context is retained.
+Exact admission validates profile total/mask/identity/overflow/saturation and
+explicitly allows17 existing compatibility transports. Canonical Windows and
+benign legacy ASCII plus modern UTF8 are eligible; earlier exact ISO bytes
+remain unqualified after later canonical/modern metadata.28 canonical handoffs,
+16 strict two-pass exports, mixed/cumulative/effective/Unicode controls, six
+evidence mutations and saturation/invalid-enum controls pass. Existing adapter
+8/16/8, final selected reader/header/CLI6/6 in22.68s, strict five-TU/affected-lc3,
+focused ASan/UBSan and140 unchanged defaults pass. Receipt:
+docs/research/codec-consumed-profiles-3-3c-2b-1-2026-10-15.json.
+Public observation layout requires rebuild, not binary ABI; no pure callback.
+Next3.3c.2b.2 actual CLI option/conversion controls under the closed contract.
+Default input remains Compatible; raw ISO producer qualification, native3D,
+DWG metadata, all six deferred J gates and ledger/support counts stay separate.
+
+Parity Slice3.3c.2b.2 now exposes one complete exact/compatible DXF input-policy
+CLI token, rejecting unknown/missing/duplicate/conflicting values before I/O.
+Positional/FreeCAD/batch forwarding, default Compatible and DWG noninterference
+are explicit; strict source/target/owner and overwrite policies remain intact.
+Actual22 option refusals/32 two-pass routes/10 independent/source-default
+positives/24 atomic refusals/12 retries/one mixed batch pass. Three generated
+DWG routes/seven bounded processes preserve typed TEXT/LINE with each policy.
+Scoped CLI/version/codec3/3 in11.46s, strict two-TU and focused ASan/UBSan CLI
+pass; docs/research/codec-exact-cli-3-3c-2b-2-2026-10-15.json binds evidence.
+This is local CLI delivery, not ISO producer/native qualification.
+
+The wider selection remains3/4: tracked RTEXT/ARCTEXT DWG fails at first header
+stage6 with a later class-CRC warning. Parent CLI/parser source with the exact
+same core reproduces that full-harness failure; not a clean parent/native run.
+The failing packet is retained separately from scoped3/3 acceptance. No reader
+guard, assertion or fixture is weakened. Subsequent research at2063b50 reads
+ODA§9 and captures all three archived ODA-converted HEADER witnesses plus the
+AC1027 positive; next7BE.9b/c resolves the profile/suffix and bounds the stream,
+then9d reruns the complete retained harness including later MPOLYGON. Do not
+infer an RTEXT dispatch defect from a header-stage error. Existing
+FreeCAD/native/3D tuples, raw ISO profile, six external J gates and support/
+ledger counts remain unpromoted and separate.
+
+**Previous research-only handoff (baseline `5c3c76e`):** the
+[parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
+adds140 current-source codec observations and a bounded3.1–3.5 implementation
+sequence. It also sharpens FIELD graph, GDAL/XClip projection, peer AcDs safety
+and FreeCAD fresh-output gates. None is native ACIS/3D evidence. B3 source/test
+changes were untouched/uncommitted at that research checkpoint; the separate
+implementation receipt below now closes its local block-path scope. The six external J gates remain
+`DEFERRED_EXTERNAL`; no support status changes follow from this research.
+
+**Current consumer readiness:** canonical declared-codec/XDATA repair,
+HEADER finalization/alias provenance and accepted-source CLI authority are
+committed. The reviewed input-only `DRW::DxfTextEncoding`/
+`dxfRW::setDxfTextEncoding` successor is integrated on d33e7ec, with seven focused
+main tests, strict five-TU/current-LibreCAD facade/lc3 and retained MIF modes
+passing. Its source/artifact bytes match the original gate after the docs-only
+ancestor advance; unchanged tests are not repeated. Declared remains the
+default; recovery changes eligible input interpretation, not export encoding
+or2D projection. Public/private layout changes require consumer rebuild and
+do not establish binary ABI or native edit/save compatibility.
+
+The current broader facade audit is parity7AG.1c, not closed by that encoding
+gate: LibreCADa2514b7f's unchanged filter additionally calls getSourceVersion,
+isReservedHandle, addDxfWriteHandleRemap, setReferenceResolver and leftOut,
+all missing from standalone's public facade at25adc7f. Strict five-call syntax
+failure is source evidence, not a full Qt/native result. Implement genuine
+source-version, explicit-reservation, per-write remap, reference omission and
+loss-reporting semantics in small slices, preserving current2D defaults,
+operation/retry rules and the no-new-pure-callback contract. Keep the pinned
+LC3 source gate separately; full consumer compatibility remains open.
+
+Current first7AG.1c getter/reservation candidate remains isolated and
+NOT_INTEGRATION_READY: strict API/TU gates pass, but two new DXF negatives
+incorrectly assume an omitted LINE self-handle forces failure. Correct the
+generator, not tolerant production input, before the small integration gate.
+Remaining methods must match actual consumer sequencing: derived remaps are
+installed during writeBlocks; a reference resolver returns final emitted
+identity and must not be remapped twice. Known optional102 omission and
+XDATA1005 literal0 differ. Choose callable mutation/lifetime and truthful
+attempted/published omission-count policies while retaining strict rejection
+and2D defaults. Exact source pins/reports and substeps are parity7AG.1c.
+
+BLOCK callbacks, narrow WIPEOUT payload/CLI, MIF literal/exact-hex preservation
+and authored dictionary admission are committed. Dictionary admission does
+not close ACDS association, per-entry roles or whole ownership graphs.
+The newer clean25adc7f ASan4/4 checkpoint covers the settled
+dictionary/text/HEADER/API memory-lifetime composition. It does not execute
+HATCH-local-roundtrip or qualify native/semantic support. The parity ledger
+binds all36 production TUs, source/artifacts, runtime and executed JUnit cells;
+the older bc8f45f report retains its original source binding.
+Current FreeCAD preference/post-processing and strict LINE/fresh-cache
+preflight refinements govern future native packets, not earlier pinned runs.
+All six external J items remain DEFERRED_EXTERNAL and cannot promote support
+claims. Exact integration and research bindings are in
+[the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md).
+
+**Broader resource and oracle readiness:** parity7S.3 now inventories optional
+in-library SAB token/model-copy/output storage and aggregate shared-graph work,
+with eight tiny source-bound component controls and separate admission/work/
+retry substeps. Raw payload ceilings are not decoded-memory or kernel limits.
+Preserve cached lazy-failure/no-throw/2D behavior deliberately. Parity7AH/7AQ
+also calibrates peer MINSERT multiplicity, nonzero block-base placement,
+near-polar bases and rotated bounds; uncalibrated derived peer projections
+cannot qualify3D geometry. These refinements require small local counters/
+analytic controls, not native evidence before safe local implementation.
+
+**Next local handoffs:** preserve the integrated API and its prerequisites.
+Numeric qualification admission is integrated with fresh eight-method/support/
+JSON/normalizer Python gates and122 bound inputs unchanged during that gate; it promotes no
+claim. Corrected FreeCAD preflight is also integrated:32 distinct mocked LINE
+controls, fresh Python discovery/override command roles and one actual main
+CLI CTest pass. The parity ledger binds its source/report; native selection,
+durable packets and platform execution remain open. HATCH pattern retention
+tests are also integrated with exact typed/physical tags and model/named
+owner checks; strict TU/DXF-local2/2/eight CLI handoffs pass without production
+changes. The complete portableb912a963→cb22907f configure-probe timeout chain
+is now integrated on c6c00c5. Ordinary self-test, one selected-compiler14-child
+profile, main reconfigure and actual CLI1/1 pass. Parity7AD binds exact source,
+helper/output hashes and non-skipped JUnit; the GNU-only first helper must not
+stand alone. No project library/full-suite rebuild, native/platform claim,
+registration/fixture/receipt change follows. Next7BE and consumer7AG.1c work
+remain independent of external qualification.
+External platform/ACIS qualification does not block these local
+steps. Broader geometry comparison must preserve pattern phase as well as
+HATCH boundary geometry, and a strict declared-encoding oracle profile is
+needed for literal legacy ASCII text. Neither requires new native tooling,
+an oracle upgrade or a full suite per field edit.
+
+S5.19/7Y.2a's ASCII precision repair is committed at `291858e`. S2.2.5a's
+modeler schema repair and generated matrix are implemented: version-matched
+ODA retains the actual writer's 12 legacy ASCII and six R2013 ASCII/binary
+controls. S2.2.5b now has a generated AC1015 caret-escape boundary control at
+the local 255-byte DXF cut; qualified legacy binary-SAT acceptance and the
+external/general cut-policy decision remain open. Parity7R.1 (`57b98cd`) implements the HATCH
+writer reference map and S5.18's low-level controls;7R.2a adds bounded adapter
+identity/owner admission. Parity7R.2b now preplans before incoming references;
+the generated actual CLI controls verify in both encodings;7R.2c now requires
+actual identity/type/owner publication. Parity7R.2d now integrates same-data
+repeat/late-failure retry with16 successful exports/eight rejection checks,
+focused sanitizer, integration2/2, strict/lc3 and two-pass actual ASCII/binary
+CLI verification. S5.18's scoped local implementation closes, not native
+associativity/fill/render or DWG. S2.3.9.4.29.B1 now implements the independent
+stored-graph oracle (8 positives/14 negatives), and B2 now passes16 raw/typed
+ASCII/binary handoffs plus two-pass actual CLI checks. B3 now implements strict
+modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
+four default/R12 compatibility controls and actual CLI no-output checks.
+S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
+nested DWG AcDs/SAB and native geometry remain unqualified. Parity3.3a's exact-
+name mapping policy/identity gate is now locally complete; strict producer
+qualification and the wider3.3 parent remain open. This handoff does not reorder
+the current implementation queue: select the next slice from the latest ready
+local owner in the live ledger, and do not repeat the resolved mapping-policy
+investigation or revive a historical pointer without checking its status.
+3.2b.2d target transport is locally implemented as recorded in the
+current handoff.3.2b.2c closes explicit CLI
+source admission with40 API handoffs/one profile/17 envelope controls, actual
+CLI208 refusals/104 retries/40 positives/one batch, and focused5/5/strict/build/
+lc3/sanitizer passing. Default facade/adapter behavior remains compatible;
+no target/DWG/full-semantic qualification follows.3.2b.2b now owns converter
+outcomes through false returns/unwind with36 handoffs/five revision/ten context
+controls and three exception/retry pairs; focused4/4/strict/build/sanitizer pass.
+This adds no strict policy or native support claim.3.2b.2a source-text observations
+now expose completed semantic-call events, overlapping/saturating counts and
+first known group/physical record/value-end context without inventing exact
+offending-byte or deferred positions. Metadata/raw controls/handles/binary are
+excluded, and memory/file callback unwind retains completed prefix evidence.
+Final5/5 in22.13s, strict/build/lc3, focused ASan/UBSan and unchanged140 outputs
+close this local observation slice, not converter strictness or support claims.
+3.2b.1's owned declaration
+snapshot is implemented, with72 handoffs/three delimiter controls and exact
+logical-byte admission/lifetime tests. The modern GEODATA copy/reset fixture
+now declares v2; genuine v1 grammar controls remain. Final5/5 in13.62s,
+strict/build/lc3 and focused ASan/UBSan supersede—but do not rewrite—the earlier
+4/5 research gate.3.2b.2b ownership and2c source admission are now implemented;
+3.2b.2d continues with lossless target scalar transport. Ordinary2D defaults
+remain compatible.32 authored
+CLI routes demonstrate that second-pass byte stability is insufficient.
+Source/parser validity, transformed projection and native B-rep qualification
+remain separate; an ignored geometry-oracle error cannot unblock ACIS claims.
+Slice3.2a now preserves naming categories through HEADER reapply and publishes
+bounded nonfatal DXF advisories, with178 selector checks/84 handoffs and focused
+3/3 passing. All140 previous codec observations are unchanged; mapping/default
+behavior and alias mismatches remain. Parent3.2 stays open. This does not wait on
+native FreeCAD or a new oracle. S4.5 remains gated
+by S3's verified DataStorage layout. Keep focused modes in the existing
+round-trip executable; no new fixture or CTest registration is needed.
+
+**Broader evidence/readiness research checkpoint (2026-10-15; baseline98f0eae,
+prior to7R.2d integration):**
+the [parity plan's final research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-evidence-block-census-and-serialized-size-readiness-refresh-2026-10-15)
+now replaces title-only peer leads with retrieved report bodies and a B1–B3
+implementation split. No implementation was integrated in this research pass.
+Current7R.2d source/test WIP remains untouched and uncommitted. Its per-call
+ID guards retain owning compound-child references instead of keeping borrowed
+pointers across callbacks; the focused same-data mode freshly passes16
+successful exports/eight rejection checks. Finish the scoped review/integration
+and actual CLI checkpoint before closing S5.18; historical CLI/sanitizer
+receipts must not be relabeled as fresh evidence for this candidate.
+
+S2.3.9.4.29's B1 captures stored definitions/entity/owner/INSERT identities
+before any virtual projection; B2 verifies exact carrier/graph preservation
+through the codec and actual CLI; B3 proves discriminating oracle mutations
+separately from converter no-output negatives. Add a shared-definition diamond
+and unreachable-definition control without cloning or expanding full bodies.
+Stored counts, reachability, declared instances and projected geometry are
+different denominators. Reference cycles require bounded observation, not
+automatic application of hard-owner-cycle rejection. Keep native/ACIS-kernel
+semantics out of this ready local census.
+
+The retrieved [ACadSharp#1297](https://github.com/DomCR/ACadSharp/issues/1297)
+does not establish an MTEXT-field root cause: the reporter says matching its
+entity bytes did not fix whole-file rejection. Preserve frame-only90=16 and
+isolate graph/container context; do not force17 or invent style objects.
+[#1299](https://github.com/DomCR/ACadSharp/issues/1299) names a downstream
+GDAL SPLINE failure but no verified field-level cause in its body; its linked
+AI explanation and untouched attachment are not specification evidence.
+[#1283](https://github.com/DomCR/ACadSharp/issues/1283) concerns constructor
+deep-copy behavior, not a format nesting limit. These sharpen existing owners
+without adding a libdxfrw defect from another project's report.
+
+ODA v5.4.1 §2.2/§28 (printed8/269, visually checked) and Autodesk's XDATA
+guidance refine parity7K: physical app-data byte length, BS representation,
+aggregate database capacity and resource ceilings are separate. The local
+uint16 encode/decode symmetry does not prove native acceptance, and peer
+[#1282](https://github.com/DomCR/ACadSharp/issues/1282) does not authorize a
+blanket32,767-byte limit. First characterize versioned encoded sizes and
+multi-application totals; any exact database policy needs calibrated accounting.
+No DWG byte-layout code changed.
+
+GDAL's [CAD/libopencad](https://gdal.org/en/stable/drivers/vector/cad.html),
+[ODA-backed DWG](https://gdal.org/en/stable/drivers/vector/dwg.html) and DXF
+drivers are distinct. Bind the selected driver/dependency/profile; do not
+count ODA through GDAL as independent of ODAFileConverter. Optional virtual/
+bulge/bounds calibration and deterministic growth/index/invalidation work
+controls stay under7AH/7AQ/7AW/7BA/7S, not new frameworks or required installs.
+Continue exact focused modes, one integration/compatibility gate per slice,
+and full suites only at phase gates. Findings/subplans and ledger totals are
+unchanged; all six J items remain DEFERRED_EXTERNAL and non-promoting.
+
+**Parity7R.2d integration (2026-10-15; Plan-Slice:7R.2d):** HATCH-containing
+adapter exports now restore entity and compound-child handles within each
+write call, with owning child references and pre-allocation snapshot bounds.
+No pointer journal survives callbacks. Detached source-handle-zero HATCH is
+included; direct codec/no-HATCH behavior and caller geometry edits are unchanged.
+Same-data16/8 controls, focused ASan/UBSan16/8, strict TUs and lc3 pass;
+existing local/fixture CTests pass2/2 in5.27s. Actual generated ASCII/binary
+CLI conversion/verifiers pass twice with identical per-encoding bytes. Parent
+98f0eae reproduces source mutation followed by failed same-data reuse. Durable
+source/artifact evidence is`docs/research/hatch-same-data-retry-2026-10-15.json`.
+S5.18 is LOCAL_IMPLEMENTATION_COMPLETE, without native edit/update, rendering,
+DWG, binary ABI or external-J support promotion. NextS2.3.9.4.29 B1 remains ready.
+
+**GEODATA dialect/version audit (2026-10-15):** the archival Autodesk 2009
+DXF reference and the later 2016/2020 GEODATA tables describe materially
+different field maps: the 2009 table includes the latitude/longitude, drawing-
+scale/map-unit, and `CIVIC3D_DATA_*` fields, while later tables describe
+coordinate type, unit scales/units, north vector, and Geo-Mesh. Later tables
+identify object versions 1 (2009) and 2 (2010); ezdxf independently exposes
+those version labels but documents its modern typed API as requiring R2010.
+Therefore keep v1 and v2 field maps disjoint, do not assign semantics to the
+legacy group-70 control value or Civil group 141, and do not infer that a peer's
+modern `coordinate_type` model covers the archival v1 schema. Autodesk's
+published map currently names only object versions 1 and 2; typed writing of
+version 3 is therefore rejected until an authoritative schema and witness
+exist. Runtime ASCII/binary vectors establish local field mapping only. A
+source-authored AutoCAD/ODA v1 and v2 pair remains the shortest independent
+compatibility check; generated fixtures stay local and do not promote DWG,
+coordinate-transformation, Civil 3D, or geometry support. Sources: [AutoCAD
+2009 DXF Reference](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf),
+[Autodesk 2016 GEODATA](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm),
+[Autodesk 2020 GEODATA](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm),
+and [ezdxf GeoData](https://ezdxf.readthedocs.io/en/stable/dxfobjects/geodata.html).
+
+**Cross-implementation ACIS writer audit (2026-10-15; baseline `291858e`):**
+Autodesk's current [3DSOLID](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm),
+[REGION](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm),
+and [BODY](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm)
+DXF tables define `3DSOLID` as `AcDbModelerGeometry`,
+modeler version, SAT groups 1/3, then `AcDb3dSolid` and optional group-350
+history; the current `REGION` and `BODY` tables list only the modeler subclass,
+version, and SAT groups. ACadSharp's still-open [ACIS writer PR #1150](https://github.com/DomCR/ACadSharp/pull/1150)
+at posted revision `098d7a3` reports that `AcDb3dSolid` plus its history field
+should start at R2007/AC1021, and says a subclass marker without a field caused
+AutoCAD to discard older DXF files. The PR author also reports opening its
+R2000/R2004/R2007/R2010/R2013 DXF outputs with DWG TrueView, with a separate
+R2007 DWG writer limitation; this is useful peer test design, not a retained
+independent receipt for libdxfrw. The pinned [ezdxf 1.4.4 writer](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/acis.py)
+independently gates that subclass/history on `dxfversion > DXF2004` and emits
+REGION/BODY through the shared modeler subclass only. At the baseline,
+`dxfRW::writeModelerGeometry()` writes a record-specific subclass for all
+three types on every supported version (while the `AC1027` shell gate controls
+only groups 290/2), so its legacy 3DSOLID, REGION and BODY marker sequences are
+a concrete fast-test target, not a proven defect. Autodesk's public current
+tables establish the listed fields but do not by themselves prove every
+historical release boundary: characterize generated AC1015/1018/1021/1024/1027
+ASCII and binary DXF, then change only the sequences accepted by a versioned
+ODA/AutoCAD reader. The PR also reports splitting long SAT at the last fitting
+whitespace so a token does not cross groups 1/3; ezdxf 1.4.4 instead slices at
+255 characters. Autodesk specifies modeler-data lines shorter than 255
+characters, while general DXF text limits vary by group code and version.
+Test exact group-1/3 reconstruction and per-value length for ASCII and binary
+tag streams; preserve this chunk-policy disagreement as a targeted boundary
+test and do not adopt either policy without independent acceptance.
+
+LibreDWG master supplies a third, materially different behavior cross-check:
+its [`out_dxf.c` modeler writer](https://github.com/LibreDWG/libredwg/blob/master/src/out_dxf.c#L2641)
+converts version-2 SAB to version-1 SAT text, writes modeler version 1 and
+group-1 text, and contains FIXME/length caveats in the old SAT output path.
+That representation conversion cannot be used to compare opaque bytes or
+prove a neutral SAB path, but it identifies a practical peer strategy and
+specific 255-character/line-splitting cases for the generated test matrix.
+LibreDWG is implementation evidence only; ODA and accepted versioned DXF
+behavior still govern libdxfrw changes.
+
+**S2.2.5a schema repair and independent acceptance (2026-10-15):** the local
+ordered-tag matrix first failed for all five versions and both encodings.
+Generated unit-cube 3DSOLID/BODY and 2×3 planar REGION controls then showed
+concrete loss: ODA 27.1.0.0 retained the ezdxf 1.4.4 ASCII originals but
+dropped all 12 legacy ASCII libdxfrw conversions despite successful CLI
+status. A schema-only candidate passed those 12 cases before production
+changed. `writeModelerGeometry` now places group 70 and SAT groups 1/3 within
+`AcDbModelerGeometry`, emits `AcDb3dSolid` only for AC1021+ 3DSOLID after
+the payload, and emits its group 350 even when null. REGION/BODY have no
+invented record-specific subclass. Nonzero history on REGION/BODY or an
+older solid target fails the output transaction rather than dropping it.
+
+The focused `--modeler-dxf-matrix` mode of the existing local-roundtrip target
+checks 1,170 records per pass across ASCII/binary AC1015/1018/1021/1024/1027,
+two read/write passes, absent/present R2013 shell metadata, null/nonzero
+history remapping, lengths 254/255/256 and 509/510/511, whitespace around
+cuts, indivisible tokens, implicit/explicit chunk metadata, and 24 preserved-
+destination/corrected-retry negatives. The current 255-character cut policy
+is characterized, not newly qualified by these artificial payloads.
+
+The optional [qualification generator](tests/qualify_modeler_dxf_syntax.py)
+uses only an existing ezdxf 1.4.4 runtime and installed converter. Its durable
+[report](docs/research/modeler-dxf-syntax-2026-10-15.json), SHA-256
+`1278372f78f8f96ee420dd2892df5435dea34e0f519ca20edec19a24fd3b440a`,
+binds generator/creator sources, CLI `5b285b7cd83c3b4c65e5846f066a41e6f9089bcfe00f9a393a0b5f0417284d60`,
+ODA `21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783`,
+commands and all input/output hashes. ODA preserves one body, six cube faces
+and bounds `[-0.5,0.5]^3` for 3DSOLID/BODY, or one face and bounds
+`(0,0,0)..(2,3,0)` for REGION, for the actual writer's 12 legacy ASCII and
+six R2013 ASCII/binary controls. These are generated polyhedron/carrier
+checks, not native producer, unit, kernel, DWG-writing or general ACIS claims.
+
+All 12 legacy binary subjects and their full ezdxf binary baselines lose the
+modeler in ODA; a separate encrypted/plain ASCII/binary screen repeats the
+baseline failure. Keep those cells false and the optional tool's aggregate
+exit status nonzero. This establishes an unqualified binary lane, not a
+libdxfrw-only diagnosis. Next S2.2.5b should calibrate a native/independent
+legacy binary-SAT positive before changing carrier bytes or cut policy; do
+not repeatedly run this unchanged failing oracle on ordinary field edits.
+All drawings remain in temporary storage; only generator, tests and JSON
+observations are tracked. Historical J dispositions and support claims stay
+unchanged.
+
+**Separate consumer checkpoint follow-up:** the local-roundtrip CTest passes
+and `lc3_compat_check` builds. `dwg2dxf_freecad_cli_compat` fails before DXF
+export on tracked `rtext_arctext.dwg`, SHA-256
+`db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511`.
+A clean `git archive 291858e` library/CLI build reproduces the same
+`BAD_READ_HEADER` (6), with a separate CLASSES CRC warning (expected 420,
+observed 61198). The first-stage error and CRC warning are distinct; no cause
+is inferred from their coexistence. Reopen this S8.13 reader checkpoint with
+the ODA layout/trace gate; do not weaken CRC validation or attribute it to
+this DXF-only schema repair.
+
+**Parity7R.1 / S5.18 writer progress (2026-10-15; Plan-Slice:7R.1):** HATCH group-330 source
+arrays now consume a configured reference resolver's final identity exactly
+once, or use an existing/preallocated source-to-emitted binding when no
+resolver is installed. A resolver's null result rejects the entity and output
+transaction. The per-loop group-97 counts and source arrays remain unchanged;
+MPOLYGON and the CLI's broader graph policy are separate. The new focused
+`--hatch-references` mode covers ASCII/binary, HATCH before/after its sources,
+reserved-handle collision and numeric source/output aliases, implicit mapped
+references versus resolver-produced final IDs, reciprocal reactors when a
+resolver is supplied, two read/write passes, and explicit detached geometry.
+Three paths have source counts 1/2/0 and different derived flags. A rational
+spline uses asymmetric knots and weights, and exact ordered tags plus typed
+readback verify their control association and the distinct spline-fit/loop
+group-97 fields. A following LINE catches binary stream misalignment. Four
+null-input/resolver-rejection cases preserve the old destination and pass a
+corrected retry on the same writer. The current focused mode and local CTest
+pass; strict test TU and lc3 source checks pass. A harness linked to clean
+`291858e` fails the same reference controls.
+
+The generated CLI source passes its verifier, and both actual ASCII/binary
+`dwg2dxf input -o output` conversions return zero, but the output checker
+finds the first loop's 330 still `32` while its emitted boundary is `3A`.
+This is the ready 7R.2 adapter reproduction, not a completed end-to-end
+association fix. Preserve the full requirement: preplan referenced identities
+before table/entity callbacks, translate existing reciprocal reactors once,
+check unique published targets and same-layout ownership, and reject missing,
+ambiguous or other-layout targets transactionally. Keep an explicitly
+detached input's geometry and flag; never detach it automatically to pass.
+The [source/artifact and CLI observations](docs/research/hatch-reference-writer-2026-10-15.json)
+bind these bounded controls. No fixture, native hatch update/rendering, DWG,
+support-claim or external-J transition follows.
+
+**Parity7R.2a admission (2026-10-15; Plan-Slice:7R.2a):** before writer
+creation, the adapter now admits only unambiguous declared HATCH/source
+identities with the same logical emitted owner. The selected graph census
+is bounded independently by node, edge, staged-identity and source-work
+limits. It rejects null/missing/self/duplicate targets, unresolved or other-
+block/paper-layout owners and collisions with table/BLOCK_RECORD identities,
+POLYLINE/INSERT children or terminators. Its local pointers expire with
+preflight; it does not retain a caller journal or change source geometry.
+The existing target's `--hatch-admission` passes18 accepted/44 rejected
+checks in ASCII/binary, including preserved/absent output and same-data
+corrected early retry. The prior adapter source fails that harness; the
+existing integration CTest and strict adapter/test/lc3 checks pass. Fresh CLI
+conversion still exits0 with330/32 versus emitted3A, so no end-to-end
+association claim is made. Next7R.2b–d preplans before incoming references,
+proves actual publication and addresses successful-export identity retry.
+No drawing fixture, new registration, native run, support or J promotion.
+
+**Parity7R.2b early planning (2026-10-15; Plan-Slice:7R.2b):** bounded source
+IDs now remain operation-owned until export ends. `writeHeader` preallocates
+them after codec reset/BLOCK_RECORD planning and before incoming TABLES
+reactors. Typed entity reactor/xDictionary fallback now uses the existing
+object/source map; known-102 and table references retain their established
+once-only mapping. No global HATCH resolver or opaque-data rewrite is added.
+Planning rejection vetoes publication; operation state clears on exit.
+`--hatch-adapter` passes18 exports/two rejection/fresh-data-retry checks:
+both callback orders/encodings/two passes, typed/known-102 reciprocal links,
+an incoming layer-table link and unrelated LTYPE extension dictionary.
+Three focused CTests pass3/3 in5.61s; strict test/adapter TUs and lc3 build pass.
+Fresh actual ASCII/binary CLI conversions and exact verifiers exit0; sources,
+binaries and hashes are frozen in
+`docs/research/hatch-adapter-planning-2026-10-15.json`. Earlier red reports are
+historical, not overwritten. Continue7R.2c/d before closing S5.18/PAR-35:
+actual publication identity/type/owner and same-data successful-export/late-
+failure retry remain unverified. No native/fill/render/DWG or support promotion.
+
+**Parity7R.2c publication proof (2026-10-15; Plan-Slice:7R.2c):** selected
+identity/type/owner snapshots are bounded values, never borrowed caller
+pointers. Actual adapter dispatch, final identity and the codec's written-
+source ledger must agree; finalization also rejects missing/ambiguous
+bindings and missing named-owner BLOCK definitions. Allocation, a successful
+no-op or an unsupported switch arm cannot certify publication. The focused
+mode passes22 rejection checks and22 corrected fresh-data retries in both
+encodings. Parent1c85111 reproduces18 successful invalid publications; four
+other attempts already reject atomically but have no graph classification,
+so do not describe them as previously published corrupt output. Existing
+local CTest1/1 (2.15s), focused modes, strict adapter/test and lc3 checks pass.
+Continue7R.2d to preserve caller source identities through successful repeat
+and late-failure same-data retry; S5.18/PAR-35 remain open until that gate.
+No native update/fill/render, DWG or support/J promotion; no new fixture or
+CTest registration.
+
+**Original writer-only readiness refresh (2026-10-15; historical):** the
+then-current source/test WIP was not a commit or an end-to-end compatibility
+result. Direct HATCH controls passed and both retained CLI output checks failed;
+the input/output verifiers and source/artifact hashes reproduce the recorded
+boundary. Parity plan 7R.2a–d now specifies bounded target/owner admission,
+preallocation after codec reset but before incoming-reference callbacks,
+exactly-once resolution plus final publication proof, and operation-owned
+same-data adapter retry. The existing low-level retries use fresh caller
+data, so they do not already establish that last guarantee. Keep the
+same-owner gate as a deliberate strict-converter policy supported by
+[ezdxf's implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/hatch.py),
+not a byte-layout rule inferred from Autodesk's source-ID API. No automatic
+detachment, contour synthesis or native geometric update is part of this fix.
+
+The ODA v5.4.1 §20.4.41 tables on printed pp.144–145 were visually rechecked
+against current modeler reading and ACadSharp's reader. Inline carrier,
+wire/transform/silhouette tail, handle framing and SAB-derived projection
+remain separate contracts. A peer's different silhouette-ID width is not
+permission to change this parser; local code does not currently decode that
+array. Any expansion remains behind S3.2's exact-version ODA/trace gate.
+[ACadRust #129](https://github.com/hakanaktt/acadrust/issues/129) now includes
+a reporter's successful 0.6.4 retest of six private 2004/2018 modeler files,
+despite remaining open. Record that released-fix evidence accurately, without
+treating counts/payload sizes as geometry proof or importing the private files.
+
+For faster implementation, continue 7R.2 and independent S2.3.9.4.29 locally.
+S2.2.5b first needs a same-profile legacy binary-SAT positive in the actual
+reader. An optional already-installed GDAL 3.12+ direct binary-to-ASCII
+translation may isolate tags; it is distinct from an OGR geometry rewrite
+and cannot qualify acceptance of the original binary file. Reuse the existing
+focused modes and only one integration/compatibility checkpoint; no new
+registration, install, external fixture, full-suite rerun or J promotion.
+
+**Broader upstream regression audit (2026-10-15; tests prioritized, no
+production diagnosis):** the pinned [ezdxf 1.4.4 ACIS writer](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/acis.py)
+and its [ACIS browser documentation](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst#L429-L438)
+make the carrier boundary explicit: R2000–R2010 is inline SAT in groups 1/3;
+R2013+ is SAB stored in ACDSDATA and retrieved by the modeler entity handle.
+Consequently, S2.2.5's AC1027 case must exercise the entity shell and its
+metadata only; it must not invent inline SAT text to fill that case. Keep its
+separate ACDSDATA/SAB path in S2.2/S2.3, and keep binary-DXF group-310 chunk
+encoding distinct from ASCII group-310 hex text and from DWG DataStorage.
+
+LibreDWG's [current NEWS](https://github.com/LibreDWG/libredwg/blob/master/NEWS#L2300-L2318)
+records exact peer regression classes: associative-HATCH source-handle index
+reset between paths, per-path `has_derived` aggregation, rational HATCH spline
+knot/weight ordering, omitted final SAT block on DXF export, and binary-DXF
+hex encoding for group codes 310–319; its preceding 0.14 notes also list a
+SAB-to-SAT1 off-by-one and binary SubDMesh import fix
+([NEWS](https://github.com/LibreDWG/libredwg/blob/master/NEWS#L2414-L2420)).
+These are not findings against libdxfrw. Existing local coverage checks one
+patterned HATCH path and one rational spline path, while MESH already has
+ASCII/binary typed readback; the missing high-value fast case is multiple
+HATCH paths with different association lists and derived flags. S5.18 adds
+that runtime-generated case through parity7R.1's committed direct-writer controls;
+its actual CLI acceptance remains open under7R.2. Keep SAT/SAB final-chunk and multiple-of-limit
+boundaries in S2.2.5, and verify byte-exact binary section chunks in the
+existing ACDSDATA gate rather than treating peer release notes as an oracle.
+
+ACadSharp's [open PR #1150](https://github.com/DomCR/ACadSharp/pull/1150)
+describes version-specific SAT/SAB containers, an out-of-directory-order
+DataStorage search-index correction, and five DXF versions reportedly opened
+in TrueView; its author explicitly notes a separate unsupported R2007 DWG
+writer. The same PR's discussion records that the maintainer deferred review
+until the Prototype_1b reader was stable, and the linked [issue #1152](https://github.com/DomCR/ACadSharp/issues/1152)
+questions heuristic header parsing/writing. Therefore its AutoCAD/TrueView
+claims and writer algorithm remain peer hypotheses, not conformance evidence;
+retain S4.5's sorted-handle-rank case and require the ODA layout plus a
+qualified reader. Likewise, open [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195)
+reports silent solid-only-block loss on customer DWGs that cannot be shared;
+the linked [writer PR #1240](https://github.com/DomCR/ACadSharp/pull/1240)
+is ongoing peer work. Use the report to motivate S2.3.9.4.29's generated
+block/INSERT census, not as evidence of a libdxfrw defect. The closed
+[ACadSharp MESH issue #1038](https://github.com/DomCR/ACadSharp/issues/1038)
+is another adversarial test lead: the report observed a MESH written as an
+`ACAD_PROXY_ENTITY`; existing typed MESH readback is the right fast gate, and
+no proxy-specific production change is justified without a local reproduction.
+No customer fixture was downloaded or admitted.
+
+**Broader numeric-fidelity audit (2026-10-15; locally reproduced, fast fix):**
+ACadSharp issue [#1179](https://github.com/DomCR/ACadSharp/issues/1179)
+reported silent coordinate perturbation from finite-precision ASCII DXF output;
+its merged [PR #1186](https://github.com/DomCR/ACadSharp/pull/1186) added
+writer precision configuration. This is peer evidence for a cross-library
+failure mode, not the basis for libdxfrw's expected value. At `946535f`,
+`DxfNumeric::formatDouble` defaults to 16 significant digits, and the locale
+test expects `nextafter(1.0, 2.0)` to be written as `1`, which changes the
+finite IEEE-754 value. The parity plan already catalogues this as PAR-43/7Y.2;
+S5.19 is the same formatting repair, tracked there as 7Y.2a. The default now
+uses `max_digits10`, with exact tag readback of adjacent doubles, maximum and
+minimum normal values, a finite subnormal, signed zero and adversarial 3D
+coordinates. Four focused locale/process-locale/ASCII-CLI/binary-CLI checks
+pass in 0.63 seconds; an exact little-endian boundary control verifies binary
+double bytes. The explicit six-digit ARCALIGNEDTEXT string helper and raw/typed
+ERANGE-policy difference remain separate. No external fixture, DWG layout,
+CAD-kernel result or support claim follows.
+
+ODA v5.4.1 §24.2.2.7.1 requires one zero-based search-index entry per
+DataStorage object and a matching handle/index entry; absent search data
+causes AutoCAD to ignore the entity. ACadSharp PR #1150 reports a real ordering
+bug when directory order differs from sorted-handle rank. Keep this as an S4
+writer regression gate after S3, and independently pin the rank/order rule to
+the ODA text plus a qualified reader. This audit changes no support claim or
+external-J disposition. Consumer evidence narrows the FreeCAD acceptance
+target: current
+[FreeCAD DXF documentation](https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext)
+states both its C++ and legacy importer cannot read embedded ACIS/SAT solid
+payloads, and the FreeCAD maintainer's closed [issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454)
+independently describes ACIS solids as unsupported. Keep S8.15.17's converter
+argv/output/handoff check, but count an importer skip as an expected downstream
+limitation, not a libdxfrw failure. Do not rerun geometry-positive FreeCAD
+qualification on every carrier change; repeat it only when a named importer
+revision documents or implements ACIS construction. This does not waive
+converter-format acceptance or preservation tests. Sources: [Autodesk binary
+DXF](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm)
+and [Autodesk DXF group value types](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm).
+
+**Research boundary at25adc7f:** this update changes plans only. Broader
+resource accounting includes HANDLE staging/frame-ledger metadata peaks and
+an operation-owned exhaustion latch, not raw payload bytes alone. Preserve
+earlier callback prefixes, first diagnostics, rejected-nesting isolation and
+next-read reset. Section-map work also needs a separate unknown-name index;
+a page-range index does not eliminate the current linear duplicate-name scan.
+These refine parity7S.3/7BO without changing byte layouts or adding findings.
+Optional comparators must pass their field/identity calibrations before
+extending3D evidence. The six historical J dispositions, frozen metadata,
+84/45/exact7 inventories and fixture policy remain unchanged.
+
+**Latest research boundary at86198a7:** this update changes only the two plans
+and preserves the staged11-path HEADER patch
+`b8712389bd02800d0789287d705254e2ed032b3551c88301993d3fc3873525a7`.
+S3.7 now separates actual SAB decoder count/terminal, finite projection and
+body-placement repairs from S3's qualified opaque carrier extraction. An
+ordinary public ezdxf1.4.4 box SAB with count0 is rejected; a count-only
+diagnostic mutation reveals centered rather than placed bounds. Five tiny
+codec partners distinguish finite valid projection, missing marker, ignored
+suffix, NaN admission and truncated-marker rejection. These seven source-bound
+rows are neither native DWG/DXF evidence nor independent ACIS semantics.
+The parity plan records the exact report/source bindings and remaining
+consumer/comparator calibrations. No fixture, receipt, support claim, frozen
+inventory or six-J disposition changes.
+
+Comparator/graph readiness also stays phase-specific. Parity7AH.5 now
+requires named strict EOF/tail evidence and staged known binary-iterator
+failures; ordinary peer load success is not complete framing. Verify adjacent
+I64 values in the final saved artifact with an exact parser, preserving raw
+JSON/decimal lexemes across JavaScript orchestration. Parity7G.3 adds a
+DXF-first CLI SORT callback/closure, bounded output-only sparse-key policy
+and independent zero-bucket/tie checks. DWG's null-sort→entity-key receipt
+needs separate adaptation; it must not become DXF zero-last. Eight
+binary-phase and ten draw-order component controls do not execute the current
+converter, native application or full valid graph. They refine existing
+owners and keep all external qualification requirements intact.
 
 **Local DXF transport regression (2026-09-28; S2.3.9.4.24):** added a
 runtime-generated AC1027 ASCII and binary REGION-without-history
@@ -83,7 +2396,7 @@ semantic geometry manifests. J256/J260/J268/J284/J293/J295 therefore remain
 
 Autodesk's [official AutoCAD LT sample index](https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html) verifies public source for several corpus hashes, but the current [Autodesk website terms](https://www.autodesk.com/company/legal-notices-trademarks/access-use/website-terms-of-use) say site materials may have separate terms and otherwise restrict downloaded material to personal informational non-commercial use, without modification or redistribution. No artifact-specific permissive terms were found for those Autodesk downloads, so public origin is not fixture-admission permission. The [EngineeringTechnology.org AutoCAD Sample Files page](https://engineeringtechnology.org/engineering-graphics/cad-autocad/autocad-sample-files/) directly links `Extruder2.dwg` and states that “this work” is CC BY 4.0; the linked binary's exact SHA-256 was checked against the archived `Extruder2.dwg` hash (`fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c`) and matches. This establishes an exact public artifact match and an explicit page-level CC BY 4.0 license assertion for the linked work. The page does not identify the DWG's creator or separately document chain of title, so retain that provenance caveat; do not add this externally sourced drawing to repository fixtures under the fixture policy. The file also has no source-authored dimensions or independent geometry manifest, so the provenance result cannot qualify a semantic support claim.
 
-**External-reader unblock recheck (2026-09-28; S7.7):** Ansys 2026 R1's primary [ACIS reader documentation](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html) confirms stand-alone SAT/SAB reading through ACIS 2023 on Windows/Linux, solid-body import, and unit transfer when the geometry file specifies units; its [Geometry Interface licensing documentation](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ans_con/Hlp_CAD_CKU1.html) requires a qualifying entitlement. This makes Ansys a promising independent standalone-SAB geometry lane, not a verified reader for this sample's exact `ASM 230.7.0.65535` payload, and it cannot verify the DWG ACDS owner/schema/history joins. No licensed Ansys runtime is available here. BricsCAD's primary [`ACISIN` documentation](https://helpcenter.bricsys.com/en-us/document/command-reference/a/acisin-command?version=V25) confirms SAT/SAB import but explicitly says it ignores source `INSUNITS`, so it can only compare raw standalone geometry absent a separate unit oracle. No new independent execution receipt was found. J268 still lacks a durable row-level report and cannot be faithfully reconstructed; J256 remains a strict subset of J260, J260/J293 share the same unique stream set, and J284/J295 successors remain field-scoped and non-promoting. All six historical IDs therefore remain `DEFERRED_EXTERNAL`; exact sample provenance and reader capability statements alone do not meet their required semantic/platform gates.
+**External-reader unblock recheck (2026-09-28; S7.7):** Ansys 2026 R1's primary [ACIS reader documentation](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html) confirms stand-alone SAT/SAB reading through ACIS 2023 on Windows/Linux, solid-body import, and unit transfer when the geometry file specifies units; its [installation/licensing documentation](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadInstallLicense.html) directs exact feature/entitlement mapping to its authenticated Customer Portal; current entitlement is unverified. This makes Ansys a promising independent standalone-SAB geometry lane, not a verified reader for this sample's exact `ASM 230.7.0.65535` payload, and it cannot verify the DWG ACDS owner/schema/history joins. No licensed Ansys runtime is available here. BricsCAD's primary [`ACISIN` documentation](https://helpcenter.bricsys.com/en-us/document/command-reference/a/acisin-command?version=V25) confirms SAT/SAB import but explicitly says it ignores source `INSUNITS`, so it can only compare raw standalone geometry absent a separate unit oracle. No new independent execution receipt was found. J268 still lacks a durable row-level report and cannot be faithfully reconstructed; J256 remains a strict subset of J260, J260/J293 share the same unique stream set, and J284/J295 successors remain field-scoped and non-promoting. All six historical IDs therefore remain `DEFERRED_EXTERNAL`; exact sample provenance and reader capability statements alone do not meet their required semantic/platform gates.
 
 **Native ACIS witness generator and FreeCAD scope recheck (2026-09-27; S2.3.9.4.14):**
 an exact-name search found no public DWG paired with source-native solid
@@ -107,6 +2420,16 @@ has no AutoCAD, so the LISP has not been executed and no generated DWG/DXF is
 present. The gate still requires a native AutoCAD run, exact file and extracted
 SAB hashes, an independent ACDS/DXF structural read, and two independent ACIS
 geometry readers reporting bounds, volume, and topology against the manifest.
+
+Readiness correction (2026-10-14): the run notes now match this two-reader
+requirement. Record parser lineage separately from geometry-kernel lineage;
+two OCCT-based consumers do not provide independent kernel confirmation.
+AC1027 SaveAs does not force ACIS218/ASM230, and the LISP does not inspect that
+profile. Preserve the actual extracted SAB header/profile before deciding
+whether a generated pair belongs to this witness lane. Pin the separate mesh
+generator's executed ezdxf version/content/script digests, not merely its
+suggested installation range. These are acceptance clarifications, not new
+producer execution or semantic qualification.
 
 The official FreeCAD documentation clarifies a separate scope issue: the
 standard DWG converter route hands DXF to FreeCAD's normal DXF importer, whose
@@ -158,6 +2481,113 @@ the separate parser reconstructs header-scaled bounds
 uninterpreted. This is a second parser/placement check, not a second geometry
 kernel: CadQuery's OCP binding uses OCCT, also used by FreeCAD
 ([CadQuery repository](https://github.com/CadQuery/cadquery)).
+
+**Current verifier contract audit (2026-10-14; continuation of S2.3.9.4.19):**
+the exact-hash historical geometry results above remain unchanged. A fresh
+eight-row mocked-predicate control of the existing checker shows that missing
+`units_mm`, unsupported-schema/unknown diagnostics and an unclassified raw
+attribute can still accompany PASS. Incorrect scale and two returned shapes
+are rejected. No cq-acis parser or geometry kernel executes in these mock
+controls; they identify checker-contract work, not new drawing semantics.
+The release-pinned [cq-acis0.3.8 model contract](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/docs/model-api.md#L28-L47)
+preserves absent source facts as None and distinguishes the1mm compatibility
+default. The [converter](https://github.com/monozukuri-ai/cq-acis/blob/a2eefa38eaeeb95f17dcdabe8132bcbb18e32310/src/cq_acis/cadquery.py#L2036-L2044)
+already rejects raw bodies; an unrelated raw attribute is not evidence of a
+silent omitted body.
+
+Implement one small successor verifier contract before admitting new semantic
+evidence. Report geometry-check outcome, source-unit availability, effective
+conversion scale and its defaulted status, diagnostic/raw coverage and claim
+eligibility separately. Preserve diagnostic entity index and source byte-domain
+span. Use pinned-code/target/reachability dispositions: missing expected bodies
+or referenced geometry loss rejects the scoped geometry cell; unknown or
+unclassified coverage remains advisory/non-promoting. A reviewed benign
+non-geometric attachment need not fail geometry. Unknown source units cannot
+prove dimensional semantics even when the compatibility-scaled shape matches.
+Do not reject every warning/raw record or relabel historical parser results.
+
+The smallest gate is the existing eight dependency-free mocks plus targeted
+benign/loss/unknown diagnostics, null-versus-known units and reviewed-raw
+partners. A separate in-memory ezdxf1.4.4 calibration changes a cube surface
+to deliberately unsupported: faces fall6→5 while one mesh/eight vertices/
+identical bounds remain. Require source-topology denominators and projection
+omissions, not extent/presence alone. Report
+`/private/tmp/libdxfrw-broader-research.ccHWJz/research-report.json`, SHA256
+`11b01c8cf84a6593ac689ad0cff11224f03133f058aa47f409bb0148417d47ac`, binds
+these controls; neither runs libdxfrw's DWG decoder or qualifies native FreeCAD,
+ACDS association, independent-kernel or AutoCAD dimensional semantics. Reuse
+the existing optional checker/runtime; no new dependency, fixture or default
+CTest is required. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL.
+
+**Successor verifier readiness and broader geometry controls (2026-10-14):**
+isolated30343a00f7184c1e07a278e4a0b4815ce97fe24e on907b77 implements the
+named v2 box-observation contract in the existing optional checker. Its62
+mocked controls pass in two existing Python3.12.15 environments. Independent
+review of that original candidate led to correction `e8fd3b82`; its main
+integration includes the self-test loading successor below. No parser/kernel
+executes in those tests, and cq_acis is
+absent in the inspected oracle environment. Report
+`/private/tmp/libdxfrw-acis-contract.W0dRdz/slice-report.json`, SHA256
+`0cc8ffbc7d32b3dbbfdf236afc21ab80b58fbd11f18a15efb0843fa1969aef00`, binds
+source`a1d940b2015d1f140be02c2533c1f8a8c974bb180867d933f753396108898697`.
+Correction `e8fd3b82377fdfbb69531f3672a9f2fb1a09ae9e` was reviewed and staged
+with source SHA256 `6c68e91ce4dea056fd18f05fb892b98bcc74518f5c82f3fb333841d100499a8c`.
+It adds observed typed body/lump/shell/face inventory and reachable counts,
+separate from reconstructed geometry and the unavailable original SAB wire
+denominator. Its81 controls pass under ordinary CPython3.9/3.12; actual local
+file/FIFO controls do not become independent geometry evidence. Report
+`/private/tmp/libdxfrw-acis-contract.W0dRdz/correction-report.json`, SHA256
+`82476f315f5f74293da15905a238d3436d0b81d1668a51c52258dad587de1814`,
+preserves the historical62-control binding. Input admission intentionally
+requires POSIX nonblocking regular-file checks; non-POSIX capability rejects,
+without changing library/dwg2dxf/FreeCAD Windows behavior.
+
+A fresh historical staged-source Python3.12 probe passed81 controls with `-B`
+but failed its isolated sibling import. The integrated successor explicitly
+loads the trusted resolved helper only inside self-test, without changing
+sys.path or normal verification imports/predicates. Fresh ordinary/isolated
+CPython3.9/3.12 runs all pass81 controls. Current source SHA256
+`01eaf3688230fe072f08508b76da21234ca8304f8b109ba024371e2048ee77e6`
+is bound by `/private/tmp/libdxfrw-image-main.L264fn/acis-report.json`, SHA256
+`374341fea34a4776308cfa75b9b3b2195fae608ac11cdbacab86abab0d290076`.
+Independent review verifies helper-shadow/path controls; no parser/kernel
+executes and qualificationEligible remains false. Earlier reports retain their
+original bindings. Preserve this contract rather than starting another
+verifier. Bounded input and observation caps are not an
+external-parser/kernel time or memory sandbox;
+version strings alone do not attest loaded code. No fixture or frozen receipt
+changes are implied.
+
+Keep its box-only acceptance narrow. Exact analytic calibration constructs a
+10×8×6 region with a2×2 through-hole centered at(3,3) versus(7,3). Both have
+volume456, area416, identical bounds and boundary counts; their uniform-volume
+centroids and interior occupancy differ. This is mathematical calibration,
+not a SAB decoder result, kernel execution or failure of the existing box
+checker. Report`/private/tmp/libdxfrw-broad-readiness.GqVreo/geometry-report.json`,
+SHA256`af64288b79f3c29eb40cc0ee27fdc87bdc0db76fb1ffb57d43be06cf93ccfed2`,
+binds the exact rational recipe and current tool/runtime bytes.
+
+Before a broader asymmetric/cavity witness can support geometric equivalence,
+capture source-authored per-body placement/centroid and a few discriminating
+interior/boundary points alongside bounds/area/volume/topology. Use inertia or
+directed surface-distance checks only when needed and independently expected;
+no finite metric set establishes arbitrary shape equality. Preserve source
+topology denominators separately from reconstructed seam/split topology and
+declare any permitted resegmentation. The
+[OCCT7.8.1 validity contract](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/src/BRepCheck/BRepCheck_Analyzer.hxx#L107-L150)
+checks internal consistency at represented tolerances, not the intended shape.
+Its [mass-property contract](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_8_1/src/BRepGProp/BRepGProp.hxx#L147-L191)
+assumes coherently oriented closed solids. Keep validity/solid/shell/orientation
+checks before mass properties and bind kernel version/mode/tolerances. These
+future controls do not block the narrow box-contract correction or require
+expensive Boolean/meshing tests after every field edit.
+
+A current attempt to import the installed FreeCAD modules ends134 with Qt's
+NEON-requirement diagnostic before shape creation. It is unavailable in that
+attempt, not a new native pass or a hardware diagnosis. Preserve earlier
+exact-runtime FreeCAD observations; neither this failure nor the analytic
+calibration promotes or invalidates them. All six historical J items remain
+DEFERRED_EXTERNAL/non-promoting.
 
 The hash-pinned
 [cadmpeg 0.6.0](https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.0)
@@ -424,6 +2854,38 @@ Rust-enabled generator, validate its 21800 output with ODA and a second
 independent reader, then obtain the separate AutoCAD/authorized external
 measurement packet only if the ASM-230 contract remains unresolved.
 
+**Generator and independence successor review (2026-10-14):** keep the
+0.5.5 observations above historical. Pinned
+[acadrust0.6.4 writer](https://github.com/hakanaktt/acadrust/blob/8d5c46d423941ad96575760bf77979f8c46156fb/src/entities/acis/sab.rs#L108-L163)
+now selects the ASM terminator for numeric save version21800 or greater;
+the old unconditional-marker blocker is not current. Its
+[V21_0 mapping](https://github.com/hakanaktt/acadrust/blob/8d5c46d423941ad96575760bf77979f8c46156fb/src/entities/acis/types.rs#L55-L71)
+still yields2100. Preflight literal21800 from from_sat_number(21800), record
+all three encoded header doubles, and include V21_0 as a negative control
+before any generator execution. Self-roundtrip tests/reference-application
+comments are not native producer receipts or unit truth.
+
+Separately, [cq-acis0.3.11's source-free BoxSpec](https://github.com/monozukuri-ai/cq-acis/blob/c460afe89ab66820536220bc4e3e9805c3fb5e43/crates/acis-core/README.md#experimental-source-free-sab-authoring)
+is an optional asymmetric translated-box calibration, explicitly experimental
+ASM23200/width4/scale10 with86 active entities. It is not the ACIS218/ASM230
+witness and must not silently broaden the current checker. Prefer recorded
+analytic dimensions/minimum corner over same-CadQuery roundtrip; inspect
+original bytes/profile, independently expected placement/volume and unsupported
+outcomes before geometry. No runtime/install/generator execution occurred.
+
+[cq-acis's pinned notices](https://github.com/monozukuri-ai/cq-acis/blob/c460afe89ab66820536220bc4e3e9805c3fb5e43/THIRD_PARTY_NOTICES.md)
+identify consulted cadmpeg Rust/grammar and ezdxf grammar/fixtures; the notice
+blob is unchanged from0.3.8. Keep producer, parser-code implementation,
+consulted grammar/reference and geometry-kernel lineage as separate evidence
+edges. Distinct binaries are not uncorrelated format assumptions; shared OCCT
+does not supply a second kernel. Original-hash observations remain valid at
+their scope, but agreement cannot replace producer-native dimensions/units.
+cadmpeg0.6.1's documented binary-centimetre rule is its pinned dialect claim,
+not a newly executed result or normative embedded-AutoCAD contract. Report
+`/private/tmp/libdxfrw-external-unblock-20261014.udGP7J/research-report.json`,
+SHA256`bdd4c9747dfbd2017f0226545d94971f3058304d6b11a92008c4b174482f7807`,
+binds primary blobs, readiness steps and explicit unqualified boundaries.
+
 **Native-platform unblock research (2026-09-27; S8.9.5):** the plan's native-CI
 option is immediately actionable on the existing project workflow matrix:
 `.github/workflows/build.yml` already builds on `ubuntu-24.04` and
@@ -679,6 +3141,20 @@ implementation-ready slice rather than a general support claim.
 | S8.9.5 Linux | A native Linux host or native Linux CI runner with the intended architecture, a usable compiler/CMake toolchain, and an installed, version-pinned FreeCAD release including `freecadcmd`. Cross-compilation from macOS is not a substitute. The handoff records host/OS/architecture, FreeCAD release and source revision, exact install prefix/build mode, and whether shell, desktop-entry, or configured-path launch is in scope. | Build/install the current revision outside the checkout; run the existing installed CLI/readback/failure-publication tests in a clean environment; then, with isolated FreeCAD preferences and fallbacks disabled, prove installed `dwg2dxf` path/hash, exact argv, status, complete output, and identical output path for separate `open()` and `insert()` runs. Verify desktop-entry environment only if it will be claimed; otherwise narrow docs to the passing shell/configured-path route. Mark only the tested Linux profile qualified after its evidence packet is saved. |
 | S8.9.5 Windows | A native Windows host or native Windows CI runner with the intended architecture, MSVC/runtime toolchain, and installed, version-pinned FreeCAD release. The handoff records OS/build, architecture, FreeCAD release/revision, compiler/runtime, install layout, and launch route. | Build/install `dwg2dxf.exe`; verify its required DLLs resolve from the documented package/system locations, not FreeCAD-private directories; then run the same clean-profile `open()`/`insert()` attribution and output-handoff checks as Linux. Include paths with spaces and a Unicode/non-ASCII input/output path before claiming those cases. Qualify the desktop launcher only if tested natively; otherwise document only the passing shell/configured-path route. Mark only the tested Windows profile qualified. |
 | S2.3.2 ACIS/ACDS contract | A full modern ACIS-218/ASM-230 embedded-DWG contract remains unavailable. A hash-pinned ODA-produced AC1027 pair from a tracked LibreDWG source, plus independent Open CAD Studio readback, qualifies one standalone `3DSOLID` / `AcDb3DSolid_ASM_Data` carrier/history tuple only. S2.3.6 accepts actual libdxfrw output through a version-matched ODA round-trip. InventorLoader/FreeCAD Part and cq-acis reconstruct the exact ODA cone; InventorLoader/FreeCAD Part also decodes the three exact ACadSharp SABs, but ACadSharp's maintainer identifies these as reader-test inputs and their original modeler dimensions are unknown. cadmpeg v0.6.0 independently decodes those payloads and agrees on topology, but its STEP/OCCT metrics use ×10 mm/source-unit versus the prior ×25.4 mm/source-unit findings; its published bare-stream score is L1, below its own L2 geometry-and-units criteria. The public ACIS D7.0 save-file specification describes the legacy header scale, and Autodesk's SAT export article explicitly covers AutoCAD 2000–2009 rather than embedded modern ACIS-218/ASM-230. A separate ezdxf-authored control declares `units_mm=1.0` while cadmpeg emits 10× geometry for that exact SAB; because it is not an AutoCAD producer, this is a reader/profile disagreement, not a unit oracle. Existing sources leave ×25.4 only as a hypothesis and do not resolve modern embedded semantics or establish the sample's authoring dimensions. | `READY_NARROW` for byte-preserving carrier/history transport only: one `ASM_Data` owner key equals the entity handle; six observed schema definitions; group 94 equals concatenated ordered group-310 bytes; opaque group-2 GUID; existing group-350 history handle; exact SAB payload hash. Preserve bytes and observed order; fail closed for unsupported or ambiguous references. Dimensional semantic parity is `UNRESOLVED` pending a witnessed, known-size ACIS-218/ASM-230 control with independently observed native modeler dimensions and DWG unit interpretation; compare raw and converted extents for each reader and do not promote cadmpeg's ×10 result. Clone/INSERT/XREF lifecycle, other schemas/entities/producers/versions, DWG modeler writing, and native FreeCAD solid import remain blocked. S2.3.4/.5/.6 have bounded carrier implementation/verification evidence; S2.3.7 establishes installed FreeCAD converter handoff for the exact standalone tuple on pinned macOS only, not native FreeCAD geometry. |
+
+**ACIS consumer boundary refinement:** the open-source OCCT core does not
+provide the commercial OCCT ACIS SAT/SAB or DXF exchange components, and
+FreeCAD's normal DWG route still converts to DXF before its selected DXF
+importer. Therefore a passing native FreeCAD platform gate is converter
+integration evidence only for modeler entities unless final-document shape
+metrics independently pass. A CAD Exchanger→BREP→FreeCAD run may be considered
+only as a separately licensed, pinned external route after exact-payload and
+source-owner association checks; it cannot count as an open-source
+implementation, stock-FreeCAD support, or ACDS history proof. FreeCAD's DXF
+documentation repository is archived, so the published C++/legacy importer
+entity lists are discovery evidence; claim-specific FreeCAD behavior requires
+a pinned runtime result. No license, vendor executable, repository dependency,
+or external drawing is introduced by this plan update.
 
 For both gates, keep external binaries and converted outputs at their supplied
 paths or in unique temporary directories; record hashes and tool logs without
@@ -1030,10 +3506,15 @@ GUID/history behavior, or semantic geometry. The public
 [LibreDWG #1411 reproduction](https://github.com/LibreDWG/libredwg/issues/1411)
 uses ezdxf-generated data and demonstrates loss through LibreDWG, not
 independent acceptance. The reported BricsCAD-authored `mm.dxf` remains
-unavailable with no downloadable artifact/hash; the new RealDWG-Web changelog
-also mentions attaching ACDSDATA to solids, but the implementation is in a
-private package and cannot be audited or reproduced. `ezdxf` is not installed
-in this environment, so no generated-file or runtime result is claimed.
+unavailable with no downloadable artifact/hash. A read-only follow-up found
+that the public RealDWG-Web `libredwg-converter` changelog reports an
+ACDSDATA-to-3DSOLID attachment milestone, distinct from the separate private
+`@mlightcad/dwg-converter` route. This is a changelog claim, not a pinned
+release/source mapping or runtime result; inspect the exact public source and
+package if selected for the optional composed check. It does not remove the
+need for an independently sourced producer pair or semantic geometry
+evidence. `ezdxf` is not installed in this environment, so no generated-file
+or runtime result is claimed.
 
 The shortest unblock is now explicit: obtain the actual BricsCAD `mm.dxf` (or
 an equivalent nonconfidential, source-provenance AC1027 DWG/DXF pair) with
@@ -1100,6 +3581,36 @@ an explicitly configured executable path is qualified, keep README/man claims
 at that boundary; do not imply that changing a terminal's `PATH` affects an
 already-running desktop session.
 
+## Deeper/broader provenance-centered modeler-geometry preservation refinement (2026-10-19; research only)
+
+OpenCADKernel’s current source describes a useful design pattern for a future
+semantic editor: carry original record provenance on each B-rep node, mark
+whether the node was edited, replay original bytes for unchanged nodes, and
+serialize only changed or synthesized nodes. The same repository warns that
+the kernel is early and most operations are not implemented; its ACIS bridge
+also depends on the OpenCADStudio/ACadRust-related `opencadcodec`. Therefore
+this is a design reference, not validation evidence or a ready dependency.
+
+Apply the pattern only to the existing PAR-07/S8 modeler boundary:
+
+1. Preserve a per-source-entity identity and owner/block path through read,
+   retained carrier bytes, and write.
+2. Keep transport-only carrier preservation separate from successful ACIS
+   interpretation, valid topology, closed-solid metrics, and native consumer
+   acceptance.
+3. For untouched or unmodeled records, replay exact bytes only where the
+   container/version route is already proven. For dirty topology, emit only
+   through an exact supported profile; otherwise fail the requested edit
+   atomically and leave the source payload intact.
+4. Any future kernel observation must report each source record as
+   preserved, interpreted, modified/re-emitted, unsupported, or rejected;
+   aggregate “solid count” or successful render is insufficient.
+
+No serializer/kernel change or additional test is authorized by this research
+update. Keep ACIS/AcDs support claims and all six external J statuses
+unchanged. Continue fast local generated slices; this research does not add
+peer/kernel runs to ordinary implementation.
+
 ## Objective and limits
 
 Close evidence-backed correctness and interoperability gaps in libdxfrw's 3D
@@ -1150,6 +3661,18 @@ than changing output to hide limitations in FreeCAD's importer. A failed
 conversion must not leave a partial final DXF that FreeCAD's file-existence
 check could mistake for success.
 
+**Current source/calibration constraint:** FreeCAD4a1904f8's native C++ text
+path and optional legacy Python importer are different profiles. The extracted
+legacy `deformat` helper's ten research observations are not a native document
+run. The C++ UTF8 fast path itself does not validate scalars, and text callback
+parameters do not preserve full non-XY orientation; later native/Python stages
+may still reject or transform content. For any new text/tilted-geometry tuple,
+record effective importer/annotation options and assert final Unicode and
+object placement against asymmetric analytic expectations. Do not extend a
+LINE/open/insert receipt to those fields or alter output to conceal an importer
+limitation. See the parity plan's pinned consumer/oracle review and durable
+research receipt; existing native Linux/Windows requirements are unchanged.
+
 This is qualified by a specific tuple—FreeCAD revision, OS/architecture,
 launch/discovery route, importer mode, operation, DWG version, and tested entity
 semantics. Evidence does not transfer across tuple dimensions. Keep FreeCAD
@@ -1166,6 +3689,23 @@ Broader platform claims require native install/dependency/discovery and
 FreeCAD-process evidence under S8.9.5. Continue those existing work items
 rather than creating a duplicate FreeCAD harness or treating a CLI-only pass
 as application integration.
+
+**Effective importer profile and final-document gate:** current source at
+`3c0324a7c868e066320e78b0d8943835e8cd56f8`
+[overwrites DxfImportMode from preference booleans](https://github.com/FreeCAD/FreeCAD/blob/3c0324a7c868e066320e78b0d8943835e8cd56f8/src/Mod/Draft/importDXF.py#L4355-L4370).
+For new mode0/1/2/3 cells, capture requested/pre-seeded booleans and effective
+post-read mode; setting only the integer is insufficient. C++ importer
+statistics precede [post-processing](https://github.com/FreeCAD/FreeCAD/blob/3c0324a7c868e066320e78b0d8943835e8cd56f8/src/Mod/Draft/importDXF.py#L5071-L5118),
+which converts, filters, reparents/deletes objects and catches an abort path.
+Keep those statistics separate from final-document type/shape/block-link
+sentinels and explicit post-processing outcome. These are source-only
+calibrations, not an executed FreeCAD failure or retraction of historical
+1.1.3/1.1.4 mode2 LINE results. First add dependency-free packet/predicate
+controls; run a newly enabled native mode only at its existing capability gate.
+Consumer report
+`/private/tmp/libdxfrw-consumer-contract-research.D7GLxg/research-report.json`,
+SHA256`1dfd3fe353ae5db033147be84d78d67ba018592d0fb23c8464cad3c27d2238b3`,
+binds this source revision separately from native evidence.
 
 **FreeCAD support ledger and implementation priority:** treat usable FreeCAD
 integration as a short, separately releasable converter lane—not as the end of
@@ -1479,6 +4019,58 @@ already-qualified macOS results closed and qualify Linux and Windows only on
 native hosts with the actual FreeCAD release and importer named for each
 claim. Execute the same short sequence on each platform; do not repeat the
 entity matrix or full repository test suite:
+
+The reviewed e6e4e78→c2a9772c preflight successor is integrated on f7cbcae
+with its affected CLI/configure gates passing. It supplies Linux TMPDIR,
+strict finite straight-LINE/two-endpoint validation and authored endpoint
+expectations, with32 distinct mocked controls but no native FreeCAD execution. The
+correction registers tests only after Python discovery: fresh automatic and
+explicit configure profiles both capture the selected absolute interpreter.
+The prior explicit-Python pass hid a prelaunch empty-argument failure; unchanged
+84 names were insufficient. Inspect required command roles without rejecting
+legitimate empty options elsewhere, and label prebuilt-CLI substitutions as
+harness checks, not fresh-build CTests. Main CLI CTest1/1 passes0.23s; report
+300abd08 and parity7AD/Slice9 bind exact hashes and the separate configure-probe
+timeout follow-up. These local
+gates do not close native selection, durable packet or platform qualification.
+
+Two further pre-dispatch checks refine existing S8.9/7AC/7BH, not platform
+qualification. Pinned FreeCAD1.1.3's
+[converter resolver](https://github.com/FreeCAD/FreeCAD/blob/145529fe741292ff0b3977a01195bf0247425794/src/Mod/Draft/importDWG.py#L138-L179)
+classifies the full configured path using case-sensitive `dwg2dxf`/`dxf2dwg`
+substrings, not basename identity. Parent-directory tokens and uppercase
+Windows spellings can therefore change the chosen branch. Calibrate canonical
+path/PATH lookup, opposite-converter basename, parent-token collisions,
+uppercase and missing files with the source-pinned resolver before choosing
+the documented route. Do not alter FreeCAD or infer that every arbitrary
+configured filename is supported. Assert the actual selected path/hash and
+argv at the native gate; Automatic fallback remains unattributable.
+
+The failure-path CMake wrapper builds a semicolon-containing Windows PATH
+inside `_environment`, then expands that list unquoted. The installed LINE
+wrapper already escapes semicolons before this boundary. Add a narrow
+argv-framing regression and the same reviewed escaping to the failure route;
+require one exact PATH assignment and unchanged arguments with spaces/Unicode.
+A host-independent CMake list control is readiness evidence only, not native
+Windows execution or a FreeCAD failure-path pass. Audit the similar optional
+ACDS wrapper when enabling its platform lane; do not widen native claims or
+run the entity/full suite to fix environment framing.
+
+Source/compile evidence is frozen in
+`/private/tmp/libdxfrw-consumer-readiness-20261014.5paYEy/consumer-readiness-report.json`,
+SHA256`eb0b275d5c7d4edd81e72fa8becf01da81e65bfd74303a75b7fde86fc3b734a2`.
+Resolver path behavior remains source-only. The separate
+`/private/tmp/libdxfrw-cmake-semicolon-control.IQomVa/semicolon-report.json`,
+SHA256`e68a9c43fd78334bca5f8cc4d3b20378f74290524d095f973c8dddd30772b35a`,
+binds two actual CMake4.4.4/macOS lanes: unescaped PATH splits into three
+arguments and prevents intended launch; escaped PATH is one assignment and
+the intended child receives exact PATH/argv. It does not execute the complete
+wrapper or native Windows/FreeCAD. Extend the dedicated packet with attempted
+argv and a separate launch-exception outcome (null PID/status, no handoff):
+the macro currently records a process only after successful Popen. Existing
+failure handling rejects the run, so this is missing diagnostic attribution,
+not false conversion success. One mock launch-exception/control suffices
+before a native failure-path run.
 
 1. Build and install `dwg2dxf` into a fresh prefix outside the build tree,
    including a prefix and source path with spaces. Test the static artifact;
@@ -1804,16 +4396,140 @@ claims.
 | `3DFACE` | DXF library read/write routes exist. S5.1 found the in-tree `dx_iface` did not dispatch `E3DFACE` on output; it now does. The reader requires XY components for the first three corners, accepts the fourth corner as optional and copies corner 3 when absent, and rejects group-70 values outside `0..15`; the DWG parser applies the same flag bound, and the DXF writer rejects invalid values before writing. | Generated ASCII/binary DXF vectors check WCS corners and group-70 invisible-edge bits. S8.15.18 additionally runs a locally authored tilted control through ODA-generated AC1015 DWG, exact FreeCAD-form conversion, and public DXF readback; all four WCS corners and the invisible-edge flag survive. FreeCAD 1.1.3 C++ counts one entity but reports it unsupported and creates no shape. Autodesk defines the four corner points as WCS and group 70's optional per-edge invisibility flags in its [3DFACE DXF reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm). This is one generated AC1015 converter witness only; it does not qualify target-authored DWG layout/version support or FreeCAD geometry support. |
 | `3DLINE` | Typed DXF/DWG codec routes exist; `dx_iface` now stores the modern `DRW_3DLine` subtype and dispatches its typed DXF writer (S8.13.4). | Locally generated ASCII and binary DXF exact-CLI/two-pass readback vectors verify adapter subtype and field preservation; S8.13.4.1 verifies pre-AC1015 output fails closed. Autodesk's current DXF ENTITIES index lists `LINE` but not `3DLINE`; no authoritative Autodesk definition or target-produced DWG witness was found in the 2026-09-26 check. LibreDWG's manual documents start/end/extrusion/thickness fields, but this is an implementation cross-check only. Keep the DXF spelling as a portability-sensitive extension, do not substitute it for standard WCS `LINE`, and keep pre-R13 legacy 3DLINE on its separate evidence lane. |
 | 3D point/line families | `POINT`, `LINE`, `RAY`, and `XLINE` carry WCS 3D data; legacy pre-R13 and modern custom-class 3DLINE remain distinct. | S8.4a.8 matches one AutoCAD-authored POINT `(50,50,50)` against LibreDWG for each exact AC1014/1015/1018/1021/1024/1027 sample; five also match their hash-pinned paired source DXF. Only the AC1027 and local AC1015 POINT controls have separate pinned-FreeCAD geometry checks (S8.15.3/.3.1). S8.13.4 and S8.13.4.2 verify generated ASCII and binary DXF adapter retention for the modern `3DLINE` extension only. Do not equate a 3D `LINE` with implementation-specific `3DLINE`, or promote DWG/version/target-CAD portability from a codec self-round-trip. |
-| Planar entities placed in 3D | ARC/CIRCLE, SOLID/TRACE, 2D POLYLINE/LWPOLYLINE, HATCH/MPOLYGON, and INSERT use distinct coordinate and topology rules. DXF ELLIPSE center and major-axis vector are WCS, with extrusion providing its plane normal; S5.14 validates that the major axis is nonzero and perpendicular to that normal. S5.15 rejects non-finite/non-positive ARC/CIRCLE radii before callback or record emission; S5.16 locks ARC/CIRCLE thickness separately from OCS projection in both DXF encodings. INSERT adds scale, rotation, array spacing, and block-base transforms. | INSERT's nested placement matrix is covered in S5.2. S5.1 covers SOLID/TRACE corner fields and TRACE projection; S5.4 corrects the DXF ELLIPSE `ext=true` double-transform and checks WCS invariance in both modes. S5.7 validates the HATCH/MPOLYGON zero-XY elevation header, OCS retention, and nonzero extrusion; S5.8 rejects partial X/Y pairs for polyline, line, arc, ellipse, and spline boundary data plus seed points; S5.9 preserves HATCH elliptic-edge direction; S5.10 disambiguates MPOLYGON's top-level group-73 annotation flag from boundary-path codes and retains its group-11/21 vector. This does not establish fill/render behavior, all optional tuples, DWG semantics, or FreeCAD MPOLYGON geometry support. Broader ARC/CIRCLE OCS, thickness geometry, and DWG ELLIPSE qualification remain open. Continue to use Autodesk's arbitrary-axis and per-entity rules, not a transform helper round-trip alone. |
+| Planar entities placed in 3D | ARC/CIRCLE, SOLID/TRACE, 2D POLYLINE/LWPOLYLINE, HATCH/MPOLYGON, and INSERT use distinct coordinate and topology rules. DXF ELLIPSE center and major-axis vector are WCS, with extrusion providing its plane normal; S5.14 validates that the major axis is nonzero and perpendicular to that normal. S5.15 rejects non-finite/non-positive ARC/CIRCLE radii before callback or record emission; S5.16 locks ARC/CIRCLE thickness separately from OCS projection in both DXF encodings. INSERT adds scale, rotation, array spacing, and block-base transforms. | INSERT's nested placement matrix is covered in S5.2. S5.1 covers SOLID/TRACE corner fields and TRACE projection; S5.4 corrects the DXF ELLIPSE `ext=true` double-transform and checks WCS invariance in both modes. S5.7 validates the HATCH/MPOLYGON zero-XY elevation header, OCS retention, and nonzero extrusion; S5.8 rejects partial X/Y pairs for polyline, line, arc, ellipse, and spline boundary data plus seed points; S5.9 preserves HATCH elliptic-edge direction; S5.10 disambiguates MPOLYGON's top-level group-73 annotation flag from boundary-path codes and retains its group-11/21 vector; S5.18 adds distinct per-path handle/derived-flag and rational-spline wire-order regression coverage. This does not establish fill/render behavior, all optional tuples, DWG semantics, or FreeCAD MPOLYGON geometry support. Broader ARC/CIRCLE OCS, thickness geometry, and DWG ELLIPSE qualification remain open. Continue to use Autodesk's arbitrary-axis and per-entity rules, not a transform helper round-trip alone. |
 | Classic `POLYLINE` 3D forms | The model stores 3D polylines, polygon meshes, and polyfaces in the `POLYLINE`/`VERTEX`/`SEQEND` family. DWG dispatch has separate vertex and face types, owned-child handling, and subtype checks. S5.1 corrected DXF polyface output to include groups 71/72 for declared vertex/face counts, use the polyface/face-record subclass markers, omit vertex group 91 from polyface records, and emit the legal SEQEND subclass set. S5.5 closes the DWG→DXF PFACE face gap: DWG face subtype (whose layout has no flags field) now supplies DXF face-record bit 128 and signed index serialization. | Generated ASCII/binary vectors verify WCS 3D-polyline points and signed polyface indices; LibreDWG 0.14 independently reads both. A locally generated AC1015 control exercises this conversion path only; it is not target interoperability evidence. Keep versioned DWG ownership/count qualification separate. DXF readers must remain tolerant of legal child ordering; writers emit coordinate vertices before faces. |
-| `MESH` / `AcDbSubDMesh` | Typed vertex/face/edge/crease/property-override data, topology validation, DXF and DWG encode/decode paths, and generated local round-trip tests exist. S5.1 added the missing in-tree `dx_iface` MESH read callback and write dispatch. | Generated ASCII/binary DXF vectors compare typed vertices/faces/edges/creases; LibreDWG 0.14 independently reads both. Self-round-trips remain consistency checks, not DWG-layout evidence. Autodesk's DXF table is useful for DXF group codes; the searchable ODA v5.4.1 text reviewed here has no named `AcDbSubDMesh` DWG layout. Keep DWG MESH layout/version claims unqualified until primary DWG evidence or a target-produced, independently checked witness exists. |
+| `MESH` / `SUBDIVISION` / `AcDbSubDMesh` | Typed vertex/face/edge/crease/property-override data, topology validation and DXF encode/decode paths exist. The versioned DXF record/class path is implemented and covered by generated ASCII/Binary tests: AC1024 emits/reads `SUBDIVISION`; AC1027/AC1032 emits/reads `MESH`; both map to `AcDbSubDMesh`. Pre-AC1024 compatibility spelling is preserved but remains format-unqualified. | Keep the existing versioned DXF slice closed; do not repeat it as an open implementation item. The generated wire and class tuple assertions are local serialization regressions, not native-application acceptance. DWG encoding remains separately gated: base-cage output exists, but nonempty DXF `propertyOverrides` fail closed because no verified DWG mapping exists. Autodesk's field table does not specify complete override-value grammar or DWG fields; the searchable ODA v5.4.1 text has no named `AcDbSubDMesh` DWG layout. Do not infer DWG MESH layout, subdivision evaluation, or ACIS/B-rep semantics from DXF support. |
 | Six analytic/NURBS surface classes | Typed DXF paths exist. The DWG surface parser retains a bounded raw ACIS body and links DataStorage; DWG surface encoding rejects versions before AC1021. Class registration and modern DWG read/write paths exist. | The searchable ODA v5.4.1 text reviewed here has no named modern `AcDb*Surface` layouts. Keep DWG surface layout/version claims unqualified until feature-specific primary evidence or target-produced, independently checked witnesses exist. Keep the AC1021+ writer gate meanwhile; check each typed field, handle, transform, and ACIS carrier separately. Do not imply surface evaluation. |
-| `3DSOLID` / `REGION` / `BODY` and ACIS | DXF R2000–R2010 uses inline SAT groups 1/3; R2013+ may place SAB in `ACDSDATA`. S2.2 handles bounded SAT text for AC1015/1018/1021/1024 and rejects binary, mixed, DWG-frame, and unassociated AC1027+ inline payloads. The AC1015 DWG SAT-v1 extractor requires bounded blocks and a terminator; S8.15.16/.17 verify one external `3DSOLID` carrier and FreeCAD converter handoff. S3.2.2 links one AC1027 DWG entity to DataStorage. S2.3.4 emits the witnessed standalone `3DSOLID`/`ASM_Data` tuple with proxy/material closure. S2.3.6 verifies actual libdxfrw output through ODA 27.1.0.0 AC1027 DXF→DWG→DXF: one solid, six schemas, the linked history chain, and exact 1,980-byte SAB survive; Open CAD Studio v2026.38 independently reads the carrier/history. Independent InventorLoader ACIS decoding of that exact SAB followed by FreeCAD Part reconstruction yields one valid closed cone with radius 5, height 15, two faces, area 326.9045229846473, and volume 392.69908169872417. This is SAB geometry evidence, not FreeCAD's native DWG/DXF importer result. S2.3.7 verifies an exact installed-converter handoff into FreeCAD 1.1.3 `open()` and `insert()` for both the ODA-origin and ODA-rewritten standalone Cone DWGs; the C++ importer reads one `3DSOLID` but creates no shape. CAD Assistant v1.6.0 ARM64 gave only generic transfer errors. `DRW_Material` DXF writing preserves name/description only; no material appearance fidelity is claimed. DWG frame, ACIS payload, ACDSDATA, proxy bytes, and wireframe remain distinct; no typed DWG modeler writer exists. | Narrow AC1015 converter integration and pinned AC1027 carrier/history, SAB-geometry, and macOS FreeCAD converter handoff results are verified only for their exact witnesses. FreeCAD's pinned C++ importer creates no solid. Do not generalize to other modeler entities, producers, versions, clone/INSERT/XREF, material appearance, other platforms, or family-wide solid geometry. |
+| `3DSOLID` / `REGION` / `BODY` and ACIS | DXF R2000–R2010 uses inline SAT groups 1/3; R2013+ may place SAB in `ACDSDATA`. S2.2 handles bounded SAT text for AC1015/1018/1021/1024 and rejects binary, mixed, DWG-frame, and unassociated AC1027+ inline payloads. The AC1015 DWG SAT-v1 extractor requires bounded blocks and a terminator; S8.15.16/.17 verify one external `3DSOLID` carrier and FreeCAD converter handoff. S3.2.2 links one AC1027 DWG entity to DataStorage. S2.3.4 emits the witnessed standalone `3DSOLID`/`ASM_Data` tuple with proxy/material closure. S2.3.6 verifies actual libdxfrw output through ODA 27.1.0.0 AC1027 DXF→DWG→DXF: one solid, six schemas, the linked history chain, and exact 1,980-byte SAB survive; Open CAD Studio v2026.38 independently reads the carrier/history. Independent InventorLoader ACIS decoding of that exact SAB followed by FreeCAD Part reconstruction yields one valid closed cone with radius 5, height 15, two faces, area 326.9045229846473, and volume 392.69908169872417. This is SAB geometry evidence, not FreeCAD's native DWG/DXF importer result. S2.3.7 verifies an exact installed-converter handoff into FreeCAD 1.1.3 `open()` and `insert()` for both the ODA-origin and ODA-rewritten standalone Cone DWGs; the C++ importer reads one `3DSOLID` but creates no shape. CAD Assistant v1.6.0 ARM64 gave only generic transfer errors. `DRW_Material` DXF writing preserves name/description only; no material appearance fidelity is claimed. DWG frame, ACIS payload, ACDSDATA, proxy bytes, and wireframe remain distinct; no typed DWG modeler writer exists. S2.2.5a repairs the witnessed modeler subclass/version order and adds a two-pass local matrix. The current generated ODA report retains 12 legacy ASCII and six R2013 ASCII/binary subjects; S2.2.5b legacy binary-SAT calibration and independent cut-policy acceptance remain open. ACadSharp #1195's open report adds a block-path omission negative for S2.3/S8, not a libdxfrw finding. | Narrow AC1015 converter integration and pinned AC1027 carrier/history, SAB-geometry, and macOS FreeCAD converter handoff results are verified only for their exact witnesses. FreeCAD's pinned C++ importer creates no solid. Do not generalize to other modeler entities, producers, versions, clone/INSERT/XREF, material appearance, other platforms, or family-wide solid geometry. |
 | NURBS/spline curve path | Local ODA v5.4.1 §20.4.40 specifies R2013+ `Spline flags 1` as BL and the subsequent `Rational`, `Closed`, and `Periodic` values as individual B fields in scenario 1. The current `parseDwgSplineBody()` reads BL for `splFlag1`/`knotParam` only when `version > AC1024`, matching that stated version boundary; the one-bit fields are read separately. The initial suspected width defect is not supported by the cited ODA text. Scenarios 1 and 2 do not store DXF planarity metadata; S8.15.7 replaces the prior unconditional planar bit with conservative geometry-derived metadata and verifies a generated AC1015 control/fit pair through `dwg2dxf` and FreeCAD, including nonplanarity smaller than the declared spline tolerance. No authentic AC1027/AC1032 spline witness has been identified. | Do not change the DWG flag width based on the stale issue note. S8.15.7 qualifies only its exact generated AC1015 converter/importer route and four cubic shapes; keep other DWG spline versions/forms unqualified until authentic target samples/field traces verify the parse. Do not infer AC1032 from the AC1027 pass-through reader. |
 | Semantic comparison | S1.1 added field-level serializers for MESH, modeler geometry, and surfaces; binary values and raw carriers remain explicitly separate digest/opaque fields. | Field-level serializer output improves diagnostics and mutation sensitivity, but still compares adapter observations rather than independently proving format semantics. S7/S8 witnesses remain necessary for support claims. |
 | Unknown DXF sections | `dxfRW::processRawDxfSection()` captures unrecognized sections as `DRW_RawDxfSection`; the writer can re-emit supplied raw sections. | This is a useful opaque-preservation route for `ACDSDATA`, but the 3D plan must test the complete read/callback/consumer/write chain and must not call it a typed ACIS link. |
 | DXF ACIS version routing | S2.2 writes SAT text chunks as groups 1/3 through AC1024 and refuses unassociated AC1027+ inline bytes. S2.3 implements only the witnessed AC1027 `AcDb3DSolid_ASM_Data` / `ASM_Data` ACDSDATA shape, owner-key remap, and history/material closure. Open CAD Studio reads the emitted carrier; ODA 27.1.0.0 accepted the actual libdxfrw output in an ACAD2013 DXF→DWG→DXF round-trip under host access. The surface writer retains its distinct SAT and binary group-310 gates. | Autodesk's DXF references and ezdxf distinguish inline SAT from R2013+ ACDSDATA SAB. LibreDWG 0.14 `dxf2dwg` accepted generated pre-R2013 SAT vectors but cannot qualify ACDSDATA. Other AC1027+ relationships remain opaque. |
 | Existing tests | `tests/dwg_local_roundtrip_tests.cpp` constructs local DXF/DWG vectors and covers 3D faces, MESH, surfaces, and ACIS/SAB-carrier cases. | Keep these as the fast inner loop. They prove internal consistency for their vectors, not conformance to AutoCAD/ODA or another reader. |
+
+**MESH DXF identity follow-through:** the existing `testMeshRawFieldTags()` now
+checks the generated ASCII and binary writer output has exactly one record
+`0=MESH` and one `100=AcDbSubDMesh` subclass marker, in addition to version,
+crease, property-override framing, typed readback, and following-LINE framing.
+This directly guards against an `ACAD_PROXY_ENTITY` whose proxy DXF name says
+`MESH`; it does not establish DWG MESH encoding or a subdivision/B-rep result.
+The optional ACadSharp comparison is pinned to a released revision (the #1067
+fix shipped in v3.6.12, before the reviewed v3.8.0 release) and must inspect
+actual entity identity and owner/block path, not just successful save or
+proxy metadata. Receipt:
+[`deeper-broader-mesh-peer-release-and-dxf-identity-review-2026-10-16.json`](docs/research/deeper-broader-mesh-peer-release-and-dxf-identity-review-2026-10-16.json).
+
+**Peer release and silent-loss refresh (2026-10-17; research only):** the
+current ACadSharp release history separates shipped ACIS reading
+(v3.6.51/#1139) from the still-open schema-aware writer work (#1174/#1240);
+the linked silent-DXF-loss report #1195 itself names older v3.4.9, so it is
+not a reproduced result for v3.8.0. The next optional peer check now records
+source-handle and block-owner disposition through write, strict reopen, and
+consumer import rather than comparing aggregate counts. ezdxf remains a raw
+DXF/SAT/SAB carrier/structure observer, and `acis-core` reference closure is
+not B-rep validation. No local defect, new subplan, fixture, run, or support
+claim follows from these peer reports; external J items remain
+`DEFERRED_EXTERNAL`. See the [parity-plan research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-peer-release-silent-loss-and-semantic-boundary-refresh-2026-10-17-research-only)
+and [research receipt](docs/research/deeper-broader-acis-peer-release-silent-loss-semantic-boundary-review-2026-10-17.json).
+
+## FreeCAD converter/importer qualification boundary (2026-10-17; research only)
+
+FreeCAD's current Draft DWG source selects a separate converter to create DXF,
+then routes the result through a configured DXF importer. The documented
+native C++ and legacy Python importers differ in feature scope, and the
+published general format matrix versus Draft entity table is inconsistent on
+3D-face support. The Draft page also says proprietary ACIS/SAT solids cannot
+currently be read. No exact FreeCAD runtime was executed in this research
+pass, so these are route-selection constraints, not new compatibility
+results.
+
+For the existing S8 gate, record the exact OS/architecture, FreeCAD build,
+DWG converter and version/options, emitted DXF AC code, selected importer and
+preferences, file hashes, diagnostics, and per-source-entity geometry/object
+disposition. Keep the following outcomes separate:
+
+- 2D baseline and existing LibreCAD consumer compatibility;
+- explicit `3DFACE` import, qualified against the exact selected FreeCAD
+  importer (documentation currently marks this `DOC_CONFLICT`);
+- mesh/subdivision cage projection and topology;
+- ACIS carrier preservation in DXF;
+- semantic B-rep creation and operations in an independently identified
+  modeler plugin, if present.
+
+Do not use stock FreeCAD converter success, DXF file creation, or visible
+wireframe as an ACIS semantic pass. The detailed source table and implementation
+ordering are maintained in the [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-converterimporter-route-and-3d-loss-accounting-review-2026-10-17-research-only).
+This refinement adds no subplan, fixture, dependency, native test, or support
+claim; all six external items remain `DEFERRED_EXTERNAL`.
+
+**Broader writer/consumer boundary refresh (2026-10-16; research only):** the
+next named-resource output slice, MLINESTYLE, has a concrete representation
+gap: ODA defines DWG fill and element colors as CMC, while Autodesk's DXF
+MLINESTYLE table documents ACI group 62; the current local model loses some
+CMC RGB/name/book components. The parity plan now requires full retention and
+a target mapping, or transactional refusal, before enabling typed
+DWG-origin MLINESTYLE output. It also makes the pre-R2018 linetype-index
+sentinels and R2018+ handle transition explicit. Cross-checks of
+LibreDWG/ACadSharp/ezdxf/IxMilia and FreeCAD did not reveal a route that
+promotes end-to-end semantic 3D support. This refines readiness only: no
+implementation order, support claim, finding count, or external J disposition
+changes; J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`. Details and citations are in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-typed-resource-carrier-and-consumer-boundary-update-2026-10-16-research-only) and [receipt](docs/research/deeper-broader-mlinstyle-cmc-and-peer-route-review-2026-10-16.json).
+
+**Implementation follow-through (2026-10-16; local fast slice, uncommitted):**
+the initial MLINESTYLE CMC gap is now closed at the model/parser boundary:
+fill and element RGB, method, raw flags, and color/book names are retained;
+nonzero R2004+ CMC index is rejected per ODA §2.11; typed DWG and low-level
+typed DXF output refuse RGB/name/book/unknown-flag forms until a target mapping
+is proven. The shared R2004+ CMC encoder now emits the ODA-required zero BS
+index. DXF `MLINESTYLE` count/tuple schema checks, linetype-name admission,
+handle remapping, and transactional refusal have generated fast controls.
+Build, focused MLINESTYLE controls, CMC-to-LAYER controls, and the generated DWG
+round-trip target pass. This does not yet connect the named-resource import
+provenance gate, rooted `ACAD_MLINESTYLE` dictionary graph, MLINE 2/340
+closure, exact DXF raw replay, or versioned LTYPE index resolution. No feature
+or support claim is promoted; complete test/build/failure detail is in the
+[parity-plan implementation log](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--mlinestyle-cmc-and-dxf-schema-refusal-2026-10-16-local-fast-slice-uncommitted).
+The broad shared worktree remains uncommitted.
+
+## Broader open-source ACIS route closure and next gate (2026-10-16; research only)
+
+The current public-source screen does not identify a new independently open
+route that validates DWG section/AcDs extraction, entity-to-body ownership,
+ACIS dialect and topology, and native application behavior in one chain.
+Use `cq-acis` only as a version/profile-pinned payload parser plus OCCT shape
+construction candidate; use `cadmpeg-codec-sat` only for bare-payload parsing
+and explicit decode-loss reporting; keep OpenCADStudio as an optional
+ACadRust-lineage consumer with a distinct but early kernel; exclude
+SatModelViewer from open-source evidence because it depends on the licensed
+Spatial SDK. CADKernel is discovery-only while its detailed matrix marks
+SAT/SAB unsupported.
+
+Implementation remains unblocked: keep the local evidence order and fast
+slice loop. At the single composed semantic checkpoint, require exact bytes
+bound to source handle/body, verified dialect admission, zero unreported loss
+or fallback, full body/topology disposition, and independently authored
+analytic values. Keep native Linux/Windows FreeCAD qualification separate from
+this optional parser/kernel packet and from ordinary 2D consumer compatibility.
+No new code/test/dependency/fixture or support claim follows from this research;
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. See the
+[full route-admission analysis](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-acis-route-discovery-and-implementation-readiness-review-2026-10-16-research-only)
+and [research receipt](docs/research/deeper-broader-open-acis-route-discovery-and-implementation-readiness-review-2026-10-16.json).
+
+**ACadSharp writer and OCCT route-maturity refresh (2026-10-17; research only):**
+ACadSharp issue #1195 remains an issue report scoped to 3.4.9. Its contributor
+writer PR #1150 and maintainer PR #1240 remain open and undeployed; #1150's
+carrier route conflicts with the still-open #1174 schema/storage refactor, and
+the maintainer wants schema-aware writing rather than raw-storage copying.
+Treat those branches as design leads, not released parity evidence. OCCT's
+official component preview lists DXF and ACIS SAT/SAB import-export as
+commercial extensions separate from the open-source core. Keep any already-
+authorized OCCT route optional and in one shared-kernel lineage with FreeCAD;
+do not add a dependency, purchase/install, or let missing external tools block
+local implementation. Reuse existing ACDSDATA/AcDs multi-chunk, owner-join,
+writer-refusal, and composed FreeCAD gates. Detailed evidence and citations:
+[parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-acis-writer-maturity-and-open-source-kernel-route-review-2026-10-17-research-only)
+and [receipt](docs/research/deeper-broader-acadsharp-acis-writer-maturity-and-open-source-kernel-route-review-2026-10-17.json).
 
 ### Core format distinctions that the implementation must preserve
 
@@ -1854,11 +4570,11 @@ receive a per-format/version disposition in S0, even if the disposition is
 | Planar geometry in 3D | ARC, CIRCLE, ELLIPSE, SOLID, TRACE, 2D POLYLINE, LWPOLYLINE, HATCH, MPOLYGON | OCS arbitrary-axis frame, elevation, extrusion, thickness, angle direction, vertex order, MPOLYGON annotation and offset-vector fields | HATCH/MPOLYGON have bounded header elevation/OCS retention (S5.7), paired coordinate completeness (S5.8), and distinct path/top-level group-73 handling plus MPOLYGON vector retention (S5.10). Broader edge geometry, rendering, omitted optional tuples, DWG semantics, and FreeCAD MPOLYGON geometry remain unqualified. |
 | Placed block geometry | INSERT/MINSERT and block contents | OCS insertion point, block base point, nested transform composition, nonuniform/mirrored scales, rows/columns/spacings, attributes/ownership | One INSERT transform is positive in the pinned FreeCAD route. S8.15.11 verifies MINSERT array-field conversion/readback; FreeCAD 1.1.3 C++ imports only its first cell, so array geometry remains downstream-unsupported. Other transform/ownership combinations remain unqualified. |
 | Classic 3D topology | 3D POLYLINE, polygon mesh, polyface, VERTEX, SEQEND | WCS vertices, flags, closure, M/N order, signed one-based face indices, edge visibility, child ordering, counts and handles | Typed routes exist; independent qualification incomplete |
-| Subdivision topology | MESH / AcDbSubDMesh | Base-cage vertices, flat face-list counts, n-gons, edges, crease values, property overrides, version gate | Typed routes and generated tests exist; oracle/version checks incomplete |
+| Subdivision topology | AC1024 `SUBDIVISION`; AC1027+ `MESH`; both use `AcDbSubDMesh` | Base-cage vertices, flat face-list counts, n-gons, edges, crease values, property overrides, version-specific record spelling, and emitted CLASS identity | Field codec exists; writer/reader currently implement only `MESH`, and the generated positive advertises AC1021. Fast version-profile correction is ready; DWG layout and subdivision evaluation remain unqualified. |
 | Curve/surface geometry | SPLINE, HELIX, plane/extruded/revolved/swept/lofted/NURBS surfaces | Degrees, knots, weights, control point order, closure/periodicity where represented, sweep/profile handles, matrices, flags, version gates | Partial typed routes; one generated AC1015 weighted 3D HELIX converter path now guards rational/planar flags and metadata. Current FreeCAD `main` C++ `ReadEntity()` dispatch lacks HELIX and routes it to `ReadUnknownEntity()`; this is downstream-unsupported, not grounds to alter converter output. Target-authored DWG and other HELIX semantics remain unqualified. |
-| ACIS modeler geometry | 3DSOLID, REGION, BODY; SAT and SAB carriers | Entity-inline payload vs DXF ACDSDATA vs DWG DataStorage; frame vs payload separation; empty/history state; preservation versus semantic decode | AC1015 SAT-v1 has one bounded converter route; AC1021/AC1024 SAB-to-DXF remains blocked. One AC1027 standalone 3DSOLID/ACDSDATA tuple emits with a witnessed history-proxy/material closure and exact SAB bytes; ODA AC1027 round-trip and Open CAD Studio carrier readback pass narrowly (S2.3.6). InventorLoader independently decodes the exact SAB as a valid closed cone after FreeCAD Part reconstruction. That external decoder result does not make libdxfrw an ACIS geometry decoder or qualify FreeCAD native import. Material appearance, converter handoff, other tuples, and general solid geometry remain unqualified. No DWG modeler writer. |
+| ACIS modeler geometry | 3DSOLID, REGION, BODY; SAT and SAB carriers | Entity-inline payload vs DXF ACDSDATA vs DWG DataStorage; frame vs payload separation; empty/history state; preservation versus semantic decode; entity-specific subclass/version routing; block-path loss accounting | AC1015 SAT-v1 has one bounded converter route; AC1021/AC1024 SAB-to-DXF remains blocked. One AC1027 standalone 3DSOLID/ACDSDATA tuple emits with a witnessed history-proxy/material closure and exact SAB bytes; ODA AC1027 round-trip and Open CAD Studio carrier readback pass narrowly (S2.3.6). InventorLoader independently decodes the exact SAB as a valid closed cone after FreeCAD Part reconstruction. That external decoder result does not make libdxfrw an ACIS geometry decoder or qualify FreeCAD native import. S2.2.5a implements the locally tested and narrowly ODA-accepted subclass/version repair; S2.2.5b retains legacy binary-SAT/cut-policy qualification; S2.3.9.4.29 must prove no silent loss in nested block/INSERT paths or fail explicitly. Material appearance, converter handoff, other tuples, and general solid geometry remain unqualified. No DWG modeler writer. |
 | Proxy/derived geometry | Proxy graphic data associated with 3D entities | Preserve raw carrier separately; transformations/styles/stop reason/caps; derived wireframe never suppresses source payload | Existing general proxy path; 3D-specific interactions need cross-check |
-| Excluded from geometry claims | Camera/view state, lights, point clouds, Navisworks/reference models, geodata | Record scope boundary; these may contain 3D positions but are not this geometry plan's native surface/solid topology target | Handle under their existing feature plans, not counted as 3D-model support |
+| Excluded from geometry claims | Camera/view state, lights, point clouds, Navisworks/reference models, geodata | Record scope boundary; these may contain 3D positions but are not this geometry plan's native surface/solid topology target | Handle under their existing feature plans, not counted as 3D-model support. S5.17 separately hardens typed DXF GEODATA field preservation; it does not implement reprojection or qualify Civil 3D/DWG semantics. |
 
 The matrix is complete only when S0 adds the actual legacy reader names and
 writer gates for each row. In particular, do not omit R1.4/R11-era reader
@@ -2059,6 +4775,13 @@ source values. S2.2.4 narrowly remaps only the `ASM_Data` owner key when it
 resolves uniquely to a modeler entity; unrelated ACDS records remain opaque.
 This repairs an observed DXF→DXF association loss, not the blocked DWG
 DataStorage-to-DXF serializer or FreeCAD geometry import.
+S2.2.5a implements the local DXF writer schema matrix for
+3DSOLID, REGION, and BODY at AC1015/1018/1021/1024/1027; assert exact subclass,
+group-70, group-350, and text-carrier order; then make only changes supported
+by version-matched ODA/AutoCAD acceptance. Its local chunk-boundary vectors
+now pass; S2.2.5b retains the independent long-token/cut-policy and legacy
+binary-SAT acceptance gates described in the current qualification report.
+This fast local slice does not wait on native FreeCAD, an ACIS kernel, or S3.
 
 Dependencies: S0, S1. This slice may edit public entity fields and DXF paths,
 but must not edit `src/intern/dwgreader*` until the DWG spec gate is met.
@@ -2132,6 +4855,48 @@ Steps:
    concrete stale-link reproduction; it does not qualify the ACDSDATA schema,
    fresh serialization, INSERT/XREF behavior, SAB semantics, ODA acceptance,
    or FreeCAD modeler geometry. Keep S2.3's carrier-emission gate separate.
+8. **S2.2.5 — Qualify modeler subclass/version output and SAT chunk boundaries.**
+   State: S2.2.5a schema/matrix implementation is complete; S2.2.5b legacy
+   binary-SAT and long-token acceptance remain open. Use the current report
+   above to avoid repeating an uncalibrated binary oracle. The original
+   implementation/acceptance checklist follows.
+   First lock runtime-generated ASCII and binary DXF entity shells for each of
+   `3DSOLID`, `REGION`, and `BODY` at AC1015/R2000, AC1018/R2004,
+   AC1021/R2007, AC1024/R2010, and AC1027/R2013. Assert exact ordered
+   subclass markers and group-70 presence/absence per target (legacy modeler
+   version versus the AC1027 shell), group-350 presence/absence, and history
+   remapping; exercise absent/nonzero history handles. The R2013+ case is a
+   shell/metadata test only: do not put fake SAT groups 1/3 in it. Its SAB and
+   owner-key behavior belongs to the separate ACDSDATA/S2.3 path, with code-310
+   byte chunks and code-320 identity tested as distinct fields. For AC1015,
+   AC1018, AC1021, and AC1024 only, decode ASCII and binary files to the same
+   ordered tag stream and assert exact SAT group-1/3 reconstruction and
+   continuation order. Use ASCII payload bytes so text encoding cannot
+   masquerade as carrier differences.
+   Independently test line lengths 254/255/256 and 509/510/511 characters,
+   asserting exact concatenation, final-chunk presence, and each emitted group
+   value's length. Put whitespace immediately before/on/after a proposed cut,
+   include a token crossing the cut, and include one indivisible token over
+   the limit; compare fixed-width and last-fitting-whitespace policies without
+   choosing between them locally. These lengths target both the documented
+   below-255 SAT line limit and LibreDWG's reported final-block off-by-one.
+   Keep all inputs runtime-generated/local-from-scratch; only a valid local SAT
+   body may be used for external-reader acceptance, never malformed synthetic
+   payloads.
+   Compare only exact published versioned references and pinned peer source;
+   do not treat ACadSharp PR #1150 (still open; its TrueView matrix is
+   maintainer-reported) or ezdxf 1.4.4 alone as normative. Test emitted files
+   with version-matched ODA/AutoCAD before changing the sequence or adopting a
+   token-boundary rule. Track `AcDb3dSolid`'s reported AC1021 introduction
+   separately from the Autodesk current table; do not extrapolate it to
+   REGION/BODY, whose public tables currently list only `AcDbModelerGeometry`.
+   Include malformed and rollback negatives so a rejected carrier does not
+   leave a partial entity/file. Run the focused target for the local matrix
+   first; batch external version/entity acceptance only if that matrix
+   identifies a schema correction candidate, and retain one receipt per
+   candidate version/entity/encoding rather than rerunning the full suite.
+   This is a narrow DXF syntax/interoperability fix, not ACIS geometry or DWG
+   support.
 
 Positive gate: each version's DXF carrier is accepted by an independent reader;
 same-version SAT/text and raw ACDSDATA retain their bytes and section/entity
@@ -2150,7 +4915,10 @@ an independent reader reconstructed the exact SAB record and returned
 identical nonempty mesh metrics for the paired DWG and DXF. S2.3.4 is
 `IMPLEMENTED_NARROW`; S2.3.5 is `FAST_PASS` and S2.3.6 is
 `VERIFIED_NARROW`; S2.3.7 is `VERIFIED_STANDALONE_HANDOFF` on pinned macOS
-arm64, with the multi-entity control still pending. No public support claim is
+arm64. A new generated ASCII/Binary fast gate verifies that three modeler
+records associate by owner key when their order differs from modeler entities
+and unowned thumbnails are placed first/interleaved. The pinned external
+multi-entity ODA/FreeCAD control remains pending. No public support claim is
 promoted. Autodesk's
 published `3DSOLID` reference and other producer shells still disagree, and
 neither the DXF reference nor the ODA DWG specification defines a universal
@@ -2912,6 +5680,134 @@ committed, refresh this section's states/dependencies/next unblock step, then
 publish the existing progress update before advancing; do not batch progress
 updates until the whole ACIS lane finishes.
 
+**S2.3.9.4.29 — block-path modeler omission census (`LOCAL_IMPLEMENTATION_COMPLETE`,
+B1/B2/B3 committed; generated legacy-SAT transport scope only):** ACadSharp issue #1195 reports another converter
+silently dropping 3DSOLID/REGION entities inside block definitions and leaving
+solid-only INSERTs empty; the customer DWGs are not available and this is not
+a libdxfrw defect finding. Build runtime-generated, from-scratch ASCII and
+binary DXF controls containing (a) a block with one modeler entity only,
+(b) a mixed modeler-plus-LINE block, (c) nested INSERT references and at least
+two instances, and (d) a direct model-space modeler entity. Use a bounded local
+SAT body only where needed to test carrier routing; do not generate or commit
+external DWG/DXF fixtures. Assert ASCII and binary behavior at the codec/test
+target first. Run exact `dwg2dxf input -o output` CLI census on ASCII controls;
+exercise the binary CLI only if its TABLES/read prerequisite passes, otherwise
+record that failure as orthogonal and do not attribute it to ACIS/block loss.
+Before and after conversion, census model-space and per-block entities by type
+and trace each INSERT to its block path; correlate reminted handles through
+an explicit source→output map rather than relying on names/counts alone. Require either
+preserved modeler records plus all definition/reference links, or a nonzero
+conversion result with a clear unsupported-content diagnostic and no newly
+published final output. Specifically reject process-success plus an empty
+solid-only block, a missing nested record, an orphaned INSERT target, and a
+partial DXF left after failure. Run the focused CLI/local-roundtrip target
+only; skip FreeCAD/native geometry and full-suite runs. A passing generated
+control verifies the no-silent-loss contract, not external producer coverage,
+ACIS semantics, or support-claim promotion. If this local repro identifies a
+production loss, correct the smallest adapter/writer boundary and update this
+item after its separate slice commit; otherwise record the exact negative
+condition and leave the external report advisory.
+
+**Readiness split / anti-permutation controls:** keep this item independent
+of HATCH and external qualification. Implement in the existing target:
+
+The parity plan's latest **B1–B3** split is the execution order for the steps
+below: stored-graph/denominator first, codec/actual-CLI carrier handoff second,
+then oracle sensitivity and genuine converter negatives separately. Reuse
+already-valid payload helpers. Capture identities before virtual expansion;
+an expanded entity has no stable source handle/layout to recover afterward.
+Include shared-definition reuse and an unreachable definition. Observe INSERT
+reference cycles with bounded adjacency/path work without equating them to
+invalid ownership. No recursive deep-copy, general geometry evaluator or
+external application is needed for this local gate.
+
+Reuse audit: the existing modeler matrix uses artificial length-test payloads
+and omits owner330/block context from its collector; the standalone SAT text
+comparison scans only ENTITIES/3DSOLID. Neither is the block census unchanged.
+Add the planned `--modeler-block-census` mode to the existing round-trip
+executable with a bounded block-aware collector. The optional qualification
+helper's cube/planar recipe may author scratch SAT once with an already-pinned
+runtime; retain provenance and literals, not an ezdxf/ODA dependency in the
+fast target. Do not substitute filler or claim independent geometry from this.
+
+**B1 implemented checkpoint (Plan-Slice:S2.3.9.4.29.B1):** the new test TU
+adds a bounded stored-graph collector and literal independent expected map to
+the existing executable's `--modeler-block-census` mode. Locally authored cube
+and rectangle SAT carriers cover modeler-only/mixed/direct/unreachable bodies,
+a shared-definition diamond and two distinct root INSERT placements. Four
+order variants,13 entity rows/six definitions/seven INSERT edges/five reachable
+definitions, equal-count anti-loss mutations, invalid source graphs, exact/
+under resource refusal and corrected reuse, and bounded reference cycles pass
+8 positives/14 negatives. Strict TU/lc3 and local CTest1/1 pass in2.14s. Exact
+source/artifact/SAT provenance is
+`docs/research/modeler-block-census-b1-2026-10-15.json`. Same-stack regeneration/
+six-one-face authoring readback checks literals only, not independent semantics.
+No production codec changed, output/CLI preservation is not yet established,
+and no external fixture or CTest registration was added. Continue B2, then B3;
+the parent S2.3.9.4.29 item remains open.
+
+**B2 integration checkpoint (Plan-Slice:S2.3.9.4.29.B2):** the authored AC1024
+legacy-SAT graph passes16 codec handoffs across four order variants, both
+encodings and two passes. Raw scanning and typed readback bind25 entity/BLOCK/
+BLOCK_RECORD identities, actual owners/footer owners, exact reconstructed
+carriers and seven INSERT links. Twelve equal-count physical-graph checker
+mutations reject; they are not converter failure evidence. Actual generated
+ASCII/binary CLI conversions and exact verifiers pass twice, with byte-stable
+second outputs. Strict TU/lc3 and local CTest1/1 pass in2.24s. The checker
+calibrates typed SAT's single framing LF and DIMSTYLE105 self versus5 name;
+it does not normalize away carrier changes. Existing ezdxf1.4.4 ordinary loads
+of all six generated files retain four correctly owned bodies; because that
+is the authoring stack, it is consistency only. Durable source/binary/CLI
+bindings: `docs/research/modeler-block-codec-b2-2026-10-15.json`.
+Production remains unchanged; no external fixture, new registration, native
+CAD, nested DWG AcDs/SAB, B-rep or J qualification follows. Continue B3 genuine
+converter no-output failures and corrected reuse before closing this parent.
+
+**B3 implementation checkpoint (Plan-Slice:S2.3.9.4.29.B3):** the final cohort
+passes28 actual refusal/destination checks,28 corrected fresh-data retries
+and four default/R12 compatibility controls. Strict modern INSERTs require
+an existing planned BLOCK_RECORD target before record emission; tolerant/R12
+ordinary INSERT behavior is unchanged. Carrier/version messages identify
+already unsupported modeler exports, without loosening admission or changing
+generic-versus-named omission accounting. The actual CLI refuses four dangling
+target attempts and two R12 modeler exports with absent/preserved destination;
+four valid two-pass conversions and verifiers remain byte-stable. Strict
+source/test compile, build/lc3 and retained final-source focused2/2 pass.
+`docs/research/modeler-block-failures-b3-2026-10-15.json` binds final sources,
+binaries, baseline five-fault/final seven-fault distinctions and commands.
+The local parent closes only for this generated legacy-SAT route; no native,
+nested DWG AcDs/SAB, B-rep, whole-model same-data rollback or J qualification.
+
+1. Generate two distinguishable, valid bounded modeler payloads, a modeler-only
+   block, a mixed block, nested INSERTs with two instances and a direct entity.
+   Start with the established legacy SAT profile. Never use fake SAB
+   signature/terminal filler to attest geometry or bypass unsupported output.
+2. Record each stored definition/entity once, then separately record INSERT
+   reachability and logical owner. Include non-monotonic handles and permute
+   callback/handle/payload order independently. Distinguish intentionally
+   unreachable definitions from dropped reachable geometry.
+3. Verify entity→owner/block→reconstructed payload→INSERT identity rather than
+   only counts/names/order. Compare SAT under a stated text-normalization rule;
+   compare SAB bytes only when its carrier route is already admitted. An
+   unchanged total with swapped bodies is a failure.
+4. Calibrate the exact generated codec input before actual CLI conversion in
+   both encodings. The HATCH control now shows that this CLI can read a
+   generated binary DXF; do not blanket-skip binary modeler checks because an
+   earlier, different TABLES fixture failed. If this particular generated
+   modeler control hits a prerequisite, report that exact stage separately.
+5. Inject missing block/required target and unsupported carrier negatives.
+   Require an explicit failed conversion and preserved/absent destination,
+   not success with an empty block. If a production loss is reproduced, fix
+   only its smallest dispatch/storage/writer boundary and commit separately;
+   otherwise record a regression guard without inventing a new defect.
+
+Run the narrow existing round-trip/CLI mode while editing, then its integration
+CTest and `lc3_compat_check` once. Do not run native FreeCAD, a full suite or a
+peer corpus to close this local no-silent-loss gate. After each committed
+sub-slice, update its exact implementation/evidence state in both plans and
+show progress plus the next dependency-ready action. External qualification
+cannot be self-unblocked by changing support-claim criteria.
+
 Positive gate: a recognized AC1027 source yields a complete version-correct
 DXF via FreeCAD's exact converter contract; handle/schema associations survive
 the libdxfrw reader and ODA checkpoint; supported adjacent entities remain
@@ -2941,6 +5837,16 @@ independent witness are tied to the exact version/field; the AC1024
 PlaneSurface class-table trace is identity evidence only. DXF and test-adapter
 lanes remain independent.
 
+The 2026-10-16 carrier review narrows the AC1018/R2004 question without
+closing it: ODA v5.4.1 §20.4.41 defines modeler version 2 as an inline
+no-length ACIS stream terminated by the complete tagged end marker, followed
+by distinct wireframe/silhouette/tail data. ODA's ModelerGeometry API says a
+2004 DWG saved as R15 DXF must convert SAB to SAT 700, and ACadRust separately
+documents the R2004–R2006 no-length case. The local AC1018 probe remains
+negative-only; exact payload extraction still needs a successful
+source-bound trace and regression controls. See the implementation-ready
+refinement below and the [linked research receipt](docs/research/deeper-broader-ac1018-modeler-carrier-and-cadkit-reader-review-2026-10-16.json).
+
 Dependencies: S0 local spec/trace gate; S1; S2 carrier contract.
 
 Files: `src/drw_entities.{h,cpp}`; `src/libdwgr.{h,cpp}`;
@@ -2968,6 +5874,14 @@ Steps:
    those modern classes. Keep each such DWG subtype
    `BLOCKED_ON_PRIMARY_LAYOUT_EVIDENCE` until an applicable authority and
    independently checked witness are available; proceed with DXF lanes.
+   **Tail inventory before expansion:** classify stored wire/transform and
+   silhouette fields separately from the extracted carrier and the optional
+   SAB-derived projection. Determine whether each is an opaque field,
+   regenerable display cache or required semantic field, and name its output
+   disposition. Do not infer preservation from a whole-frame capture when
+   the destination is a typed DXF, or label optional cache omission as proven
+   ACIS-body loss. Use exact-version body/handle/next-record sentinels; current
+   peer parser widths and private-corpus retests are leads, not layout authority.
    **Completed sub-slice S3.2.1:** AC1024/R2010 non-empty version-2 inline SAB
    starts immediately after the modeler-version field, has the exact
    `ACIS BinaryFile` signature, and is bounded by the unique tagged
@@ -3052,6 +5966,27 @@ Steps:
    not be used to normalize its opaque frame. It identifies the next evidence
    need: an AC1018 sample whose modeler payload can be independently
    associated and checked, plus its version-specific ODA trace.
+
+   **Committed local sub-slice S3.2.4 — AC1018/R2004 inline SAB framing:**
+   ODA §20.4.41 supplies the version-2 envelope rule: no length prefix, an
+   ACIS signature selecting SAB versus SAT, and a tagged terminal marker
+   before later wireframe/silhouette fields and common handles. The ODA
+   ModelerGeometry API documents conversion of an R2004 DWG's SAB to SAT 700
+   for R15 DXF; ACadRust's `SabReader::read_with_consumed` independently calls
+   out the R2004–R2006 no-length embedded-SAB route. The production reader now
+   enables its exact-signature/unique-terminal extraction for AC1018, without
+   changing AC1015 SAT-v1 behavior or the AC1021/AC1024 gates. A generated
+   no-length AC1018 frame includes distinct wireframe-point and silhouette
+   tail data, the secondary-empty bit, common handles, and a following-record
+   sentinel. Tests verify exact SAB bytes/range, tail exclusion, and preserved
+   handle/neighbor boundary; missing, truncated, duplicate, and non-SAB cases
+   stay opaque. The strict touched target and focused round-trip CTest pass.
+   On the currently checked local inputs, `ET-Drawing-with-Border.dwg` reads
+   but contains no modeler object, and `Extruder2.dwg` fails at the AC1018
+   table-read stage. There is still no source-bound positive trace or
+   independent boundary corroboration; keep AC1018 `VERSION_WITNESS_REQUIRED`
+   and do not promote conversion, semantic ACIS, native acceptance, or a
+   producer-wide claim. No fixture or CTest registration was added.
 3. **S3.3 — pre-R13 separation.** Inventory the R1.4/R11 readers separately.
    Do not apply R13+ layouts to their records; use an appropriate legacy
    specification and authentic version-specific sample trace before changing
@@ -3060,12 +5995,15 @@ Steps:
 4. **S3.4 — bounded extraction.** Implement bounded extraction and validation
    with transactional publication; malformed entity-level payloads must not
    consume adjacent frame/handle data or publish partial geometry. The
-   AC1021/AC1024 sub-slices scan only the version-bounded entity body, require
-   the exact SAB signature and one complete compound marker, and publish only
-   after common handle parsing succeeds. Their object-size and handle-stream
-   boundaries are version-specific; do not share offsets or frame assumptions
-   across R2007/R2010. Missing/duplicate markers remain opaque; the whole
-   frame stays separate in `m_rawBytes`.
+   AC1018/AC1021/AC1024 extraction sub-slices scan only the version-bounded
+   entity body, require the exact SAB signature and one complete compound
+   marker, and publish only after common handle parsing succeeds. Their
+   object-size and handle-stream boundaries remain version-specific; do not
+   share offsets or frame assumptions across R2004/R2007/R2010. AC1018 code is
+   locally implemented and generated-test-covered, but its row remains open
+   for a source-bound trace and independent boundary corroboration.
+   Missing/duplicate markers remain opaque; the whole frame stays separate in
+   `m_rawBytes`.
 5. **S3.5 — DataStorage association.** Attach recovered ACIS payload to the
    typed modeler entity without overwriting its DWG object-frame carrier. For
    AC1027+ reconcile the entity's DataStorage marker, handle/key, exactly one
@@ -3073,11 +6011,175 @@ Steps:
    publication. S3.2.2 completes only one AC1027 3DSOLID handle-linked SAB
    record; missing/conflicting/orphan records, other modeler entities,
    AC1032, and every writer route remain unqualified.
+   **Completed fast parser-control prerequisite (2026-10-21; generated
+   in-memory controls):** `libdxfrw_dwg_local_roundtrip
+   --datastorage-page-boundaries` verifies exact `0x40000` direct-record and
+   `0x40001` Blob01 payload retention plus corrupted page-start/index/count/
+   length/segment rejection. `libdxfrw_dwg_reader_matrix_tests
+   --acds-modeler-move-callback` verifies a physically out-of-order two-page
+   chain, page ordinals/start/lengths, exact assembled bytes, handle-linked
+   modeler callback ownership, and atomic refusal of missing-segment,
+   duplicate-ordinal, incorrect-start, and mismatched-length mutations. Both
+   focused controls pass. This closes only the AcDs container parser-control
+   prerequisite; it does not qualify SAB semantics, broader AC1027+ owner
+   association, another DWG version, external/native acceptance, or writer
+   readiness. [Implementation progress and receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s35-acds-blob-page-controls-2026-10-21-generated-fast-slice).
 6. **S3.6 — raw replay.** Keep raw same-version frame replay as a separate
    operation and report whether a result is typed, raw-replayed, typed-and-raw,
    or unsupported. Treat the open [LibreDWG ACDS/ACIS report](https://github.com/LibreDWG/libredwg/issues/1411)
    as an investigation lead only. Confirm any R2013+ `AcDb:AcDsPrototype_1b`
    behavior against ODA and local bytes before changing carrier rules.
+7. **S3.7 — repair the optional in-library SAB decoder independently.** This
+   is a local parser/projection contract, not a change to DWG byte layouts or
+   automatic2D behavior. Source-bound report
+   `/private/tmp/libdxfrw-research-depth-20261014.iPFjzP/sab-report.json`, SHA256
+   `d71155ea0dc756893f368794e3f545fa982488f55126d2d9132f16c82fac29b0`,
+   records seven actual bounded controls against unchanged drw_acis.cpp.
+   A public ezdxf-produced5576-byte SAB21800 box centered at(10,-20,30)
+   reloads as8 vertices/6 faces with bounds(9,-21.5,28)..(11,-18.5,32), but
+   local parsing rejects its count0. A diagnostic count-only mutation to88
+   records admits it yet returns centered bounds(-1,-1.5,-2)..(1,1.5,2).
+   Synthetic vertex→point components admit no-marker EOF, a garbage suffix
+   and NaN as valid/hasBBox with no diagnostic; a truncated marker rejects.
+
+   - **S3.7a counts and completion:** define profile-aware unspecified0 versus
+     explicit counts, marker inclusion, end-of-data/history state and exact
+     consumed spans before coding. Use the bounded known21800 producer as a
+     decoder interoperability control, not native producer truth; settle
+     positive-count/history/alternate-signature conventions from applicable
+     evidence before enabling them. Require the chosen terminal contract,
+     distinguish complete records from complete streams and retain suffixes
+     explicitly. Preserve an embedded-prefix finder only with named
+     span/suffix outcomes; do not silently make it a whole-blob verifier.
+     Reserve actual records/tokens/work through parity7S.3 before appending;
+     unspecified count is not unbounded admission or an allocation hint.
+     Keep three concepts distinct in both the parser and its outcome: the
+     profile's declared-count policy (known, unknown, or unsupported), the
+     actual-record counter used for resource admission, and completion of the
+     active-record stream. A peer parser's count behavior is not a format
+     rule: current cq-acis source records the SAB header count but does not
+     compare it with parsed records at EOF. Its limits are useful dimensions
+     to audit, not defaults to copy. Define separate per-string and cumulative
+     retained-string budgets, and charge source bytes, records, tokens, nested
+     subtype depth, reference/graph visits, loop/coedge transitions, output
+     geometry, diagnostics, aligned copies, and temporary capacity before
+     growth. Do not infer semantic/history completion from a record count.
+     Preserve any recognized history suffix as an exact opaque span unless a
+     named producer/profile contract establishes its grammar and terminal
+     rules. The detailed outcome's complete flag remains accepted-profile
+     framing only; it does not assert history validity, B-rep validity, or
+     native-consumer acceptance.
+     The generated count-policy regression keeps the accepted `ACIS BinaryFile`
+     version-21800/count-zero control and changes only its equal-width
+     signature to `ASM BinaryFile4`; that alternate-signature stream must be
+     rejected with output state cleared. This is a non-promotion boundary, not
+     an ASM profile implementation or an inferred cross-product of signature,
+     version, and count rules. See
+     [the focused slice receipt](docs/research/acis-asm-count-zero-nonpromotion-fast-slice-2026-10-18.json).
+     For DXF, keep the documented inline ModelerGeometry carrier distinct
+     from R2013+ ACDSDATA and DWG AcDs: preserve subclass boundaries, group
+     70 modeler version, and the ordered concatenation of group 1/3 data
+     chunks. Autodesk documents group 1 lines below 255 characters and group
+     3 continuation lines when a prior group 1 exceeds that limit. A
+     3DSOLID group 350 soft-owner history handle is a reference, not ACIS
+     payload or a byte count; do not merge it with the inline stream. Test
+     chunk order/continuation and history association separately from SAB
+     record framing. Broader source evidence and the optional 2D peer boundary
+     are recorded in
+     [the 2026-10-16 research receipt](docs/research/broader-sab-resource-profile-and-peer-differential-review-2026-10-16.json).
+     The first parser-admission budget slice is implemented with configurable
+     input/record/tag/per-string/cumulative-string/subtype caps and an outcome
+     that distinguishes cap rejection from allocation failure. Its defaults
+     are decoder policy, not format maxima. Graph copies, capacity peaks,
+     traversal work, output and diagnostics remain outside this first slice;
+     carry the same budget through parse/build/extract before treating S3.7a
+     resource work as complete.
+   - **S3.7b finite typed projection — local fast slice implemented:** the
+     generated 21800 control now contains an actual `point` record and a
+     `vertex`→`point` pointer; it asserts the exact finite XYZ value and
+     bounding box. Wrong-type and out-of-table pointers remain visible as an
+     unresolved vertex with no bounds, while NaN/infinity coordinates refuse
+     projection without publishing partial geometry. Keep malformed numeric
+     data distinct from unsupported projection and from allocation/resource
+     failure; preserve raw payloads and no-throw behavior. This closes the
+     identified test gap only: it does not validate arbitrary ACIS records,
+     transforms, units, analytic evaluation, history, or B-rep semantics. Do
+     not reinterpret every unknown tag or pointer as part of this slice.
+   - **S3.7c roots and coordinate policy:** keep legacy raw-record projection
+     unchanged and add a separately named per-body projection only for the
+     reviewed `ACIS BinaryFile` 21800 profile. Follow typed body→lump→shell→
+     face→loop→coedge→edge→vertex→point links; preserve multiple lumps,
+     shells, ordered face loops, and circular coedge/partner relationships.
+     Check pointer type/bounds, traversal cycles, and owner links only where
+     defined by the pinned profile (`lump.body`, `shell.lump`, `face.shell`,
+     `loop.face`, `coedge.loop`). Do not require `vertex.edge` to equal the
+     current edge: the pinned peer source says the endpoint's parent edge need
+     not be that edge. Count/report non-null pattern, wire, subshell, and
+     p-curve branches as unsupported, with a per-category report counter
+     (including pattern); do not omit them and call the body complete. Report
+     `next`/partner cycles and invalid references without
+     unbounded traversal. Keep edge curves and face surfaces as unsupported
+     analytic projection unless their exact families are independently
+     implemented; raw endpoint/planar-face output is not B-rep validation.
+     Record body-transform presence/identity but do not apply it or source-unit
+     scale until matrix convention, units, and expected placement are
+     independently established. Explicitly refuse unreviewed 20800, 22300,
+     and other versions. Generated fast tests should cover two separately
+     placed bodies, multiple lumps/shells, a face with inner/outer loops,
+     coedge and partner cycles, defined owner mismatch, the non-reciprocal
+     vertex-edge case, unsupported branches, unreachable known nodes, wrong
+     type/version, and traversal/resource limits. Use only test-local
+     from-scratch graph data; preserve legacy API/layout, avoid fixture files,
+     and keep B-rep/WCS/unit claims false. If existing Boolean results cannot
+     express partial/unsupported versus complete, use a source-compatible
+     additive outcome while preserving legacy signatures.
+
+     **Coverage-label gap addressed (2026-10-21; bounded local slice):** the
+     inline `drw_acisProjectionCoverage()` helper reports `NotProjected`,
+     `ProjectedSubsetWithKnownGaps`, or `ProjectedSubsetNoKnownGaps` from the
+     rooted flag and existing report counters. Generated tests independently
+     exercise every unsupported pattern/wire/subshell/p-curve/curve/surface
+     count and every unresolved vertex/edge/face count. “No known gaps” is
+     expressly limited to fields represented by those counters; it does not
+     certify source-body closure, transforms, units, analytic surface/curve
+     support, B-rep validity, or consumer acceptance. Focused graph-preservation
+     CTest and `lc3_compat_check` pass. The remaining structural cases above
+     stay active and the next case is selected locally without waiting for
+     external gates; no fixture or support claim is added. See the
+     [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-acis-projection-coverage-label-2026-10-21-generated-fast-slice-uncommitted)
+     and [receipt](docs/research/acis-projection-coverage-label-fast-slice-2026-10-21.json).
+
+     **Face-loop order regression added (2026-10-21; generated fast test):**
+     the two-loop SAB graph now starts at the higher record index and follows
+     its explicit next-loop edge to the lower record index. Assert output
+     `nodeIndex` order and associated coedge-ring counts, so a future sort by
+     node index or cross-loop coedge mix-up fails. This proves only ordered
+     structural projection: the API does not classify a loop as outer/inner,
+     infer containment, or validate face topology. The focused graph test
+     passes; production behavior and support claims are unchanged. Continue
+     with remaining dependency-ready local matrix coverage without waiting on
+     external/native gates. See the [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-face-loop-order-and-coedge-association-2026-10-21-generated-fast-slice-uncommitted)
+     and [receipt](docs/research/acis-face-loop-order-fast-slice-2026-10-21.json).
+
+     **Sphere-surface non-promotion case added (2026-10-21; generated fast
+     test):** a generated `sphere-surface` SAB 21800 record is attached to a
+     rooted face and parsed through the real wire parser. Projection retains
+     the record as reachable, reports one unsupported surface, emits no
+     surface parameters, and leaves B-rep validity unchecked. This adds the
+     explicit sphere enum/type branch beside the existing parser-fed
+     `spline-surface` case; it does not add sphere interpretation, finite
+     guards for an unsupported representation, or geometry support. The
+     graph-preservation CTest passes 1/1. See the
+     [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-sphere-surface-unsupported-branch-2026-10-21-generated-fast-slice-uncommitted)
+     and [receipt](docs/research/acis-sab-sphere-surface-unsupported-fast-slice-2026-10-21.json).
+
+   [Pinned header](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/hdr.py#L34-L74)
+   and [body traversal/transform](https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/mesh.py#L61-L136)
+   are primary implementation cross-checks; ezdxf is not a general ACIS kernel.
+   Port the tiny recipes to current local/hardening targets, run their affected
+   tests and one sanitizer checkpoint after related ownership edits settle.
+   External known-size/native/cross-kernel gates remain separate; neither
+   opaque carrier support nor the six historical J statuses is promoted.
 
 Positive gate: local-from-scratch parser vectors and any available authentic
 sample agree on declared lengths, payload identity, data/handle boundaries,
@@ -3129,6 +6231,24 @@ Steps:
    geometry support blocked. Keep platform/importer qualification separate
    from this format/writer slice.
 
+6. **S4.5 — DataStorage search-index order regression (`BLOCKED_ON_S3`).**
+   Once a versioned DataStorage writer is permitted by S3 evidence, generate
+   at least two runtime-only records whose owner handles are deliberately
+   out of directory order and whose directory order differs from sorted-handle
+   rank. Assert one zero-based search entry per data-segment record and a
+   matching handle/index pair for every object, with no duplicate, missing,
+   or stale entries. Preserve the read/write asymmetry: ODA permits the reader
+   to ignore search data, but §24.2.2.7.1 says AutoCAD ignores a stored entity
+   if the required schema-search object/handle mapping is absent. ACadSharp
+   PR #1150 reports that using
+   directory position where sorted-handle rank is required passed already-
+   sorted tests but failed an AutoCAD-saved out-of-order case. Implement the
+   spec-matched rank rule only after resolving any ambiguity in the ODA text
+   and verifying the result with a qualified reader; PR behavior is a
+   regression lead, not authority. Keep handle remapping, payload offsets,
+   directory order, and sorted-index order asserted independently. No DWG
+   fixture is added.
+
 Positive gate: writer output is accepted by an independent reader for every
 enabled version and has matching envelope-field/carrier evidence; compare an
 opaque payload by its exact digest, not by claiming decoded ACIS semantics.
@@ -3140,11 +6260,42 @@ an orphan record.
 ### S5 — DXF topology, coordinates, and finite-value semantics
 
 State: planned DXF topology, placement, flags, and conversion-boundary fixes
-are implemented in S5.1-S5.16; S8.15.18.3 additionally closes the 3DFACE DXF
-input flag-range guard. Their evidence remains vector/family-specific; S7/S8
+are implemented in S5.1-S5.17 and S5.19. S5.18/7R.1–7R.2d is locally
+complete for the generated HATCH writer-field, reference planning, identity,
+logical-owner, publication, and same-data retry/CLI cases. The focused
+`--hatch-same-data` selector was re-run on the current worktree and passed
+(16 successful exports, 8 rejected controls). This closes only that local
+generated-DXF contract; native associativity/update/fill/rendering and DWG
+behavior remain unqualified. S8.15.18.3 additionally closes the 3DFACE DXF
+input flag-range guard. Evidence remains vector/family-specific; S7/S8
 independently gate broader semantic claims and blocked DWG lanes.
 
+Latest local test repair: the generated ASCII/Binary LAYOUT graph control now
+emits the documented UCS group-71 selector before its complete 13/23/33
+orthographic-origin tuple. The owning DXF fixture CTest passes; this fixes a
+test-vector defect only and does not change a production path or support claim.
+See [implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--ucs-layout-graph-generated-tuple-correction-2026-10-17-local-fast-test)
+and [receipt](docs/research/ucs-layout-graph-generated-tuple-fast-slice-2026-10-17.json).
+
 Dependencies: S0, S1. Keep DWG-specific parser changes in S3.
+
+**Pattern-phase comparison continuation:** boundary geometry alone does not
+qualify patterned HATCH. Parity7AH/7AQ with7N now requires explicit line
+base43/44 versus repeat-vector45/46, angle53, ordered dash49/count79 and
+separate global41/52 retention before transformed comparisons. Six actual
+installed ezdxf1.4.4 component controls find four identity/affine phase
+discrepancies and two untransformed/vector positives; newer7c64 source is
+inspected only and still excludes nonuniform pattern scaling. Current
+libdxfrw already stores/copies/emits the fields. The reviewed test-only
+e1bf40af retention step is now integrated on087c330: two explicit pattern lines,
+21 ordered physical pairs per HATCH, model/named ownership and unexpanded
+BLOCK/INSERT persist through both encodings and repeated CLI. Main strict
+TU/DXF-local2/2/eight handoffs pass; reportbb3ffad3 in the parity plan binds
+source/artifacts.47 private retention negatives are not semantic-schema
+migration; that comparator scope and transformed phase remain open. Do not
+assume a HATCH raw companion, rewrite the parser to match an uncalibrated
+peer, add a renderer or weaken2D behavior. The parity report b9ac5f77 binds
+these non-native controls; no new S5 implementation failure is established.
 
 Files: `src/drw_entities.{h,cpp}`; `src/libdxfrw.cpp`;
 `tests/dwg_local_roundtrip_tests.cpp`; field serializers.
@@ -3340,6 +6491,54 @@ Steps:
     Do not turn scalar thickness retention into a claim that a consumer
     extrudes or displays the resulting geometry. All files are generated under
     the test build directory and removed by the control.
+19. **S5.17 — Keep archival and modern DXF GEODATA schemas separate.**
+    Autodesk's 2009 reference documents the archival profile: group 70 control
+    bits; geolocation groups 40–42; two WCS points; drawing scales/map units;
+    WKT/description/datum and observation strings; mesh counts/points/faces;
+    and the optional `CIVIC3D_DATA_BEGIN/END` block. Its later Civil group 141
+    description is ambiguous, so retain it as an uninterpreted scalar. The
+    2016/2020 tables document the modern coordinate-type, design/reference,
+    unit-scale/unit-enum, north/up, mesh, and scale/correction map. Model these
+    in separate legacy/modern fields and select by group 90; never overload
+    legacy flags or Civil values into modern `coordinate_type` or scale
+    fields. Object versions 1/2 are documented; until a primary source/sample
+    identifies version 3, typed writes reject it without changing output or
+    writer state, and a corrected retry on the same writer must succeed.
+
+    Validate full ASCII and binary wire-order vectors for every documented
+    v1 field, mesh pair/face, Civil marker and Civil field, then re-read and
+    compare all typed values. Validate modern v2 output and existing order in
+    ASCII/binary; keep the unspecified-version default at documented version
+    2. Include unsupported-version, signed group-70 range, non-finite values,
+    oversized legacy strings/counts, Civil-without-marker, and DWG-only Civil
+    tail preflight negatives, each proving no bytes/handles/errors are changed
+    before a corrected retry. Exercise typed and raw companion routes
+    separately so same-file replay does not masquerade as typed semantics.
+    This is local DXF metadata preservation only—not CRS transformation,
+    datum correctness, Civil 3D semantic interoperability, DWG field mapping,
+    or 3D geometry support. A future independent gate should compare exact
+    AutoCAD-authored v1/v2 ASCII or binary files through one separately
+    implemented reader without committing the external drawings.
+20. **S5.19 — Preserve finite binary64 values in ASCII DXF output.**
+    Implemented as parity7Y.2a. The former 16-significant-digit default and
+    locale-test expectation turn `nextafter(1.0, 2.0)` into `1`. Raise the default to
+    `std::numeric_limits<double>::max_digits10` (17 for binary64) while
+    retaining the classic locale and current finite-value guard. Add a focused
+    runtime-only test that writes multiple 3D coordinate fields including
+    `2419318.197152937`, `-3154161.355029621`, and
+    `nextafter(1.0, 2.0)` through `dxfWriterAscii`, reads generated tags
+    through `dxfReaderAscii`, and compares each value exactly to the original
+    double. Include adjacent negative values, finite maximum/minimum/subnormal
+    values and signed zero. Update expected ASCII spelling and retain
+    locale/stream-state checks; binary writer output must remain bit-identical.
+    Use the same adversarial XYZ values in the generated ASCII/binary CLI
+    sentinel, checking exact public readback after actual conversion. Keep the fix
+    confined to numeric formatting—do not round, normalize, or otherwise alter
+    geometry. Use the existing numeric-locale executable and four numeric CTests.
+    ACadSharp #1179/#1186 is a peer-derived test lead; exact local reader
+    equality is the acceptance gate, with optional ODA parsing only as a
+    compatibility smoke test. No drawing fixture, CAD geometry claim, or DWG
+    implication.
 
 Positive gate: round trips preserve point order, flags, topology, frame, and
 finite values. FreeCAD's exact converter argv and output handoff stay covered;
@@ -3353,7 +6552,12 @@ positive ratio without narrowing the existing ratio-greater-than-one path.
 S5.15 rejects non-finite or non-positive ARC/CIRCLE radii before callbacks or
 writer records, without narrowing angle values. S5.16 separately locks the
 thickness scalar across ASCII/binary parsing and both existing projection
-modes; geometry/display support remains unqualified.
+modes; S5.17 verifies the separate archival-v1 and modern-v2 GEODATA maps,
+fails closed on undocumented typed-write versions, and keeps CRS/Civil 3D
+semantics outside this local field gate. S5.19 preserves finite binary64
+coordinate values exactly through ASCII serialization and readback while
+leaving binary output unchanged; geometry/display support remains
+unqualified.
 Negative gate: invalid vertex indices,
 impossible counts, zero/non-finite ARC/CIRCLE normals, non-finite coordinates,
 half-present points, or overflowed count arithmetic are rejected before
@@ -3509,13 +6713,27 @@ sample cannot promote a semantic read/write claim.
 
 ### S8 — Preserve 2D consumers and enable 3D-aware consumers
 
-State: newly added consumer-enablement lane. It is independent of GUI/rendering
+State: ongoing consumer-enablement lane. PAR-118's specific queued BLOCK
+callback correction is integrated; focused composed safety passes at bc8f45f.
+It is independent of GUI/rendering
 work and can proceed for generated DXF vectors while versioned DWG evidence is
 blocked. No support claim is promoted by the adapter alone.
 
 Dependencies: S1 public typed-field inventory; S5/S6 DXF entity paths; S7.5
 LibreCAD callback-boundary audit. DWG coverage additionally depends on the
 relevant S3/S4 reader/writer slice and its authentic per-version evidence.
+
+**Optional comparator eligibility:** the parity7AQ/7AH review now executes
+eight authored Assimp6.0.5 controls. Successful loads can ignore rotation,
+nested content/later siblings, polyline segments and unsupported entities;
+binary input is explicitly unsupported. Its master source has newer POINT/
+polyline paths, but was not executed. Use only calibrated release/runtime/
+encoding/frame cells and explicit source coverage; never substitute this mesh
+projection for modeler topology, B-rep or ACIS/AcDs semantics. No new mandatory
+peer/dependency or native gate is added. The existing reader/API policy
+candidate and explicit adapter/profile substeps remain owned by parity3.3c;
+Compatible2D defaults and the consumer rebuild/no-new-pure-callback contract
+remain required.
 
 Steps:
 
@@ -3526,6 +6744,51 @@ Steps:
    (`no-op`, delegation, or required override) and pointer lifetime/copying
    expectations. Reuse the S0 family inventory; do not duplicate parser
    qualification. Keep unverified coordinate interpretations marked unknown.
+
+   **S8.1a — concrete types and callbacks survive BLOCK staging (PAR-118).**
+   A source-bound24-row AC1027 ASCII observer at25d951c shows PLANESURFACE
+   and REVOLVEDSURFACE retain derived eType but arrive as base DRW_Surface
+   inside BLOCKS; identical ENTITIES controls retain concrete type/subtype
+   fields. TOLERANCE/CAMERA callbacks fall1→0 in BLOCKS. Both ext modes still
+   report success and preserve suffix LINEs. Eight missing-ENDBLK negatives
+   retain balanced block scope and zero child publication. Report
+   `/private/tmp/libdxfrw-block-callback-research.jrwS8e/report.json`, SHA256
+   `3d5574f387968bb4fced83e9590caac9dfc4541ca49f0644a145b45089a69adc`,
+   binds the current-source archive and safe dynamic_cast observer; no unsafe
+   converter cast, DWG parser, ACIS kernel or native app was executed.
+
+   Follow7AG.3a in the parity plan: private type-preserving copies for all six
+   surface subtypes, exhaustive BLOCK-reachable callback coverage, typed/raw
+   order, owned-copy lifetime and unchanged ENDBLK publication boundaries.
+   Add both encodings/modes, subtype-field sentinels, corrected reuse and a
+   source-led replay-exception cleanup control. Keep2D no-op defaults and
+   legacy projection; no public clone virtual or consumer migration is needed.
+   Run existing affected DXF/hardening/lc3 gates and one composed sanitizer/
+   converter checkpoint, not another full suite or external witness search.
+
+   Reviewed c89aa592, originally on25d951c, is integrated on878d00e. Historical report
+   `/private/tmp/libdxfrw-block-replay-7ag3a.MLIuEu/candidate-report.json`, SHA256
+   `355f8ea635b0585f1f0de5c7c54136eb3b471c66ce086f693319a2c0bf314f3a`,
+   records104 ASCII/binary/ext-mode read operations, six concrete owned copies,
+   omitted typed events, malformed/footer/reuse and exception controls; three
+   focused tests pass2.89s. Footer/map allocation throws are source-reviewed,
+   not fault-injected. The actual CLI controls cover supported empty surface
+   shells only, not full binary carriers/B-rep or every converter callback.
+   Main retains7BI/MIF; strict changed TUs, affected/lc3/CLI build and exact
+   block/DXF/hardening3/3 pass2.99s. Fresh source-bound main report
+   `/private/tmp/libdxfrw-main-preservation.vlmZ5v/block-main-report.json`, SHA256
+   `d051b2ca3296e6199afa5e1fe79e3a6f2b737add867c14ed20fd2d602f4ab3c2`,
+   records four actual CLI conversions at the same empty-shell scope. The clean
+   tracked bc8f45f MIF/BLOCK/WIPEOUT checkpoint now instruments36 production
+   TUs with C++17/Werror/ASan/frame pointers and passes exact GBK/hardening/DXF/
+   BLOCK4/4 in5.60s, retaining84 default registrations. Report
+   `/private/tmp/libdxfrw-preservation-asan.0rZGDJ/report.json`, SHA256
+   `e530588b4cc4072671e8c70dcd65ba58e19a310654cdc11609129503f47fe84a`,
+   binds source/artifacts/runtime and exact JUnit outcomes. Stack-use-after-
+   return is enabled; leak detection is explicitly off. This is not the full
+   suite, native CAD, B-rep/ACDS semantics or ABI qualification, and does not
+   bind later encoding/dictionary integrations. Historical reports stay intact.
+
 2. **S8.2 — Existing 2D source-compatibility gate (required after each API
    slice).** Compile the locked `lc3_compat_check` consumer and representative
    library/test adapters after callback or public-field changes. Preserve
@@ -3536,6 +6799,15 @@ Steps:
    checkout or require a migration as part of this library lane. Treat this
    as a source-compatibility check only; it does not establish binary ABI or
    LibreCAD runtime/UI behavior.
+   Add the independently named current LibreCAD nonvirtual facade gate from
+   parity7AG.1b: pinned bf58e1e8 unconditionally selects Declared or
+   LegacyLibreCadUtf8 before DXF import. Use persistent next-read configuration
+   copied to new readers, with no active-reader/export mutation or automatic
+   detection. Coordinate declared codec/HEADER-order and explicit recovery
+   tests; the172-callback inventory and old locked LC3 mirror alone cannot
+   validate this source surface. Keep historical source checks under their
+   original pins; the strict current-call compile failure is a locally
+   actionable compatibility gap, not an external-platform blocker.
 3. **S8.2a — Legacy 2D read-mode regression guard.** Add a fast, runtime-
    generated DXF contrast through a test `DRW_Interface` sink: `ext == true`
    must retain the existing callback values for the covered planar/OCS case,
@@ -4139,6 +7411,13 @@ is verified using the actual installed artifact, not a build-tree executable.
       insertion and no unsupported LINE report. Successful child execution
       from FreeCAD also proves that the installed artifact's runtime
       dependencies resolve in this profile.
+      Tighten the current macro before a new packet: its Part::Feature/bounds
+      check does not establish valid straight-edge topology, and nonfinite
+      values can evade `abs(a-e) >= tolerance`. Require exactly one valid
+      straight edge/two finite expected endpoints per authored LINE, exact
+      final feature/count coverage and finite-only PASS JSON. Cheap mocked
+      NaN/same-bounds-wrong-topology negatives calibrate the predicate; only
+      the subsequent pinned native run qualifies this consumer tuple.
    4. Keep the check optional and run it only for a new installed-artifact
       profile or changes to packaging, CLI, discovery, or converter/importer
       handoff. The dependency-free exact-argv/readback CTest remains the fast
@@ -4146,6 +7425,12 @@ is verified using the actual installed artifact, not a build-tree executable.
       mode, operation, installed binary hash, and result. A pass qualifies
       only that tuple and one generated AC1015 LINE; it does not close
       S8.9.5's Linux/Windows gates or promote other DWG families/versions.
+      Before Linux dispatch, explicitly map TMPDIR to the runner-owned
+      temporary directory: the installed-line wrapper requires TMPDIR/TEMP,
+      while the workflow currently supplies only RUNNER_TEMP. Locally test
+      unset/invalid/explicit mappings; absence is a readiness gap, not an
+      executed hosted failure. Preserve1.1.3's frozen release/revision/hash;
+      any newer FreeCAD release needs a separately pinned successor tuple.
 
    Negative gate: build-tree binary, same-named competing PATH binary,
    fallback conversion, nonzero status, missing/mismatched handoff, wrong
@@ -5147,6 +8432,9 @@ checkpoints and release review.
    locally from scratch. Preserve all pre-existing untracked user files and
    do not stage the current untracked `tests/samples/AC1021/` or
    `tests/samples/AC1024/` paths as part of this plan.
+   Encoding third-party drawing bytes as base64/source literals or archives
+   does not change their provenance. Review embedded payloads/generators under
+   the same rule; do not treat a peer's fixture embedding as local authorship.
 5. If an external reader or authentic DWG file is unavailable, continue
    independent DXF/static/vector tasks, record the missing witness, and keep
    affected support rows unqualified. Do not let a missing oracle halt
@@ -5160,9 +8448,9 @@ Initial dependency/readiness order:
 | --- | --- | --- |
 | S0 | None | Baseline synchronized. Finish the capability/evidence inventory. The local ODA PDF gates DWG reader edits only; locate/verify it while DXF inventory proceeds. |
 | S1 | S0 inventory | Start after inventory; test/adapter-only and safe while DWG byte-layout edits are gated. |
-| S2 | S0, S1 | S2.1/S2.2/S2.2.1–S2.2.4 are committed. Unknown ACDSDATA is preserved through codec/adapter DXF→DXF replay; only the verified `ASM_Data` owner key is retargeted, and malformed/ambiguous/orphan joins fail closed. S2.3.2 qualified one ODA-authored AC1027 standalone tuple; S2.3.4 projects it, S2.3.5 fast vectors pass, and S2.3.6 verifies actual libdxfrw output through a version-matched ODA round-trip plus independent carrier/history and exact-SAB geometry readback. S2.3.7/S8.15.19 now verify installed-converter handoff into both FreeCAD `open()` and `insert()` on pinned macOS arm64 for the same standalone Cone, while the native importer creates no solid. This does not qualify clone/INSERT/XREF lifecycle, other entities/producers/versions, material appearance, DWG modeler writing, other platforms, native FreeCAD solid geometry, or general libdxfrw ACIS decoding. Next diagnose the ACadSharp multi-entity negative separately and keep other DWG parser edits behind per-version ODA/trace gates. |
+| S2 | S0, S1 | S2.1/S2.2/S2.2.1–S2.2.4 are committed. Unknown ACDSDATA is preserved through codec/adapter DXF→DXF replay; only the verified `ASM_Data` owner key is retargeted, and malformed/ambiguous/orphan joins fail closed. S2.3.2 qualified one ODA-authored AC1027 standalone tuple; S2.3.4 projects it, S2.3.5 fast vectors pass, and S2.3.6 verifies actual libdxfrw output through a version-matched ODA round-trip plus independent carrier/history and exact-SAB geometry readback. S2.3.7/S8.15.19 now verify installed-converter handoff into both FreeCAD `open()` and `insert()` on pinned macOS arm64 for the same standalone Cone, while the native importer creates no solid. This does not qualify clone/INSERT/XREF lifecycle, other entities/producers/versions, material appearance, DWG modeler writing, other platforms, native FreeCAD solid geometry, or general libdxfrw ACIS decoding. S2.2.5a now repairs the version/entity schema after independent candidate acceptance and passes the two-encoding local matrix. Continue S2.2.5b with a calibrated legacy binary-SAT positive and independent long-token/cut-policy controls. S2.3.9.4.29 is already locally complete for generated legacy-SAT block transport; do not duplicate it or extend that result to AC1027+ SAB/ACDSDATA. **New local owner guard (2026-10-18):** for AC1027 ACDSDATA-linked REGION/3DSOLID modelers, explicit `parentHandle` must agree with the physical containing modelspace/paperspace or named BLOCK_RECORD; generated ASCII/binary mismatch controls cover block-contained REGION/3DSOLID and modelspace `3DSOLID`, refuse transactionally, and matching explicit modelspace/paperspace owner controls pass. This closes entity→owner identity only. The full per-handle owner/block→INSERT path and associated payload/reference closure remain partial, and valid SAB transport does not establish solid semantics. Optional source-generated SAB authoring is `NOT_AVAILABLE` in the selected Homebrew Python because `ezdxf` is absent; no dependency was installed, and this does not stop local work. Any future mutable dynamic-block/object-graph output also needs a read-modify-write positive; a no-op round trip is insufficient. Keep other DWG parser edits behind per-version ODA/trace gates. |
 | S3 | S0 applicable ODA chapter, per-version authentic trace, S1, S2 | Ready only for modeler entities whose layout is actually described and witnessed. MESH/surface/modern 3DLINE layout gaps stay separately blocked; continue S5/S6 DXF lanes and keep those DWG claims unqualified. |
-| S4 | S3 verified payload reading, S2 | Blocked until S3 read evidence; do not build writer layout by mirroring an unverified reader. |
+| S4 | S3 verified payload reading, S2 | Blocked until S3 read evidence; do not build writer layout by mirroring an unverified reader. Reserve S4.5 for sorted-index/handle-pair invariants with deliberately permuted DataStorage directory order; no writer code or DWG fixture until S3 unblocks. |
 | S5 | S0, S1 | DXF topology/coordinate portion ready after S1; only the DXF portion may proceed while the ODA gate is unresolved. |
 | S6 | S0, S1 | DXF surfaces/HELIX ready after S1. DWG spline edits require the local ODA chapter and authentic per-version trace; modern DWG surface edits additionally require a surface-specific primary layout and independent witness. |
 | S7 | S1-S6 | Qualify completed rows independently. S7.6 keeps the experimental AC1024 candidate-field checker bound to its named live source facts without whole-file drift failures. A blocked DWG row does not block completed DXF evidence or docs; it remains unqualified. |
@@ -5182,7 +8470,15 @@ writer now retain their one-byte boolean representation, and the focused
 `libdxfrw_dwg_local_roundtrip` CTest passes. This remains a locally generated
 codec/adapter regression, not external ACDSDATA acceptance. The new .4 item
 repairs data loss only on DXF input→DXF output; none unblocks DWG-to-DXF
-modeler-carrier serialization.
+modeler-carrier serialization. S2.2.5a now implements the bounded DXF schema
+repair and generated ASCII/binary entity×version matrix; AC1027 local cases
+stay shell/metadata-only. Its optional independent control has a separate
+ACDSDATA payload lane and a retained per-cell report. Continue S2.2.5b only
+with a qualified binary-SAT calibration or new long-token/cut-policy evidence.
+S5.18 and S2.3.9.4.29 are complete independent fast slices; do not repeat
+them as the next action. The S2.2.5b external binary-SAT gate remains
+unqualified, but does not block another ready local item. Select that item
+from the live dependency ledger; S4.5 remains gated on S3.
 S2.3.1/.3 research is complete and S2.3.2 is `READY_NARROW` only for the
 hash-pinned ODA AC1027 standalone `3DSOLID` tuple. The bounded S2.3.4
 projection is implemented; S2.3.5 generated ASCII/binary vectors, including
@@ -5502,9 +8798,19 @@ build/temp. This does not qualify weighted/rational, closed, periodic,
 degenerate, other-knot, other-scenario, target-authored, or other-version
 splines.
 
-Current implementation-item ledger (update in every corresponding slice
-commit; 144 items: 125 committed, 5 explicitly blocked, 2 in progress,
-12 other bounded evidence states, and 0 ready):
+Historical implementation-item ledger snapshot (149 items: 128 committed,
+6 explicitly blocked, 3 in progress, 12 other bounded evidence states, and 0
+ready parent items at the time this snapshot was written; later slice progress
+below supersedes its queue pointer. The former report-only 7AH/7AQ checker
+negative item is implemented in the parity plan's later progress entry and is
+not a current next action. parity3.3c local reader/API, adapter, profile and
+exact-option delivery is implemented, while its wider RTEXT/ARCTEXT CLI export
+gate remains open at the separate VISUALSTYLE carrier-coverage preflight;
+7G.3f.3b provenance is locally verified, but 7G.3f.3c mapping is not ready
+until group-176/CMC conflicts are resolved; 3.3a exact-mapping policy is locally
+complete while independent producer-profile qualification and the 3.2 parent
+remain open; 3.2b.2d target transport is locally
+implemented):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,
@@ -5579,10 +8885,11 @@ was launched, and no platform support claim changed.
 | S3.2.2 | COMMITTED | AC1027/R2013 `has_ds_data` modeler entities no longer fail solely because the entity-local BS is outside 1/2; effective version 2 is set only after exactly one handle-linked record starts with the exact ODA-documented `ACIS BinaryFile` SAB prefix. Runtime-generated AC1027 frame with raw value 168 passes the typed parser regression. `libdxfrw_hardening` exercises unique selection, exact numeric/key identity, disagreement rejection, duplicate-section ambiguity, wrong-version/orphan accounting, malformed-signature non-normalization, alternate `ASM BinaryFile4` retention without ACIS normalization, entity-handle fallback, idempotent replay, and two records linked while entity traversal order is reversed; these use in-memory records only. The local untracked `Cover.dwg` emits one `MODELER_GEOMETRY` callback for handle `0x6f`, effective version 2, non-empty modeler state, a linked 22,983-byte record, and handle key `6F`; its carrier SHA-256 (`e0a5e069175edafd980c942bb5766091705534b1e6e3cfe43f5fc982e17b9eda`) matches LibreDWG 0.14's entity `acis_data` after rejoining the signature. Treat that as one-sample payload corroboration, not an independent/general association oracle: LibreDWG's [NEWS](https://github.com/LibreDWG/libredwg/blob/master/NEWS) records incomplete, brute-force AcDs extraction in v0.11, while open [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411) reports missing AC1027+ AcDs extraction with LibreDWG 0.14.8593, including an AC1032 case. An open-source [AcDs round-trip note](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs#L3785-L3800) identifies positional record/entity mispairing as a failure mode; we use it only to motivate an order-reversed local vector, not as format evidence. Alternate ASM-prefixed records remain opaque until primary layout/sample evidence is available. Focused round-trip, graph, hardening, and consumer tests pass; `lc3_compat_check` builds. The DWG sample remains untracked; no fixture added. Opaque byte identity only, not geometry semantics, other AC1027 records/variants, AC1032, or writing. |
 | S3.2–S3.6 (remaining versions and paths) | BLOCKED_PER_VERSION | R13/R14 and non-AC1015 R2000 SAT layouts/entities; full AC1015 SAT-v1 qualification beyond the narrow `3DSOLID` slice in S8.15.16; AC1018, other AC1021, AC1027, and AC1032 inline variants; AC1027+ external DataStorage association beyond the single S3.2.2 record (including missing/conflicting/orphan cases and other entities); cross-version handle/frame accounting; and modeler DWG writing remain unimplemented or unqualified. A fresh read-only audit with LibreDWG 0.14 minJSON found 129 modeler records across the four local AC1024 samples: 33 in `visualization_-_conference_room.dwg`, 76 in `visualization_-_condominium_with_skylight.dwg`, 5 in `visualization_-_aerial.dwg`, and 15 in `visualization_-_sun_and_sky_demo.dwg`; every record is `3DSOLID` with modeler version 2. Those four AC1024 samples supply no version-1, `REGION`, or `BODY` witness; separately, S8.15.16 now records one external AC1015 `3DSOLID` SAT-v1 sample and an exact converter/reference comparison. Thus the AC1024 corpus confirms only its qualified v2 lane and cannot unlock another entity/version variant. A focused recheck on 2026-09-24 passed `libdxfrw_dwg_reader_matrix` (1/1); the AC1024 `v2010` end-to-end conversion cases remain 6/10, with four visualization conversions failing. Each debug trace reaches `dwgReader24::readDwgClasses END` after a CRC-mismatch warning. None prints `DWG file error` or `Error reading file`; `dwg2dxf` therefore completes DWG import and fails during DXF export. The writer's `writeModelerGeometry()` deliberately rejects unqualified DWG modeler/frame/DataStorage payloads, and these four samples contain 129 non-empty AC1024 version-2 `3DSOLID` SAB carriers. The focused reader, local round-trip, hardening, and FreeCAD CLI-contract CTests pass 4/4; the 12/53/13 object-parser warning counts in aerial/condominium/sun-and-sky are not evidence of a class-footer failure, and the conference trace also reaches OBJECTS. These conversion failures are explained by the intentionally unsupported SAB-to-DXF writer boundary, not a reproducible `BAD_READ_CLASSES` regression. Keep the class-footer synthetic test green; do not relax CRC checks or change class-size arithmetic. Any future positive conversion requires an evidenced DXF representation for the SAB content, not relabeling the carrier as SAT. Keep the three `E3DSOLID` spline-checkpoint objects distinct from spline correctness; do not relabel frame bytes as SAT or weaken the writer gate. R1.4/R11 remains blocked on era-appropriate reference/sample. Continue with any available per-version ODA/trace/independent-witness lane; do not infer a neighboring version's layout. These samples are user-owned, remain unstaged, and diagnostic outputs were kept under `/private/tmp`. |
 | S3.2.3 | COMMITTED | Added AC1021/R2007 version-2 inline SAB extraction with the R2007 object-size and embedded-handle framing kept distinct from AC1024/R2010. Runtime-generated AC1021 and AC1024 frame tests verify exact bounded payload extraction, source-version/range metadata, tail exclusion, missing/duplicate marker rejection, and no fallback from raw frame bytes; `libdxfrw_dwg_local_roundtrip` passes 1/1. One temporary ODA File Converter 27.1.0.0-resaved AC1021 `Cone.dwg` witness has a 1,629-byte SAB from signature plus 1,614 body bytes according to LibreDWG 0.14 minJSON and libdxfrw's trace; this is envelope/length corroboration only, not byte-for-byte identity or target-authored DWG evidence. An earlier comparison with the LibreDWG AC1015 reference DXF was cross-version and is not a semantic finding. On the same AC1021 input, LibreDWG 0.14 `dwgread -O DXF` emits no group-1/3 SAT values for the `3DSOLID`, while ODA's DXF has 31 pairs. LibreDWG's verbose trace fails on unknown SAB tag 18 in its SAB-v2-to-SAT1 path yet exits successfully and writes the DXF without SAT; neither export is an independent SAT oracle or proof of equivalence. The exact FreeCAD CLI form parses the DWG but still fails closed in `writeModelerGeometry()` with no DXF published; FreeCAD receives no importer handoff. This does not promote AC1021 conversion, FreeCAD converter integration, or geometry support. Other AC1021 inline variants remain in the aggregate blocker row. `dwg2dxf_freecad_cli_compat` passes 1/1; `git diff --check` passes. External DWG/DXF inputs and generated outputs remain outside the repository; no new drawing fixture is committed. |
+| S3.2.4 | COMMITTED / SOURCE_WITNESS_REQUIRED | AC1018/R2004 version-2 inline SAB extraction now requires the exact signature and one complete tagged terminator bounded by the entity data body, then publishes only that payload and source range after common handles parse. Generated no-length frames cover distinct wireframe/silhouette tails, exact bytes/range, handle and following-record boundaries, and missing/truncated/duplicate/non-SAB refusal; the focused local round-trip CTest passes 1/1. The checked `ET-Drawing-with-Border.dwg` has no modeler record; `Extruder2.dwg` fails at the existing table-read stage. No source-bound positive or independent boundary corroboration is available, so AC1018 remains `VERSION_WITNESS_REQUIRED`; no writer, semantic ACIS, or producer-wide support is promoted. No fixture or CTest registration was added. Receipt: `docs/research/ac1018-inline-sab-extraction-fast-slice-2026-10-16.json`. |
 | S4.1–S4.4 | BLOCKED_ON_S3 | Opaque DWG modeler payload writing follows only verified read layouts. |
 | S7.1–S7.3 | BLOCKED_ON_INDEPENDENT_WITNESS | Target-sample comparisons cover AC1024 INSERT placement and scenario-2 SPLINE fit fields, AC1021 3DFACE/LINE and ELLIPSE/ARC/CIRCLE/POLYLINE_MESH field subsets from one provenance-unverified local sample (S8.4a.6/.7/.9), the planar AC1015 3D-POLYLINE subset (S8.4a-S8.4a.4), and six exact AutoCAD-authored POINT files (S8.4a.8). S8.4a.5 additionally checks nonzero-Z 3D POLYLINE, legacy MESH, and PFACE using a locally generated LibreDWG control; since LibreDWG both generates and reads it, this is not an independent target witness. The broad required family/version/direction matrix remains blocked; all corresponding support claims stay unqualified. |
 | S7.4 | COMMITTED | Added docs/3D_SUPPORT_STATUS.md, linked from README, with family-specific DXF test versions/encodings, explicit DWG reader/writer version sets, direction-specific status, evidence grade, and unqualified/unsupported boundaries. Does not modify frozen metadata/qualified-format-claims-v1.json or metadata/qualified-format-status-v1.json, and promotes no semantic claim. |
-| S7.5 | COMMITTED | Read-only audit of `../LibreCAD/librecad/src/lib/filters/rs_filterdxfrw.cpp` at LibreCAD HEAD `c67c02a01`: `add3dFace` and `addMesh` project XY into 2D polylines; 3DFACE preserves 3D corners/edge flags in a sidecar, while MESH renders base-cage faces without a native editable 3D mesh representation. Polygon-mesh polylines record counts/flags in advanced metadata, attach source 3D vertices to a fallback XData anchor, and render XY row/column polylines; smooth polygon meshes are not rendered. `addTrace`/`addSolid` produce 2D solids and retain native TRACE/SOLID corners/thickness in sidecars only for supported axial extrusion; non-axial extrusion is skipped. `addHelix` delegates to spline approximation; LibreCAD's callback documents axis/turn metadata as not represented in its entity model and dropped on import. `addSurface` and `addModelerGeometry` retain advanced metadata and render decoded SAB wireframe edges when available; neither creates an editable parametric/native 3D surface or solid. Generic spline handling creates LibreCAD 2D spline/conic entities and may approximate higher degrees. Base `DRW_Interface` defaults for `addMesh`, `addHelix`, `addSurface`, and `addModelerGeometry` are no-ops; only source-compatible delivery is guaranteed to other adapters. This is source-level callback evidence only: no LibreCAD build/UI interaction or 3D editing behavior was tested, and no public semantic 3D claim is promoted. |
+| S7.5 | COMMITTED | Refreshed the read-only source audit to LibreCAD `origin/master` `25ca7fe9f6d65caf2dec1181514ce9d0914656b1` (2026-10-16) and LibreCAD_3 `origin/master` `55d6bb0f858af1a6281f38c944bd964ce1cf23c3` (2026-10-13), inspecting only committed refs because local sibling worktrees are dirty/stale. In LibreCAD 2, `add3dFace` preserves 3D corners/edge flags in a sidecar while its display route is 2D; `addMesh` renders base-cage faces and polygon-mesh row/column polylines in XY, retains counts/flags and source vertices in advanced metadata/XData, has no native editable 3D mesh representation, and does not render smooth polygon meshes. `addTrace`/`addSolid` create 2D solids and retain native corners/thickness in sidecars only for supported axial extrusion; non-axial extrusion is skipped. `addHelix` delegates to spline approximation and does not retain axis/turn meaning in the entity model; generic splines map to 2D spline/conic entities and may approximate higher degrees. The current `addModelerGeometry` stores the opaque modeler payload in advanced metadata; when SAB wireframe decode yields edges, it creates XY 2D entities with source handle zero. `addSurface` likewise retains metadata and can display decoded wireframe edges. These paths provide neither editable parametric/native 3D entities nor B-rep validation. Base `DRW_Interface` defaults for newer mesh/helix/surface/modeler callbacks remain no-ops, preserving source compatibility. The inspected LibreCAD_3 persistence integration has no matching modeler/ACIS callback route; its pinned policy describes opt-in DWG read, no DWG write, and no promoted read claims. Keep existing LibreCAD/LibreCAD_3 source checks for 2D compatibility, but do not count either product as a 3D consumer or independent DWG/ACIS oracle. No app build/UI or native test was run. See the [consumer-route research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-downstream-consumer-route-and-2d-ir-boundary-review-2026-10-16-research-only). |
 | S7.6 | COMMITTED | Repaired `tools/check_ac1024_candidate_fields_v2.py` after J295's fast self-test exposed stale whole-file bindings. The frozen v2/v1 manifests, predecessor checker digest, archived source digests, and evidence core remain unchanged; live checks now bind the four declared facts specifically: local RTEXT construction, `DRW_RText` DWG encode/decode angle conversion, `ARAD`, and semantic-adapter rotation. Self-tests prove unrelated appended source text is accepted and mutation of each bound fact is rejected. The v2 checker consumes the exact-hash-pinned v1 manifest/evidence rather than rerunning v1's obsolete whole-generator-file check against today's expanded test translation unit. `check_ac1024_candidate_fields_v2.py --self-test`, external-evidence-resolution self-test, admitted-candidate-fields self-test, Python compilation, and `git diff --check` pass. No candidate oracle was run, no fixture was added, J295 remains `DEFERRED_EXTERNAL`, and this evidence/tooling fix promotes no support claim. |
 | S7.7 | RESEARCHED_NOT_UNBLOCKED | Deep recheck confirmed EngineeringTechnology.org's direct `Extruder2.dwg` link resolves to the exact archived SHA-256 (`fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c`) and the page explicitly states CC BY 4.0 for “this work.” This is an exact public-source/license assertion, but the file has no source-authored model dimensions/semantic manifest, no creator/chain-of-title detail, and must not be committed as an external fixture; no J status changes. Ansys 2026 R1 documents independent standalone SAT/SAB reading through ACIS 2023 on Linux/Windows with units/body import, but exact ASM 230.7 acceptance and a usable licensed runtime remain unverified, and it cannot verify ACDS ownership/history. BricsCAD `ACISIN` reads SAT/SAB but ignores `INSUNITS`, making it a raw-geometry check only. J268's exact historical membership remains unreconstructable without its missing row-level report; J256/J260/J293/J284/J295 successor evidence remains archival, field-scoped, and non-promoting. |
 | S7.8 | COMMITTED_CI_GREEN | The PR-head native qualification jobs exposed a stale implementation digest and a second, deeper conflict: S7.6 edited the byte-exact `tools/check_ac1024_candidate_fields_v2.py` referenced by frozen `metadata/qualified-format-claims-v1.json`, so the metadata self-test rejected its historical evidence before any semantic run. The historical checker is restored to its recorded SHA-256 `c4d6c220a373622d10aecd6d2b9adbd4fb4b37bcea67c80d199f19c74b312dec`; S7.6's source-fact checks now live in `tests/ac1024_candidate_fields_v2_live.py`, which is under the implementation-digest `tests/` scope, and CTest calls that live checker. The seven-test focused gate passes 7/7 and the v2/metadata self-tests pass 2/2 locally. A clean tracked checkout recomputed the 244-input implementation digest as `8f27be0a591f3437932959530883895a1e9d230ab69bc212a44edbf91a5ad2b8`; the status overlay now records that digest. Its six accepted receipts and three broad references belonged to the prior implementation head, so they were removed from the *current* overlay, not rewritten or reused; their original Git history and receipt artifacts remain available for audit. Claims remain 11 `EXPERIMENTAL`, four `PENDING_NATIVE`, and zero promoted. The user-owned untracked sample DWGs were neither staged nor altered. Hosted focused [run 36447625138](https://github.com/LibreCAD/libdxfrw/actions/runs/36447625138) passed Linux GCC, macOS Clang, and Windows MSVC on code/status head `e98d216c8a400692a603ea9f89910e2c8b94f0be`, with metadata-only artifacts `10981350948`, `10981825626`, and `10981421300`; those artifacts are not yet admitted into the current status overlay or API-verified for claim promotion. This run does not execute the separate Linux/Windows FreeCAD workflow or an independent ACIS geometry reader. For J256/J260/J268/J293, J359 remains the provenance/deduplication successor, not a semantic oracle; J268's missing historical rows require recovery of the original report or an explicitly new experiment. For J284/J295, J361/J362 remain field-scoped and need an independent target-authored, same-handle read comparison and native receipt before any *successor* promotion. A CAD-authored AC1027 box with source-recorded 5×7×11 dimensions, WCS bounds, units, and volume 385 is the fastest missing modeler witness; preserve DWG, DXF, extracted SAB, hashes, reader output, and all associations outside the repository. As a cheap first screen, [ezdxf's ACIS reader](https://ezdxf.readthedocs.io/en/stable/acis.html) can parse SAB and derive exact vertices/bounds only for flat polyhedra; its documented unsupported-entity loss and lack of a full ACIS kernel make it insufficient for arbitrary geometry, ACDS owner/history, units, or promotion. A licensed independent geometry reader must then verify the standalone payload, and DWG/DXF association must be checked separately. |
@@ -5631,7 +8938,7 @@ now also exercises the CRLF-normalized malformed-SURFACE assertion. Native
 FreeCAD executable discovery/import qualification on Linux and Windows remains
 external and unclaimed.
 
-S8.9.5 dispatch availability check (2026-09-28): the manual-only
+Historical S8.9.5 dispatch availability check (2026-09-28): the manual-only
 `.github/workflows/freecad-platform-qualification.yml` is present on PR #102's
 head, but `gh workflow list --all` on `LibreCAD/libdxfrw` does not register it
 and `gh workflow view freecad-platform-qualification.yml --ref codex/pr100-clean`
@@ -5643,7 +8950,26 @@ cannot yet be dispatched. Do not make this workflow automatic or merge the PR
 without authorization; no FreeCAD platform run or claim is inferred from the
 green native C++ build matrix.
 
-Pre-merge qualification route: GitHub also documents that a `push` workflow
+Superseding availability/evidence audit (2026-10-14): the manual workflow is
+now readable on the default branch (blob
+`042a10624b563a4ee423f68d5db50807396363b3`); its Actions API reports zero runs.
+The earlier default-branch bootstrap obstacle and PR-state statements above
+are historical, not current instructions to merge or add automatic triggers.
+Native Linux/Windows execution remains pending. Before that run, require
+exactly the two tracked-AC1027 open/insert tests, `--no-tests=error` and no
+skipped/disabled outcomes. Preserve a bounded dedicated consumer evidence
+packet binding candidate/source/config, installed converter hash, native
+OS/architecture/toolchain, FreeCAD release/revision/preferences, actual argv,
+input/output hashes and both operations' geometry assertions. LastTest.log
+alone with14-day artifact retention is not a durable receipt. The standard
+native-receipt verifier intentionally accepts build.yml only; preserve that
+contract and add a separately reviewed consumer packet rather than widening
+it to arbitrary logs. This smoke fixture contains three planar LINEs; it
+cannot qualify nonzero-Z/OCS/INSERT/ACIS. Extend those profiles separately with
+the existing recipes. No hosted run or dependency download was requested by
+this documentation audit; all six external J items remain non-promoting.
+
+Historical pre-merge qualification route: GitHub also documents that a `push` workflow
 can run from a non-default branch, with `branches` and `paths` filters applied
 together ([events reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push)). If a one-off hosted run is approved, add a temporary `push` trigger scoped to the exact fork branch and this workflow file, push that branch to the fork, retain both native `LastTest.log` artifacts and exact head SHA, then remove the temporary trigger after review. This changes hosted CI use and must be a deliberate qualification slice, not a silent broad PR trigger. Alternatively, merge/bootstrap the workflow on the fork's default branch and dispatch it with `--ref` at the tested PR head; merely passing `--ref` while the workflow is absent from the default branch does not work. In either route, run the focused metadata/digest gate first, because green FreeCAD CTests on a different commit do not seal native qualification receipts for this head. Until a Linux and a Windows native run are both observed, S8.9.5 remains open.
 
@@ -5749,11 +9075,13 @@ implementations are cross-checks, not authorities when they conflict with the
 format specification.
 
 - [Open Design Specification for .dwg files, v5.4.1](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf) — relevant coverage includes §20.4.11 for 2D VERTEX (Z normally 0; elevation/thickness inherited from its POLYLINE) and §§20.4.13–20.4.17 for vertex/polyline families, §20.4.33–20.4.36 for PFACE/classic POLYLINE mesh/SOLID/TRACE, §20.4.40 for SPLINE scenario/control/fit fields, and §20.4.41 for REGION/3DSOLID/BODY ACIS layout. Searchable-text and rendered-page review confirmed these passages; no named modern `AcDbSubDMesh`, `AcDb*Surface`, or `3DLINE` layout was found, so keep those corresponding DWG rows unqualified absent another primary source. The required local v5.4.1 copy was verified under S0.2 at `/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf`.
-- [AutoCAD 2010 DXF Reference](https://images.autodesk.com/adsk/files/acad_dxf1.pdf) and [current Autodesk 3DSOLID DXF reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm) — 3DSOLID/SURFACE ACIS payloads use groups 1/3; group 310 is not specified for the entity-inline ACIS body.
+- [AutoCAD 2010 DXF Reference](https://images.autodesk.com/adsk/files/acad_dxf1.pdf), [AutoCAD 2013 DXF Reference](https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf), and [current Autodesk 3DSOLID DXF reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm) — these references list the generic `AcDbModelerGeometry` and group-1/3 entity fields; the R2013 manual does not mention `ACDSDATA`/`ACDSRECORD`. Do not use this generic entity table as a version-specific carrier-location contract. Group 310 is not specified there as the 3DSOLID entity-inline ACIS body.
 - [Autodesk DXF ENTITIES reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7D07C886-FD1D-4A0C-A7AB-B4D21F18E484.htm) — record-family index and group-code reference.
 - [Autodesk ARC DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm) and [CIRCLE DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm) — ARC/CIRCLE center coordinates are OCS, group 210/220/230 supplies the extrusion normal, and ARC angles are in that OCS frame.
 - [Autodesk OCS](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm) and [arbitrary-axis algorithm](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm) — basis construction for the independent expected-WCS oracle; normative for the coordinate-frame check, unlike a reader/writer round trip.
 - [Autodesk 3DFACE DXF reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm) — WCS corners, optional fourth vertex, invisible-edge bits.
+- [AutoCAD 2009 DXF Reference, GEODATA](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf), [Autodesk 2016 GEODATA](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), and [Autodesk 2020 GEODATA](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm) — distinct archival/modern group maps and documented object-version labels. The 2009 table is primary for its legacy field map; later references are primary for the modern map; neither alone proves behavior of a target-authored sample.
+- [ezdxf GeoData reference](https://ezdxf.readthedocs.io/en/stable/dxfobjects/geodata.html) — implementation cross-check for v1/R2009 and v2/R2010 labels, modern coordinate-type fields, modelspace ownership, and its R2010 minimum; not normative evidence for legacy v1 fields or CRS transformation correctness.
 - [Autodesk POLYLINE DXF reference](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm) — flags, 2D OCS versus 3D WCS, mesh counts, extrusion.
 - [Autodesk VERTEX DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm) and [Polyface Meshes DXF reference](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm) — polyface vertex/face flags, signed invisible-edge indices, face ordering, and vertex/face counts.
 - [Autodesk SEQEND DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm) — sequence terminator fields; SEQEND is an R12-era entity and has no class-specific subclass data.
@@ -5767,7 +9095,7 @@ format specification.
 - [Autodesk Object Coordinate Systems in DXF](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm) — defines the OCS basis/elevation relation and the rule that planar entities' points are OCS coordinates; use the arbitrary-axis algorithm and the entity extrusion vector to compute independent WCS expectations. FreeCAD's pinned runtime, not this specification, determines its observed importer behavior.
 - [Autodesk arbitrary-axis algorithm](https://help.autodesk.com/view/OARX/2026/ENU/?guid=GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE) and [BlockReference.BlockTransform](https://help.autodesk.com/cloudhelp/2018/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_BlockReference_BlockTransform.html) — independent basis and block-transform semantics used by the INSERT/MINSERT expected-value oracle.
 - [ezdxf INSERT implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/insert.py) — open-source cross-check for nested INSERT and MINSERT grid offsets (array spacing is rotated by insertion angle without applying block scale); implementation analogy only, not normative evidence.
-- [ezdxf ACIS FAQ](https://ezdxf.readthedocs.io/en/stable/faq.html) — cross-project statement that DXF R2000–R2010 uses SAT in entity records and R2013+ uses SAB in ACDSDATA; treat as a high-value implementation cross-check and confirm acceptance with Autodesk/real-file witnesses.
+- [ezdxf 1.4.5 ACIS guide](https://ezdxf.readthedocs.io/en/stable/acis.html), [BODY reference](https://ezdxf.readthedocs.io/en/stable/dxfentities/body.html), [FAQ](https://ezdxf.readthedocs.io/en/stable/faq.html), [v1.4.5 tag](https://github.com/mozman/ezdxf/releases/tag/v1.4.5), and [PyPI source artifact](https://pypi.org/project/ezdxf/1.4.5/) — the detailed guide documents SAT for DXF R2000–R2010, SAB for R2013/R2018, `export_sab()`/`body_from_mesh()`, and limited polyhedral-only geometry; its FAQ contradicts the detailed API by saying it writes SAT only. Keep this as an unresolved project-documentation conflict and bounded generated-control lead, not normative format evidence or an independent ACIS kernel. Pin artifact/version/hash and independently validate the mesh oracle before any optional run.
 - [Autodesk DXF ENTITIES index](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7D07C886-FD1D-4A0C-A7AB-B4D21F18E484.htm) — current listed record families; `3DLINE` is not listed there, so qualify it as a portability-sensitive extension.
 - [LibreDWG entity/object definitions](https://github.com/LibreDWG/libredwg/blob/master/src/objects.in) and [LibreDWG manual](https://www.gnu.org/software/libredwg/manual/LibreDWG.html) — open-source entity names and implementation coverage; check stability per family.
 - [FreeCAD `Draft/importDWG.py`](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py) — current configured-path/PATH discovery, external `dwg2dxf <input> -o <output>` invocation, output-existence success check, and distinct `importDXF.open()` / `importDXF.insert()` handoffs; this establishes the converter CLI/publication contract, not entity support. Source reviewed 2026-09-24; `main` is mutable and each runtime result must pin a commit.
@@ -5792,6 +9120,10 @@ Latest implementation-item ledger addition:
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| S5.17.1–.2 | COMMITTED / RESEARCHED | Added separate archival GEODATA v1 fields and modern field routing in `DRW_GeoData::parseCode`, with in-memory ASCII/binary v1 and modern controls, copy/reset coverage, and generated-reader checks; commits `8b15424`, `f666dc5`, and `35c57cd` record research, tests, and parser/model work. Research reconciles Autodesk 2009's legacy map with Autodesk 2016/2020 and ezdxf's modern R2010 map without treating peer semantics as normative. Exact values are locally-authored vectors only; no external drawing is admitted, and no reprojection/Civil/DWG support claim follows. |
+| S5.17.3 | COMMITTED | Added version-aware GEODATA DXF output for documented v1/v2, preserving the previous modern-v2 group order and emitting the full archival/Civil v1 map. Group 90 defaults to documented v2; typed v3 rejects before output/state changes. ASCII/binary vectors lock the code order, all v1/Civil values after typed readback, and modern v2 parity. Transactional negatives cover signed group-70 overflow, non-finite values, >255-byte v1 text, oversized mesh counts, nonzero 2D mesh Z, Civil fields without their marker, the DWG-only Civil tail, unsafe modern text, and mixing schema-exclusive fields; every rejection leaves a same-writer retry usable. Focused `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip`, and `libdxfrw_dxf_fixtures` pass 3/3 in 5.33s; `lc3_compat_check` builds; `git diff --check` passes. These are locally-authored DXF controls only; no independent producer/reader, CRS transform, Civil 3D, DWG, or geometry support is claimed. |
+| S5.18 | COMMITTED / LOCAL_IMPLEMENTATION_COMPLETE | Plan-Slice:7R.2d closes the last local gate after writer57b98cd/admissiondaf6a0f/planning1c85111/publication98f0eae. Same-data16 successful exports/eight rejection controls preserve parent/compound-child/block source IDs through repeat, late veto/exception/record/limit failure and corrected retry; detached HATCH handle0 is included. Per-call owning-child restoration avoids cross-callback journals, bounds snapshots before allocation and leaves direct-codec/no-HATCH contracts unchanged. Focused ASan/UBSan16/8, strict TUs/lc3 and existing local/fixture CTests2/2 in5.27s pass; actual generated ASCII/binary CLI conversions/exact verifiers pass twice with identical per-encoding hashes. Parent98f0eae reproduces mutation/failed reuse. Durable source/binary/CLI report: docs/research/hatch-same-data-retry-2026-10-15.json. Scoped local closure only: no native edit/update, fill/render, DWG/ABI or support/J promotion; no external fixture or CTest registration. |
+| S5.19 / parity7Y.2a | COMMITTED | `291858e`: ASCII DXF now defaults to binary64 `max_digits10`; the old `nextafter(1.0, 2.0) -> 1` precision loss is repaired. Eight runtime tag controls cover adversarial XYZ, adjacent negative values, maximum/minimum normal, finite subnormal and signed zero; exact reader equality/sign, caller locale/stream state and explicit little-endian binary bytes pass. Actual generated ASCII/binary CLI conversions retain the difficult XYZ fields exactly. `cmake --build build --target libdxfrw_numeric_locale_tests dwg2dxf --parallel 2` and four focused numeric CTests pass (4/4, 0.63s); `git diff --check` passes. No fixture or registration added. Explicit ARCALIGNEDTEXT six-digit string conversion and raw/typed ERANGE policy remain separate; no DWG, native/platform or geometry-support claim. |
 | S8.15.8 | COMMITTED | Added locally-authored `tests/fixtures/dxf/ac1015_helix_freecad_control.dxf` and opt-in ODA CTest `dwg2dxf_freecad_3d_helix_cli`; generated DWG/DXF outputs remain under `build/`. The source contains a nonplanar rational HELIX (13 ordered controls/weights, 17 knots, axis `(0,0,1)`, radius 1, one turn, height 4) and a separate nonplanar weighted cubic SPLINE. The exact FreeCAD argv test and public DXF readback preserve rational group-70 flag `0x04`, degree/counts, ordered WCS controls/weights, absent planar normals, and HELIX trailer; it caught and fixed weighted DWG SPLINE output incorrectly using linear bit `0x10`. Focused internal round-trip and ODA Spline/HELIX route tests pass; no generated files enter source. Current FreeCAD `main` C++ `dxf.cpp` maps SPLINE to `ReadSpline()` and falls through to `ReadUnknownEntity()` for HELIX, so classify this as converter-supported/preserved but downstream-unsupported in that importer. Do not rewrite the entity; a positive FreeCAD HELIX shape claim requires a separate upstream importer change. Target-authored DWGs and other versions remain unqualified. |
 | S8.15.9.1 | COMMITTED | Added locally authored `tests/fixtures/dwg/ac1015_ellipse_freecad_control.dwgadd`, `tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf`, and opt-in `dwg2dxf_freecad_3d_ellipse_cli`. The DWGADD recipe emits only two planar AC1015 ELLIPSE controls (full and partial) because LibreDWG `dwgadd` cannot faithfully express the elevated/tilted vectors needed by `.9.2`. In a build-tree path containing spaces, the CTest invokes exact FreeCAD argv `dwg2dxf input -o output`, verifies the AC1015 signature/header and both entity field sequences (center, WCS major axis, ratio, parameters, omitted default extrusion), then repeats the checks after public DXF readback. Focused CTest passes 1/1. The locally authored elevated/tilted DXF source is reserved for an independent writer; it is not exercised by this DWGADD test. This is self-generated planar conversion/readback evidence only, not independent DWG interoperability, FreeCAD shape support, or general ELLIPSE support. All generated DWG/DXF outputs stay under `build/`; no generated drawing fixture is tracked. |
 | S8.15.9.2 | COMMITTED | Added opt-in `dwg2dxf_freecad_3d_ellipse_oda_cli` and `tests/run_freecad_3d_ellipse_oda_cli_test.cmake`. ODA File Converter 27.1.0.0 writes the locally-authored AC1015 control only under build/temp; the fast CTest checks all three independent ELLIPSE field sets before conversion and after public DXF readback, and passes 1/1. Added `tests/freecad_dwg2dxf_3d_ellipse_check.FCMacro` to enforce an isolated FreeCAD config, capture executable/hash/argv/status and identical DWG→DXF→C++ importer handoffs, then compare resulting curve plane, major-axis direction, radii, closure, parameters, and endpoints to analytic expectations. FreeCAD 1.1.3 revision `145529fe741292ff0b3977a01195bf0247425794`, macOS 27 arm64, C++ importer mode 2, with `dwg2dxf` found on PATH (SHA-256 `5b7d23baf049746597bf0ca0a78141e94e260dfb0086aa3d468ac702df063f45`): the default-XY full ellipse matches; elevated and tilted partial ellipses are silently built as closed full +Z ellipses, with tilted normal/major-axis direction and arc endpoints lost, though FreeCAD reports no unsupported features. Thus converter output is field-preserving; only this full-XY control is a positive pinned-FreeCAD result, and partial/tilted rows remain downstream-unsupported. An earlier ODA `-4960` failure did not recur on unmodified CLI retry; no UI-lock bypass was used. Locally-authored DXF source SHA-256 `078a9982f049ee4c669f878b6cc8cc6dfcd292b72d8f394fe7c2c258b9fa7cc7`; generated DWG/DXF files were not added to source. Other FreeCAD versions/importers, target-authored DWG interoperability, and general ELLIPSE support remain unqualified. |
@@ -5861,6 +9193,10 @@ Additional implementation-item record:
 | S2.3.9.4.27 | COMMITTED / DXF GROUP-WIDTH CORRECTION | Autodesk documents groups 70/71 as 16-bit DXF integers; fixed the capture to use int16 bounds instead of experimental DWG `RC` bounds. Group 70 is additionally limited to documented alignment choices 0–3; group 71 remains an opaque integer pending a source for its enum. Runtime-generated checks accept group 71 value 128 for type-width coverage, reject group 70 value 4, and assert raw values remain preserved in both cases. Focused target build, `libdxfrw_dwg_local_roundtrip` (1/1), and `git diff --check` pass. No fixture or support claim was added. |
 | S2.3.9.4.28 | COMMITTED / RAW-RETENTION REGRESSION | Expanded the generated extrusion DXF control to include unprojected group-90/91/92/93 values, direction, sweep scalars, and an opaque group-310 chunk. Assertions confirm the selected typed subset can complete while all those additional fields survive in the raw DXF record. Focused target build, `libdxfrw_dwg_local_roundtrip` (1/1), and `git diff --check` pass. No external fixture, DWG decoder, serializer, or support claim was added. |
 
+| S2.2.5 | IN_PROGRESS / SCHEMA_COMMITTED / LOCAL_CUT_BOUNDARY_MATRIX_TESTED | S2.2.5a repairs the independently reproduced legacy ASCII modeler loss: group 70/SAT stay in AcDbModelerGeometry; only AC1021+ 3DSOLID adds its subclass and explicit null/remapped group 350 after the payload. Unsupported nonzero history rejects transactionally. The existing target's focused matrix passes 1,170 records per pass/two passes and 24 rejection/retry controls across five versions/both encodings; local-roundtrip CTest passes and lc3 source check builds. Durable report `docs/research/modeler-dxf-syntax-2026-10-15.json` records ODA acceptance of 12 actual legacy ASCII and six R2013 ASCII/binary controls. All 12 legacy binary subjects and ezdxf binary baselines fail the same ODA screen; generated AC1015 caret-escape coverage and the 254/255/256, 509/510/511 AC1018 ASCII/AC1021 Binary matrix now verify exact decoded payload and ordered group lengths, including boundary whitespace and crossing tokens. These are local preservation regressions only: binary-SAT independent/native acceptance and the general cut-policy decision stay open. Optional qualification script returns nonzero for the incomplete whole matrix. No drawing fixture, CTest registration or support promotion. The separate FreeCAD CLI RTEXT/header failure is reproduced on clean baseline291858e and recorded above. Next ready S5.18 / S2.3.9.4.29. |
+| S2.3.9.4.29 | COMMITTED / LOCAL_IMPLEMENTATION_COMPLETE | B1 source census8/14 and B2 codec16/physical-oracle12 remain frozen. B3 adds strict modern INSERT-target closure and specific unchanged-admission modeler diagnostics;28 actual refusal/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls pass. Actual CLI refuses four missing-target cells/two R12 modeler exports with absent/preserved output; four valid two-pass conversions/verifiers are byte-stable. Strict compile/build/lc3 and retained final-source focused2/2 pass. Separate B3 source/binary/baseline/command receipt is docs/research/modeler-block-failures-b3-2026-10-15.json. Closes only generated legacy-SAT block transport; no external fixture/new registration, nested DWG AcDs/SAB, native/B-rep, whole-model same-data rollback or J promotion. Next parity3.1. |
+| S4.5 | BLOCKED_ON_S3 | Future DataStorage writer must test zero-based search-table entries and handle/index pairings with directory order permuted from sorted-handle rank. ODA v5.4.1 §24.2.2.7.1 is the authority; ACadSharp PR #1150 is a regression lead only. No DWG writer or fixture before S3. |
+
 Research state remains narrow. ODA File Converter 27.1.0.0 represents the witnessed BOX/extrusion history classes as opaque `ACAD_PROXY_OBJECT` records with group-91 class ordinals; it is not an ACSH field oracle. It emits the dynamic-block closure as typed DXF objects for a companion artifact, but that path begins from ACadSharp DXF SHA-256 `4f267520…61e6` and ODA-created DWG SHA-256 `ad4b05af…42fb`, not pinned `sample_AC1027.dwg` SHA-256 `4c63508d…d24d6`. The graph/targets align, but the exact-identity comparator found two selector-40 value mismatches. On the pinned DWG, LibreDWG 0.14 DXF export matches libdxfrw on A83/A84 but differs on A86/A87; LibreDWG JSON and DXF exports also disagree with each other. Thus no current secondary output is an authoritative value oracle, and dynamic-block DXF serialization stays blocked. The third graph `A80` is owned by dictionary `A7F` under `BLOCK_RECORD A7E` and targets twelve dynamic-block parameter/action/grip objects, not either modeler history; `dx_iface` now has capture-only typed storage for these callbacks and rejects whole-file export when any are present (S2.3.9.4.21); no typed dynamic-block DXF writer is qualified. Selector-40 values are now retained transactionally, and `GripLocationComponent` full-decode status is set only at exact data/string stream ends; `dwgBuffer::getBitDouble()` now rejects reserved bit code `11` per ODA v5.4.1 §2.5. Continue only with a same-input authoritative export or bounded raw-bit trace before writing these objects; preserve full-file fail-closed behavior. The AC1027 semantic witness now has a source-native AutoCAD authoring tool, but remains gated until a native Windows execution and independent readback provide the exact SAB/ACDS and dimensions packet. Autodesk's current [Extruded Surface DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-9218F5A6-3AE4-4EA4-854E-E15E1946AE88.htm) confirms public field meanings for matrices, sweep alignment and flags, but is not the internal ACSH object layout and omits group 71; it cannot supply the missing DWG parse order. A source check on current [LibreDWG `objects.in`](https://github.com/LibreDWG/libredwg/blob/master/src/objects.in#L1288) still labels `ACSH_EXTRUSION_CLASS` `DEBUGGING`; its [0.13.4 manual](https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html) lists symbolic fields but not a validated AC1027 bit order. The exact-input LibreDWG dynamic-block discrepancy is separate from its experimental ACSH extrusion parser, so do not conflate the two. The independent InventorLoader/FreeCAD Part check verifies geometry for the three SAB payloads, but not sweep/history semantics or exact libdxfrw output handoff. The official [CAD Assistant](https://www.opencascade.com/products/cad-assistant/) v1.6.0 macOS ARM64 app is confirmed by the vendor as importing SAT and SAB. Its hash-pinned 1,980-byte SAB attempt returned “Error occurred transferring SAT file” without geometry or metrics; this is inconclusive, not a negative validity result, and CAD Assistant cannot decode DWG custom classes. The DMG passes `hdiutil verify` and matches the vendor-download cask checksum, but `codesign --verify --deep --strict` reports an invalid bundle signature, so do not launch it again until the discrepancy is understood. The Mac is currently locked, preventing a fresh GUI check. Native Linux/Windows FreeCAD qualification and exact final-output ODA/consumer round-trip remain outstanding. None of these results promotes general ACIS/ACDS support, and no external drawing is added. |
 
 **Sample/tool research (2026-09-27):** Searches of [Autodesk's public sample catalog](https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html), the [LibreDWG test-data corpus](https://github.com/LibreDWG/libredwg/tree/master/test/test-data), ACadSharp's pinned AC1027 pair, and ezdxf's public [ACIS cube generator](https://github.com/mozman/ezdxf/blob/master/examples/acistools/create_3dsolid_cube.py) found no source-native AutoCAD `3DSOLID` pair with independently published dimensions/mass properties and exact ACIS-218/ASM-230 ACDSDATA lineage. ezdxf 1.4.4 was installed only in an isolated temp environment; the updated [`create_acis218_mesh_witness.py`](tools/create_acis218_mesh_witness.py) generated centered and translated AC1027 DXF/SAB controls outside the repository. The centered SAB passes exact-hash, closed-solid, 6-face/12-edge, local-bounds, volume and area checks through pinned InventorLoader + official FreeCAD 1.1.3 Part/OCCT. InventorLoader misses the ezdxf-packed transform, but cq-acis 0.3.8 independently reconstructs it on the exact translated SAB; this is local-generator evidence, not AutoCAD placement evidence. See S2.3.9.4.16–.20 for exact limitations. The existing AutoCAD/ObjectARX tool on native Windows remains the shortest route to source-native ground truth; APS is a separate account/cost route requiring authorization. A third non-OCCT parser candidate, acadrust, has not run because no Rust toolchain is present. Generated files remain in temporary storage; no fixture, APS credential, or paid workitem was added or used. |
@@ -5870,7 +9206,21 @@ Research state remains narrow. ODA File Converter 27.1.0.0 represents the witnes
 
 **Deeper platform and independent-reader unblock research (2026-09-27):** The Linux/Windows FreeCAD gate does not require a new sample or an external DWG producer: the exact tracked LibreCAD `ordinary_enc_AC1027.dwg` already contains three LINE entities with bounds `(1,2,0)-(3,4,0)`, `(5,6,0)-(7,8,0)`, `(9,10,0)-(11,12,0)`, and its source hash/provenance are locked in `metadata/fixture-registry.json`. FreeCAD 1.1.3 is the available pinned consumer: the official release page identifies tag revision `145529f` and provides x86_64 Linux AppImage and Windows portable assets; the workflow verifies Linux SHA-256 `3a853eb69ee595f779f2255dbf80a765926981d8ff68903cefee4dfb03a8f5ef` and Windows portable SHA-256 `9c6959dc9c4dba64dd818a62447e3dfedb4221d776fb044b239d462f150bcec4` before launching. FreeCAD documents a headless `FreeCADCmd`/`freecadcmd` executable, so actual native import execution does not require desktop UI or cross-compilation. See [FreeCAD's downloads](https://www.freecad.org/downloads), [the pinned 1.1.3 release](https://github.com/FreeCAD/FreeCAD/releases/tag/1.1.3), [the Windows package hash manifest](https://github.com/ScoopInstaller/Extras/blob/master/bucket/freecad.json), and [headless FreeCAD documentation](https://github.com/FreeCAD/FreeCAD-documentation/wiki/Start_up_and_Configuration). S8.9.12 adds the manual-only native runner and tracked-fixture harness; dispatch it after the change is available on GitHub, review both platform logs, and then update S8.9.5/docs only from the observed receipts. The Linux artifact is about 783 MB, so it is intentionally not downloaded on normal push/PR CI.
 
-For an independent ACIS reader, the best new lead is Ansys Workbench's current 2026 R1 standalone SAT/SAB Reader. Its official documentation says the reader does not require the ACIS system, supports files through ACIS 2023 on both Linux and Windows, imports solid/surface/line bodies, and transfers units when present; it also states that an appropriate Geometry Interface license is required and that Non-Commercial and Education editions are not supported. This is genuinely separate from the existing OCCT-based FreeCAD/CadQuery path, but no qualifying Ansys installation is available here and the version-family statement does not prove this exact `ASM 230.7` SAB profile. If a qualifying commercial license becomes available, run the identical extracted SAB hashes, record the Ansys build/license/profile and imported body counts, units, WCS bounds, area, and volume, and compare against the AutoCAD witness. Ansys can validate standalone SAB geometry, not DWG `AcDb:AcDsPrototype_1b` ownership/schema links, so exact ACDS linkage still needs ODA/source-native receipts. See [Ansys ACIS reader support](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html) and [its Geometry Interface licensing requirement](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ans_con/Hlp_CAD_CKU1.html).
+**Implementation progress (2026-10-15; f.4a storage handoff):** The `dwg2dxf`
+adapter now owns the nine previously inherited-noop named-object callback
+families, and DICTIONARYWDFLT's required-code-340 evidence survives value
+copies. The fast generated-DXF callback/storage regression also verifies
+reset, missing/duplicate-pointer rejection, source-object lifetime and a
+following-record sentinel. This is metadata retention only: no graph
+writer/closure or 3D geometry behavior is qualified, and no DWG/DXF fixture
+or external support claim was added.
+Implementation commit: [`ed8d925`](https://github.com/LibreCAD/libdxfrw/commit/ed8d925).
+The detailed build/test receipt is recorded in
+[`docs/research/named-object-callback-storage-2026-10-15.json`](docs/research/named-object-callback-storage-2026-10-15.json).
+The readiness-test extension and its commit receipt are recorded in
+[`docs/research/named-object-callback-readiness-2026-10-15.json`](docs/research/named-object-callback-readiness-2026-10-15.json).
+
+For an independent ACIS reader, the best new lead is Ansys Workbench's current 2026 R1 standalone SAT/SAB Reader. Its official documentation says the reader does not require the ACIS system, supports files through ACIS 2023 on both Linux and Windows, imports solid/surface/line bodies, and transfers units when present; it excludes Non-Commercial and Education editions. Exact entitlements must be confirmed from current portal feature mapping. This is a potentially independent reader candidate; its parser/kernel lineage must be established before counting it, and no qualifying Ansys installation is available here and the version-family statement does not prove this exact `ASM 230.7` SAB profile. If a qualifying commercial license becomes available, run the identical extracted SAB hashes, record the Ansys build/license/profile and imported body counts, units, WCS bounds, area, and volume, and compare against the AutoCAD witness. Ansys can validate standalone SAB geometry, not DWG `AcDb:AcDsPrototype_1b` ownership/schema links, so exact ACDS linkage still needs ODA/source-native receipts. See [Ansys ACIS reader support](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html) and [its installation/licensing feature mapping](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadInstallLicense.html).
 
 The current `acadrust` public README advertises SAT/SAB parsing and B-rep support, but this pass found no explicit supported-profile statement or published geometry-semantic test for the ACadSharp sample's exact `ASM 230.7` payloads; its visible known-size fixture is a same-library DWG writer/reader round trip, and its SAB round-trip helper uses fabricated marker blobs. Therefore it remains a test candidate, not yet a trustworthy independent oracle for this payload. OpenCADStudio shares that parser lineage and cannot be counted as another parser. This research narrows the external paths but does not clear either `DEFERRED_EXTERNAL` gate or promote an ACIS/ACDS support claim. See [acadrust's public feature/test source](https://github.com/HakanSeven12/acadrust) and [its SAB/DWG round-trip tests](https://github.com/HakanSeven12/acadrust/blob/main/tests/roundtrip.rs).
 
@@ -5887,3 +9237,1212 @@ Fast handoff after user authorizes trial provisioning: re-extract/regenerate the
 If the user authorizes the evaluation install (the FreeCAD add-on describes a 30-day CAD Exchanger evaluation; this pass did not download, install, create an account, or start a trial), prefer it over repeating the inconclusive CAD Assistant GUI attempt for the geometry leg. Run the exact extracted SAB hashes and, separately, the exact source DWG and libdxfrw-produced AC1027 DXF through CAD Exchanger; capture converter version, architecture, accepted/rejected result, body count, B-rep validity, units, WCS bounds, surface area, and volume. Export through the documented add-on to `.brep` and import that result into the pinned FreeCAD build on native Linux and Windows; capture FreeCAD version/build, input/output hashes, solid/shell counts, validity, bounds, and volume. Compare all geometry against the native AutoCAD witness manifest and across the paired `INSUNITS=4`/`INSUNITS=1` drawings. Exact-SAB success without the DWG/DXF measurements is parser availability only; CAD Exchanger and FreeCAD agreeing on the same transferred B-rep is not two independent geometry results. Do not count this as an independent ACDSDATA oracle: continue to verify the DWG data-storage schema, owning modeler, prototype relationship, handles, and DXF-to-DWG round-trip separately with ODA/source-native evidence. The product matrix is a capability lead, not a substitute for execution receipts; no support claim is promoted and no generated drawing fixture is added.
 
 **GitHub-authorized provenance and source audit (2026-09-28; no gate transition):** authenticated public-repository search checked several plausible sample/spec leads. [`nextgis/dwg_samples`](https://github.com/nextgis/dwg_samples) states its DWGs were produced with trial AutoCAD 2016 M.49.0.0 and documents a blank metric drawing plus creation commands, but its committed corpus contains ordinary point/curve controls through AC1027 and no `3DSOLID`, `REGION`, SAB, or `ACDSDATA` witness. LibreDWG's [`src/acds.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec) is a useful independent-to-libdxfrw implementation cross-check for DataStorage container/index fields, but it is explicitly an implementation file (authored in LibreDWG) with fields still labeled unknown; it is neither a normative contract nor semantic oracle. Its checked-in [`sample_2013.dxf`](https://github.com/LibreDWG/libredwg/blob/master/test/test-data/sample_2013.dxf) identifies `$LASTSAVEDBY` as `rurban`, contains five ACDS records limited to thumbnail/metadata schemas, and has no `3DSOLID`, `REGION`, `ASM_Data`, or SAB chunks. The [`acadrust` known-size cube test](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs) builds the cube from explicit vertices but validates a same-library DWG writer/reader round trip; adjacent SAB tests use fabricated marker bytes, so they are not an independent CAD-produced witness. GitHub search also found standalone `ASM 230.7.0.65535` SAT files in an unrelated repository, with no verifiable source model recipe or dimension manifest. These discoveries reduce the candidate-search queue but do not satisfy S2.3.2's source-provenance, ACDS-linkage/lifecycle, or independent known-dimension ACIS-reader requirements. Keep external gates and support claims unchanged; no sample was downloaded into the workspace or admitted as a fixture.
+
+### Deeper/broader FreeCAD route and independent ACIS reader update (2026-10-16)
+
+The current FreeCAD evidence is now explicitly split into three lanes. FreeCAD's
+documentation repo was archived on 2026-04-01; its importer matrix says the
+legacy Python importer handles `3DFACE` while its C++ importer does not, and
+that the documented importer cannot consume ACIS solid blobs. This archived
+matrix is a lead only: the exact local FreeCAD 1.1.3/macOS/C++ runtime receipts
+already recorded under S8.15.17–S8.15.18.2 show `3DSOLID` and `3DFACE` counted
+as unsupported with zero shapes, while a generated 3D `LINE` succeeds. Those
+tests qualify converter handoff plus one named backend/platform, not general
+FreeCAD 3D support. Do not repeat that profile; native Linux and Windows runs
+remain separate platform gates, and any legacy-importer result must identify
+its actual importer and installed add-on.
+
+`importDWG.py` confirms FreeCAD's DWG route is external converter → DXF →
+`importDXF`; it is not an independent native DWG parser. Feed libdxfrw's emitted
+DXF directly when measuring its writer, then run converter-to-DXF as a separate
+workflow only when that user route is under test. Pin the converter, emitted
+DXF version, importer backend, app build and OS; compare the intermediate DXF
+inventory before attributing any missing geometry.
+
+Keep explicit entities (3DFACE, 3D POLYLINE/polyface, mesh, explicit curves)
+separate from `3DSOLID`/`REGION`/`BODY` ACIS carriers. Autodesk documents the
+3DSOLID group-1/3 payload as proprietary data. Carrier framing, byte identity,
+and AcDs handle attachment remain local preservation checks; none establishes
+a valid closed B-rep. ezdxf documents only a limited ACIS subset and flat-face
+mesh projection, so use it only for an exact-version-pinned optional check, not
+as an analytic geometry oracle. OCCT's core is open source, but its ACIS
+SAT/SAB exchange component is commercial; it is only a candidate independent
+oracle if the exact licensed component is available and its evaluation/use is
+permitted. CAD Assistant's free UI is not by itself proof that the component's
+conversion/export path is available. Preserve the separately researched
+BricsCAD, CAD Exchanger, and Ansys candidates as optional external routes; no
+license, trial, or package is presumed or installed by this plan.
+
+Execution order: (1) finish per-slice generated-vector tests for explicit
+geometry and opaque carrier preservation; (2) run pinned FreeCAD Linux and
+Windows checks only at the composed native checkpoint, recording entity
+census, unsupported/warning counts, topology, coordinates and units; (3) run
+an independent ACIS semantic reader only after its exact product/version,
+license and output-conversion route are verified; check validity, closedness,
+orientation, bounds, area/volume and toleranced analytic surfaces; (4) test
+AcDs source-owner/prototype/history linkage separately from the reader's SAT/
+SAB geometry result. Keep all native/peer execution optional and off the
+per-slice fast path. Use existing harnesses and locally authored vectors only;
+do not add downloaded/peer DWG or DXF fixtures or mandatory dependencies.
+
+This update refines S8.9/S8.15 and S2.3.9.4 only: no new finding, subplan,
+fixture, dependency, platform result, support claim, or external-J disposition.
+The external items remain `DEFERRED_EXTERNAL` until their specified native
+and independent semantic evidence is recorded.
+
+**S2.3.9.4.30 — CURRENT OPTIONAL ACIS READER PIN / NO NEW SEMANTIC RESULT:**
+PyPI published `cq-acis 0.3.12` on 2026-10-16 with a verified GitHub Actions
+attestation to source commit
+[`e05a8f470d2f6799277f7b7df467d2fc35625889`](https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889).
+The matching macOS ARM64 wheel SHA-256 is
+`94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5`.
+This supersedes 0.3.11 as the latest *candidate pin only*; all recorded 0.3.8
+and 0.3.11 run observations remain release-specific. The current project docs
+describe bounded SAT/SAB/ASM parsing and supported analytic conversions, with
+unknown records retained raw and unsupported referenced geometry rejected.
+Its parser can be a distinct route, but shape conversion uses CadQuery/OCCT,
+the same kernel family as FreeCAD; it is not a second-kernel result. Opaque
+SAB history and an extracted payload do not prove DWG `ACDSDATA` links,
+prototype/history lifecycle, producer units, or current modeler state.
+
+At the single composed checkpoint, inspect the `e05a8f4…` release source and
+pin the wheel plus complete Python/CadQuery/OCP dependency environment before
+using the tool. First exercise the locally generated asymmetric ACIS-218 SAB
+with expected dimensions/metrics; run exact prior external SAB hashes only if
+already available with provenance, and keep all files/results outside the
+repository. Require closed valid geometry, full expected body/reference
+coverage, exact diagnostics/raw disposition, declared non-defaulted units,
+and analytic bounds/area/volume. Then separately prove the DWG entity-to-
+AcDs-owner/key/prototype/history-to-SAB chain with ODA/source-native evidence.
+If the candidate or its dependencies are unavailable, record `NOT_RUN` and
+continue local work; do not make this a per-slice dependency or commit
+third-party DWG/DXF/SAB fixtures. This research changes no support claim or
+external gate. Receipt:
+[`deeper-broader-acis-release-freshness-and-route-admission-review-2026-10-16.json`](docs/research/deeper-broader-acis-release-freshness-and-route-admission-review-2026-10-16.json).
+
+**MESH DWG property-override writer boundary (2026-10-16; local, uncommitted):**
+`DRW_Mesh::encodeDwg()` now refuses nonempty `propertyOverrides` before
+encoding because the current writer only serializes the base cage and no
+verified DWG mapping is available. Public `dwgRW::writeMesh()` additionally
+latches whole-save failure and reports a specific validation diagnostic so
+an adapter cannot ignore the per-entity false result and publish a lossy file.
+A generated AC1024 API control registers a valid mesh, supplies two overrides,
+checks diagnostic/handle preservation, and preserves a seeded destination; the
+existing successful base-cage round-trip remains green. The strict DWG
+local-roundtrip target, `lc3_compat_check`, focused
+`libdxfrw_dwg_local_roundtrip` CTest (1/1), and `git diff --check` passed.
+Primary-source review confirms Autodesk's DXF table supplies only override
+count/marker/property-type field labels and ezdxf's current writer emits only
+empty `90=0`; neither resolves nonempty semantics. Existing DXF override
+support/tests are unchanged. No fixture, dependency, test registration, DWG
+layout claim, or support claim was added. Receipts:
+[`mesh-dwg-property-overrides-fail-closed-fast-slice-2026-10-16.json`](docs/research/mesh-dwg-property-overrides-fail-closed-fast-slice-2026-10-16.json);
+[`deeper-broader-mesh-property-override-wire-and-writer-boundary-review-2026-10-16.json`](docs/research/deeper-broader-mesh-property-override-wire-and-writer-boundary-review-2026-10-16.json).
+
+**Cross-peer ACIS writer and FreeCAD consumer boundary refresh (2026-10-16; research only):** ACadSharp v3.6.51 reports ACIS payload reading, but the latest listed v3.8.0 release does not claim ACIS writing; issue #1195 reports silent DXF writer omission on the 3.4.9 route, especially for solid-only blocks, while PR #1240 remains open/un-deployed and depends on ACDS/ACIS schema work. This reinforces the existing per-source, per-owner/block, carrier, emitted-record, diagnostic, and INSERT-closure inventory; an open PR is not a release capability or an oracle. FreeCAD's archived format table says stock DXF is 2D-only for its proprietary 3D carrier and DWG has the same limitation, despite a broad generic no-loss sentence elsewhere on that page. Keep stock FreeCAD as the existing 2D native gate; classify stock 3DSOLID/REGION/BODY semantic consumption as `CONSUMER_NOT_APPLICABLE` unless a separately identified modeler path is exercised. ezdxf raw ACIS browsing/export and limited entity construction are structural utilities, not a general B-rep/rendering pass. No peer/native runtime, new finding/subplan, fixture, dependency, test registration, or support/J promotion. J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. See the detailed implementation-ready reconciliation and receipt in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md) and [`deeper-broader-acis-writer-and-consumer-boundary-review-2026-10-16.json`](docs/research/deeper-broader-acis-writer-and-consumer-boundary-review-2026-10-16.json).
+
+### Deeper/broader RealDWG-Web route distinction (2026-10-16; research only)
+
+RealDWG-Web adds a useful optional database-projection checkpoint but does not
+change the 3D evidence bar. Its public stack documents a built-in native DXF
+converter and a separate DWG converter based on LibreDWG/WASM; count the first
+as a candidate DXF reader path and the second as a correlated LibreDWG-family
+route. The public converter changelog reports 3DSOLID/SAB, ACDSDATA attachment,
+wireframe, and ACIS transform work, but those entries are not a source-pinned
+runtime result and do not prove B-rep validity, units, owner/prototype/history
+closure, or the correctness of an emitted carrier. A separate proprietary
+parser is not the public path; its own documentation says full B-rep
+tessellation is unavailable and that its output may fall back to wireframe or
+bounding box. Sources: [RealDWG-Web README](https://github.com/mlightcad/realdwg-web/blob/main/README.md), [public converter changelog](https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/CHANGELOG.md), and [proprietary-parser boundary](https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md).
+
+At the already-planned composed checkpoint only, if exact public package pins
+and a runtime are available without slowing local implementation, use locally
+generated ephemeral DXF/DWG controls. For DXF, measure exact input mode,
+source-handle-to-database identity, entity type, owner/block path, coordinates,
+units, and diagnostics; for DWG, mark the LibreDWG lineage and separately
+trace entity-to-AcDs/SAB association. A successful database import, wireframe,
+or bounds fallback is not an analytic-solid pass. Do not add a dependency,
+test registration, external fixture, or per-slice validation step. If the
+candidate is unavailable, record `NOT_RUN` and continue. This adds no finding
+or subplan and promotes no support claim; J256, J260, J268, J284, J293, and
+J295 remain `DEFERRED_EXTERNAL` and non-promoting. See the detailed route and
+implementation-ready check in [the parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md) and its [research receipt](docs/research/deeper-broader-realdwg-web-and-wasm-peer-route-review-2026-10-16.json).
+
+**Deeper/broader peer robustness and loss-accounting refinement (2026-10-16;
+research only):** recent [LibreDWG 0.14.1 release notes](https://github.com/LibreDWG/libredwg/blob/master/NEWS)
+record both an oversized `3DSOLID` SAT block-size safety fix and a DXF export
+fix for losing the final SAT block. That makes size-overflow, final-chunk, and
+following-record alignment negative/positive controls mandatory at the
+corresponding local ACIS carrier boundary, without importing LibreDWG layout
+assumptions. ACadSharp's [v3.6.51 notes](https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51)
+record a full `Prototype_1b` parser in PR #1154, which closed the older
+[parser concern #1152](https://github.com/DomCR/ACadSharp/issues/1152); its
+open [DXF solid-loss report #1195](https://github.com/DomCR/ACadSharp/issues/1195)
+is an older v3.4.9 report, not a reproduced latest-release result. The plan
+therefore keeps the external peer optional but requires exact per-entity
+read/write disposition and owner/block closure in the existing S2.3.9.4.29
+gate. For typed geometry compare numeric values after strict reread using
+declared tolerances; keep exact opaque-byte checks separate. These refinements
+add no finding/subplan, dependency, fixture, support claim, or external result;
+all six external items remain `DEFERRED_EXTERNAL`. Detailed matrix and receipt:
+[parity research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md) and
+[`deeper-broader-peer-parser-writer-loss-and-robustness-review-2026-10-16.json`](docs/research/deeper-broader-peer-parser-writer-loss-and-robustness-review-2026-10-16.json).
+
+## OpenCADStudio B-rep MASSPROP route readiness (2026-10-16; research only)
+
+The exact v2026.41 release notes (`cff240e`) advertise `MASSPROP` for solid
+B-rep, curved offset/fillet, and sphere-cylinder booleans. This improves the
+candidate's readiness for a narrowly scoped, optional metric experiment; it
+does not show that ACIS-imported data reaches the operation. Current mutable
+route documentation says ACIS lift can fall back to a per-surface sampler and
+mark results incomplete, while the kernel README still calls the project
+early. The release/app docs and kernel status therefore must be reconciled at
+the exact tag, not assumed equivalent.
+
+At S3.7/S8.9.5's existing composed checkpoint only: inspect the pinned tag's
+lockfile, codec/kernel revisions, feature flags and callable command/API with
+no input first. If viable, use a locally created asymmetric analytic control
+and ephemeral carrier; compare import disposition and complete topology with
+an independent expected manifest before `MASSPROP`. Capture units, transform,
+bounds, area, volume and centroid, plus validity/closure and every fallback,
+repair, unsupported face and missing source owner. If validity/closure is not
+exposed, classify results as scoped metric corroboration, not semantic B-rep
+qualification. A mesh/render or successful command is not a pass by itself.
+
+Keep this as kernel/consumer evidence only: OpenCADStudio stays in the
+ACadRust-related DWG/DXF parser lineage. Do not add dependencies, mandatory
+per-slice checks, committed external fixtures, or any support/J promotion. If
+unavailable, record `NOT_RUN` and continue. Full source, exact-step procedure,
+and evidence limits are in the [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-opencadstudio-b-rep-massprop-and-exact-release-readiness-review-2026-10-16-research-only)
+and its [receipt](docs/research/deeper-broader-opencadstudio-brep-massprop-route-review-2026-10-16.json).
+
+**MESH native-DXF-identity regression (2026-10-16; local, uncommitted):**
+Following review of ACadSharp #1038 (closed by #1067; fix notes shipped in
+v3.6.12), `testMeshRawFieldTags()` now requires exactly one raw `0=MESH`
+record and one `100=AcDbSubDMesh` subclass marker in each generated ASCII and
+binary DXF. This closes a local assertion gap against proxy shells carrying a
+MESH proxy name; it does not change the writer, add fixtures, or promote DWG,
+subdivision, ACIS, B-rep, platform, or external-J support. The strict target
+build and focused `libdxfrw_dxf_fixtures` CTest pass (1/1); the full suite was
+not run. Detailed plan and evidence:
+[parity research section](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#mesh-peer-release-and-dxf-identity-review-2026-10-16),
+[`deeper-broader-mesh-peer-release-and-dxf-identity-review-2026-10-16.json`](docs/research/deeper-broader-mesh-peer-release-and-dxf-identity-review-2026-10-16.json).
+
+## Current consumer and writer-readiness reconciliation (2026-10-18; research only)
+
+Current LibreCAD 3 documentation explicitly keeps DWG import read-only and
+opt-in; its pinned format ledger contains reader-direction claims only and no
+promoted claim. FreeCAD's documented DWG route remains converter → DXF →
+selected importer, and the stock DXF importer does not consume ACIS solids.
+Therefore neither consumer should be used to collapse 2D compatibility,
+explicit-entity 3D support, ACIS/AcDs carrier preservation, and solid semantics
+into one result. ACadSharp's open #1240 writer proposal remains a branch-level
+candidate linked to open #1174, while LibreDWG's current AcDs limitations and
+issue #1411 remain exact-revision evidence, not a universal peer verdict.
+
+Keep external/native work at the existing composed gates: pinned stock-FreeCAD
+2D/explicit-entity checks on Linux and Windows; a separate, exact-profile
+ACIS payload reader with independent analytic expectations; identity-keyed
+AcDs owner/key/payload validation; and strict writer readback plus native
+acceptance. No peer install, full suite, external drawing, or extra test was
+added to the per-slice loop, and no support disposition changed. The detailed
+source matrix and readiness sequence are in the
+[open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md) and
+[`broader-current-consumer-writer-readiness-2026-10-18.json`](docs/research/broader-current-consumer-writer-readiness-2026-10-18.json).
+
+## Implementation progress — S2.2.5b AC1015 SAT-v1 caret escape boundary (2026-10-18; local fast slice)
+
+Extended the generated AC1015 SAT-v1 source payload with a third line of 254
+ordinary encoded characters followed by plaintext `A` and `Z`. Under the
+ODA-described SAT-v1 transform, `A` encodes to `^`; DXF text escaping requires
+the indivisible two-byte value `^ `. With 254 ordinary bytes already in the
+255-byte group-1 capacity, the writer must flush before this escape and place
+it wholly in group-3. Public import removes the caret escape and the
+read/re-export/read check verifies exact carrier bytes, chunk groups
+`1,1,3,1,3`, and the last continuation's two decoded bytes. The generated
+carrier is deliberately an opaque preservation vector, not a claim that this
+synthetic SAT body describes valid geometry.
+
+Validation passed:
+
+- `cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2`
+- `build-gcc/libdxfrw_dwg_local_roundtrip --modeler-sat-v1-extraction`
+- `build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-long-carrier`
+- `build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix`
+- `git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md`
+
+The focused SAT-v1 test passes without changing the writer. This is local
+cut-boundary characterization and public codec readback only; it does not
+establish a native producer's maximum token/cut policy, a binary-SAT positive,
+DWG writing, ACIS parsing, AcDs association, solid semantics, or platform
+acceptance. No sample/fixture was committed, no CTest registration or
+dependency was added, and the full suite was not run. The existing external
+binary-SAT and general cut-policy gates stay open; J256, J260, J268, J284,
+J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+Implementation receipt:
+[`sat-v1-caret-escape-boundary-fast-slice-2026-10-18.json`](docs/research/sat-v1-caret-escape-boundary-fast-slice-2026-10-18.json).
+
+## External ACIS/AcDs evidence refresh (2026-10-18; research only)
+
+The latest peer screen separates ACadSharp's released Prototype1b reader
+(`v3.6.51`) from its still-open, refactor-sensitive ACIS writer branches;
+adds an observed multi-group-310 DXF retention risk to the cross-peer
+checklist; and records LibreDWG's issue #1411 silent-AcDs-loss scenario as
+release-specific failure evidence. ezdxf can author scratch-only carrier
+controls, but its documented ACIS subset and planar-only mesh projection do
+not establish general body semantics. Stock FreeCAD remains a 2D and explicit
+entity consumer gate, not an ACIS B-rep reader.
+
+Use the detailed source/status matrix and ready checks in the
+[open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-carrier-peer-writer-and-native-consumer-evidence-refresh-2026-10-18-research-only).
+No local subplan, feature claim, test, fixture, dependency, implementation
+ordering, or validation frequency changed. J256, J260, J268, J284, J293, and
+J295 remain `DEFERRED_EXTERNAL`; the findings do not qualify native
+Linux/Windows consumers or the ACIS/AcDs semantic path.
+
+## Implementation progress — AC1027 DataStorage 0/1/4/12-record anchor matrix (2026-10-18; local fast slice)
+
+The existing generated PAR-07/S8.3 DataStorage anchor control now covers
+zero, one, four, and twelve records in memory, including a 12-row reordered
+index and exact handle-to-payload verification at the explicit segment anchor.
+The four- and twelve-record anchors sit beyond count-derived alignment and
+exercise padding before data. The zero-row case is limited to an empty data
+index in the minimal generated section, not the complete default-schema
+section. The graph-preservation target and owning CTest pass; no production
+parser change, fixture, registration, or support promotion was made.
+
+Detailed receipt and remaining qualification limits:
+[`datastorage-zero-one-four-twelve-anchor-fast-slice-2026-10-18.json`](docs/research/datastorage-zero-one-four-twelve-anchor-fast-slice-2026-10-18.json).
+
+## Implementation progress — AC1027 DataStorage default schema table-order fix (2026-10-18; local fast slice)
+
+The schema-only ODA §24.3 profile is now generated and checked in the existing
+graph-preservation target. Its first failure exposed that `readSchemaIndex()`
+had reversed the two §24.2.2.5 `schidx` tables; the parser now retains opaque
+unknown-property references from the first table and schema-data references
+from the second. Oversized first- and second-table counts also have in-memory
+controls that assert bounded parsing and replay refusal. The strict target and
+focused graph-preservation CTest pass. The input is built in memory; no
+fixture, registration, or support claim was added. Details, limitations, and
+the evidence receipt are in the
+[open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--ac1027-datastorage-default-schema-and-schidx-table-order-2026-10-18-local-fast-slice-uncommitted).
+
+## Implementation progress — AC1027 AcDs aggregate payload-retention cap (2026-10-18; local fast slice)
+
+The existing 8 MiB parser retention ceiling now applies cumulatively to
+DataStorage record payload copies. A generated fan-out control confirms that
+reusing two blob pages across five records retains only the first four
+~2 MiB payloads, omits the fifth with a nonfatal opaque-retention diagnostic,
+and preserves section structure/replay. This does not account for transient
+page buffers or later entity-link copies; those remain in 7S.3.
+
+The strict graph-preservation target and owning CTest pass. No DWG/DXF fixture,
+new registration, or support promotion was added. Detailed peer research and
+the implementation receipt are recorded in the
+[parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-07s83-aggregate-acds-payload-retention-cap-2026-10-18-local-fast-slice-uncommitted)
+and [`datastorage-aggregate-payload-retention-cap-fast-slice-2026-10-18.json`](docs/research/datastorage-aggregate-payload-retention-cap-fast-slice-2026-10-18.json).
+
+## Peer release maturity refresh (2026-10-18; research only)
+
+Current peer release matrices and newer issue reports remain version- and
+operation-specific evidence. ACadSharp's open ACIS writer PRs are not a
+released baseline; LibreDWG's latest released writer caveats remain distinct
+from its DWG reader reach; ezdxf and GDAL expose selected DXF/ACIS carrier data,
+not general B-rep semantics. Existing PAR-07/S8 external gates are sufficient;
+no 3D claim, local finding, dependency, test, or validation frequency changes.
+See the [detailed parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-release-maturity-and-loss-evidence-refresh-2026-10-18-research-only)
+and [`deeper-broader-peer-release-maturity-loss-evidence-refresh-2026-10-18.json`](docs/research/deeper-broader-peer-release-maturity-loss-evidence-refresh-2026-10-18.json).
+
+The following 7S.3 slice also caps and measures the additional reader-owned
+copy made when each retained AcDs record is linked onto its entity. The
+generated fan-out test confirms the aggregate remains within 8 MiB and
+repeated link traversal does not double-charge. Callback/document copies and
+writer staging remain outside this reader-side bound; details are in the
+[parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-07s83-7s3-linked-acds-payload-copy-accounting-2026-10-18-local-fast-slice-uncommitted)
+and [`datastorage-linked-payload-copy-budget-fast-slice-2026-10-18.json`](docs/research/datastorage-linked-payload-copy-budget-fast-slice-2026-10-18.json).
+
+Raw-section writer admission now uses an explicit metadata-only AcDs parse,
+avoiding an otherwise unnecessary copy of every payload during structural
+preflight. The final writer check still retains bytes to verify exact pending
+payload identity. See the [parity-plan implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-07s83-metadata-only-acds-writer-preflight-2026-10-18-local-fast-slice-uncommitted)
+and [`datastorage-metadata-only-writer-preflight-fast-slice-2026-10-18.json`](docs/research/datastorage-metadata-only-writer-preflight-fast-slice-2026-10-18.json).
+
+## FreeCAD subprocess acceptance boundary refresh (2026-10-18)
+
+Current FreeCAD `Draft/importDWG.py` invokes `dwg2dxf <input> -o <output>`
+and uses the output path's existence after `communicate()` as its wrapper
+success condition; it does not visibly require a zero child return code.
+libdxfrw already implements that argv form and has a fast CLI contract test
+plus an optional real-wrapper failure-path check. Therefore native Linux and
+Windows qualification must independently record the process return code,
+use a fresh unique output path, parse/read back the output, and compare the
+identity-level manifest before scoring FreeCAD import. The standard stock
+FreeCAD DWG→DXF→DXF-importer route remains a 2D/explicit-entity consumer lane;
+its successful open does not qualify ACIS/AcDs B-rep semantics. Keep any
+modeler-capable add-on and independent ACIS reader as separately named,
+separately licensed/pinned evidence lanes. No extra fast test, fixture, or
+support promotion is warranted. See the [detailed plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-subprocess-and-support-boundary-check-2026-10-18-research-only)
+and [`freecad-subprocess-and-support-boundary-refresh-2026-10-18.json`](docs/research/freecad-subprocess-and-support-boundary-refresh-2026-10-18.json).
+
+The existing generated raw-modeler/AcDs writer contract is now directly
+invokable as `build-gcc/libdxfrw_dwg_local_roundtrip
+--raw-modeler-acds-replay`. The strict target build, selector, and focused
+graph-preservation CTest pass; this exercises the metadata-only writer
+preflight followed by exact replay/readback without adding fixture files or a
+CTest registration. See the [implementation receipt and detailed progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--standalone-raw-modeleracds-writer-preflight-gate-2026-10-18-local-fast-slice-uncommitted)
+and [`datastorage-writer-preflight-replay-fast-slice-2026-10-18.json`](docs/research/datastorage-writer-preflight-replay-fast-slice-2026-10-18.json).
+
+The FreeCAD CLI compatibility test now matches the strict proxy-cache policy:
+the ordinary AC1027 exact-argv conversion remains a positive/readback case,
+while the tracked RTEXT/ARCALIGNEDTEXT and MPOLYGON drawings require a reported
+atomic refusal when their typed DWG proxy graphics cannot be replayed into
+DXF. This corrects a stale test expectation; it does not add proxy-carrier
+support or promote those entities. The focused `dwg2dxf_freecad_cli_compat`
+CTest passes. See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--freecad-cli-special-fixture-refusal-contract-2026-10-18-local-fast-slice-uncommitted)
+and [`freecad-cli-proxy-refusal-contract-fast-slice-2026-10-18.json`](docs/research/freecad-cli-proxy-refusal-contract-fast-slice-2026-10-18.json).
+
+## Peer artifact-lineage and ACIS-route readiness update (2026-10-18; research only)
+
+Keep the standalone ACadRust v0.6.4 release, its mutable `main` (0.6.5), and
+OpenCADStudio's separately pinned `opencadcodec` fork as distinct evidence
+artifacts. OpenCADKernel/OpenCADStudio tessellation is a downstream rendering
+observation; it does not alone prove a valid editable B-rep. At the existing
+AC1027 composed gate, use a scratch-generated asymmetric solid and score source
+identity, modeler flag, AcDs section/key/owner, exact payload bytes, B-rep
+validity, and consumer acceptance separately. Keep the normal per-slice fast
+validation loop unchanged and never commit generated DWG/DXF/SAT/SAB/STEP
+outputs. See the [detailed peer matrix and readiness sequence](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-peer-artifact-lineage-and-acis-route-readiness-refresh-2026-10-18-research-only)
+and [`deeper-broader-peer-artifact-lineage-acis-readiness-2026-10-18.json`](docs/research/deeper-broader-peer-artifact-lineage-acis-readiness-2026-10-18.json).
+
+No local finding, implementation subplan, test, support promotion, or J-item
+transition resulted; J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`.
+
+The next 7S.3 writer slice is implemented: finalization now validates pending
+modeler bytes against inline or Blob01 source spans without retaining a second
+payload copy. A generated 262,145-byte two-page replay test splits the ACIS
+marker across its page boundary, verifies exact section/modeler readback, and
+refuses the same marker when unpaired; the focused writer selector and owning
+CTest pass. Consumer-owned copies remain separate and unbounded by this
+library-side change. Details and evidence are in
+the [implementation entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--par-07s83-writerfinalization-acds-copy-removal-2026-10-18-local-fast-slice-uncommitted)
+and [`datastorage-finalize-direct-span-validation-fast-slice-2026-10-18.json`](docs/research/datastorage-finalize-direct-span-validation-fast-slice-2026-10-18.json).
+
+## Current reader and scratch SAB authoring research cross-reference (2026-10-18)
+
+The latest open-source portfolio review records the exact boundaries for
+`dwg-rs`, `ezdwg`, `uncad`, `acis-core`/`cq-acis`, ezdxf, and FreeCAD. Its
+implementation consequence is deliberately narrow: the experimental
+`acis-core` metric-box encoder may optionally author a known-profile SAB into
+scratch space at the already-planned composed gate, but all expected geometry
+must be declared independently and the source entity→AcDs owner/key→payload
+join must be proven before downstream conversion. It does not provide a
+general ACIS writer, a second independent kernel, or evidence to promote a
+3DSOLID/REGION/BODY support claim. No peer is run as part of normal slices;
+unavailable routes remain non-blocking. See the [detailed comparison and
+implementation-ready gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-current-reader-portfolio-and-scratch-sab-authoring-review-2026-10-18-research-only)
+and [research receipt](docs/research/deeper-broader-current-reader-portfolio-scratch-sab-review-2026-10-18.json).
+
+**InventorLoader source-route qualification refinement (2026-10-18; research only):** its DXF add-on composes ezdxf payload extraction, a separate ACIS parser, and FreeCAD/OCCT construction; the visible builder can fall back to individual faces/wires, and current open reports identify parser, shell-construction, and reader-state failure shapes. At the existing optional S8 gate, require an identity-keyed source entity→carrier/hash→parser→closed-solid result ledger, report fallback/unsupported geometry explicitly, and compare independent analytic metrics. Keep this separate from stock FreeCAD, DWG AcDs extraction, and independent-kernel evidence. No new implementation dependency, runtime, fixture, support promotion, or J-status change. [Source audit and one-time gate](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-inventorloader-source-route-and-solid-disposition-audit-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-inventorloader-source-route-solid-disposition-audit-2026-10-18.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Broader open-source route boundary refresh (2026-10-18; research only):** rechecked go-cad, CADKernel, BRL-CAD, cadcodec, and obj2cad. go-cad is an optional independently written DWG/DXF structural comparator but explicitly does not reconstruct ACIS; its “gold” is LibreDWG-correlated. CADKernel's own matrix leaves SAT/SAB unchecked and says commercial-format import is planned despite broader README claims. BRL-CAD still lists `sat-g` as a TODO. `cadcodec` is now resolved as a fork of `opencadcodec`, itself an ACadRust fork, so it does not add an independent parser route. obj2cad remains pre-release, with DWG/curved surfaces awaiting AutoCAD acceptance and an ACadRust-derived DWG writer. None changes the independent-solid gate or support claims. [Detailed screen and optional admission rule](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-route-boundary-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-open-source-route-boundary-refresh-2026-10-18.json).
+
+**Newest ACadSharp read/write status audit (2026-10-18; research only):** merged PR #1139 carries raw modeler payload extraction but not B-rep interpretation; PR #1150 remains an open cross-format writer proposal with schema-design and rebase/readback issues; linked PR #1240 currently changes only DWG writer files and refuses pre-2013 binary SAB rather than preserving it. It therefore does not close ACadSharp issue #1195's DXF silent-drop report, and no peer writer/reader state promotes local support. Keep the already planned gates separate for modeler entity disposition, block/INSERT closure, AcDs owner/key/payload, independent analytic geometry, and native consumers. No new finding, subplan, fixture, dependency, peer runtime, queue/cadence change, or support promotion; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`. [Detailed scope audit and implementation-ready checks](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-modeler-readwrite-scope-and-linked-pr-audit-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-acadsharp-modeler-readwrite-scope-linked-pr-audit-2026-10-18.json).
+
+**Release and lineage follow-up (2026-10-18; research only; artifact freshness rechecked later the same day):** ACadRust v0.6.4's #129 report describes a six-file strict-read fix for 3DSOLID/SURFACE plus ODA readback of peer-written DWGs; this is narrow, non-public, release-specific carrier/readback evidence, not B-rep proof. The mutable `main` manifest declares 0.6.5 and the GitHub release list shows v0.6.4; docs.rs current views conflict (crate index 0.6.4, primitive API banner 0.6.5, cached pages 0.5.5), so registry identity is unresolved until exact archive/hash verification. See the [later source/artifact recheck](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-acds-writer-control-route-and-artifact-freshness-recheck-2026-10-18-research-only). `compscientific/cadcodec` is explicitly forked from `opencadcodec`, which is itself forked from ACadRust, so the apparent candidate does not add an independent parser lineage. GDAL remains raw-ASM-only in its opt-in modern DXF mode, ezdxf's renderer does not draw ACIS entities, and IxMilia warns that its typed solid writer output may not open in AutoCAD. No 3D gate changes: the complete owner/key/payload join, independent shape semantics, and native platform acceptance stay separate; the local fast slice loop is unchanged. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-release-fork-lineage-and-independent-dxf-route-refresh-2026-10-18-research-only) · [receipt](docs/research/deeper-broader-release-lineage-independent-dxf-route-refresh-2026-10-18.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Newest ACIS semantic-reader research (2026-10-18; research only):** CADMPEG's overall bare ASM/ACIS support score remains L1, but its format-support documentation reports a connected B-rep decode/validation extra and direct-carrier parity for exact ACIS 217/218 streams. This makes it a potentially useful decoder/topology-IR candidate for that exact profile; source/dependency lineage must be audited before describing the comparison as independent. It is not a general kernel certificate, outer DXF/DWG/AcDs association, or FreeCAD acceptance route. The plan now requires artifact/source pinning, exact magic/version admission (especially keeping ASM 23200 distinct from ACIS 217/218), owner-to-payload hash closure, independent analytic expectations, and an explicit `NOT_QUALIFIED` self-unblock path. No peer run, dependency, fixture, implementation ordering change, support promotion, or J-item transition. See [detailed research and one-time readiness steps](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cadmpeg-acis-profile-semantic-reader-qualification-update-2026-10-18-research-only) and [receipt](docs/research/deeper-broader-cadmpeg-acis-profile-semantic-reader-qualification-update-2026-10-18.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Cross-repository fault-pattern refresh (2026-10-20):** LibreDWG's current
+project history records both HATCH path-state/weight fixes and incomplete
+R2013+ AcDs extraction; current reports also demonstrate that an entity may
+survive while its external SAB payload is lost. ACadSharp's linked ACIS writer
+work remains an open, dependency-bearing proposal, not a qualified route. The
+existing implementation gate now requires per-path HATCH state controls and
+an entity→AcDs key/owner→exact-payload join before any modern modeler-carrier
+or semantic claim; stock FreeCAD's 2D import remains separate from modeler
+semantics. This changes no external-J status, implementation readiness of
+local slices, fixture policy, or support claim. See [cross-repository evidence
+and acceptance refinements](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-repository-dwg-dxf-fault-patterns-and-acds-gate-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-cross-repository-dwg-dxf-fault-patterns-acds-gate-2026-10-20.json).
+
+**ACIS reader-independence and executable-route refinement (2026-10-19; research only):** The official CAD Assistant route is a distinct SAT/SAB reader relative to libdxfrw, but the ACIS importer is an OCCT commercial component, its free app allows import without model export/conversion, and its geometry uses the OCCT kernel family shared with FreeCAD. The existing local exact-SAB attempt was inconclusive and the bundle failed strict signature verification; do not relaunch until artifact integrity is resolved. `cq-acis`/`acis-core` are one experimental parser/model lineage, with CadQuery/OCCT conversion and a separately licensed test corpus; do not count them as two parsers or an independent kernel. `cadmpeg-codec-sat` 0.6.1 is a separately pinned candidate for read-only neutral-geometry evidence on its documented ACIS 217/218 profiles, not a kernel or DWG/AcDs oracle. The execution plan now distinguishes parser, kernel, app and container-ownership evidence; unavailable external readers self-unblock to local implementation. No support promotion; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. See [detailed plan gates](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-reader-independence-and-executable-qualification-routes-2026-10-19-research-only) and [research receipt](docs/research/deeper-broader-acis-reader-independence-and-qualification-routes-2026-10-19.json).
+
+## FreeCAD backend and explicit-facet qualification refinement (2026-10-20; research only)
+
+The current FreeCAD Draft DXF documentation describes two selectable import
+backends: the bundled C++ importer and an optional legacy Python importer.
+Both claim DXF R12+ input, but their documented entity lists differ (for
+example, the legacy list includes `3DFACE`, while the C++ list includes
+dimensions, blocks, and paper-space objects). The same documentation says
+ACIS/SAT solids are not readable by FreeCAD. Consequently, the native Linux
+and Windows acceptance lane must identify the actual configured importer and
+score its bounded explicit-geometry subset; “FreeCAD opened the DXF” cannot
+qualify ACIS/AcDs body semantics. Test the alternate importer only if that
+optional installation is part of the supported deployment profile.
+
+Keep explicit facets (`3DFACE`, polyface mesh, and faceted surfaces) separate
+from exact ACIS/ASM carriers and B-rep semantics. GDAL's current DXF docs
+similarly describe polygon/polyhedral-surface projections for explicit face
+and mesh entities, while treating AC1027+ `3DSOLID`/`REGION`/`BODY`/`SURFACE`
+as raw ASM plus transform only, with no OGR solid reconstruction. This
+supports a bounded, independently measured faceted-geometry lane, not a
+substitute for modeler-carrier closure or a valid closed solid.
+
+Peer maturity is also per class and evidence state: LibreDWG's published
+manual lists unstable/untested and unhandled classes separately and names
+some 3D entities as lacking sample coverage. Pin version, exact input set,
+class disposition, and route before using it as a structural comparator;
+aggregate coverage is not a semantic-support metric. These refinements are
+cross-referenced in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-dxf-consumer-route-and-peer-coverage-maturity-refresh-2026-10-20-research-only)
+and [research receipt](docs/research/deeper-broader-consumer-route-peer-coverage-maturity-2026-10-20.json).
+
+No new support claim, queue blocker, fixture, dependency, routine test, or
+external-J transition is introduced. Keep the one-time native matrix at the
+composed S8 gate and continue local fast slices while external/platform
+evidence is unavailable. J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`.
+
+## Implementation progress — S2.2.5b ASCII/Binary carrier cut-boundary matrix (2026-10-20; local fast slice)
+
+Extended the generated modeler-carrier control across payload lengths 254,
+255, 256, 509, 510, and 511 bytes. Each size is checked through ASCII AC1018
+and Binary AC1021 output/readback. Separate generated variants place spaces
+before/on/after the candidate cuts and place an ordinary token across each
+cut where the payload is long enough. Assertions verify exact decoded bytes,
+exact expected per-group lengths, group-1/group-3 ordering, and continuity of
+the following LINE. The test deliberately checks preservation without
+choosing a whitespace-preferred or fixed-width native policy.
+
+Validation passed:
+
+- `cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2`
+- `build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-chunk-boundaries`
+- `ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure` (1/1)
+- `git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_3D_SUPPORT_PLAN.md`
+
+No production behavior changed. No drawing fixture, new CTest registration,
+dependency, peer/native run, full suite, or support promotion was added. The
+local results do not qualify binary-SAT acceptance, all modeler entities or
+versions, or the native/general SAT token-cut policy. The broad shared tree
+remains uncommitted; J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`.
+
+## Deeper/broader modeler-loss and Binary-DXF route audit (2026-10-20; research only)
+
+Fresh source/release review confirms the existing split between entity shells,
+opaque modeler carriers, B-rep semantics, and native consumers. LibreDWG
+issue #1411 remains open against 0.14.8593 with a reported R2013+ entity-shell
+survival / external AcDs payload-loss path; current LibreDWG source contains
+AcDs section parsing, but that does not establish that the named build exposes
+or preserves the full association through conversion. ACadSharp #1195 also
+remains open; its linked #1240 is still undeployed and the visible change is
+DWG `ModelerGeometry` serialization, not proof the reported DXF omission is
+fixed. FreeCAD's official guide still excludes embedded ACIS/SAT bodies from
+its stock DXF importers. GDAL 3.12 adds Binary-DXF reading, but its AC1027+
+3D-extensible mode only exposes raw ASM bytes and a transform. ezdxf offers a
+bounded mesh-to-polyhedral SAT/SAB authoring path and limited known-structure
+parsing, but no general ACIS kernel; its current FAQ and detailed API disagree
+on SAB authoring. ProGPU's current
+DXF.md parser claims conflict with its architecture document, which rejects
+the older reader as incomplete; classify it `DOCS_CONFLICT_SOURCE_UNVERIFIED`
+until source and matching tests are traced. None supplies a new qualified
+semantic route.
+
+The installed LibreDWG 0.14 `dxfwrite` scratch candidate produced Binary DXF
+(SHA-256 `705b4f7e4e9fbe864a75b97188a3cb4fa7dc09c2b825925e3e9578fe4523c16c`),
+but its own reader failed at `DETAILVIEWSTYLE`; the libdxfrw probe delivered
+modeler entities and then returned `BAD_READ_OBJECTS` (12), with an
+unexplained three-byte tail difference from the ASCII source. Record this as
+`NOT_QUALIFIED` / partial diagnostic—not a binary-SAT positive, source-byte
+normalization rule, or cut-policy oracle. The smallest fast unblock is one
+already-installed independent parser that accepts the entire scratch
+AC1018/AC1021 binary document through terminal EOF and exposes ordered
+modeler carrier groups. If unavailable, continue the next dependency-ready
+local slice; do not wait, install a peer dependency, download a drawing, or
+change production cut policy. Full evidence and exact substeps are in the
+[parity plan audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-modeler-loss-and-binary-dxf-route-audit-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-modeler-loss-binary-dxf-route-audit-2026-10-20.json).
+
+No local defect, finding, subplan, test, fixture, dependency, or support claim
+was added. Fast local matrix coverage and external validation cadence stay
+unchanged; findings/subplans remain 141/78 and J256, J260, J268, J284, J293,
+and J295 remain `DEFERRED_EXTERNAL`.
+
+## Deeper/broader DXF-peer route boundary (2026-10-20; research only)
+
+The peer screen adds `kedazo/dxf-go` v0.3.3 as an optional direct-DXF
+structural-comparison candidate: its published module documentation claims
+ASCII/Binary parsing through AC1032 and raw group-code retention for unknown
+entities. Its DWG/xref helper uses LibreDWG `dwg2dxf`, so it is not an
+independent DWG reader; raw unknown-entity tags do not establish modern
+ACDSDATA payload association or ACIS/B-rep semantics. Its published v0.3.3
+page is not the latest module release, so any future run must pin the exact
+source and module checksum instead of floating to latest. The screened
+`xorgy/dxfscan` project is a one-commit Binary-DXF ordinary-entity scanner,
+not a modeler-carrier reader; `xorgy/dxfbin` transcodes typed group pairs but
+does not validate document structure. Neither is a new required gate. This is
+a candidate-only evidence refinement; no new local implementation
+requirement, dependency, fixture, or support claim is introduced. See the
+[parity-plan route audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-ecosystem-parser-and-route-lineage-audit-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-kedazo-dxf-go-independent-parser-route-2026-10-20.json).
+
+**ACadSharp/FreeCAD route refresh (2026-10-20; research only):** ACadSharp
+PR #1154's full DWG `Prototype_1b` reader merged after the previous “open
+proposal” snapshot; PR #1156 was closed after the author reported restored
+payload-to-entity wiring on their corpus. Treat this as a stronger candidate
+for a pinned DWG section/index/owner/payload comparison, not an independent
+ACIS semantic oracle; exact release ancestry and reproducibility still need
+verification, and the peer discussion records unresolved malformed/stale
+segment edge cases. Current FreeCAD docs describe the stock converter→DXF
+importer route and identify CADExchanger separately for 3D DWG workflows. Thus
+stock Linux/Windows FreeCAD qualification remains a bounded consumer check,
+not 3D solid proof; any selected 3D workflow must be a separate route. Details
+and one-time gates are in the [parity-plan refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadsharp-prototype1b-reader-merge-freecad-dwg3d-route-2026-10-20-research-only)
+and [receipt](docs/research/deeper-broader-acds-peer-freshness-freecad-route-2026-10-20.json).
+
+**Broader cross-implementation 3D boundary audit (2026-10-20; research only):**
+fresh primary-source checks of Autodesk's POLYLINE/PFACE contract, ezdxf's
+current ACIS API, IxMilia's DXF support matrix, LibreDWG's direction/version
+caveats, ACadSharp's version-scoped silent-loss report, and GDAL's ODA-backed
+DWG/OGR projection confirm that typed entity presence, raw carrier parsing,
+faceting, B-rep interpretation, and native consumer import are separate
+evidence levels. PAR-37/7V's generated stale-count/noncanonical-polyface read
+vectors already covered those cases, but stopped at `SEQEND`/EOF and lacked a
+focused CTest selector. The bounded follow-through—a following-entity
+sentinel asserted on read and strict write/readback in both encodings—is now
+implemented in the existing PAR-37/7V owner. Canonical writer order and
+signed-index validation are preserved. Continue S2.3.9.4.29 and
+PAR-07/S8 for per-body owner/INSERT and write/readback disposition. No new
+finding, fixture, dependency, full suite, or support promotion. J256, J260,
+J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`. Details and the bounded handoff are in the [parity-plan
+audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-implementation-3d-capability-and-loss-accounting-audit-2026-10-20-research-only)
+and [research receipt](docs/research/deeper-broader-cross-implementation-3d-boundary-audit-2026-10-20.json).
+
+**PAR-37/7V progress (2026-10-20; uncommitted):** the generated PFACE
+ASCII/Binary matrix now asserts a following 3D LINE's exact endpoints after
+`SEQEND`, both on read and after strict writer/readback. The existing cases
+are exposed through the focused `--polyface-completed-pool` mode and
+`dxf_polyface_completed_pool` CTest. The owning target builds and the CTest
+passes 1/1 in 0.06 seconds. No fixture, full suite, or support claim was added;
+details are in the [implementation receipt](docs/research/par37-polyface-following-record-fast-slice-2026-10-20.json).
+
+**Additional DXF peer-lineage and 2D consumer boundary (2026-10-20; research only):** QCAD Community Edition is a possible optional downstream AC1015 DXF application check, but its public feature matrix limits CE DXF read/write to R15; its broader DWG/version coverage belongs to the proprietary Professional plugin. QCAD's DXF module is based on dxflib, so do not count it as a new independent parser vote or as DWG/3D/ACIS evidence. The same source review reaffirms direction-specific peer matrices: LibreDWG's read and write limits differ, ACadSharp's table is per operation/version and its #1195 solid-loss report is release-specific, and ezdxf's XREF utility is a limited transfer feature—not its complete reader/writer contract. Keep these as optional route boundaries at the existing composed checkpoint; local 3D/2D implementation continues without a new dependency or peer gate. No local finding or support claim was added; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. See the [parity-plan refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-peer-implementation-lineage-and-qcad-consumer-boundary-2026-10-20-research-only) and [research receipt](docs/research/deeper-broader-dxf-peer-lineage-qcad-consumer-boundary-2026-10-20.json).
+
+## Implementation progress — S2.2.5b modeler DXF matrix continuity and readback (2026-10-20; generated fast slice, uncommitted)
+
+The existing generated modeler-DXF matrix exercises ASCII and Binary output
+across AC1015, AC1018, AC1021, AC1024, and AC1027, including 3DSOLID, REGION,
+and BODY record framing, SAT text chunk cuts, caret-boundary values, R2007+
+3DSOLID history, source-handle remapping, and bounded refusal of
+unrepresentable ASCII line breaks. I closed a specific sentinel weakness:
+previously the matrix established only that a LINE record followed the
+modeler records, not that its expected geometry survived parser readback. It
+now checks exactly one following LINE with generated endpoints `(12,13,14)` to
+`(15,16,17)` after both the initial DXF read and the strict write/readback pass
+for every version/encoding cell.
+
+Focused validation passed:
+
+```text
+cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2  PASS
+build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix               PASS
+ctest --test-dir build-gcc -R '^dwg2dxf_modeler_dxf_writer_matrix$' --output-on-failure  PASS (1/1)
+git diff --check -- tests/modeler_dxf_writer_matrix_tests.cpp              PASS
+```
+
+All output is generated in a temporary directory and removed by the test; no
+DWG/DXF fixture, dependency, CTest registration, peer runtime, native CAD or
+kernel run, or full suite was added/run. This is local framing, payload, and
+following-entity preservation evidence only; it does not settle the general
+SAT token-cut policy or qualify external Binary-DXF acceptance, ACIS/B-rep
+semantics, DWG support, or a consumer. The shared checkout remains broadly
+modified and Git metadata is read-only, so this slice is uncommitted. All six
+J-items remain `DEFERRED_EXTERNAL` and non-promoting. **Self-unblock:** continue
+the existing S2.3.9.4.29 per-body block/INSERT and PAR-07/S8 source-handle
+disposition work without waiting on external semantic or platform gates.
+
+Implementation receipt:
+[`modeler-dxf-matrix-following-line-readback-fast-slice-2026-10-20.json`](docs/research/modeler-dxf-matrix-following-line-readback-fast-slice-2026-10-20.json).
+
+**Broader source/readiness update (2026-10-20; research plus generated fast
+slice):** Autodesk's general DXF guidance says group-code table order is not a
+parser contract. The existing generated modeler test now covers a legal
+within-subclass field-order permutation without reordering group-1/group-3
+payload bytes, while checking proxy-graphic separation, group-350 history, a
+malformed-chunk negative control, and following LINE geometry. The owning
+target, direct selector, and CTest pass (1/1, 0.29s). Broader peer
+review confirms there is no stock open-source OCCT SAT/SAB reader: OCCT lists
+that exchange component separately as commercial, `cq-acis` is a pinned but
+experimental parser-plus-OCCT route, ezdxf is limited structural/carrier
+evidence, LibreDWG's release docs still caveat AcDs SAB extraction, and stock
+FreeCAD cannot interpret the ACIS blob. This does not change the already
+separate DWG AcDs ownership, analytic B-rep, or named-consumer gates. No
+finding, support claim, dependency, or persistent fixture changed; J256, J260,
+J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. The generated input is
+temporary and deleted; no peer runtime or native CAD/kernel was run. Details and
+implementation-ready checks are in the [parity-plan refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-dxf-modeler-order-and-open-source-acis-route-ceilings-2026-10-20-research-only)
+and [research receipt](docs/research/deeper-broader-dxf-modeler-order-acis-route-ceilings-2026-10-20.json).
+
+**Implementation progress — focused AC1027 AcDs block/INSERT gate (2026-10-20;
+generated fast slice, uncommitted):** exposed the existing generated
+single-modeler block/INSERT graph and its orphan/owner-mismatch refusal cases
+through `--modeler-acds-block-projection` and the dedicated
+`dwg2dxf_modeler_acds_block_projection` CTest. The ASCII/Binary path checks
+block and BLOCK_RECORD identity/ownership, nested and shared INSERT links,
+history proxy ownership, exact ACDSDATA owner-key/payload binding, and a
+strict re-export/readback pass. Configure and target build, direct selector,
+CTest 1/1 (0.03s), and scoped `git diff --check` passed. Inputs use generated
+marker bytes, not valid SAB; this proves transport/association only. The next
+local slice is two distinct bodies in the same block with per-handle payload
+mapping and order/swap/missing/duplicate-owner controls. No persistent DWG/DXF
+fixture, native CAD/kernel run, full suite, or support promotion; J256, J260,
+J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. The shared worktree is
+broadly dirty; this progress is uncommitted. Details: [parity-plan handoff](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-dxf-modeler-order-and-open-source-acis-route-ceilings-2026-10-20-research-only) · [receipt](docs/research/modeler-acds-block-owner-focused-selector-fast-slice-2026-10-20.json).
+
+**Implementation progress — AC1027 multi-body block AcDs mapping (2026-10-21;
+generated fast slice, uncommitted):** extended the focused ASCII/Binary
+block/INSERT case to a 3DSOLID and a REGION in one inner block, with distinct
+marker payloads (including a 256-byte multi-chunk record) and independently
+reversed entity/ACDSDATA record order; the gate asserts the emitted order as
+well as the per-handle mapping.
+Initial import and strict re-export/readback enforce one exact owner-key and
+payload mapping per body. Added swapped-payload, missing-record,
+duplicate-owner, and foreign-owner negative controls; all eight encoding ×
+mutation cells preserve the destination sentinel on refusal. The owner
+collector now detects duplicate ASM_Data keys instead of accepting a first
+match. Target build, direct selector, CTest 1/1 (0.03s), the existing
+multi-record ACDSDATA selector, and scoped diff check passed. Generated opaque
+markers prove transport/association, not valid SAB or solid semantics. No
+production change, persistent fixture, full suite, external runtime, native
+CAD/kernel, or support promotion; all six J items remain
+`DEFERRED_EXTERNAL`. The broadly dirty worktree remains uncommitted. Details:
+[parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#ac1027-multibody-block-acds-owner-mapping-fast-slice-2026-10-21) · [receipt](docs/research/ac1027-multibody-block-acds-owner-mapping-fast-slice-2026-10-21.json).
+
+**Research update — refresh of the existing standalone ACIS route
+(2026-10-21):** the source sweep reconfirms the already-listed
+`cadmpeg-codec-sat` 0.6.1 candidate: its published ACIS/ASM profile is L1,
+read-only, and not a DWG/AcDs reader. `cq-acis` and `inventor-kit` share
+`acis-core`; count them as one parser lineage. Cadmpeg's policy permits
+compatible prior open-source knowledge; separately, `acis-core` docs cite
+ezdxf and cadmpeg notes for SAB grammar, while field-level overlap between the
+two parser implementations remains unaudited. A distinct package is therefore
+not automatically an independent oracle. Stock FreeCAD cannot read ACIS
+solids, and Open CASCADE's ACIS import is a commercial component. Reuse the
+existing candidate procedure: pin/fingerprint once, verify exact extracted
+DXF/DWG carrier boundaries, use temporary generated asymmetric controls with
+independently calculated geometry expectations, and keep the native FreeCAD
+2D route separate from ACIS/3D semantics. Missing external/platform evidence stays
+`NOT_RUN`/`DEFERRED_EXTERNAL`; local owner/carrier work continues. No run,
+fixture, dependency, or support promotion occurred. See the [research and
+qualification sub-plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-acis-decoder-lineage-and-standalone-to-acds-qualification-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-acis-decoder-lineage-standalone-acds-qualification-2026-10-21.json).
+
+**Deeper/broader modeler-carrier research (2026-10-21):** current source review
+adds a conditional locally generated polyhedron path using ezdxf's documented
+`body_from_mesh()`/DXF export API, with the exact SAT/SAB profile, payload hash,
+and independent analytic expectations captured. This is a test-input route,
+not proof that ezdxf handles arbitrary ACIS or that its generated output is
+accepted by another kernel. LibreDWG's current AcDs source, its historical
+incomplete-datastore note, and the open #1411 report apply to different source
+revisions; pin and test the exact candidate revision before claiming current
+behavior. ACadSharp #1195 remains an open peer-reported silent DXF writer-loss
+case involving `3DSOLID`/`REGION` in blocks. Its linked PR #1240 is open,
+depends on open ACDS/ACIS storage PR #1174, and is not deployed; a branch-
+specific Aug 12 comment on #1174 reports the ACIS-payload-owner test failed
+with `NotImplementedException` at that tested revision. Neither PR nor issue
+is a passing writer result or current-master status. The local handoff
+explicitly checks per-source disposition and empty-block loss without
+importing customer drawings. Stock FreeCAD remains a 2D/explicit-entity
+consumer gate.
+No source, fixture, dependency, external file, or support claim changed; all
+six J-items remain `DEFERRED_EXTERNAL`. The concrete sequence and source limits
+are in the [parity-plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-modeler-carrier-loss-and-generated-polyhedron-route-2026-10-21-research-only)
+and [research receipt](docs/research/deeper-broader-modeler-carrier-loss-generated-polyhedron-2026-10-21.json).
+
+**Follow-up research and local implementation progress (2026-10-21):** the
+ACadSharp loss report and writer proposals remain open/revision-scoped; no
+peer release or undeployed PR qualifies as current semantic evidence. ezdxf's
+specific ACIS API page documents limited polyhedron generation to both SAT and
+SAB, despite a conflicting/stale FAQ; pin and inspect the exact artifact if the
+existing scratch-only route is used. The local typed writer audit found
+existing ASCII/Binary 3DSOLID/REGION/BODY coverage and did not add a duplicate
+test. The fast ACDS block projection now asserts full history-proxy reference
+and payload closure after import and strict re-export/readback. This remains
+opaque-carrier/graph evidence only. See the [parity-plan status and updated
+handoff](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-peer-status-ezdxf-doc-conflict-and-local-disposition-2026-10-21)
+and [receipt](docs/research/deeper-broader-acis-peer-doc-conflict-local-disposition-2026-10-21.json).
+No support/J promotion; J256, J260, J268, J284, J293, and J295 stay
+`DEFERRED_EXTERNAL`.
+
+**Deeper/broader research update — exact existing cq-acis 0.3.12 scratch
+observation (2026-10-21):** corrected the prior system-Python-only
+availability conclusion: a pre-existing isolated macOS ARM64 environment
+already contained ezdxf 1.4.5 and cq-acis 0.3.12, so no install was needed.
+The local ACIS-218 box payload converted to a valid one-solid OCCT result with
+expected bounds, six faces, twelve edges, volume 385, and area 334. However,
+the repository checker initially admitted only its audited 0.3.8 diagnostic
+profile; that first 0.3.12 observation had unclassified header/summary rows.
+A second exact profile is now implemented with source pinning and negative
+controls. The existing scratch sample is now observedModelClassified and
+geometry-observation eligible, with 89 dependency-free self-test controls
+passing. It remains an ezdxf-authored polyhedron through a parser and the
+shared OCCT kernel family, not DWG/AcDs, native FreeCAD, or independent-kernel
+evidence; qualification remains false. The LibreDWG AcDs caveat, unmerged
+ACadSharp writer work, acadrust synthetic-marker roundtrip tests, and current
+FreeCAD ACIS import limitation are incorporated in the [parity-plan research
+update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-research-local-cq-acis-0-3-12-result-and-peer-evidence-ceilings-2026-10-21)
+and [receipt](docs/research/deeper-broader-acis-peer-local-0_3_12-observation-2026-10-21.json).
+No fixture, dependency, support claim, or finding count changed; all six J
+items remain DEFERRED_EXTERNAL.
+
+**Cross-implementation route-boundary refresh (2026-10-21; research only):**
+published version matrices do not prove per-entity or semantic support;
+LibreDWG, ACadSharp, ezdxf, IxMilia.Dxf, FreeCAD, and LibreCAD's bundled
+inventory each have distinct route ceilings. Use one pinned peer only for the
+exact operation/version/field cohort, and keep carrier retention, modeler
+semantics, native 2D acceptance, and ACIS/ACDS qualification separate. The
+crosswalk and implementation-ready peer selection rules are in the
+[parity-plan refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-cross-implementation-route-boundary-refresh-2026-10-21)
+and [research receipt](docs/research/deeper-broader-dxf-implementation-peer-boundaries-2026-10-21.json).
+The first local LibreDWG peer attempt was rejected as an invalid generated
+control graph; it produced no cross-reader pass/fail evidence. See the parity
+plan's [BLOCK_CONTROL closure negative control](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--peer-control-fixture-closure-negative-control-2026-10-21-scratch-only-not-a-support-result).
+
+**Deeper/broader generated-control and safety research (2026-10-21):** the
+MIT pre-release obj2cad repository advertises a dedicated SAT/SAB writer and
+temporary known-shape sample generation, but it is currently only a
+conditional generator candidate: its revision/lineage is unbound, its
+mesh-parity checks do not establish ACIS shape semantics, and its DWG route
+delegates to patched ACadRust. Do not add it as a dependency or peer oracle.
+Use it only after immutable source/license review to generate a temporary
+analytic control, or self-unblock to a local generator. LibreDWG 0.14.1 also
+documents a 3DSOLID block-size integer-overflow safety fix and a last-SAT-block
+DXF export fix. These are risk patterns, not libdxfrw findings; audit local
+length arithmetic and final carrier reconstruction, adding a fast boundary
+case only if an uncovered equivalent path exists. Keep DXF transport,
+ACIS-graph interpretation, B-rep/kernel validation, DWG AcDs ownership, and
+native consumer acceptance as separate gates. No fixture, dependency, peer or
+native run, support claim, or J-item status changed; the six J-items remain
+`DEFERRED_EXTERNAL`. See the [parity-plan handoff](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-acis-generated-control-and-security-peer-refresh-2026-10-21)
+and [research receipt](docs/research/deeper-broader-acis-generated-control-security-refresh-2026-10-21.json).
+
+**External semantic-reader research update (2026-10-21; no execution):**
+Ansys Workbench 2025 R2 documents a standalone SAT/SAB reader on Linux and
+Windows, including solid-body import, so it is a possible optional semantic
+probe if an authorized installation is already available. Its exact SAB
+profile and parser/kernel lineage are not documented in the reviewed page; it
+does not read DWG/AcDs or qualify owner mapping, and it must not be purchased,
+installed, or made a blocking gate. The official OCCT ACIS exchange route is
+commercial and supports healing/approximation; it shares the OCCT kernel family
+with FreeCAD/cq-acis and is not an independent-kernel vote. Local source review
+found guarded SAB reads and bounded AC1015 SAT block lengths, with no matching
+unchecked `8 * block_size` defect; DXF final-chunk output remains an existing
+separate carrier check. See the [parity-plan update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-acis-external-semantic-reader-and-local-bounds-audit-2026-10-21)
+and [receipt](docs/research/deeper-broader-acis-external-reader-local-bounds-audit-2026-10-21.json).
+All six J-items remain `DEFERRED_EXTERNAL` and non-promoting.
+
+**S3.7c implementation progress (2026-10-21):** the generated SAB 21800
+control now carries two disjoint rooted bodies in one stream and verifies each
+body's own points, transform link, and raw transform candidate. Both remain
+unapplied; this is structural coverage only. The graph-preservation target
+passes 1/1, with no committed DWG/DXF/SAB fixture, production parser change,
+external reader run, or support promotion. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-two-rooted-bodies-wire-projection-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-two-rooted-bodies-fast-slice-2026-10-21.json).
+
+**S3.7c parser-fed complex graph progress (2026-10-21):** a generated full
+21800 stream now exercises the existing multiple-lump/shell/loop, cycle,
+unsupported-branch, non-reciprocal endpoint, and unreachable-known-node graph
+through the actual SAB parser, then compares pointer rows and rooted
+projection with the in-memory control. One unreachable vertex, edge, and face
+are counted outside the root; the explicit terminal graph node is accounted
+for. Focused graph CTest passes 1/1; no production parser edit or persistent
+SAB fixture was needed. Next: wire-fed defined-owner mismatch refusal with
+exact diagnostics. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-complex-rooted-sab-graph-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-parser-fed-complex-rooted-graph-fast-slice-2026-10-21.json).
+
+**S3.7c wire-fed owner/profile negatives (2026-10-21):** generated complex
+21800 streams now redirect each of the five declared owner links
+(`lump.body`, `shell.lump`, `face.shell`, `loop.face`, `coedge.loop`) to a
+wrong typed owner; all are rejected transactionally with exact
+`OwnerMismatch` node/ordinal diagnostics. Version-word controls for 20800,
+22300, and 23200 reach the parser but rooted projection refuses each as
+`UnsupportedProfile`. The same parser-fed matrix now rejects wrong-type targets
+for all 35 traversed typed-reference ordinals and separately rejects an
+out-of-table and an invalid negative pointer, with exact `InvalidReference`
+diagnostics and transactional output clearing. The focused graph CTest passes
+1/1. This verifies only the implemented owner/reference/profile boundaries,
+not broader ACIS semantics. See
+[parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-owner-mismatch-negative-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-parser-fed-owner-mismatch-fast-slice-2026-10-21.json).
+
+**S3.7c parser-fed resource-boundary progress (2026-10-21):** the generated
+complex SAB stream passes at exact observed parser limits (bytes, records,
+tags, retained strings, token capacity, and type-part capacity); one-under tag
+limit refuses and clears output. The same parsed graph refuses rooted
+traversal at a zero extraction-work budget and clears output. Focused graph
+CTest passes 1/1. No production change or persistent fixture was needed. See
+[parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-complex-resource-boundaries-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-parser-fed-complex-resource-boundaries-fast-slice-2026-10-21.json).
+
+**Deeper/broader external-route refresh (2026-10-21; research only):** the
+exact CADMPEG v0.6.2 release (`7bcc95276548de4e4876894b9a650a84ea9c4d6d`)
+is now the optional artifact for the existing composed semantic-reader
+checkpoint; the older 0.6.1 route note is superseded. Its docs still scope
+the overall bare SAT/SAB level at L1 while documenting connected-B-rep checks
+for ACIS majors 217/218, so execution must be exact-profile and
+checksum/version-pinned. CADMPEG is not yet counted as an independent kernel
+until its release dependencies are audited. ACadSharp #1195/#1240 further
+reinforce the separate writer gate: solid-only blocks must not silently lose
+their modeler records; every loss must be emitted, reported, or refused.
+No package was installed, peer or native app run, fixture added, or support
+claim promoted. J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`. See the [parity-plan research and readiness refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-semantic-reader-and-dwg-dxf-writer-route-recheck-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-acis-semantic-and-writer-route-recheck-2026-10-21.json).
+
+**DWG/DXF 3D route and acceptance crosswalk (2026-10-21; research only):**
+DXF group 1/3 carrier bytes and the separate group-350 history reference must
+not be collapsed into geometry semantics; typed peer entities/self-readback
+do not establish AutoCAD/FreeCAD acceptance. ezdxf's renderer is 2D-only and
+does not render ACIS; IxMilia.Dxf warns some typed modeler outputs may not open
+in AutoCAD; LibreDWG issue #1411 and ACadSharp #1195/#1240 expose modern AcDs
+and writer-loss gaps. The plan now separates DXF carrier, DWG AcDs carrier,
+explicit 3D entities, ACIS model semantics, and named application outcomes in
+the existing PAR-07/S8 record. This adds no support claim or new fixture.
+Details are in the [parity-plan crosswalk](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dwg-dxf-three-dimensional-route-and-acceptance-crosswalk-2026-10-21)
+and [receipt](docs/research/deeper-broader-dwg-dxf-3d-route-acceptance-crosswalk-2026-10-21.json).
+
+**FreeCAD explicit-entity and optional 3D-route correction (2026-10-21; research only):** current Draft DXF docs, C++ source, and the existing FreeCAD 1.1.3 sample observation do not support a categorical C++-backend claim for 3DFACE/MESH: the docs omit them from the C++ list, source has a generic-shape fallback without proving entity dispatch, and the sample reports mixed unsupported entities. Keep these as exact-runtime cells and record per-source outcomes rather than aggregate counts. The CADExchanger FreeCAD addon is catalogued and documents an `ExchangerConv`→BREP handoff, but it is a third-party bridge to a commercial application; CAD Exchanger's own current FreeCAD page says FreeCAD is not supported yet. It remains an optional, pinned, authorized candidate—not stock support or an independent-kernel vote. LibreDWG NEWS records a SubDMesh Binary-DXF import fix; the existing generated AC1027 ASCII/Binary MESH checks remain the local fast owner, with no new fixture or peer run. See the [parity-plan refinement](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-freecad-explicit-entity-route-and-subdmesh-peer-refresh-2026-10-21) and [receipt](docs/research/deeper-broader-freecad-explicit-route-subdmesh-peer-refresh-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed finite-value boundary (2026-10-21; generated fast test):** a generated complex ACIS BinaryFile 21800 stream now carries NaN, +infinity, or -infinity in a rooted point location. Parsing/model construction succeeds; rooted projection rejects each with `InvalidModel` and transactional output clearing. The owning graph CTest passes 1/1 and the LibreCAD_3 compatibility target builds. This closes only a parser→projection safety boundary, not a production parser defect or geometry-support claim. Details: [parity-plan implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-acis-location-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-location-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed transform finite-candidate boundary (2026-10-21; generated fast test):** the wire-form transform literal now has NaN, +infinity, and -infinity candidate controls. SAB parsing and rooted projection remain successful; the raw literal and index 3 are retained, candidate classification is `Invalid`, and no transform is applied. This is transform-token disposition only; no matrix layout, placement, units, or geometry semantics are promoted. The graph-preservation fast CTest passes 1/1. Details: [parity-plan implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-transform-candidate-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-transform-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed alternate transform grammar (2026-10-21; generated fast test):** a wire-form transform with four location vectors, a scalar, and a literal hint is retained in exact order after the 21800 common header. The rooted projection labels the grammar `UnsupportedVariant`, retains the raw hint at index 8, and does not publish/apply a candidate transform. This is not transform semantics. The owning graph CTest passes 1/1; see [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-vector-transform-grammar-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-vector-transform-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Broader open-source route and kernel-lineage research (2026-10-21):** official OCCT materials distinguish the public open-source exchange set from commercial ACIS SAT/SAB and DXF components; stock FreeCAD documents DWG→DXF→DXF-importer routing and no embedded ACIS/SAT support. The ezdxf v1.4.5 source-documentation review corrected its status from raw-carrier-only to a conditional limited SAT/SAB graph parser and flat-polyhedron mesh converter; it is not a general ACIS kernel, curved-surface oracle, or DWG AcDs reader. LibreDWG's current release notes and ACadSharp #1195 remain peer risk prompts—not local findings. Existing generated modeler-carrier and ASCII/Binary MESH tests remain the fast local owners; the optional ezdxf check is reserved for the composed external-semantic checkpoint, with exact artifact/runtime and per-entity outcomes. No peer runtime, commercial component, fixture, dependency, test registration, or support claim was added. Details: [ezdxf correction and bounded qualification recipe](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-ezdxf-acis-subset-route-correction-2026-10-21) and [research receipt](docs/research/deeper-broader-ezdxf-acis-subset-correction-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite plane origin (2026-10-21; generated fast test):** the SAB 21800 plane-surface origin now has NaN/+infinity/-infinity controls. Each stream parses/builds, while rooted projection refuses `InvalidModel` at the owning body and transactionally clears output. The generated record includes its required owner-pointer slot; an initial schema-omission failure was corrected in the test data only. The graph-preservation CTest passes 1/1; no production defect or geometry-support claim was found. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-plane-origin-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-plane-origin-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite plane normal and U direction (2026-10-21; generated fast test):** NaN/+infinity/-infinity in each plane vector parses and builds but is refused by rooted projection as `InvalidModel` at the owning body, with output cleared. This exercises the optional plane U-direction branch as well as the required normal field; no production defect or geometry semantics are inferred. The graph-preservation CTest passes 1/1. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-plane-normal-udir-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-plane-normal-udir-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite straight-curve vectors (2026-10-21; generated fast test):** NaN/+infinity/-infinity in the origin or direction of a reachable SAB 21800 straight-curve record parses/builds but rooted projection refuses `InvalidModel` at the owning body and clears output. This covers the supported edge-curve path through the parser, not curve interpretation semantics. The graph-preservation CTest passes 1/1; details are in the [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-straight-curve-vectors-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-straight-curve-vectors-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite ellipse parameters (2026-10-21; generated fast test):** NaN/+infinity/-infinity in the center, normal, major axis, or ratio of a reachable SAB 21800 ellipse curve parses/builds but is refused transactionally as `InvalidModel` at the owning body. This verifies only finite-value handling through the parser and existing projection guard. The graph-preservation CTest passes 1/1; see [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-ellipse-parameters-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-ellipse-parameters-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite cone and torus fields (2026-10-21; generated fast test):** generated SAB 21800 rooted faces now cover all six cone fields and all four torus fields with NaN/+infinity/-infinity. Each parses/builds and is rejected transactionally as `InvalidModel` at the owning body. This verifies finite guards only, not surface semantics; the graph-preservation CTest passes 1/1. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-cone-torus-fields-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-cone-torus-fields-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed non-finite intcurve control points (2026-10-21; generated fast test):** both `nubs` control points are tested across all three coordinates with NaN/+infinity/-infinity. All 18 parser-fed cases refuse rooted projection transactionally as `InvalidModel`. This also fixed the generated-stream helper's missing nested `EntityType` serialization, enabling the actual SAB parser path; no production code or NURBS support claim changed. Direct graph test and focused CTest pass. Details: [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-intcurve-control-points-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-intcurve-control-points-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed point XYZ finite guard (2026-10-21; generated fast test):** completed the rooted point `LocationVec` non-finite matrix for NaN/+infinity/-infinity across X/Y/Z (9 cases). All parse/build and fail closed as `InvalidModel` with transactional output clearing. The focused graph CTest, `-Werror` build targets, and scoped diff check pass; test-only, no fixture or support promotion. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-point-xyz-components-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-point-xyz-components-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c parser-fed transform-candidate boundaries (2026-10-21; generated fast test):** completed the 12-position literal-candidate matrix and alternate profile's 13th-value check with NaN, +infinity, and -infinity (39 cases); each is retained raw, classified `Invalid`, and not applied. A 14-value literal is refused as `Invalid` through the wire parser, and a structured vector transform with NaN in a location and +infinity in a scalar remains raw as `UnsupportedVariant`, with no candidate matrix or applied transform. This is finite-token/profile-preservation coverage only, not transform or geometry semantics. The focused graph-preservation CTest passes 1/1 and the compatibility target builds. See [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-nonfinite-transform-components-2026-10-21-generated-fast-slice-uncommitted) and [receipt](docs/research/acis-sab-parser-fed-nonfinite-transform-components-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Deeper/broader peer-route refresh (2026-10-21; research only):** ACadRust v0.6.5 at `289a616` is now recorded as an optional structural/transport candidate for generated SAT/SAB and DWG AcDs checks, not a geometry kernel or qualified semantic oracle. Its published ACIS API pages currently identify as 0.5.5, so source/package/version identity must be reconciled before any optional run. OpenCADKernel is early-stage and OpenCADStudio uses ACadRust; they are not independent qualified votes. Stock FreeCAD still requires a separately identified DWG-to-DXF converter and chosen DXF backend and cannot read embedded ACIS/SAT solids. No external runtime, fixture, test, dependency, or support promotion was added. See [parity-plan research and readiness update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acadrust-065-acis-peer-and-kernel-lineage-refresh-2026-10-21) and [receipt](docs/research/deeper-broader-acadrust-065-acis-peer-kernel-lineage-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Deeper/broader ACIS route and DXF polyface security crosswalk (2026-10-21; research only):** BRL-CAD is retained only as a candidate explicit-facet DXF consumer; reviewed legacy material says `dxf-g` handles 3DFACE/3DMESH rather than ACIS, while a current peer report/OPEN PR describes a POLYLINE face-index bounds flaw. The local reader and writer already call `validatePolyfaceDxf`, and its generated fast owner covers malformed indices transactionally, so no duplicate local test or defect is inferred. The screen also records CADKernel's ACIS rows as unimplemented and excludes proprietary NativeCAD from comparison without written permission; its documented route is SAT-only, not SAB/DWG AcDs. OCCT ACIS remains an optional commercial same-kernel-family route with healing/approximation constraints. See the [parity-plan research update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-acis-kernel-route-and-dxf-polyface-security-crosswalk-2026-10-21-research-only) and [receipt](docs/research/deeper-broader-acis-kernel-route-polyface-security-2026-10-21.json). No test, fixture, dependency, code, or support claim changed; J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Newest local S3.7c structural slice (2026-10-21):** a generated SAB 21800
+two-body case now shares one type-correct point record and verifies parser-fed
+multiply-rooted accounting, per-body reachability, and unchanged raw
+coordinates. Focused graph-preservation CTest passes; no production behavior,
+fixture, or support claim changed. All six J items remain
+`DEFERRED_EXTERNAL`. See the [implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-shared-root-accounting-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-parser-fed-shared-root-accounting-fast-slice-2026-10-21.json).
+
+**Newest parser-fed empty-body disposition (2026-10-21):** the generated SAB
+21800 path now verifies that an empty body remains visible as one root without
+a supported lump and yields no invented wireframe geometry. This exercises
+the parser path corresponding to the existing in-memory control; it does not
+establish B-rep validity or semantic ACIS support. Focused graph-preservation
+CTest passes. See the [implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-parser-fed-empty-root-disposition-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/acis-sab-parser-fed-empty-root-fast-slice-2026-10-21.json).
+
+**Open-source AcDs/modeler route update (2026-10-21; research only):** ACadSharp
+now has a released structured DWG `Prototype_1b` reader (PR #1154), with
+peer-reported exact-hash corpus comparisons, but its DWG section parse, entity
+handle join, DXF ACDSDATA path, writer path, and B-rep semantics remain distinct
+qualification rows. ACadRust's public tests are self-roundtrip/transport
+controls, CADCraft delegates DWG I/O to ACadRust and distinguishes opaque save
+from newly-authored REGION behavior, and stock FreeCAD's current DXF guide says
+embedded ACIS/SAT solids are not read. The readiness handoff tightens section
+bounds, exact owner/payload linkage, page/chunk and stale-index controls, writer
+disposition, and self-unblock rules without adding a peer gate or fixture. See
+the [parity-plan research update](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-acds-and-modeler-route-audit-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-open-source-acds-modeler-route-audit-2026-10-21.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Additional DXF-reader diversity and loss-boundary research (2026-10-21):**
+`uncad` is not an independent DWG comparator because its DWG route is
+LibreDWG; its separate MIT `undxf` parser is a conditional DXF syntax/carrier
+differential, including the documented SAT/SAB DXF paths, but its ACIS result
+is wireframe-only and not kernel/B-rep evidence. The newly surfaced ISC
+`dxfscan` covers only a common Binary-DXF entity subset and has no published
+ACIS/ACDSDATA coverage or mature release route. LibreDWG's own class and
+converter caveats reinforce per-object dispositions and stage-local loss
+attribution instead of aggregate counts. The implementation-ready bounds and
+optional peer procedure are in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-open-source-dxf-reader-diversity-and-libredwg-loss-boundaries-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-dxf-reader-diversity-libredwg-loss-2026-10-21.json).
+No dependency, fixture, test, support claim, or J-item status changed; all six
+J items remain `DEFERRED_EXTERNAL`.
+
+**ACIS peer-validator/normalization boundary research (2026-10-21):** the
+optional ACadRust structural comparison must pin the exact artifact/API and
+validate the untouched parsed graph before calling helpers that fill links or
+strip/remap records. Its current repository self-roundtrip/generated-cube
+tests are not independent geometry truth. `acis-core` and `cq-acis` are one
+parser-plus-OCCT route, and stock FreeCAD's DXF importer does not consume
+embedded ACIS/SAT. Implementation-ready comparison order and ceilings are in
+the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-acis-peer-validator-and-normalization-boundary-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-acis-peer-validator-normalization-boundary-2026-10-21.json).
+No local test, dependency, fixture, or support claim was added; all six J items
+remain `DEFERRED_EXTERNAL`.
+
+**S3.7c exact coedge next-target identity (2026-10-21; generated parser-fed
+fast slice):** the rooted SAB 21800 projection now keeps coedge pointer
+ordinal 1 as an aligned `coedgeNextNodeIndices` row, including a parser-fed
+null-link `-1` negative and known-gap classification. This preserves the
+pointer itself rather than inferring it from traversal order; it does not
+validate reciprocal links or B-rep semantics. The focused graph-preservation
+CTest and `lc3_compat_check` pass. Public `DRW_AcisFaceLoop` layout changed;
+downstream consumers must rebuild. No fixture or support claim was added.
+See the [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-coedge-next-target-identities-2026-10-21-generated-parser-fed-fast-slice-uncommitted)
+and [receipt](docs/research/s37c-sab21800-coedge-next-target-identities-fast-slice-2026-10-21.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c open-chain versus incomplete-ring disposition (2026-10-21; generated
+parser-fed fast slice):** current ACIS coedge/loop documentation describes
+open chains with a null `next` at the end and null `previous` at the start.
+The rooted SAB 21800 projection now labels an *observed* open chain only when
+those endpoint slots are null and all retained internal next/previous targets
+agree. Coverage no longer calls that observed shape a gap solely because it
+is not circular; a mid-chain null, mismatched link, or non-start cycle remains
+a known gap. This does not census detached coedges or validate a B-rep. The
+focused graph-preservation CTest and `lc3_compat_check` pass; no fixture or
+support claim was added. The source reference and implementation limits are
+recorded in the [parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-open-coedge-chain-disposition-2026-10-21-generated-parser-fed-fast-slice-uncommitted)
+and [receipt](docs/research/s37c-sab21800-open-coedge-chain-disposition-fast-slice-2026-10-21.json).
+All six J items remain `DEFERRED_EXTERNAL`.
+
+**S3.7c edge-to-coedge identity (2026-10-21; generated parser-fed fast
+slice):** rooted SAB 21800 projection now exposes the edge's exact pointer
+ordinal 3 coedge target on `DRW_AcisEdge`. Generated multi-edge and null-link
+controls, parser-fed/in-memory equivalence, focused graph CTest, and
+`lc3_compat_check` pass. This records one source link; it does not enumerate
+the complete edge-use/partner ring or establish manifold/B-rep validity. The
+public struct layout changed, so downstream consumers must rebuild. Details:
+[parity-plan progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-coedge-pointer-identity-2026-10-21-generated-parser-fed-fast-slice-uncommitted)
+and [receipt](docs/research/s37c-sab21800-edge-coedge-pointer-identity-fast-slice-2026-10-21.json).
+All six J items remain `DEFERRED_EXTERNAL`.
+
+**S3.7 local safety progress (2026-10-21):** the ACIS model builder now
+range-checks raw signed 64-bit graph pointers before narrowing them to an
+`int` node index. A generated `LLONG_MAX` control confirms that the raw value
+cannot alias a valid node and that rooted projection refuses the unresolved
+reference transactionally with its exact ordinal. Graph-preservation target,
+CTest 1/1, direct test executable, and scoped checks pass. This is integer and
+graph-disposition safety only—not a new SAB/DWG/DXF or B-rep support claim.
+Details: [parity-plan implementation progress](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-par-07-s37-acis-pointer-range-before-narrowing-2026-10-21-generated-fast-slice-uncommitted)
+and [receipt](docs/research/par07-s37-acis-pointer-range-before-narrowing-fast-slice-2026-10-21.json).
+No persistent fixture or external dependency was added; all six J items remain
+`DEFERRED_EXTERNAL`.
+
+**BRL-CAD explicit-DXF peer profile refinement (2026-10-21; research only):**
+current BRL-CAD manuals bound `dxf-g` to ASCII DXF/AutoCAD-2006-era input and
+document selected explicit entities, including classic 3D POLYLINE, polygon
+mesh, and polyface; they do not establish Binary DXF, `AcDbSubDMesh`, DWG, or
+ACIS/AcDs support. The inverse `g-dxf` route intentionally tessellates BRL-CAD
+regions into triangle-based 3DFACE or POLYFACE output. Keep this as an optional
+explicit-geometry projection only, and gate any run on a pinned source revision
+that resolves the open #228 PFACE-index safety issue while preserving legal
+signed-index/zero-terminator semantics. Existing local PFACE generated tests
+remain the fast owner; no dependency, fixture, test, or support claim was
+added. Details: [parity-plan research](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-brlcad-current-dxf-converter-profile-and-security-gate-2026-10-21-research-only)
+and [receipt](docs/research/deeper-broader-brlcad-current-dxf-profile-security-gate-2026-10-21.json).
+J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**Newest local S3.7c partner-ring slice (2026-10-21; generated parser-fed fast test):** rooted SAB 21800 edges now retain the observed partner walk from their selected coedge, including exact outgoing targets; a ring is reported closed only when it returns to that selected coedge. Multi-member cycles, null termination, and cycles entering a different coedge are covered through the SAB parser. This remains a structural observation, not a complete coedge census, edge-use/manifold proof, or B-rep validation. The graph-preservation CTest and `lc3_compat_check` pass; no external fixture or support claim was added. See the [implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-coedge-partner-ring-walk-2026-10-21-generated-parser-fed-fast-slice-uncommitted) and [receipt](docs/research/s37c-sab21800-edge-coedge-partner-ring-walk-fast-slice-2026-10-21.json). J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`.
+
+**S3.7c explicit edge-use census slice (2026-10-21; generated parser-fed fast test):** for each projected SAB 21800 edge, the extractor indexes all parsed coedge ordinal-4 references that resolve to that edge and checks the selected partner walk against that set. A four-member closed ring matches; an extra detached coedge reference or a ring member assigned elsewhere remains a known gap. This is exact parsed-graph linkage only, not source completeness, manifoldness, or B-rep validity. Focused graph CTest and `lc3_compat_check` pass; no fixture or support claim was added. See [implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-partner-ring-edge-use-census-2026-10-21-generated-parser-fed-fast-slice-uncommitted) and [receipt](docs/research/s37c-sab21800-edge-partner-ring-edge-use-census-fast-slice-2026-10-21.json). All six J items remain `DEFERRED_EXTERNAL`.
+
+**S3.7c edge-use census completeness (2026-10-21; generated parser-fed fast slice):** the parsed-model scan now accounts for every coedge's exact ordinal-4 edge target. Missing, null, or wrong-type/unresolved targets are counted and the first unclassified node is retained; any such target prevents `coedgePartnerRingMatchesEdgeUseIndex` from becoming true. Parser-fed missing-slot and wrong-type controls pass with the focused graph CTest and `lc3_compat_check`. This closes false completeness within the parsed model only; omitted source records, geometry/manifold semantics, trims, B-rep validity, native acceptance, and support promotion remain open. No fixture was added. See [implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-edge-use-census-completeness-2026-10-21-generated-parser-fed-fast-slice-uncommitted) and [receipt](docs/research/s37c-sab21800-edge-use-census-unclassified-coedges-fast-slice-2026-10-21.json). All six J items remain `DEFERRED_EXTERNAL`.
+
+## Implementation progress — S3.7c malformed face-loop next-link refusal (2026-10-21; generated fast test, uncommitted)
+
+The parser-fed wrong-type and truncated loop-next controls now assert the
+existing rooted graph-validation contract: malformed traversed pointer rows
+fail transactionally at the source loop's exact ordinal instead of being
+treated as a successfully projected coverage gap. The exact graph CTest and
+`lc3_compat_check` pass. This corrects test expectations only; it does not
+change SAB decoding, public API layout, fixture inventory, or support claims.
+The next implementation slice remains a local dependency-ready S3.7c
+invariant; native and independent semantic gates remain deferred to the
+composed checkpoint. See the [parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-malformed-face-loop-next-refusal-2026-10-21-generated-fast-test-uncommitted).
+
+## Implementation progress — S3.7c SAB 21800 shell-face owner census (2026-10-21; generated parser-fed fast slice, uncommitted)
+
+The rooted projection now records each shell's exact ordinal-3 first-face
+chain, each face ordinal-1 next target, and a source-ordered index of parsed
+faces whose ordinal-3 owner resolves to that shell. The chain/index match
+requires complete parsed-face owner classification, exact identity equality,
+null termination, and no cycle. Parser-fed positives and detached, missing,
+wrong-type, cyclic, and malformed-next negatives pass, as do exact/one-under
+output and extraction-work budget controls. No fixture or support claim was
+added. This remains parsed-model structural evidence only; consumers must
+rebuild because public layout changed. Details are in the [parity-plan record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-shell-face-owner-census-2026-10-21-generated-fast-slice-uncommitted).
+
+## Implementation progress — S3.7c coedge-oriented endpoints (2026-10-21; generated parser-fed fast slice, uncommitted)
+
+Added aligned traversal-start/end vertex identities derived from exact raw
+edge endpoints plus coedge sense. Forward sense preserves endpoint order;
+reversed sense swaps the derived identities; unknown sense yields unresolved
+derived endpoints. Raw edge-order endpoint fields remain unchanged, and
+independently missing raw endpoints remain visible. Generated parser-fed
+controls, graph-preservation CTest, and `lc3_compat_check` pass. This is only
+coedge-to-edge direction, not trim evaluation, face-normal winding, B-rep
+validation, or application qualification. Public struct layout changed and
+downstream consumers must rebuild. The six external J items remain
+`DEFERRED_EXTERNAL`. See the [implementation receipt](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sab21800-coedge-oriented-endpoint-identities-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+The same slice also compares consecutive coedge traversal endpoint identities.
+For a reciprocal closed ring it includes the wraparound join; for a reciprocal
+open chain it compares internal joins. An incomplete endpoint/sense row
+withholds this observation; a known mismatch exposes the count and first
+coedge and makes coverage partial. This is topological identity continuity,
+not geometric curve/pcurve continuity or B-rep validation.
+
+## Implementation progress — analytic straight-curve evaluation (2026-10-21; uncommitted)
+
+`drw_evaluateAcisStraightCurve` evaluates the supported line equation
+`p0 + t*p1` without normalizing the direction or clamping the parameter. It
+rejects unsupported/unresolved curves, zero direction, non-finite inputs, and
+overflow without changing the caller's output. Rooted coverage also classifies
+a decoded zero direction as a known gap. Generated unit coverage and a
+parser-fed rooted SAB 21800 case exercise the public function; the focused
+graph-preservation CTest passes in 1.23 seconds. This is not an
+endpoint-on-curve tolerance check, trim or surface evaluator, placement/unit
+transform, B-rep validator, or support qualification. No fixture or public
+struct-layout change was added; downstream applications must rebuild to link
+the new symbol. The six external J gates remain deferred.
+
+## Implementation progress — straight-curve tolerance predicate (2026-10-21; generated/parser-fed fast slice, uncommitted)
+
+Added `drw_pointWithinToleranceOfAcisStraightCurve`: for a decoded straight
+curve and finite point, it compares the Euclidean residual from the infinite
+line with an explicit caller-supplied finite, nonnegative tolerance. The raw
+`p0 + t*p1` parameter is returned only when the point is accepted; output is
+unchanged on invalid input or an out-of-tolerance point. It does not assume an
+ACIS tolerance, clamp to edge endpoints, or validate trim intervals.
+
+Generated controls cover exact incidence/zero tolerance, the exact tolerance
+boundary, a just-outside point, invalid tolerance values, and zero direction.
+The parsed SAB 21800 endpoint case now verifies both endpoints are within zero
+tolerance at parameters 0 and 1. The graph-preservation CTest passes and
+`lc3_compat_check` builds. This additive exported API changes no public struct
+layout or callback vtable; downstream consumers must rebuild to link the new
+symbol. It is not a B-rep validity or application-support claim. This older
+ellipse-ratio readiness note is superseded by the later parity-plan entries:
+ellipse evaluation, closest-point projection, and distance predicates now
+exist under explicit local parameter/frame contracts. Their native ACIS
+parameter direction, trimming, and body-coordinate semantics remain
+unqualified. Continue the evidence-backed local geometry lane without
+promoting those helpers to native semantic support. The six external J items
+remain `DEFERRED_EXTERNAL`.
+
+**S3.7c cone-surface evaluation (2026-10-21; generated parser-fed fast
+slice):** added `drw_evaluateAcisConeSurface` for an explicitly documented
+local parameterization using the decoded reference origin, axis, major-axis,
+ratio, and half-angle fields. The function evaluates signed generator
+parameters with a normalized temporary frame and exponent-scaled coordinate
+sums; it refuses invalid frames, ratios, angles, parameters, and unrepresentable
+outputs atomically. Generated SAB 21800 controls cover both ellipse axes,
+positive and negative generator parameters, the cylinder limit, invalid-input
+refusals, and overflow/cancellation boundaries. Focused graph-preservation
+CTest and `lc3_compat_check` pass. This is a local analytic utility only: the
+exact ACIS ratio/parameter convention, trims, placement/units, B-rep validity,
+and native/independent consumer evidence remain open. No fixture or support
+claim was added. See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-cone-surface-evaluation-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**S3.7c circular-cone projection and distance (2026-10-21; generated
+parser-fed fast slice):** additive closest-point and unsigned proximity
+helpers now cover the untrimmed `ratio == 1` cone-surface profile, including
+both nappes, the unique apex, oblique axes, and the cylinder limit. Projection
+refuses non-unique axial cases; distance-only queries still accept them under
+an explicit finite tolerance. Noncircular cone projection was open at that
+slice and is addressed by the following implementation record; native ACIS
+parameter semantics, trims, placement/units, B-rep validity, and independent
+consumer qualification remain open. Focused graph-preservation CTest and
+`lc3_compat_check` pass. No fixture or support claim was added. See the
+[parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-circular-cone-projection-and-distance-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**S3.7c elliptic-cone projection and distance (2026-10-21; generated
+parser-fed fast slice, uncommitted):** the additive cone projection and
+distance APIs now handle positive non-unit ratios for nonzero sine-angle
+profiles using stationary roots of the elliptic-generator distance function.
+Parser-fed SAB 21800 cases include ratios below and above one, exact and
+normal-offset loci, oblique frames, symmetric non-unique axial queries, and a
+deterministic comparison against dense angular generator scans. The
+noncircular cylinder limit is handled as an ellipse in the axis-normal plane;
+numerically unresolvable normalized directions remain explicit refusals.
+This is still a local untrimmed math utility—not
+qualified native ACIS semantics, pcurve/trim evaluation, transforms/units,
+B-rep validity, or consumer support. No fixture or support claim was added.
+See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-elliptic-cone-projection-and-distance-2026-10-21-generated-parser-fed-fast-slice-uncommitted).
+
+**S3.7c torus-surface evaluation (2026-10-21; parser-fed generated fast
+slice, uncommitted):** added a local `(u,v)` evaluator using the decoded
+center, axis, U direction, and radii. Parser-fed outer/quarter-turn points,
+an oblique non-unit frame, and malformed-frame/non-finite refusals pass the
+focused graph-preservation CTest and `lc3_compat_check`. The utility has an
+explicit caller-owned U-direction tolerance and does not establish native
+ACIS parameter direction, trims, placement/units, B-rep validity, or consumer
+support. No fixture or support claim was added. See the
+[parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-torus-surface-evaluation-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**S3.7c sphere-surface evaluation (2026-10-21; parser-fed generated fast
+slice, uncommitted):** added a local radian `(u,v)` evaluator using the
+decoded center, pole axis, U direction, and signed radius. Parser-fed
+U/V/pole points, an oblique frame, and invalid-frame/tolerance/overflow
+refusals pass the focused graph-preservation CTest. The observed SAB field
+order is exercised rather than inferred from a surface projection helper.
+This does not qualify native ACIS parameter direction, trims, placement/units,
+B-rep validity, or consumer support. No fixture or support claim was added.
+See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-sphere-surface-evaluation-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**S3.7c torus-face normal (2026-10-21; parser-fed generated fast slice,
+uncommitted):** asserted the local differential normal for parser-fed
+forward/reversed sense, an oblique non-unit frame, and spindle inner-nappe
+orientation; four generated centered-finite-difference checks compare ring
+and spindle normals to surface-evaluator tangent cross products. A singular
+horn pinch and invalid sense/tolerance refuse atomically. The focused
+graph-preservation CTest, `lc3_compat_check`, symbol, diff, and receipt checks
+pass. This is not native ACIS orientation
+qualification, trim/pcurve handling, B-rep validity, or consumer support. No
+fixture or support claim changed; the six J items remain
+`DEFERRED_EXTERNAL`. See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-torus-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
+
+**S3 opaque ACSH fallback (2026-10-21; existing-sample focused slice,
+uncommitted):** bounded `ACSH_*` class frames are retained for adapter
+correlation when typed parsing fails, while the failed disposition remains
+counted and semantic coverage remains partial. The existing AC1024 conference
+room sample supplies three `ACSH_REVOLVE_CLASS` cases; the focused retention
+CTest passes without adding a DWG/DXF fixture. The test records the field
+contract accurately: `m_bodyBitSize` is the R2010+ handle-stream bit count
+(34 here), while `m_rawBytes` contains the 301-byte bounded object body. This
+does not establish revolve field semantics, strict conversion success,
+ACIS/ACDS support, B-rep validity, or consumer qualification. No support claim
+was promoted. Continue to the next local parser/coverage gap; keep the six J
+items external and non-promoting. See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s3-acsh-failed-parse-opaque-retention-2026-10-21-existing-sample) and [receipt](docs/research/acsh-revolve-opaque-frame-retention-fast-slice-2026-10-21.json).
+
+**S3 ACSH failure-correlation follow-up (2026-10-21; existing-sample fast
+test, uncommitted):** extended the coverage to the repository's AC1024
+condominium sample. Its three currently failed object decodes are all
+untyped ACSH records; each now has a versioned bounded body and source class
+identity retained in the adapter correlation collection. The parser failures
+remain counted (3), so this proves retention on that sample, not complete
+typed parsing or conversion. Both focused AC1024 retention CTests pass. No
+fixture, production behavior, or support claim changed; continue with the
+next local semantic gap, leaving the six J items deferred. See the [parity-plan
+progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s3-acsh-failed-frame-correlation-2026-10-21-existing-samples) and [receipt](docs/research/acsh-failed-frame-correlation-fast-slice-2026-10-21.json).

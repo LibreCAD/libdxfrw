@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "title": "CMC color route and peer-release review",
+  "date": "2026-10-16",
+  "status": "PLAN_UPDATED_NONPROMOTING",
+  "scope": "Public-source research and local source audit only; no conversion, test binary, or external CAD executable was run for this review. CMC vector grouping follows the current reader source contract and was not independently verified against the authoritative ODA byte-layout specification.",
+  "peerSources": [
+    {
+      "name": "LibreDWG issue #1415",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1415",
+      "observed": "Open peer report describing R2004+ CMC stored-method/index confusion, palette-collision damage for indexed colors, and a low-byte-as-ACI failure mode for truecolor. Reported sample counts, ODA comparison, and proposed fix were not independently reproduced.",
+      "status": "peer_report_only"
+    },
+    {
+      "name": "LibreDWG 0.14.1 release notes",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "Release notes list R2004 DWG writing and DXB support; direct R2007 DWG encoding is not supported and falls back to R2010. Notes also list security and CMC changes.",
+      "status": "release_notes"
+    },
+    {
+      "name": "ACadSharp releases v3.7.16 and v3.8.0",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.16",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": "v3.7.16 lists DXF decimal precision, tables over 32,767 entries, WIPEOUTVARIABLES, context-data writer work, and entity/object fixes; v3.8.0 lists assembly visibility only. These are candidate differential-test areas, not semantic equivalence or ACIS/SAB writer capability.",
+      "status": "release_notes"
+    },
+    {
+      "name": "Autodesk LAYER DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+      "observed": "Group 62 is the layer color number; a negative color number means the layer is off. This page does not establish every numeric validity bound.",
+      "status": "format_reference"
+    },
+    {
+      "name": "Autodesk acad_truecolordlg AutoLISP reference",
+      "url": "https://help.autodesk.com/cloudhelp/2017/PTB/AutoCAD-AutoLISP/files/GUID-E6FF435F-9E66-4F37-8770-2E3FB87B8E0B.htm",
+      "observed": "The API returns group 420 with exact truecolor and group 62 with the closest matching color index. An accompanying AutoCAD API note states truecolor group 420 takes precedence when it conflicts with group 62. The reference does not prescribe a universal distance metric.",
+      "status": "format_and_api_reference"
+    },
+    {
+      "name": "ezdxf LayerTable.add API",
+      "url": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/layer.py",
+      "observed": "The independent implementation validates ACI values when creating layer table entries; this is comparator policy, not a normative format reference or native-CAD qualification.",
+      "status": "implementation_comparator"
+    }
+  ],
+  "localSourceAudit": [
+    {
+      "path": "src/intern/dwgbuffer.cpp",
+      "lines": "1063-1107",
+      "observation": "getCmColor branches on CMC method; C2 retains RGB with color index sentinel 256, while C3 yields the low-byte indexed color.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "lines": "3924-3933,4005-4007",
+      "observation": "DRW_Layer parsing retains the CMC color and signed on/off state.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "lines": "6747-6752",
+      "observation": "Current LAYER DXF validation allows color magnitudes through 256.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "lines": "3948-3951",
+      "observation": "writeLayer emits group 62 directly from the stored color and separately emits group 420 when available and supported by the target version.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    },
+    {
+      "path": "src/drw_objects.h",
+      "lines": "7050-7222",
+      "observation": "The current implementation already provides its 0-255 DXF ACI RGB palette as DRW::dxfColors.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    },
+    {
+      "path": "../LibreCAD/librecad/src/lib/engine/lc_colornumbers.cpp",
+      "lines": "52-94",
+      "observation": "LibreCAD mainline selects closest ACI by Manhattan RGB distance over indices 1..255 and retains the first/lower index on ties.",
+      "evidenceLevel": "source_confirmed_not_executed"
+    }
+  ],
+  "planDelta": [
+    "Expand existing PAR-66 / 7AN to cover generated AC1024+ CMC-to-LAYER-to-DXF behavior; do not create a new finding.",
+    "Test indexed palette collision, indexed 255, and truecolor 00A600 with zero low byte.",
+    "For truecolor-only layers, select the closest valid ACI from the existing palette using LibreCAD mainline's Manhattan metric; preserve exact group 420, off-state, ASCII/binary output, framing, and destination preservation.",
+    "Keep external test drawings out of the repository; use the existing fast generated test owner and defer full suite to current integration checkpoints."
+  ],
+  "excludedClaims": [
+    "No conversion or local runtime execution was performed for this review.",
+    "No authoritative ODA CMC wire-layout verification was performed; it remains required before parser-format changes.",
+    "No native CAD application acceptance or rendered appearance was qualified.",
+    "No peer-reported metric was independently reproduced.",
+    "No support claim or external evidence gate was promoted."
+  ],
+  "externalDisposition": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "findingCount": 123,
+  "topLevelSubplanCount": 71
+}

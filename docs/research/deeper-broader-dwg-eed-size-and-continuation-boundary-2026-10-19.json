@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-deeper-broader-dwg-eed-size-and-continuation-boundary-v1",
+  "date": "2026-10-19",
+  "scope": "Reconcile ACadSharp issue #1282's reported signed EED length overflow with ODA's DWG EED grammar, LibreDWG's public data types/documentation, and libdxfrw's existing generated boundary controls; refine the existing 7K external acceptance gate without changing code or support claims.",
+  "sources": [
+    {
+      "kind": "authoritative_format_reference",
+      "name": "Open Design Specification for .dwg files v5.4.1, section 28, p. 269",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observation": "Each EED block is Length (BS), APPID handle, and typed data; Length counts data bytes and blocks repeat until zero. The text does not explicitly describe splitting one application's data across repeated identical APPID handles."
+    },
+    {
+      "kind": "open_source_reference_implementation",
+      "name": "LibreDWG BITCODE_BS public type",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/include/dwg.h",
+      "observation": "BITCODE_BS is declared uint16_t, corroborating an unsigned 16-bit BS representation."
+    },
+    {
+      "kind": "open_source_reference_implementation",
+      "name": "LibreDWG EED model documentation",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observation": "Documents a repeated EED block list where each block has a size and APPID handle; the example uses distinct APPID handles, so it does not independently establish repeated same-APPID continuation semantics."
+    },
+    {
+      "kind": "peer_issue_report",
+      "name": "ACadSharp issue #1282",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1282",
+      "observation": "Reports an EED block of 32,768 bytes being written through a signed short cast and later causing the peer reader to drop its entity. The issue author identifies ACadSharp 3.8.0 NuGet and current master; no package or peer binary was run in this research pass."
+    }
+  ],
+  "local_audit": {
+    "files": [
+      "src/intern/dwgbuffer.cpp",
+      "src/intern/dwgbufferw.cpp",
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "observed": [
+      "getBitShort/putBitShort use uint16_t values.",
+      "encodeDwgEed bounds one physical payload block to UINT16_MAX and splits only at complete-item boundaries, repeating the APPID handle.",
+      "Existing 7K generated controls cover 32,767, 32,768, 65,535, and 65,536 encoded bytes; 65,536 splits as 65,407 plus 129.",
+      "The generated full-file AC1021 write/read control preserves a following LINE, but this is a same-codec result only."
+    ]
+  },
+  "conclusions": {
+    "peer_32768_failure": "Peer-specific signed-size conversion defect; it does not establish a standards limit of 32,767.",
+    "per_block_width": "Keep unsigned 16-bit block sizing through 65,535 bytes, consistent with ODA's 16-bit BS description and LibreDWG's uint16_t type.",
+    "same_appid_continuation": "Still unqualified. ODA's repeated block grammar and LibreDWG's examples do not explicitly establish that consecutive blocks with the same APPID handle are merged as one semantic XDATA group by independent consumers.",
+    "local_finding": "No new libdxfrw defect identified by this evidence pass.",
+    "plan_change": "Refine the existing 7K external acceptance gate with an exact 65,535/65,536-byte scratch comparison. If independent output acceptance is unavailable or fails, retain EXTERNAL_ACCEPTANCE_PENDING or refuse over-limit single-block output atomically; continue unrelated local work."
+  },
+  "run_status": {
+    "peer_binary": "NOT_RUN",
+    "native_cad": "NOT_RUN",
+    "external_drawing_downloaded": false,
+    "local_tests_run": false,
+    "code_changed": false,
+    "fixture_added": false
+  },
+  "plan_ledger": {
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "artifacts": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/deeper-broader-dwg-eed-size-and-continuation-boundary-2026-10-19.json"
+  ]
+}

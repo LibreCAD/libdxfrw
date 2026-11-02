@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "Slice3.2b.1",
+  "parent_commit": "5de7919a17f4b1f021da7ec0da0ecd332ac5c595",
+  "previous_production_commit": "704832b852eab3271dbfcf1dcb019d4ea97f8fed",
+  "scope": "Owned full DXF HEADER codepage-declaration provenance only; normalized values, codecs and export policy unchanged. Parent Slice3.2 remains in progress.",
+  "source_sha256": {
+    "src/drw_header.h": "05d2418426b137180cad1901bf188f2317c9f6c3f98656962882a4b2366c89f3",
+    "src/drw_header.cpp": "78a704d0dfbb6788e3866611b332be140fe0b2a5dacbb1e2780643e5bad45e61",
+    "tests/gbk_codepage_tests.cpp": "9db577c110e6dbf33a758bba437bb64d07a436087a31b3e2ef840250db468ec4",
+    "tests/hardening_tests.cpp": "68264bd551a48859ef1f19e2936217974388dc1543ff2ee1eac949c0b35ba053",
+    "src/intern/dxfreader.h": "bd31bbd073c57de31ec291acb245c2c8bbd611affc46d47d8e1e78b3ff1cc5b3",
+    "src/intern/drw_textcodec.cpp": "ba3a82657b7010195ed45b49462586f3505c89b122cd2bfbc8b93dc6bcdc6428",
+    "src/intern/drw_textcodec.h": "d56b72a979c3fa6e5a4d839d082f00108a1d4110416d1404bbd9a6da9f9aee49"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw.a": "eda8b4c43a36985d64851f54aa659a73e671c5beceb896f3212175790afccb9d",
+    "build/libdxfrw_gbk_codepage_tests": "bad8350b638e8983a0707b51f2f5f8bfebe226d0181de0a7c488c01167404f18",
+    "build/libdxfrw_hardening_tests": "80d45796847ca9b9e50e89f7eb6c6f53aaa13d770631a615b26facd3ac31fcdf",
+    "build/dwg2dxf/dwg2dxf": "113c92d2e4ef5bb8beff7e1cf248a1e6ed57c9a44baef758988c15ada575766b",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "fc6bf05066228b8ef31b0abeb651a6411d002f2cdd03b664c08d8d4affbdc92a"
+  },
+  "implementation": {
+    "api": [
+      "DRW_Header::hasDxfCodePageDeclaration() const noexcept",
+      "DRW_Header::dxfCodePageDeclaration() const noexcept -> const std::string&",
+      "DRW_Header::clearDxfCodePageDeclaration() noexcept"
+    ],
+    "value": "Last complete physically read DXF $DWGCODEPAGE group3 value before Unicode decoding/normalization; absent is distinct from explicitly empty.",
+    "framing": "Reader delimiters omitted; ASCII terminal CR removed; binary payload CR retained. May contain non-UTF8 bytes, mixed case, whitespace and literal escape-looking text.",
+    "ownership": "Private incomplete DxfCodePageSource shared_ptr<const> capsule owns immutable string and retained lease. Copy/assignment share one physical value; moves transfer ownership; reset/clear detach one owner. No reader/caller view.",
+    "historical_state": "Editing vars does not alter provenance. Writer keeps normalized public HEADER behavior and never replays hidden original spelling. Ordinary new DXF read does not inherit provenance; DWG creates none.",
+    "resource_accounting": "Reserve full logical source length before allocating snapshot; adopt reservation into capsule lease, then publish. Old/new overlap remains charged. Exceptions/refusal leave old snapshot unchanged and reservation unwinds. Last owner releases one logical charge.",
+    "resource_limits": "Not whole-HEADER/consumer-model accounting, string capacity, shared_ptr control-block/allocator/RSS accounting or general thread-safety qualification. A caller-owned copy of getter bytes is outside scope.",
+    "compatibility": "No new pure callbacks or external dependencies; installed header includes no private reader header. Public HEADER layout grows; consumer rebuild required, no binary ABI claim.",
+    "unchanged": [
+      "declared default/input-only recovery",
+      "codec mapping/classification",
+      "normalized HEADER variable",
+      "modern UTF8 precedence",
+      "DWG parsing/byte layout",
+      "writer output policy"
+    ]
+  },
+  "tests": {
+    "new_handoffs": 72,
+    "handoff_axes": "Six raw declarations x AC1015/AC1024 x metadata orders x memory ASCII/file ASCII/file binary.",
+    "raw_values": [
+      "iso8859-4",
+      "gBk",
+      "",
+      "ANSI_1252 ",
+      "local-E9-byte-plus-literal-CIF",
+      "local-long-plus4096-q"
+    ],
+    "existing_handoffs_with_new_provenance_assertions": 84,
+    "delimiter_controls": 3,
+    "delimiter_routes": [
+      "memory ASCII CRLF",
+      "file ASCII CRLF",
+      "file binary payload CR"
+    ],
+    "direct_budget": {
+      "admitted": 2,
+      "refused": 2,
+      "single_peak": "7L versus 7L-1; after reader destruction only source snapshot L remains",
+      "replacement_peak": "8L versus 8L-1, with pinned old snapshot; accepted retains2L, refusal retains oldL"
+    },
+    "facade_budget": {
+      "admitted": 3,
+      "refused": 3,
+      "peak": "7L for file routes; input.size()+7L for memory ASCII. ResourceLimit/dxf-retained-byte-budget before HEADER callback; corrected same-facade retry."
+    },
+    "lifetime_controls": [
+      "facade/reader destroyed before copied model check",
+      "copy/copy-assignment/move/move-assignment",
+      "moved-from absence",
+      "public vars edits retain history",
+      "clear/reset detach independently",
+      "last owner releases charge",
+      "old/new replacement overlap",
+      "repeated declarations last complete value",
+      "repeated HEADER snapshots",
+      "new read without metadata",
+      "pre-header refusal/corrected retry",
+      "later entity failure retains delivered HEADER",
+      "export preserves history but emits normalized spelling",
+      "eligible DWG HEADER has no physical DXF declaration"
+    ]
+  },
+  "fixture_prerequisite": {
+    "failure": "Recovered earlier integration4/5: GEODATA parser state source setup",
+    "cause": "Untouched hardening copy/reset control declared objectVersion1 but authored modern93-count/13,23-source/14,24-target grammar; committed archival v1 uses92/12,22/13,23.",
+    "fix": "Declare intended modern objectVersion2; preserve all parser-state/copy/assignment assertions. Dedicated fixture tests still exercise genuine v1/v2/v3 in ASCII/binary.",
+    "focused_repair_gate": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure; pass1/1 in0.33s",
+    "frozen_prior_receipt_unchanged": "docs/research/broader-conversion-readiness-2026-10-15.json retains historical WIP failure; final acceptance is separate."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_hardening_tests libdxfrw_diagnostic_tests libdxfrw_dxf_fixture_tests dwg2dxf lc3_compat_check --parallel 2; exit0",
+    "strict": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -DLIBDXFRW_DWG_FIXTURE_DIR=quoted-absolute-fixture-root -fsyntax-only src/drw_header.cpp tests/gbk_codepage_tests.cpp; exit0",
+    "main_mode": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-provenance",
+      "exit_code": 0,
+      "output": "Codepage provenance budget: admitted=2, refused=2\nCodepage declaration provenance: handoffs=72, delimiter controls=3, facade admitted=3, facade refused=3\n"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures|libdxfrw_hardening|libdxfrw_diagnostic|libdxfrw_public_header_hygiene)$' --output-on-failure --output-junit /private/tmp/libdxfrw-codepage-provenance-complete-ctest.xml",
+      "exit_code": 0,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "wall_seconds": 13.62,
+      "junit_sha256": "30b24c28f0d69d6aafb7e1ad7f0e11686f70a2dbc6f25b54c4ad3468f4191ae8"
+    },
+    "sanitizer": {
+      "build_root": "/private/tmp/libdxfrw-hatch-asan.Nc6BqC",
+      "build_target": "libdxfrw_gbk_codepage_tests only",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1; Debug",
+      "environment": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1",
+      "mode": "--codepage-provenance",
+      "exit_code": 0,
+      "output": "Codepage provenance budget: admitted=2, refused=2\nCodepage declaration provenance: handoffs=72, delimiter controls=3, facade admitted=3, facade refused=3\n",
+      "limits": "Focused ownership/budget/handoff mode only; Apple runtime leak detection disabled. No full-suite/native/platform evidence."
+    },
+    "consumer_limits": "lc3 compile and public header hygiene10 entry points/10 identical enums/mixed-TU link pass; actual X11 unavailable/not requested. No full Qt/native LibreCAD or LibreCAD_3 runtime qualification.",
+    "no_full_suite": true,
+    "codec_140_probe": "Not rerun; codec source hashes exactly unchanged. Earlier reports remain frozen, not relabeled as fresh results."
+  },
+  "remaining": [
+    "Slice3.2b.2a source-text observations",
+    "Slice3.2b.2b owned DXF import outcome",
+    "Slice3.2b.2c strict complete-conversion text admission",
+    "Slice3.2b.2d target scalar transport",
+    "Slice3.3 mapping/default policy",
+    "Slice3.4 version-witnessed DWG numeric metadata"
+  ],
+  "non_claims": {
+    "findings": 122,
+    "top_level_subplans": 70,
+    "three_d_ledger": "149/128 committed/6 blocked/3 in progress/12 other/0 ready parents unchanged",
+    "external_j": "J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and non-promoting",
+    "fixtures_added": false,
+    "new_registration": false,
+    "new_dependency": false,
+    "new_native_evidence": false,
+    "support_promotion": false,
+    "remote_writes": false
+  }
+}

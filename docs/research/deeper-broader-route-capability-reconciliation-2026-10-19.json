@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Route-capability reconciliation across DWG readers, DXF projections, and geometry consumers",
+  "mode": "Primary-source repository manuals, API documentation, known-issue inventories, and public issue review",
+  "scope": [
+    "Reconcile open-source route capabilities by operation, format/version, and evidence layer rather than project-level support claims.",
+    "Identify safe optional comparator roles for GDAL and BRL-CAD without increasing routine validation cost.",
+    "Keep DWG container/object graph, DXF record semantics, modeler-carrier transport, B-rep interpretation, and native-consumer qualification distinct."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "limitations": "Documentation and source-tree evidence establish declared route boundaries only. No peer runtime behavior was measured, no local defect was reproduced, and current branches/docs may change; future runs must pin immutable revisions and artifacts."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG manual, class table, and release notes",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The manual separates DWG decoding, DXF conversion, and GeoJSON projection; unknown classes/types may be retained as binary blobs without DXF codes, GeoJSON has documented omissions, and release notes contain version-/direction-specific writer caveats."
+    },
+    {
+      "name": "GDAL DXF driver and known issues",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "observed": "The DXF route projects into OGR features, can expose unhandled raw group codes, tessellates curves, omits several style/3D/OCS semantics, and writes AutoCAD 2004 DXF. AC1027+ 3D-extensible mode exposes ASM bytes and an affine transform but does not create OGR solid geometry."
+    },
+    {
+      "name": "BRL-CAD DXF conversion documentation and issue #228",
+      "urls": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad"
+      ],
+      "observed": "The dxf-g documentation describes layer-aggregated geometry conversion and a millimeter default when units are absent. Open issue #228 reports a malformed POLYLINE face-index out-of-bounds read in the peer importer; it is not a libdxfrw reproduction or normative format evidence."
+    },
+    {
+      "name": "ezdxf entity model, XREF limits, and export contract",
+      "urls": [
+        "https://github.com/mozman/ezdxf/tree/master/docs/source/dxfentities",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py"
+      ],
+      "observed": "ezdxf exposes typed DXF entities and ACIS carrier objects, but version changes do not convert unsupported features; XREF import is limited and associative HATCH relationships are not managed by the entity API. This is not a B-rep or whole-document graph oracle."
+    },
+    {
+      "name": "gdsestimating/dxf-parser README",
+      "url": "https://github.com/gdsestimating/dxf-parser/blob/master/README.md",
+      "observed": "The project documents a typed DXF object projection with a bounded entity set rather than complete entity/object-family coverage; 3DSOLID is outside the documented typed set."
+    }
+  ],
+  "plan_impact": {
+    "comparator_admission": "Require an immutable route fingerprint: implementation lineage, exact artifact/revision, input format/version, operation/direction, entity/object families, options, transformations, unsupported/opaque treatment, and independent expected-value source.",
+    "gdal": "Optional direct-DXF OGR projection check at an existing composed checkpoint only. Use raw group-code output and geometry as separate observations; AC1027+ ASM bytes/transform verify transport only.",
+    "brlcad_dxf_g": "Conditional geometry-consumer projection for valid scratch-generated supported inputs. Account for per-layer aggregation, units, scale, and tolerance. Do not route malformed POLYLINE security controls to it while issue #228 remains unresolved.",
+    "acis_acds": "No reviewed route closes the full DWG entity-to-AcDs-owner/key-to-payload-to-complete-B-rep-to-native-consumer chain.",
+    "implementation_change": "No local defect, new finding, top-level subplan, dependency, fixture, test, peer runtime, native run, validation cadence change, or support promotion."
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt only, in a broadly dirty shared worktree. No changes were staged or committed."
+}

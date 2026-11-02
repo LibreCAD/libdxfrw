@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "RPP-5zc",
+  "date": "2026-10-30",
+  "title": "TABLECONTENT block-cell attributes beyond two",
+  "baselineCommit": "d98ee095",
+  "mode": "Bounded serializer/adapter extension with runtime-generated ASCII/Binary controls",
+  "scope": {
+    "sourceProfile": "One AC1027 TABLECONTENT object with one block-backed cell and three ordered ATTDEF attributes, each uniquely owned by the referenced BLOCK_RECORD.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fieldProof": "Physical group 91 count is 3; each ordered group 330 ATTDEF identity, group 301 text, and group 92 one-based index is checked against a fresh typed readback. The block reference is checked against the emitted BLOCK_RECORD identity.",
+    "handleRemapping": "ATTDEF and BLOCK_RECORD source identities are resolved through the writer's actual source-to-emitted identity maps; wire values are compared with fresh typed readback rather than an unsupported forced block-entity remap.",
+    "claimBoundary": "One block content in one TABLECONTENT cell, bounded attribute transport and this library's typed readback only. No native table rendering, source DWG semantic proof, or support claim."
+  },
+  "implementation": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "summary": "Raised the TABLECONTENT block-cell attribute bound from two to the existing 10,000-item model/parser limit in both the low-level writer and adapter closure check. Duplicate ATTDEF identities are rejected with indexed sets; the adapter builds a requested-handle index and scans block ATTDEF definitions once per cell rather than rescanning all blocks for every attribute. Aggregate string/output bounds and ownership/remap checks remain in force.",
+    "failureAndRetry": "With three attributes present, missing ATTDEF, wrong-owner ATTDEF and duplicate target controls each refuse atomically and preserve the destination sentinel. Repairing the same source adapter allows successful ASCII and Binary exports and readback.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "runtimeGeneratedDrawings": true,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_tablecontent_multicell_field_reference$' --output-on-failure",
+      "build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+      "cmake --build build --target dwg2dxf -j4",
+      "git diff --check"
+    ],
+    "results": {
+      "strictFixtureTargetBuild": "PASS",
+      "focusedCtest": "PASS 1/1; 0.51 seconds",
+      "datalinkAndSourceReplaySelector": "PASS",
+      "dwg2dxfBuild": "PASS",
+      "fullSuite": "NOT_RUN per fast-validation plan",
+      "persistentFixtureFiles": "NONE"
+    }
+  },
+  "limitations": [
+    "The runtime profile proves three attributes, not stress behavior at the 10,000-item bound.",
+    "Multiple block contents/cells and TABLE block geometry remain unqualified.",
+    "Serializer readback does not prove native CAD rendering or independent source semantics."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Single-cell TABLECONTENT block-backed attribute transport above the former two-attribute ceiling, with bounded identity closure and failure/retry proof.",
+    "remainingP5Scope": "FIELDLIST/child and additional source/version profiles; standalone 1x1 multiple FIELD references; multiple block contents/cells and block geometry; remaining CONTENTFORMAT/CELLSTYLEMAP and AC1018 TABLE profiles; independent native rendering evidence.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ef86513a2e6fc6a33ccc0add7c7a22eca61a4b784c3839c8edd6bc5ab6d912f5",
+    "dwg2dxf/dx_iface.cpp": "94330475c17b55b672cad8615cef32b843bf3d5ef768b370a850b9d5c880c100",
+    "src/libdxfrw.cpp": "304c867168300ece49f3e4474e116e0fb8ecad2f04687cc3c10bb4b538d556d2",
+    "tests/dxf_fixture_tests.cpp": "e81f60d7f85dbe773696dbdf2106874cb0f37c46791c79f16cd366043ec91f1a"
+  },
+  "commitCreated": true
+}

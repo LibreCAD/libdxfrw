@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4d MATERIAL diffuse mapper matrix generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "a21ba268782944c4a3d4f54d16dfb218398d0d19021539807a1ec43767b83381",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "field": {
+      "group": 43,
+      "description": "Diffuse map mapper transform matrix",
+      "format": "16 real values, row-major",
+      "default": "identity"
+    }
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material carries a 16-element row-major matrix, identity default, and explicit presence flag.",
+      "Copy/reset behavior preserves the matrix and returns to identity with presence false."
+    ],
+    "parser": [
+      "Parse the diffuse group-43 matrix only before the group-464/group-465 Normal Map boundary.",
+      "Require exactly 16 contiguous finite values.",
+      "Reject a short matrix at the next non-matrix group or object boundary and reject a seventeenth value immediately.",
+      "Preserve the later Normal Map matrix solely in the ordered raw net."
+    ],
+    "writer": [
+      "Emit all 16 group-43 values in row-major order when present.",
+      "Reject non-finite authored values before replacing output."
+    ],
+    "touchedFiles": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary source vectors contain different non-identity diffuse and Normal Map matrices.",
+    "Assert typed diffuse matrix values, later raw matrix retention, ordered same-encoding replay, and cross-encoding replay.",
+    "Assert copy/reset/identity defaults and the following LINE sentinel.",
+    "Reject 15-value and 17-value source matrices before callback publication.",
+    "Typed writer round-trips all 16 values in both encodings.",
+    "Non-finite typed matrix output is transactionally rejected and succeeds after correction."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_fixtures, libdxfrw_hardening, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, and plan files",
+    "receiptJsonValidation": "PASS (jq empty)",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "productionFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "dwgMaterialBodyChanged": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4e: specular gloss/color controls, including scoped unsigned group 92",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ]
+  },
+  "commitCreated": false
+}

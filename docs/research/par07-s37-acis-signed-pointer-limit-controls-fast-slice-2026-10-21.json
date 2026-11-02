@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-07/S3.7 ACIS signed pointer-limit controls",
+  "mode": "Generated fast regression slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the negative signed-limit companion to the existing extreme-positive ACIS raw-pointer regression",
+    "Verify model construction does not narrow LLONG_MIN into a graph index",
+    "Verify rooted projection rejects the preserved invalid raw pointer transactionally with exact diagnostics"
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testFile": "tests/graph_preservation_tests.cpp",
+    "control": "Set the first body pointer token to std::numeric_limits<long long>::min(); require the resolved ref to remain -1 and projection to fail with InvalidReference at the source body and pointer ordinal 0.",
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "ctestRegistrationAdded": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "directTestBinary": {
+      "command": "build-gcc/libdxfrw_graph_preservation_tests",
+      "result": "PASS"
+    },
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files and no-index whitespace check on the new receipt)",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingsTotal": 143,
+    "topLevelSubplansTotal": 78,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "externalItemsRemainDeferred": true
+  },
+  "repositoryState": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git/index is not writable in this environment; no existing changes were staged or committed."
+  },
+  "selfUnblock": "Continue to the next distinct source-backed local PAR-07/S3.7 or PAR-07/S2/S8 slice without waiting for optional external/platform qualification."
+}

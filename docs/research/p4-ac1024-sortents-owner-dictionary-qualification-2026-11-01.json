@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-sortents-owner-dictionary-qualification-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Qualify the matched owner DICTIONARY callback in the AC1024 SORTENTSTABLE output profile",
+  "status": "SORTENTSTABLE_AND_OWNER_DICTIONARY_CALLBACKS_OUTPUT_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "sortEntsTable": {
+      "handle": "0x354",
+      "record": "SORTENTSTABLE",
+      "class": "AcDbSortentsTable",
+      "objectType": 517,
+      "orderedMembershipPairs": 88
+    },
+    "ownerDictionary": {
+      "handle": "0x15D",
+      "objectType": 42,
+      "ownerBlockRecord": "0x1F",
+      "entries": ["ACAD_ASSOCNETWORK", "ACAD_SORTENTS"]
+    },
+    "fixturePolicy": "Existing local DWG input; no DWG or DXF fixture was added."
+  },
+  "priorEvidence": [
+    "docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json",
+    "docs/research/p4-ac1024-sortents-associative-network-physical-output-readback-2026-10-31.json"
+  ],
+  "implementation": {
+    "files": ["dwg2dxf/dx_iface.cpp", "tests/dwg2dxf_adapter_tests.cpp"],
+    "behavior": "Source admission and unchanged-source validation now require the owner DICTIONARY's generation-matched standard callback frame, exact handle/type/version, payload-matched typed baseline, and equality with the captured owner model. After the staged SORTENTSTABLE and complete owner DICTIONARY bodies pass inspection, finalization publishes both source callback identities together through the existing pending-qualification transaction.",
+    "failureBehavior": "The physical selector mutates a table target to NoHandle, verifies refusal preserves the destination and the pre-attempt qualification set, restores the target, then retries on the same adapter. Successful ASCII and Binary output must qualify both the type-517 table and type-42 owner DICTIONARY callbacks.",
+    "noClaims": "This is output evidence for the existing bounded AC1024 profile. It does not qualify the full drawing or promote a format-support claim."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS with warning-as-error enabled"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j2",
+        "result": "PASS with warning-as-error enabled"
+      }
+    ],
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; 88 ordered pairs, source membership, owner/dictionary roles, null-sort fallback, callback qualification, atomic refusal and same-adapter retry",
+      "testExecutableSha256": "50c3f05fa9542b4beeaf7047c57e4597b7d1af38e5f1bed0291b004d35a4a8d7"
+    },
+    "focusedRegression": {
+      "command": "ctest --test-dir build-gcc -R 'sortents|nested_network_sortents' --output-on-failure",
+      "result": "PASS, 3/3 fast tests"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "98ea12b1b791e7907809ae68b4fc0965cb09c5d268714915ae1f337af2ef7951",
+    "tests/dwg2dxf_adapter_tests.cpp": "faa664a1905b8a992fd6c8a53a446907e5ee749486c9a8ecead5d2269f54d6b7",
+    "sourceDwg": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+  },
+  "limitations": [
+    "The receipt covers one AC1024 physical SORTENTSTABLE and its owner DICTIONARY profile.",
+    "Fresh libdxfrw readback and writer inspection do not establish native CAD semantics or full-document conversion.",
+    "Strict whole-source conversion remains governed by its existing callback-completeness gate."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "The already-proven owner DICTIONARY body now also publishes its exact standard callback identity after successful staged output; failed output publishes neither this identity nor the table identity.",
+    "remaining": "P4 remains open; the AC1018 ET-Drawing witness still has 13 of 23 opaque callback identities unqualified, along with the invalid empty-name STYLE output boundary.",
+    "externalItemsPromoted": 0
+  }
+}

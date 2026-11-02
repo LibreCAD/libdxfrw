@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 selected MLINESTYLE source-only dependency grammar",
+  "date": "2026-10-28",
+  "codeCommit": "6870565901028e3a58e002bdb81d411d873d0544",
+  "scope": "A private, bounded source-only classifier over the accepted whole-read scalar capture. The selected AC1027 profile recognizes HEADER, selected LTYPE/LAYER/BLOCK_RECORD tables, BLOCK/ENDBLK, ordinary selected LINE/MLINE, and a rooted DICTIONARY/MLINESTYLE graph. Source/target encodings are ASCII and binary. It is not called by export and does not enable consumed-style geometry.",
+  "contract": {
+    "authority": "The private caller checks the completed same-read observer owner, data/container identity and generation, source version, read context and outcome, then authenticates the original root structural record and its unique ACAD_MLINESTYLE soft-owner target before invoking the bounded classifier. The source root, dictionary entries, style owners/reactors and observed 340 references are checked again against that original graph.",
+    "grammar": "The selected grammar requires its exact section, record, subclass and field ordering and rejects unknown sections, CLASSES, unsupported fields, application scopes other than the selected structural reactor, XDATA, embedded/proxy/binary payloads and unqualified reference roles. These are selected admission restrictions, not claims that every refused DXF is invalid. TABLE group 70 is treated as a maximum. BLOCK flags and xref path are restricted to a local non-xref profile.",
+    "nameBinding": "Each admitted MLINE group 2 and MLINESTYLE group 2 must have exact ASCII spelling matching the unique source MLINESTYLE dictionary key associated with the observed 340/350 target. Duplicate source names/keys are rejected under ASCII case folding. Exact spelling and the specific *Model_Space spelling are conservative profile restrictions, not general collation or DXF validity claims. The earlier intentionally stale-name witness refuses.",
+    "flagsAndValues": "MLINESTYLE group 70 permits only documented bits 1, 2, 16, 32, 64, 256, 512 and 1024. Unrecognized bits refuse. MLINE group-2 names are restricted to 32 ASCII bytes; style descriptions to 255 source bytes, conservative bounds for this profile. Documented style flags passing this source classifier do not qualify fill, caps, rendering or geometry.",
+    "bounds": "Default limits are 4096 captured fields, 64 nodes, 256 KiB source retained peak, and 256 MiB logical work; at most 16 dictionary entries per node and 2\u201332 vertices with two elements are admitted. The checked precharge includes 512 times the retained source peak for byte-sensitive comparisons, field work, fixed bounded graph-pair work and the root lookup. Node[64] and its entry arrays are fixed stack storage, separate from the retained-source cap. Logical charges are not an exact RSS or CPU-time ceiling.",
+    "limits": "The result is SourceCandidate, not write eligibility. The tests deliberately show that modifying a live dictionary or removing live entities can leave SourceCandidate unchanged. Complete live/removed/new/proxy consumer and dependency census, late-mutation checks, output inspection, geometry, native validity and native rendering remain open. No support claim is promoted."
+  },
+  "authorities": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+  ],
+  "sourceBindings": {
+    "grammarSha256": "e8beb52143f06f6057a2ba92b0003db4072929964002c9c9834fb7b7af323192",
+    "adapterCppSha256": "8c49ade4082f94fe1527d639c2b51468c8a55296a1ba3b3805668bc72b51ca7f",
+    "adapterHeaderSha256": "6039b23380531342e54de70b0af68224a0d71aba9c629a0e9648e4a96b79a4d8",
+    "testSourceSha256": "937f1e32a426c98d13869a2b98795916512485534b5e2791df3c4b2f0b825085",
+    "normalAdapterObjectSha256": "f6c8221f0f96862e3c6ada9ceecf7c78d598bfeed72f17c93145ae1e30c8d8db",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "normalTestSha256": "6c90fe822043d8f46d523c59285f06727f13742f2115de9b82c9a7c8ec0d89fa",
+    "asanAdapterObjectSha256": "99640602806aeb871f813c6b5a1f51be80e419fb536ba866f148d91cbbf99f9d",
+    "asanLibrarySha256": "470a3cf789dabd460281880b22933e335a60e01b8eb58281ff27aeb012d29e57",
+    "asanTestSha256": "ac92ed81212ab70d5caacae05b144a2d86f31acd2bbd18fca83eb114b09d7fed"
+  },
+  "validation": {
+    "normal": {
+      "result": "PASS",
+      "count": "3/3",
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ],
+      "logSha256": "3939d6853ed66cd3db04a6d1cf7d1bccc2c00e1996ec0c17a8f65cd5748896cb"
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "3/3",
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ],
+      "options": "halt_on_error=1:detect_leaks=0",
+      "logSha256": "87c104f59670c899129019c781ae414a8b04a7f7fcd8a5979baf7c0322675390"
+    },
+    "inventory": "Canonical/source-release inventory check passed for 627 tracked files.",
+    "focusedControls": "14 source candidates, 48 classified refusals, four missing-authority refusals, 14 exact/one-below quota sets, 52 same-adapter corrected retries and four callback-spoof controls across ASCII/binary. Cases include remapped handles, renamed symbols, ordinary and multiple LINEs, ignored comment, stale and mismatched names, hidden application 340, unknown field, XDATA, wrong owner/target/reactor, missing LTYPE, ambiguous block names, undersized table maximum, xref BLOCK, proxy, unknown section, unknown flag bits, and overlong style description/MLINE name."
+  },
+  "finalSharedProbe": {
+    "probeSourceSha256": "68c9a020b832c79fc1df8e30d58312fa8828e7378a6ebe977cca3b0862385114",
+    "probeExecutableSha256": "0f193fc9da688fc1a63939ed240d48c82813f2e4507583141759dfd12a2ab1c4",
+    "physicalDecoderSourceSha256": "2999199609f5c54db46c10409b6f41de9b0cd242626e4b1bb795d619a2c7563e",
+    "physicalDecoderReportSha256": "78a5dd1ef569d2cf0d9c18a5b41a674111885a146b6adf1e9da69032b81417d5",
+    "meaning": "A separate physical tag decoder checked six source associations; classification-record hashes are diagnostics, not emitted DXF, independent native validation or a geometry proof.",
+    "cases": [
+      {
+        "name": "name-consistent source",
+        "encoding": "ASCII",
+        "result": "SourceCandidate",
+        "inputSha256": "94a18ea4fc2e9ef96565aab7b29b47a421a3fa27276f197e04b6e13178ab87cf",
+        "classificationRecordSha256": "ebaf607fb3568398c6b44c766d0091f0c48f11fb095a119fa633e4894024bc8a"
+      },
+      {
+        "name": "name-consistent source",
+        "encoding": "binary",
+        "result": "SourceCandidate",
+        "inputSha256": "6335f61a111ec6fde32f98081d2ce3c292f7f6cd456f1a018366c5f54f1d526c",
+        "classificationRecordSha256": "90bbd9a6169ac69597f074f7064d968e4e028c09519a7c76e25653b81bef22d9"
+      },
+      {
+        "name": "stale group-2 names",
+        "encoding": "ASCII",
+        "result": "Refused",
+        "inputSha256": "3e2febdc5f8831344cbe98a0d92de9096a3bc8841772668bc38ab53b0e56cfd8",
+        "classificationRecordSha256": "16add80fa489e71823fefd2f799055cbf1ce3d457d11c9be70acfbb67ed1c8fd"
+      },
+      {
+        "name": "stale group-2 names",
+        "encoding": "binary",
+        "result": "Refused",
+        "inputSha256": "0131498b6650b49aa0590d8302dcdb3e8fef5d7c302fa2ed49b7b94a11923525",
+        "classificationRecordSha256": "1855f4289f5fde32d3606a0c4a52f88542bee3f4473d8bc6a8b7e5f9d22f79fb"
+      },
+      {
+        "name": "hidden LAYER application 340",
+        "encoding": "ASCII",
+        "result": "Refused",
+        "inputSha256": "d12979fb0fcd670ab88b8dcd0ae9fa594fbe3b7bf40983f188228baa08d2c74c",
+        "classificationRecordSha256": "2c010d1c72f32d33868d8009f72d2aa38004e2b026d142116e2cd16479a0fc70"
+      },
+      {
+        "name": "hidden LAYER application 340",
+        "encoding": "binary",
+        "result": "Refused",
+        "inputSha256": "0934eef8a1e9d33aa7472db18f57b62c123d7f4a69f5da7c57712c453463666a",
+        "classificationRecordSha256": "b2dd0f86432443f7ed5f6d351b69fb15f90fafaa0facf63919836ed283872fac"
+      }
+    ]
+  },
+  "claimsPromoted": false,
+  "fixtures": "All generated source drawings, physical projections and probes remain in ignored local scratch; no DWG/DXF fixture was committed."
+}

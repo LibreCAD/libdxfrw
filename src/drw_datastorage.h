@@ -31,17 +31,21 @@ constexpr std::uint16_t SEGMENT_SIGNATURE = 0xd5acu;
 constexpr std::uint32_t SEGMENT_SIZE_ALIGNMENT = 0x40u;
 constexpr std::uint32_t DATA_INDEX_ENTRY_SIZE = 12;
 constexpr std::uint32_t DATA_RECORD_HEADER_SIZE = 20;
+//! Largest DataStorage record payload stored inline (ODA §24.2.2.3).
+constexpr std::uint32_t DATA_RECORD_INLINE_MAX_SIZE = 0x40000u;
 //! Marker used instead of a byte count for a multi-segment blob reference.
 constexpr std::uint32_t DATA_BLOB_REFERENCE_MARKER = 0xbb106bb1u;
 constexpr std::uint32_t DATA_BLOB_REFERENCE_FIXED_SIZE = 32;
 constexpr std::uint32_t DATA_BLOB_PAGE_ENTRY_SIZE = 8;
 constexpr std::uint32_t DATA_BLOB_PAGE_HEADER_SIZE = 32;
+//! Largest payload stored in one Blob01 page (ODA §24.2.2.3).
+constexpr std::uint32_t DATA_BLOB_PAGE_MAX_SIZE = 0xFFFB0u;
 constexpr std::uint32_t SCHEMA_INDEX_ENTRY_SIZE = 12;
 constexpr std::uint32_t SCHEMA_PROPERTY_TYPE_COUNT = 16;
 constexpr std::uint32_t SCHEMA_PROPERTY_NO_NAME = 0xffffffffu;
 //! Hard ceiling on declared index counts (malicious/absurd inputs).
 constexpr std::uint32_t HARD_MAX_ENTRIES = 1000000u;
-//! Retain record payload bytes only when the full section is within this size.
+//! Maximum section size and aggregate retained record-payload copy budget.
 constexpr std::size_t PAYLOAD_BLOB_SECTION_CAP = 8u * 1024u * 1024u;
 } // namespace DRW_DataStorageConst
 
@@ -198,16 +202,20 @@ struct DRW_DataStorageSection {
     std::int32_t previousSaveIndex = -1;
     std::uint32_t fileSize = 0;
     std::size_t sectionByteLength = 0;
+    //! True only when every record payload was retained under the aggregate cap.
     bool payloadsRetained = false;
     std::vector<DRW_DataStorageSegment> segments;
     std::vector<DRW_DataStorageIndexEntry> dataIndexEntries;
-    //! The first and second reference tables from the schidx segment.
+    //! Raw first schidx table count and its adjacent unknown field.
     std::uint32_t schemaIndexUnknownPropertyCount = 0;
     std::uint32_t schemaIndexUnknown1 = 0;
     std::uint64_t schemaIndexTag = 0;
+    //! Raw second schidx table count and its adjacent unknown field.
     std::uint32_t schemaIndexPropertyEntryCount = 0;
     std::uint32_t schemaIndexUnknown2 = 0;
+    //! Entries as encoded in the second schidx table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaIndexEntries;
+    //! Entries as encoded in the first schidx table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaPropertyEntries;
     //! Unknown-property headers and schemas decoded from schdat.
     std::uint32_t schemaUnknownPropertyCount = 0;
@@ -286,10 +294,26 @@ DRW_DataStorageSection DRW_parseDataStorage(
     std::size_t size,
     DRW::Version version = DRW::UNKNOWNV);
 
+//! Parse only the bounded typed index and record metadata when payload bytes
+//! are not needed by the caller (for example, writer preflight validation).
+DRW_DataStorageSection DRW_parseDataStorage(
+    const std::uint8_t* data,
+    std::size_t size,
+    DRW::Version version,
+    bool retainPayloads);
+
 inline DRW_DataStorageSection DRW_parseDataStorage(
     const std::vector<std::uint8_t>& data,
     DRW::Version version = DRW::UNKNOWNV) {
     return DRW_parseDataStorage(data.data(), data.size(), version);
+}
+
+inline DRW_DataStorageSection DRW_parseDataStorage(
+    const std::vector<std::uint8_t>& data,
+    DRW::Version version,
+    bool retainPayloads) {
+    return DRW_parseDataStorage(data.data(), data.size(), version,
+                                retainPayloads);
 }
 
 #endif // DRW_DATASTORAGE_H

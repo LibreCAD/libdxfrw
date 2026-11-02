@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 unused MLINESTYLE removal with selected survivor offset edit",
+  "date": "2026-10-28",
+  "codeCommit": "a69fc3f001ae40178a9be8b31110450351a187d3",
+  "scope": "Selected same-version AC1027 DXF, 2\u2013255 contiguous 49/62/6 tuples, rooted dictionary, qualified original/survivor LTYPE providers and an original/live/output ordinary-MLINE census. The definition being changed is unused. Source and target ASCII/binary combinations are tested.",
+  "contract": {
+    "operation": "Remove original elements while retaining a nonempty ordered survivor list and changing retained offsets. ACI edits on different survivors can compose when each survivor has exactly one candidate across the union of its unchanged-offset and unchanged-ACI anchors and all remaining modeled fields.",
+    "ambiguity": "Full-tuple exact subsequence remains the first path. Otherwise all originals are searched once per survivor; the union must identify one unique original and preserve order. This cannot prove editing history or identify a survivor after both ACI and offset change unless it happens to match one original anchor. Competing raw changes, non-finite offsets, invalid resulting edited ACI, unqualified providers, missing/consumed ordinary MLINE evidence and late mutation refuse atomically.",
+    "compatibilityRestriction": "Compared with 5e2181d5, an ACI-only edit formerly admitted by an unchanged-offset anchor is now refused when its unchanged ACI and other fields also match another original through the offset-edit anchor. For A=(offset 1, ACI 1), B=(offset 2, ACI 2), a survivor (offset 1, ACI 2) is refused; sentinel and caller state remain intact, and correcting ACI to 3 succeeds using the same adapter. This narrowing avoids a cross-profile ambiguity. Existing full-tuple exact matching remains unchanged.",
+    "bounds": "The existing byte-sensitive work helper precharges the full source-string cross-product; the union compares common strings at most once per candidate. Typed/model copies remain separately bounded by retained bytes, not by a total CPU, RSS, allocator or concurrency cap.",
+    "unqualified": "Removed-to-zero edits, same-survivor changes without an independently matching anchor, linetype changes combined with removal, consumed-style geometry, unknown/proxy dependencies, earlier versions, native rendering and whole-document semantics remain open."
+  },
+  "sourceBindings": {
+    "adapterCppSha256": "297d485b766385955947c301d6c1283cf9d4b89298ac23aa2f5f7cd04aa55299",
+    "testSourceSha256": "b9f24ae963198c2fd11f23c55749f915ef07d1a950bda9a44016cc914b1fbad9",
+    "normalAdapterObjectSha256": "a3d2da030aa5cda681cc5586620dcf7e34c7ed3c15d5d5052e6fb3b392e026de",
+    "normalTestExecutableSha256": "d2a4434847e3239f538502b9c2c5b4fc9eeb48f36305ca559b13bfe72a4ea70a",
+    "normalLibrarySha256": "c6003b971d9ba96b89d2d97ad2eb911a57022b067aac0c10508760b3d62239e9",
+    "asanAdapterObjectSha256": "fb4137a69921a5d500855001876305f6484d3d44ce17648c1f4ce3f424e92089",
+    "asanTestExecutableSha256": "340d0b67c25931e9390a57892d98f04920543dedb602f0b78b0ea96fb6c9c129",
+    "asanLibrarySha256": "813d295f6ae9d15580305ed9cf388e2906979f1c45cdd861cfcd8a4c435bf3c7"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_mline_style_body_transactions",
+      "result": "PASS",
+      "count": "1/1",
+      "note": "After direct cross-profile ambiguity control was added."
+    },
+    "asan": {
+      "selector": "libdxfrw_mline_style_body_transactions",
+      "result": "PASS",
+      "count": "1/1",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "note": "After direct cross-profile ambiguity control was added."
+    },
+    "earlierAuthority": "Before the test-only direct ambiguity addition, body-transactions and authority selectors both passed normal and ASan 2/2 on the same production adapter source.",
+    "newControls": {
+      "profiles": 12,
+      "mixedCompositions": 8,
+      "refusals": 24,
+      "lateMutations": 8,
+      "ambiguousAnchors": 4,
+      "crossProfileAciAmbiguity": 2,
+      "correctedRetries": 38,
+      "255ElementBoundaries": 4
+    },
+    "logNote": "Results observed directly; simultaneous CTest runs can overwrite LastTest.log."
+  },
+  "independentPeer": {
+    "program": "ezdxf 1.4.5",
+    "sourceSha256": "7585e5f21620b018d399b71b94c4a532ba50902a980403dc7716a1f6bc42fe77",
+    "probeSourceSha256": "a53df35bcac547e268281a947e9ce9d3563a1b9f61b5e1f7bd5397c8ad482cba",
+    "probeExecutableSha256": "fbd17ac779c2897b969b7a41c1bd8dc98d63b1799c65a3112e4c8f74722f819c",
+    "outputAsciiSha256": "65c869ce9cd44c5ccf944f61fca4ff52443bc0c313da365f311f00806e880ea0",
+    "outputBinarySha256": "14bc30232e66fbb7cc1fe36f468ac31b3e42c03ab8d4877304dd4c59a3bab5e0",
+    "physicalAndReadbackReportSha256": "66f2c405ac2bfbb09f9f6b0c70db0d294b567785856f2140af7e58f2871d6f9f",
+    "physicalProjectionScriptSha256": "969067a8539c2fec124042426d23c3b35109612236a8887cd356a4e491fd4060",
+    "auditReportSha256": "6537594a6dc939be659affdc82cccc4088179c42efafe64891b9d418223c2369",
+    "auditScriptSha256": "8048404010305365ec7c0a7990ae1b47b8e4d6cf0b2018be9b6a9b799439bc4e",
+    "result": "Locally authored source and actual ASCII/binary outputs have selected tuples, dictionary/provider relationships and untouched ENTITIES/BLOCKS consumer identities, ownership and modeled geometry as projected. Independent ordinary read and audit return zero errors/fixes. This does not validate native rendering or affected consumed-style geometry.",
+    "crossProfileSourceSha256": "1702a4a8512f96cc5d1761bb60dd9aca54934a82fe494b2c863a029b3138489e",
+    "crossProfileSourceAudit": "Independent ordinary reader and auditor accepted the locally authored A=(1,1), B=(2,2) source; both output modes refused (1,2), retained sentinel/caller state and succeeded after correcting ACI to 3 using the same adapter. The final in-tree selector also covers this case."
+  },
+  "claimsPromoted": false,
+  "fixtures": "DXF drawings and probe artifacts remain in ignored scratch; no external fixture was committed."
+}

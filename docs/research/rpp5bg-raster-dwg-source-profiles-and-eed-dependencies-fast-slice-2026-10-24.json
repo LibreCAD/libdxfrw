@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bg",
+  "date": "2026-10-24",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "request": "Complete independent DWG IMAGEDEF/reactor source-profile and EED APPID/LAYER dependency evidence, verify compatibility and failure/retry behavior, and update the plan.",
+  "status": "MODELED_RASTER_SOURCE_PROFILE_INVENTORY_AND_INDEPENDENT_EED_BYTE_DEPENDENCY_OBSERVATIONS_PASS_TEXT_CLASSES_PRODUCER_BYTE_ORDER_AND_OUTPUT_QUALIFICATION_REMAIN_OPEN",
+  "worktree": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "state": "SHARED_DIRTY_UNCOMMITTED_UNSTAGED",
+    "commitCreated": false,
+    "remoteMutation": false
+  },
+  "predecessor": "docs/research/rpp5bf-independent-raster-dwg-field-spans-and-handle-roles-fast-slice-2026-10-24.json",
+  "scope": {
+    "modeledInventoryImplemented": true,
+    "specificationWideSemanticQualification": false,
+    "independent": "Allocation-free byte observer; no production parser, buffer, encoder, decoder or dxfrw link in its standalone executable.",
+    "sourceEnvelope": "Captured raw/publication identity, class metadata and immutable APPID/LAYER callback owners remain production-supplied envelopes, separately matched to independent body/EED observations.",
+    "names": "Source-name bindings use frozen callback owners and saved name-field version/codepage/issues; not an independent name decoder.",
+    "supportPromotion": false
+  },
+  "research": {
+    "primaryPdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "version": "ODA v5.4.1",
+      "sections": [
+        "10: CLASSES",
+        "20.4.81: IMAGEDEF",
+        "20.4.82: IMAGEDEFREACTOR",
+        "28: EED"
+      ],
+      "renderedPages": [
+        86,
+        87,
+        88,
+        207,
+        208,
+        269
+      ],
+      "review": "Complete selected rendered pages visually inspected; PDF unchanged."
+    },
+    "primarySources": [
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode.c",
+        "localHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "finding": "EED LAYER uses RLL/LE, entity reference RLL_BE."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+        "localHead": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+        "finding": "EED LAYER and entity references use big-endian conversion."
+      }
+    ],
+    "snapshotBoundary": "Primary URLs were accessed and read-only local source snapshots audited. Local heads are not asserted to equal current remote heads.",
+    "disagreement": "ODA prose calls LAYER an eight-byte handle but does not explicitly distinguish its byte order from the entity reference. Preserve both interpretations, label local/LibreDWG LE binding and set a disagreement issue when alternatives differ. Never infer byte order from a successful target lookup.",
+    "legacyCodepage": "Retain both numeric interpretations of the two codepage bytes; independent text/codepage semantics remain unqualified.",
+    "peerCodeCopied": false,
+    "newDependency": false
+  },
+  "implemented": [
+    "Independent EED BS chunk lengths, typed APPID H5, terminating BS0, documented raw item widths and bounded counts.",
+    "Exact chunk/item/value spans, flattened variant ordinals/codes, full64-bit LAYER values with alternate endian interpretation and string/codepage observations.",
+    "Explicit revision/body-version/layout/path/flag/EED profile inventory across eight DWG revisions; unknown wire/body/class/proxy/codepage states stay explicit.",
+    "Generation-qualified immutable APPID/LAYER dependency joins with MissingSource, WideLayer, UnboundNameProfile and SourceName binding statuses.",
+    "Freeze EED string lengths/value spans/codepage bytes separately from dependency owners and production decode issues.",
+    "Two-pass bounded capture charges dependency/string storage before reserve and actual vector owners with the typed baseline; no output/completeness counters added.",
+    "Before-export and before-publication guards reject renamed, removed, duplicated or source-provenance-replaced dependency rows; restoration permits retry.",
+    "Bounded name indexes avoid per-dependency scans; no-EED unchanged-source queries remain allocation-free.",
+    "Missing/unbound bindings cannot refresh from later source-owner additions; explicit typed-zero APPID preserves unqualified ACAD_0 fallback without membership evidence.",
+    "Fix existing custom IMAGEDEF dispatch raw callback to retain encodedType/resolvedClass instead of dropping class provenance after resolving to102.",
+    "Converter accepts fixed102 or validated IMAGEDEF class-name/record-name pair, matching encoded/resolved publication identities separately; no hardcoded source class ordinal.",
+    "Add focused native source-profile/EED selector, literal/malformed controls and updated plan/consumer contract."
+  ],
+  "profiles": {
+    "revisions": [
+      13,
+      14,
+      2000,
+      2004,
+      2007,
+      2010,
+      2013,
+      2018
+    ],
+    "families": [
+      "fixed IMAGEDEF102",
+      "file-local IMAGEDEF with IMAGEDEF/AcDbRasterImageDef identity",
+      "file-local IMAGEDEF_REACTOR/AcDbRasterImageDefReactor"
+    ],
+    "layouts": [
+      "R13/R14 RL data-end after self/EED",
+      "R2000-R2007 RL data-end after type",
+      "R2010+ extracted envelope minus handle-bit extent"
+    ],
+    "pathRepresentations": [
+      "Pre2007 inline byte TV",
+      "R2007+ detached TU"
+    ],
+    "knownLocalBodyVersions": {
+      "IMAGEDEF": 0,
+      "IMAGEDEF_REACTOR": 2
+    },
+    "explicitIssues": [
+      "UnknownWire",
+      "UnknownBodyClass",
+      "UnboundCodepage",
+      "ClassEnvelope",
+      "ProxyOrUnknownClassMetadata",
+      "LayerByteOrderDisagreement",
+      "UnboundDependency",
+      "TextSemanticsNotIndependent",
+      "ExternalDataStorage"
+    ],
+    "ordinaryHandleDomain": 32,
+    "eedLayerValueBits": 64,
+    "unknownPolicy": "Unknown revisions/EED item shapes, DataStorage and unknown class/profile states never become semantic support by tolerant correlation. Known valid width observations remain separate from semantic/name/class qualification.",
+    "classByteBoundary": "Independent CLASSES-section byte parsing is not implemented by this slice."
+  },
+  "controls": {
+    "independent": {
+      "ctest": "libdxfrw_raster_dwg_independent_wire",
+      "basePositive": 64,
+      "baseMalformedOrByteTruncation": 1508,
+      "eedMatrixPositive": 16,
+      "eedNegativeOrTruncation": 3873,
+      "customImageDefProfileCells": 16,
+      "literalWholeEedBits": 108,
+      "literalShortBitPrefixRefusals": 108,
+      "literal": "BS9, H5.2.456, code3, non-palindromic eight-byte LAYER value, BS0; exact spans and both endian values are hand-specified.",
+      "additional": [
+        "Future body-version grammar does not acquire known-body support",
+        "Unknown revision classification",
+        "Explicit typed-zero APPID stays valid wire grammar but missing dependency"
+      ],
+      "matrixBoundary": "Eight revision object vectors, both families and fixed/custom definition bodies. No native R13/R14 file qualification.",
+      "log": "/tmp/rpp5bg-verified-wire-controls.log"
+    },
+    "native": {
+      "selector": "--raster-dwg-source-profile-eed",
+      "ctest": "dwg2dxf_raster_dwg_source_profile_eed",
+      "revisions": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "rasterRecordsPerFixedSource": 3,
+      "eedFamiliesPerSource": 2,
+      "dependencyObservationsPerSource": 4,
+      "fixedSourceProjectionReadbacks": 12,
+      "rawEedAtomicRefusalCorrectedSourceRetries": 32,
+      "dependencyNameAtomicRefusalRestorationRetries": 18,
+      "encodings": [
+        "ASCII DXF",
+        "binary DXF"
+      ],
+      "customImageDefNativeSources": 6,
+      "customObservedEncodedTypes": [
+        505
+      ],
+      "customResolvedType": 102,
+      "classOrdinalBoundary": "532 is a scratch-authoring input ordinal that the writer remaps;505 is observed readback, never a new dispatch constant.",
+      "customSourceBoundary": "Custom source-carrier/metadata and model-edit/restore checks, not a rooted-document/geometry or independent producer claim.",
+      "mutationBoundary": "Faults mutate post-extraction raw callback bodies from valid locally authored files, not disk-container/CRC bytes.",
+      "retryBoundary": "Failed capture remains privately failed; corrected-source retries reuse the same exporter with a valid container. Name/model restoration retries restore exact source state without refreshing receipts.",
+      "unselectedBoundary": "EED-bearing retained reactor is unselected and does not become an invented output root; selected nondefault reactor metadata conversion remains closed.",
+      "log": "/tmp/rpp5bg-verified-controls.log"
+    },
+    "ownershipAndProfiles": {
+      "result": "PASS",
+      "cases": [
+        "Exact/one-under raw, publication and baseline budgets including dependency/string owners",
+        "No refresh or double charge",
+        "Missing immutable name owners",
+        "Missing envelope codepage",
+        "Proxy/invalid class envelopes",
+        "Wide LAYER value cannot bind low-word alias",
+        "Explicit role5 zero APPID remains MissingSource/ACAD_0",
+        "Formerly missing binding cannot promote after injecting source owners"
+      ]
+    },
+    "preserved": {
+      "priorWireAtomicRefusalRetries": 108,
+      "priorImmutableModelRefusalRetries": 50,
+      "sourceReactorRefusalRetries": 30,
+      "extensionRefusalRetries": 26,
+      "compoundWriterRollbackAndRetry": "PASS in focused/owning cohorts"
+    }
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 46,
+      "total": 46,
+      "wallSeconds": 14.98,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_image_path_cli",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys",
+        "libdxfrw_dwg_image_compound_transaction",
+        "libdxfrw_dwg_block_owner_membership_index",
+        "libdxfrw_dwg_read_outcome_policy",
+        "dwg2dxf_freecad_cli_compat",
+        "libdxfrw_raster_dwg_independent_wire",
+        "dwg2dxf_raster_dwg_source_profile_eed"
+      ],
+      "log": "/tmp/rpp5bg-verified-fast-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 42,
+      "total": 42,
+      "wallSeconds": 25.4,
+      "parallelism": 3,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys",
+        "libdxfrw_dwg_image_compound_transaction",
+        "libdxfrw_dwg_block_owner_membership_index",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_raster_dwg_independent_wire",
+        "dwg2dxf_raster_dwg_source_profile_eed"
+      ],
+      "log": "/tmp/rpp5bg-verified-asan-tests.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 41.28,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5bg-verified-owning-tests.log",
+      "frequency": "Initial composed checkpoint repeated after final typed-zero compatibility correction; no full suite after each field."
+    },
+    "builds": {
+      "result": "PASS",
+      "includes": [
+        "All normal configured targets",
+        "All ASan configured targets",
+        "dwg2dxf",
+        "Normal/ASan lc3_compat_check"
+      ],
+      "logs": [
+        "/tmp/rpp5bg-verified-build.log",
+        "/tmp/rpp5bg-verified-asan-build.log",
+        "/tmp/rpp5bg-verified-lc3-build.log",
+        "/tmp/rpp5bg-verified-asan-lc3-build.log"
+      ]
+    },
+    "strict": {
+      "result": "PASS",
+      "standalone": {
+        "standard": "C++14",
+        "flags": [
+          "-Wall",
+          "-Wextra",
+          "-pedantic",
+          "-Werror"
+        ],
+        "log": "/tmp/rpp5bg-verified-wire-controls.log"
+      },
+      "converterAdapter": {
+        "standard": "C++17",
+        "flags": [
+          "-Wall",
+          "-Wextra",
+          "-pedantic",
+          "-Werror",
+          "-fsyntax-only"
+        ],
+        "sources": [
+          "dwg2dxf/dx_iface.cpp",
+          "tests/dwg2dxf_adapter_tests.cpp"
+        ],
+        "log": "/tmp/rpp5bg-verified-strict.log"
+      },
+      "warningSuppression": false
+    },
+    "diffCheck": {
+      "result": "PASS",
+      "log": "/tmp/rpp5bg-verified-diff-check.log"
+    },
+    "reviewCorrections": [
+      "Removed unused lambda capture exposed by strict -Werror compilation.",
+      "Scratch author now keeps table callback objects alive through write and allocates extra reactor identity instead of colliding with table handles.",
+      "Wide-layer test preserves the variant's layer-reference provenance in addition to its raw64-bit reference.",
+      "Final review preserves explicitly typed zero APPID as missing/unqualified rather than imposing an unsupported nonzero wire requirement; repeat current-source checkpoints after that correction."
+    ],
+    "notRun": [
+      "Full-project suite",
+      "UBSan",
+      "LSan",
+      "Independent producer byte-order qualification",
+      "Independent CLASSES/text decoder qualification",
+      "Native Linux/Windows FreeCAD",
+      "Independent ACIS/ACDS semantic/kernel qualification"
+    ],
+    "timingBoundary": "Concurrent local observations vary with host load; not performance benchmarks or a claimed build/runtime speedup."
+  },
+  "compatibility": {
+    "installedCoreHeaderChangedBySlice": false,
+    "newPureVirtual": false,
+    "newVirtualSlot": false,
+    "newRuntimeDependency": false,
+    "productionParseDwgBodyChanged": false,
+    "readerChange": "Existing IMAGEDEF case preserves original encoded class identity/metadata; no new dispatch case or number.",
+    "typedLinkImageAndFixed102Unchanged": true,
+    "rawCallbackIdentityCorrection": true,
+    "privateConverterOwnerLayoutChanged": true,
+    "consumerRebuildRequired": true,
+    "binaryABIPromise": false,
+    "qualification": "2D consumer/lc3 compile, CLI/read-outcome, authored paths, both encodings and native source/readback controls pass. Not a full external consumer/platform qualification.",
+    "drawingFixtureAdded": false,
+    "downloadedDrawingFixture": false
+  },
+  "supportClaims": {
+    "promoted": false,
+    "strictAdmission": "CLOSED",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernel": "NOT_RUN"
+  },
+  "remaining": [
+    "Independent CLASSES-section/text semantics and producer-specific EED LAYER/codepage byte-order qualification.",
+    "Nondefault selected-reactor metadata projection and exact emitted field/identity/edge/publication closure.",
+    "Audited duplicate converter-compilation build deduplication with flag/sanitizer/interface separation.",
+    "Broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN, TABLE/extension, MATERIAL, warning-debt and composed integration queues."
+  ],
+  "nextAction": "Proceed to selected-reactor metadata projection and exact output proof under the completed bounded input gates; keep ambiguous producer semantics unqualified, retain fast-test workflow and update evidence after each slice.",
+  "bindings": [
+    {
+      "path": "dwg2dxf/dx_raster_dwg_wire.h",
+      "sha256": "fdece73d7de57e975139420254c36c797d0d9594757549aa1cb1fc1a4fd735df"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "3b2c1043a398e42ff230f1db6043a8de5c5a8a3bd183c876fd4f6dd13c7822c9"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "95f718a62d99e6397dd7fbef2a57a2a95b442bbe987ba4352e573c7b3049791b"
+    },
+    {
+      "path": "src/intern/dwgreader.cpp",
+      "sha256": "2f7da7ef320d3a6d7d07c8de04f3ddee75757304bb2453c6dfe6e8862b5281ea"
+    },
+    {
+      "path": "tests/raster_dwg_wire_tests.cpp",
+      "sha256": "a8f666a53ca881c21a31761a0d4691b3d290449f29077a4afe38aec730e75fb6"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "0b333f5982e004ac833a33c5df85896688a128e572e40d655d36583c33bc7062"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "c2f616b90d51a9d3fed478053f32612e0890c0bc7bbff6ec33e948f16729fa7b"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "0de3d8b93f685ce120c61f3825148c18ae895d71a76171ac9c9acd10cac8d8b5"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "c401084574f5782592adf143c398f72a7bba469f670e8fc7fde01fa503ae3866"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "0c8db26db7dfd95b2cc92695309eab885c1cd7c69b99c8921002dd014c94671f"
+    },
+    {
+      "path": "docs/research/rpp5bf-independent-raster-dwg-field-spans-and-handle-roles-fast-slice-2026-10-24.json",
+      "sha256": "dec9666d0264887d4bfe6974af36d2b10755703c0b2f4cbe1e654141ca06f663"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/Users/dli/dev/libredwg/src/decode.c",
+      "sha256": "5df40415eb363e48b225616e789759b5188f65567a77eb2814d2063d49374368"
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "sha256": "d93c6c8a3f0554901a69c9bbb6490f95674c821c169da0ead33a99c162ffab69"
+    },
+    {
+      "path": "/tmp/rpp5bg-initial-build.log",
+      "sha256": "01cf567a31b4610c6ba243a0534f8fe2b13f01fd6cea00dcf29ca693228abe8e"
+    },
+    {
+      "path": "/tmp/rpp5bg-initial-controls.log",
+      "sha256": "ab4e87bd160a745361d19df33df9b457cae21bfd71a5edb47b3bc11e8c9f410e"
+    },
+    {
+      "path": "/tmp/rpp5bg-controls3.log",
+      "sha256": "503955b7bbc351be3ce5871e70d3f8496d4076f338f1d470690bb50cbfe6fc84"
+    },
+    {
+      "path": "/tmp/rpp5bg-controls4.log",
+      "sha256": "cf5292ad482237ca862f4776ea5490ad130cf5ed5859e24bd3da122611f99a10"
+    },
+    {
+      "path": "/tmp/rpp5bg-controls6.log",
+      "sha256": "49b7135f750cdbcbd0b3e3fb8017f185471ef0c870cdeb8ce688f73ffd1a38e7"
+    },
+    {
+      "path": "/tmp/rpp5bg-custom-controls2.log",
+      "sha256": "b42ba657212d773b6a33552648b9acda51a4bd508908b224eddbf849232f4f15"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-build.log",
+      "sha256": "87c78dc33e0c02311f65b80f4d0042b9e2e0a41d2f414384f5e202e214faaa31"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-asan-build.log",
+      "sha256": "f72bee397fa292bee6b3b9fed58e550e9549e281cb8630ef6b13e20be2a19906"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-wire-controls.log",
+      "sha256": "f0cd330d97e91f3490e5fd95ee88cfed9c34693407b57825fdfcd141a78a74f0"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-controls.log",
+      "sha256": "b42ba657212d773b6a33552648b9acda51a4bd508908b224eddbf849232f4f15"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-fast-tests.log",
+      "sha256": "e5d209520ecc3cce1d4f3e240e754bdcdc637a684a4193f794904ceadea43b68"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-asan-tests.log",
+      "sha256": "3520f7f7c070c790ebfb387826aa89de1b792d32cae1bcde7a8964164093f974"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-owning-tests.log",
+      "sha256": "7034c3c171f5951aa53400990c68a237cd432a801c1b629ecd8e79b5af6c19d4"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-lc3-build.log",
+      "sha256": "d672af4178a2acb754193cc23449b43c2d489693a95d2f998f4f289f5607c568"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-asan-lc3-build.log",
+      "sha256": "d672af4178a2acb754193cc23449b43c2d489693a95d2f998f4f289f5607c568"
+    },
+    {
+      "path": "/tmp/rpp5bg-verified-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

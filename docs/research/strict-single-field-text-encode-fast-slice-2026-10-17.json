@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7S.2c.d.17.26 single-field strict text encode",
+  "mode": "local implementation with focused generated verification",
+  "scope": [
+    "Avoid the temporary vector<string> chunk container for one strict semantic DXF text value",
+    "Share strict profile/scalar validation and target encoding between single-field and chunked writers",
+    "Avoid redundant lvalue copies in internal semantic string/capitalized-symbol writer calls"
+  ],
+  "changes": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "publicInstalledHeaderChanged": false,
+    "publicClassLayoutChanged": false,
+    "virtualContractChanged": false,
+    "newDependencies": 0,
+    "newCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "gitStatus": "uncommitted; shared worktree is broadly dirty and Git metadata is read-only"
+  },
+  "implementation": {
+    "details": "Strict fromUtf8String now validates and appends encoded scalars directly to one result string rather than allocating a vector<string> and one chunk string. Chunked paths reuse the same strict-profile and per-scalar helpers. Internal semantic text writer methods accept const std::string&; uppercase symbol output creates one transformed copy. Caller input remains unchanged.",
+    "preservedPolicies": [
+      "UTF8 scalar validation",
+      "NUL and ASCII CR/LF record framing refusal",
+      "DXF target-version and legacy codepage profile admission",
+      "literal CIF/MIF escape-looking backslash quoting",
+      "target encoder round-trip loss guard",
+      "sticky first text failure"
+    ],
+    "limits": "This is not general allocation/RSS accounting and does not optimize MTEXT chunking, binary-hex scratch, or text projection copies."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "git diff --check -- src/intern/dxfwriter.h src/intern/dxfwriter.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetBuild": true,
+    "lc3CompatibilityCheckBuild": true,
+    "focusedSelector": {
+      "passed": true,
+      "wireCases": 40,
+      "chunkCases": 40,
+      "result": "Target text transport, framing, profile, caller-preservation and facade controls passed."
+    },
+    "owningCtest": {
+      "name": "libdxfrw_gbk_codepage",
+      "passed": true,
+      "passedCount": 1,
+      "failedCount": 0,
+      "elapsedSeconds": 0.56
+    },
+    "diffCheck": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "findingsChanged": 0,
+    "topLevelSubplansChanged": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

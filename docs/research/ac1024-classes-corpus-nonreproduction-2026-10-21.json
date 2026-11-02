@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "AC1024 CLASSES high-size-extension corpus non-reproduction",
+  "repository": "LibreCAD/libdxfrw",
+  "status": "read-only-local-audit",
+  "scope": [
+    "Recheck whether available user-local AC1024 DWGs reproduce the RTM-specific CLASSES error-8 path",
+    "Keep strict whole-file refusal separate from CLASSES parser-stage failure",
+    "Avoid speculative parser changes without the matching producer profile or a byte-level reproducer"
+  ],
+  "method": {
+    "binary": "build/dwg2dxf/dwg2dxf from the current worktree",
+    "arguments": "-y -d -v2010 <temporary-output.dxf>",
+    "inputFiles": [
+      "/Users/dli/doc/dwg/title_block-arch.dwg",
+      "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+      "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+      "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "/Users/dli/doc/dwg/title_block-iso.dwg",
+      "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg"
+    ],
+    "logsAndOutputs": "/tmp/libdxfrw-ac1024-classes-audit.SdeP4a",
+    "inputsModified": false,
+    "repositoryFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0
+  },
+  "observations": {
+    "ac1024InputsAttempted": 9,
+    "readDwgClassesEndObserved": 9,
+    "classStageError8Reproduced": false,
+    "classCrcMismatchWarnings": 4,
+    "strictCliConversionRefusals": 9,
+    "strictRefusalReason": "DXF export preflight requires successful, complete DWG read disposition",
+    "someIntegrityRowsShowRecordedVersusObservedSectionLengthDifferences": true
+  },
+  "assessment": {
+    "knownRtmIssueStatus": "OPEN_NOT_REPRODUCED_BY_THIS_LOCAL_CORPUS",
+    "rootCauseChanged": false,
+    "parserModified": false,
+    "supportClaimsPromoted": 0,
+    "planTotalsChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Wait for a matching RTM sample/profile or a source-traced generated stream before changing the specific high-size-extension branch; self-unblock to the next dependency-ready local PAR-07/PAR-14 task."
+  },
+  "validation": {
+    "scopedDiffCheck": "PASS (git diff --check on plan; trailing-whitespace scan on receipt)",
+    "jsonValidation": "PASS (jq empty)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

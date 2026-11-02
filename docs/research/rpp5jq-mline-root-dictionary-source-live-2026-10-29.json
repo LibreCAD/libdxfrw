@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jq selected MLINE root dictionary source/live evidence",
+  "date": "2026-10-29",
+  "codeCommit": "41e1b07edc45a08f24fb4fd402a1296ca3f3ed54",
+  "scope": "A selected AC1027 root DICTIONARY source/live relation check for the bounded MLINE dependency profile. This is evidence about the accepted source and current in-memory named-object dictionary only; it is not an export, dependency-closure, geometry, or support authorization.",
+  "contract": {
+    "sourceBinding": "The proof requires the accepted same-read whole-source observer and legacy identity capture, complete identity records, matching source version/binary/context, authenticated structural audit and owning vectors, matching physical spans, and exact physical/raw/decoded group agreement. The classifier's bounded work is included in the caller-visible logical charge before it runs.",
+    "liveBinding": "For the selected root dictionary, compare the original retained model with the live namedObjectDictionary: standard common fields, name/handle/entry target and handle role, cloning/hard-owner values, complete parser state, no pending entry-name bytes, and the selected metadata/XDATA/reactor/reference exclusions. Mutations refuse while the untouched same adapter succeeds after restoration.",
+    "compatibility": "No virtual or object-layout change. DRW_Dictionary gains one inline non-virtual selected-state comparison helper. The helper header is present in build and source-release inventories.",
+    "limits": "Only the selected root dictionary and one AC1027 source profile are covered. Other dictionaries/live carriers, actual output, consumed-style geometry, alternate source grammars, native rendering, and full document closure remain open. No support claim is promoted."
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "39b96ac95aad6318ba540fe3712c30d5c302e63ec037e591755c35deb58a24bc",
+    "dwg2dxf/dx_iface.h": "8b6b474034f5beb370cc1f178dbdaac0ae74d9c9cc2c4c963424388a5ae1774f",
+    "dwg2dxf/dx_mline_dictionary_source_live.h": "130f709066ef60777e3b22ca5fc4533c439b9329bd7f1ccc5c150f7c888c8dcc",
+    "src/drw_objects.h": "9c1e2cdb22d729b4b51c727a4f3dc8f6a4d66b56d707dd7d6f8a4f8b9387690d",
+    "tests/CMakeLists.txt": "088dbe38d020085a459da9c1d1324fdf8befc3a37e7e11909a5c3b76ff85fd4c",
+    "tests/dxf_mline_source_dependency_tests.cpp": "85f2d72534259e9c8af85ba0755951215ed759c97a183471719453d1b2370e6e"
+  },
+  "controls": {
+    "profiles": 2,
+    "encodings": ["ASCII", "binary DXF"],
+    "liveMutationsRefused": 16,
+    "copiedRawBodyTamperingRefused": 2,
+    "parserPrivateIncompleteStateRefused": 2,
+    "exactAndOneUnderWorkLimits": 2,
+    "sameAdapterCorrectedRetries": 16,
+    "unobservedImportsRefused": 2,
+    "inputGeneration": "Locally generated from the existing in-test source text and encoded under unique test scratch paths; temporary files are removed by the test. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "normal": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_whole_source_tests -j4",
+      "asan": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_whole_source_tests -j4"
+    },
+    "normal": {
+      "result": "PASS",
+      "count": "6/6",
+      "seconds": 1.81,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "6/6",
+      "seconds": 1.41,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ],
+      "sanitizer": "AddressSanitizer-instrumented targets"
+    },
+    "inventory": "Build inventory check passes with 631 released files; self-test passes 18 refusal controls.",
+    "fixtureAdmission": "PASS; one index candidate checked and no drawing fixture staged."
+  },
+  "binaryBindings": {
+    "normalMlineTest": "3510451f8c35a90426fa2fd682be3521e59d7013c4128e99115f5269819cb68b",
+    "normalWholeSourceTest": "213d7ac77b8f339800597908968a155d108559c3db1136a9bcb78c5f3b1a6405",
+    "normalLegacyRelationTest": "556bc94ce82c4f0d90eeaba29b7966696f38ff8e00da70223f8a861d8b904812",
+    "asanMlineTest": "265da2a19f121203b19319997c7dfe58617e71690447817c7d3409c47cca6180",
+    "asanWholeSourceTest": "62a59aaa4d8c3c2506acd41a6d9841522f5c7f386c0db807fd520380ee0afe55",
+    "asanLegacyRelationTest": "b68fae179449bb437671ea6e89a45fe8ca87cf4d84346523295999259ccee5a4"
+  },
+  "next": "Complete the live dependency/carrier census and bind it to actual emitted output before considering consumed-style geometry edits; selected root-dictionary source/live equality alone is insufficient."
+}

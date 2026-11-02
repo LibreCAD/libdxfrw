@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-dxf-top-level-framing-research-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Broaden the DXF top-level framing review across normative documentation, independent parser/writer source, peer issue reports, and local behavior; update the plan and add a bounded generated regression without downloading or committing drawing fixtures.",
+  "method": {
+    "kind": "Primary-source specification, repository-source, peer-issue, and local generated-control review",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": true,
+    "generatedTestControlsAdded": 1,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-D939EA11-0CEC-4636-91A8-756640A031D3.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A66D0ACA-3F43-4B2E-A0C2-2B490C1E5268.htm",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/table.py",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/addons/r12writer.py",
+      "https://github.com/DomCR/ACadSharp/issues/1128",
+      "https://github.com/LibreDWG/libredwg/issues/1355",
+      "https://github.com/LibreDWG/libredwg/issues/1351"
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp: dxfRW::processDxf top-level SECTION/name/ENDSEC/EOF state handling",
+      "tests/dxf_fixture_tests.cpp: generated ASCII/Binary minimal-R12, standard-TABLES, and orphan-TABLE controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-129, 7BT.1, validation cadence, and support evidence ledger"
+    ]
+  },
+  "evidence": [
+    {
+      "route": "Autodesk DXF structure references",
+      "observed": "The general structure reference describes sections framed by group-0 SECTION, group-2 section name, and group-0 ENDSEC. The symbol-table example locates TABLE and ENDTAB records inside TABLES.",
+      "doesNotEstablish": [
+        "whether a particular legacy producer omitted wrappers intentionally or accidentally",
+        "that an unprovided peer issue sample is conforming DXF"
+      ],
+      "planUse": "Default parser should reject out-of-section table records rather than silently discard them; legacy recovery remains separately gated."
+    },
+    {
+      "route": "ezdxf source review",
+      "observed": "The table loader expects a table head in the TABLES model. The minimal R12 stream writer can emit an ENTITIES-only document when fixed_tables is false, showing that an absent TABLES section is distinct from a TABLE record outside section framing.",
+      "doesNotEstablish": [
+        "runtime acceptance of libdxfrw-generated controls by ezdxf",
+        "a normative statement beyond the Autodesk format documentation"
+      ],
+      "planUse": "Add a generated no-TABLES R12 positive control to prevent over-strict framing changes."
+    },
+    {
+      "route": "ACadSharp issue 1128",
+      "observed": "An open feature request reports older NC/CAM/plotting DXF files with bare tables and proposes warning-backed recovery. The issue provides no producer artifact, version, checksum, or independent reproduction.",
+      "doesNotEstablish": [
+        "the actual producer or provenance",
+        "the exact group-record sequence or safe resynchronization boundary",
+        "conformance or a required general-purpose recovery mode"
+      ],
+      "planUse": "Compatibility lead only. Recovery requires a provenance-bound sample and explicit bounded policy."
+    },
+    {
+      "route": "LibreDWG issues 1355 and 1351",
+      "observed": "Peer reports describe truncated DXF output despite a successful process status and malformed INSERT/ATTRIB/SEQEND output; the latter uses ezdxf readback to distinguish parseability and compound-record completeness.",
+      "doesNotEstablish": [
+        "a libdxfrw defect",
+        "a reproduced peer failure in this checkout",
+        "that exit status or self-round-trip is a sufficient output-integrity oracle"
+      ],
+      "planUse": "Retain the existing independent output-closure/readback checkpoint; add no local finding without a local reproducer."
+    },
+    {
+      "route": "Local top-level DXF reader",
+      "observed": "Before the fix, an unexpected top-level TABLE record could be skipped, later ENTITIES callbacks delivered, and read return success. processDxf now returns BAD_READ_SECTION for invalid top-level framing. Generated ASCII and Binary tests prove acceptance of minimal R12 without TABLES, acceptance of standard TABLES/LAYER and following LINE, and rejection of an out-of-section TABLE, detached group-2 section name, and unmatched ENDSEC before later LINE callbacks.",
+      "doesNotEstablish": [
+        "legacy table recovery compatibility",
+        "callback rollback for headers or tables emitted before a later parse error",
+        "native CAD acceptance or DWG behavior"
+      ],
+      "planUse": "PAR-129 / 7BT.1: bounded fail-closed correction with the existing fixture target and CTest."
+    }
+  ],
+  "commands": [
+    "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "build-gcc/libdxfrw_dxf_fixture_tests --top-level-section-framing",
+    "cmake --build build-gcc --target lc3_compat_check -j2",
+    "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+  ],
+  "results": {
+    "strictTarget": "passed",
+    "focusedSelector": "passed",
+    "compatibilityTarget": "passed",
+    "owningCTest": "passed 1/1",
+    "planFindings": 129,
+    "topLevelImplementationSubplans": 72
+  },
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "newFinding": "PAR-129",
+    "newTopLevelImplementationSubplan": "7BT",
+    "implementationSlice": "7BT.1",
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": {
+    "legacyProducerArtifactAvailable": false,
+    "legacyRecoveryImplemented": false,
+    "peerRuntimeExecuted": false,
+    "nativeApplicationExecuted": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "worktree": "Uncommitted; shared checkout contains broad pre-existing user changes. No staging or commit was attempted."
+  },
+  "nextReadinessSlice": "Continue the existing implementation queue. If a named workflow requires orphan-table recovery, obtain a producer/version-attributed sample and digest first; otherwise keep the parser fail-closed and proceed with unrelated slices."
+}

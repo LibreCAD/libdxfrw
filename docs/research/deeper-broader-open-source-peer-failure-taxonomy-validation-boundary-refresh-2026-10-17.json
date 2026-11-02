@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader open-source peer failure taxonomy and validation-boundary refresh",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh LibreDWG version/operation claims, fuzz-route documentation, and security boundaries",
+    "Cross-map current ACadSharp parser, writer, graph-cost, and native-acceptance issue reports",
+    "Separate ezdxf paperspace rendering behavior from DXF codec support",
+    "Reconcile findings against existing libdxfrw owners and keep implementation validation fast"
+  ],
+  "method": {
+    "kind": "Read-only review of public project documentation, issue pages, security advisories, and the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "GitHub issue descriptions and mutable project documentation are reports, not independent reproductions. No peer binary/package was pinned or executed. Findings are mapped to existing local owners by source/plan review only."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "mutable master documentation reviewed 2026-10-17",
+      "observed": "Documents distinct DWG, ASCII DXF, binary DXF/DXB, conversion, and fuzz entry paths; the project documentation and generated CLI manual differ in their writer-version wording."
+    },
+    {
+      "project": "LibreDWG fuzz setup",
+      "url": "https://github.com/LibreDWG/libredwg-fuzz",
+      "revision": "mutable repository page reviewed 2026-10-17",
+      "observed": "Documents separate fuzz targets and replayable crash/hang/leak cohorts."
+    },
+    {
+      "project": "LibreDWG security advisory",
+      "url": "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-gp83-hcvh-g255",
+      "revision": "GHSA-gp83-hcvh-g255 reviewed 2026-10-17",
+      "observed": "Reports a pre-0.14 R13-R2000 class-count-driven resource-consumption defect, fixed in release 0.14. This is a peer-specific mechanism lead, not a libdxfrw reproduction."
+    },
+    {
+      "project": "LibreDWG security advisories and NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/security/advisories",
+      "revision": "public advisory index and 0.14.1 NEWS reviewed 2026-10-17",
+      "observed": "Separately lists a pre-R13 allocation issue and a const-input text-conversion issue; NEWS records corresponding upstream fixes. These mechanisms and version ranges must not be conflated with the in-scope AC1012+ local reader."
+    },
+    {
+      "project": "LibreDWG fuzz harness issue",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1270",
+      "revision": "issue page reviewed 2026-10-17",
+      "observed": "Closed report attributes a large group of fuzz crashes to a harness-only double-free, demonstrating that fuzz harness integrity is a prerequisite for interpreting crash counts."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues",
+      "revision": "mutable issue index reviewed 2026-10-17",
+      "observed": "Current issue horizon includes separate reports for repeated DXF reader stack growth (#1281), DWG EED writer size loss (#1282), nested-block deep-copy cost/stack growth (#1283), AC1032 whole-file native rejection (#1297), and a DWG-to-DXF spline report (#1299). These belong to distinct routes and are not local reproductions."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/issues/1386",
+      "revision": "issue page reviewed 2026-10-17",
+      "observed": "Open report concerns paperspace viewport linetype scaling in the drawing add-on and $PSLTSCALE. It is a rendering/layout behavior report, not a DXF parse/write claim or local execution result."
+    },
+    {
+      "project": "Local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "worktree plan over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "All concrete peer reports map to existing PAR, fast-test, graph/resource, or composed acceptance owners; no unowned local source-confirmed defect was established."
+    }
+  ],
+  "assessment": {
+    "peerFailureTaxonomy": "Separate parser safety/progress, writer width/serialization, document graph/copy complexity, native whole-file acceptance, and downstream rendering. One route's result does not imply another route's behavior.",
+    "libreDwgApplicability": "Use exact version/operation and format-family scope. R13-R2000 reports may inform bounded parser tests; pre-R13-only advisories do not widen libdxfrw's AC1012+ support target. Do not transplant peer limits or code.",
+    "acadsharpApplicability": "Reuse existing local EED, repeated-record, graph-cost, MTEXT, and spline owners. Keep whole-file native rejection and underspecified spline reports at their existing composed evidence gates.",
+    "ezdxfApplicability": "Keep paperspace rendering and PSLTSCALE behavior outside DXF reader/writer parity claims; if rendering is studied, pin layout settings and renderer profile explicitly.",
+    "implementationSpeed": "Keep focused generated route-specific tests as the slice gate. Reserve long fuzz/sanitizer, external peer, native CAD, and full-suite work for existing composed/scheduled checkpoints.",
+    "supportEvidence": "No reviewed route closes independent DWG object/owner interpretation, DXF/ACIS carrier preservation, exact solid semantics, and native Linux/Windows acceptance as one chain."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-open-source-peer-failure-taxonomy-validation-boundary-refresh-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-open-source-peer-failure-taxonomy-validation-boundary-refresh-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

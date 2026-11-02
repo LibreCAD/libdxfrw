@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE parser and writer share documented enum domains",
+  "mode": "P2 local source/writer domain correctness slice with generated ASCII/Binary controls",
+  "baselineCommit": "12073b31",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "b464e56b22b617db93bd858db614c026d60ddf846369da494c766ca006f5802c",
+  "scope": [
+    "Share valid integer domains for MLEADERSTYLE groups 170, 171, 172, 173, 175, 176, 177, 271, 272 and 273 between DXF source parsing and the typed DXF writer.",
+    "Accept every modeled enum value and reject one value on each side of each supported domain in generated ASCII and Binary DXF.",
+    "Reuse the same dx_iface after malformed imports and keep all authored test drawings temporary."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLEADERSTYLE DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+        "supports": "Maps groups 170-177, 178, and 271-273 to the MLEADERSTYLE fields; identifies group 271 as 0=horizontal or 1=vertical and groups 272/273 as center 9 or underlined/overlined center 10."
+      },
+      {
+        "title": "Autodesk ObjectARX AcDbMLeaderStyle enumeration reference",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Enumerations_AcDbMLeaderStyle.html",
+        "supports": "Identifies the official ContentType, DrawMLeaderOrderType, DrawLeaderOrderType, LeaderType, TextAlignmentType, TextAngleType, and TextAttachmentDirection enumerations."
+      },
+      {
+        "title": "Autodesk ObjectARX and Managed Reference enumeration definitions",
+        "urls": [
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__ContentType1.html",
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__LeaderType.html",
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__DrawLeaderOrderType1.html",
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__TextAngleType1.html",
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__TextAlignmentType1.html",
+          "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__TextAttachmentType.html",
+          "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_DrawMLeaderOrderType.html",
+          "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_BlockConnectionType.html"
+        ],
+        "supports": "Defines the finite values used by the shared validator: content 0-3; draw orders 0-1; leader type 0-2; text angle/alignment 0-2; block connection 0-1; and MText text-attachment direction 0-1."
+      }
+    ],
+    "sourceCreation": "The test generates a rooted AC1027 MLEADERSTYLE drawing locally, changes one field at a time, and transcodes the same authored drawing to Binary DXF when required. Scratch drawings are deleted by the test."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Added DRW_MLeaderStyle::isValidDxfEnumValue with one domain table. The parser validates before converting source values to uint16_t, and the typed writer now calls the same helper for its corresponding fields.",
+    "domains": {
+      "170": "0..3",
+      "171": "0..1",
+      "172": "0..1",
+      "173": "0..2",
+      "175": "0..2",
+      "176": "0..2",
+      "177": "0..1",
+      "271": "0..1",
+      "272": "0 or 9..10",
+      "273": "0 or 9..10"
+    },
+    "behaviorChanges": [
+      "Out-of-domain signed and high values in the covered fields fail source parsing instead of wrapping or silently entering the typed model.",
+      "Previously accepted and writer-supported values remain accepted through source parsing, including the local zero defaults for groups 272 and 273.",
+      "The same writer and parser use one validator, preventing domain drift."
+    ],
+    "publicApiOrLayoutChanged": "Added a static validation method; object layout and virtual interface are unchanged.",
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_wave1_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_mleader_writer_version|libdxfrw_mleaderstyle_writer_closure|libdxfrw_mleaderstyle_boolean_source_domain|libdxfrw_mleaderstyle_integer_enum_source_domains)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror build.",
+      "focusedCTest": "PASS 4/4 in 3.6 seconds, including direct-writer domains, writer closure, prior boolean input validation, and the new source-domain matrix.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "Groups 174 and 178, style version 179, max leader point count, lineweight boundaries, field presence/repetition and version-specific source rules remain outside this slice.",
+    "No native annotation/rendering, whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, or producer qualification is established."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Shared source/writer validation for MLEADERSTYLE enum-like groups 170, 171, 172, 173, 175, 176, 177, 271, 272 and 273.",
+    "remainingP2Scope": "Uncovered MLEADERSTYLE field domains, handle roles, presence/repetition/default/version semantics, remaining MLINESTYLE edit/schema gaps, and LTYPE/XDATA dependency behavior remain open.",
+    "nextImplementationPacket": "Resolve one witnessed MLEADERSTYLE source-presence/reference gap or one current LTYPE/XDATA dependency failure; do not broaden the enum matrix without a distinct documented domain.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.h": "1bcd7ca94ef03d90115806a5bc180b38acfab75b805bdb68792c23c72b581b56",
+    "src/drw_objects.cpp": "8d62e965443de5f68af74a450e33a23715cad7f801e4a1c11d4d75281d30abf5",
+    "src/libdxfrw.cpp": "cd3b0d8446c8201efadb1f0c84b30e0fcf8f2aa39e1c23c6b803801000243434",
+    "tests/dwg2dxf_adapter_tests.cpp": "b1119d48616c373da711bc4859892f5db0257e636251fa6c07ce9ad60570ee15",
+    "tests/CMakeLists.txt": "22762a1bebdd16595eb343a613660fa7b87613184dc0cc6173322859ab702bb5"
+  },
+  "commitCreated": true,
+  "worktree": "Only the five listed implementation/test files, this receipt, and the plan update are part of this slice; unrelated untracked files were not staged."
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadSharp AcDs reader maturity and offset-edge refresh",
+  "mode": "primary-source web research and read-only local plan/source reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh released versus unreleased ACadSharp Prototype1b, blob01, and modeler-writer capabilities",
+    "Reconcile the peer's ObjectDataAlignmentOffset edge with current generated local coverage",
+    "Refine PAR-07/S8.3 and the composed comparator gate without expanding per-slice validation"
+  ],
+  "method": {
+    "kind": "Read official project release, PR, issue, and documentation pages; inspect local DataStorage parser and generated test owner",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "AGENTS.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h",
+      "tests/graph_preservation_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "limitations": "ACadSharp corpus/hash results are contributor reports, not independently reproduced. A stale secondary segment-index report in PR #1154 does not establish general producer validity or current release behavior. The configured local ODA PDF at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf was not present at the checked path; no DWG parser behavior was changed and no online-versus-local specification conflict was resolved."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp releases",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.16"
+      ],
+      "revision": "Release page reviewed 2026-10-18; v3.8.0 commit 3a1c66b; v3.7.16 commit 3feabba",
+      "observed": "The latest tagged release is v3.8.0, whose release note is assembly visibility. The preceding v3.7.16 release notes include merged Prototype1b/ACIS read changes. This identifies a candidate read artifact, not writer or semantic qualification."
+    },
+    {
+      "project": "ACadSharp Prototype1b reader",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/pull/1156"
+      ],
+      "revision": "PR #1154 merged 2026-07-28; public discussion viewed 2026-10-18",
+      "observed": "PR #1154 adds full Prototype1b section parsing and handle-addressed DataStorage access. Its discussion reports payload-hash agreement for 3,715 referenced handles and resolution of blob01 pages, including reported 14 MB/13-page bodies. PR #1156 closed after its blob01 page work was covered by the merged resolver. These are contributor/maintainer results and were not independently reproduced."
+    },
+    {
+      "project": "ACadSharp section alignment and stale index discussion",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/issues/1152"
+      ],
+      "revision": "Public PR/issue discussion viewed 2026-10-18",
+      "observed": "An initial directory-rounding approach disagreed with the header ObjectDataAlignmentOffset anchor; later branch changes used the explicit anchor. A reported correlation with record counts divisible by four was later qualified by observations of eight-record files both with and without extra padding. A separate stale secondary segidx path was reported to over-read; its exact validity and current-release handling were not established here."
+    },
+    {
+      "project": "ACadSharp modeler writer and schema refactor",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Pages reviewed 2026-10-18; #1240 and #1174 remain open in reviewed state",
+      "observed": "Issue #1195 reports DXF writer omission on ACadSharp 3.4.9. PR #1240 proposes modeler-entity writing but is open, undeployed, and depends on #1174. PR #1174 is an open schema/storage refactor; its branch has a reported unfinished DXF ACDS record path. Neither branch is a released writer comparator."
+    },
+    {
+      "project": "FreeCAD stock consumer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "Current official documentation reviewed 2026-10-18",
+      "observed": "The stock DXF/DWG route is documented as limited to 2D for proprietary ACIS modeler data and DWG uses a selected external converter. This corroborates the current 2D consumer versus ACIS semantic boundary; it is not a runtime result."
+    },
+    {
+      "project": "Local libdxfrw DataStorage implementation",
+      "urls": [
+        "src/drw_datastorage.cpp",
+        "tests/graph_preservation_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "revision": "Current dirty worktree reviewed 2026-10-18",
+      "observed": "The parser derives the data-region base from the segment's checked objectDataAlignmentOffset. testDataStorageBlobPages already has a two-record case where the data start is anchored at relative offset 112 rather than a guessed 96, with unsorted offsets and sentinel payloads; it does not cover the reported four-record directory edge."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S8.3 and optional comparator readiness. ACadSharp v3.8.0 is admitted only as a candidate structural reader for handle-addressed AcDs data; its open modeler-writer branches are excluded. Add one generated four-record ObjectDataAlignmentOffset control at the next existing S8.3 touch, keep stale secondary-index handling conditional on the local ODA copy and producer evidence, and preserve the 2D-only stock FreeCAD consumer boundary.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "When S8.3 is next edited, add one in-memory four-record control with explicit objectDataAlignmentOffset, extra padding, unique handle/payload pairs, permuted index order, and a following sentinel; do not encode a count-based data-start rule.",
+    "Keep stale secondary segidx as a separate conditional case. First consult the mandated local ODA PDF and establish a producer/profile witness; never swallow an over-read or partially publish payloads.",
+    "At the composed checkpoint only, pin ACadSharp v3.8.0, verify the exact artifact includes merged PR #1154, and compare handle-addressed DataStorage results, not an assumed ModelerGeometry.AcisData duplicate.",
+    "Exclude open #1240/#1174 writer branches from release-level comparison until a tagged release and fresh independent output read exist.",
+    "Keep stock FreeCAD qualification on the explicitly selected 2D converter/importer route; run any 3D plugin/kernel as a separate, named route."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

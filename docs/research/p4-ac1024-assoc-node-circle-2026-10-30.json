@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-circle-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constrained-circle node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 AcConstrainedCircle body and its geometry dependency while preserving the absent reserved field and strict document-level refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "nodeId": 17,
+    "connections": [19, 158, 162, 170, 178, 186, 194]
+  },
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "ACCONSTRAINEDCIRCLE reads a geometry handle, geometry node ID (BL), center/normal/direction (3BD each), radius/start/end parameters (BD each), and the reserved BD only when circle_reserved is true. The AC1024 inline route passes false."
+  },
+  "sourceProfile": {
+    "localRawProbe": {
+      "method": "Forked body and handle streams at the unknown-class boundary, read the pinned-source field sequence transactionally, and did not commit the probe positions.",
+      "body": {
+        "startBit": 7273,
+        "geometryNodeId": 0,
+        "center": [63.11370687434459, 37.572948833487146, 0.0],
+        "normal": [0.0, 0.0, 1.0],
+        "direction": [1.0, 0.0, 0.0],
+        "radius": 3.0,
+        "startParameter": 0.0,
+        "endParameter": 6.283185307179586,
+        "endBit": 7555,
+        "reservedDouble": "absent from this inline profile"
+      },
+      "geometryDependency": {
+        "code": 4,
+        "size": 2,
+        "reference": 1165,
+        "startBit": 218492,
+        "endBit": 218516,
+        "interpretation": "ODA v5.4.1 defines code 4 as a soft pointer."
+      },
+      "diagnosticLogSha256": "2f44811ab794342df101141e6424f42c905afd492cd5f2cd3fd461a6270b0737"
+    },
+    "independentTargetInspection": {
+      "reader": "LibreDWG dwgread 0.14",
+      "command": "dwgread -O JSON /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "outputPath": "/private/tmp/distance-libredwg.json",
+      "outputSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "target": {
+        "handle": 1165,
+        "object": "ASSOCGEOMDEPENDENCY",
+        "dxfname": "ACDBASSOCGEOMDEPENDENCY",
+        "type": 524,
+        "ownerhandle": [12, 1, 98, 1067],
+        "subclass": "AcDbAssocPersSubentId"
+      },
+      "limitation": "The independent read confirms the target object record; it does not decode this node body or qualify consumer meaning."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "Bit Codes and Data Definitions, page 7: B, BL, BD, 3BD and H primitive identities.",
+        "Handle References, page 16: code 4 is a soft pointer."
+      ],
+      "result": "ODA defines the generic primitive encodings and handle role; the pinned peer source and same-input trace establish the class-specific field order and absence of the reserved double."
+    },
+    "limitations": [
+      "The parser accepts the observed non-null code-4 AC1024 inline profile; other roles and null variants remain raw.",
+      "AcHorizontalConstraint node 414 is the next unsupported body; the real group remains partial.",
+      "Full associative closure, DXF serialization, readback and consumer meaning remain unqualified; this receipt has no support-claim effect."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "Geometry dependency code/reference and geometry node ID.",
+      "Center, normal, direction, radius and start/end parameters.",
+      "Reserved value explicitly absent (m_hasReserved=false); zero is not decoded from the wire. Circle start/end points are not present in this layout."
+    ],
+    "failureBehavior": "A generated wrong-role code-5 dependency leaves the circle body untyped/raw and recovers the following OBJECT.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "generatedControls": [
+      "From-scratch circle profile checks node ID, connections, code-4 dependency/reference, geometry node ID, center, normal, direction, radius, parameters and absent reserved state.",
+      "Wrong handle role remains raw and the following object is recovered.",
+      "Existing Arc, Distance, Parallel, BoundedLine, ImplicitPoint and plain-geometrical controls remain green."
+    ],
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/circle-final.dxf",
+      "result": "Trace decodes Circle node 17 and its observed fields, then stops at AcHorizontalConstraint node 414. Expected strict refusal; no DXF was created.",
+      "logSha256": "cade9d6e818d8573a0c51af78ee5a7ca3eb4d640f287faa8d4935c4e2622b9cd"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/circle-final-asan.dxf",
+      "result": "Same Circle decoding and Horizontal boundary; no AddressSanitizer diagnostic and no DXF output.",
+      "logSha256": "cade9d6e818d8573a0c51af78ee5a7ca3eb4d640f287faa8d4935c4e2622b9cd"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "0bac390a8f50e115d318c5372e02be8425362e5687361b35a4720a9a47fa5c6a",
+    "src/drw_objects.h": "f1bf62dcf4ad5e051d10d9f178c418430904238cf34854a1c2d416bd6e53c107",
+    "tests/associative_constraint_group_test_helpers.h": "4eb11f1cb664467b511ccef17e4d8db644c90f4b20e9f1b4732c55fb600ac79e",
+    "tests/dwg_reader_matrix_tests.cpp": "a6eb2934b73f975faddb6d66d95fe39fe4e48de094f1c927d960aacb8074a783",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5cfc6fa7f7ef4665c22c89b045f1d95d7c4c7b71e60513a26aa2b358238fa9ed",
+    "build/dwg2dxf/dwg2dxf": "652da67cfbb690184bc19c1b96b1dd76a070a87896a60b4a935cb66f7964c18e",
+    "build/libdxfrw_dwg_reader_matrix_tests": "86ec299313d2b8768a422a731cd01a494a5d5ce06812f00ac922df67f2a50bf6",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "bf1e9b7ad1355f10d6eaa3633a5d76a64ec97f88f0563895d0e73fbb988da245",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "d970f98026393e7639317bd51357e1027ef76f1f877d98d84256a35b1dd0efff"
+  },
+  "nextAction": "Implement source-matched AcHorizontalConstraint node 414; capture its datum-line index and exact body end while confirming no node-specific handle is consumed."
+}

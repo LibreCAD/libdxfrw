@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-cross-engine-evidence-lane-and-comparator-order-review-v1",
+  "reviewDate": "2026-10-16",
+  "scope": "Reconcile current primary GDAL, ezdxf, and LibreCAD_3 documentation into a version-pinned, implementation-ready comparator order without changing implementation findings or support claims.",
+  "method": {
+    "kind": "primary documentation review and local plan reconciliation",
+    "sourcesVisited": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://gdal.org/en/stable/drivers/vector/",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+      "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+    ],
+    "notPerformed": [
+      "No peer application or native CAD consumer was installed or run.",
+      "No third-party DWG/DXF/SAT/SAB file was downloaded or committed.",
+      "No external runtime, license, platform, or geometry-semantic result was qualified."
+    ]
+  },
+  "evidence": [
+    {
+      "route": "GDAL DXF",
+      "observed": [
+        "GDAL documents a built-in DXF driver and Binary DXF reading beginning with GDAL 3.12.",
+        "DXF_3D_EXTENSIBLE_MODE exposes raw ASMData and a 12-real column-major ASMTransform for AC1027+ DXF; it does not create OGR solid geometry.",
+        "DXF_INLINE_BLOCKS=FALSE preserves block definitions and INSERT references as separate structures suitable for owner/path inspection.",
+        "The driver matrix identifies DWG as requiring the external ODA Teigha library, unlike built-in DXF."
+      ],
+      "notEstablished": [
+        "A selected installed build supports Binary DXF and 3D extensible mode together.",
+        "Raw ASM extraction validates ACIS semantics, DWG ACDS linkage, or B-rep topology."
+      ],
+      "planUse": "One optional, pinned, composed DXF feature-projection/raw-carrier comparison; separate ASCII and Binary DXF cells, preserve blocks, record per-handle/type/owner disposition, payload hash and transform, and report NOT_RUN if unavailable."
+    },
+    {
+      "route": "ezdxf 1.4.5",
+      "observed": [
+        "Documentation exposes raw SAT/SAB inspection and parsing.",
+        "mesh_from_body projects flat polygonal faces and documents curved-face loss; vertices_from_body bounds are exact only for polyhedra with flat faces and straight edges.",
+        "body_from_mesh can create a locally generated polyhedral ACIS control.",
+        "Recovery/audit is a repair and diagnostic path for flawed files; documented decode errors can remain unrecoverable and recovered writeback may lose or invalidate information."
+      ],
+      "notEstablished": [
+        "Arbitrary imported ACIS B-rep validity or curved surface semantics.",
+        "A recovered drawing is equivalent to clean strict parsing or lossless round-trip."
+      ],
+      "planUse": "Use strict read as a parser observation, recovery only as separate diagnostics on a damaged local control, and body_from_mesh only for ephemeral from-scratch carrier generation; keep faceted results below B-rep semantic evidence."
+    },
+    {
+      "route": "LibreCAD_3 consumer",
+      "observed": [
+        "Project documentation says WITH_DWG_IMPORT is off by default and the dwgRW reader is experimental.",
+        "Project documentation says DWG writing is not implemented, exposed, or planned pending its stated acceptance conditions."
+      ],
+      "notEstablished": [
+        "A library callback alone proves application model construction or feature fidelity.",
+        "A LibreCAD_3 compatibility objective implies a DWG writer requirement."
+      ],
+      "planUse": "Keep the integration gate reader-only and distinct from DWG write and 3D ACIS claims."
+    }
+  ],
+  "implementationOrder": [
+    "Per-slice generated fast test, touched strict build, and per-entity/owner output inventory.",
+    "One composed pinned GDAL DXF structural/raw-carrier comparison after related slices compose.",
+    "Complementary ezdxf strict parse, with recovery/audit diagnostics kept separate.",
+    "After carrier and graph closure, an eligible independent ACIS reader/kernel for B-rep and analytic invariants.",
+    "Separate exact-lineage DWG reader comparison and LibreCAD_3 reader integration; no DWG write implication."
+  ],
+  "planDisposition": {
+    "refines": ["PAR-07", "PAR-14", "PAR-49", "PAR-65", "7AG", "S2.3.9.4", "S3.7", "S8.9.5"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalJ": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

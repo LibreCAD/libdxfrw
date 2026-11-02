@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-embedded-mtext-downlevel-cli-diagnostic-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSlice": "7M reason-specific omission detail on strict/debug DXF export failure",
+  "status": "PASS_LOCAL_FAST_SLICE_UNCOMMITTED",
+  "scope": "Surface existing writer leftOut() reason labels when a strict/debug dx_iface DXF export fails, and verify the embedded-MTEXT downlevel refusal is diagnosable through dwg2dxf.",
+  "implementation": {
+    "changedFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/embedded-mtext-downlevel-cli-diagnostic-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "On failed export under the existing debug or requireResolvedOwners reporting gate, dx_iface prints dxfRW::leftOut() labels and counts beside the general DRW_OperationDiagnostic.",
+      "Successful exports are unchanged; the added output is diagnostic-only and runs only after export failure.",
+      "The generated CLI control observes the exact multiline attribute (not in this DXF version) reason for downlevel ATTRIB MTEXT refusal."
+    ],
+    "coverage": {
+      "refusalAndPublicationCases": 8,
+      "ordinaryAttributeRetryCases": 4,
+      "totalControls": 12,
+      "outputEncodings": ["ASCII", "Binary"],
+      "cliForms": ["positional", "FreeCAD -o"],
+      "targetVersion": "AC1027",
+      "destinationPreservationChecked": true
+    },
+    "externalDrawingsDownloaded": 0,
+    "drawingsAdded": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "python3 -B -m py_compile tests/dwg2dxf_cli_contract_tests.py",
+        "result": "passed"
+      },
+      {
+        "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --embedded-mtext-only",
+        "result": "passed",
+        "note": "12 focused refusal/retry controls, including exact CLI reason visibility."
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_cli_contract_tests.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/embedded-mtext-downlevel-cli-diagnostic-fast-slice-2026-10-17.json",
+        "result": "passed"
+      }
+    ],
+    "fullTestSuiteRun": false,
+    "normalCliCtestRun": false,
+    "nativeCadApplicationsRun": false,
+    "peerExecutablesRun": false,
+    "gitCommitCreated": false,
+    "gitCommitLimitation": "Git metadata is read-only in this environment; the shared worktree is broadly modified."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

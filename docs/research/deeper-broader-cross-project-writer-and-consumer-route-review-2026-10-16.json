@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-cross-project-writer-consumer-route-audit-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the open-source DWG/DXF parity plan with current primary-source evidence about version-specific writer maturity, application consumer routes, and ACIS carrier loss, without running peers or changing implementation behavior.",
+  "method": {
+    "kind": "Public primary-source documentation, source-entry-point, release-matrix, and issue-report audit",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/DomCR/ACadSharp/issues/558",
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/LibreDWG/libredwg/issues/1411"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Public project documentation and a reporter-provided generated reproducer establish route descriptions and test leads, not results reproduced here. Mutable branch documentation is not pinned to a binary. No local defect or semantic support promotion was established."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG reader/writer version asymmetry",
+      "observed": [
+        "The project README distinguishes reader claims from writer claims and says advanced R2010+ reader objects may be skipped.",
+        "The README reports CRC problems for R2010-R2018 writes, while the build switch and dxf2dwg utility describe writing through R2000 only.",
+        "Aggregate coverage numbers and broad read-version statements are not per-version native acceptance receipts."
+      ],
+      "planUse": "Admit exact pinned peer routes by operation and emitted AC code. Do not infer writer coverage from read coverage or headline percentages."
+    },
+    {
+      "topic": "ACadSharp version-specific writer maturity",
+      "observed": [
+        "The public compatibility table lists DWG writing by AC version and excludes AC1021.",
+        "A 2025 maintainer response says old AC1014/AC1015 output may require recovery, AC1021 writer work had not been implemented at that time, and AC1018/AC1027/AC1032 were then the better routes to test.",
+        "The issue is historical; later releases may differ, and no exact current release binary was run."
+      ],
+      "planUse": "Pin the peer artifact and repeat the generated control per version. Require independent reopen/audit and capture recovery/repair outcomes; self-readback is not independent acceptance."
+    },
+    {
+      "topic": "Consumer-facing DWG/DXF routes",
+      "observed": [
+        "LibreCAD_3 documents optional DWG import and a deliberate no-DWG-write policy pending promoted claims, independent evidence, and project approval.",
+        "FreeCAD documents that DWG import/export is mediated by external converters and a selected DXF importer; its current source implements converter selection and conversion to DXF.",
+        "FreeCAD's DXF importer backend and preferences affect what the consumer can create from a DXF."
+      ],
+      "planUse": "Keep LibreCAD_3 DWG compatibility read-only. Separate direct libdxfrw DXF acceptance from converter-mediated FreeCAD DWG workflow, and identify every stage and effective setting."
+    },
+    {
+      "topic": "ACIS carrier versus shape semantics",
+      "observed": [
+        "ezdxf documents SAT/SAB carrier tooling but a limited supported ACIS entity set and polygonal-mesh-oriented projection.",
+        "LibreDWG issue #1411 reports a reproducible source-created AC1032 SAB carrier disappearing in an R2013+ ACDSDATA conversion route while the REGION record survives.",
+        "The issue's generator and inspector both use ezdxf, and the conversion was not reproduced in this review; it is transport-loss evidence to validate, not independent shape semantics."
+      ],
+      "planUse": "Keep generated SAB transport checks separate from body association, ACIS parsing, analytic B-rep correctness, and native consumer acceptance. Keep generated drawings disposable."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "7AG peer admission",
+      "S8 consumer-evidence separation",
+      "PAR-07/S8.2-S8.5 AcDs and body-state work"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local generated, version-scoped writer and AcDs body-state slices with focused fast tests.",
+      "At the planned composed checkpoint, pin peer revisions/binaries and test each exact read/write/version route separately.",
+      "Capture output AC code, integrity diagnostics, recovery or repair state, object/payload inventories, consumer route, warnings, and process status.",
+      "Keep LibreCAD_3 DWG qualification read-only and FreeCAD direct-DXF and converter-mediated workflows separate.",
+      "Keep all six external-only J items DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

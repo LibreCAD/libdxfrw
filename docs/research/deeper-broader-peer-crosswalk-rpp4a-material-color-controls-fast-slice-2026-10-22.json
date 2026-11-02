@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "date": "2026-10-22",
+  "title": "RPP-4a typed MATERIAL ambient/diffuse method and factor fields",
+  "mode": "Official-reference-backed local implementation fast slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "4ca8fb3c85fcbfb839ad8b222fde5025c0028fb71f2ec2ba9cc45f201aeac162",
+  "method": {
+    "localSourceAndTestsChanged": [
+      "src/drw_objects.h: typed ambient/diffuse method and factor values with presence flags and defaults",
+      "src/drw_objects.cpp: MATERIAL DXF parse validation for groups 70/40 and 71/41",
+      "src/libdxfrw.cpp: typed MATERIAL writer output and pre-publication domain validation",
+      "tests/dxf_fixture_tests.cpp: generated ASCII/Binary parsing, raw preservation, copy/reset, explicit-default writer, invalid-factor refusal and retry"
+    ],
+    "officialReference": {
+      "title": "Autodesk MATERIAL (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "fieldsUsed": "Groups 70/40 define ambient method/factor and groups 71/41 define diffuse method/factor. Methods are 0 or 1; factors default to 1.0 and have documented range 0.0 to 1.0.",
+      "role": "Normative DXF field/domain reference for this slice; no DWG byte layout changed."
+    },
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": true,
+    "localBuildRun": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "limitations": "Only ambient/diffuse method and factor fields are typed. Unsigned color values 90/91, map/mapper fields, remaining MATERIAL fields, and DWG body semantics remain unimplemented; raw-net DXF preservation is not typed semantic support."
+  },
+  "implementation": {
+    "subplan": "RPP-4a",
+    "status": "IMPLEMENTED_AND_FOCUSED_TESTED",
+    "fields": [70, 40, 71, 41],
+    "behavior": "Present values are retained independently from documented defaults and emitted by the typed writer, including explicit default-valued fields. Invalid methods/factors are refused; invalid factors do not replace an existing output file.",
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2",
+    "tests": "PASS: ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|dxf_hatch_derived_pixel_size_presence|dwg_hatch_reference_graph)$' --output-on-failure (3/3)",
+    "diffCheck": "PASS: git diff --check for changed MATERIAL/HATCH source, tests, CMake, and plan files",
+    "fullSuite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "nativeFreeCADLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsSemantics": "NOT_RUN",
+    "planUpdated": true
+  },
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "disposition": "RPP-4a_IMPLEMENTED; generated ASCII/Binary tests and strict build pass; unsigned values, map/mapper semantics, DWG semantics, native qualification, and support promotion remain outstanding; changes are uncommitted and unstaged."
+}

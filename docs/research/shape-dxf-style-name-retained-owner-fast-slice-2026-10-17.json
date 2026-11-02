@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "SHAPE DXF style-name retained owner",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the parsed DXF SHAPE group-2 style/glyph name to its entity owner lease",
+    "Clear the parser-owned value and byte counter on reset",
+    "Keep SHX resource lookup and glyph/file identity semantics outside this slice"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_Shape::parseCode now passes group 2 through replaceDxfRetainedStringField with a dedicated retained-byte counter. resetDwgState clears m_styleName and its counter; the class's implicit copy/assignment preserve the counter and shared base lease. Generated ASCII controls find the minimum accepted cap for OLD-to-GLYPH1 and verify exact-cap success, one-byte-under refusal preserving the prior value, copy/assignment lifetime, and final reset release.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_Shape layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-shape-style-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-section-object-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-modeler-uid-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimension-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedRetainedStringOwnerSelectors": "passed (4/4)",
+      "owningHardeningCTest": "passed (1/1; 0.29 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned SHAPE group-2 string is charged to the shared logical retained-byte budget, follows copied model values, and is released on reset. The one-byte-under test stops before parsing the replacement value and preserves the prior name; it does not prove the field helper itself was the first denied reservation. No process RSS/capacity, SHX lookup, glyph semantics, or native CAD claim follows.",
+    "coverage": "Generated ASCII direct-parser controls verify minimum-cap discovery, exact-cap success, one-byte-under no-replacement, copy construction/assignment, sibling reset, and final release. The owning hardening CTest passes.",
+    "limitations": "No complete DXF read/callback stream, persistent/external drawing, peer parser, native CAD application, full suite, allocation benchmark, or support/J promotion was used."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

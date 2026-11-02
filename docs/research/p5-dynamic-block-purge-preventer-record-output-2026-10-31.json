@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-dynamic-block-purge-preventer-record-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify the isolated AcDbDynamicBlockPurgePreventer DXF record profile",
+  "status": "ISOLATED_RECORD_AND_SINGLETON_OWNER_GRAPH_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION / AcDbDynamicBlockPurgePreventer",
+    "handle": "0x1122",
+    "objectType": 519,
+    "ownerDictionary": "0x1116",
+    "blockRecord": "0x127",
+    "body": {
+      "purgeFlag": 1,
+      "dwgPurgeBlockHandle": "0x127",
+      "dxfSubclass": "AcDbDynamicBlockPurgePreventer",
+      "dxfField": "group 70 only"
+    },
+    "ownerDictionaryEntries": [
+      {"key": "ACAD_ENHANCEDBLOCK", "target": "0x1117"},
+      {"key": "ACAD_SORTENTS", "target": "0x111C"},
+      {"key": "AcDbDynamicBlockRoundTripPurgePreventer", "target": "0x1122"}
+    ],
+    "profileEvidence": "docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json",
+    "fixturePolicy": "The existing DWG was read in place. Regression data is authored in test code; no DWG or DXF fixture was added."
+  },
+  "independentWriterEvidence": [
+    {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "command": "/opt/homebrew/bin/dwg2dxf -y --as r2010 -o /tmp/title_block_arch_libredwg.dxf /Users/dli/doc/dwg/title_block-arch.dwg",
+      "observed": "The independent conversion emitted class ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION, dictionary key AcDbDynamicBlockRoundTripPurgePreventer to 0x1122, and the PurgePreventer subclass with group 70 value 1."
+    },
+    {
+      "implementation": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+      "revision": "master as inspected 2026-10-31; not commit-pinned",
+      "method": "writeDynamicBlockPurge",
+      "observed": "Writes AcDbDynamicBlockPurgePreventer followed by group 70 Version. This is source-level corroboration, not an executed oracle result."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Decode the exact ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION subclass and signed-16-bit group 70 field. Emit only that verified body with remapped object identity, owner and reactor. Stage its one-entry owner DICTIONARY and BLOCK_RECORD extension-dictionary edge; validate the source graph again at OBJECTS serialization. Register the class row and retain fail-closed behavior for other subclasses, mixed-key owner dictionaries and incomplete references.",
+    "scope": "The isolated PurgePreventer record plus a singleton owner dictionary. The real title_block-arch.dwg owner dictionary has three entries and is not admitted by this slice; composing those sibling targets remains open. No native Dynamic Block behavior or format-wide claim is established."
+  },
+  "qualification": {
+    "outputVersion": "AC1024",
+    "ascii": "PASS: exact emitted group sequence, remapped self/owner/reactor handles, class count, owner dictionary key, BLOCK_RECORD edge and fresh import agree.",
+    "binary": "PASS: the same exact field and graph checks pass through Binary DXF output and fresh import.",
+    "mixedOwnerGraph": "PASS refusal: an ACAD_ENHANCEDBLOCK sibling entry without its closed target graph is not emitted.",
+    "olderTarget": "PASS refusal: AC1021 output is rejected because no PurgePreventer output profile is qualified before AC1024.",
+    "unsupportedSubclass": "PASS refusal: BLOCKVISIBILITYPARAMETER remains outside the admitted profile."
+  },
+  "compositionCheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -d -v2010 /private/tmp/title_block_arch_current.dxf",
+    "exitCode": 1,
+    "result": "Still refuses before publication at SORTENTSTABLE extension DICTIONARY reciprocity. The current trace confirms dictionary 0x1116 has three entries: ACAD_ENHANCEDBLOCK to 0x1117, ACAD_SORTENTS to 0x111C, and the PurgePreventer to 0x1122. The isolated singleton profile does not promote this composed source graph."
+  },
+  "failureAndRetry": {
+    "negativeControl": "A PurgePreventer flag above INT16_MAX is refused while the existing destination sentinel remains byte-for-byte unchanged.",
+    "retry": "Correcting the flag and retrying on the same adapter succeeds and fresh import returns the corrected value.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedProfile": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_purge_preventer$' --output-on-failure",
+      "result": "PASS, 1/1; AC1024 ASCII/Binary round-trip, incomplete mixed-key refusal, unsupported subclass refusal, AC1021 refusal, destination preservation and corrected same-adapter retry."
+    },
+    "productionCli": {
+      "command": "cmake --build build-gcc --target dwg2dxf -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "fullSuites": "NOT RUN; only the touched target and focused selector were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Implement and test the isolated PurgePreventer group-70 DXF record serializer with its singleton owner DICTIONARY and BLOCK_RECORD extension edge in ASCII and Binary."
+    ],
+    "nextPacket": "Compose the real AC1024 Title_Block-ARCH three-entry owner DICTIONARY with EvaluationGraph 0x1117, SORTENTSTABLE 0x111C and PurgePreventer 0x1122; prove all sibling bodies, roles, owner/reactor links and remapped handles in staged output and fresh readback. Keep the whole source graph refused until then.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "634c0e8b31ad571eced919a17c2058a4414dc6d90847f1472a22bede25411142",
+    "src/libdxfrw.cpp": "2ebdef5110a59bbc5954d27b50554da2de512c7806d406e5eedbca7227df4dec",
+    "src/libdxfrw.h": "f5532378d09c666f8cc54a1cd0bf6b17c8bc962f0fb77b920b381e4660746415",
+    "dwg2dxf/dx_iface.cpp": "c4c4a40aba5657b141873bbbc8c03f8d72eb55c04ce9e82e63fe426352ec4600",
+    "dwg2dxf/dx_iface.h": "5a734053d0f8fa63c3943543b28840c7dfb0f4135b57685d0eb00715364f2054",
+    "tests/dwg2dxf_adapter_tests.cpp": "85eba0a11b35362f597b53beb12715c5fa8dd0ba92d036d9ad5aaaffd7e5751e",
+    "tests/CMakeLists.txt": "6be74cd9bebbdf5f49dd8b04f990a589c60c827a86802e0280efdae7feca332f"
+  }
+}

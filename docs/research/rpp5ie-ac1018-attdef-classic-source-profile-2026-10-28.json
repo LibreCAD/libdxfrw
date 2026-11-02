@@ -1,0 +1,89 @@
+{
+  "schema": "ac1018-attdef-classic-source-profile-v1",
+  "date": "2026-10-28",
+  "codeCommit": "04240de2561e952a3c107c46fad64e24ca603a0e",
+  "supportClaimsPromoted": false,
+  "scope": "Bounded classic AC1018 ATTDEF source field profile after explicit adapter opt-in and successful captured raw/typed replay. Profile completion does not establish original ownership, dependency targets, compound coverage, output eligibility or native semantics.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample; native authoring history not independently certified.",
+    "selected": "ASCII AC1018 ATTDEF 6F8, owner 6F2, source span [74220,74426), 17 groups, declared ANSI_1252; XDATA APPID AcDbAttr with 1070 values 0 and 1."
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "No selected raw/model capture or replay.",
+    "optIn": "Captured 17 groups, model and live AC1018/ANSI_1252 context; raw/typed pair and modeled field replay match; full typed model equals default import. Profile complete with 17 host spans; origin absent and rawTypedMatched false.",
+    "roles": "5 self 6F8; 330 owner 6F2; 8 layer name; 1001 APPID name. Others are subclass, text, attribute or XDATA scalar fields. Role labels do not resolve targets.",
+    "artifacts": {
+      "source": {
+        "path": "build/agent-attribute-profile/ac1018-profile-final/probe.cpp",
+        "sha256": "cf0d3bb001393de1ba1c525fbfd94d816f940e4bbaca322a7dee99da5aab9708"
+      },
+      "binary": {
+        "path": "build/agent-attribute-profile/ac1018-profile-final/probe",
+        "sha256": "1418d5e99c387e8cd4d57635ad7fe4b07a86718e84895bcb42468f907b4415ab"
+      },
+      "stdout": {
+        "path": "build/agent-attribute-profile/ac1018-profile-final/run.stdout",
+        "sha256": "a4d28ae899e2647512e76a5265d429aa996b7e7d7cd5ced89a69dfa14aa3d964"
+      },
+      "stderr": {
+        "path": "build/agent-attribute-profile/ac1018-profile-final/run.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "adapterObject": {
+        "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+        "sha256": "f2e8b953099d762eda2012b9ccd5d111f79027abe3869d75091b9efbf0227914"
+      },
+      "library": {
+        "path": "build/libdxfrw.a",
+        "sha256": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a"
+      }
+    }
+  },
+  "bindings": {
+    "profileSource": {
+      "path": "dwg2dxf/dx_attdef_source_profile.h",
+      "sha256": "57c030ebb3ffd5629b73032d423bd1614b66c33123f36da6fa6c59d6647b402b"
+    },
+    "testSource": {
+      "path": "tests/attdef_source_tests.cpp",
+      "sha256": "8d8e5e0b1ba10ea26c49e96f87728e080e8bb3af5860a7bda415bd328c324057"
+    },
+    "priorOptInReceipt": {
+      "path": "docs/research/rpp5id-ac1018-attdef-optin-capture-2026-10-28.json",
+      "sha256": "be92e8beea2aec54757f383609a7579d2b504c72bdf6f65066f8c9f9477736a1"
+    }
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_legacy_observation",
+      "libdxfrw_attdef_legacy_adapter_capture"
+    ],
+    "normal": {
+      "result": "PASS 3/3",
+      "binarySha256": "5f36fc732c94297924cfdd81e0e23898ddecf32e6458ab98625c8b44567ce53b",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "logSha256": "632db22652da2ed1792e436833638e94db94e622ce2815797477e8dab38597d6"
+    },
+    "asan": {
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "binarySha256": "263cc13319c8f711594ae9b0249d6410e10d3e6b1631aa9351d853709d0f9e5b",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "logSha256": "69b5c05eba04ae2bf42d8414c129e69d5d5923c8b4146fb847a5ad210bcf0686"
+    },
+    "focusedControls": "Locally authored ASCII/binary and BLOCKS/ENTITIES contexts cover 4 opt-in captures, 4 default opt-outs, 12 model/raw/context mutations, 4 proof-quota cases and 16 retries; exact 18 field/role spans; direct refusal checks for legacy unsupported groups and wrong variants, and modern wrong proxy variants. Focused selectors, not a full suite."
+  },
+  "limitations": [
+    "Default legacy adapter remains opt-out. Explicit opt-in may fail reader-level capture on quota, allocation or invalid input; adapter proof-quota failure remains unqualified.",
+    "AC1018 ATTRIB, application groups, legacy proxy 92/160/310, group 280, embedded objects, secondary Xrecords, unmodeled scalar/XDATA roles and non-ASCII role names remain outside this profile. Non-ASCII text control is locally authored, not an independent original.",
+    "BLOCK/ENTITIES source capture remains AC1021+; profile completion does not qualify original/compound ownership, APPID or LAYER targets, recursive graph closure, actual output, failure/retry of output, consumer compatibility or native semantics.",
+    "No drawing fixture was committed."
+  ]
+}

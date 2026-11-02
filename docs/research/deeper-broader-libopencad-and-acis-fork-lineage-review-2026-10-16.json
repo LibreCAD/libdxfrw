@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw-deeper-broader-libopencad-and-acis-fork-lineage-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Screen GDAL's separate libopencad DWG route as an optional independent parser, evaluate a newly surfaced ACIS/B-rep Rust fork's lineage, refresh the ACadSharp solid-writer follow-up, and reconcile current parser-safety/recovery guidance against existing plan owners.",
+  "method": {
+    "kind": "Public primary project documentation, repository lineage metadata, current issues and pull requests",
+    "sourcesOpened": [
+      "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "https://gdal.org/en/stable/drivers/vector/dwg.html",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/nextgis-borsch/lib_opencad",
+      "https://github.com/compscientific/cadcodec",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html"
+    ],
+    "repositoriesCloned": false,
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Repository READMEs, official GDAL driver documentation, project lineage metadata, and issue/PR state are discovery and route-scope evidence only. No executable capability, independent ACIS module provenance, parsed drawing, shape validity, native acceptance, or local regression was verified."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL CAD/libopencad DWG reader profile",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://github.com/nextgis-borsch/lib_opencad"
+      ],
+      "observed": "The GDAL CAD driver is based on its internal libopencad implementation, is read-only, and documents POINT, LINE, CIRCLE, ARC, and 3DFACE projections. The linked libopencad project says only DWG R2000 is currently supported. GDAL's ODA-backed DWG driver and DXF driver are distinct routes.",
+      "doesNotEstablish": [
+        "successful runtime support for all AC1015 files or all entity fields",
+        "DXF/DWG writer support",
+        "owner graph, opaque object, or exact wire preservation",
+        "AC1018+ or ACIS/AcDs/modeler geometry support",
+        "independent producer or application acceptance"
+      ],
+      "planUse": "Optional composed AC1015 reader differential for the documented basic geometry subset and 3DFACE only, if GDAL CAD and a provenance-qualified input are already available. First verify libopencad source lineage before counting it as an independent parser. Capture the exact selected GDAL driver and output projection; otherwise mark NOT_RUN."
+    },
+    {
+      "topic": "cadcodec/opencadcodec ACIS claim and reader lineage",
+      "sources": [
+        "https://github.com/compscientific/cadcodec",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The cadcodec repository advertises SAT/SAB read/write, B-rep topology, primitive builders, and broad DWG/DXF support. GitHub metadata identifies cadcodec as a fork of opencadcodec, and opencadcodec as a fork of ACadRust. No source or binary was inspected or run.",
+      "doesNotEstablish": [
+        "an independent DWG/DXF reader lineage",
+        "independent provenance of the ACIS parser/kernel module",
+        "valid closed solids or producer/native-CAD acceptance",
+        "the exact source commit, build features, or repeatable results"
+      ],
+      "planUse": "Do not count this project as a second outer-format parser. Retain as an optional ACIS source-inspection lead only after exact revision pinning and separate code-lineage audit of the ACIS module; require analytic geometry and independent shape checks before semantic use."
+    },
+    {
+      "topic": "ACadSharp ACIS writer follow-up status",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Issue #1195 still reports silent omission of 3DSOLID/REGION in the retrieved view. Linked PR #1240 remains open, depends on ACDS/ACIS schema work, and describes DXF ACIS entity output plus detailed DWG ModelerGeometry serialization. The retrieved view does not establish merge, release, or deployment.",
+      "doesNotEstablish": [
+        "current released ACadSharp behavior",
+        "independent ACIS semantic validation",
+        "output acceptance in AutoCAD, ODA, or another native CAD system",
+        "a libdxfrw bug or shared failure"
+      ],
+      "planUse": "Retain the existing record-to-callback-to-owner-to-writer-to-carrier-to-semantic acceptance stages and pin an exact release/branch if later used. No duplicate ACIS finding is created."
+    },
+    {
+      "topic": "Current LibreDWG safety fixes and ezdxf repair boundary",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html"
+      ],
+      "observed": "LibreDWG 0.14.1 NEWS lists peer-specific security/correctness fixes involving decompression capacity and logical size, page offsets, checked size products, ACIS block bounds, non-finite normalization loops, and entity/handle relationships. ezdxf documentation distinguishes ordinary reads from slower recovery/audit and warns that recovered drawings with unrecoverable decode errors may lose or invalidate data when saved.",
+      "doesNotEstablish": [
+        "matching defects in libdxfrw",
+        "that a peer's mitigation or limit is normative for libdxfrw",
+        "that repaired/recovered output is a clean interoperability pass"
+      ],
+      "planUse": "Confirms existing PAR-14/PAR-15/7S.3 and scheduled fuzz/sanitizer owners. Add only source-mapped local controls when modifying an analogous path; keep strict parse, pre-repair projection, audit, and recovery diagnostics as distinct evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "nextActions": [
+      "Continue local implementation without waiting for these optional peer routes.",
+      "At a composed AC1015 comparator checkpoint only, use GDAL CAD/libopencad if already available and only with provenance-qualified input; do not install a new comparator dependency or commit its generated files.",
+      "Record exact GDAL driver identity because CAD/libopencad, DWG/ODA, and DXF are not interchangeable.",
+      "Treat cadcodec/opencadcodec as ACadRust-descended for outer format parsing; audit ACIS module code lineage independently before any semantic use.",
+      "Do not promote J256, J260, J268, J284, J293, or J295 from this source-only review."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

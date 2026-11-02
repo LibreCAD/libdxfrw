@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "R2004 DWG decompressor extended-length overflow fast slice",
+  "mode": "Generated local regression and bounded implementation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reproduce arithmetic overflow in AC1018/R2004 extended copy lengths.",
+    "Widen internal R2004 extended-length arithmetic and clip by remaining output capacity.",
+    "Keep checks fast and generated-input-only; do not add external drawings or promote support claims."
+  ],
+  "localFinding": {
+    "planOwner": "PAR-14",
+    "status": "CONFIRMED_AND_FIXED_LOCALLY",
+    "source": "src/intern/dwgutil.cpp::dwgCompressor::decompress18",
+    "mechanism": "longCompressionOffset and litLength18 returned uint32_t; an extended length, including the long-copy opcode bias, could exceed UINT32_MAX and wrap before output-window clipping.",
+    "generatedControl": {
+      "version": "AC1018 / R2004",
+      "zeroLengthContinuations": 16843008,
+      "logicalCopyLengthExceedsUInt32": true,
+      "logicalLiteralLengthExceedsUInt32": true,
+      "outputWindowBytes": 64,
+      "sourceArithmetic": {
+        "longCopyLengthModuloUInt32": 31,
+        "longLiteralLengthModuloUInt32": 16
+      },
+      "expectedLiteralPrefixBytes": 18,
+      "expectedClippedBackReference": "repeat the final literal byte through the remaining output window",
+      "cases": [
+        "extended long-copy token clipped to a 64-byte output window",
+        "extended initial literal length clipped to a 64-byte output window"
+      ]
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgutil.cpp",
+      "src/intern/dwgutil.h",
+      "tests/wave1_tests.cpp"
+    ],
+    "changes": [
+      "Use uint64_t for R2004 long compression offsets, literal lengths, and decompression copy/literal counters.",
+      "Compare extended copy/literal lengths against outputSize - outputCursor before clipping, avoiding cursor-plus-length overflow.",
+      "Add a generated in-memory AC1018 regression to the existing focused decompressor test owner."
+    ],
+    "preFixRuntimeComparison": "Not performed with the finalized generated controls; old wrapped values are recorded from direct source arithmetic.",
+    "supportClaimsPromoted": 0,
+    "externalFixturesAdded": 0,
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dwg-decompressor-size-bounds",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_decompressor_size_bounds$|^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "PASS (2/2; 1.82 sec)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgutil.cpp src/intern/dwgutil.h tests/wave1_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "limitations": [
+      "The controls validate local decompressor arithmetic only; they are not producer-derived DWG witnesses or a complete security audit.",
+      "The output-window clipping behavior is tested at the decompressor boundary, not through a full malformed-file transaction/publication test."
+    ]
+  },
+  "planState": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "commitCreated": false,
+  "commitBlocker": "Git metadata is read-only in this workspace session."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Generated AC1027 3DSOLID proxy/modeler carrier separation control",
+  "mode": "Local generated parser/callback carrier test",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Generate AC1027 DXF content from scratch at runtime with a 3DSOLID proxy count/data, group-1 and group-3 modeler fragments, history handle, and following LINE.",
+    "Verify proxy bytes remain separate from ordered modeler payload chunks and do not consume the following entity.",
+    "Update the plan's PAR-07/S8 evidence matrix to distinguish generated carrier parsing from writer, semantic, and consumer claims."
+  ],
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedControl": {
+      "inputVersion": "AC1027",
+      "proxyCountGroup": 160,
+      "proxyDataGroup": 310,
+      "modelerPayloadGroups": [1, 3],
+      "historyGroup": 350,
+      "followingEntity": "LINE"
+    },
+    "behaviorChanged": false,
+    "externalFixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_dxf_move_dispatch$' --output-on-failure",
+      "result": "passed 1/1"
+    },
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "planSha256": "cb859a684fae8378ed6d4d054c1ac6141aaa9dbe81a5d1fbd5f9ff6b533237eb"
+  },
+  "planImpact": {
+    "existingOwner": "PAR-07/S8 exact DXF modeler carrier controls",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This proves only generated AC1027 DXF parser/callback carrier separation. Typed proxy output remains disallowed for 3DSOLID; no strict independent reopen, proxy replay support, ACIS interpretation, general modeler semantics, or native consumer behavior is qualified. The test and plan remain uncommitted over the user's existing working-tree changes."
+}

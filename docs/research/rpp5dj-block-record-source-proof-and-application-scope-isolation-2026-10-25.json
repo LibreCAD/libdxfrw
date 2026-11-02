@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dj BLOCK_RECORD source proof and application-scope isolation",
+  "date": "2026-10-25",
+  "parentCommit": "e0848ddce70c469307599e7b560017e869cd5192",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "BLOCK_RECORD_SOURCE_PREREQUISITE_IMPLEMENTED_67_OF_69_PASS_TWO_CONFIRMED_PARENT_NATIVE_FAILURES_FULL_GOAL_OPEN",
+  "scope": {
+    "addedSourceFamily": "BLOCK_RECORD",
+    "sourceFamiliesNow": 9,
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "authority": "Shared production DXF decoder exposed/default/native-state agreement plus independent original scalar observations; not full block/target/output semantics",
+    "newFacet": "DRW_DxfBlockRecordSourceHandler",
+    "selection": "Latched per BLOCK_RECORD table batch",
+    "publication": "After valid ENDTAB, immediately before each typed row callback; no code-0 marker/table control in source",
+    "optOut": "No additional source callback, source copy or source-capture charge",
+    "drwInterfaceVtableChanged": false,
+    "libraryModelLayoutChanged": false,
+    "nativeDwgLayoutParserWriterChanged": false,
+    "globalCodecChanged": false,
+    "outputEligible": false,
+    "supportClaimsPromoted": false,
+    "notCompleted": [
+      "BLOCK/ENDBLK entity/context source proof",
+      "ATTDEF/ATTRIB/SEQEND source/context preservation",
+      "Full common/application and layout/insert target closure",
+      "APPID/LAYER source families",
+      "Complete live-state/atomic output",
+      "Original native/consumer and independent semantic/platform obligations"
+    ]
+  },
+  "research": {
+    "blockRecordFields": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+    "symbolApplicationScopes": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5926A569-3E40-4ED2-AE06-6ACCE0EFC813.htm",
+    "nextAttdefReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm",
+    "scope": "DXF field/scope references only. No native byte-layout conclusion derived from these pages"
+  },
+  "implementation": {
+    "decoder": "Noninstalled src/intern/dxfblockrecord.h shared by processBlockRecord and bounded source replay",
+    "manifests": [
+      "libdxfrw_sources.cmake",
+      "src/Makefile.am"
+    ],
+    "applicationFix": "Opaque/nested application payloads cannot overwrite row name, handle, owner, units, explodability/scalability, layout or preview; controlled BLKREFS/XDICTIONARY interpret only their reference role",
+    "batchOwnership": "Retain existing public/context name, preview and insert owners; lexical insert-index quota resets after row staging; context-map publication remains in library table parser",
+    "comparison": "Common fields, all exposed/default/native-only BLOCK_RECORD fields, exact preview/insert vectors, signed-zero native base point, xref handle components and absence of private native block/end/entity-map links",
+    "selectedBindings": "Source proof required for selected table owner/content block-record resources; actual layout/insert targets not thereby closed",
+    "rolesAdded": {
+      "26": "BlockInsert",
+      "27": "BlockLayout"
+    },
+    "privateStateAccess": "Friendship only; no public data member or new DRW_Interface virtual",
+    "sharedProofLimits": {
+      "records": 100000,
+      "groups": 4000000,
+      "logicalBytes": 67108864,
+      "workSlots": 4000000,
+      "workSlotsPerGroup": 64
+    },
+    "limitScope": "Logical source/model/work admission only, not capacity, allocator, whole-model RSS or strict CPU-time bounds",
+    "opaqueScope": "Raw source preserves opaque fields even when the historical typed projection ignores them; source comparison is not lossless output",
+    "autotoolsRuntimeQualified": false
+  },
+  "applicationRegression": {
+    "status": "REPRODUCED_THEN_FIXED",
+    "baselineScope": "Parent production processBlockRecord routine with inert new helper declarations and new poisoned input, before replacement by the shared decoder",
+    "control": "libdxfrw_dxf_block_record_parser_retained_budget",
+    "observedFailedAssertions": 4,
+    "baselineLog": "/tmp/rpp5dj-scope-baseline.log",
+    "baselineBuildLog": "/tmp/rpp5dj-scope-baseline-build.log",
+    "affectedAssertions": [
+      "Staged names/preview/insert payloads",
+      "Complete reading-context projections",
+      "Exact owner-charge accounting",
+      "Same-facade exact-budget corrected retry"
+    ],
+    "postFix": "PASS, including both final normal/ASan cohorts"
+  },
+  "generatedControls": {
+    "provenance": "New controls authored locally from scratch; no unrelated external DWG/DXF fixture committed",
+    "routes": 8,
+    "typedMutationKinds": 33,
+    "typedMismatchCorrectedPairs": 264,
+    "rawMismatchCorrectedPairs": 56,
+    "missingDuplicateLateCallbackControls": 32,
+    "rawStageAndTypedCaptureAllocationSchedules": 96,
+    "allocationScheduleRange": "0..5 around each capture phase. Some raw-stage schedules legitimately complete; Bound is allowed only with complete matching original receipts and exact aggregate counts",
+    "exactAndBelowAggregateLimitCases": 64,
+    "malformedAtomicBatchRefusals": 32,
+    "other": [
+      "Opt-out and batch-latched request changes",
+      "Throwing source callback and corrected fresh import on same facade",
+      "No callbacks before valid ENDTAB",
+      "Unknown/nested application fields do not pollute row metadata",
+      "Five private native link/entity-map injections refused",
+      "Null BLKREFS physical span retained while typed list follows existing null-skip policy"
+    ],
+    "normalOwningLog": "build-gcc/Testing/Temporary/LastTest.log",
+    "asanOwningLog": "build-asan-custom/Testing/Temporary/LastTest.log"
+  },
+  "independentObserver": {
+    "schemaVersion": 6,
+    "python": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/bin/python",
+    "ezdxfReportedVersion": "1.4.4",
+    "originalPositionsNeverReexported": true,
+    "loadedDependencyAttestation": false,
+    "qualificationEligible": false,
+    "sourceAuthority": "Original physical tags own scoped scalar/reference positions. Typed peer comparison is separate and does not repair source",
+    "typedRecordMethod": "Load original BLOCK_RECORD through ezdxf factory/ExtendedTags/tag compiler before document-level LAYOUT repair",
+    "scope": "BLKREFS/layout/common reference positions and selected units/explode/scale/layout scalar observations, not preview, block entities/children, effective targets or full format support",
+    "selftest": {
+      "positives": 12,
+      "corruptions": 29,
+      "unexplainedPeerMismatchRefused": true
+    },
+    "generated": {
+      "normalRoutes": 8,
+      "asanRoutes": 8,
+      "normalLog": "/tmp/rpp5dj-final-independent-block.json",
+      "asanLog": "/tmp/rpp5dj-asan-independent-block.json",
+      "richBlockPhysicalInsertSlots": 3,
+      "richBlockTypedNonNullInserts": 2,
+      "richBlockLayoutSlots": 1,
+      "richBlockHandleSlots": 8,
+      "richBlockReferenceEvents": 10
+    },
+    "peerDiscrepancy": {
+      "status": "KNOWN_APPLICATION_SCOPE_DIFFERENCE",
+      "routesPerBuild": 8,
+      "record": "B100",
+      "sourceScopedUnitsExplodeScale": [
+        4,
+        0,
+        1
+      ],
+      "unmodifiedPeerTypedUnitsExplodeScale": [
+        99,
+        1,
+        0
+      ],
+      "layoutHandleBoth": 60929,
+      "fullPeerScalarParity": false,
+      "classification": "Only an exact observed unscoped-last-scalar pattern is recognized. Original context-aware scalar comparison must first pass; other peer disagreements fail",
+      "notSanitized": "No application stripping or re-export to manufacture parity",
+      "sourceFile": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/lib/python3.12/site-packages/ezdxf/entities/blockrecord.py",
+      "sourceFileSha256": "ffd9006fdd99e7b863ac33c800894ff19060ec9577cd6d380dabe52917be0c75",
+      "sourceHashScope": "Source provenance only, not loaded-bytecode/dependency attestation",
+      "initialDocumentViewMismatchLog": "/tmp/rpp5dj-independent-block.json",
+      "originalRecordViewMismatchLog": "/tmp/rpp5dj-reviewed-independent-block.json",
+      "upstreamIssueFiled": false
+    },
+    "priorGeneratedRoutesRerun": {
+      "symbol": 8,
+      "auxiliary": 8,
+      "spine": 8,
+      "logs": [
+        "/tmp/rpp5dj-independent-symbol.json",
+        "/tmp/rpp5dj-independent-auxiliary.json",
+        "/tmp/rpp5dj-independent-spine.json"
+      ]
+    },
+    "optionalRegistration": {
+      "registered": [
+        "libdxfrw_independent_symbol_source",
+        "libdxfrw_independent_auxiliary_source",
+        "libdxfrw_independent_spine_source",
+        "libdxfrw_independent_block_record_source"
+      ],
+      "gate": "Existing tests plus CLI plus explicitly supplied existing ezdxf 1.4.4 runtime; no installation",
+      "buildDirectory": "/private/tmp/libdxfrw-rpp5dj-optional.hRUqFy",
+      "configureLog": "/tmp/rpp5dj-optional-configure.log",
+      "registrationLog": "/tmp/rpp5dj-optional-registration.json",
+      "executionScope": "Registration only in temporary configure; probes executed directly using existing normal/ASan builds"
+    }
+  },
+  "externalObservations": {
+    "inputRoot": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "drawingsUnchanged": true,
+    "files": [
+      {
+        "file": "example-AC1027.dxf",
+        "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+        "binding": "Bound",
+        "proofRecords": 105,
+        "proofGroups": 2413,
+        "proofLogicalBytes": 920498,
+        "proofWorkSlots": 154432,
+        "independentResources": 105,
+        "independentEvents": 484,
+        "blockRecords": 16,
+        "peerBlockScalarDifferences": 0,
+        "selectedBlockRecordProofUses": 1,
+        "inspectLog": "/tmp/rpp5dj-external-ac1027.log",
+        "independentLog": "/tmp/rpp5dj-independent-external-ac1027.json"
+      },
+      {
+        "file": "example-AC1032.dxf",
+        "sha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+        "binding": "Bound",
+        "proofRecords": 92,
+        "proofGroups": 2216,
+        "proofLogicalBytes": 875190,
+        "proofWorkSlots": 141824,
+        "independentResources": 92,
+        "independentEvents": 428,
+        "blockRecords": 16,
+        "peerBlockScalarDifferences": 0,
+        "selectedBlockRecordProofUses": 1,
+        "inspectLog": "/tmp/rpp5dj-external-ac1032.log",
+        "independentLog": "/tmp/rpp5dj-independent-external-ac1032.json"
+      }
+    ],
+    "scope": "Selected source/binding and original scalar observations, not whole-graph/native/semantic or platform qualification",
+    "cli": {
+      "refusals": 3,
+      "publishedDestinations": 0,
+      "inputs": "Both unchanged external examples plus authored rich AC1032 block-record case",
+      "logs": [
+        "/tmp/rpp5dj-generated-cli.log",
+        "/tmp/rpp5dj-external27-cli.log",
+        "/tmp/rpp5dj-external32-cli.log"
+      ],
+      "scope": "Fresh destination CLI refusal. Existing destination-preserving and corrected same-exporter controls remain in passing affected tests"
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC evidence",
+    "normal": {
+      "passed": 67,
+      "failed": 2,
+      "total": 69,
+      "success": false,
+      "elapsedSeconds": 74.64,
+      "log": "/tmp/rpp5dj-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 67,
+      "failed": 2,
+      "total": 69,
+      "success": false,
+      "elapsedSeconds": 166.37,
+      "log": "/tmp/rpp5dj-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_acad_field_writer_candidate",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+      "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_extension_graph_limits",
+      "libdxfrw_field_cadvalue_date_payload",
+      "libdxfrw_field_cadvalue_double",
+      "libdxfrw_field_cadvalue_general_format_flag",
+      "libdxfrw_field_cadvalue_long",
+      "libdxfrw_field_cadvalue_object_id",
+      "libdxfrw_field_cadvalue_points",
+      "libdxfrw_field_cadvalue_string",
+      "libdxfrw_field_cadvalue_unknown_type",
+      "libdxfrw_field_child_cadvalue_types",
+      "libdxfrw_field_child_object_id_invalid_handle_role",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_field_oversized_child_value_count",
+      "libdxfrw_field_unknown_child_cadvalue_versions",
+      "libdxfrw_field_unqualified_format_flags",
+      "libdxfrw_field_unsupported_child_cadvalue_buffers",
+      "libdxfrw_linetype_extension_graph",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_block_owners",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "libdxfrw_dimension_picture_block_full_conversion",
+      "dwg_block_record_layout_association",
+      "libdxfrw_dwg_block_record_xref_roundtrip"
+    ],
+    "scope": "Final production/C++ controls and final schema-6 observer; all new source/scope/budget and existing affected DXF/CLI/compatibility controls pass",
+    "normalAndAsanCtestCohortsSequential": true,
+    "failedTests": [
+      "libdxfrw_dwg_block_record_xref_roundtrip",
+      "dwg_block_record_layout_association"
+    ],
+    "baselineFailuresWaived": false,
+    "parentBaseline": {
+      "commit": "e0848ddce70c469307599e7b560017e869cd5192",
+      "method": "git archive HEAD into an isolated temporary source tree, fresh CMake/native target build on same host",
+      "sourceRoot": "/private/tmp/libdxfrw-rpp5dj-parent.JJKlqO",
+      "configure": "Tests ON, CLI OFF, default build type, same strict Apple Clang warnings",
+      "passed": 0,
+      "failed": 2,
+      "total": 2,
+      "elapsedSeconds": 0.53,
+      "identicalDiagnostics": true,
+      "diagnostics": [
+        "XREF metadata writer failed for 13-loaded: dwg-block-callback required-write failure",
+        "LAYOUT independent DATA cursor mismatch for version 15"
+      ],
+      "configureLog": "/tmp/rpp5dj-parent-configure.log",
+      "buildLog": "/tmp/rpp5dj-parent-build.log",
+      "testLog": "/tmp/rpp5dj-parent-tests.log",
+      "disposition": "Required local native-control follow-ups, not external-only/advisory qualification, not attributable to current DXF changes"
+    },
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compile, not native application runtime"
+    },
+    "strictWarningsRetained": true,
+    "fullProjectSuiteRepeated": false,
+    "leakCheckRun": false,
+    "buildLogs": [
+      "/tmp/rpp5dj-normal-cohort-build.log",
+      "/tmp/rpp5dj-asan-build.log",
+      "/tmp/rpp5dj-asan-extra-build.log"
+    ]
+  },
+  "sourceSha256": {
+    "src/intern/dxfblockrecord.h": "9a39c396f41d6e9a2321892432979b4416ef05d51b95d56966bb2876582f76b4",
+    "src/drw_objects.h": "de8b3070c7493d387d1e8ede5863a36530607002745ebab5d75c8639219aaf2f",
+    "src/drw_interface.h": "ae6ba16825e525f4df233d63012745e839bbb8bc35cc385d80fcb946cb1fc75a",
+    "src/libdxfrw.cpp": "5350e4067bb8ac855f4b3f52a5818166a220607771f82380c893e2064e7add44",
+    "dwg2dxf/dx_data.h": "b0c5b56ad968faba9eedc3a5d03f4bb40396d35922d885b67b4658342cb9162a",
+    "dwg2dxf/dx_iface.h": "dc692b3374648a3d51c5bb9087b52ee395b6a58c4b6e9117a7ea30ad37afa566",
+    "dwg2dxf/dx_iface.cpp": "dee2a479afefe7ecf0ff5916866084c0244c3af17988a8893a979540f7affd60",
+    "libdxfrw_sources.cmake": "092d03d7b708149342e67656a9138ac526d8ab2f40ddaadd782bc2831dcccf3a",
+    "src/Makefile.am": "6311370b14888a18c9bbdba7aa7995d5bd629b14a9b3b4ed475b8d5b5ae65c56",
+    "tests/CMakeLists.txt": "15319fbd475d77a6a3a52de1e9684daeb21ba8e23353bc2b466ae9d547ee2581",
+    "tests/hardening_tests.cpp": "2ce21fd3d65eeb9b8a8c35483d57ec24ef22b4fe424831643026fcc53a2a638b",
+    "tests/table_content_dxf_tests.cpp": "c50178f6792917597cfdd7e9bf1a7c72fdaec885d633016b33593552de543d76",
+    "tests/table_resource_reference_observer.py": "bc927ec1ae971416521943e48bf9a7eea9d8e7c876cb443c70ab13e0fad7d8e9",
+    "README.md": "6d3f54224d19a1e470fc3f2342907c63ea15c5f52053c7e1f797f820db39a626",
+    "docs/3D_CONSUMER_CONTRACT.md": "e7def5b530a880e1b79396d84c9dc8f6ea12064fb359b81f6c9338b5b15c5ed9",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f3a305a388caaf10c6b620f85c0cd98e9fddb5efb5e769039e7e4cb3542e358d"
+  },
+  "remaining": [
+    "Resolve confirmed-parent native XREF transaction and independent LAYOUT DATA cursor controls without weakening refusal or copying production parsing into an oracle",
+    "ATTDEF and BLOCK/ENDBLK accepted-boundary source/context proof, including staged child events and MTEXT/projection normalization",
+    "Opt-in APPID/LAYER and full target/common/pre-identity collision closure across reached families",
+    "Shared preview/binary growth, replay speed and remaining owner/container audit before stronger CPU/RSS claims",
+    "Complete live/atomic output and original native/document/IMAGE/surface/LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD parity"
+  ],
+  "qualification": {
+    "supportLedger": "CLOSED",
+    "outputEligible": false,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "remoteWritesPerformed": false,
+    "externalFixturesCommitted": false,
+    "fullImplementationGoalComplete": false
+  }
+}

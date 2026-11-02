@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-58/7AI",
+  "related_owner": "7S.2 retained data/work",
+  "slice": "Raw named-resource carrier inventory single pass",
+  "status": "implemented_locally_uncommitted",
+  "problem": "prepareExtensionObjectGraph scanned rawNamedResourceObjects once per family (DICTIONARYVAR, SCALE, MLINESTYLE, MLEADERSTYLE), uppercasing every record name on each pass. Only matched records were charged, so late-family records could trigger earlier full-vector work before the source-record limit was reached.",
+  "implementation": {
+    "files_changed": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Moved raw named-resource classification after typed family indexing and replaced four full-vector family filters with one source-order dispatch pass.",
+      "Each candidate name is normalized once, charged once by examineSourceRecord, validated against its typed record identity and owner, and inserted into the existing family map.",
+      "Kept family coverage checks separate; no new pointer vector, counter, persistent fixture, API member, virtual, or object state was added.",
+      "Added a private-method test friend and generated typed/raw MLINESTYLE cap/refusal/retry control."
+    ],
+    "work_effect": "Raw named-resource candidate scanning and case normalization reduce from four complete family scans to one, with each candidate work unit charged before classification.",
+    "behavior": "No serialized content or support claim changed. Diagnostics still reject unsupported family names and preserve raw source order during indexing."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+      "result": "PASS"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_extension_graph_limits$' --output-on-failure",
+      "passed": 1,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par58-7ai-raw-named-resource-index-pass-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added_or_registered": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Audit the remaining PAR-58/7AI extension-graph inventory and payload-validation paths for repeated candidate scans or work performed before budget charge; then continue 7S retained-byte/work owners.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

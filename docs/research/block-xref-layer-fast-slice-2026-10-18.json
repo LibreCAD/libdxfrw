@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK XREF layer preservation ASCII/Binary round-trip fast slice",
+  "mode": "Local source review plus generated focused regression control",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close the BLOCK-header group-8 writer hardcode for a parsed layer name",
+    "Verify semantic and raw BLOCK layer retention in ASCII and Binary AC1021 DXF",
+    "Keep ENDBLK as a distinct record and retain the local-only fixture policy"
+  ],
+  "sources": [
+    {
+      "path": "src/drw_entities.cpp",
+      "identity": "Local DRW_Block::parseCode and common entity parsing source review",
+      "observation": "BLOCK group 8 is already retained by the common entity parser in DRW_Block::parseCode.",
+      "boundary": "Source review; generated input/re-import checks assert the selected runtime route."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeBlock source review",
+      "observation": "Before this slice, the specialized BLOCK writer emitted group 8 as literal layer 0. It now writes bk->layer using the version-appropriate UTF-8 or legacy-capitalized writer. ENDBLK remains separately emitted on layer 0.",
+      "boundary": "Only the BLOCK-header layer field is changed; this does not establish full common-group or footer closure."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "identity": "Generated XREF/BLOCK control based on tracked block_record_preview_r2007.dxf",
+      "observation": "A scratch-authored LAYER table defines 0 and XREF_DEF_LAYER. The XREF BLOCK header is assigned XREF_DEF_LAYER and checked in raw ASCII/Binary AC1021 output and semantic re-import.",
+      "boundary": "Generated local same-version profile only; all temporary files are removed."
+    }
+  ],
+  "implementation": {
+    "productionChange": "dxfRW::writeBlock emits bk->layer for BLOCK group 8 rather than hardcoding 0. ENDBLK's separate layer behavior is unchanged.",
+    "generatedLayerTable": [
+      {"name": "0", "handle": "F1"},
+      {"name": "XREF_DEF_LAYER", "handle": "F2", "color": 4}
+    ],
+    "coverage": [
+      "Scratch-authored source imports through dx_iface",
+      "Raw ASCII and Binary AC1021 scans retain XREF_DEF_LAYER on the target BLOCK header",
+      "Semantic re-import retains DRW_Block::layer as XREF_DEF_LAYER",
+      "ENDBLK remains a following distinct record",
+      "Previously passing path, description, ordered XDATA, copy/reset controls remain in the same selector"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "lc3SourceCompatibilityTargetPassed": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "crossVersionMatrixRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "BLOCK common-group appData/reactor/extension-dictionary retention and ordering",
+      "Cross-version XDATA text policy and downgrade behavior",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DIMSTYLE synthesized typed-variant node admission",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Extend the aggregate typed DXF variant-node budget to synthesized DIMSTYLE vars entries",
+    "Keep DIMSTYLE callback publication staged until the table completes",
+    "Use generated ASCII and Binary TABLES inputs with exact, one-under, and retry controls"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.5",
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "A private DIMSTYLE read-aware sync helper charges the shared typed-variant counter before creating each absent standard vars entry. The existing no-reader helper remains unchanged semantically for DWG/API callers. Completed DXF DIMSTYLE records move into the callback staging vector so the library does not deep-copy their variant maps a second time.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "diagnosticRenameReason": "The existing counter now covers synthesized DIMSTYLE variants in addition to XDATA, so the previous XDATA-only diagnostic was too narrow.",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "downstreamRebuildRequiredByThisSlice": false,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "temporaryGeneratedBinaryInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimstyle-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/dimstyle-typed-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_objects.h src/drw_objects.cpp src/intern/dxfreader.h src/libdxfrw.h src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimstyle-typed-variant-node-budget-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedSelector": "PASS: generated ASCII and Binary DIMSTYLE TABLES; exact aggregate cap, one-under failure before all staged callbacks, same-facade exact-cap retry",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.28 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "The counter covers instrumented typed variant creation, not every parser allocation, allocator capacity, RSS, raw carriers, application data, other typed maps, or copies a consumer makes after callback.",
+    "The generated test measures its exact node count from the two successfully captured DIMSTYLE vars maps; no format-wide maximum is inferred.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this verified slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-libredwg-build-profile-class-evidence-review-v1",
+  "date": "2026-10-17",
+  "scope": "Primary-source review of LibreDWG compile-time class support states and their implications for the existing open-source comparator and DWG/DXF semantic evidence plan.",
+  "method": {
+    "sources": [
+      "LibreDWG current README/build options and documented tool-route coverage",
+      "LibreDWG current Texinfo class-stability documentation",
+      "ACadSharp issue #1195 and linked, unmerged writer work as version-scoped loss evidence",
+      "ezdxf XREF loader documentation, scoped to its import/copy helper"
+    ],
+    "local_crosswalk": "Compared LibreDWG's explicit release/debug feature gates and per-class status taxonomy with the existing exact-artifact peer intake, operation/version matrix, output loss ledger, and composed validation checkpoint in DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md.",
+    "not_performed": [
+      "No LibreDWG checkout, build, binary, command, or runtime execution",
+      "No native CAD application or geometry-kernel run",
+      "No external drawing download or fixture addition",
+      "No production code, test, dependency, or CTest registration change"
+    ]
+  },
+  "findings": [
+    {
+      "topic": "Build-profile-dependent class coverage",
+      "evidence": "LibreDWG documents --enable-release as disabling features not enabled in official tarballs, including unstable DWG features and unknown versions/objects; --enable-debug enables debugging classes for testing. Its class documentation distinguishes stable, unstable, debugging, and unhandled states.",
+      "plan_effect": "At the existing composed peer checkpoint, bind each result to the exact configure/build profile and record per-class state. Separate package/release-profile evidence from debug-enabled investigative evidence. Do not promote a feature that is present only in a debug build to ordinary released capability."
+    },
+    {
+      "topic": "Per-class read/write disposition is not transitive",
+      "evidence": "LibreDWG documents unstable classes as sometimes emitted to DXF/JSON but not necessarily DWG; such classes can become UNKNOWN/PLACEHOLDER/DUMMY/POINT representations. Same-version persistence requires retaining the complete unknown_bits blob. Unhandled classes are ignored.",
+      "plan_effect": "Grade each (DWG version, object class, operation, build profile) independently as typed decode, opaque preservation, placeholder/lowering, omitted, or refused. Count same-version opaque replay only as carrier preservation; semantic support still needs typed fields, identity/owner closure, and independently authored expected values."
+    },
+    {
+      "topic": "Aggregate coverage and converter labels",
+      "evidence": "The current README gives broad coverage language alongside route-specific caveats, including advanced R2010+ objects that may be skipped and distinct DWG/DXF converter coverage descriptions.",
+      "plan_effect": "Retain the plan's per-version, per-direction, per-class evidence matrix; aggregate percentage or a converter name does not substitute for a measured class-level result."
+    },
+    {
+      "topic": "Cross-project silent-loss and projection boundary",
+      "evidence": "ACadSharp issue #1195 reports silent omission of 3DSOLID/REGION by the specifically named 3.4.9 DWG-to-DXF writer; the maintainer says the DXF entities were unsupported and links to unmerged writer work. Separately, ezdxf documents that its XREF copy/import helper has a narrower copyable/transformable subset and ignores unsupported ACAD_TABLE/unknown entities without raising exceptions. These are version- and helper-scoped reports, not current-package reproductions or base-parser behavior.",
+      "plan_effect": "Reconfirm the existing end-to-end per-handle loss ledger. Grade the stage and operation actually exercised; neither process success nor a helper that returns without an exception proves source/output inventory completeness. Do not turn these reports into a new libdxfrw bug without a local reproducer."
+    }
+  ],
+  "implementation_readiness": {
+    "existing_owners_only": [
+      "S8/PAR-07 peer evidence intake and emitted-identity/loss ledger",
+      "7S.3/S3.7 composed route-specific validation checkpoint"
+    ],
+    "required_peer_receipt_fields": [
+      "immutable source revision or release artifact hash",
+      "configure/build flags and relevant dependency profile",
+      "format version, class/type, operation and requested/actual output version",
+      "per-class state: stable, unstable, debugging, or unhandled where available",
+      "typed decode, opaque blob retention, placeholder/lowering, omission or refusal disposition",
+      "source/output identity, owner, and payload evidence",
+      "independent reader/consumer and semantic result as separate outcomes"
+    ],
+    "validation_cadence": "No peer build/run is added to implementation slices. Resolve an already-selected comparator once at the composed checkpoint; keep focused generated local tests and the owning CTest per slice.",
+    "fixture_policy": "Use in-memory or scratch-generated controls. Do not commit new external DWG/DXF test files; existing LibreCAD/libdxfrw corpus items and files created locally from scratch remain the only permitted fixture sources."
+  },
+  "ledger_effect": {
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "findings_total": 129,
+    "top_level_subplans_total": 72,
+    "queue_changed": false,
+    "support_claims_promoted": false,
+    "external_dispositions": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sources": [
+    "https://github.com/LibreDWG/libredwg",
+    "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi#L3022-L3039",
+    "https://github.com/DomCR/ACadSharp/issues/1195",
+    "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst#L242-L250"
+  ]
+}

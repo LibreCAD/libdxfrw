@@ -1,14 +1,22 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <functional>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -16,6 +24,7 @@
 #include "drw_base.h"
 #include "drw_datastorage.h"
 #include "intern/dwgsafety.h"
+#include "intern/dwgbufferw.h"
 #include "intern/dwgreader15.h"
 #include "intern/dwgreader27.h"
 #include "intern/dxfreader.h"
@@ -26,12 +35,24 @@
 #undef private
 #include "libdwgr.h"
 
+class DxfAcisCarrierTestAccess {
+public:
+    static std::size_t retainedBytes(const DRW_Entity& entity) noexcept {
+        return entity.m_dxfRetainedStringLease != nullptr
+            ? entity.m_dxfRetainedStringLease->bytes() : 0u;
+    }
+};
+
 namespace {
 
 struct TestContext {
     int failures {0};
 
     void expect(bool condition, const char* label) {
+        expect(condition, std::string(label));
+    }
+
+    void expect(bool condition, const std::string& label) {
         if (!condition) {
             ++failures;
             std::cerr << "FAIL: " << label << '\n';
@@ -52,6 +73,82 @@ public:
     using DRW_Attdef::parseCode;
 };
 
+class ExposedLType : public DRW_LType {
+public:
+    using DRW_LType::parseCode;
+};
+
+class ExposedMLineStyle : public DRW_MLineStyle {
+public:
+    using DRW_MLineStyle::parseCode;
+};
+
+class ExposedMLeaderStyle : public DRW_MLeaderStyle {
+public:
+    using DRW_MLeaderStyle::parseCode;
+};
+
+class ExposedVisualStyle : public DRW_VisualStyle {
+public:
+    using DRW_VisualStyle::parseCode;
+};
+
+class ExposedHelix : public DRW_Helix {
+public:
+    using DRW_Helix::parseCode;
+};
+
+class ExposedGroup : public DRW_Group {
+public:
+    using DRW_Group::parseCode;
+};
+
+class ExposedPlotSettings : public DRW_PlotSettings {
+public:
+    using DRW_PlotSettings::parseCode;
+};
+
+class ExposedTextstyle : public DRW_Textstyle {
+public:
+    using DRW_Textstyle::parseCode;
+};
+
+class ExposedDimstyle : public DRW_Dimstyle {
+public:
+    using DRW_Dimstyle::parseCode;
+};
+
+class ExposedImageDef : public DRW_ImageDef {
+public:
+    using DRW_ImageDef::parseCode;
+};
+
+class ExposedDbColor : public DRW_DbColor {
+public:
+    using DRW_DbColor::parseCode;
+};
+
+class ExposedMaterial : public DRW_Material {
+public:
+    using DRW_Material::parseCode;
+};
+
+class ExposedUnderlayDefinition : public DRW_UnderlayDefinition {
+public:
+    using DRW_UnderlayDefinition::parseCode;
+};
+
+class ExposedScale : public DRW_Scale {
+public:
+    using DRW_Scale::parseCode;
+    using DRW_TableEntry::reset;
+};
+
+class ExposedPointCloudDef : public DRW_PointCloudDef {
+public:
+    using DRW_PointCloudDef::parseCode;
+};
+
 class ExposedPoint : public DRW_Point {
 public:
     using DRW_Point::parseCode;
@@ -60,6 +157,7 @@ public:
 class ExposedGeoPositionMarker : public DRW_GeoPositionMarker {
 public:
     using DRW_GeoPositionMarker::parseCode;
+    using DRW_GeoPositionMarker::resetDwgState;
 };
 
 class ExposedLWPolyline : public DRW_LWPolyline {
@@ -70,6 +168,7 @@ public:
 class ExposedLeader : public DRW_Leader {
 public:
     using DRW_Leader::parseCode;
+    using DRW_Leader::resetDwgState;
     using DRW_Leader::validateDxf;
 };
 
@@ -78,9 +177,17 @@ public:
     using DRW_MLine::parseCode;
 };
 
+class ExposedMText : public DRW_MText {
+public:
+    using DRW_MText::parseCode;
+    using DRW_MText::updateAngle;
+    using DRW_MText::resetDwgState;
+};
+
 class ExposedTable : public DRW_Table {
 public:
     using DRW_Table::parseCode;
+    using DRW_Table::resetDwgState;
 };
 
 class ExposedMesh : public DRW_Mesh {
@@ -97,12 +204,14 @@ class ExposedPointCloud : public DRW_PointCloud {
 public:
     using DRW_PointCloud::parseCode;
     using DRW_PointCloud::finalizeDxf;
+    using DRW_PointCloud::resetDwgState;
 };
 
 class ExposedPointCloudEx : public DRW_PointCloudEx {
 public:
     using DRW_PointCloudEx::parseCode;
     using DRW_PointCloudEx::finalizeDxf;
+    using DRW_PointCloudEx::resetDwgState;
 };
 
 class ExposedNurbsSurface : public DRW_NurbsSurface {
@@ -114,16 +223,19 @@ public:
 class ExposedRevolvedSurface : public DRW_RevolvedSurface {
 public:
     using DRW_RevolvedSurface::parseCode;
+    using DRW_RevolvedSurface::finalizeDxf;
 };
 
 class ExposedExtrudedSurface : public DRW_ExtrudedSurface {
 public:
     using DRW_ExtrudedSurface::parseCode;
+    using DRW_ExtrudedSurface::finalizeDxf;
 };
 
 class ExposedSweptSurface : public DRW_SweptSurface {
 public:
     using DRW_SweptSurface::parseCode;
+    using DRW_SweptSurface::finalizeDxf;
 };
 
 class ExposedLoftedSurface : public DRW_LoftedSurface {
@@ -140,6 +252,13 @@ public:
 class ExposedSectionObject : public DRW_SectionObject {
 public:
     using DRW_SectionObject::parseCode;
+    using DRW_SectionObject::resetDwgState;
+};
+
+class ExposedShape final : public DRW_Shape {
+public:
+    using DRW_Shape::parseCode;
+    using DRW_Shape::resetDwgState;
 };
 
 class ExposedOle2Frame : public DRW_Ole2Frame {
@@ -232,6 +351,7 @@ public:
 class ExposedDimensionAssociation : public DRW_DimensionAssociation {
 public:
     using DRW_DimensionAssociation::parseCode;
+    using DRW_DimensionAssociation::encodeDwg;
 };
 
 class ExposedPointCloudColorMap : public DRW_PointCloudColorMap {
@@ -242,6 +362,16 @@ public:
 class ExposedSunStudy : public DRW_SunStudy {
 public:
     using DRW_SunStudy::parseCode;
+};
+
+class ExposedVport : public DRW_Vport {
+public:
+    using DRW_Vport::parseCode;
+};
+
+class ExposedView : public DRW_View {
+public:
+    using DRW_View::parseCode;
 };
 
 class ExposedMotionPath : public DRW_MotionPath {
@@ -311,6 +441,337 @@ bool parseDxfRecords(Entity& entity, const std::string& source) {
     while (reader->readRec(&code))
         ok = entity.parseCode(code, reader) && ok;
     return ok;
+}
+
+template <typename Entity>
+bool parseGeneratedDxfUntilFollowing(Entity& entity,
+                                    const std::string& source,
+                                    bool binary) {
+    std::istringstream records(source, std::ios::in | std::ios::binary);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&records))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&records));
+    reader->setVersion("AC1024", true);
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0)
+            return reader->getRawValue() == "FOLLOWING";
+        if (!entity.parseCode(code, reader))
+            return false;
+    }
+    return false;
+}
+
+void testAssociativePersistentSubentityHandleLimit(TestContext& t) {
+    std::string records = "100\nAcDbPersSubentManager\n";
+    const std::string oneHandle = "330\nA1\n";
+    records.reserve(records.size()
+                    + DRW::kMaxDxfRawRecordGroups * oneHandle.size());
+    for (std::size_t index = 0;
+         index < DRW::kMaxDxfRawRecordGroups; ++index)
+        records += oneHandle;
+
+    ExposedAssociativeObject atLimit("ACDBPERSSUBENTMANAGER");
+    t.expect(parseDxfRecords(atLimit, records)
+                 && atLimit.m_persistentSubentityHandles.size()
+                     == DRW::kMaxDxfRawRecordGroups
+                 && atLimit.m_persistentSubentityCount
+                     == DRW::kMaxDxfRawRecordGroups,
+             "PERSUBENTMGR accepts the bounded subentity-handle limit");
+
+    records += "330\nA2\n";
+    ExposedAssociativeObject overLimit("ACDBPERSSUBENTMANAGER");
+    t.expect(!parseDxfRecords(overLimit, records)
+                 && overLimit.m_persistentSubentityHandles.size()
+                     == DRW::kMaxDxfRawRecordGroups
+                 && overLimit.m_persistentSubentityCount
+                     == DRW::kMaxDxfRawRecordGroups,
+             "PERSUBENTMGR refuses a subentity handle beyond the bounded limit");
+}
+
+void testImageAdjustmentCarrierDomains(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (int field = 0; field != 3; ++field) {
+            for (const int value : {-1, 0, 100, 101, 255, 256}) {
+                DRW_Image carrier;
+                int& shared = field == 0 ? carrier.brightness
+                    : field == 1 ? carrier.contrast : carrier.fade;
+                shared = value;
+                t.expect(carrier.validatePayloadFields() == (value >= 0 && value <= 255)
+                             && shared == value,
+                         "DXF admission does not narrow or clamp the shared DWG byte carrier");
+                std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+                std::unique_ptr<dxfWriter> output = binary
+                    ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+                    : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+                t.expect(output->writeInt16(281 + field, value), "raster parser control emits an I16 tag");
+                output.reset();
+                stream.seekg(0);
+                std::unique_ptr<dxfReader> input = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+                ExposedImage image;
+                int& parsed = field == 0 ? image.brightness
+                    : field == 1 ? image.contrast : image.fade;
+                const int initial = parsed;
+                int code = 0;
+                const bool valid = value >= 0 && value <= 100;
+                t.expect(input->readRec(&code) && code == 281 + field
+                             && image.parseCode(code, input) == valid
+                             && parsed == (valid ? value : initial),
+                         "unchanged ASCII/binary DXF reader accepts only 0..100 without partial assignment");
+            }
+        }
+    }
+}
+
+std::string makeSpatialFilterDxfSource(bool clipFront, bool clipBack,
+                                      std::size_t code40Count = 0u,
+                                      std::int32_t declaredPointCount = 2) {
+    if (code40Count == 0u)
+        code40Count = clipFront ? 25u : 24u;
+    std::ostringstream records;
+    records << "70\n" << declaredPointCount << "\n"
+            << "10\n1.25\n20\n-2.5\n"
+            << "10\n4.75\n20\n6.5\n"
+            << "210\n0\n220\n0\n230\n1\n"
+            << "11\n3\n21\n4\n31\n5\n"
+            << "71\n1\n72\n" << (clipFront ? 1 : 0) << "\n";
+    if (clipFront)
+        records << "40\n-7.25\n";
+    records << "73\n" << (clipBack ? 1 : 0) << "\n";
+    if (clipBack)
+        records << "41\n8.5\n";
+    std::size_t emitted40 = clipFront ? 1u : 0u;
+    while (emitted40 < code40Count) {
+        records << "40\n" << (100.0 + static_cast<double>(emitted40)) << "\n";
+        ++emitted40;
+    }
+    return records.str();
+}
+
+void testSectionSettingsDxfColorCode(TestContext& t) {
+    ExposedSection documented;
+    documented.m_kind = DRW_Section::Settings;
+    const bool documentedParsed = parseDxfRecords(
+        documented,
+        "100\nAcDbSectionSettings\n1\nSectionTypeSettings\n"
+        "90\n1\n91\n0\n92\n0\n93\n1\n"
+        "2\nSectionGeometrySettings\n90\n1\n91\n1\n92\n0\n"
+        "63\n42\n3\nSectionGeometrySettingsEnd\n");
+    t.expect(documentedParsed && documented.m_types.size() == 1u
+                 && documented.m_types.front().m_geometry.size() == 1u
+                 && documented.m_types.front().m_geometry.front().m_color == 42,
+             "SECTION_SETTINGS parses Autodesk's documented group-63 color");
+
+    ExposedSection legacy;
+    legacy.m_kind = DRW_Section::Settings;
+    const bool legacyParsed = parseDxfRecords(
+        legacy,
+        "100\nAcDbSectionSettings\n1\nSectionTypeSettings\n"
+        "90\n1\n91\n0\n92\n0\n93\n1\n"
+        "2\nSectionGeometrySettings\n90\n1\n91\n1\n92\n0\n"
+        "62\n43\n3\nSectionGeometrySettingsEnd\n");
+    t.expect(legacyParsed && legacy.m_types.size() == 1u
+                 && legacy.m_types.front().m_geometry.size() == 1u
+                 && legacy.m_types.front().m_geometry.front().m_color == 43,
+             "SECTION_SETTINGS continues to read legacy local group-62 spelling");
+}
+
+void testSpatialFilterDxfValidation(TestContext& t) {
+    for (const bool clipFront : {false, true}) {
+        for (const bool clipBack : {false, true}) {
+            ExposedSpatialFilter parsed;
+            const std::string source = makeSpatialFilterDxfSource(
+                clipFront, clipBack);
+            t.expect(parseDxfRecords(parsed, source)
+                         && parsed.hasValidDxfFields()
+                         && parsed.hasValidDxfSourceFields()
+                         && parsed.m_boundaryPoints.size() == 2u
+                         && parsed.m_inverseInsertTransform.size() == 12u
+                         && parsed.m_insertTransform.size() == 12u
+                         && parsed.m_clipFrontPlane == clipFront
+                         && parsed.m_clipBackPlane == clipBack
+                         && parsed.m_frontDistance == (clipFront ? -7.25 : 0.0)
+                         && parsed.m_backDistance == (clipBack ? 8.5 : 0.0),
+                     "SPATIAL_FILTER accepts exact conditional matrix and plane layouts");
+        }
+    }
+
+    ExposedSpatialFilter partialMatrix;
+    t.expect(parseDxfRecords(partialMatrix,
+                             makeSpatialFilterDxfSource(false, false, 23u))
+                 && !partialMatrix.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER rejects an incomplete 23-value matrix stream");
+    ExposedSpatialFilter missingFrontDistance;
+    t.expect(parseDxfRecords(missingFrontDistance,
+                             makeSpatialFilterDxfSource(true, false, 24u))
+                 && !missingFrontDistance.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER requires the front distance plus both matrices");
+    ExposedSpatialFilter unexpectedFrontDistance;
+    t.expect(parseDxfRecords(unexpectedFrontDistance,
+                             makeSpatialFilterDxfSource(false, false, 25u))
+                 && !unexpectedFrontDistance.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER rejects an unflagged extra group-40 value");
+    ExposedSpatialFilter mismatchedPointCount;
+    t.expect(parseDxfRecords(mismatchedPointCount,
+                             makeSpatialFilterDxfSource(false, false, 24u, 3))
+                 && !mismatchedPointCount.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER rejects a declared point-count mismatch");
+    ExposedSpatialFilter missingPointY;
+    t.expect(parseDxfRecords(missingPointY,
+                             "70\n2\n10\n1\n10\n2\n20\n3\n")
+                 && !missingPointY.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER rejects a boundary point with no Y coordinate");
+    ExposedSpatialFilter duplicatePointY;
+    t.expect(!parseDxfRecords(duplicatePointY, "10\n1\n20\n2\n20\n3\n"),
+             "SPATIAL_FILTER rejects duplicate point-Y tags");
+    ExposedSpatialFilter duplicatePointCount;
+    t.expect(!parseDxfRecords(duplicatePointCount,
+                              "70\n2\n70\n2\n"),
+             "SPATIAL_FILTER rejects a duplicate group-70 point count");
+    for (const int flagCode : {71, 72, 73}) {
+        ExposedSpatialFilter nonBooleanFlag;
+        const std::string invalidFlag = std::to_string(flagCode) + "\n2\n";
+        t.expect(!parseDxfRecords(nonBooleanFlag, invalidFlag),
+                 "SPATIAL_FILTER accepts only Boolean clip/display flags");
+    }
+    ExposedSpatialFilter missingBackDistance;
+    std::string missingBackSource = makeSpatialFilterDxfSource(false, false);
+    const std::size_t backFlag = missingBackSource.find("73\n0\n");
+    if (backFlag != std::string::npos)
+        missingBackSource.replace(backFlag, 5u, "73\n1\n");
+    t.expect(backFlag != std::string::npos
+                 && parseDxfRecords(missingBackDistance, missingBackSource)
+                 && !missingBackDistance.hasValidDxfSourceFields(),
+             "SPATIAL_FILTER source-field validation requires paired back state");
+
+    DRW_SpatialFilter validTyped;
+    validTyped.m_boundaryPoints = {{1.25, -2.5, 0.0}, {4.75, 6.5, 0.0}};
+    validTyped.m_inverseInsertTransform.resize(12u);
+    validTyped.m_insertTransform.resize(12u);
+    for (std::size_t i = 0; i < 12u; ++i) {
+        validTyped.m_inverseInsertTransform[i] = 100.0 + i;
+        validTyped.m_insertTransform[i] = 200.0 + i;
+    }
+    t.expect(validTyped.hasValidDxfFields(),
+             "SPATIAL_FILTER typed writer admission accepts complete matrices");
+    validTyped.m_inverseInsertTransform.pop_back();
+    t.expect(!validTyped.hasValidDxfFields(),
+             "SPATIAL_FILTER typed writer admission rejects a short matrix");
+    validTyped.m_inverseInsertTransform.push_back(111.0);
+    validTyped.m_insertTransform[0] = std::numeric_limits<double>::infinity();
+    t.expect(!validTyped.hasValidDxfFields(),
+             "SPATIAL_FILTER typed writer admission rejects non-finite matrices");
+    validTyped.m_insertTransform[0] = 200.0;
+    validTyped.m_boundaryPoints[0].z = 1.0;
+    t.expect(!validTyped.hasValidDxfFields(),
+             "SPATIAL_FILTER typed writer admission requires a 2D boundary path");
+
+    for (const bool binary : {false, true}) {
+        for (const bool clipFront : {false, true}) {
+            for (const bool clipBack : {false, true}) {
+                std::ostringstream output(std::ios::out | std::ios::binary);
+                dxfRW codec(nullptr);
+                codec.version = DRW::AC1027;
+                codec.binFile = binary;
+                codec.writer = binary
+                    ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                    : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+                codec.writer->setVersion("AC1027", true);
+                DRW_SpatialFilter value;
+                value.handle = 0x701u;
+                value.parentHandle = 0x2u;
+                value.m_boundaryPoints = {{1.25, -2.5, 0.0}, {4.75, 6.5, 0.0}};
+                value.m_clipFrontPlane = clipFront;
+                value.m_clipBackPlane = clipBack;
+                value.m_frontDistance = -7.25;
+                value.m_backDistance = 8.5;
+                for (std::size_t i = 0; i < 12u; ++i) {
+                    value.m_inverseInsertTransform.push_back(100.0 + i);
+                    value.m_insertTransform.push_back(200.0 + i);
+                }
+                const bool written = codec.writeSpatialFilter(&value);
+                t.expect(written && !codec.writer->hasWriteError(),
+                         "SPATIAL_FILTER typed writer emits valid ASCII/Binary records");
+                if (!written)
+                    continue;
+                std::istringstream input(output.str(),
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                std::vector<double> actual40;
+                std::vector<double> actual41;
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (code == 40)
+                        actual40.push_back(reader->getDouble());
+                    else if (code == 41)
+                        actual41.push_back(reader->getDouble());
+                    else
+                        static_cast<void>(reader->getRawValue());
+                }
+                std::vector<double> expected40;
+                if (clipFront)
+                    expected40.push_back(-7.25);
+                for (std::size_t i = 0; i < 12u; ++i)
+                    expected40.push_back(100.0 + i);
+                for (std::size_t i = 0; i < 12u; ++i)
+                    expected40.push_back(200.0 + i);
+                t.expect(actual40 == expected40
+                             && actual41 == (clipBack
+                                 ? std::vector<double>{8.5}
+                                 : std::vector<double>{}),
+                         "SPATIAL_FILTER writer preserves exact matrix order and conditional distances");
+            }
+        }
+
+        std::ostringstream rejected(std::ios::out | std::ios::binary);
+        dxfRW codec(nullptr);
+        codec.version = DRW::AC1027;
+        codec.binFile = binary;
+        codec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&rejected))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&rejected));
+        codec.writer->setVersion("AC1027", true);
+        DRW_SpatialFilter invalid;
+        invalid.handle = 0x702u;
+        invalid.parentHandle = 0x2u;
+        invalid.m_boundaryPoints = {{0.0, 0.0, 0.0}, {1.0, 1.0, 0.0}};
+        t.expect(!codec.writeSpatialFilter(&invalid) && rejected.str().empty(),
+                 "SPATIAL_FILTER writer refuses incomplete matrices before emitting bytes");
+    }
+}
+
+void testLeaderAdvisoryCountState(TestContext& t) {
+    ExposedLeader source;
+    t.expect(parseDxfRecords(source, "76\n99\n10\n1\n20\n2\n30\n3\n10\n4\n20\n6\n30\n0\n")
+                 && source.vertnum == 99 && source.vertexlist.size() == 2u && source.validateDxf(),
+             "LEADER declared count is advisory and retains its public source value");
+    ExposedLeader copied(source), assigned;
+    assigned = source;
+    ExposedLeader moved(std::move(copied)), moveAssigned;
+    moveAssigned = std::move(assigned);
+    for (auto* value : {&moved, &moveAssigned}) {
+        t.expect(value->vertnum == 99 && value->vertexlist.size() == 2u && value->validateDxf()
+                     && value->vertexlist.front() != source.vertexlist.front(),
+                 "LEADER copy/move preserves advisory count and owns independent geometry");
+        t.expect(parseDxfRecords(*value, "20\n999\n") && value->vertexlist.back()->y == 6,
+                 "copied LEADER has no live source parser cursor");
+    }
+    ExposedLeader bounded;
+    bounded.vertexlist.assign(5000u, std::make_shared<DRW_Coord>(1, 2, 3));
+    t.expect(!parseDxfRecords(bounded, "10\n4\n") && bounded.vertexlist.size() == 5000u
+                 && bounded.vertexlist.back()->x == 1,
+             "LEADER rejects actual vertex cap before allocating/appending another point");
+    bounded.resetDwgState();
+    t.expect(bounded.vertnum == 0 && bounded.vertexlist.empty()
+                 && parseDxfRecords(bounded, "76\n0\n10\n1\n20\n2\n30\n3\n")
+                 && bounded.vertexlist.size() == 1u && bounded.validateDxf(),
+             "LEADER reset reuses parser without introducing a new minimum-vertex rule");
+    t.expect(parseDxfRecords(bounded, "73\n9\n") && !bounded.validateDxf(),
+             "advisory LEADER count does not bypass existing field validation");
 }
 
 void testPublicOwnershipContracts(TestContext& t) {
@@ -777,15 +1238,15 @@ void testPublicOwnershipContracts(TestContext& t) {
     ExposedLeader partialLeader;
     partialLeader.vertnum = 2;
     t.expect(parseDxfRecords(partialLeader, "76\n2\n")
-                 && !partialLeader.validateDxf(),
-             "LEADER parser count marker source setup");
+                 && partialLeader.vertnum == 2 && partialLeader.validateDxf(),
+             "LEADER parser retains advisory count without defining geometry completeness");
     ExposedLeader copiedLeaderState(partialLeader);
-    t.expect(copiedLeaderState.validateDxf(),
-             "LEADER copy resets vertex-count parser state");
+    t.expect(copiedLeaderState.validateDxf() && copiedLeaderState.vertnum == 2,
+             "LEADER copy retains advisory count independently of parser state");
     ExposedLeader assignedLeaderState;
     assignedLeaderState = partialLeader;
-    t.expect(assignedLeaderState.validateDxf(),
-             "LEADER assignment resets vertex-count parser state");
+    t.expect(assignedLeaderState.validateDxf() && assignedLeaderState.vertnum == 2,
+             "LEADER assignment retains advisory count independently of parser state");
 
     ExposedMLine partialMLine;
     partialMLine.numVerts = 1;
@@ -1409,8 +1870,11 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedDataLink.m_customData.back().m_text == "third-row",
              "DATALINK assignment clears body/custom-data parser state");
 
+    // This parser-state control uses the modern mesh grammar (93 count,
+    // 13/23 source, 14/24 target), so declare v2 rather than archival v1.
+    // Version-1 wire meanings are exercised separately in the fixture tests.
     const std::string geoDataBody =
-        "100\nAcDbGeoData\n330\nA1\n90\n1\n93\n1\n"
+        "100\nAcDbGeoData\n330\nA1\n90\n2\n93\n1\n"
         "13\n1\n23\n2\n14\n3\n24\n4\n";
     ExposedGeoData partialGeoData;
     t.expect(parseDxfRecords(partialGeoData, geoDataBody)
@@ -1442,27 +1906,29 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedGeoData.m_points.size() == 1u,
              "GEODATA assignment clears subclass and mesh parser state");
 
-    std::ostringstream spatialFilterRecords;
-    for (int i = 0; i < 25; ++i)
-        spatialFilterRecords << "40\n" << (i + 1) << "\n";
+    const std::string spatialFilterRecords =
+        makeSpatialFilterDxfSource(true, false);
     ExposedSpatialFilter partialSpatialFilter;
-    t.expect(parseDxfRecords(partialSpatialFilter, spatialFilterRecords.str())
+    t.expect(parseDxfRecords(partialSpatialFilter, spatialFilterRecords)
                  && partialSpatialFilter.m_inverseInsertTransform.size() == 12u
                  && partialSpatialFilter.m_insertTransform.size() == 12u
-                 && partialSpatialFilter.m_frontDistance == 1.0,
+                 && partialSpatialFilter.m_frontDistance == -7.25
+                 && partialSpatialFilter.hasValidDxfSourceFields(),
              "SPATIAL_FILTER parser state source setup");
     ExposedSpatialFilter copiedSpatialFilter(partialSpatialFilter);
     t.expect(parseDxfRecords(copiedSpatialFilter, "40\n99\n")
                  && copiedSpatialFilter.m_inverseInsertTransform.size() == 12u
                  && copiedSpatialFilter.m_insertTransform.size() == 12u
-                 && copiedSpatialFilter.m_frontDistance == 1.0,
+                 && copiedSpatialFilter.m_frontDistance == -7.25
+                 && !copiedSpatialFilter.hasValidDxfSourceFields(),
              "SPATIAL_FILTER copy clears matrix parser state");
     ExposedSpatialFilter assignedSpatialFilter;
     assignedSpatialFilter = partialSpatialFilter;
     t.expect(parseDxfRecords(assignedSpatialFilter, "40\n98\n")
                  && assignedSpatialFilter.m_inverseInsertTransform.size() == 12u
                  && assignedSpatialFilter.m_insertTransform.size() == 12u
-                 && assignedSpatialFilter.m_frontDistance == 1.0,
+                 && assignedSpatialFilter.m_frontDistance == -7.25
+                 && !assignedSpatialFilter.hasValidDxfSourceFields(),
              "SPATIAL_FILTER assignment clears matrix parser state");
 
     const std::string evaluationGraphHeader =
@@ -1497,13 +1963,16 @@ void testPublicOwnershipContracts(TestContext& t) {
              "EVALUATION_GRAPH assignment clears malformed parser state");
 
     const std::string dimAssocBody =
-        "100\nAcDbDimAssoc\n330\nA1\n90\n3\n1\nPOINT\n72\n1\n331\nB1\n";
+        "100\nAcDbDimAssoc\n330\nA1\n90\n3\n70\n1\n71\n0\n"
+        "1\nPOINT\n72\n1\n331\nB1\n";
     ExposedDimensionAssociation partialDimAssoc;
     t.expect(parseDxfRecords(partialDimAssoc, dimAssocBody)
                  && partialDimAssoc.m_dimensionHandle == 0xA1u
+                 && partialDimAssoc.m_isTransSpace
+                 && partialDimAssoc.m_rotatedDimensionType == 0
                  && partialDimAssoc.m_osnapRefs.size() == 1u
                  && partialDimAssoc.m_hasUnrepresentableDetail,
-             "DIMASSOC parser state source setup");
+             "DIMASSOC DXF 70/71 fields map to distinct meanings");
     ExposedDimensionAssociation copiedDimAssoc(partialDimAssoc);
     const bool copiedDimAssocStale = parseDxfRecords(copiedDimAssoc, "330\nA2\n");
     const std::uint32_t copiedDimAssocAfterStale =
@@ -2023,8 +2492,2467 @@ public:
     DRW_Surface lastSurface;
 };
 
+class LTypeBudgetCapture final : public FuzzInterface {
+public:
+    void addLType(const DRW_LType& value) override {
+        ++count;
+        last = value;
+        values.push_back(value);
+    }
+
+    std::size_t count {0u};
+    DRW_LType last;
+    std::vector<DRW_LType> values;
+};
+
+class TextstyleBudgetCapture final : public FuzzInterface {
+public:
+    void addTextStyle(const DRW_Textstyle& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_Textstyle> values;
+};
+
+class DimstyleBudgetCapture final : public FuzzInterface {
+public:
+    void addHeader(const DRW_Header* value) override {
+        if (value != nullptr)
+            headerVariantCount = value->vars.size() + value->customVars.size();
+    }
+
+    void addDimStyle(const DRW_Dimstyle& value) override {
+        values.push_back(value);
+    }
+
+    std::size_t headerVariantCount {0u};
+    std::vector<DRW_Dimstyle> values;
+};
+
+class HeaderVariantBudgetCapture final : public FuzzInterface {
+public:
+    void addHeader(const DRW_Header* value) override {
+        ++headerCount;
+        if (value != nullptr) {
+            headerVariantCount = value->vars.size() + value->customVars.size();
+            dimunitAliasState = value->dxfDimunitAliasState();
+        }
+    }
+
+    void addLine(const DRW_Line& value) override {
+        ++lineCount;
+        lineVariantCount = value.extData.size();
+    }
+
+    std::size_t headerCount {0u};
+    std::size_t headerVariantCount {0u};
+    std::size_t lineCount {0u};
+    std::size_t lineVariantCount {0u};
+    DRW_Header::DxfDimunitAliasState dimunitAliasState {
+        DRW_Header::DxfDimunitAliasState::None};
+};
+
+class XRecordVariantBudgetCapture final : public FuzzInterface {
+public:
+    void addHeader(const DRW_Header* value) override {
+        ++headerCount;
+        if (value != nullptr)
+            headerVariantCount = value->vars.size() + value->customVars.size();
+    }
+
+    void addXRecord(const DRW_XRecord& value) override {
+        values.push_back(value);
+    }
+    void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        rawGroupCount += value.groups.size();
+    }
+
+    std::size_t headerCount {0u};
+    std::size_t headerVariantCount {0u};
+    std::size_t rawGroupCount {0u};
+    std::vector<DRW_XRecord> values;
+};
+
+class LoftedSurfaceVariantBudgetCapture final : public FuzzInterface {
+public:
+    void addHeader(const DRW_Header* value) override {
+        ++headerCount;
+        if (value != nullptr)
+            headerVariantCount = value->vars.size() + value->customVars.size();
+    }
+
+    void addSurface(const DRW_Surface* value) override {
+        if (const auto* lofted = dynamic_cast<const DRW_LoftedSurface*>(value))
+            values.push_back(*lofted);
+        FuzzInterface::addSurface(value);
+    }
+
+    std::size_t headerCount {0u};
+    std::size_t headerVariantCount {0u};
+    std::vector<DRW_LoftedSurface> values;
+};
+
+class DxfAcisCarrierBudgetCapture final : public FuzzInterface {
+public:
+    void addSurface(const DRW_Surface* value) override {
+        if (value != nullptr)
+            surfaces.push_back(*value);
+        FuzzInterface::addSurface(value);
+    }
+
+    void addModelerGeometry(const DRW_ModelerGeometry& value) override {
+        modelerGeometry.push_back(value);
+        FuzzInterface::addModelerGeometry(value);
+    }
+
+    std::vector<DRW_Surface> surfaces;
+    std::vector<DRW_ModelerGeometry> modelerGeometry;
+};
+
+class GroupBudgetCapture final : public FuzzInterface {
+public:
+    void addGroup(const DRW_Group& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_Group> values;
+};
+
+class ImageDefBudgetCapture final : public FuzzInterface {
+public:
+    void linkImage(const DRW_ImageDef* value) override {
+        if (value != nullptr)
+            values.push_back(*value);
+    }
+
+    std::vector<DRW_ImageDef> values;
+};
+
+class MaterialBudgetCapture final : public FuzzInterface {
+public:
+    void addMaterial(const DRW_Material& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_Material> values;
+};
+
+class SunStudyBudgetCapture final : public FuzzInterface {
+public:
+    void addSunStudy(const DRW_SunStudy& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_SunStudy> values;
+};
+
+class UnderlayDefinitionBudgetCapture final : public FuzzInterface {
+public:
+    void linkUnderlay(const DRW_UnderlayDefinition* value) override {
+        if (value != nullptr)
+            values.push_back(*value);
+    }
+
+    std::vector<DRW_UnderlayDefinition> values;
+};
+
+class ScaleNameBudgetCapture final : public FuzzInterface {
+public:
+    void addScale(const DRW_Scale& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_Scale> values;
+};
+
+class PointCloudDefBudgetCapture final : public FuzzInterface {
+public:
+    void addPointCloudDef(const DRW_PointCloudDef& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_PointCloudDef> values;
+};
+
+class PointCloudExNameBudgetCapture final : public FuzzInterface {
+public:
+    void addPointCloudEx(const DRW_PointCloudEx* value) override {
+        if (value != nullptr)
+            pointClouds.push_back(*value);
+    }
+    void addLine(const DRW_Line& value) override {
+        lines.push_back(value);
+    }
+
+    std::vector<DRW_PointCloudEx> pointClouds;
+    std::vector<DRW_Line> lines;
+};
+
+class NavisworksModelDefBudgetCapture final : public FuzzInterface {
+public:
+    void addNavisworksModelDef(
+        const DRW_NavisworksModelDef& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_NavisworksModelDef> values;
+};
+
+class LayoutBudgetCapture final : public FuzzInterface {
+public:
+    void addLayout(const DRW_Layout& value) override {
+        values.push_back(value);
+    }
+
+    std::vector<DRW_Layout> values;
+};
+
+class VportViewAmbientNameCapture final : public FuzzInterface {
+public:
+    void addVport(const DRW_Vport& value) override {
+        vports.push_back(value);
+    }
+
+    void addView(const DRW_View& value) override {
+        views.push_back(value);
+    }
+
+    std::vector<DRW_Vport> vports;
+    std::vector<DRW_View> views;
+};
+
+class Ole2FrameClientCallbackCapture final : public FuzzInterface {
+public:
+    void addOle2Frame(const DRW_Ole2Frame& value) override {
+        events.push_back("OLE2FRAME");
+        frames.push_back(value);
+    }
+
+    void addLine(const DRW_Line&) override {
+        events.push_back("LINE");
+    }
+
+    std::vector<std::string> events;
+    std::vector<DRW_Ole2Frame> frames;
+};
+
+class DxfClassReadCapture final : public FuzzInterface {
+public:
+    void addDxfClass(const DRW_Class& value) override {
+        classes.push_back(value);
+    }
+
+    std::vector<DRW_Class> classes;
+};
+
+class BlockRecordReadCapture final : public FuzzInterface {
+public:
+    void addBlockRecord(const DRW_Block_Record& value) override {
+        records.push_back(value);
+    }
+
+    std::vector<DRW_Block_Record> records;
+};
+
+std::string generatedLTypeBudgetWire(bool binary, bool fullDrawing,
+                                    bool resetSegments = false,
+                                    int segmentTextFlags = 2,
+                                    const std::string& versionName = "AC1027") {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, versionName)
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "TABLES") && text(0, "TABLE")
+            && text(2, "LTYPE") && integer(70, 2)
+            && text(0, "LTYPE");
+    }
+    const std::string longText(256u, 'X');
+    ok = ok && text(5, "21")
+        && text(100, "AcDbSymbolTableRecord")
+        && text(100, "AcDbLinetypeTableRecord")
+        && text(2, "DASHED") && text(3, "old")
+        && text(3, "current linetype description")
+        && integer(70, 0) && integer(72, 65) && integer(73, 2)
+        && real(40, 1.0) && real(49, 0.5)
+        && integer(74, segmentTextFlags)
+        && text(9, "first dash") && real(49, -0.5)
+        && integer(74, segmentTextFlags) && text(9, "old dash")
+        && text(9, longText);
+    if (resetSegments)
+        ok = ok && integer(73, 1) && real(49, 0.25)
+            && integer(74, segmentTextFlags) && text(9, "reset dash");
+    if (fullDrawing) {
+        ok = ok && text(0, "LTYPE") && text(5, "22")
+            && text(100, "AcDbSymbolTableRecord")
+            && text(100, "AcDbLinetypeTableRecord")
+            && text(2, "SENTINEL_LTYPE")
+            && text(3, "following row") && integer(70, 0)
+            && integer(72, 65) && integer(73, 0) && real(40, 0.0);
+        ok = ok && text(0, "ENDTAB") && text(0, "ENDSEC")
+            && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMLineStyleDescriptionBudgetWire(bool binary,
+                                                     bool duplicateDescription = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const bool ok = writer->writeString(2, "MLSTYLE")
+        && (!duplicateDescription || writer->writeString(3, "old"))
+        && writer->writeString(3, "retained description");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMLeaderStyleTextBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string description(128u, 'D');
+    const std::string textDefault(256u, 'T');
+    const bool ok = writer->writeString(2, "MLSTYLE")
+        && writer->writeString(3, "old-description")
+        && writer->writeString(300, "old-text")
+        && writer->writeString(3, description)
+        && writer->writeString(300, textDefault);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMLeaderEntityTextBudgetWire(bool binary,
+                                                 bool blockLabels) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    bool ok = writer->writeString(100, "AcDbMLeader");
+    if (blockLabels) {
+        const std::string firstText(128u, 'L');
+        const std::string finalText(256u, 'F');
+        ok = ok && writer->writeString(330, "A1")
+            && writer->writeString(302, "OLD-LABEL")
+            && writer->writeString(302, firstText)
+            && writer->writeString(330, "A2")
+            && writer->writeString(302, "OLD-LAST")
+            && writer->writeString(302, finalText);
+    } else {
+        const std::string textLabel(256u, 'C');
+        ok = ok && writer->writeString(300, "CONTEXT_DATA{")
+            && writer->writeBool(290, true)
+            && writer->writeString(304, "OLD-CONTEXT")
+            && writer->writeString(304, textLabel)
+            && writer->writeString(301, "}");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMLeaderTextCallbackBudgetDrawing(bool binary,
+                                                     bool blockLabels) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+
+    dxfRW writerOwner("");
+    const char *versionName = blockLabels ? "AC1021" : "AC1027";
+    writerOwner.version = blockLabels ? DRW::AC1021 : DRW::AC1027;
+    writerOwner.binFile = binary;
+    writerOwner.writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writerOwner.writer->setVersion(versionName, true);
+    const auto text = [&writerOwner](int code, const std::string& value) {
+        return writerOwner.writer->writeString(code, value);
+    };
+
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, versionName)
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES");
+
+    DRW_MLeader leader;
+    leader.handle = 0xA1u;
+    if (blockLabels) {
+        leader.styleContentType = 2;
+        DRW_MLeader::BlockLabelEntry first;
+        first.attDefHandle.ref = 0xA3u;
+        first.labelText = std::string(128u, 'L');
+        first.uiIndex = 0;
+        first.width = 12.0;
+        DRW_MLeader::BlockLabelEntry last;
+        last.attDefHandle.ref = 0xA4u;
+        last.labelText = std::string(512u, 'M');
+        last.uiIndex = 1;
+        last.width = 24.0;
+        leader.blockLabels.push_back(std::move(first));
+        leader.blockLabels.push_back(std::move(last));
+    } else {
+        leader.context.hasTextContents = true;
+        leader.context.textLabel = std::string(512u, 'M');
+    }
+    ok = ok && writerOwner.writeMultiLeader(&leader);
+
+    DRW_Line line;
+    line.handle = 0xA2u;
+    line.basePoint = DRW_Coord{3.0, 4.0, 5.0};
+    line.secPoint = DRW_Coord{6.0, 7.0, 8.0};
+    ok = ok && writerOwner.writeLine(&line)
+        && text(0, "ENDSEC") && text(0, "EOF");
+
+    writerOwner.writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMPolygonFillColorCallbackBudgetDrawing(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+
+    dxfRW writerOwner("");
+    writerOwner.version = DRW::AC1027;
+    writerOwner.binFile = binary;
+    writerOwner.writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writerOwner.writer->setVersion("AC1027", true);
+    const auto text = [&writerOwner](int code, const std::string& value) {
+        return writerOwner.writer->writeString(code, value);
+    };
+
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES");
+
+    DRW_MPolygon polygon;
+    polygon.handle = 0xA1u;
+    polygon.name = "SOLID";
+    polygon.solid = 1;
+    polygon.fillColorName = std::string(512u, 'P');
+    auto loop = std::make_shared<DRW_HatchLoop>(2);
+    auto boundary = std::make_shared<DRW_LWPolyline>();
+    boundary->flags = 1;
+    boundary->addVertex(DRW_Vertex2D(1.0, 2.0, 0.0));
+    boundary->addVertex(DRW_Vertex2D(4.0, 2.0, 0.0));
+    boundary->addVertex(DRW_Vertex2D(3.0, 5.0, 0.0));
+    loop->objlist.push_back(boundary);
+    loop->update();
+    polygon.appendLoop(loop);
+    ok = ok && writerOwner.writeMPolygon(&polygon);
+
+    DRW_Line line;
+    line.handle = 0xA2u;
+    line.basePoint = DRW_Coord{3.0, 4.0, 5.0};
+    line.secPoint = DRW_Coord{6.0, 7.0, 8.0};
+    ok = ok && writerOwner.writeLine(&line)
+        && text(0, "ENDSEC") && text(0, "EOF");
+
+    writerOwner.writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedVisualStyleDescriptionBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string description(256u, 'V');
+    const bool ok = writer->writeString(2, "old-visual-style")
+        && writer->writeString(4, description);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedGroupDescriptionBudgetWire(bool binary,
+                                                bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const std::string description(256u, 'G');
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS")
+            && text(0, "GROUP") && text(5, "A")
+            && text(100, "AcDbGroup");
+    } else {
+        ok = text(2, "GROUP");
+    }
+    ok = ok && text(300, "old group description")
+        && text(300, description);
+    if (fullDrawing) {
+        ok = ok && text(0, "GROUP") && text(5, "B")
+            && text(100, "AcDbGroup")
+            && text(300, "following description")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedTextstyleTextBudgetWire(bool binary,
+                                             bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string longBigFont(256u, 'B');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "TABLES") && text(0, "TABLE")
+            && text(2, "STYLE") && integer(70, 2);
+    }
+    ok = ok && text(0, "STYLE") && text(5, "21")
+        && text(100, "AcDbSymbolTableRecord")
+        && text(100, "AcDbTextStyleTableRecord")
+        && text(2, "STANDARD")
+        && text(3, "old-font")
+        && text(4, "old-bigfont")
+        && text(3, "LiberationSans.ttf")
+        && text(4, longBigFont);
+    if (fullDrawing) {
+        ok = ok && text(0, "STYLE") && text(5, "22")
+            && text(100, "AcDbSymbolTableRecord")
+            && text(100, "AcDbTextStyleTableRecord")
+            && text(2, "SENTINEL_STYLE")
+            && text(3, "next-font")
+            && text(0, "ENDTAB") && text(0, "ENDSEC")
+            && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDimstyleTextBudgetWire(bool binary,
+                                            bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string longPost(256u, 'P');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "TABLES") && text(0, "TABLE")
+            && text(2, "DIMSTYLE") && integer(70, 2);
+    }
+    ok = ok && text(0, "DIMSTYLE") && text(105, "21")
+        && text(100, "AcDbSymbolTableRecord")
+        && text(100, "AcDbDimStyleTableRecord")
+        && text(2, "STANDARD")
+        && text(3, "old-post") && text(3, longPost)
+        && text(4, "alternate-post")
+        && text(5, "old-block") && text(5, "*D1") && text(342, "2B")
+        && text(6, "old-block1") && text(6, "*D2") && text(343, "2C")
+        && text(7, "old-block2") && text(7, "*D3") && text(344, "2D")
+        && text(340, "2A") && text(341, "2E");
+    if (fullDrawing) {
+        ok = ok && text(0, "DIMSTYLE") && text(105, "22")
+            && text(100, "AcDbSymbolTableRecord")
+            && text(100, "AcDbDimStyleTableRecord")
+            && text(2, "SENTINEL_DIMSTYLE")
+            && text(3, "sentinel-post") && text(340, "2A")
+            && text(0, "ENDTAB") && text(0, "ENDSEC")
+            && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedHeaderVariantBudgetWire(bool binary,
+                                             bool includeXdataLine) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1009", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1009")
+        && text(9, "$DIMUNIT") && integer(70, 1)
+        && text(9, "$MEASUREMENT") && integer(70, 1)
+        && text(9, "$LUNITS") && integer(70, 2)
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES");
+    if (includeXdataLine) {
+        ok = ok && text(0, "LINE")
+            && real(10, 0.0) && real(20, 0.0) && real(30, 0.0)
+            && real(11, 1.0) && real(21, 1.0) && real(31, 1.0)
+            && text(1001, "APP") && text(1000, "a") && text(1000, "b")
+            && real(1010, 1.0) && real(1020, 2.0) && real(1030, 3.0)
+            && real(1040, 4.5) && integer(1070, 42);
+    }
+    ok = ok && text(0, "ENDSEC") && text(0, "EOF");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedXRecordVariantBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer16 = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto integer32 = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto integer64 = [&writer](int code, std::int64_t value) {
+        return writer->writeInt64(code, value);
+    };
+    const auto boolean = [&writer](int code, bool value) {
+        return writer->writeBool(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "OBJECTS") && text(0, "XRECORD")
+        && text(5, "1A") && text(330, "C")
+        && text(100, "AcDbXrecord") && integer16(280, 0)
+        && text(1, "first-record-sentinel")
+        && text(0, "XRECORD") && text(5, "1B") && text(330, "C")
+        && text(100, "AcDbXrecord") && integer16(280, 0)
+        && text(100, "payload-marker") && text(1, "payload-text")
+        && real(10, 1.0) && real(20, 2.0) && real(30, 3.0)
+        && real(10, 4.0) && real(20, 5.0) && real(30, 6.0)
+        && real(40, 4.5) && integer16(70, 42)
+        && integer32(90, 43) && integer64(160, INT64_C(1234567890123))
+        && boolean(290, true) && integer16(280, 255)
+        && text(310, "A1B2") && text(320, "DEAD")
+        && text(0, "ENDSEC") && text(0, "EOF");
+    const bool writeSucceeded = ok && !writer->hasWriteError();
+    writer.reset();
+    return writeSucceeded ? stream.str() : std::string{};
+}
+
+std::string generatedLoftedSurfaceVariantBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto surface = [&text, &integer](const char* handle,
+                                            int referenceCount,
+                                            const char* binaryChunk) {
+        return text(0, "LOFTEDSURFACE") && text(5, handle)
+            && text(100, "AcDbEntity") && text(8, "0")
+            && text(100, "AcDbModelerGeometry")
+            && text(100, "AcDbSurface")
+            && text(100, "AcDbLoftedSurface")
+            && integer(90, referenceCount)
+            && text(310, binaryChunk);
+    };
+
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES")
+        && surface("1A", 1, "AABB")
+        && surface("1B", 2, "C3D4")
+        && text(0, "ENDSEC") && text(0, "EOF");
+    const bool writeSucceeded = ok && !writer->hasWriteError();
+    writer.reset();
+    return writeSucceeded ? stream.str() : std::string{};
+}
+
+std::string generatedDxfAcisCarrierRetainedBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto surface = [&text](const char* handle,
+                                 const std::vector<std::pair<int, const char*>>& payload) {
+        if (!text(0, "PLANESURFACE") || !text(5, handle)
+            || !text(100, "AcDbEntity") || !text(100, "AcDbSurface")
+            || !text(100, "AcDbModelerGeometry"))
+            return false;
+        for (const auto& group : payload) {
+            if (!text(group.first, group.second))
+                return false;
+        }
+        return true;
+    };
+    const auto solid = [&text](const char* handle,
+                               const std::vector<std::pair<int, const char*>>& payload) {
+        if (!text(0, "3DSOLID") || !text(5, handle)
+            || !text(100, "AcDbEntity")
+            || !text(100, "AcDbModelerGeometry"))
+            return false;
+        for (const auto& group : payload) {
+            if (!text(group.first, group.second))
+                return false;
+        }
+        return true;
+    };
+
+    const bool ok = text(0, "SECTION") && text(2, "ENTITIES")
+        && surface("10", {{1, "S"}})
+        && surface("11", {{1, "A1B"}, {3, "C2"}, {310, "AABB"}})
+        && solid("20", {{1, "M"}})
+        && solid("21", {{1, "X1"}, {3, "Y2"}, {310, "C3D4"}})
+        && text(0, "ENDSEC") && text(0, "EOF");
+    const bool writeSucceeded = ok && !writer->hasWriteError();
+    writer.reset();
+    return writeSucceeded ? stream.str() : std::string{};
+}
+
+std::string generatedImageDefNameBudgetWire(bool binary,
+                                            bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const std::string longName(256u, 'I');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "IMAGEDEF") && text(5, "A")
+        && text(100, "AcDbRasterImageDef") && integer(90, 0)
+        && text(1, "old-image.png") && text(1, longName);
+    if (fullDrawing) {
+        ok = ok && text(0, "IMAGEDEF") && text(5, "B")
+            && text(100, "AcDbRasterImageDef") && integer(90, 0)
+            && text(1, "sentinel-image.png")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMaterialTextBudgetWire(bool binary,
+                                            bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+    const std::string materialName(256u, 'M');
+    const std::string materialDescription(256u, 'D');
+    const std::string oldSpecularMapFileName = "old-specular-map.png";
+    const std::string specularMapFileName(256u, 'F');
+    const std::string oldReflectionMapFileName = "old-reflection-map.exr";
+    const std::string reflectionMapFileName(256u, 'R');
+    const std::string oldOpacityMapFileName = "old-opacity-map.png";
+    const std::string opacityMapFileName(256u, 'O');
+    const std::string oldBumpMapFileName = "old-bump-map.png";
+    const std::string bumpMapFileName(256u, 'B');
+    const std::string oldRefractionMapFileName = "old-refraction-map.exr";
+    const std::string refractionMapFileName(256u, 'N');
+    const std::string oldNormalMapFileName = "old-normal-map.png";
+    const std::string normalMapFileName(256u, 'Q');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "MATERIAL") && text(5, "A")
+        && text(100, "AcDbMaterial")
+        && text(1, "old-name") && text(2, "old-description")
+        && text(1, materialName) && text(2, materialDescription)
+        && text(4, oldSpecularMapFileName)
+        && text(4, specularMapFileName)
+        && text(6, oldReflectionMapFileName)
+        && text(6, reflectionMapFileName)
+        && text(7, oldOpacityMapFileName)
+        && text(7, opacityMapFileName)
+        && text(8, oldBumpMapFileName)
+        && text(8, bumpMapFileName)
+        && text(9, oldRefractionMapFileName)
+        && text(9, refractionMapFileName)
+        && real(464, 0.0)
+        && real(465, 1.0)
+        && text(3, oldNormalMapFileName)
+        && text(3, normalMapFileName);
+    if (fullDrawing) {
+        ok = ok && text(0, "MATERIAL") && text(5, "B")
+            && text(100, "AcDbMaterial")
+            && text(1, "SENTINEL_MATERIAL")
+            && text(2, "following description")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedSunStudyTextBudgetWire(bool binary,
+                                            bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const std::string setupName(32u, 'S');
+    const std::string description(64u, 'D');
+    const std::string sheetSetName(128u, 'T');
+    const std::string sheetSubsetName(256u, 'U');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "SUNSTUDY") && text(5, "A")
+        && text(100, "AcDbSunStudy")
+        && text(1, "OLD_SETUP") && text(2, "OLD_DESCRIPTION")
+        && text(3, "OLD_SHEET_SET") && text(4, "OLD_SUBSET")
+        && text(1, setupName) && text(2, description)
+        && text(3, sheetSetName) && text(4, sheetSubsetName);
+    if (fullDrawing) {
+        ok = ok && text(0, "SUNSTUDY") && text(5, "B")
+            && text(100, "AcDbSunStudy")
+            && text(1, "SENTINEL_SUNSTUDY")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedAmbientColorNameOwnerRecords(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const std::string ambientName(256u, 'C');
+    const bool ok = text(431, "OLD_AMBIENT") && text(431, ambientName);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedVportViewAmbientNameDrawing(bool binary, bool viewTable) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto shortValue = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const char* const tableName = viewTable ? "VIEW" : "VPORT";
+    const char* const tableHandle = viewTable ? "6" : "8";
+    const char* const recordSubclass = viewTable
+        ? "AcDbViewTableRecord" : "AcDbViewportTableRecord";
+    const std::string targetName = viewTable ? "TARGET_VIEW" : "TARGET_VPORT";
+    const std::string sentinelName = viewTable
+        ? "SENTINEL_VIEW" : "SENTINEL_VPORT";
+    const std::string ambientName(256u, viewTable ? 'W' : 'C');
+    const bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "TABLES") && text(0, "TABLE")
+        && text(2, tableName) && text(5, tableHandle)
+        && text(330, "0") && text(100, "AcDbSymbolTable")
+        && shortValue(70, 2)
+        && text(0, tableName) && text(5, "A")
+        && text(330, tableHandle)
+        && text(100, "AcDbSymbolTableRecord")
+        && text(100, recordSubclass) && text(2, targetName)
+        && text(431, ambientName)
+        && text(0, tableName) && text(5, "B")
+        && text(330, tableHandle)
+        && text(100, "AcDbSymbolTableRecord")
+        && text(100, recordSubclass) && text(2, sentinelName)
+        && text(431, "FOLLOWING_AMBIENT_SENTINEL")
+        && text(0, "ENDTAB") && text(0, "ENDSEC") && text(0, "EOF");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedOle2FrameClientCallbackDrawing(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto shortValue = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+    const std::string client(256u, 'C');
+    const bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES") && text(0, "OLE2FRAME")
+        && text(5, "A") && text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbOle2Frame")
+        && shortValue(70, 2) && shortValue(71, 2)
+        && shortValue(72, 0) && shortValue(73, 3)
+        && integer(90, 0) && text(3, "OLD") && text(3, client)
+        && real(10, 1.0) && real(20, 2.0) && real(30, 0.0)
+        && real(11, 3.0) && real(21, 4.0) && real(31, 0.0)
+        && text(0, "LINE") && text(5, "B")
+        && text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbLine")
+        && real(10, 11.0) && real(20, 12.0) && real(30, 13.0)
+        && real(11, 21.0) && real(21, 22.0) && real(31, 23.0)
+        && text(0, "ENDSEC") && text(0, "EOF");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedUnderlayTextBudgetWire(bool binary,
+                                            bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const std::string filename(256u, 'U');
+    const std::string sheetName(256u, 'S');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "PDFDEFINITION") && text(5, "A")
+        && text(100, "AcDbPdfDefinition")
+        && text(1, "old.pdf") && text(2, "old sheet")
+        && text(1, filename) && text(2, sheetName);
+    if (fullDrawing) {
+        ok = ok && text(0, "PDFDEFINITION") && text(5, "B")
+            && text(100, "AcDbPdfDefinition")
+            && text(1, "sentinel.pdf") && text(2, "sentinel sheet")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedScaleNameBudgetWire(bool binary,
+                                         bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string scaleName(256u, 'S');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "SCALE") && text(5, "A")
+        && text(100, "AcDbScale") && integer(70, 0)
+        && text(2, "old-scale") && text(300, scaleName);
+    if (fullDrawing) {
+        ok = ok && text(0, "SCALE") && text(5, "B")
+            && text(100, "AcDbScale") && integer(70, 0)
+            && text(300, "SENTINEL_SCALE")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedPointCloudDefNameBudgetWire(
+    bool binary, bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const std::string sourceFilename(256u, 'P');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "POINTCLOUDDEFINITION") && text(5, "A")
+        && text(100, "AcDbPointCloudDef") && integer(90, 0)
+        && text(1, "old-pointcloud.pts") && text(1, sourceFilename);
+    if (fullDrawing) {
+        ok = ok && text(0, "POINTCLOUDDEFINITION") && text(5, "B")
+            && text(100, "AcDbPointCloudDef") && integer(90, 0)
+            && text(1, "SENTINEL_POINTCLOUD.pts")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedPointCloudExNameBudgetWire(
+    bool binary, bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto shortInteger = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+    const std::string name(256u, 'N');
+    const std::string intensityScheme(257u, 'I');
+    const std::string currentScheme(258u, 'C');
+    const std::string classificationScheme(259u, 'K');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "ENTITIES");
+    }
+    ok = ok && text(0, "POINTCLOUDEX") && text(5, "A")
+        && text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbPointCloud") && shortInteger(70, 7)
+        && text(1, name) && text(1, intensityScheme)
+        && text(1, currentScheme) && text(1, classificationScheme)
+        && integer(92, 0) && integer(93, 11) && integer(93, 22);
+    if (fullDrawing) {
+        ok = ok && text(0, "LINE") && text(5, "B")
+            && text(100, "AcDbEntity") && text(8, "0")
+            && text(100, "AcDbLine")
+            && real(10, 1.0) && real(20, 2.0) && real(30, 3.0)
+            && real(11, 4.0) && real(21, 5.0) && real(31, 6.0)
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedPointCloudNameBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto shortInteger = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string filename(256u, 'F');
+    const std::string sourceA(257u, 'A');
+    const std::string sourceB(258u, 'B');
+    const std::string ucsName(259u, 'U');
+    const bool ok = text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbPointCloud") && shortInteger(70, 7)
+        && text(1, filename) && integer(90, 2)
+        && text(2, sourceA) && text(2, sourceB)
+        && text(3, ucsName) && integer(92, 42);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedPointCloudColorMapSchemeOwnerWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt32(code, value);
+    };
+    const auto shortInteger = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string intensity(100u, 'I');
+    const std::string elevation(101u, 'E');
+    const std::string classification(102u, 'C');
+    const std::string rampA(103u, 'A');
+    const std::string rampB(104u, 'B');
+    const std::string classRamp(105u, 'K');
+    const bool ok = text(100, "AcDbPointCloudColorMap")
+        && integer(90, 7)
+        && text(1, intensity) && text(1, elevation)
+        && text(1, classification)
+        && integer(91, 2) && integer(90, 3)
+        && text(1, rampA) && text(1, rampB)
+        && shortInteger(70, 1)
+        && integer(91, 1) && integer(90, 4)
+        && text(1, classRamp);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedLayerTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const bool ok = text(2, "LAYERA") && text(6, "OLD")
+        && text(DRW::dxfCode::PLOTSTYLE, "1A") && text(347, "2B")
+        && text(6, "NEWLINETYPE");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedTableStyleNameOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string oldName = "OLD";
+    const std::string newName = "TABLESTYLE_NAME_REPLACEMENT";
+    const bool ok = writer->writeString(2, oldName)
+        && writer->writeString(2, newName);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDictionaryVarValueOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string oldValue = "OLD";
+    const std::string newValue = "DICTIONARYVAR_VALUE_REPLACEMENT";
+    const bool ok = writer->writeString(1, oldValue)
+        && writer->writeString(1, newValue);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDictionaryEntryNameOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstName = "A";
+    const std::string secondName = "B2";
+    const std::string lastName(128u, 'N');
+    const bool ok = writer->writeString(3, firstName)
+        && writer->writeString(350, "A1")
+        && writer->writeString(3, secondName)
+        && writer->writeString(360, "A2")
+        && writer->writeString(3, lastName)
+        && writer->writeString(350, "A3");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedLayerIndexEntryNameOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstName = "A";
+    const std::string secondName = "B2";
+    const std::string lastName(128u, 'L');
+    const bool ok = writer->writeInt32(90, 1)
+        && writer->writeString(8, firstName)
+        && writer->writeString(360, "B1")
+        && writer->writeInt32(90, 2)
+        && writer->writeString(8, secondName)
+        && writer->writeString(360, "B2")
+        && writer->writeInt32(90, 3)
+        && writer->writeString(8, lastName)
+        && writer->writeString(360, "B3");
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedRenderSettingsTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string name(64u, 'N');
+    const std::string image(80u, 'I');
+    const std::string description(96u, 'D');
+    const bool ok = writer->writeString(1, name)
+        && writer->writeString(1, image)
+        && writer->writeString(1, description);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedViewportTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string oldStyle = "OLD";
+    const std::string style(128u, 'S');
+    const std::string oldColor = "COLOR";
+    const std::string replacedColor = "TEMP";
+    const std::string ambientColor(200u, 'C');
+    const bool ok = writer->writeString(1, oldStyle)
+        && writer->writeString(1, style)
+        && writer->writeString(431, oldColor)
+        && writer->writeInt16(63, 250)
+        && writer->writeString(431, replacedColor)
+        && writer->writeInt32(421, 0x010203)
+        && writer->writeString(431, ambientColor);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedLayerFilterNameOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstName = "LayerA";
+    const std::string secondName(64u, 'F');
+    const bool ok = writer->writeString(8, firstName)
+        && writer->writeString(8, secondName);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedLightListNameOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstName = "LightA";
+    const std::string secondName = "LightB";
+    const std::string lastName(128u, 'L');
+    const bool ok = writer->writeString(100, "AcDbLightList")
+        && writer->writeInt32(90, 1) && writer->writeInt32(90, 3)
+        && writer->writeString(5, "A1") && writer->writeString(1, firstName)
+        && writer->writeString(5, "A2") && writer->writeString(1, secondName)
+        && writer->writeString(5, "A3") && writer->writeString(1, lastName);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDimensionAssociationXrefTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string initialXref = "XREF_OLD";
+    const std::string xrefText(160u, 'X');
+    const std::string intersectionXrefText(128u, 'I');
+    const std::string secondXrefText(96u, 'Y');
+    const bool ok = writer->writeString(100, "AcDbDimAssoc")
+        && writer->writeInt32(90, 1)
+        && writer->writeString(1, "AcDbOsnapPointRef")
+        && writer->writeInt16(72, 1)
+        && writer->writeString(331, "B1")
+        && writer->writeString(301, initialXref)
+        && writer->writeString(301, xrefText)
+        && writer->writeString(302, intersectionXrefText)
+        && writer->writeString(1, "AcDbOsnapPointRef")
+        && writer->writeInt16(72, 2)
+        && writer->writeString(331, "B2")
+        && writer->writeString(301, secondXrefText);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDataLinkTextOwnerBudgetWire(
+        bool binary, bool includeGroup305 = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string description(64u, 'D');
+    const std::string tooltip(72u, 'T');
+    const std::string connection(80u, 'C');
+    const std::string updateStatus(88u, 'S');
+    const std::string firstCustom(96u, '1');
+    const std::string finalCustom(128u, '2');
+    const bool ok = writer->writeString(100, "AcDbDataLink")
+        && writer->writeString(1, "EXCEL")
+        && writer->writeString(300, description)
+        && writer->writeString(301, tooltip)
+        && writer->writeString(302, connection)
+        && writer->writeString(304, updateStatus)
+        && writer->writeString(1, "DATAMAP_BEGIN")
+        && (!includeGroup305 || writer->writeString(305, "CUSTOMDATA"))
+        && writer->writeString(330, "A1")
+        && writer->writeString(304, firstCustom)
+        && writer->writeString(330, "A2")
+        && writer->writeString(304, finalCustom)
+        && writer->writeString(1, "DATAMAP_END")
+        && writer->writeString(330, "A3")
+        && writer->writeString(304, updateStatus);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedTableCellTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string oldStyle = "OLD";
+    const std::string style(96u, 'S');
+    const std::string firstText(512u, 'A');
+    const std::string secondText(512u, 'B');
+    const std::string attributeText(2048u, 'C');
+    const bool ok = writer->writeString(100, "AcDbTable")
+        && writer->writeInt32(91, 1)
+        && writer->writeInt32(92, 1)
+        && writer->writeInt16(171, 1)
+        && writer->writeString(7, oldStyle)
+        && writer->writeString(7, style)
+        && writer->writeString(301, "CELL_VALUE")
+        && writer->writeString(1, firstText)
+        && writer->writeString(2, secondText)
+        && writer->writeInt16(179, 1)
+        && writer->writeString(331, "A1")
+        && writer->writeString(300, attributeText);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedGeoDataTextOwnerBudgetWire(bool binary, bool legacy) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstDefinition(31u, 'A');
+    const std::string secondDefinition(47u, 'B');
+    const std::string thirdDefinition(53u, 'C');
+    const std::string legacyDescription(64u, 'D');
+    const std::string legacyDatum(72u, 'E');
+    const std::string oldRssTag = "OLD_RSS";
+    const std::string rssTag(80u, 'R');
+    const std::string observationFrom(96u, 'F');
+    const std::string observationTo(112u, 'T');
+    const std::string coverage(2048u, 'V');
+    bool ok = writer->writeString(100, "AcDbGeoData")
+        && writer->writeInt32(90, legacy ? 1 : 2)
+        && writer->writeString(301, firstDefinition)
+        && writer->writeString(301, secondDefinition);
+    if (legacy) {
+        ok = ok && writer->writeString(303, legacyDescription)
+            && writer->writeString(304, legacyDatum);
+    } else {
+        ok = ok && writer->writeString(303, thirdDefinition);
+    }
+    ok = ok && writer->writeString(302, oldRssTag)
+        && writer->writeString(302, rssTag)
+        && writer->writeString(305, observationFrom)
+        && writer->writeString(306, observationTo)
+        && writer->writeString(307, coverage);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedGeoDataCivilMarkerWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const bool ok = writer->writeString(100, "AcDbGeoData")
+        && writer->writeInt32(90, 1)
+        && writer->writeString(3, "CIVIC3D_DATA_BEGIN")
+        && writer->writeDouble(54, 1.25)
+        && writer->writeString(4, "CIVIC3D_DATA_END")
+        && writer->writeDouble(54, 2.5);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedSectionTextOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstDestination = "SECTION_DESTINATION_OLD";
+    const std::string replacementDestination(48u, 'D');
+    const std::string secondDestination(56u, 'F');
+    const std::string plotStyle(64u, 'P');
+    const std::string hatchPattern(72u, 'H');
+    const std::string lineType(80u, 'T');
+    const std::string layer(2048u, 'L');
+    const bool ok = writer->writeString(100, "AcDbSectionSettings")
+        && writer->writeInt32(90, 1) && writer->writeInt32(91, 2)
+        && writer->writeInt32(92, 3)
+        && writer->writeString(1, "SectionTypeSettings")
+        && writer->writeInt32(90, 10) && writer->writeInt32(91, 11)
+        && writer->writeInt32(92, 0) && writer->writeInt32(93, 0)
+        && writer->writeString(1, firstDestination)
+        && writer->writeString(1, replacementDestination)
+        && writer->writeString(1, "SectionTypeSettings")
+        && writer->writeInt32(90, 20) && writer->writeInt32(91, 21)
+        && writer->writeInt32(92, 0) && writer->writeInt32(93, 1)
+        && writer->writeString(1, secondDestination)
+        && writer->writeString(2, "SectionGeometrySettings")
+        && writer->writeInt32(90, 1) && writer->writeInt32(91, 2)
+        && writer->writeInt32(92, 3)
+        && writer->writeString(1, plotStyle)
+        && writer->writeString(2, hatchPattern)
+        && writer->writeString(6, lineType)
+        && writer->writeString(8, layer);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedModelDocViewStyleTextOwnerBudgetWire(
+    bool binary, bool sectionStyle) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string oldDescription = "OLD_DESC";
+    const std::string description(72u, 'D');
+    const std::string displayName(88u, 'N');
+    const std::string oldExclude = "OLD_EXCLUDE";
+    const std::string excludeCharacters(96u, 'E');
+    const std::string labelPattern(104u, 'L');
+    const std::string hatchPattern(1024u, 'H');
+    bool ok = writer->writeString(100, "AcDbModelDocViewStyle")
+        && writer->writeString(3, oldDescription)
+        && writer->writeString(3, description)
+        && writer->writeString(300, displayName)
+        && writer->writeString(100, sectionStyle
+                                   ? "AcDbSectionViewStyle"
+                                   : "AcDbDetailViewStyle")
+        && writer->writeInt16(71, 1)
+        && writer->writeString(300, oldExclude)
+        && writer->writeString(300, excludeCharacters)
+        && writer->writeInt16(71, 3)
+        && writer->writeString(300, labelPattern);
+    if (sectionStyle)
+        ok = ok && writer->writeInt16(71, 4)
+            && writer->writeString(300, hatchPattern);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedViewStyleSubclassMarkerWire(bool binary,
+                                                 bool sectionStyle) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string unknownSubclass(32768u, 'U');
+    const bool ok = writer->writeString(100, "AcDbModelDocViewStyle")
+        && writer->writeInt16(70, 11)
+        && writer->writeString(100, sectionStyle
+                                   ? "AcDbSectionViewStyle"
+                                   : "AcDbDetailViewStyle")
+        && writer->writeInt16(70, 22)
+        && writer->writeString(100, unknownSubclass)
+        && writer->writeInt16(70, 0x1234);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedMLineStyleLinetypeOwnerBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstLinetype = "CONTINUOUS";
+    const std::string finalLinetype(2048u, 'M');
+    const bool ok = writer->writeInt16(71, 2)
+        && writer->writeInt16(62, 7)
+        && writer->writeDouble(49, 0.25)
+        && writer->writeInt16(62, 1)
+        && writer->writeString(6, firstLinetype)
+        && writer->writeDouble(49, -0.5)
+        && writer->writeInt16(62, 2)
+        && writer->writeString(6, finalLinetype);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedXRecordStringOwnerBudgetWire(bool binary, int finalCode = 1) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string firstText(128u, 'X');
+    const std::string finalText(2048u, 'R');
+    const bool ok = writer->writeString(100, "AcDbXrecord")
+        && writer->writeString(100, firstText)
+        && writer->writeString(finalCode, finalText);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedDbColorBookNameOwnerBudgetWire(
+    bool binary, const std::string& finalValue = "ColorBook$ColorEntry") {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const bool ok = writer->writeString(430, "Old$Prev")
+        && writer->writeString(430, finalValue);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedNavisworksPathBudgetWire(bool binary,
+                                              bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const std::string path(256u, 'N');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS");
+    }
+    ok = ok && text(0, "NAVISWORKSMODELDEF") && text(5, "A")
+        && text(100, "AcDbNavisworksModelDef") && integer(70, 0)
+        && text(1, "old-model.nwd") && text(1, path);
+    if (fullDrawing) {
+        ok = ok && text(0, "NAVISWORKSMODELDEF") && text(5, "B")
+            && text(100, "AcDbNavisworksModelDef") && integer(70, 0)
+            && text(1, "SENTINEL_MODEL.nwd")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedPlotSettingsTextBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const std::string longStyleSheet(256u, 'S');
+    const bool ok = writer->writeString(1, "old")
+        && writer->writeString(2, "old")
+        && writer->writeString(4, "old")
+        && writer->writeString(6, "old")
+        && writer->writeString(7, "old")
+        && writer->writeString(1, "page setup")
+        && writer->writeString(2, "printer configuration")
+        && writer->writeString(4, "ISO_A4")
+        && writer->writeString(6, "model view")
+        && writer->writeString(7, longStyleSheet);
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
+std::string generatedLayoutPlotSettingsTextBudgetWire(bool binary,
+                                                       bool fullDrawing = false) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary && fullDrawing) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const std::string longStyleSheet(256u, 'L');
+    const std::string longLayoutName(1024u, 'N');
+    bool ok = true;
+    if (fullDrawing) {
+        ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "OBJECTS") && text(0, "LAYOUT")
+            && text(5, "A");
+    }
+    ok = ok && text(100, "AcDbPlotSettings")
+        && text(1, "old")
+        && text(2, "old")
+        && text(4, "old")
+        && text(6, "old")
+        && text(7, "old")
+        && text(1, "page setup")
+        && text(2, "printer configuration")
+        && text(4, "ISO_A4")
+        && text(6, "model view")
+        && text(7, longStyleSheet)
+        && text(100, "AcDbLayout")
+        && text(1, "old")
+        && text(1, longLayoutName);
+    if (fullDrawing) {
+        ok = ok && text(0, "LAYOUT") && text(5, "B")
+            && text(100, "AcDbPlotSettings")
+            && text(100, "AcDbLayout")
+            && text(1, "SENTINEL_LAYOUT")
+            && text(0, "ENDSEC") && text(0, "EOF");
+    }
+    writer.reset();
+    return ok ? stream.str() : std::string{};
+}
+
 static_assert(!std::is_abstract<FuzzInterface>::value,
               "new optional callbacks must not make legacy sinks abstract");
+
+std::string admissionDrawing() {
+    return "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n0\nENDSEC\n"
+           "0\nSECTION\n2\nENTITIES\n"
+           "0\nLINE\n10\n1\n20\n2\n30\n3\n11\n4\n21\n5\n31\n6\n"
+           "0\nLINE\n10\n7\n20\n8\n30\n9\n11\n10\n21\n11\n31\n12\n"
+           "0\nENDSEC\n0\nEOF\n";
+}
+
+class AdmissionInterface final : public FuzzInterface {
+public:
+    dxfRW* codec {nullptr};
+    std::function<void()> callback;
+    std::vector<DRW_Line> lines;
+    bool recordWrites {true};
+
+    void addLine(const DRW_Line& line) override {
+        lines.push_back(line);
+        if (lines.size() == 1u && callback)
+            callback();
+    }
+    void writeEntities() override {
+        for (int i = 0; i < 2; ++i) {
+            DRW_Line line;
+            line.handle = static_cast<std::uint32_t>(0xA0 + i);
+            line.basePoint = DRW_Coord(1 + i * 6, 2 + i * 6, 3 + i * 6);
+            line.secPoint = DRW_Coord(4 + i * 6, 5 + i * 6, 6 + i * 6);
+            recordWrites = codec->writeLine(&line) && recordWrites;
+            if (i == 0 && callback)
+                callback();
+        }
+    }
+};
+
+// A deliberately small independent tokenizer for output properties. It reads
+// the DXF wire framing directly rather than using dxfReader, so malformed or
+// duplicate output cannot be hidden by the library's own reader.
+struct DxfOutputPair {
+    int code {0};
+    std::string value;
+};
+
+enum class DxfOutputValueKind { String, Double, Int16, Int32, Int64, Boolean,
+                                Binary, Unknown };
+
+DxfOutputValueKind dxfOutputValueKind(int code) {
+    if ((code >= 0 && code <= 9)
+        || (code >= 100 && code <= 109) || (code >= 300 && code <= 309)
+        || (code >= 320 && code <= 369) || (code >= 390 && code <= 399)
+        || (code >= 410 && code <= 419) || (code >= 430 && code <= 439)
+        || (code >= 470 && code <= 481) || (code >= 999 && code <= 1003)
+        || code == 1005)
+        return DxfOutputValueKind::String;
+    if ((code >= 10 && code <= 59) || (code >= 110 && code <= 149)
+        || (code >= 210 && code <= 259) || (code >= 460 && code <= 469)
+        || (code >= 1010 && code <= 1059))
+        return DxfOutputValueKind::Double;
+    if ((code >= 60 && code <= 79) || (code >= 170 && code <= 179)
+        || (code >= 270 && code <= 289) || (code >= 370 && code <= 389)
+        || (code >= 400 && code <= 409) || (code >= 1060 && code <= 1070))
+        return DxfOutputValueKind::Int16;
+    if ((code >= 90 && code <= 99) || (code >= 260 && code <= 269)
+        || (code >= 420 && code <= 429) || (code >= 440 && code <= 459)
+        || code == 1071)
+        return DxfOutputValueKind::Int32;
+    if (code >= 160 && code <= 169)
+        return DxfOutputValueKind::Int64;
+    if (code >= 290 && code <= 299)
+        return DxfOutputValueKind::Boolean;
+    if ((code >= 310 && code <= 319) || code == 1004)
+        return DxfOutputValueKind::Binary;
+    return DxfOutputValueKind::Unknown;
+}
+
+bool parseDxfOutputDecimal(std::string_view text, int& value) {
+    while (!text.empty() && (text.front() == ' ' || text.front() == '\t'))
+        text.remove_prefix(1);
+    while (!text.empty() && (text.back() == ' ' || text.back() == '\t'
+                             || text.back() == '\r'))
+        text.remove_suffix(1);
+    if (text.empty())
+        return false;
+    int parsed = 0;
+    for (const char ch : text) {
+        if (ch < '0' || ch > '9' || parsed > 1071)
+            return false;
+        parsed = parsed * 10 + (ch - '0');
+        if (parsed > 1071)
+            return false;
+    }
+    value = parsed;
+    return true;
+}
+
+bool parseDxfOutputHandle(std::string_view text, std::uint32_t& value) {
+    if (text.empty() || text.size() > 8u)
+        return false;
+    std::uint32_t parsed = 0;
+    for (const char ch : text) {
+        unsigned digit = 0;
+        if (ch >= '0' && ch <= '9')
+            digit = static_cast<unsigned>(ch - '0');
+        else if (ch >= 'A' && ch <= 'F')
+            digit = static_cast<unsigned>(ch - 'A' + 10);
+        else if (ch >= 'a' && ch <= 'f')
+            digit = static_cast<unsigned>(ch - 'a' + 10);
+        else
+            return false;
+        parsed = (parsed << 4u) | digit;
+    }
+    value = parsed;
+    return true;
+}
+
+bool appendDxfOutputPair(std::vector<DxfOutputPair>& pairs, int code,
+                         std::string value = {}) {
+    constexpr std::size_t maxPairCount = 200000u;
+    if (pairs.size() >= maxPairCount)
+        return false;
+    if (code == 0 || code == 2 || code == 5 || code == 105 || code == 330)
+        pairs.push_back({code, std::move(value)});
+    else
+        pairs.push_back({code, {}});
+    return true;
+}
+
+bool scanDxfOutputAscii(std::string_view bytes,
+                        std::vector<DxfOutputPair>& pairs) {
+    if (bytes.empty() || bytes.size() > 4u * 1024u * 1024u)
+        return false;
+    std::size_t offset = 0;
+    while (offset < bytes.size()) {
+        const std::size_t codeEnd = bytes.find('\n', offset);
+        if (codeEnd == std::string_view::npos)
+            return false;
+        const std::size_t valueStart = codeEnd + 1u;
+        const std::size_t valueEnd = bytes.find('\n', valueStart);
+        if (valueEnd == std::string_view::npos)
+            return false;
+        int code = 0;
+        if (!parseDxfOutputDecimal(bytes.substr(offset, codeEnd - offset), code))
+            return false;
+        std::string value;
+        if (code == 0 || code == 2 || code == 5 || code == 105 || code == 330) {
+            std::string_view field = bytes.substr(valueStart, valueEnd - valueStart);
+            if (!field.empty() && field.back() == '\r')
+                field.remove_suffix(1);
+            value.assign(field.data(), field.size());
+        }
+        if (!appendDxfOutputPair(pairs, code, std::move(value)))
+            return false;
+        offset = valueEnd + 1u;
+    }
+    return !pairs.empty();
+}
+
+bool scanDxfOutputBinary(std::string_view bytes,
+                         std::vector<DxfOutputPair>& pairs) {
+    constexpr std::string_view sentinel("AutoCAD Binary DXF\r\n\x1a\0", 22u);
+    if (bytes.size() < sentinel.size() || bytes.size() > 4u * 1024u * 1024u
+        || bytes.substr(0, sentinel.size()) != sentinel)
+        return false;
+    std::size_t offset = sentinel.size();
+    const auto skip = [&bytes, &offset](std::size_t count) {
+        if (count > bytes.size() - offset)
+            return false;
+        offset += count;
+        return true;
+    };
+    while (offset < bytes.size()) {
+        if (bytes.size() - offset < 2u)
+            return false;
+        const unsigned low = static_cast<unsigned char>(bytes[offset++]);
+        const unsigned high = static_cast<unsigned char>(bytes[offset++]);
+        const int code = static_cast<int>(low | (high << 8u));
+        const DxfOutputValueKind kind = dxfOutputValueKind(code);
+        std::string value;
+        if (kind == DxfOutputValueKind::String) {
+            const std::size_t end = bytes.find('\0', offset);
+            if (end == std::string_view::npos)
+                return false;
+            if (code == 0 || code == 2 || code == 5 || code == 105
+                || code == 330)
+                value.assign(bytes.data() + offset, end - offset);
+            offset = end + 1u;
+        } else if (kind == DxfOutputValueKind::Binary) {
+            if (offset >= bytes.size())
+                return false;
+            const std::size_t count =
+                static_cast<unsigned char>(bytes[offset++]);
+            if (!skip(count))
+                return false;
+        } else if (kind == DxfOutputValueKind::Double
+                   || kind == DxfOutputValueKind::Int64) {
+            if (!skip(8u))
+                return false;
+        } else if (kind == DxfOutputValueKind::Int32) {
+            if (!skip(4u))
+                return false;
+        } else if (kind == DxfOutputValueKind::Int16) {
+            if (!skip(2u))
+                return false;
+        } else if (kind == DxfOutputValueKind::Boolean) {
+            if (!skip(1u))
+                return false;
+        } else {
+            return false;
+        }
+        if (!appendDxfOutputPair(pairs, code, std::move(value)))
+            return false;
+    }
+    return !pairs.empty();
+}
+
+struct DxfOutputInventory {
+    struct Line {
+        std::uint32_t handle {0};
+        std::uint32_t owner {0};
+        bool hasHandle {false};
+        bool hasOwner {false};
+    };
+    std::unordered_set<std::uint32_t> handles;
+    std::unordered_map<std::string, unsigned> sections;
+    std::vector<Line> lines;
+    std::uint32_t modelSpaceHandle {0};
+    unsigned eofCount {0};
+    bool framed {false};
+};
+
+bool inspectDxfOutput(const std::vector<DxfOutputPair>& pairs,
+                      DxfOutputInventory& inventory) {
+    std::string section;
+    std::string record;
+    std::string recordName;
+    DxfOutputInventory::Line line;
+    bool inSection = false;
+    bool haveRecord = false;
+    const auto finishRecord = [&]() {
+        if (inSection && section == "ENTITIES" && record == "LINE")
+            inventory.lines.push_back(line);
+        if (inSection && section == "TABLES" && record == "BLOCK_RECORD"
+            && recordName == "*Model_Space" && line.hasHandle)
+            inventory.modelSpaceHandle = line.handle;
+        line = DxfOutputInventory::Line{};
+        recordName.clear();
+        haveRecord = false;
+    };
+    for (std::size_t index = 0; index < pairs.size(); ++index) {
+        const DxfOutputPair& pair = pairs[index];
+        if (pair.code == 0) {
+            finishRecord();
+            if (pair.value == "SECTION") {
+                if (inSection || index + 1u >= pairs.size()
+                    || pairs[index + 1u].code != 2)
+                    return false;
+                section = pairs[index + 1u].value;
+                ++inventory.sections[section];
+                inSection = true;
+            } else if (pair.value == "ENDSEC") {
+                if (!inSection)
+                    return false;
+                inSection = false;
+                section.clear();
+            } else if (pair.value == "EOF") {
+                ++inventory.eofCount;
+                if (inSection || index + 1u != pairs.size())
+                    return false;
+                inventory.framed = true;
+                break;
+            } else {
+                if (!inSection)
+                    return false;
+                record = pair.value;
+                haveRecord = true;
+            }
+            continue;
+        }
+        if (!haveRecord)
+            continue;
+        if ((section == "TABLES" || section == "BLOCKS"
+             || section == "ENTITIES" || section == "OBJECTS")
+            && (pair.code == 5 || pair.code == 105)) {
+            std::uint32_t handle = 0;
+            if (!parseDxfOutputHandle(pair.value, handle) || handle == 0
+                || !inventory.handles.insert(handle).second)
+                return false;
+            line.handle = handle;
+            line.hasHandle = true;
+        } else if (pair.code == 330) {
+            if (!parseDxfOutputHandle(pair.value, line.owner))
+                return false;
+            line.hasOwner = true;
+        } else if (pair.code == 2
+                   && section == "TABLES" && record == "BLOCK_RECORD") {
+            recordName = pair.value;
+        }
+    }
+    finishRecord();
+    return inventory.framed && inventory.eofCount == 1u && !inSection
+        && inventory.sections["HEADER"] == 1u
+        && inventory.sections["TABLES"] == 1u
+        && inventory.sections["BLOCKS"] == 1u
+        && inventory.sections["ENTITIES"] == 1u
+        && inventory.sections["OBJECTS"] == 1u
+        && inventory.modelSpaceHandle != 0u;
+}
+
+class DxfOutputPropertyInterface final : public FuzzInterface {
+public:
+    dxfRW* codec {nullptr};
+    std::vector<DRW_Line> lines;
+    std::uint32_t ambiguousSourceHandle {0};
+    bool recordWrites {true};
+
+    void writeBlocks() override {
+        if (codec != nullptr && ambiguousSourceHandle != 0)
+            codec->markSourceHandleAmbiguous(ambiguousSourceHandle);
+    }
+    void writeEntities() override {
+        for (DRW_Line& line : lines)
+            recordWrites = codec != nullptr && codec->writeLine(&line)
+                && recordWrites;
+    }
+};
+
+bool readDxfOutputBytes(const std::filesystem::path& path, std::string& bytes) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input)
+        return false;
+    bytes.assign(std::istreambuf_iterator<char>(input),
+                 std::istreambuf_iterator<char>());
+    return !input.bad() && bytes.size() <= 4u * 1024u * 1024u;
+}
+
+bool validateDxfOutput(const std::filesystem::path& path, bool binary,
+                       DxfOutputInventory& inventory) {
+    std::string bytes;
+    if (!readDxfOutputBytes(path, bytes))
+        return false;
+    std::vector<DxfOutputPair> pairs;
+    const bool scanned = binary ? scanDxfOutputBinary(bytes, pairs)
+                                : scanDxfOutputAscii(bytes, pairs);
+    if (!scanned || !inspectDxfOutput(pairs, inventory)
+        || inventory.lines.size() != 2u)
+        return false;
+    for (const auto& line : inventory.lines) {
+        if (!line.hasHandle || !line.hasOwner
+            || line.owner != inventory.modelSpaceHandle)
+            return false;
+    }
+    return true;
+}
+
+std::vector<DRW_Line> generatedDxfOutputLines(std::uint32_t firstHandle,
+                                              std::uint32_t secondHandle) {
+    std::vector<DRW_Line> lines(2u);
+    lines[0].handle = firstHandle;
+    lines[0].basePoint = DRW_Coord(1.0, 2.0, 3.0);
+    lines[0].secPoint = DRW_Coord(4.0, 5.0, 6.0);
+    lines[1].handle = secondHandle;
+    lines[1].basePoint = DRW_Coord(7.0, 8.0, 9.0);
+    lines[1].secPoint = DRW_Coord(10.0, 11.0, 12.0);
+    return lines;
+}
+
+void testDxfWriterOutputProperty(TestContext& t) {
+    const auto root = std::filesystem::temp_directory_path()
+        / ("libdxfrw-writer-output-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::error_code ec;
+    if (!std::filesystem::create_directory(root, ec)) {
+        t.expect(false, "DXF writer property scratch directory is exclusive");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup {root};
+
+    for (const bool binary : {false, true}) {
+        const auto path = root / (binary ? "valid-binary.dxf" : "valid-ascii.dxf");
+        const std::string filename = path.u8string();
+        dxfRW codec(filename.c_str());
+        DxfOutputPropertyInterface source;
+        source.codec = &codec;
+        source.lines = generatedDxfOutputLines(0u, 0x1fu);
+        t.expect(codec.write(&source, DRW::AC1027, binary)
+                     && source.recordWrites,
+                 binary ? "generated binary DXF write succeeds"
+                        : "generated ASCII DXF write succeeds");
+        DxfOutputInventory inventory;
+        t.expect(validateDxfOutput(path, binary, inventory),
+                 binary ? "binary output has complete framing, unique handles, and modelspace ownership"
+                        : "ASCII output has complete framing, unique handles, and modelspace ownership");
+        t.expect(inventory.handles.size() > inventory.lines.size(),
+                 "output contains unique structural and entity identities");
+        t.expect(inventory.lines.size() == 2u
+                     && inventory.lines[0].handle != inventory.lines[1].handle,
+                 "zero and fixed-low source handles mint distinct output identities");
+    }
+
+    const auto duplicatePath = root / "duplicate-source-handle.dxf";
+    const std::string duplicateFilename = duplicatePath.u8string();
+    dxfRW duplicateCodec(duplicateFilename.c_str());
+    DxfOutputPropertyInterface duplicateSource;
+    duplicateSource.codec = &duplicateCodec;
+    duplicateSource.lines = generatedDxfOutputLines(0xBEEFu, 0xBEEFu);
+    t.expect(!duplicateCodec.write(&duplicateSource, DRW::AC1027, false),
+             "duplicate non-ambiguous source entity identity is rejected");
+    t.expect(!std::filesystem::exists(duplicatePath),
+             "rejected duplicate-identity output is not published");
+
+    const auto ambiguousPath = root / "ambiguous-source-handle.dxf";
+    const std::string ambiguousFilename = ambiguousPath.u8string();
+    dxfRW ambiguousCodec(ambiguousFilename.c_str());
+    DxfOutputPropertyInterface ambiguousSource;
+    ambiguousSource.codec = &ambiguousCodec;
+    ambiguousSource.ambiguousSourceHandle = 0xBEEFu;
+    ambiguousSource.lines = generatedDxfOutputLines(0xBEEFu, 0xBEEFu);
+    t.expect(ambiguousCodec.write(&ambiguousSource, DRW::AC1027, false)
+                 && ambiguousSource.recordWrites,
+             "preclassified ambiguous source identities remain independently mintable");
+    DxfOutputInventory ambiguousInventory;
+    t.expect(validateDxfOutput(ambiguousPath, false, ambiguousInventory)
+                 && ambiguousInventory.lines[0].handle
+                     != ambiguousInventory.lines[1].handle,
+             "ambiguous duplicate sources still produce distinct valid output identities");
+
+    const auto retryPath = root / "failure-then-retry.dxf";
+    const std::string retryFilename = retryPath.u8string();
+    {
+        std::ofstream sentinel(retryPath, std::ios::binary);
+        sentinel << "existing destination sentinel";
+    }
+    const std::string sentinel = "existing destination sentinel";
+    dxfRW retryCodec(retryFilename.c_str());
+    retryCodec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+    DxfOutputPropertyInterface retrySource;
+    retrySource.codec = &retryCodec;
+    retrySource.lines = generatedDxfOutputLines(0u, 0u);
+    retrySource.lines[0].layer = "bad\nlayer";
+    t.expect(!retryCodec.write(&retrySource, DRW::AC1027, false),
+             "unsafe record text refuses staged output");
+    std::string afterFailure;
+    t.expect(readDxfOutputBytes(retryPath, afterFailure) && afterFailure == sentinel,
+             "failed write leaves the existing destination byte-for-byte intact");
+    retrySource.lines[0].layer = "0";
+    retrySource.recordWrites = true;
+    t.expect(retryCodec.write(&retrySource, DRW::AC1027, false)
+                 && retrySource.recordWrites,
+             "the same writer successfully retries after an atomic refusal");
+    DxfOutputInventory retryInventory;
+    t.expect(validateDxfOutput(retryPath, false, retryInventory),
+             "successful retry publishes a structurally valid DXF");
+}
+
+class RawCarrierRetentionSink final : public FuzzInterface {
+public:
+    void addRawDxfEntity(const DRW_RawDxfObject& value) override {
+        ++entityCount;
+        entity = value;
+    }
+    void addRawDxfSection(const DRW_RawDxfSection& value) override {
+        ++sectionCount;
+        section = value;
+    }
+    void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        ++objectCount;
+        object = value;
+    }
+
+    DRW_RawDxfObject entity;
+    DRW_RawDxfSection section;
+    DRW_RawDxfObject object;
+    std::size_t entityCount {0u};
+    std::size_t sectionCount {0u};
+    std::size_t objectCount {0u};
+};
+
+bool sameAdmissionDiagnostic(const DRW_OperationDiagnostic& a,
+                             const DRW_OperationDiagnostic& b) {
+    if (a.operation != b.operation || a.phase != b.phase || a.cause != b.cause
+        || a.code != b.code || a.message != b.message || a.offset != b.offset
+        || a.handle != b.handle || a.hasOffset != b.hasOffset
+        || a.hasHandle != b.hasHandle || a.secondary.size() != b.secondary.size())
+        return false;
+    for (std::size_t i = 0; i < a.secondary.size(); ++i) {
+        const auto& x = a.secondary[i];
+        const auto& y = b.secondary[i];
+        if (x.phase != y.phase || x.cause != y.cause || x.code != y.code
+            || x.message != y.message || x.offset != y.offset || x.handle != y.handle
+            || x.hasOffset != y.hasOffset || x.hasHandle != y.hasHandle)
+            return false;
+    }
+    return true;
+}
+
+void testDxfOperationAdmission(TestContext& t) {
+    const auto root = std::filesystem::temp_directory_path()
+        / ("libdxfrw-admission-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::error_code ec;
+    if (!std::filesystem::create_directory(root, ec)) {
+        t.expect(false, "admission scratch directory is exclusive");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } cleanup {root};
+    const auto path = root / "drawing.dxf";
+    const std::string filename = path.u8string();
+    const auto putSource = [&]() {
+        std::ofstream output(path, std::ios::binary);
+        output << admissionDrawing();
+        return output.good();
+    };
+    const auto bytes = [&]() {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    // Every whole-operation entry must reject before changing even diagnostics
+    // or a writer's already-successful prefix. These are synchronous API tests,
+    // not malformed-file or general concurrency/qualification controls.
+    for (int outer = 0; outer < 3; ++outer) {
+        for (int nested = 0; nested < 3; ++nested) {
+            for (const bool binary : {false, true}) {
+                t.expect(putSource(), "admission source is generated locally");
+                if (outer == 1 && binary) {
+                    dxfRW generator(filename.c_str());
+                    AdmissionInterface source;
+                    source.codec = &generator;
+                    t.expect(generator.write(&source, DRW::AC1024, true)
+                        && source.recordWrites,
+                        "file-read admission has an actual binary source control");
+                }
+                dxfRW codec(filename.c_str());
+                AdmissionInterface sink;
+                sink.codec = &codec;
+                int attempts = 0;
+                sink.callback = [&]() {
+                    ++attempts;
+                    const auto diagnostic = codec.getLastDiagnostic();
+                    const auto error = codec.getError();
+                    const auto version = codec.getVersion();
+                    const auto reader = codec.reader.get();
+                    const auto writer = codec.writer.get();
+                    const auto iface = codec.iface;
+                    const auto next = codec.nextentity;
+                    const auto headerVars = codec.header.vars;
+                    const auto handles = codec.m_writingContext.sourceHandleToMintedMap;
+                    const auto blocks = codec.blockMap;
+                    const auto styles = codec.textStyleMap;
+                    const auto highWater = codec.highWaterHandle();
+                    const auto current = codec.currHandle;
+                    const bool format = codec.binFile;
+                    const bool extrusion = codec.applyExt;
+                    const bool pending = codec.m_hasPendingEntityBoundary;
+                    const bool writeFailed = codec.m_writeError;
+                    const std::string destination = bytes();
+                    FuzzInterface rejected;
+                    std::string content = admissionDrawing();
+                    const bool accepted = nested == 0
+                        ? codec.readAscii(&rejected, true, content)
+                        : nested == 1 ? codec.read(&rejected, true)
+                                      : codec.write(&rejected, DRW::AC1015, !binary);
+                    t.expect(!accepted, "same-instance whole operation rejects");
+                    t.expect(!codec.readAscii(nullptr, true, content)
+                        && !codec.read(nullptr, true)
+                        && !codec.write(nullptr, DRW::UNKNOWNV, !binary),
+                        "nested admission precedes argument/version validation");
+                    t.expect(codec.reader.get() == reader && codec.writer.get() == writer
+                        && codec.iface == iface && codec.getError() == error
+                        && codec.getVersion() == version && codec.binFile == format
+                        && codec.applyExt == extrusion
+                        && codec.m_hasPendingEntityBoundary == pending
+                        && codec.m_writeError == writeFailed
+                        && codec.nextentity == next && codec.header.vars == headerVars
+                        && codec.m_writingContext.sourceHandleToMintedMap == handles
+                        && codec.blockMap == blocks && codec.textStyleMap == styles
+                        && codec.highWaterHandle() == highWater && codec.currHandle == current
+                        && sameAdmissionDiagnostic(codec.getLastDiagnostic(), diagnostic),
+                        "nested rejection preserves outer cursors, identity maps and diagnostics");
+                    t.expect(bytes() == destination,
+                        "nested rejection does not publish over the destination");
+                    dxfRW other("");
+                    AdmissionInterface otherSink;
+                    t.expect(other.readAscii(&otherSink, false, content)
+                        && otherSink.lines.size() == 2u,
+                        "different-instance operation is allowed within callback");
+                };
+                std::string content = admissionDrawing();
+                const bool ok = outer == 0 ? codec.readAscii(&sink, false, content)
+                    : outer == 1 ? codec.read(&sink, false)
+                                 : codec.write(&sink, DRW::AC1024, binary);
+                t.expect(ok && attempts == 1 && sink.recordWrites
+                    && codec.getError() == DRW::BAD_NONE,
+                    "outer operation completes after rejected nesting");
+                sink.callback = {};
+                sink.lines.clear();
+                t.expect(codec.read(&sink, false) && sink.lines.size() == 2u
+                    && sink.lines[0].basePoint.x == 1 && sink.lines[1].secPoint.z == 12,
+                    "ASCII/binary destination and sequential file read preserve both LINEs");
+            }
+        }
+    }
+
+    dxfRW codec(filename.c_str());
+    AdmissionInterface sink;
+    sink.codec = &codec;
+    std::string content = admissionDrawing();
+    t.expect(!codec.readAscii(nullptr, false, content), "early invalid read rejects");
+    t.expect(codec.readAscii(&sink, false, content), "early failure releases admission");
+    t.expect(!codec.write(&sink, DRW::UNKNOWNV, false), "early invalid write rejects");
+    t.expect(codec.write(&sink, DRW::AC1024, false), "valid write follows early failure");
+    sink.callback = []() { throw std::runtime_error("admission read callback"); };
+    sink.lines.clear();
+    bool caught = false;
+    try {
+        (void)codec.readAscii(&sink, false, content);
+    } catch (const std::runtime_error&) {
+        caught = true;
+    }
+    t.expect(caught, "read callback exception retains existing propagation policy");
+    sink.callback = {};
+    sink.lines.clear();
+    t.expect(codec.readAscii(&sink, false, content) && sink.lines.size() == 2u,
+        "read callback exception releases admission for reuse");
+    const auto previous = bytes();
+    sink.callback = []() { throw std::runtime_error("admission write callback"); };
+    t.expect(!codec.write(&sink, DRW::AC1024, false)
+        && codec.getLastDiagnostic().cause == DRW::OperationCause::CallbackException
+        && bytes() == previous,
+        "write callback exception preserves classification and atomic destination");
+    sink.callback = {};
+    t.expect(codec.write(&sink, DRW::AC1024, true),
+        "write callback exception releases admission for reuse");
+}
 
 void testCheckedArithmetic(TestContext& t) {
     std::uint64_t result = 0;
@@ -2038,6 +4966,14 @@ void testCheckedArithmetic(TestContext& t) {
     t.expect(!dwgSafety::multiply((std::numeric_limits<std::uint64_t>::max)(),
                                   2, result),
              "checked multiply rejects overflow");
+    const std::uint64_t maxByteOffset =
+        (std::numeric_limits<std::uint64_t>::max)() / 8u;
+    t.expect(dwgSafety::bitPosition(maxByteOffset, 7u, result)
+                 && result == (std::numeric_limits<std::uint64_t>::max)(),
+             "checked byte/bit position accepts its maximum representable value");
+    t.expect(!dwgSafety::bitPosition(maxByteOffset + 1u, 0u, result)
+                 && !dwgSafety::bitPosition(0u, 8u, result),
+             "checked byte/bit position rejects multiplication overflow and invalid bit offsets");
     t.expect(dwgSafety::range(4, 6, 10) && !dwgSafety::range(5, 6, 10),
              "checked range enforces end bound");
     t.expect(dwgSafety::alignUp8(9, result) && result == 16,
@@ -2398,6 +5334,12059 @@ void testDxfAggregateRecordBudget(TestContext& t) {
              "raising the DXF budget permits a fresh read session");
 }
 
+void testRepeatedDxfRecordRobustness(TestContext& t) {
+    constexpr std::size_t stressCount = 20000u;
+    enum class Profile {
+        Comments,
+        Xdata,
+        Wipeout,
+        WipeoutRestartedCount,
+        ImageClipOverLimit,
+        WipeoutClipOverLimit,
+        MLineValid,
+        MLineLateCountMismatch,
+        MLineDuplicateCount
+    };
+
+    class Capture final : public FuzzInterface {
+    public:
+        void addLine(const DRW_Line& line) override {
+            lineHandles.push_back(line.handle);
+            std::vector<std::pair<int, std::string>> values;
+            values.reserve(line.extData.size());
+            for (const auto& item : line.extData) {
+                if (item != nullptr && item->type() == DRW_Variant::STRING)
+                    values.emplace_back(item->code(), item->c_str());
+            }
+            xdataByLine.push_back(std::move(values));
+        }
+        void addWipeout(const DRW_Wipeout* value) override {
+            ++wipeoutCount;
+            wipeoutVertices = value != nullptr ? value->clipPath.size() : 0u;
+        }
+        void addImage(const DRW_Image* value) override {
+            ++imageCount;
+            imageVertices = value != nullptr ? value->clipPath.size() : 0u;
+        }
+        void addMLine(const DRW_MLine* value) override {
+            ++mlineCount;
+            mlineVertices = value != nullptr ? value->vertlist.size() : 0u;
+        }
+
+        std::vector<std::uint32_t> lineHandles;
+        std::vector<std::vector<std::pair<int, std::string>>> xdataByLine;
+        std::size_t wipeoutCount{0};
+        std::size_t wipeoutVertices{0};
+        std::size_t imageCount{0};
+        std::size_t imageVertices{0};
+        std::size_t mlineCount{0};
+        std::size_t mlineVertices{0};
+    };
+
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-repeated-dxf-records-" + std::to_string(nonce));
+    std::error_code filesystemError;
+    if (!std::filesystem::create_directory(directory, filesystemError)
+        || filesystemError) {
+        t.expect(false, "create isolated temporary directory for repeated DXF controls");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    const auto writeControl = [](const std::filesystem::path& path,
+                                 bool binary, Profile profile) {
+        std::ofstream output(path, std::ios::binary);
+        if (!output)
+            return false;
+        if (binary)
+            output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1027", true);
+        bool success = true;
+        const auto string = [&writer, &success](int code, const std::string& value) {
+            const bool written = writer->writeString(code, value);
+            success = written && success;
+        };
+        const auto integer16 = [&writer, &success](int code, std::int16_t value) {
+            const bool written = writer->writeInt16(code, value);
+            success = written && success;
+        };
+        const auto integer32 = [&writer, &success](int code, std::int32_t value) {
+            const bool written = writer->writeInt32(code, value);
+            success = written && success;
+        };
+        const auto real = [&writer, &success](int code, double value) {
+            const bool written = writer->writeDouble(code, value);
+            success = written && success;
+        };
+        const auto boolean = [&writer, &success](int code, bool value) {
+            const bool written = writer->writeBool(code, value);
+            success = written && success;
+        };
+        const auto line = [&string, &real](const std::string& handle, double x) {
+            string(0, "LINE"); string(5, handle);
+            string(100, "AcDbEntity"); string(8, "0");
+            string(100, "AcDbLine");
+            real(10, x); real(20, x + 1.0);
+            real(11, x + 2.0); real(21, x + 3.0);
+        };
+        const auto wipeout = [&string, &integer16, &integer32, &real, &boolean]() {
+            string(0, "WIPEOUT"); string(5, "B0");
+            string(100, "AcDbEntity"); string(8, "0");
+            string(100, "AcDbWipeout"); integer32(90, 0);
+            real(10, 0.0); real(20, 0.0); real(30, 0.0);
+            real(11, 1.0); real(21, 0.0); real(31, 0.0);
+            real(12, 0.0); real(22, 1.0); real(32, 0.0);
+            real(13, 1.0); real(23, 1.0);
+            string(340, "0"); integer16(70, 0);
+            integer16(280, 0); integer16(281, 50);
+            integer16(282, 50); integer16(283, 0);
+            string(360, "0"); integer16(71, 2); integer32(91, 3);
+            real(14, 0.0); real(24, 0.0);
+            real(14, 1.0); real(24, 0.0);
+            real(14, 0.0); real(24, 1.0);
+            boolean(290, false);
+        };
+        const auto overLimitClipEntity = [&string, &integer16, &integer32, &real](
+                bool wipeoutEntity) {
+            string(0, wipeoutEntity ? "WIPEOUT" : "IMAGE");
+            string(5, wipeoutEntity ? "B1" : "B2");
+            string(100, "AcDbEntity"); string(8, "0");
+            string(100, wipeoutEntity ? "AcDbWipeout" : "AcDbRasterImage");
+            integer32(90, 0);
+            real(10, 0.0); real(20, 0.0); real(30, 0.0);
+            real(11, 1.0); real(21, 0.0); real(31, 0.0);
+            real(12, 0.0); real(22, 1.0); real(32, 0.0);
+            real(13, 1.0); real(23, 1.0);
+            string(340, "0"); integer16(70, 0);
+            integer16(280, 0); integer16(281, 50);
+            integer16(282, 50); integer16(283, 0);
+            string(360, "0"); integer16(71, 2);
+            // Deliberately omit group 91: the parser must enforce the same
+            // per-entity cap while appending repeated group-14/24 vertices.
+            for (std::size_t i = 0; i <= DRW_Image::kMaxClipVertices; ++i) {
+                real(14, static_cast<double>(i));
+                real(24, static_cast<double>(i % 2u));
+            }
+        };
+        const auto mline = [&string, &integer16, &real](Profile shape) {
+            string(0, "MLINE"); string(5, "B0");
+            string(100, "AcDbEntity"); string(8, "0");
+            string(100, "AcDbMline");
+            real(10, 0.0); real(20, 0.0); real(30, 0.0);
+            real(210, 0.0); real(220, 0.0); real(230, 1.0);
+            real(40, 1.0); integer16(70, 0); integer16(71, 0);
+            integer16(72, 1);
+            const bool countBeforeVertex = shape != Profile::MLineLateCountMismatch;
+            if (countBeforeVertex)
+                integer16(73, 1);
+            real(11, 1.0); real(21, 0.0); real(31, 0.0);
+            real(12, 1.0); real(22, 0.0); real(32, 0.0);
+            real(13, 0.0); real(23, 1.0); real(33, 0.0);
+            integer16(74, 1); real(41, 0.5); integer16(75, 0);
+            if (shape == Profile::MLineLateCountMismatch)
+                integer16(73, 2);
+            else if (shape == Profile::MLineDuplicateCount)
+                integer16(73, 2);
+        };
+
+        string(0, "SECTION"); string(2, "HEADER");
+        string(9, "$ACADVER"); string(1, "AC1027"); string(0, "ENDSEC");
+        string(0, "SECTION"); string(2, "ENTITIES");
+        line("A1", 1.0);
+        if (profile == Profile::Comments) {
+            for (std::size_t i = 0; i < stressCount; ++i)
+                string(999, "repeated-comment");
+            line("A2", 2.0);
+        } else if (profile == Profile::Xdata) {
+            for (std::size_t i = 0; i < stressCount; ++i) {
+                string(1001, "APP" + std::to_string(i));
+                string(1000, std::to_string(i));
+            }
+            line("A2", 2.0);
+        } else if (profile == Profile::Wipeout
+                   || profile == Profile::WipeoutRestartedCount) {
+            wipeout();
+            if (profile == Profile::WipeoutRestartedCount) {
+                for (std::size_t i = 0; i < stressCount; ++i)
+                    integer32(91, 0);
+            }
+            line("A2", 2.0);
+        } else if (profile == Profile::ImageClipOverLimit
+                   || profile == Profile::WipeoutClipOverLimit) {
+            overLimitClipEntity(profile == Profile::WipeoutClipOverLimit);
+            line("A2", 2.0);
+        } else {
+            mline(profile);
+            line("A2", 2.0);
+        }
+        string(0, "ENDSEC"); string(0, "EOF");
+        success = success && !writer->hasWriteError();
+        writer.reset();
+        output.flush();
+        return success && output.good();
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto path = directory / (binary ? "repeated-binary.dxf" : "repeated-ascii.dxf");
+        const std::string filename = path.string();
+        dxfRW reader(filename.c_str());
+
+        if (!binary) {
+            Capture commentCapture;
+            const bool commentsWritten = writeControl(path, binary, Profile::Comments);
+            const bool commentsRead = commentsWritten && reader.read(&commentCapture, false);
+            const bool commentsPassed = commentsRead
+                && commentCapture.lineHandles == std::vector<std::uint32_t>{0xA1u, 0xA2u}
+                && commentCapture.xdataByLine.size() == 2u;
+            const std::string commentMessage =
+                "long ASCII post-SECTION comment run remains iterative and preserves both LINE callbacks (written="
+                + std::to_string(commentsWritten)
+                + ", read=" + std::to_string(commentsRead)
+                + ", error=" + std::to_string(static_cast<int>(reader.getError()))
+                + ", lines=" + std::to_string(commentCapture.lineHandles.size()) + ")";
+            t.expect(commentsPassed, commentMessage.c_str());
+        }
+
+        Capture xdataCapture;
+        t.expect(writeControl(path, binary, Profile::Xdata)
+                     && reader.read(&xdataCapture, false)
+                     && xdataCapture.lineHandles == std::vector<std::uint32_t>{0xA1u, 0xA2u}
+                     && xdataCapture.xdataByLine.size() == 2u
+                     && xdataCapture.xdataByLine.front().size() == stressCount * 2u,
+                 "long XDATA application run preserves exact item count and following LINE");
+        bool orderedXdata = xdataCapture.xdataByLine.size() == 2u
+            && xdataCapture.xdataByLine.front().size() == stressCount * 2u;
+        for (std::size_t i = 0; orderedXdata && i < stressCount; ++i) {
+            const auto& app = xdataCapture.xdataByLine.front()[i * 2u];
+            const auto& value = xdataCapture.xdataByLine.front()[i * 2u + 1u];
+            const std::string expected = std::to_string(i);
+            orderedXdata = app.first == 1001 && app.second == "APP" + expected
+                && value.first == 1000 && value.second == expected;
+        }
+        t.expect(orderedXdata,
+                 "long XDATA application run preserves every ordered app/value pair");
+
+        for (const Profile malformedProfile : {
+                 Profile::MLineLateCountMismatch,
+                 Profile::MLineDuplicateCount}) {
+            Capture malformedMline;
+            const bool written = writeControl(path, binary, malformedProfile);
+            const bool accepted = written && reader.read(&malformedMline, false);
+            t.expect(written && !accepted
+                         && reader.getError() == DRW::BAD_CODE_PARSED
+                         && malformedMline.lineHandles
+                             == std::vector<std::uint32_t>{0xA1u}
+                         && malformedMline.mlineCount == 0u,
+                     malformedProfile == Profile::MLineLateCountMismatch
+                         ? "late MLINE line-count mismatch is rejected before callback"
+                         : "repeated MLINE line count after allocated parameters is rejected before callback");
+        }
+
+        Capture validMline;
+        const bool validMlineWritten =
+            writeControl(path, binary, Profile::MLineValid);
+        const bool validMlineRead = validMlineWritten
+            && reader.read(&validMline, false);
+        t.expect(validMlineRead
+                     && validMline.lineHandles
+                         == std::vector<std::uint32_t>{0xA1u, 0xA2u}
+                     && validMline.mlineCount == 1u
+                     && validMline.mlineVertices == 1u,
+                 "same reader retries a valid MLINE and preserves the following LINE sentinel");
+
+        Capture malformedWipeout;
+        t.expect(writeControl(path, binary, Profile::WipeoutRestartedCount)
+                     && !reader.read(&malformedWipeout, false)
+                     && reader.getError() == DRW::BAD_CODE_PARSED
+                     && malformedWipeout.lineHandles == std::vector<std::uint32_t>{0xA1u}
+                     && malformedWipeout.wipeoutCount == 0u,
+                 "restarted WIPEOUT clip counts fail boundedly before partial callback");
+
+        for (const Profile overLimitProfile : {
+                 Profile::ImageClipOverLimit,
+                 Profile::WipeoutClipOverLimit}) {
+            Capture overLimit;
+            const bool written = writeControl(path, binary, overLimitProfile);
+            const bool accepted = written && reader.read(&overLimit, false);
+            const bool imageEntity =
+                overLimitProfile == Profile::ImageClipOverLimit;
+            t.expect(written && !accepted
+                         && reader.getError() == DRW::BAD_CODE_PARSED
+                         && overLimit.lineHandles
+                             == std::vector<std::uint32_t>{0xA1u}
+                         && overLimit.imageCount == 0u
+                         && overLimit.wipeoutCount == 0u,
+                     imageEntity
+                         ? "IMAGE clipping rejects an over-limit vertex run before callback"
+                         : "WIPEOUT clipping rejects an over-limit vertex run before callback");
+        }
+
+        Capture retry;
+        t.expect(writeControl(path, binary, Profile::Wipeout)
+                     && reader.read(&retry, false)
+                     && retry.lineHandles == std::vector<std::uint32_t>{0xA1u, 0xA2u}
+                     && retry.wipeoutCount == 1u && retry.wipeoutVertices == 3u,
+                 "same reader retries a valid WIPEOUT and preserves the following LINE");
+    }
+}
+
+// No get area: every logical extraction/lookahead crosses these hooks, so a
+// rejected token cannot hide an unlimited drain behind a buffered test input.
+class TokenCountingBuffer final : public std::streambuf {
+public:
+    explicit TokenCountingBuffer(std::string bytes, bool throwAtEnd = false)
+        : bytes_(std::move(bytes)), throwAtEnd_(throwAtEnd) {}
+    std::size_t consumed{0}, furthestLookahead{0};
+protected:
+    int_type underflow() override {
+        furthestLookahead = std::max(furthestLookahead, consumed);
+        if (consumed == bytes_.size()) {
+            if (throwAtEnd_)
+                throw std::runtime_error("intentional token I/O failure");
+            return traits_type::eof();
+        }
+        return traits_type::to_int_type(bytes_[consumed]);
+    }
+    int_type uflow() override {
+        const int_type value = underflow();
+        if (!traits_type::eq_int_type(value, traits_type::eof()))
+            ++consumed;
+        return value;
+    }
+private:
+    std::string bytes_;
+    bool throwAtEnd_;
+};
+
+void testDxfTokenByteBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (const bool pointerOverload : {false, true}) {
+            for (const std::size_t length : {0u, 7u, 8u, 9u}) {
+                for (const bool terminated : {false, true}) {
+                    const std::string value(length, 'x');
+                    std::string payload = value;
+                    if (terminated) payload += binary ? '\0' : '\n';
+                    TokenCountingBuffer buffer(payload);
+                    std::istream input(&buffer);
+                    std::unique_ptr<dxfReader> reader = binary
+                        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                    reader->setTokenByteBudget(8);
+                    std::string text;
+                    const bool result = binary
+                        ? (pointerOverload
+                            ? static_cast<dxfReaderBinary&>(*reader).readString(&text)
+                            : static_cast<dxfReaderBinary&>(*reader).readString())
+                        : (pointerOverload
+                            ? static_cast<dxfReaderAscii&>(*reader).readString(&text)
+                            : static_cast<dxfReaderAscii&>(*reader).readString());
+                    const bool expected = length <= 8 && (terminated || (!binary && length != 0));
+                    t.expect(result == expected
+                                 && reader->tokenByteBudgetExceeded() == (length > 8),
+                             "token delimiter/EOF/exact-cap precede overflow in both string overloads");
+                    if (expected)
+                        t.expect(reader->getRawValue() == value
+                                     && (!pointerOverload || text == value),
+                                 "bounded string acquisition preserves exact admitted bytes");
+                    t.expect(buffer.consumed == (length > 8 ? 8 : payload.size())
+                                 && buffer.furthestLookahead <= (length > 8 ? 8 : payload.size()),
+                             "token overflow does not consume the excess byte or drain its remainder");
+                }
+            }
+        }
+    }
+    // Check the fixed scratch boundary, including a zero byte inside an ASCII
+    // token: gcount, not a C-string length, defines what was acquired.
+    for (const std::size_t length : {4095u, 4096u, 4097u}) {
+        std::string value(length, 'x');
+        value[1] = '\0';
+        std::istringstream input(value + "\n");
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(4096);
+        std::string text;
+        const bool result = reader.readString(&text);
+        t.expect(result == (length <= 4096)
+                     && reader.tokenByteBudgetExceeded() == (length > 4096)
+                     && (!result || text == value),
+                 "chunk boundaries and embedded ASCII NUL obey raw byte lengths");
+    }
+    for (const bool binary : {false, true}) {
+        for (const std::size_t length : {4097u, 4098u}) {
+            const std::string value(length, 'x');
+            TokenCountingBuffer buffer(value + (binary ? '\0' : '\n'));
+            std::istream input(&buffer);
+            dxfReaderAscii ascii(&input);
+            dxfReaderBinary bytes(&input);
+            ascii.setTokenByteBudget(4097);
+            bytes.setTokenByteBudget(4097);
+            std::string text = "previous";
+            const bool result = binary ? bytes.readString(&text) : ascii.readString(&text);
+            t.expect(result == (length == 4097)
+                         && (result ? text == value : text.empty())
+                         && (binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()) == !result
+                         && buffer.consumed == (result ? 4098u : 4097u)
+                         && buffer.furthestLookahead <= buffer.consumed,
+                     "successful two-chunk token at cap4097 and adjacent overflow are bounded");
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const bool empty : {false, true}) {
+            std::string payload = empty ? std::string{} : "x";
+            payload += binary ? '\0' : '\n';
+            TokenCountingBuffer buffer(payload);
+            std::istream input(&buffer);
+            std::string text;
+            dxfReaderAscii ascii(&input);
+            dxfReaderBinary bytes(&input);
+            ascii.setTokenByteBudget(0);
+            bytes.setTokenByteBudget(0);
+            const bool result = binary ? bytes.readString(&text) : ascii.readString(&text);
+            t.expect(result == empty && buffer.consumed == (empty ? 1u : 0u)
+                         && (binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()) == !empty,
+                     "zero token cap admits only an empty delimited value");
+        }
+    }
+    for (const std::size_t length : {7u, 8u}) {
+        std::istringstream input(std::string(length, 'x') + "\r\n");
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(8);
+        std::string text;
+        t.expect(reader.readString(&text) == (length == 7)
+                     && reader.tokenByteBudgetExceeded() == (length == 8)
+                     && (length != 7 || text == std::string(7, 'x')),
+                 "ASCII terminal CR consumes raw budget before normalization");
+    }
+    for (const int era : {0, 1, 2}) {
+        for (const bool oversizedCode : {false, true}) {
+            if (era != 0 && oversizedCode)
+                continue; // Binary group codes are fixed-width, not tokens.
+            std::string payload;
+            if (era == 0)
+                payload = oversizedCode ? "        1\nvalue\n" : "1\n" + std::string(64, 'x') + "\n0\nEOF\n";
+            else {
+                payload += '\1';
+                if (era == 2) payload += '\0';
+                payload += std::string(64, 'x');
+                payload += '\0';
+            }
+            TokenCountingBuffer buffer(payload);
+            std::istream input(&buffer);
+            std::unique_ptr<dxfReader> reader;
+            if (era == 0) reader = std::make_unique<dxfReaderAscii>(&input);
+            else if (era == 1) reader = std::make_unique<dxfReaderBinaryR12>(&input);
+            else reader = std::make_unique<dxfReaderBinary>(&input);
+            reader->setTokenByteBudget(8);
+            int code = -1;
+            t.expect(!reader->readRec(&code) && reader->tokenByteBudgetExceeded()
+                         && reader->type == dxfReader::INVALID && reader->getRawValue().empty()
+                         && reader->getString().empty(),
+                     "overlong code/value invalidates the record in ASCII and both binary eras");
+            const std::size_t prefix = era == 0 ? (oversizedCode ? 0u : 2u) : static_cast<std::size_t>(era);
+            const auto stopped = buffer.consumed;
+            t.expect(stopped == prefix + 8 && !reader->readRec(&code)
+                         && buffer.consumed == stopped && buffer.furthestLookahead <= stopped,
+                     "a latched token failure prevents later record acquisition");
+        }
+    }
+    for (const bool throws : {false, true}) {
+        TokenCountingBuffer buffer("abc", true);
+        std::istream input(&buffer);
+        if (throws) input.exceptions(std::ios::badbit);
+        dxfReaderAscii reader(&input);
+        reader.setTokenByteBudget(3);
+        std::string text;
+        bool escaped = false, result = true;
+        try { result = reader.readString(&text); }
+        catch (const std::runtime_error&) { escaped = true; }
+        t.expect(escaped == throws && (escaped || !result) && input.bad()
+                     && !reader.tokenByteBudgetExceeded(),
+                 "I/O failure at the cap retains stream exception-mask behavior, not ResourceLimit");
+    }
+    // Normative mask policy, independently of the STL's getline: failed text
+    // is empty; zero-byte nonthrowing I/O failure adds failbit. badbit-mask
+    // rethrows the original streambuf exception before that additional flag.
+    for (const bool binary : {false, true}) {
+        for (const std::size_t length : {0u, 1u, 3u}) {
+            for (const auto mask : {std::ios::goodbit, std::ios::failbit,
+                                    std::ios::badbit, std::ios::eofbit}) {
+                TokenCountingBuffer buffer(std::string(length, 'x'), true);
+                std::istream input(&buffer);
+                input.exceptions(mask);
+                dxfReaderAscii ascii(&input);
+                dxfReaderBinary bytes(&input);
+                ascii.setTokenByteBudget(64);
+                bytes.setTokenByteBudget(64);
+                std::string text = "previous";
+                int thrown = 0;
+                bool result = true;
+                try { result = binary ? bytes.readString(&text) : ascii.readString(&text); }
+                catch (const std::ios_base::failure&) { thrown = 1; }
+                catch (const std::runtime_error&) { thrown = 2; }
+                const bool zeroFail = length == 0 && mask != std::ios::badbit;
+                const auto expectedState = std::ios::badbit
+                    | (zeroFail ? std::ios::failbit : std::ios::goodbit);
+                const int expectedThrow = mask == std::ios::badbit ? 2
+                    : zeroFail && mask == std::ios::failbit ? 1 : 0;
+                t.expect(thrown == expectedThrow && (thrown != 0 || !result)
+                             && input.rdstate() == expectedState && text.empty()
+                             && buffer.consumed == length && buffer.furthestLookahead == length
+                             && !(binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()),
+                         "zero/nonzero I/O masks preserve original exceptions and never ResourceLimit or failed text");
+            }
+        }
+    }
+    for (const int code : {10, 70, 90, 160, 290, 550}) {
+        const std::string payload = std::to_string(code) + "\n000000001\n";
+        for (const std::size_t cap : {8u, 9u}) {
+            std::istringstream input(payload);
+            dxfReaderAscii reader(&input);
+            reader.setTokenByteBudget(cap);
+            int actual = 0;
+            const bool result = reader.readRec(&actual);
+            t.expect(result == (cap == 9) && reader.tokenByteBudgetExceeded() == (cap == 8)
+                         && (!result || (actual == code && reader.getRawValue() == "000000001")),
+                     "numeric ASCII overloads and unknown codes share the same token cap");
+        }
+    }
+    for (const bool binary : {false, true}) {
+        for (const bool empty : {false, true}) {
+            for (const auto mask : {std::ios::eofbit, std::ios::failbit}) {
+                std::istringstream input(empty ? "" : "abc");
+                input.exceptions(mask);
+                std::string text;
+                dxfReaderAscii ascii(&input);
+                dxfReaderBinary bytes(&input);
+                ascii.setTokenByteBudget(3);
+                bytes.setTokenByteBudget(3);
+                bool escaped = false, result = true;
+                try { result = binary ? bytes.readString(&text) : ascii.readString(&text); }
+                catch (const std::ios_base::failure&) { escaped = true; }
+                const bool expectedThrow = mask == std::ios::eofbit || empty;
+                t.expect(escaped == expectedThrow
+                             && (escaped || result == (!binary && !empty))
+                             && input.rdstate() == (std::ios::eofbit
+                                 | (empty ? std::ios::failbit : std::ios::goodbit))
+                             && (!escaped && result ? text == "abc" : text.empty())
+                             && !(binary ? bytes.tokenByteBudgetExceeded() : ascii.tokenByteBudgetExceeded()),
+                         "EOF exception masks and binary missing-NUL rejection retain getline policy");
+            }
+        }
+    }
+}
+
+void testDxfInputByteBudget(TestContext& t) {
+    TokenCountingBuffer zeroBuffer("x\n");
+    std::istream zeroInput(&zeroBuffer);
+    dxfReaderAscii zeroBudget(&zeroInput);
+    zeroBudget.setInputByteBudget(0);
+    t.expect(!zeroBudget.readString()
+                 && zeroBudget.inputByteBudgetExceeded()
+                 && zeroBudget.inputByteCount() == 0u
+                 && zeroBuffer.consumed == 0u,
+             "zero aggregate input budget rejects before consuming the first byte");
+
+    const std::string asciiRecord = "70\n-4\n";
+    for (const std::size_t budget : {5u, 6u, 7u}) {
+        TokenCountingBuffer buffer(asciiRecord);
+        std::istream input(&buffer);
+        dxfReaderAscii reader(&input);
+        reader.setInputByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader.readRec(&code);
+        const bool expected = budget >= asciiRecord.size();
+        const std::size_t consumed = expected ? asciiRecord.size() : budget;
+        t.expect(parsed == expected
+                     && reader.inputByteCount() == consumed
+                     && reader.inputByteBudgetExceeded() == !expected
+                     && buffer.consumed == consumed
+                     && (!parsed || (code == 70 && reader.getInt32() == -4)),
+                 "ASCII input budget counts code/value delimiters and stops before an over-budget byte");
+    }
+
+    const std::string commentInput = "999\ncomment\n0\nSECTION\n";
+    TokenCountingBuffer commentBuffer(commentInput);
+    std::istream commentStream(&commentBuffer);
+    dxfReaderAscii comments(&commentStream);
+    comments.setIgnoreComments(true);
+    comments.setInputByteBudget(12);
+    int code = 0;
+    t.expect(!comments.readRec(&code)
+                 && comments.inputByteBudgetExceeded()
+                 && comments.inputByteCount() == 12u
+                 && comments.recordCount() == 2u
+                 && commentBuffer.consumed == 12u,
+             "ignored comments consume cumulative input bytes without draining or parsing the next record");
+
+    const std::string binaryR13 = {static_cast<char>(70), 0,
+                                   static_cast<char>(0xFC), static_cast<char>(0xFF)};
+    for (const std::size_t budget : {3u, 4u, 5u}) {
+        std::istringstream input(binaryR13);
+        dxfReaderBinary reader(&input);
+        reader.setInputByteBudget(budget);
+        int parsedCode = 0;
+        const bool parsed = reader.readRec(&parsedCode);
+        const bool expected = budget >= binaryR13.size();
+        t.expect(parsed == expected
+                     && reader.inputByteCount() == (expected ? binaryR13.size() : 2u)
+                     && reader.inputByteBudgetExceeded() == !expected
+                     && (!parsed || (parsedCode == 70 && reader.getInt32() == -4)),
+                 "binary R13 input budget counts code/payload widths and refuses an over-budget field before consuming it");
+    }
+
+    const std::string binaryR12 = {static_cast<char>(70),
+                                   static_cast<char>(0xFC), static_cast<char>(0xFF)};
+    std::istringstream r12Input(binaryR12);
+    dxfReaderBinaryR12 r12(&r12Input);
+    r12.setInputByteBudget(binaryR12.size());
+    int r12Code = 0;
+    t.expect(r12.readRec(&r12Code) && r12Code == 70 && r12.getInt32() == -4
+                 && r12.inputByteCount() == binaryR12.size(),
+             "binary R12 input budget counts the one-byte code and fixed-width value");
+
+    const std::string binaryR12Extended = {
+        static_cast<char>(255), static_cast<char>(0xE8), static_cast<char>(0x03),
+        'x', '\0'};
+    std::istringstream extendedInput(binaryR12Extended);
+    dxfReaderBinaryR12 extended(&extendedInput);
+    extended.setInputByteBudget(binaryR12Extended.size() - 1u);
+    int extendedCode = 0;
+    t.expect(!extended.readRec(&extendedCode)
+                 && extended.inputByteBudgetExceeded()
+                 && extended.inputByteCount() == binaryR12Extended.size() - 1u,
+             "binary R12 extended group code and string NUL count once, with no excess byte consumed");
+
+    const std::string binaryChunk = {
+        static_cast<char>(54), 1, 2, static_cast<char>(0xAB), static_cast<char>(0xCD)};
+    std::istringstream chunkInput(binaryChunk);
+    dxfReaderBinary chunkReader(&chunkInput);
+    chunkReader.setInputByteBudget(binaryChunk.size());
+    int chunkCode = 0;
+    t.expect(chunkReader.readRec(&chunkCode) && chunkCode == 310
+                 && chunkReader.getString() == "ABCD"
+                 && chunkReader.inputByteCount() == binaryChunk.size(),
+             "binary chunk input budget includes the group code, length byte and payload");
+
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-input-budget-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    for (const int era : {0, 1, 2}) {
+        std::string wire = "0\nSECTION\n2\nLOCAL\n0\nENDSEC\n0\nEOF\n";
+        if (era != 0) {
+            wire = "AutoCAD Binary DXF\r\n";
+            wire += static_cast<char>(26);
+            wire += '\0';
+            const auto appendRecord = [era, &wire](int groupCode,
+                                                    const std::string& value) {
+                if (era == 1 && groupCode >= 255) {
+                    wire += static_cast<char>(255);
+                    wire += static_cast<char>(groupCode & 255);
+                    wire += static_cast<char>(groupCode >> 8);
+                } else {
+                    wire += static_cast<char>(groupCode & 255);
+                    if (era == 2)
+                        wire += static_cast<char>(groupCode >> 8);
+                }
+                wire += value;
+                wire += '\0';
+            };
+            appendRecord(0, "SECTION");
+            appendRecord(2, "LOCAL");
+            appendRecord(0, "ENDSEC");
+            appendRecord(0, "EOF");
+        }
+        {
+            std::ofstream output(path, std::ios::binary);
+            output.write(wire.data(), static_cast<std::streamsize>(wire.size()));
+        }
+        dxfRW codec(filename.c_str());
+        t.expect(codec.dxfReadInputByteBudget()
+                     == DRW::kDefaultDxfReadInputByteBudget,
+                 "facade publishes the declared one-GiB aggregate input default");
+        codec.setDxfReadInputByteBudget(wire.size() - 1u);
+        FuzzInterface rejected;
+        t.expect(!codec.read(&rejected, false)
+                     && codec.getError() == DRW::BAD_CODE_PARSED
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code == "dxf-input-byte-budget",
+                 "file-backed ASCII/binary readers report aggregate input exhaustion distinctly");
+        for (const std::size_t budget : {wire.size(), wire.size() + 1u}) {
+            codec.setDxfReadInputByteBudget(budget);
+            FuzzInterface accepted;
+            t.expect(codec.read(&accepted, false)
+                         && codec.getLastDiagnostic().cause == DRW::OperationCause::None,
+                     "exact/raised input budgets retry on the same facade across ASCII/R12/R13 DXF");
+        }
+    }
+
+    std::string memoryAscii = "0\nSECTION\n2\nLOCAL\n0\nENDSEC\n0\nEOF\n";
+    dxfRW memoryCodec(nullptr);
+    memoryCodec.setDxfReadInputByteBudget(memoryAscii.size());
+    FuzzInterface memoryAccepted;
+    t.expect(memoryCodec.readAscii(&memoryAccepted, false, memoryAscii),
+             "in-memory ASCII input is charged through its generated reader as well");
+    memoryCodec.setDxfReadInputByteBudget(memoryAscii.size() - 1u);
+    FuzzInterface memoryRejected;
+    t.expect(!memoryCodec.readAscii(&memoryRejected, false, memoryAscii)
+                 && memoryCodec.getLastDiagnostic().code == "dxf-input-byte-budget",
+             "in-memory ASCII shares the cumulative acquisition budget and diagnostic");
+}
+
+void testDxfOwnedSnapshotBudget(TestContext& t) {
+    const std::string source = admissionDrawing();
+    std::string content = source;
+    dxfRW codec(nullptr);
+    t.expect(codec.dxfReadRetainedByteBudget()
+                     == DRW::kDefaultDxfReadRetainedByteBudget,
+             "facade publishes the aggregate retained-byte default");
+    codec.setDxfReadRetainedByteBudget(source.size() - 1u);
+    AdmissionInterface rejected;
+    rejected.codec = &codec;
+    t.expect(!codec.readAscii(&rejected, false, content)
+                 && rejected.lines.empty()
+                 && codec.getError() == DRW::BAD_CODE_PARSED
+                 && codec.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && codec.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget"
+                 && !codec.m_readInputByteBudgetActive,
+             "snapshot cap rejects before stream copy and before any callback");
+
+    codec.setDxfReadRetainedByteBudget(source.size() + 48u);
+    content = source;
+    AdmissionInterface isolated;
+    isolated.codec = &codec;
+    isolated.callback = [&content]() { content = "0\nEOF\n"; };
+    t.expect(codec.readAscii(&isolated, false, content)
+                 && isolated.lines.size() == 2u
+                 && isolated.lines[0].basePoint.x == 1.0
+                 && isolated.lines[1].basePoint.x == 7.0
+                 && content == "0\nEOF\n",
+             "exact instrumented snapshot/token budget preserves callback-time source mutation isolation");
+
+    dxfRW interrupted(nullptr);
+    interrupted.setDxfReadRetainedByteBudget(source.size() + 48u);
+    content = source;
+    AdmissionInterface throwing;
+    throwing.codec = &interrupted;
+    throwing.callback = []() { throw std::runtime_error("snapshot callback throw"); };
+    bool caught = false;
+    try {
+        (void)interrupted.readAscii(&throwing, false, content);
+    } catch (const std::runtime_error&) {
+        caught = true;
+    }
+    dxfReader* const staleReader = interrupted.reader.get();
+    const auto staleBudget = staleReader != nullptr
+        ? staleReader->retainedByteBudget()
+        : std::shared_ptr<DxfReadRetainedBudget>{};
+    t.expect(caught && throwing.lines.size() == 1u && staleReader != nullptr
+                 && staleBudget != nullptr && staleBudget->used() > 0u
+                 && !interrupted.m_readInputByteBudgetActive,
+             "throwing callback releases the snapshot lease but retains and charges stale reader text safely");
+
+    interrupted.setDxfReadRetainedByteBudget(source.size() - 1u);
+    AdmissionInterface staleRejected;
+    staleRejected.codec = &interrupted;
+    t.expect(!interrupted.readAscii(&staleRejected, false, content)
+                 && interrupted.reader.get() == staleReader
+                 && staleRejected.lines.empty()
+                 && interrupted.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget",
+             "snapshot rejection does not dereference or replace an interrupted operation's reader");
+    interrupted.setDxfReadRetainedByteBudget(source.size() + 48u);
+    AdmissionInterface retry;
+    retry.codec = &interrupted;
+    t.expect(interrupted.readAscii(&retry, false, content)
+                 && retry.lines.size() == 2u
+                 && staleBudget->used() == 0u
+                 && interrupted.getLastDiagnostic().cause
+                        == DRW::OperationCause::None,
+             "raising the retained budget recovers the same facade after snapshot rejection");
+}
+
+void testDxfReaderRecordTextBudget(TestContext& t) {
+    const std::string ascii = "1\nabcdefgh\n1\nz\n";
+    {
+        std::istringstream input(ascii);
+        dxfReaderAscii reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(48u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        const bool first = reader.readRec(&code);
+        const std::size_t firstUsed = budget->used();
+        const bool second = reader.readRec(&code);
+        const std::size_t secondUsed = budget->used();
+        const bool eof = !reader.readRec(&code);
+        t.expect(first && firstUsed == 48u && second && secondUsed == 6u
+                     && eof && budget->used() == 0u,
+                 "ASCII strData/rawData and worst-case decoded output are charged together and released at the next record");
+    }
+    {
+        std::istringstream input(ascii);
+        dxfReaderAscii reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(47u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        t.expect(!reader.readRec(&code) && budget->exceeded()
+                     && budget->used() == 0u,
+                 "ASCII decoded-output headroom is rejected before parser use and partial token charge rolls back");
+    }
+    {
+        std::istringstream input("1\nx\r\n");
+        dxfReaderAscii reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(6u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        t.expect(reader.readRec(&code) && code == 1
+                     && reader.getString() == "x" && budget->used() == 6u,
+                 "terminal CR is charged as input but excluded from normalized text and decoded-output retention");
+    }
+    {
+        std::istringstream input("70\n1234\n70\n2\n");
+        dxfReaderAscii reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(8u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        const bool first = reader.readRec(&code);
+        const std::size_t firstUsed = budget->used();
+        const bool second = reader.readRec(&code);
+        const std::size_t secondUsed = budget->used();
+        const bool eof = !reader.readRec(&code);
+        t.expect(first && firstUsed == 8u && second && secondUsed == 2u
+                     && eof && budget->used() == 0u,
+                 "typed ASCII numeric lexical text and raw spelling copy share and release the record budget");
+    }
+    const std::string binaryChunk = {
+        static_cast<char>(54), 1, 2, static_cast<char>(0xAB),
+        static_cast<char>(0xCD)};
+    {
+        std::istringstream input(binaryChunk);
+        dxfReaderBinary reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(12u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader.readRec(&code);
+        t.expect(parsed && code == 310 && reader.getString() == "ABCD"
+                     && budget->used() == 12u,
+                 "binary chunk hex expansion, raw spelling, and returned string copy share the retained-byte budget");
+    }
+    {
+        const std::string big5 = {
+            '1', '\n', static_cast<char>(0x88), static_cast<char>(0x62), '\n'};
+        std::istringstream input(big5);
+        dxfReaderAscii reader(&input);
+        reader.setCodePage("ANSI_950");
+        auto budget = std::make_shared<DxfReadRetainedBudget>(12u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader.readRec(&code);
+        const std::string decoded = parsed ? reader.getUtf8String() : std::string{};
+        t.expect(parsed && code == 1 && decoded.size() == 4u
+                     && budget->used() == 12u,
+                 "Big5-HKSCS two-scalar decoding fits the reserved UTF-8 output headroom");
+    }
+    {
+        std::istringstream input(binaryChunk);
+        dxfReaderBinary reader(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(11u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        t.expect(!reader.readRec(&code) && budget->exceeded()
+                     && budget->used() == 0u,
+                 "binary returned-string overage releases the decoded hex/raw charge on record rejection");
+    }
+}
+
+void testDxfMTextAssemblyBudget(TestContext& t) {
+    class MTextParseProbe final : public DRW_MText {
+    public:
+        using DRW_MText::parseCode;
+    };
+
+    const std::string inputText = "3\nab\n3\ncd\n1\nef\n";
+    auto budget = std::make_shared<DxfReadRetainedBudget>(48u);
+    bool parsed = true;
+    bool textMatches = false;
+    std::size_t retainedAfterEof = 0u;
+    {
+        std::istringstream input(inputText);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        MTextParseProbe entity;
+        int code = 0;
+        for (const int expected : {3, 3, 1}) {
+            parsed = reader->readRec(&code) && code == expected
+                && entity.parseCode(code, reader);
+            if (!parsed)
+                break;
+        }
+        const std::size_t assembledUsed = budget->used();
+        const bool eof = !reader->readRec(&code);
+        textMatches = entity.text == "abcdef";
+        retainedAfterEof = budget->used();
+        parsed = parsed && assembledUsed == 18u && eof;
+    }
+    t.expect(parsed && textMatches && retainedAfterEof == 6u
+                 && budget->used() == 0u,
+             "MTEXT repeated chunks retain decoded logical text through record invalidation and release the lease with the value");
+    {
+        std::istringstream input(inputText);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(47u);
+        reader->setRetainedByteBudget(budget);
+        MTextParseProbe entity;
+        int code = 0;
+        bool prefix = true;
+        for (const int expected : {3, 3})
+            prefix = prefix && reader->readRec(&code) && code == expected
+                && entity.parseCode(code, reader);
+        const bool group1 = reader->readRec(&code) && code == 1;
+        const bool admitted = group1 && entity.parseCode(code, reader);
+        t.expect(prefix && group1 && !admitted && budget->exceeded()
+                     && entity.text == "abcd",
+                 "MTEXT conversion input/output headroom rejects before appending an over-budget final group");
+    }
+}
+
+void testDxfMTextBorrowedChunkView(TestContext& t) {
+    class MTextParseProbe final : public DRW_MText {
+    public:
+        using DRW_MText::parseCode;
+    };
+
+    const std::string first(200u, 'a');
+    const std::string second(180u, 'b');
+    const std::string final(220u, 'c');
+    const std::string expected = first + second + final;
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        const bool wrote = writer->writeString(3, first)
+            && writer->writeString(3, second)
+            && writer->writeString(1, final)
+            && writer->writeString(0, "FOLLOWING");
+        writer.reset();
+
+        auto budget = std::make_shared<DxfReadRetainedBudget>(16384u);
+        bool parsed = wrote;
+        bool textMatches = false;
+        bool followingRecordMatches = false;
+        std::size_t retainedWithOwner = 0u;
+        {
+            MTextParseProbe entity;
+            {
+                std::istringstream input(output.str(),
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                reader->setRetainedByteBudget(budget);
+                int code = 0;
+                for (const int expectedCode : {3, 3, 1}) {
+                    const bool read = reader->readRec(&code);
+                    const bool accepted = read && code == expectedCode
+                        && entity.parseCode(code, reader);
+                    parsed = parsed && accepted;
+                    if (!accepted)
+                        break;
+                }
+                textMatches = entity.text == expected;
+                const bool readFollowing = reader->readRec(&code);
+                followingRecordMatches = readFollowing && code == 0
+                    && reader->getRawValue() == "FOLLOWING";
+                parsed = parsed && followingRecordMatches;
+            }
+            retainedWithOwner = budget->used();
+        }
+        t.expect(parsed && textMatches && retainedWithOwner == expected.size()
+                     && budget->used() == 0u,
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " MTEXT appends borrowed group-3/group-1 chunks before the next record replaces the reader view and releases ownership cleanly");
+    }
+}
+
+void testMTextOrientationState(TestContext& t);
+void testEmbeddedAttributeTextRouting(TestContext& t);
+void testEmbeddedAttributeDefinitionTextRouting(TestContext& t);
+
+void testDxfBorrowedSubclassMarkers(TestContext& t) {
+    class AttribParseProbe final : public DRW_Attrib {
+    public:
+        using DRW_Attrib::parseCode;
+    };
+    class MTextParseProbe final : public DRW_MText {
+    public:
+        using DRW_MText::parseCode;
+    };
+    class Ole2FrameParseProbe final : public DRW_Ole2Frame {
+    public:
+        using DRW_Ole2Frame::parseCode;
+    };
+    class OleFrameParseProbe final : public DRW_OleFrame {
+    public:
+        using DRW_OleFrame::parseCode;
+    };
+    class TableParseProbe final : public DRW_Table {
+    public:
+        using DRW_Table::parseCode;
+    };
+    class NavisworksModelParseProbe final : public DRW_NavisworksModel {
+    public:
+        using DRW_NavisworksModel::parseCode;
+    };
+    class MLeaderParseProbe final : public DRW_MLeader {
+    public:
+        using DRW_MLeader::parseCode;
+    };
+    class DimensionAssociationParseProbe final
+        : public DRW_DimensionAssociation {
+    public:
+        using DRW_DimensionAssociation::parseCode;
+    };
+    class DimLargeRadialParseProbe final : public DRW_DimLargeRadial {
+    public:
+        using DRW_DimLargeRadial::parseCode;
+    };
+    class DimArcParseProbe final : public DRW_DimArc {
+    public:
+        using DRW_DimArc::parseCode;
+    };
+    class XRecordParseProbe final : public DRW_XRecord {
+    public:
+        using DRW_XRecord::parseCode;
+    };
+    class EvaluationGraphParseProbe final : public DRW_EvaluationGraph {
+    public:
+        using DRW_EvaluationGraph::parseCode;
+    };
+    class SortEntsTableParseProbe final : public DRW_SortEntsTable {
+    public:
+        using DRW_SortEntsTable::parseCode;
+    };
+    class AssociativeObjectParseProbe final : public DRW_AssociativeObject {
+    public:
+        using DRW_AssociativeObject::parseCode;
+    };
+    class VisualStyleParseProbe final : public DRW_VisualStyle {
+    public:
+        using DRW_VisualStyle::parseCode;
+    };
+    class MeshParseProbe final : public DRW_Mesh {
+    public:
+        using DRW_Mesh::parseCode;
+    };
+    class PointCloudParseProbe final : public DRW_PointCloud {
+    public:
+        using DRW_PointCloud::parseCode;
+    };
+    class PointCloudExParseProbe final : public DRW_PointCloudEx {
+    public:
+        using DRW_PointCloudEx::parseCode;
+    };
+
+    const std::string longUnknownMarker(32u * 1024u, 'x');
+    const auto exerciseCopiedMarkerRoute = [&](const char* route,
+                                                auto& parser,
+                                                const char* knownSubclass,
+                                                bool binary) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        const bool wrote = writer->writeString(100, longUnknownMarker)
+            && writer->writeString(100, knownSubclass)
+            && writer->writeString(100, longUnknownMarker)
+            && writer->writeString(0, "FOLLOWING");
+        writer.reset();
+
+        std::istringstream input(output.str(), std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        bool parsed = wrote;
+        int code = 0;
+        for (int i = 0; i < 3 && parsed; ++i)
+            parsed = reader->readRec(&code) && code == 100
+                && parser.parseCode(code, reader);
+        const bool following = reader->readRec(&code) && code == 0
+            && reader->getRawValue() == "FOLLOWING";
+        t.expect(parsed && following,
+                 std::string(binary ? "Binary " : "ASCII ") + route
+                     + " routes long subclass markers and preserves the following record");
+    };
+
+    const auto exerciseMLeaderContextMarker = [&] (
+        const char* route,
+        const std::vector<std::pair<int, const char*>>& prefix,
+        int markerCode, bool binary) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        bool wrote = true;
+        for (const auto& item : prefix)
+            wrote = wrote && writer->writeString(item.first, item.second);
+        wrote = wrote && writer->writeString(markerCode, longUnknownMarker)
+            && writer->writeString(0, "FOLLOWING");
+        writer.reset();
+
+        std::istringstream input(output.str(), std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        MLeaderParseProbe parser;
+        bool prefixParsed = wrote;
+        int code = 0;
+        for (const auto& item : prefix) {
+            prefixParsed = prefixParsed && reader->readRec(&code)
+                && code == item.first && parser.parseCode(code, reader);
+        }
+        const bool markerRead = prefixParsed && reader->readRec(&code)
+            && code == markerCode;
+        const bool rejected = markerRead && !parser.parseCode(code, reader);
+        const bool following = rejected && reader->readRec(&code)
+            && code == 0 && reader->getRawValue() == "FOLLOWING";
+        t.expect(wrote && prefixParsed && markerRead && rejected && following,
+                 std::string(binary ? "Binary " : "ASCII ") + route
+                     + " rejects a long nested marker and preserves the following record");
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            const bool wrote = writer->writeString(100, longUnknownMarker)
+                && writer->writeString(101, longUnknownMarker)
+                && writer->writeString(0, "FOLLOWING");
+            writer.reset();
+
+            std::istringstream input(output.str(),
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            AttribParseProbe attribute;
+            int code = 0;
+            const bool firstMarker = reader->readRec(&code) && code == 100
+                && attribute.parseCode(code, reader);
+            const bool secondMarker = reader->readRec(&code) && code == 101
+                && attribute.parseCode(code, reader);
+            const bool following = reader->readRec(&code) && code == 0
+                && reader->getRawValue() == "FOLLOWING";
+            t.expect(wrote && firstMarker && secondMarker && following
+                         && attribute.mtext == nullptr,
+                     std::string(binary ? "Binary" : "ASCII")
+                         + " ATTRIB consumes long unknown subclass markers without creating embedded MTEXT or losing the next record");
+        }
+        {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            const bool wrote = writer->writeString(101, longUnknownMarker)
+                && writer->writeString(0, "FOLLOWING");
+            writer.reset();
+
+            std::istringstream input(output.str(),
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            MTextParseProbe mtext;
+            int code = 0;
+            const bool marker = reader->readRec(&code) && code == 101
+                && mtext.parseCode(code, reader);
+            const bool following = reader->readRec(&code) && code == 0
+                && reader->getRawValue() == "FOLLOWING";
+            t.expect(wrote && marker && following,
+                     std::string(binary ? "Binary" : "ASCII")
+                         + " standalone MTEXT consumes a long unknown embedded-object marker without misrouting the next record");
+        }
+
+        Ole2FrameParseProbe ole2Frame;
+        exerciseCopiedMarkerRoute("OLE2FRAME", ole2Frame,
+                                  "AcDbOle2Frame", binary);
+        OleFrameParseProbe oleFrame;
+        exerciseCopiedMarkerRoute("OLEFRAME", oleFrame,
+                                  "AcDbOleFrame", binary);
+        TableParseProbe table;
+        exerciseCopiedMarkerRoute("TABLE", table, "AcDbTable", binary);
+        ExposedHelix helix;
+        exerciseCopiedMarkerRoute("HELIX", helix, "AcDbHelix", binary);
+        NavisworksModelParseProbe navisworks;
+        exerciseCopiedMarkerRoute("NAVISWORKS MODEL", navisworks,
+                                  "AcDbNavisworksModel", binary);
+        MLeaderParseProbe mleader;
+        exerciseCopiedMarkerRoute("MLEADER", mleader, "AcDbMLeader", binary);
+        exerciseMLeaderContextMarker("MLEADER CONTEXT_DATA opener", {}, 300,
+                                     binary);
+        exerciseMLeaderContextMarker(
+            "MLEADER CONTEXT_DATA closer", {{300, "CONTEXT_DATA{"}}, 301,
+            binary);
+        exerciseMLeaderContextMarker(
+            "MLEADER LEADER opener", {{300, "CONTEXT_DATA{"}}, 302,
+            binary);
+        exerciseMLeaderContextMarker(
+            "MLEADER LEADER closer",
+            {{300, "CONTEXT_DATA{"}, {302, "LEADER{"}}, 303, binary);
+        exerciseMLeaderContextMarker(
+            "MLEADER LEADER_LINE opener",
+            {{300, "CONTEXT_DATA{"}, {302, "LEADER{"}}, 304, binary);
+        exerciseMLeaderContextMarker(
+            "MLEADER LEADER_LINE closer",
+            {{300, "CONTEXT_DATA{"}, {302, "LEADER{"},
+             {304, "LEADER_LINE{"}}, 305, binary);
+        DimensionAssociationParseProbe dimAssoc;
+        exerciseCopiedMarkerRoute("DIMASSOC", dimAssoc,
+                                  "AcDbDimAssoc", binary);
+        DimLargeRadialParseProbe largeRadial;
+        exerciseCopiedMarkerRoute("DIMENSION LARGE RADIAL", largeRadial,
+                                  "AcDbRadialDimensionLarge", binary);
+        DimArcParseProbe arcDimension;
+        exerciseCopiedMarkerRoute("DIMENSION ARC", arcDimension,
+                                  "AcDbArcDimension", binary);
+        XRecordParseProbe xrecord;
+        exerciseCopiedMarkerRoute("XRECORD", xrecord,
+                                  "AcDbXrecord", binary);
+        EvaluationGraphParseProbe evaluationGraph;
+        exerciseCopiedMarkerRoute("EVALUATION GRAPH", evaluationGraph,
+                                  "AcDbEvalGraph", binary);
+        SortEntsTableParseProbe sortEntsTable;
+        exerciseCopiedMarkerRoute("SORTENTS TABLE", sortEntsTable,
+                                  "AcDbSortentsTable", binary);
+        AssociativeObjectParseProbe associativeObject;
+        exerciseCopiedMarkerRoute("PERSUBENTMGR", associativeObject,
+                                  "AcDbPersSubentManager", binary);
+        VisualStyleParseProbe visualStyle;
+        exerciseCopiedMarkerRoute("VISUALSTYLE", visualStyle,
+                                  "AcDbVisualStyle", binary);
+        MeshParseProbe mesh;
+        exerciseCopiedMarkerRoute("MESH", mesh, "AcDbSubDMesh", binary);
+        PointCloudParseProbe pointCloud;
+        exerciseCopiedMarkerRoute("POINTCLOUD", pointCloud,
+                                  "AcDbPointCloud", binary);
+        PointCloudExParseProbe pointCloudEx;
+        exerciseCopiedMarkerRoute("POINTCLOUDEX", pointCloudEx,
+                                  "AcDbPointCloud", binary);
+        ExposedSectionObject sectionObject;
+        exerciseCopiedMarkerRoute("SECTIONOBJECT", sectionObject,
+                                  "AcDbSection", binary);
+        ExposedLightList lightList;
+        exerciseCopiedMarkerRoute("LIGHTLIST", lightList,
+                                  "AcDbLightList", binary);
+        ExposedDataLink dataLink;
+        exerciseCopiedMarkerRoute("DATALINK", dataLink,
+                                  "AcDbDataLink", binary);
+        ExposedGeoMapImage geoMapImage;
+        exerciseCopiedMarkerRoute("GEOMAPIMAGE", geoMapImage,
+                                  "AcDbGeomapImage", binary);
+        ExposedGeoData geoData;
+        exerciseCopiedMarkerRoute("GEODATA", geoData,
+                                  "AcDbGeoData", binary);
+        ExposedBreakData breakData;
+        exerciseCopiedMarkerRoute("BREAKDATA", breakData,
+                                  "AcDbBreakData", binary);
+        ExposedLayout layout;
+        exerciseCopiedMarkerRoute("LAYOUT", layout,
+                                  "AcDbLayout", binary);
+        ExposedIdBuffer idBuffer;
+        exerciseCopiedMarkerRoute("IDBUFFER", idBuffer,
+                                  "AcDbIdBuffer", binary);
+
+    }
+
+    class BlockEndCapture final : public FuzzInterface {
+    public:
+        void addBlockEnd(const DRW_Block&) override { ++blockEndCount; }
+        std::size_t blockEndCount {0u};
+    } blockEndCapture;
+    std::ostringstream blockOutput(std::ios::out | std::ios::binary);
+    dxfWriterAscii blockWriter(&blockOutput);
+    const bool wroteBlock = blockWriter.writeString(0, "SECTION")
+        && blockWriter.writeString(2, "BLOCKS")
+        && blockWriter.writeString(0, "BLOCK")
+        && blockWriter.writeString(2, "MARKER_TEST")
+        && blockWriter.writeInt16(70, 0)
+        && blockWriter.writeString(0, "ENDBLK")
+        && blockWriter.writeString(100, "AcDbEntity")
+        && blockWriter.writeString(100, longUnknownMarker)
+        && blockWriter.writeString(0, "ENDSEC")
+        && blockWriter.writeString(0, "EOF");
+    std::string blockInput = blockOutput.str();
+    dxfRW blockReader("");
+    const bool blockRead = blockReader.readAscii(
+        &blockEndCapture, false, blockInput);
+    t.expect(wroteBlock && !blockRead && blockEndCapture.blockEndCount == 0u,
+             "ASCII ENDBLK rejects a long unknown subclass marker before publishing the footer");
+
+    class AppIdCapture final : public FuzzInterface {
+    public:
+        void addAppId(const DRW_AppId&) override { ++appIdCount; }
+        std::size_t appIdCount {0u};
+    } appIdCapture;
+    std::ostringstream tableOutput(std::ios::out | std::ios::binary);
+    dxfWriterAscii tableWriter(&tableOutput);
+    const bool wroteTable = tableWriter.writeString(0, "SECTION")
+        && tableWriter.writeString(2, "TABLES")
+        && tableWriter.writeString(0, "TABLE")
+        && tableWriter.writeString(2, "APPID")
+        && tableWriter.writeInt16(70, 0)
+        && tableWriter.writeString(0, longUnknownMarker)
+        && tableWriter.writeString(0, "ENDTAB")
+        && tableWriter.writeString(0, "ENDSEC")
+        && tableWriter.writeString(0, "EOF");
+    std::string tableInput = tableOutput.str();
+    dxfRW tableReader("");
+    const bool tableRead = tableReader.readAscii(
+        &appIdCapture, false, tableInput);
+    t.expect(wroteTable && !tableRead && appIdCapture.appIdCount == 0u,
+             "ASCII APPID table rejects a long unknown record name before publishing rows");
+
+    class FieldListCapture final : public FuzzInterface {
+    public:
+        void addFieldList(const DRW_FieldList&) override { ++fieldListCount; }
+        std::size_t fieldListCount {0u};
+    };
+    const auto exerciseFieldListMarker = [&](bool binary) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        if (binary) {
+            output << "AutoCAD Binary DXF\r\n";
+            output.put(static_cast<char>(26));
+            output.put('\0');
+        }
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1027", true);
+        const bool wrote = writer->writeString(0, "SECTION")
+            && writer->writeString(2, "HEADER")
+            && writer->writeString(9, "$ACADVER")
+            && writer->writeString(1, "AC1027")
+            && writer->writeString(0, "ENDSEC")
+            && writer->writeString(0, "SECTION")
+            && writer->writeString(2, "OBJECTS")
+            && writer->writeString(0, "FIELDLIST")
+            && writer->writeString(5, "71")
+            && writer->writeString(330, "C")
+            && writer->writeString(100, "AcDbObject")
+            && writer->writeString(100, longUnknownMarker)
+            && writer->writeInt32(90, 1)
+            && writer->writeString(330, "50")
+            && writer->writeString(100, "AcDbFieldList")
+            && writer->writeString(0, "ENDSEC")
+            && writer->writeString(0, "EOF");
+        writer.reset();
+
+        FieldListCapture capture;
+        bool read = false;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                                   .time_since_epoch().count();
+            const std::filesystem::path path =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-fieldlist-marker-" + std::to_string(nonce)
+                   + ".dxf");
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    std::error_code error;
+                    std::filesystem::remove(path, error);
+                }
+            } cleanup{path};
+            const std::string bytes = output.str();
+            {
+                std::ofstream file(path, std::ios::binary);
+                if (!file)
+                    return false;
+                file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+                if (!file.good())
+                    return false;
+            }
+            const std::string filename = path.string();
+            dxfRW reader(filename.c_str());
+            read = wrote && reader.read(&capture, false);
+        } else {
+            std::string bytes = output.str();
+            dxfRW reader("");
+            read = wrote && reader.readAscii(&capture, false, bytes);
+        }
+        const bool rejectedBeforePublication =
+            wrote && !read && capture.fieldListCount == 0u;
+        t.expect(rejectedBeforePublication,
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " FIELDLIST rejects a long unknown subclass marker before publication");
+        return rejectedBeforePublication;
+    };
+    const bool asciiFieldListMarker = exerciseFieldListMarker(false);
+    const bool binaryFieldListMarker = exerciseFieldListMarker(true);
+    t.expect(asciiFieldListMarker && binaryFieldListMarker,
+             "generated ASCII and Binary FIELDLIST marker controls both execute");
+
+    testMTextOrientationState(t);
+    testEmbeddedAttributeTextRouting(t);
+    testEmbeddedAttributeDefinitionTextRouting(t);
+}
+
+void testDxfMTextDecodeWorkBudget(TestContext& t) {
+    class MTextCapture final : public FuzzInterface {
+    public:
+        void addMText(const DRW_MText& value) override {
+            ++count;
+            text = value.text;
+        }
+
+        std::size_t count {0u};
+        std::string text;
+    };
+
+    const std::string groupedPrefix =
+        "0\nSECTION\n2\nENTITIES\n0\nMTEXT\n10\n0\n20\n0\n40\n1\n"
+        "3\nab\n3\ncd\n1\nef\n0\nENDSEC\n0\nEOF\n";
+    dxfRW exact(nullptr);
+    t.expect(exact.dxfReadDecodeWorkBudget()
+                 == 1024u * 1024u * 1024u,
+             "facade publishes the documented decode-work default");
+    exact.setDxfReadDecodeWorkBudget(6u);
+    MTextCapture admitted;
+    std::string input = groupedPrefix;
+    t.expect(exact.readAscii(&admitted, false, input)
+                 && admitted.count == 1u && admitted.text == "abcdef",
+             "group-3 assembly followed by group 1 succeeds at six visited prefix bytes");
+
+    dxfRW under(nullptr);
+    under.setDxfReadDecodeWorkBudget(5u);
+    MTextCapture rejected;
+    input = groupedPrefix;
+    t.expect(!under.readAscii(&rejected, false, input)
+                 && rejected.count == 0u
+                 && under.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && under.getLastDiagnostic().code == "dxf-decode-work-budget",
+             "one-under MTEXT prefix visitation rejects before callback with a work-specific diagnostic");
+    under.setDxfReadDecodeWorkBudget(6u);
+    MTextCapture retry;
+    input = groupedPrefix;
+    t.expect(under.readAscii(&retry, false, input)
+                 && retry.count == 1u && retry.text == "abcdef",
+             "raising decode-work admission starts a fresh same-facade reader budget");
+
+    const std::string repeatedGroup1 =
+        "0\nSECTION\n2\nENTITIES\n0\nMTEXT\n10\n0\n20\n0\n40\n1\n"
+        "3\na\n1\nb\n1\nc\n0\nENDSEC\n0\nEOF\n";
+    dxfRW repeated(nullptr);
+    repeated.setDxfReadDecodeWorkBudget(5u);
+    MTextCapture repeatedAdmitted;
+    input = repeatedGroup1;
+    t.expect(repeated.readAscii(&repeatedAdmitted, false, input)
+                 && repeatedAdmitted.count == 1u
+                 && repeatedAdmitted.text == "abc",
+             "repeated group-1 input retains its current append/convert grammar at exact cumulative work");
+
+    dxfRW repeatedUnder(nullptr);
+    repeatedUnder.setDxfReadDecodeWorkBudget(4u);
+    MTextCapture repeatedRejected;
+    input = repeatedGroup1;
+    t.expect(!repeatedUnder.readAscii(&repeatedRejected, false, input)
+                 && repeatedRejected.count == 0u
+                 && repeatedUnder.getLastDiagnostic().code
+                        == "dxf-decode-work-budget",
+             "repeated group-1 prefix revisits accumulate and stop before publication when over budget");
+
+    std::istringstream directInput("3\nab\n3\ncd\n1\nef\n");
+    std::unique_ptr<dxfReader> directReader =
+        std::make_unique<dxfReaderAscii>(&directInput);
+    directReader->setDecodeWorkBudget(6u);
+    ExposedMText directEntity;
+    int code = 0;
+    bool parsed = true;
+    for (const int expected : {3, 3, 1})
+        parsed = parsed && directReader->readRec(&code) && code == expected
+            && directEntity.parseCode(code, directReader);
+    t.expect(parsed && directReader->decodeWorkCount() == 6u,
+             "direct MTEXT reader exposes the deterministic six-byte decode-work counter");
+}
+
+void testDxfXdataVariantNodeBudget(TestContext& t) {
+    class VariantCapture final : public FuzzInterface {
+    public:
+        void addLine(const DRW_Line& line) override {
+            ++count;
+            variantCount = line.extData.size();
+        }
+
+        std::size_t count {0u};
+        std::size_t variantCount {0u};
+    };
+    class TableVariantCapture final : public FuzzInterface {
+    public:
+        void addLayer(const DRW_Layer& layer) override {
+            ++count;
+            variantCount = layer.extData.size();
+        }
+
+        std::size_t count {0u};
+        std::size_t variantCount {0u};
+    };
+    class CombinedVariantCapture final : public FuzzInterface {
+    public:
+        void addLayer(const DRW_Layer&) override { ++layerCount; }
+        void addLine(const DRW_Line&) override { ++lineCount; }
+
+        std::size_t layerCount {0u};
+        std::size_t lineCount {0u};
+    };
+    class ObjectVariantCapture final : public FuzzInterface {
+    public:
+        void addHeader(const DRW_Header* value) override {
+            if (value != nullptr)
+                headerVariantCount = value->vars.size()
+                    + value->customVars.size();
+        }
+        void addScale(const DRW_Scale& scale) override {
+            ++scaleCount;
+            variantCount = scale.extData.size();
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            rawGroupCount += value.groups.size();
+        }
+
+        std::size_t headerVariantCount {0u};
+        std::size_t scaleCount {0u};
+        std::size_t variantCount {0u};
+        std::size_t rawGroupCount {0u};
+    };
+
+    const std::string drawing =
+        "0\nSECTION\n2\nENTITIES\n0\nLINE\n"
+        "10\n0\n20\n0\n30\n0\n11\n1\n21\n1\n31\n1\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const std::string tableDrawing =
+        "0\nSECTION\n2\nTABLES\n"
+        "0\nTABLE\n2\nLAYER\n70\n1\n"
+        "0\nLAYER\n2\nXDATA_LAYER\n70\n0\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
+        "0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
+    const std::string objectDrawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
+        "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+        "0\nSCALE\n5\n1A\n100\nAcDbScale\n"
+        "70\n0\n300\n1:1\n140\n1\n141\n1\n290\n1\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "0\nENDSEC\n0\nEOF\n";
+    dxfRW exact(nullptr);
+    t.expect(exact.dxfReadTypedVariantNodeBudget() == 1024u * 1024u,
+             "facade publishes the caller-raiseable typed XDATA node-budget default");
+    exact.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture admitted;
+    std::string input = drawing;
+    t.expect(exact.readAscii(&admitted, false, input)
+                 && admitted.count == 1u && admitted.variantCount == 6u,
+             "entity XDATA strings, coordinate tuples, doubles, and integers publish at the exact cumulative node cap");
+
+    dxfRW under(nullptr);
+    under.setDxfReadTypedVariantNodeBudget(5u);
+    VariantCapture rejected;
+    input = drawing;
+    t.expect(!under.readAscii(&rejected, false, input)
+                 && rejected.count == 0u
+                 && under.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && under.getLastDiagnostic().code
+                        == "dxf-typed-variant-node-budget",
+             "one-under entity XDATA node cap rejects before callback with a scoped diagnostic");
+
+    under.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture retry;
+    input = drawing;
+    t.expect(under.readAscii(&retry, false, input)
+                 && retry.count == 1u && retry.variantCount == 6u,
+             "raising typed XDATA node admission resets the same-facade read counter");
+
+    dxfRW exactTable(nullptr);
+    exactTable.setDxfReadTypedVariantNodeBudget(6u);
+    TableVariantCapture admittedTable;
+    input = tableDrawing;
+    t.expect(exactTable.readAscii(&admittedTable, false, input)
+                 && admittedTable.count == 1u
+                 && admittedTable.variantCount == 6u,
+             "table-entry XDATA strings, coordinate tuple, double, and integer share the exact node cap");
+
+    dxfRW underTable(nullptr);
+    underTable.setDxfReadTypedVariantNodeBudget(5u);
+    TableVariantCapture rejectedTable;
+    input = tableDrawing;
+    t.expect(!underTable.readAscii(&rejectedTable, false, input)
+                 && rejectedTable.count == 0u
+                 && underTable.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && underTable.getLastDiagnostic().code
+                        == "dxf-typed-variant-node-budget",
+             "table-entry XDATA one-under node cap rejects before layer callback with the scoped diagnostic");
+
+    const std::size_t eofOffset = tableDrawing.rfind("0\nEOF\n");
+    const std::string combinedDrawing = tableDrawing.substr(0u, eofOffset) + drawing;
+    dxfRW combined(nullptr);
+    combined.setDxfReadTypedVariantNodeBudget(11u);
+    CombinedVariantCapture combinedCapture;
+    input = combinedDrawing;
+    t.expect(!combined.readAscii(&combinedCapture, false, input)
+                 && combinedCapture.layerCount == 1u
+                 && combinedCapture.lineCount == 0u
+                 && combined.getLastDiagnostic().code
+                        == "dxf-typed-variant-node-budget",
+             "entity and table-entry XDATA consume one aggregate per-read node allowance");
+
+    dxfRW objectBaselineCodec(nullptr);
+    ObjectVariantCapture objectBaseline;
+    input = objectDrawing;
+    const bool objectBaselineRead =
+        objectBaselineCodec.readAscii(&objectBaseline, false, input);
+    const std::size_t objectRequiredNodes =
+        objectBaseline.headerVariantCount + objectBaseline.variantCount
+        + objectBaseline.rawGroupCount;
+    t.expect(objectBaselineRead && objectBaseline.scaleCount == 1u
+                 && objectBaseline.variantCount == 3u
+                 && objectBaseline.rawGroupCount != 0u,
+             "modeled SCALE baseline exposes typed XDATA and raw-carrier groups");
+
+    dxfRW exactObject(nullptr);
+    exactObject.setDxfReadTypedVariantNodeBudget(objectRequiredNodes);
+    ObjectVariantCapture admittedObject;
+    input = objectDrawing;
+    t.expect(exactObject.readAscii(&admittedObject, false, input)
+                 && admittedObject.scaleCount == 1u
+                 && admittedObject.variantCount == 3u
+                 && admittedObject.rawGroupCount
+                        == objectBaseline.rawGroupCount,
+             "modeled SCALE typed XDATA and raw-carrier groups obey the exact shared node cap");
+
+    dxfRW underObject(nullptr);
+    underObject.setDxfReadTypedVariantNodeBudget(objectRequiredNodes - 1u);
+    ObjectVariantCapture rejectedObject;
+    input = objectDrawing;
+    t.expect(!underObject.readAscii(&rejectedObject, false, input)
+                 && rejectedObject.scaleCount == 0u
+                 && underObject.getLastDiagnostic().code
+                        == "dxf-typed-variant-node-budget",
+             "modeled object XDATA one-under node cap rejects before SCALE callback");
+}
+
+void testDxfApplicationAndRawVariantNodeBudget(TestContext& t) {
+    class VariantCapture final : public FuzzInterface {
+    public:
+        static std::size_t countAppData(
+            const std::list<std::list<DRW_Variant>>& appData) {
+            std::size_t count = 0u;
+            for (const auto& group : appData)
+                count += group.size();
+            return count;
+        }
+
+        void addLine(const DRW_Line& value) override {
+            ++lineCount;
+            appDataVariantCount = countAppData(value.appData);
+        }
+        void addLayer(const DRW_Layer& value) override {
+            ++layerCount;
+            appDataVariantCount = countAppData(value.appData);
+        }
+        void addBackground(const DRW_Background& value) override {
+            ++backgroundCount;
+            appDataVariantCount = countAppData(value.appData);
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            ++rawObjectCount;
+            rawGroupCount = value.groups.size();
+        }
+
+        std::size_t lineCount {0u};
+        std::size_t layerCount {0u};
+        std::size_t backgroundCount {0u};
+        std::size_t rawObjectCount {0u};
+        std::size_t appDataVariantCount {0u};
+        std::size_t rawGroupCount {0u};
+    };
+
+    const std::string entityDrawing =
+        "0\nSECTION\n2\nENTITIES\n0\nLINE\n"
+        "10\n0\n20\n0\n11\n1\n21\n1\n"
+        "102\n{APP\n1\npayload\n102\n}\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const std::string tableDrawing =
+        "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n70\n1\n"
+        "0\nLAYER\n2\nAPPDATA_LAYER\n70\n0\n"
+        "102\n{APP\n1\npayload\n102\n}\n"
+        "0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
+    const std::string rawObjectDrawing =
+        "0\nSECTION\n2\nOBJECTS\n0\nACMEOBJECT\n"
+        "70\n7\n40\n1.5\n1\nopaque\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const std::string rawBackedAppDataDrawing =
+        "0\nSECTION\n2\nOBJECTS\n0\nSOLIDBACKGROUND\n"
+        "102\n{APP\n1\npayload\n102\n}\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const auto readAscii = [](dxfRW& codec, VariantCapture& capture,
+                              const std::string& drawing) {
+        std::string input = drawing;
+        return codec.readAscii(&capture, false, input);
+    };
+    const auto hasResourceLimit = [](const dxfRW& codec) {
+        const DRW_OperationDiagnostic diagnostic = codec.getLastDiagnostic();
+        return diagnostic.cause == DRW::OperationCause::ResourceLimit
+            && diagnostic.code == "dxf-typed-variant-node-budget";
+    };
+
+    dxfRW entityExact(nullptr);
+    entityExact.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture entityAdmitted;
+    t.expect(readAscii(entityExact, entityAdmitted, entityDrawing)
+                 && entityAdmitted.lineCount == 1u
+                 && entityAdmitted.appDataVariantCount == 3u,
+             "entity 102 appData variants are admitted at their exact shared node cap");
+    dxfRW entityUnder(nullptr);
+    entityUnder.setDxfReadTypedVariantNodeBudget(2u);
+    VariantCapture entityRejected;
+    t.expect(!readAscii(entityUnder, entityRejected, entityDrawing)
+                 && entityRejected.lineCount == 0u
+                 && hasResourceLimit(entityUnder),
+             "one-under entity appData node cap rejects before LINE callback");
+    entityUnder.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture entityRetry;
+    t.expect(readAscii(entityUnder, entityRetry, entityDrawing)
+                 && entityRetry.lineCount == 1u
+                 && entityRetry.appDataVariantCount == 3u,
+             "raising entity appData node admission retries on the same facade");
+
+    dxfRW tableExact(nullptr);
+    tableExact.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture tableAdmitted;
+    t.expect(readAscii(tableExact, tableAdmitted, tableDrawing)
+                 && tableAdmitted.layerCount == 1u
+                 && tableAdmitted.appDataVariantCount == 3u,
+             "table-entry 102 appData variants are admitted at their exact node cap");
+    dxfRW tableUnder(nullptr);
+    tableUnder.setDxfReadTypedVariantNodeBudget(2u);
+    VariantCapture tableRejected;
+    t.expect(!readAscii(tableUnder, tableRejected, tableDrawing)
+                 && tableRejected.layerCount == 0u
+                 && hasResourceLimit(tableUnder),
+             "one-under table-entry appData node cap rejects before LAYER callback");
+    tableUnder.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture tableRetry;
+    t.expect(readAscii(tableUnder, tableRetry, tableDrawing)
+                 && tableRetry.layerCount == 1u
+                 && tableRetry.appDataVariantCount == 3u,
+             "raising table-entry appData node admission retries on the same facade");
+
+    dxfRW rawExact(nullptr);
+    rawExact.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture rawAdmitted;
+    t.expect(readAscii(rawExact, rawAdmitted, rawObjectDrawing)
+                 && rawAdmitted.rawObjectCount == 1u
+                 && rawAdmitted.rawGroupCount == 3u,
+             "generic raw-object string, integer, and double groups fit the exact node cap");
+    dxfRW rawUnder(nullptr);
+    rawUnder.setDxfReadTypedVariantNodeBudget(2u);
+    VariantCapture rawRejected;
+    t.expect(!readAscii(rawUnder, rawRejected, rawObjectDrawing)
+                 && rawRejected.rawObjectCount == 0u
+                 && hasResourceLimit(rawUnder),
+             "one-under raw-object group node cap rejects before callback publication");
+    rawUnder.setDxfReadTypedVariantNodeBudget(3u);
+    VariantCapture rawRetry;
+    t.expect(readAscii(rawUnder, rawRetry, rawObjectDrawing)
+                 && rawRetry.rawObjectCount == 1u
+                 && rawRetry.rawGroupCount == 3u,
+             "raising raw-object group admission retries on the same facade");
+
+    dxfRW copiedExact(nullptr);
+    copiedExact.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture copiedAdmitted;
+    t.expect(readAscii(copiedExact, copiedAdmitted,
+                       rawBackedAppDataDrawing)
+                 && copiedAdmitted.backgroundCount == 1u
+                 && copiedAdmitted.rawObjectCount == 1u
+                 && copiedAdmitted.rawGroupCount == 3u
+                 && copiedAdmitted.appDataVariantCount == 3u,
+             "raw-backed appData charges three carrier nodes and three distinct retained appData variants");
+    dxfRW copiedUnder(nullptr);
+    copiedUnder.setDxfReadTypedVariantNodeBudget(5u);
+    VariantCapture copiedRejected;
+    t.expect(!readAscii(copiedUnder, copiedRejected,
+                        rawBackedAppDataDrawing)
+                 && copiedRejected.backgroundCount == 0u
+                 && copiedRejected.rawObjectCount == 0u
+                 && hasResourceLimit(copiedUnder),
+             "one-under raw-backed appData copy cap rejects before either callback");
+    copiedUnder.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture copiedRetry;
+    t.expect(readAscii(copiedUnder, copiedRetry, rawBackedAppDataDrawing)
+                 && copiedRetry.backgroundCount == 1u
+                 && copiedRetry.rawObjectCount == 1u
+                 && copiedRetry.appDataVariantCount == 3u,
+             "raising raw-backed appData copy admission retries on the same facade");
+}
+
+void testDxfTableTypedVariantNodeBudget(TestContext& t) {
+    class TableCapture final : public FuzzInterface {
+    public:
+        void addHeader(const DRW_Header* value) override {
+            headerVariantCount = value != nullptr
+                ? value->vars.size() + value->customVars.size() : 0u;
+        }
+        void addTable(const DRW_Table& value) override {
+            ++tableCount;
+            for (const DRW_TableRow& row : value.m_content.m_rows) {
+                for (const DRW_TableCell& cell : row.m_cells) {
+                    for (const DRW_TableCellContent& content : cell.m_contents) {
+                        if (content.m_value.m_value.type() != DRW_Variant::INVALID)
+                            ++tableVariantCount;
+                        lastCellText = content.m_text;
+                    }
+                }
+            }
+        }
+
+        std::size_t headerVariantCount {0u};
+        std::size_t tableCount {0u};
+        std::size_t tableVariantCount {0u};
+        std::string lastCellText;
+    };
+
+    const std::string drawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"
+        "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
+        "0\nACAD_TABLE\n5\n100\n330\n1F\n"
+        "100\nAcDbEntity\n8\n0\n100\nAcDbBlockReference\n"
+        "2\n*T1\n10\n0\n20\n0\n30\n0\n100\nAcDbTable\n"
+        "280\n0\n342\n200\n343\n1F\n11\n1\n21\n0\n31\n0\n"
+        "90\n0\n91\n1\n92\n1\n171\n1\n301\nCELL_VALUE\n"
+        "302\nbounded text\n304\nACVALUE_END\n"
+        "0\nENDSEC\n0\nEOF\n";
+    const auto readAscii = [&drawing](dxfRW& codec, TableCapture& capture) {
+        std::string input = drawing;
+        return codec.readAscii(&capture, false, input);
+    };
+    const auto hasResourceLimit = [](const dxfRW& codec) {
+        const DRW_OperationDiagnostic diagnostic = codec.getLastDiagnostic();
+        return diagnostic.cause == DRW::OperationCause::ResourceLimit
+            && diagnostic.code == "dxf-typed-variant-node-budget";
+    };
+
+    dxfRW baselineCodec(nullptr);
+    TableCapture baseline;
+    t.expect(readAscii(baselineCodec, baseline)
+                 && baseline.headerVariantCount == 1u
+                 && baseline.tableCount == 1u
+                 && baseline.tableVariantCount == 1u
+                 && baseline.lastCellText == "bounded text",
+             "generated ACAD_TABLE baseline exposes one HEADER and one typed cell-value variant");
+    const std::size_t requiredNodes = baseline.headerVariantCount
+        + baseline.tableVariantCount;
+
+    dxfRW exactCodec(nullptr);
+    exactCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+    TableCapture exact;
+    t.expect(readAscii(exactCodec, exact)
+                 && exact.tableCount == 1u
+                 && exact.tableVariantCount == 1u,
+             "ACAD_TABLE cell-value variant is admitted at the exact aggregate node cap");
+
+    dxfRW underCodec(nullptr);
+    underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes - 1u);
+    TableCapture under;
+    t.expect(!readAscii(underCodec, under)
+                 && under.tableCount == 0u
+                 && hasResourceLimit(underCodec),
+             "one-under ACAD_TABLE cell-value node cap rejects before table callback");
+    underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+    TableCapture retry;
+    t.expect(readAscii(underCodec, retry)
+                 && retry.tableCount == 1u
+                 && retry.tableVariantCount == 1u,
+             "raising ACAD_TABLE typed-value admission retries on the same facade");
+}
+
+void testDxfDimstyleVariantNodeBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        const std::string drawing =
+            generatedDimstyleTextBudgetWire(binary, true);
+        std::filesystem::path binaryPath;
+        if (binary && !drawing.empty()) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-dimstyle-typed-variant-budget-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "generated binary DIMSTYLE source uses temporary storage");
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+        const auto read = [&](dxfRW& codec, DimstyleBudgetCapture& capture,
+                              std::string& content) {
+            if (binary)
+                return codec.read(&capture, false);
+            return codec.readAscii(&capture, false, content);
+        };
+
+        DimstyleBudgetCapture baseline;
+        const std::string filename = binaryPath.string();
+        dxfRW unbounded(binary ? filename.c_str() : nullptr);
+        std::string input = drawing;
+        const bool baselineRead = !drawing.empty()
+            && read(unbounded, baseline, input);
+        std::size_t dimstyleNodes = 0u;
+        for (const DRW_Dimstyle& style : baseline.values)
+            dimstyleNodes += style.vars.size();
+        const std::size_t requiredNodes =
+            dimstyleNodes + baseline.headerVariantCount;
+        t.expect(baselineRead && baseline.values.size() == 2u
+                     && baseline.headerVariantCount != 0u
+                     && dimstyleNodes != 0u,
+                 "generated DIMSTYLE control exposes two synthesized vars maps");
+        if (!baselineRead || baseline.values.size() != 2u
+            || baseline.headerVariantCount == 0u || dimstyleNodes == 0u)
+            continue;
+
+        dxfRW exact(binary ? filename.c_str() : nullptr);
+        exact.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        DimstyleBudgetCapture admitted;
+        input = drawing;
+        t.expect(read(exact, admitted, input)
+                     && admitted.values.size() == 2u
+                     && admitted.values[0].name == "STANDARD"
+                     && admitted.values[1].name == "SENTINEL_DIMSTYLE"
+                     && admitted.values[0].vars.size()
+                            + admitted.values[1].vars.size() == dimstyleNodes
+                     && admitted.headerVariantCount
+                            == baseline.headerVariantCount,
+                 "DIMSTYLE vars map publishes at the exact aggregate typed-variant node cap");
+
+        dxfRW under(binary ? filename.c_str() : nullptr);
+        under.setDxfReadTypedVariantNodeBudget(requiredNodes - 1u);
+        DimstyleBudgetCapture rejected;
+        input = drawing;
+        t.expect(!read(under, rejected, input)
+                     && rejected.values.empty()
+                     && under.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && under.getLastDiagnostic().code
+                            == "dxf-typed-variant-node-budget",
+                 "one-under DIMSTYLE vars cap rejects before any staged callback");
+
+        under.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        DimstyleBudgetCapture retry;
+        input = drawing;
+        t.expect(read(under, retry, input)
+                     && retry.values.size() == 2u
+                     && retry.values[1].name == "SENTINEL_DIMSTYLE",
+                 "exact-cap retry on the same facade resets DIMSTYLE node accounting");
+    }
+}
+
+void testDxfHeaderVariantNodeBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        const std::string headerOnly =
+            generatedHeaderVariantBudgetWire(binary, false);
+        const std::string withXdata =
+            generatedHeaderVariantBudgetWire(binary, true);
+        std::filesystem::path binaryPath;
+        if (binary && !headerOnly.empty() && !withXdata.empty()) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-header-typed-variant-budget-"
+                   + std::to_string(nonce) + ".dxf");
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+        const auto read = [&](dxfRW& codec,
+                              HeaderVariantBudgetCapture& capture,
+                              const std::string& bytes) {
+            if (bytes.empty())
+                return false;
+            if (!binary) {
+                std::string content = bytes;
+                return codec.readAscii(&capture, false, content);
+            }
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(),
+                         static_cast<std::streamsize>(bytes.size()));
+            if (!output.good())
+                return false;
+            output.close();
+            return codec.read(&capture, false);
+        };
+
+        const std::string filename = binaryPath.string();
+        dxfRW baselineCodec(binary ? filename.c_str() : nullptr);
+        HeaderVariantBudgetCapture baseline;
+        t.expect(read(baselineCodec, baseline, headerOnly)
+                     && baseline.headerCount == 1u
+                     && baseline.lineCount == 0u
+                     && baseline.dimunitAliasState
+                            == DRW_Header::DxfDimunitAliasState::Derived,
+                 "generated HEADER control reads and exposes its derived DIMLUNIT alias");
+        const std::size_t headerNodes = baseline.headerVariantCount;
+        if (baseline.headerCount != 1u || headerNodes < 2u)
+            continue;
+
+        dxfRW exactHeaderCodec(binary ? filename.c_str() : nullptr);
+        exactHeaderCodec.setDxfReadTypedVariantNodeBudget(headerNodes);
+        HeaderVariantBudgetCapture exactHeader;
+        t.expect(read(exactHeaderCodec, exactHeader, headerOnly)
+                     && exactHeader.headerCount == 1u
+                     && exactHeader.headerVariantCount == headerNodes
+                     && exactHeader.dimunitAliasState
+                            == DRW_Header::DxfDimunitAliasState::Derived,
+                 "HEADER vars and synthesized DIMUNIT alias publish at the exact node cap");
+
+        dxfRW underHeaderCodec(binary ? filename.c_str() : nullptr);
+        underHeaderCodec.setDxfReadTypedVariantNodeBudget(headerNodes - 1u);
+        HeaderVariantBudgetCapture rejectedHeader;
+        t.expect(!read(underHeaderCodec, rejectedHeader, headerOnly)
+                     && rejectedHeader.headerCount == 0u
+                     && underHeaderCodec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && underHeaderCodec.getLastDiagnostic().code
+                            == "dxf-typed-variant-node-budget",
+                 "one-under HEADER cap refuses before callback with the typed-node diagnostic");
+        underHeaderCodec.setDxfReadTypedVariantNodeBudget(headerNodes);
+        HeaderVariantBudgetCapture headerRetry;
+        t.expect(read(underHeaderCodec, headerRetry, headerOnly)
+                     && headerRetry.headerCount == 1u
+                     && headerRetry.headerVariantCount == headerNodes,
+                 "same-facade exact-cap HEADER retry resets node accounting");
+
+        dxfRW aggregateBaselineCodec(binary ? filename.c_str() : nullptr);
+        HeaderVariantBudgetCapture aggregateBaseline;
+        t.expect(read(aggregateBaselineCodec, aggregateBaseline, withXdata)
+                     && aggregateBaseline.headerCount == 1u
+                     && aggregateBaseline.lineCount == 1u
+                     && aggregateBaseline.lineVariantCount == 6u,
+                 "generated LINE XDATA sentinel follows the budgeted HEADER section");
+        const std::size_t aggregateNodes =
+            aggregateBaseline.headerVariantCount
+            + aggregateBaseline.lineVariantCount;
+        if (aggregateBaseline.headerCount != 1u
+            || aggregateBaseline.lineCount != 1u || aggregateNodes == 0u)
+            continue;
+
+        dxfRW exactAggregateCodec(binary ? filename.c_str() : nullptr);
+        exactAggregateCodec.setDxfReadTypedVariantNodeBudget(aggregateNodes);
+        HeaderVariantBudgetCapture exactAggregate;
+        t.expect(read(exactAggregateCodec, exactAggregate, withXdata)
+                     && exactAggregate.headerCount == 1u
+                     && exactAggregate.lineCount == 1u
+                     && exactAggregate.lineVariantCount == 6u,
+                 "HEADER vars and entity XDATA share the exact aggregate read cap");
+
+        dxfRW underAggregateCodec(binary ? filename.c_str() : nullptr);
+        underAggregateCodec.setDxfReadTypedVariantNodeBudget(
+            aggregateNodes - 1u);
+        HeaderVariantBudgetCapture rejectedAggregate;
+        t.expect(!read(underAggregateCodec, rejectedAggregate, withXdata)
+                     && rejectedAggregate.headerCount == 1u
+                     && rejectedAggregate.lineCount == 0u
+                     && underAggregateCodec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && underAggregateCodec.getLastDiagnostic().code
+                            == "dxf-typed-variant-node-budget",
+                 "one-under aggregate cap retains prior HEADER callback but rejects LINE before publication");
+        underAggregateCodec.setDxfReadTypedVariantNodeBudget(aggregateNodes);
+        HeaderVariantBudgetCapture aggregateRetry;
+        t.expect(read(underAggregateCodec, aggregateRetry, withXdata)
+                     && aggregateRetry.headerCount == 1u
+                     && aggregateRetry.lineCount == 1u
+                     && aggregateRetry.lineVariantCount == 6u,
+                 "same-facade exact-cap retry publishes HEADER and following LINE XDATA");
+    }
+}
+
+void testDxfXRecordVariantNodeBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        const std::string drawing = generatedXRecordVariantBudgetWire(binary);
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const std::filesystem::path binaryPath = binary
+            ? std::filesystem::temp_directory_path()
+                / ("libdxfrw-xrecord-typed-variant-budget-"
+                   + std::to_string(nonce) + ".dxf")
+            : std::filesystem::path{};
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+        const auto read = [&](dxfRW& codec,
+                              XRecordVariantBudgetCapture& capture,
+                              const std::string& bytes) {
+            if (bytes.empty())
+                return false;
+            if (!binary) {
+                std::string content = bytes;
+                return codec.readAscii(&capture, false, content);
+            }
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(),
+                         static_cast<std::streamsize>(bytes.size()));
+            if (!output.good())
+                return false;
+            output.close();
+            return codec.read(&capture, false);
+        };
+        const auto payloadIsExact = [](const DRW_XRecord& record) {
+            if (record.m_values.size() != 11u
+                || record.m_dataEntries.size() != 12u
+                || record.m_handleValues.size() != 1u)
+                return false;
+            const auto stringIs = [](const DRW_Variant& value,
+                                     int code, const char* text) {
+                return value.code() == code
+                    && value.type() == DRW_Variant::STRING
+                    && value.c_str() != nullptr
+                    && std::string(value.c_str()) == text;
+            };
+            const auto pointIs = [](const DRW_Variant& value, double x,
+                                    double y, double z) {
+                return value.type() == DRW_Variant::COORD
+                    && value.coord() != nullptr
+                    && value.coord()->x == x && value.coord()->y == y
+                    && value.coord()->z == z;
+            };
+            const std::vector<std::uint8_t>* binaryValue =
+                record.m_values[10].binary();
+            return stringIs(record.m_values[0], 100, "payload-marker")
+                && stringIs(record.m_values[1], 1, "payload-text")
+                && pointIs(record.m_values[2], 1.0, 2.0, 3.0)
+                && pointIs(record.m_values[3], 4.0, 5.0, 6.0)
+                && record.m_values[4].code() == 40
+                && record.m_values[4].type() == DRW_Variant::DOUBLE
+                && record.m_values[4].d_val() == 4.5
+                && record.m_values[5].code() == 70
+                && record.m_values[5].i_val() == 42
+                && record.m_values[6].code() == 90
+                && record.m_values[6].i_val() == 43
+                && record.m_values[7].code() == 160
+                && record.m_values[7].i64_val() == INT64_C(1234567890123)
+                && record.m_values[8].code() == 290
+                && record.m_values[8].i_val() == 1
+                && record.m_values[9].code() == 280
+                && record.m_values[9].i_val() == 255
+                && record.m_values[10].code() == 310
+                && record.m_values[10].type() == DRW_Variant::BINARY
+                && binaryValue != nullptr
+                && binaryValue->size() == 2u
+                && (*binaryValue)[0] == 0xA1u && (*binaryValue)[1] == 0xB2u
+                && stringIs(record.m_dataEntries[0], 100,
+                            "payload-marker")
+                && record.m_dataEntries[2].code() == 10
+                && pointIs(record.m_dataEntries[2], 1.0, 2.0, 3.0)
+                && record.m_dataEntries[3].code() == 10
+                && pointIs(record.m_dataEntries[3], 4.0, 5.0, 6.0)
+                && record.m_dataEntries[10].code() == 310
+                && record.m_dataEntries[11].code() == 320
+                && record.m_dataEntries[11].i64_val() == 0xDEADu
+                && record.m_handleValues[0]
+                    == std::make_pair(320, UINT32_C(0xDEAD));
+        };
+
+        dxfRW baselineCodec(binary ? binaryPath.string().c_str() : nullptr);
+        XRecordVariantBudgetCapture baseline;
+        const bool baselineRead = read(baselineCodec, baseline, drawing);
+        t.expect(baselineRead
+                     && baseline.headerCount == 1u
+                     && baseline.headerVariantCount == 1u
+                     && baseline.values.size() == 2u
+                     && baseline.values[0].m_values.size() == 1u
+                     && baseline.values[0].m_dataEntries.size() == 1u
+                     && baseline.values[0].m_values[0].c_str() != nullptr
+                     && std::string(baseline.values[0].m_values[0].c_str())
+                            == "first-record-sentinel"
+                     && payloadIsExact(baseline.values[1]),
+                 "generated XRECORD drawing exposes typed string, point, numeric, binary, and handle payloads");
+        if (!baselineRead || baseline.values.size() != 2u) {
+            std::cerr << "XRECORD budget baseline: read=" << baselineRead
+                      << " header=" << baseline.headerCount
+                      << " headerNodes=" << baseline.headerVariantCount
+                      << " records=" << baseline.values.size()
+                      << " diagnostic=" << baselineCodec.getLastDiagnostic().code
+                      << '\n';
+        } else if (!payloadIsExact(baseline.values[1])) {
+            std::cerr << "XRECORD budget payload sizes: values="
+                      << baseline.values[1].m_values.size()
+                      << " ordered=" << baseline.values[1].m_dataEntries.size()
+                      << " handles=" << baseline.values[1].m_handleValues.size()
+                      << '\n';
+            for (const DRW_Variant& value : baseline.values[1].m_dataEntries)
+                std::cerr << "  code=" << value.code()
+                          << " type=" << value.type() << '\n';
+        }
+        if (baseline.headerCount != 1u || baseline.values.size() != 2u
+            || !payloadIsExact(baseline.values[1]))
+            continue;
+
+        std::size_t requiredNodes = baseline.headerVariantCount
+            + baseline.rawGroupCount;
+        for (const DRW_XRecord& record : baseline.values)
+            requiredNodes += record.m_values.size()
+                + record.m_dataEntries.size();
+
+        const std::string filename = binary ? binaryPath.string() : std::string{};
+        dxfRW exactCodec(binary ? filename.c_str() : nullptr);
+        exactCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        XRecordVariantBudgetCapture admitted;
+        t.expect(read(exactCodec, admitted, drawing)
+                     && admitted.headerCount == 1u
+                     && admitted.values.size() == 2u
+                     && payloadIsExact(admitted.values[1]),
+                 "XRECORD variant-node accounting publishes all typed views at the exact aggregate cap");
+
+        dxfRW underCodec(binary ? filename.c_str() : nullptr);
+        underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes - 1u);
+        XRecordVariantBudgetCapture rejected;
+        t.expect(!read(underCodec, rejected, drawing)
+                     && rejected.headerCount == 1u
+                     && rejected.values.size() == 1u
+                     && underCodec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && underCodec.getLastDiagnostic().code
+                            == "dxf-typed-variant-node-budget",
+                 "one-under XRECORD budget rejects the second record before callback with a resource diagnostic");
+
+        underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        XRecordVariantBudgetCapture retry;
+        t.expect(read(underCodec, retry, drawing)
+                     && retry.headerCount == 1u
+                     && retry.values.size() == 2u
+                     && payloadIsExact(retry.values[1]),
+                 "exact-cap same-facade retry resets aggregate XRECORD variant accounting");
+    }
+}
+
+void testDxfLoftedSurfaceVariantNodeBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        const std::string drawing =
+            generatedLoftedSurfaceVariantBudgetWire(binary);
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const std::filesystem::path binaryPath = binary
+            ? std::filesystem::temp_directory_path()
+                / ("libdxfrw-lofted-surface-variant-budget-"
+                   + std::to_string(nonce) + ".dxf")
+            : std::filesystem::path{};
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+        const auto read = [&](dxfRW& codec,
+                              LoftedSurfaceVariantBudgetCapture& capture,
+                              const std::string& bytes) {
+            if (bytes.empty())
+                return false;
+            if (!binary) {
+                std::string content = bytes;
+                return codec.readAscii(&capture, false, content);
+            }
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(),
+                         static_cast<std::streamsize>(bytes.size()));
+            if (!output.good())
+                return false;
+            output.close();
+            return codec.read(&capture, false);
+        };
+        const auto payloadIsExact = [](const DRW_LoftedSurface& value,
+                                       std::int32_t count,
+                                       std::uint8_t first,
+                                       std::uint8_t second) {
+            if (value.dxfReferenceData.size() != 2u
+                || value.dxfReferenceData[0].code() != 90
+                || value.dxfReferenceData[0].i_val() != count
+                || value.dxfReferenceData[1].code() != 310
+                || value.dxfReferenceData[1].binary() == nullptr)
+                return false;
+            const auto& bytes = *value.dxfReferenceData[1].binary();
+            return bytes.size() == 2u && bytes[0] == first
+                && bytes[1] == second;
+        };
+
+        const std::string filename = binary ? binaryPath.string() : std::string{};
+        dxfRW baselineCodec(binary ? filename.c_str() : nullptr);
+        LoftedSurfaceVariantBudgetCapture baseline;
+        const bool baselineRead = read(baselineCodec, baseline, drawing);
+        if (!baselineRead || baseline.values.size() != 2u) {
+            std::cerr << "LOFTEDSURFACE baseline: read=" << baselineRead
+                      << " header=" << baseline.headerCount
+                      << " headerNodes=" << baseline.headerVariantCount
+                      << " surfaces=" << baseline.values.size()
+                      << " diagnostic="
+                      << baselineCodec.getLastDiagnostic().code << '\n';
+        } else {
+            for (std::size_t surfaceIndex = 0;
+                 surfaceIndex < baseline.values.size(); ++surfaceIndex) {
+                const auto& entries =
+                    baseline.values[surfaceIndex].dxfReferenceData;
+                if (!payloadIsExact(baseline.values[surfaceIndex],
+                                    surfaceIndex == 0u ? 1 : 2,
+                                    surfaceIndex == 0u ? 0xAAu : 0xC3u,
+                                    surfaceIndex == 0u ? 0xBBu : 0xD4u)) {
+                    std::cerr << "LOFTEDSURFACE payload " << surfaceIndex
+                              << " entries=" << entries.size();
+                    for (const DRW_Variant& entry : entries) {
+                        std::cerr << " [code=" << entry.code()
+                                  << " type=" << entry.type()
+                                  << " int=" << entry.i_val();
+                        if (entry.binary() != nullptr) {
+                            std::cerr << " bytes=" << entry.binary()->size();
+                            for (std::uint8_t byte : *entry.binary())
+                                std::cerr << ':' << static_cast<unsigned>(byte);
+                        }
+                        std::cerr << ']';
+                    }
+                    std::cerr << '\n';
+                }
+            }
+        }
+        t.expect(baselineRead
+                     && baseline.headerCount == 1u
+                     && baseline.headerVariantCount == 1u
+                     && baseline.values.size() == 2u
+                     && payloadIsExact(baseline.values[0], 1, 0xAAu, 0xBBu)
+                     && payloadIsExact(baseline.values[1], 2, 0xC3u, 0xD4u),
+                 "generated ASCII/Binary LOFTEDSURFACE controls expose reference variants and binary chunks");
+        if (!baselineRead || baseline.values.size() != 2u)
+            continue;
+
+        const std::size_t requiredNodes = baseline.headerVariantCount
+            + baseline.values[0].dxfReferenceData.size()
+            + baseline.values[1].dxfReferenceData.size();
+        dxfRW exactCodec(binary ? filename.c_str() : nullptr);
+        exactCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        LoftedSurfaceVariantBudgetCapture admitted;
+        t.expect(read(exactCodec, admitted, drawing)
+                     && admitted.headerCount == 1u
+                     && admitted.values.size() == 2u
+                     && payloadIsExact(admitted.values[0], 1, 0xAAu, 0xBBu)
+                     && payloadIsExact(admitted.values[1], 2, 0xC3u, 0xD4u),
+                 "LOFTEDSURFACE variant-node accounting admits both entities at the exact aggregate cap");
+
+        dxfRW underCodec(binary ? filename.c_str() : nullptr);
+        underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes - 1u);
+        LoftedSurfaceVariantBudgetCapture rejected;
+        t.expect(!read(underCodec, rejected, drawing)
+                     && rejected.headerCount == 1u
+                     && rejected.values.size() == 1u
+                     && payloadIsExact(rejected.values[0], 1, 0xAAu, 0xBBu)
+                     && underCodec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && underCodec.getLastDiagnostic().code
+                            == "dxf-typed-variant-node-budget",
+                 "one-under LOFTEDSURFACE budget rejects the second entity before callback");
+
+        underCodec.setDxfReadTypedVariantNodeBudget(requiredNodes);
+        LoftedSurfaceVariantBudgetCapture retry;
+        t.expect(read(underCodec, retry, drawing)
+                     && retry.headerCount == 1u
+                     && retry.values.size() == 2u
+                     && payloadIsExact(retry.values[1], 2, 0xC3u, 0xD4u),
+                 "exact-cap same-facade retry resets LOFTEDSURFACE variant accounting");
+    }
+}
+
+void testDxfAcisCarrierRetainedBudget(TestContext& t) {
+    class SurfaceParseProbe final : public DRW_PlaneSurface {
+    public:
+        using DRW_Surface::parseCode;
+        std::size_t retainedBytes() const noexcept {
+            return DxfAcisCarrierTestAccess::retainedBytes(*this);
+        }
+    };
+    class ModelerParseProbe final : public DRW_ModelerGeometry {
+    public:
+        using DRW_ModelerGeometry::parseCode;
+        std::size_t retainedBytes() const noexcept {
+            return DxfAcisCarrierTestAccess::retainedBytes(*this);
+        }
+    };
+
+    const auto parseDirect = [](auto& model, std::size_t limit,
+                                std::size_t& peakBytes) {
+        std::istringstream input(
+            "1\nA\n3\nB\n310\n0011223344556677\n");
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            const std::size_t appendedBytes = code == 1 || code == 3 ? 1u
+                : (code == 310 ? 8u : 0u);
+            if (appendedBytes
+                > std::numeric_limits<std::size_t>::max() - budget->used())
+                return std::pair<bool, std::size_t>{false, budget->used()};
+            peakBytes = std::max(peakBytes,
+                                 budget->used() + appendedBytes);
+            if (!model.parseCode(code, reader))
+                return std::pair<bool, std::size_t>{false, budget->used()};
+        }
+        return std::pair<bool, std::size_t>{
+            !budget->exceeded(), budget->used()};
+    };
+
+    for (const bool modeler : {false, true}) {
+        std::size_t baselinePeak = 0u;
+        bool baselineRead = false;
+        std::size_t retainedBytes = 0u;
+        if (modeler) {
+            ModelerParseProbe value;
+            const auto result = parseDirect(value, 4096u, baselinePeak);
+            baselineRead = result.first;
+            retainedBytes = value.retainedBytes();
+            t.expect(baselineRead && value.m_rawBytes.size() == 10u
+                         && retainedBytes == 10u,
+                     "modeler-geometry DXF group 1/3/310 bytes remain charged after parsing");
+            std::size_t exactPeak = 0u;
+            ModelerParseProbe exact;
+            const auto exactResult = parseDirect(exact, baselinePeak, exactPeak);
+            t.expect(exactResult.first && exact.m_rawBytes.size() == 10u
+                         && exact.retainedBytes() == 10u,
+                     "modeler-geometry payload retention succeeds at the measured exact cap");
+            std::size_t underPeak = 0u;
+            ModelerParseProbe under;
+            const auto underResult = parseDirect(under, baselinePeak - 1u,
+                                                 underPeak);
+            t.expect(!underResult.first && underResult.second < baselinePeak
+                         && under.m_rawBytes.size() == 2u
+                         && under.m_dxfPayloadChunks.size() == 2u
+                         && under.retainedBytes() == 2u,
+                     "one-byte-under modeler-geometry admission refuses group 310 without a partial chunk");
+        } else {
+            SurfaceParseProbe value;
+            const auto result = parseDirect(value, 4096u, baselinePeak);
+            baselineRead = result.first;
+            retainedBytes = value.retainedBytes();
+            t.expect(baselineRead && value.rawAcisData.size() == 10u
+                         && retainedBytes == 10u,
+                     "surface DXF group 1/3/310 bytes remain charged after parsing");
+            std::size_t exactPeak = 0u;
+            SurfaceParseProbe exact;
+            const auto exactResult = parseDirect(exact, baselinePeak,
+                                                 exactPeak);
+            t.expect(exactResult.first && exact.rawAcisData.size() == 10u
+                         && exact.retainedBytes() == 10u,
+                     "surface payload retention succeeds at the measured exact cap");
+            std::size_t underPeak = 0u;
+            SurfaceParseProbe under;
+            const auto underResult = parseDirect(under, baselinePeak - 1u,
+                                                 underPeak);
+            t.expect(!underResult.first && underResult.second < baselinePeak
+                         && under.rawAcisData.size() == 2u
+                         && under.dxfPayloadChunks.size() == 2u
+                         && under.retainedBytes() == 2u,
+                     "one-byte-under surface admission refuses group 310 without a partial chunk");
+        }
+    }
+
+    for (const bool binary : {false, true}) {
+        const std::string drawing =
+            generatedDxfAcisCarrierRetainedBudgetWire(binary);
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const std::filesystem::path binaryPath = binary
+            ? std::filesystem::temp_directory_path()
+                / ("libdxfrw-acis-carrier-retained-"
+                   + std::to_string(nonce) + ".dxf")
+            : std::filesystem::path{};
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+        const auto read = [&](dxfRW& codec,
+                              DxfAcisCarrierBudgetCapture& capture,
+                              const std::string& bytes) {
+            if (bytes.empty())
+                return false;
+            if (!binary) {
+                std::string content = bytes;
+                return codec.readAscii(&capture, false, content);
+            }
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(),
+                         static_cast<std::streamsize>(bytes.size()));
+            if (!output.good())
+                return false;
+            output.close();
+            return codec.read(&capture, false);
+        };
+        const auto fullPayloadMatches = [](
+                const DxfAcisCarrierBudgetCapture& value) {
+            const std::vector<std::uint8_t> surfacePayload{
+                'A', '1', 'B', 'C', '2', 0xAAu, 0xBBu};
+            const std::vector<std::uint8_t> modelerPayload{
+                'X', '1', 'Y', '2', 0xC3u, 0xD4u};
+            return value.surfaces.size() == 2u
+                && value.modelerGeometry.size() == 2u
+                && value.surfaces.back().rawAcisData == surfacePayload
+                && value.surfaces.back().dxfPayloadChunks.size() == 3u
+                && value.surfaces.back().dxfPayloadChunks[0].m_groupCode == 1
+                && value.surfaces.back().dxfPayloadChunks[0].m_offset == 0u
+                && value.surfaces.back().dxfPayloadChunks[0].m_length == 3u
+                && value.surfaces.back().dxfPayloadChunks[1].m_groupCode == 3
+                && value.surfaces.back().dxfPayloadChunks[1].m_offset == 3u
+                && value.surfaces.back().dxfPayloadChunks[1].m_length == 2u
+                && value.surfaces.back().dxfPayloadChunks[2].m_groupCode == 310
+                && value.surfaces.back().dxfPayloadChunks[2].m_offset == 5u
+                && value.surfaces.back().dxfPayloadChunks[2].m_length == 2u
+                && value.modelerGeometry[0].m_rawBytes
+                    == std::vector<std::uint8_t>{'M', '\n'}
+                && value.modelerGeometry[1].m_rawBytes == modelerPayload
+                && value.modelerGeometry[1].m_dxfPayloadChunks.size() == 3u
+                && value.modelerGeometry[1].m_dxfPayloadChunks[0].m_offset == 0u
+                && value.modelerGeometry[1].m_dxfPayloadChunks[1].m_offset == 2u
+                && value.modelerGeometry[1].m_dxfPayloadChunks[2].m_offset == 4u;
+        };
+
+        const std::size_t upperBudget = drawing.size() * 8u + 4096u;
+        const std::string filename = binary ? binaryPath.string() : std::string{};
+        dxfRW upperCodec(binary ? filename.c_str() : nullptr);
+        upperCodec.setDxfReadRetainedByteBudget(upperBudget);
+        DxfAcisCarrierBudgetCapture upperCapture;
+        const bool upperRead = read(upperCodec, upperCapture, drawing);
+        t.expect(upperRead && fullPayloadMatches(upperCapture),
+                 "generated ASCII/Binary DXF preserves ordered surface and solid ACIS carrier chunks");
+        if (!upperRead || !fullPayloadMatches(upperCapture))
+            continue;
+
+        std::size_t low = 0u;
+        std::size_t high = upperBudget;
+        while (low < high) {
+            const std::size_t candidate = low + (high - low) / 2u;
+            dxfRW candidateCodec(binary ? filename.c_str() : nullptr);
+            candidateCodec.setDxfReadRetainedByteBudget(candidate);
+            DxfAcisCarrierBudgetCapture candidateCapture;
+            if (read(candidateCodec, candidateCapture, drawing)
+                && fullPayloadMatches(candidateCapture))
+                high = candidate;
+            else
+                low = candidate + 1u;
+        }
+        if (low == 0u) {
+            t.expect(false, "ACIS carrier budget search finds a positive exact cap");
+            continue;
+        }
+
+        dxfRW retryCodec(binary ? filename.c_str() : nullptr);
+        retryCodec.setDxfReadRetainedByteBudget(low - 1u);
+        DxfAcisCarrierBudgetCapture rejected;
+        const bool rejectedRead = read(retryCodec, rejected, drawing);
+        const DRW_OperationDiagnostic rejection =
+            retryCodec.getLastDiagnostic();
+        t.expect(!rejectedRead && rejection.cause
+                            == DRW::OperationCause::ResourceLimit
+                     && rejection.code == "dxf-retained-byte-budget"
+                     && rejected.surfaces.size() == 2u
+                     && rejected.modelerGeometry.size() == 1u
+                     && rejected.modelerGeometry.front().m_rawBytes
+                            == std::vector<std::uint8_t>{'M', '\n'},
+                 "one-byte-under aggregate ACIS carrier budget refuses the second solid before callback publication");
+
+        retryCodec.setDxfReadRetainedByteBudget(low);
+        DxfAcisCarrierBudgetCapture retry;
+        t.expect(read(retryCodec, retry, drawing)
+                     && fullPayloadMatches(retry),
+                 "same-facade exact retained-byte retry publishes all ASCII/Binary ACIS carrier chunks");
+    }
+}
+
+void testDxfAppDataRetentionBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string group = "102\n{APP\n1\npayload\n102\n}\n";
+    auto parseGroup = [&group](auto& model,
+                               const std::shared_ptr<DxfReadRetainedBudget>& budget,
+                               bool* terminalTokenConsumed = nullptr) {
+        std::istringstream input(group);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader->readRec(&code) && code == 102
+            && model.parseCode(code, reader);
+        if (terminalTokenConsumed != nullptr)
+            *terminalTokenConsumed = reader->getStringView().empty();
+        return parsed;
+    };
+    std::ostringstream binaryOutput(std::ios::out | std::ios::binary);
+    dxfWriterBinary binaryWriter(&binaryOutput);
+    const bool binaryGroupWritten = binaryWriter.writeString(102, "{APP")
+        && binaryWriter.writeString(1, "payload")
+        && binaryWriter.writeString(102, "}");
+    const std::string binaryGroup = binaryOutput.str();
+    bool binarySequenceValid = false;
+    if (binaryGroupWritten) {
+        std::istringstream input(binaryGroup,
+                                 std::ios::in | std::ios::binary);
+        dxfReaderBinary reader(&input);
+        int code = 0;
+        binarySequenceValid = reader.readRec(&code) && code == 102
+            && reader.getStringView() == "{APP"
+            && reader.readRec(&code) && code == 1
+            && reader.getStringView() == "payload"
+            && reader.readRec(&code) && code == 102
+            && reader.getStringView() == "}"
+            && !reader.readRec(&code);
+    }
+    t.expect(binarySequenceValid,
+             "generated Binary DXF application-group tags are readable before parser ownership transfer");
+    const auto parseBinaryGroup = [&binaryGroup, &binaryGroupWritten](
+            auto& model,
+            const std::shared_ptr<DxfReadRetainedBudget>& budget,
+            bool* terminalTokenConsumed = nullptr) {
+        if (!binaryGroupWritten)
+            return false;
+        std::istringstream input(binaryGroup,
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderBinary>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader->readRec(&code) && code == 102
+            && model.parseCode(code, reader);
+        if (terminalTokenConsumed != nullptr)
+            *terminalTokenConsumed = reader->getStringView().empty();
+        return parsed;
+    };
+    const auto appGroupMatches = [](const auto& model) {
+        if (model.appData.size() != 1u || model.appData.front().size() != 3u)
+            return false;
+        auto value = model.appData.front().begin();
+        const bool opener = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "APP";
+        ++value;
+        const bool payload = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "payload";
+        ++value;
+        const bool closer = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "}";
+        return opener && payload && closer;
+    };
+    const auto minimumBudget = [&parseGroup, &appGroupMatches](auto makeModel) {
+        std::size_t low = 0u;
+        std::size_t high = 512u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            auto model = makeModel();
+            auto budget = std::make_shared<DxfReadRetainedBudget>(middle);
+            if (parseGroup(model, budget) && appGroupMatches(model)
+                && !budget->exceeded())
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        return low;
+    };
+    const std::size_t entityPeak = minimumBudget(
+        [] { return LineParseProbe{}; });
+    const std::size_t tableEntryPeak = minimumBudget(
+        [] { return LayerParseProbe{}; });
+    t.expect(entityPeak > 0u && entityPeak == tableEntryPeak,
+             "entity and table-entry application groups expose the same measured retained-byte peak");
+    const auto minimumBinaryBudget = [&parseBinaryGroup, &appGroupMatches](
+            auto makeModel) {
+        std::size_t low = 0u;
+        std::size_t high = 512u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            auto model = makeModel();
+            auto budget = std::make_shared<DxfReadRetainedBudget>(middle);
+            if (parseBinaryGroup(model, budget) && appGroupMatches(model)
+                && !budget->exceeded())
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        return low;
+    };
+    const std::size_t binaryEntityPeak = minimumBinaryBudget(
+        [] { return LineParseProbe{}; });
+    const std::size_t binaryTableEntryPeak = minimumBinaryBudget(
+        [] { return LayerParseProbe{}; });
+    t.expect(binaryEntityPeak > 0u
+                 && binaryEntityPeak == binaryTableEntryPeak,
+             "Binary entity and table-entry application groups expose the same measured retained-byte peak");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(entityPeak);
+        LineParseProbe line;
+        bool tokenConsumed = false;
+        const bool parsed = parseGroup(line, budget, &tokenConsumed);
+        t.expect(parsed && appGroupMatches(line) && tokenConsumed
+                     && budget->used() == 11u,
+                 "entity 102 application strings fit the exact generated parse peak and remain charged after reader teardown");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 11u,
+                 "a copied entity keeps its parsed application-group lease when the original is reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases the final application-group string lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(entityPeak - 1u);
+        LineParseProbe line;
+        const bool parsed = parseGroup(line, budget);
+        t.expect(!parsed && line.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "entity application-group growth rejects one byte under the exact peak and rolls back partial group charges");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(tableEntryPeak);
+        LayerParseProbe layer;
+        bool tokenConsumed = false;
+        const bool parsed = parseGroup(layer, budget, &tokenConsumed);
+        t.expect(parsed && appGroupMatches(layer) && tokenConsumed
+                     && budget->used() == 11u,
+                 "table-entry 102 application strings share the same exact peak and owner-lifetime accounting");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 11u,
+                 "a copied table entry keeps its application-group lease when the source entry is reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases the final application-group string lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(tableEntryPeak - 1u);
+        LayerParseProbe layer;
+        const bool parsed = parseGroup(layer, budget);
+        t.expect(!parsed && layer.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "table-entry application-group failure rolls back partial retained strings");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(binaryEntityPeak);
+        LineParseProbe line;
+        bool tokenConsumed = false;
+        const bool parsed = parseBinaryGroup(line, budget, &tokenConsumed);
+        t.expect(parsed,
+                 "Binary entity application group parses");
+        t.expect(appGroupMatches(line),
+                 "Binary entity application values survive reader teardown");
+        t.expect(tokenConsumed,
+                 "Binary entity application terminator token is transferred");
+        t.expect(budget->used() == 11u,
+                 "Binary entity application strings retain only their exact owner bytes");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(binaryEntityPeak - 1u);
+        LineParseProbe line;
+        const bool parsed = parseBinaryGroup(line, budget);
+        t.expect(!parsed && line.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "Binary entity application group rejects one byte under its measured peak and rolls back");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(binaryTableEntryPeak);
+        LayerParseProbe layer;
+        bool tokenConsumed = false;
+        const bool parsed = parseBinaryGroup(layer, budget, &tokenConsumed);
+        t.expect(parsed,
+                 "Binary table-entry application group parses");
+        t.expect(appGroupMatches(layer),
+                 "Binary table-entry application values survive reader teardown");
+        t.expect(tokenConsumed,
+                 "Binary table-entry application terminator token is transferred");
+        t.expect(budget->used() == 11u,
+                 "Binary table-entry application strings retain only their exact owner bytes");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(
+            binaryTableEntryPeak - 1u);
+        LayerParseProbe layer;
+        const bool parsed = parseBinaryGroup(layer, budget);
+        t.expect(!parsed && layer.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "Binary table-entry application group rejects one byte under its measured peak and rolls back");
+    }
+}
+
+void testDxfAppDataHandleTokenTransfer(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    std::ostringstream output(std::ios::out | std::ios::binary);
+    dxfWriterBinary writer(&output);
+    const bool written = writer.writeString(102, "{ACAD_REACTORS")
+        && writer.writeString(330, "80")
+        && writer.writeString(330, "81")
+        && writer.writeString(102, "}")
+        && writer.writeString(102, "{ACAD_XDICTIONARY")
+        && writer.writeString(360, "90")
+        && writer.writeString(102, "}");
+    t.expect(written && !writer.hasWriteError(),
+             "generated Binary DXF appData handle groups are writable");
+    if (!written || writer.hasWriteError())
+        return;
+    const std::string records = output.str();
+    const std::string asciiRecords =
+        "102\n{ACAD_REACTORS\n330\n80\n330\n81\n102\n}\n"
+        "102\n{ACAD_XDICTIONARY\n360\n90\n102\n}\n";
+    const auto appDataMatches = [](const auto& model) {
+        if (model.appData.size() != 2u
+            || model.reactorHandles != std::vector<std::uint32_t>{0x80u, 0x81u}
+            || model.xDictHandle != 0x90u)
+            return false;
+        auto group = model.appData.begin();
+        const auto& reactors = *group++;
+        const auto& xDictionary = *group;
+        if (reactors.size() != 4u || xDictionary.size() != 3u)
+            return false;
+        const auto isString = [](const DRW_Variant& value, int code,
+                                 const char* expected) {
+            return value.code() == code
+                && value.type() == DRW_Variant::STRING
+                && value.content.s != nullptr
+                && *value.content.s == expected;
+        };
+        auto reactorValue = reactors.begin();
+        const bool reactorValues =
+            isString(*reactorValue++, 102, "ACAD_REACTORS")
+            && isString(*reactorValue++, 330, "80")
+            && isString(*reactorValue++, 330, "81")
+            && isString(*reactorValue, 102, "}");
+        auto dictionaryValue = xDictionary.begin();
+        const bool dictionaryValues =
+            isString(*dictionaryValue++, 102, "ACAD_XDICTIONARY")
+            && isString(*dictionaryValue++, 360, "90")
+            && isString(*dictionaryValue, 102, "}");
+        return reactorValues && dictionaryValues;
+    };
+    const auto parse = [&records, &asciiRecords, &appDataMatches](
+            bool binary, auto& model,
+            const std::shared_ptr<DxfReadRetainedBudget>& budget,
+            bool* allTokensTransferred) {
+        const std::string& source = binary ? records : asciiRecords;
+        std::istringstream input(source,
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        bool transferred = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (code != 102 || !model.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+            transferred = transferred && reader->getStringView().empty();
+        }
+        if (allTokensTransferred != nullptr)
+            *allTokensTransferred = transferred;
+        return parsed && !budget->exceeded() && appDataMatches(model);
+    };
+
+    for (const bool binary : {false, true}) {
+        auto entityBudget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        LineParseProbe line;
+        bool entityTokensTransferred = false;
+        const bool entityParsed = parse(binary, line, entityBudget,
+                                        &entityTokensTransferred);
+        t.expect(entityParsed && entityTokensTransferred
+                     && entityBudget->used() > 0u,
+                 "ASCII/Binary entity appData moves raw handle spellings while preserving parsed reactor/xDictionary references");
+
+        auto tableBudget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        LayerParseProbe layer;
+        bool tableTokensTransferred = false;
+        const bool tableParsed = parse(binary, layer, tableBudget,
+                                       &tableTokensTransferred);
+        t.expect(tableParsed && tableTokensTransferred
+                     && tableBudget->used() == entityBudget->used(),
+                 "ASCII/Binary table-entry appData preserves the same handle spellings and retained owner bytes");
+    }
+}
+
+void testDxfCapturedAppDataRetentionBudget(TestContext& t) {
+    class AssociativeCapture final : public FuzzInterface {
+    public:
+        void addAssociativeObject(
+                const DRW_AssociativeObject& value) override {
+            ++typedCount;
+            typed = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            rawObjects.push_back(value);
+        }
+
+        std::size_t typedCount {0u};
+        DRW_AssociativeObject typed;
+        std::vector<DRW_RawDxfObject> rawObjects;
+    };
+
+    const std::string name = "ACDBASSOCNETWORK";
+    const std::string payload(32u, 'p');
+    const std::string handle = "A1";
+    const std::string owner = "20";
+    const std::string opener = "{APP";
+    const std::string closer = "}";
+    const std::string afterGroup = "tail";
+    const std::string drawing =
+        "0\nSECTION\n2\nOBJECTS\n0\n" + name
+        + "\n5\n" + handle + "\n330\n" + owner
+        + "\n102\n" + opener + "\n1\n" + payload
+        + "\n102\n" + closer + "\n1\n" + afterGroup
+        + "\n0\nENDSEC\n0\nEOF\n";
+
+    const auto run = [&drawing](std::size_t limit,
+                                AssociativeCapture& sink,
+                                dxfRW& codec) {
+        codec.setDxfReadRetainedByteBudget(limit);
+        std::string input = drawing;
+        return codec.readAscii(&sink, false, input);
+    };
+
+    std::size_t lower = drawing.size();
+    std::size_t upper = drawing.size() + 4096u;
+    {
+        dxfRW codec(nullptr);
+        AssociativeCapture generous;
+        t.expect(run(upper, generous, codec)
+                     && generous.typedCount == 1u
+                     && generous.rawObjects.size() == 1u,
+                 "generated OBJECTS associative app-data case reaches typed and raw callbacks");
+        if (generous.typedCount != 1u || generous.rawObjects.size() != 1u)
+            return;
+    }
+
+    while (lower < upper) {
+        const std::size_t middle = lower + (upper - lower) / 2u;
+        dxfRW codec(nullptr);
+        AssociativeCapture probe;
+        if (run(middle, probe, codec))
+            upper = middle;
+        else
+            lower = middle + 1u;
+    }
+
+    dxfRW exactCodec(nullptr);
+    AssociativeCapture exact;
+    const bool exactRead = run(lower, exact, exactCodec);
+    const auto stringsMatch = [&]() {
+        if (exact.typed.appData.size() != 1u
+            || exact.typed.appData.front().size() != 3u)
+            return false;
+        auto value = exact.typed.appData.front().begin();
+        const bool hasOpener = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "APP";
+        ++value;
+        const bool hasPayload = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == payload;
+        ++value;
+        const bool hasCloser = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == closer;
+        return hasOpener && hasPayload && hasCloser;
+    };
+    t.expect(exactRead && exact.typedCount == 1u
+                 && exact.rawObjects.size() == 1u
+                 && exact.typed.m_recordName == name && stringsMatch(),
+             "exact retained-byte admission preserves associative record name, typed app data, and following raw group");
+    if (!exactRead || exact.rawObjects.size() != 1u)
+        return;
+
+    const DRW_RawDxfObject& raw = exact.rawObjects.front();
+    const std::size_t rawStringBytes = name.size()
+        + 2u * (handle.size() + owner.size() + opener.size()
+                + payload.size() + closer.size() + afterGroup.size());
+    const std::size_t typedStringBytes = name.size() + 3u
+        + payload.size() + closer.size();
+    t.expect(raw.name == name && raw.groups.size() == 6u
+                 && raw.groups.back().code() == 1
+                 && raw.groups.back().content.s != nullptr
+                 && *raw.groups.back().content.s == afterGroup
+                 && raw.m_retainedTextLease != nullptr
+                 && raw.m_retainedTextLease->bytes() == rawStringBytes,
+             "raw carrier lease accounts for name and both source/typed raw-group string copies");
+
+    const auto retainedBudget = exactCodec.m_activeDxfReadRetainedBudget;
+    t.expect(retainedBudget != nullptr
+                 && retainedBudget->used() == rawStringBytes + typedStringBytes,
+             "aggregate read lease includes raw carrier plus typed record-name and app-data destinations");
+
+    exact.rawObjects.clear();
+    t.expect(retainedBudget != nullptr
+                 && retainedBudget->used() == typedStringBytes,
+             "typed associative record and app-data lease remains after raw callback storage is released");
+    exact.typed = DRW_AssociativeObject{};
+    t.expect(retainedBudget != nullptr && retainedBudget->used() == 0u,
+             "destroying the typed callback value releases its name and app-data retained-byte charges");
+
+    if (lower > 0u) {
+        dxfRW underCodec(nullptr);
+        AssociativeCapture under;
+        const bool underRead = run(lower - 1u, under, underCodec);
+        t.expect(!underRead && under.typedCount == 0u
+                     && under.rawObjects.empty()
+                     && underCodec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && underCodec.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "one-byte-under typed-projection admission refuses before either object callback");
+    }
+}
+
+void testDxfTypedObjectRecordNameRetainedBudget(TestContext& t) {
+    class ObjectNameCapture final : public FuzzInterface {
+    public:
+        void addDynamicBlockObject(
+                const DRW_DynamicBlockObject& value) override {
+            ++dynamicCount;
+            dynamicObject = value;
+        }
+        void addAcShHistoryObject(
+                const DRW_AcShHistoryObject& value) override {
+            ++historyCount;
+            historyObject = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            ++rawCount;
+            rawObjects.push_back(value);
+        }
+
+        std::size_t dynamicCount {0u};
+        std::size_t historyCount {0u};
+        std::size_t rawCount {0u};
+        DRW_DynamicBlockObject dynamicObject;
+        DRW_AcShHistoryObject historyObject;
+        std::vector<DRW_RawDxfObject> rawObjects;
+    };
+
+    const std::array<std::string, 2> names {{
+        "BLOCKVISIBILITYPARAMETER", "ACSH_HISTORY_NODE"
+    }};
+    const std::string handle = "A1";
+    const std::string owner = "20";
+
+    for (const std::string& name : names) {
+        const bool isDynamic = name == names.front();
+        const std::string drawing =
+            "0\nSECTION\n2\nOBJECTS\n0\n" + name
+            + "\n5\n" + handle + "\n330\n" + owner
+            + "\n0\nENDSEC\n0\nEOF\n";
+
+        const auto run = [&drawing](std::size_t limit,
+                                    ObjectNameCapture& sink,
+                                    dxfRW& codec) {
+            codec.setDxfReadRetainedByteBudget(limit);
+            std::string input = drawing;
+            return codec.readAscii(&sink, false, input);
+        };
+
+        std::size_t lower = drawing.size();
+        std::size_t upper = drawing.size() + 4096u;
+        {
+            dxfRW codec(nullptr);
+            ObjectNameCapture generous;
+            t.expect(run(upper, generous, codec)
+                         && generous.dynamicCount == (isDynamic ? 1u : 0u)
+                         && generous.historyCount == (isDynamic ? 0u : 1u)
+                         && generous.rawCount == 1u,
+                     name + ": generated OBJECTS record reaches its typed and raw callbacks");
+        }
+
+        while (lower < upper) {
+            const std::size_t middle = lower + (upper - lower) / 2u;
+            dxfRW codec(nullptr);
+            ObjectNameCapture probe;
+            if (run(middle, probe, codec))
+                upper = middle;
+            else
+                lower = middle + 1u;
+        }
+
+        dxfRW exactCodec(nullptr);
+        ObjectNameCapture exact;
+        const bool exactRead = run(lower, exact, exactCodec);
+        const bool typedNameMatches = isDynamic
+            ? exact.dynamicObject.m_recordName == name
+            : exact.historyObject.m_recordName == name;
+        t.expect(exactRead && typedNameMatches
+                     && exact.dynamicCount == (isDynamic ? 1u : 0u)
+                     && exact.historyCount == (isDynamic ? 0u : 1u)
+                     && exact.rawCount == 1u && exact.rawObjects.size() == 1u,
+                 name + ": exact admission preserves the typed record name and raw companion");
+        if (!exactRead || exact.rawObjects.size() != 1u)
+            continue;
+
+        const std::size_t rawStringBytes = name.size()
+            + 2u * (handle.size() + owner.size());
+        const std::size_t typedStringBytes = name.size();
+        const auto retainedBudget = exactCodec.m_activeDxfReadRetainedBudget;
+        t.expect(retainedBudget != nullptr
+                     && retainedBudget->used()
+                            == rawStringBytes + typedStringBytes,
+                 name + ": aggregate lease includes raw carrier and typed name destinations");
+
+        exact.rawObjects.clear();
+        t.expect(retainedBudget != nullptr
+                     && retainedBudget->used() == typedStringBytes,
+                 name + ": typed record-name lease remains after raw callback storage is released");
+        if (isDynamic)
+            exact.dynamicObject = DRW_DynamicBlockObject{};
+        else
+            exact.historyObject = DRW_AcShHistoryObject{};
+        t.expect(retainedBudget != nullptr && retainedBudget->used() == 0u,
+                 name + ": releasing the typed callback value releases its name charge");
+
+        if (lower > 0u) {
+            dxfRW underCodec(nullptr);
+            ObjectNameCapture under;
+            const bool underRead = run(lower - 1u, under, underCodec);
+            t.expect(!underRead && under.dynamicCount == 0u
+                         && under.historyCount == 0u && under.rawCount == 0u
+                         && underCodec.getLastDiagnostic().cause
+                                == DRW::OperationCause::ResourceLimit
+                         && underCodec.getLastDiagnostic().code
+                                == "dxf-retained-byte-budget",
+                     name + ": one byte under refuses before typed or raw callback publication");
+        }
+    }
+}
+
+void testDxfCommonStringOwnerBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string entitySource =
+        "8\nFIRST\n8\nGEOM\n6\nDASHED\n430\nBOOK$ENTRY\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(80u);
+        LineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(entitySource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code))
+                parsed = parsed && line.parseCode(code, reader);
+        }
+        t.expect(parsed && line.layer == "GEOM" && line.lineType == "DASHED"
+                     && line.colorName == "BOOK$ENTRY" && budget->used() == 20u,
+                 "common entity text replacement retains only the live layer/linetype/color-book values at the exact peak");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 20u,
+                 "copied entity common strings keep their source-read lease after the source resets");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases common parsed-string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(79u);
+        LineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(entitySource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!line.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && line.layer == "GEOM"
+                     && line.lineType == "DASHED" && line.colorName.empty()
+                     && budget->used() == 10u,
+                 "one-byte-under common-field replacement rejects the new destination and preserves prior fields/charges");
+        line.reset();
+        t.expect(budget->used() == 0u,
+                 "failed common-field replacement releases its remaining owner lease on reset");
+    }
+
+    const std::string tableSource = "2\nOLD\n2\nNAME\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        LayerParseProbe layer;
+        bool parsed = true;
+        {
+            std::istringstream input(tableSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code))
+                parsed = parsed && layer.parseCode(code, reader);
+        }
+        t.expect(parsed && layer.name == "NAME" && budget->used() == 4u,
+                 "table-entry name replacement retains only the live value at the exact peak");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 4u,
+                 "copied table entry keeps its parsed name lease after source reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases common name ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        LayerParseProbe layer;
+        bool parsed = true;
+        {
+            std::istringstream input(tableSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!layer.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && layer.name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under table-name replacement keeps the previous value intact on quota refusal");
+        layer.reset();
+        t.expect(budget->used() == 0u,
+                 "table-name replacement refusal releases its lease on reset");
+    }
+}
+
+void testDxfColorBookNameTokenTransfer(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+
+    const std::string expected = u8"BOOK$Coloré";
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1032", true);
+        writer->setCodePage("ANSI_1252");
+        const bool wrote = writer->writeUtf8String(430, expected);
+        t.expect(wrote && !writer->hasWriteError(),
+                 "generated ASCII/Binary color-book name record is writable");
+        if (!wrote || writer->hasWriteError())
+            continue;
+        const std::string records = output.str();
+
+        const auto parseRecord = [&records, binary](
+                std::size_t limit, LineParseProbe* destination,
+                std::shared_ptr<DxfReadRetainedBudget>* outputBudget,
+                bool* tokenConsumed) {
+            std::istringstream input(records,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion("AC1032", true);
+            reader->setCodePage("ANSI_1252");
+            reader->setSemanticStringMode(true);
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            LineParseProbe line;
+            const bool parsed = reader->readRec(&code) && code == 430
+                && line.parseCode(code, reader);
+            if (tokenConsumed != nullptr)
+                *tokenConsumed = reader->getStringView().empty();
+            if (destination != nullptr)
+                *destination = line;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed && !budget->exceeded();
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecord(middle, nullptr, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        LineParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        bool tokenConsumed = false;
+        const bool exact = parseRecord(exactCap, &admitted, &admittedBudget,
+                                       &tokenConsumed);
+        t.expect(exact && tokenConsumed && admitted.colorName == expected
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == expected.size(),
+                 "ASCII/Binary group 430 transfers a semantic color-book token into its exact retained owner");
+        if (exact) {
+            LineParseProbe copy(admitted);
+            admitted.reset();
+            t.expect(admittedBudget->used() == expected.size()
+                         && copy.colorName == expected,
+                     "copied color-book field keeps the transferred owner lease");
+            copy.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final color-book owner reset releases its retained-byte charge");
+        }
+
+        if (exactCap != 0u) {
+            LineParseProbe rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool underCap = parseRecord(exactCap - 1u, &rejected,
+                                              &rejectedBudget, nullptr);
+            t.expect(!underCap && rejected.colorName.empty()
+                         && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejectedBudget->used() == 0u,
+                     "one-byte-under semantic color-book admission refuses without retaining a partial value");
+        }
+    }
+}
+
+void testDxfEntityBoundaryTokenTransfer(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        std::string records;
+        if (binary) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfWriterBinary writer(&output);
+            const bool wrote = writer.writeString(0, "LINE")
+                && writer.writeString(0, "ENDSEC");
+            t.expect(wrote && !writer.hasWriteError(),
+                     "generated Binary DXF entity-boundary records are writable");
+            if (!wrote || writer.hasWriteError())
+                continue;
+            records = output.str();
+        } else {
+            records = "0\nLINE\n0\nENDSEC\n";
+        }
+
+        std::istringstream input(records,
+                                 std::ios::in | std::ios::binary);
+        dxfRW codec(nullptr);
+        codec.reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        int code = 0;
+        const bool firstRead = codec.reader->readRec(&code) && code == 0;
+        const dxfRW::DxfEntityBoundary firstBoundary = firstRead
+            ? codec.setEntityBoundary(code)
+            : dxfRW::DxfEntityBoundary::Error;
+        t.expect(firstBoundary == dxfRW::DxfEntityBoundary::NextEntity
+                     && codec.nextentity == "LINE"
+                     && codec.reader->getStringView().empty(),
+                 "ASCII/Binary entity boundary transfers the code-0 token into parser staging");
+
+        const bool secondRead = codec.reader->readRec(&code) && code == 0;
+        const dxfRW::DxfEntityBoundary secondBoundary = secondRead
+            ? codec.setEntityBoundary(code)
+            : dxfRW::DxfEntityBoundary::Error;
+        t.expect(secondBoundary == dxfRW::DxfEntityBoundary::EndSection
+                     && codec.nextentity == "ENDSEC"
+                     && codec.reader->getStringView().empty(),
+                 "transferred entity-boundary staging preserves ENDSEC routing and consumes the token");
+    }
+}
+
+void testDxfLTypeRetainedTextBudget(TestContext& t) {
+    const std::string description = "current linetype description";
+    const std::string firstText = "first dash";
+    const std::string oldFinalText = "old dash";
+    const std::string longText(256u, 'X');
+    const std::size_t expectedOwnerBytes = 6u + description.size()
+        + firstText.size() + longText.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedLTypeBudgetWire(binary, false);
+        t.expect(!records.empty(), "generated LTYPE owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](const std::string& sourceRecords,
+                                           std::size_t limit,
+                                           DRW_LType* output,
+                                           std::shared_ptr<DxfReadRetainedBudget>*
+                                               outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedLType lineType;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!lineType.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = lineType;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        DRW_LType admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == "DASHED"
+                     && admitted.desc == description
+                     && admitted.segments.size() == 2u
+                     && admitted.segments[0].text == firstText
+                     && admitted.segments[1].text == longText
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LTYPE name, description and all dash text retain exact logical bytes after record teardown");
+
+        if (exact) {
+            DRW_LType copied(admitted);
+            DRW_LType moved(std::move(copied));
+            admitted.reset();
+            copied.reset();
+            const bool copyLifetime = admittedBudget->used()
+                    == expectedOwnerBytes
+                && moved.desc == description && moved.segments.size() == 2u
+                && moved.segments[0].text == firstText
+                && moved.segments[1].text == longText;
+            moved.reset();
+            t.expect(copyLifetime && admittedBudget->used() == 0u,
+                     "copied/moved LTYPE retains its shared parsed-string lease until final reset");
+        }
+
+        if (exactCap != 0u) {
+            DRW_LType rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u, &rejected,
+                                            &rejectedBudget);
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.desc == description
+                         && rejected.segments.size() == 2u
+                         && rejected.segments[0].text == firstText
+                         && rejected.segments[1].text == oldFinalText,
+                     "one-byte-under LTYPE replacement refuses before changing the previous dash text");
+        }
+
+        const std::string resetSegmentsRecords =
+            generatedLTypeBudgetWire(binary, false, true);
+        DRW_LType resized;
+        std::shared_ptr<DxfReadRetainedBudget> resizedBudget;
+        const bool resizedParsed = parseRecords(
+            resetSegmentsRecords, resetSegmentsRecords.size() * 16u + 4096u,
+            &resized, &resizedBudget);
+        t.expect(resizedParsed && resizedBudget != nullptr
+                     && resized.desc == description
+                     && resized.segments.size() == 1u
+                     && resized.segments[0].text == "reset dash"
+                     && resizedBudget->used() == 6u + description.size()
+                         + std::string("reset dash").size(),
+                 "repeated LTYPE group 73 releases superseded parsed segment-text charges");
+
+        const std::string drawing = generatedLTypeBudgetWire(binary, true);
+        t.expect(!drawing.empty(), "generated LTYPE TABLES drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-ltype-retained-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath, std::ios::binary);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(), "binary LTYPE TABLES source is written to temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const std::string ac1024Drawing = generatedLTypeBudgetWire(
+            binary, true, false, 2, "AC1024");
+        t.expect(!ac1024Drawing.empty(),
+                 "generated AC1024 LTYPE text drawing is writable");
+        if (!ac1024Drawing.empty()) {
+            if (binary) {
+                std::ofstream output(binaryPath,
+                                    std::ios::binary | std::ios::trunc);
+                output.write(ac1024Drawing.data(),
+                             static_cast<std::streamsize>(
+                                 ac1024Drawing.size()));
+                t.expect(output.good(),
+                         "generated binary AC1024 LTYPE source is written to temporary storage");
+            }
+            const std::string ac1024Filename = binaryPath.string();
+            dxfRW ac1024Codec(
+                binary ? ac1024Filename.c_str() : nullptr);
+            ac1024Codec.setDxfReadRetainedByteBudget(
+                ac1024Drawing.size() * 16u + 4096u);
+            LTypeBudgetCapture ac1024Capture;
+            bool ac1024Read = false;
+            if (binary) {
+                ac1024Read = ac1024Codec.read(&ac1024Capture, false);
+            } else {
+                std::string content = ac1024Drawing;
+                ac1024Read = ac1024Codec.readAscii(
+                    &ac1024Capture, false, content);
+            }
+            t.expect(ac1024Read && ac1024Capture.count == 2u
+                         && ac1024Capture.values.size() == 2u
+                         && ac1024Capture.values[0].name == "DASHED"
+                         && ac1024Capture.values[0].segments.size() == 2u
+                         && ac1024Capture.values[0].segments[0].text
+                             == firstText
+                         && ac1024Capture.values[0].segments[1].text
+                             == longText
+                         && ac1024Capture.values[1].name == "SENTINEL_LTYPE"
+                         && ac1024Capture.values[1].desc == "following row",
+                     "AC1024 ASCII/Binary text LTYPE retains exact dash text and following-row identity");
+            if (binary) {
+                std::ofstream output(binaryPath,
+                                    std::ios::binary | std::ios::trunc);
+                output.write(drawing.data(),
+                             static_cast<std::streamsize>(drawing.size()));
+                t.expect(output.good(),
+                         "binary AC1027 LTYPE budget source is restored after AC1024 profile check");
+            }
+        }
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            LTypeBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.count == 2u
+                && capture.values.size() == 2u
+                && capture.values[0].desc == description
+                && capture.values[0].segments.size() == 2u
+                && capture.values[0].segments[0].text == firstText
+                && capture.values[0].segments[1].text == longText
+                && capture.values[1].name == "SENTINEL_LTYPE"
+                && capture.values[1].desc == "following row";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        LTypeBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.count;
+        const bool contextUnpublished =
+            codec.getReadingContext()->lineTypeNameMap.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under LTYPE TABLES input is refused before its callback");
+        t.expect(contextUnpublished,
+                 "one-byte-under LTYPE name-map reservation refuses before publishing parser context");
+        t.expect(resourceDiagnostic,
+                 "LTYPE retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.count == 2u
+                     && capture.values.size() == 2u
+                     && capture.values[0].desc == description
+                     && capture.values[0].segments.size() == 2u
+                     && capture.values[0].segments[1].text == longText
+                     && capture.values[1].name == "SENTINEL_LTYPE",
+                 "same-facade exact-budget retry recovers the LTYPE row and following-row sentinel");
+        const std::string sentinelName = "SENTINEL_LTYPE";
+        const std::string sentinelDescription = "following row";
+        const std::size_t expectedFullRetainedBytes = expectedOwnerBytes
+            + sentinelName.size() + sentinelDescription.size()
+            + std::string("DASHED").size() + sentinelName.size();
+        const auto retainedBudget = codec.m_activeDxfReadRetainedBudget;
+        t.expect(retried && codec.getReadingContext() != nullptr
+                     && codec.getReadingContext()->resolveLineTypeName(0x21)
+                            == "DASHED"
+                     && codec.getReadingContext()->resolveLineTypeName(0x22)
+                            == sentinelName
+                     && retainedBudget != nullptr
+                     && retainedBudget->used() == expectedFullRetainedBytes,
+                 "LTYPE staging moves rows and keeps parser-owned context-name copies charged through read completion");
+
+        const std::string malformedDrawing =
+            generatedLTypeBudgetWire(binary, true, false, 0);
+        if (binary) {
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(malformedDrawing.data(),
+                         static_cast<std::streamsize>(malformedDrawing.size()));
+            t.expect(output.good(),
+                     "malformed binary LTYPE group-scope control is generated");
+        }
+        dxfRW malformedCodec(binary ? filename.c_str() : nullptr);
+        malformedCodec.setDxfReadRetainedByteBudget(
+            malformedDrawing.size() * 16u + 4096u);
+        LTypeBudgetCapture malformedCapture;
+        bool malformedAccepted = false;
+        if (binary) {
+            malformedAccepted = malformedCodec.read(&malformedCapture, false);
+        } else {
+            std::string content = malformedDrawing;
+            malformedAccepted = malformedCodec.readAscii(
+                &malformedCapture, false, content);
+        }
+        t.expect(!malformedAccepted && malformedCapture.count == 0u
+                     && malformedCodec.getError() == DRW::BAD_CODE_PARSED,
+                 "ASCII/Binary group-9 without the 74 text flag refuses before LTYPE publication");
+    }
+}
+
+void testDxfMLineStyleDescriptionOwnerBudget(TestContext& t) {
+    const std::string sourceName = "MLSTYLE";
+    const std::string previousDescription = "old";
+    const std::string description = "retained description";
+    const std::size_t expectedOwnerBytes = sourceName.size()
+        + description.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedMLineStyleDescriptionBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated MLINESTYLE description records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_MLineStyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedMLineStyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedMLineStyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == sourceName
+                     && admitted.description == description
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "MLINESTYLE name and replaced description retain only live logical bytes at the exact cap");
+
+        if (exact) {
+            ExposedMLineStyle copied(admitted);
+            ExposedMLineStyle assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.description == description
+                         && assigned.description == description,
+                     "MLINESTYLE description lease survives copy construction and assignment");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned MLINESTYLE keeps the description charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final MLINESTYLE reset releases its retained description lease");
+        }
+
+        if (exactCap != 0u) {
+            ExposedMLineStyle rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u, &rejected,
+                                            &rejectedBudget);
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.name == sourceName
+                         && rejected.description.empty()
+                         && rejectedBudget->used() == sourceName.size(),
+                     "one-byte-under MLINESTYLE description admission preserves the prior name and charge");
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected MLINESTYLE description admission releases its prior lease on reset");
+        }
+
+        const std::string duplicateRecords =
+            generatedMLineStyleDescriptionBudgetWire(binary, true);
+        ExposedMLineStyle duplicate;
+        std::shared_ptr<DxfReadRetainedBudget> duplicateBudget;
+        const bool duplicateAccepted = parseRecords(
+            duplicateRecords, duplicateRecords.size() * 16u + 4096u,
+            &duplicate, &duplicateBudget);
+        t.expect(!duplicateAccepted && duplicateBudget != nullptr
+                     && !duplicateBudget->exceeded()
+                     && duplicate.name == sourceName
+                     && duplicate.description == previousDescription
+                     && duplicateBudget->used() == sourceName.size()
+                         + previousDescription.size(),
+                 "duplicate MLINESTYLE description is rejected without replacing the existing value or charge");
+    }
+}
+
+void testDxfMLeaderStyleTextOwnerBudget(TestContext& t) {
+    const std::string styleName = "MLSTYLE";
+    const std::string previousText = "old-text";
+    const std::string description(128u, 'D');
+    const std::string textDefault(256u, 'T');
+    const std::size_t expectedOwnerBytes = styleName.size()
+        + description.size() + textDefault.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedMLeaderStyleTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated MLEADERSTYLE text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_MLeaderStyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedMLeaderStyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedMLeaderStyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == styleName
+                     && admitted.description == description
+                     && admitted.textDefault == textDefault
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "MLEADERSTYLE name, description and default text retain only live logical bytes at the exact replacement-peak cap");
+        if (exact) {
+            DRW_MLeaderStyle copied(admitted);
+            DRW_MLeaderStyle assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.description == description
+                         && assigned.textDefault == textDefault,
+                     "MLEADERSTYLE retained text lease survives copy construction, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned MLEADERSTYLE keeps both text charges after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final MLEADERSTYLE reset releases its retained text lease");
+        }
+
+        ExposedMLeaderStyle rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.name == styleName
+                     && rejected.description == description
+                     && rejected.textDefault == previousText
+                     && rejectedBudget->used() == styleName.size()
+                         + description.size() + previousText.size(),
+                 "one-byte-under MLEADERSTYLE default-text replacement preserves the previous value and charge");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected MLEADERSTYLE reset releases its retained text lease");
+        }
+    }
+}
+
+void testDxfVisualStyleDescriptionOwnerBudget(TestContext& t) {
+    const std::string previousDescription = "old-visual-style";
+    const std::string description(256u, 'V');
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedVisualStyleDescriptionBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated VISUALSTYLE description records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_VisualStyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedVisualStyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedVisualStyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.desc == description
+                     && admittedBudget->used() == description.size(),
+                 "VISUALSTYLE code-2/code-4 description aliases retain only the replacement value at the exact peak cap");
+        if (exact) {
+            DRW_VisualStyle copied(admitted);
+            DRW_VisualStyle assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == description.size()
+                         && copied.desc == description
+                         && assigned.desc == description,
+                     "VISUALSTYLE description lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == description.size(),
+                     "assigned VISUALSTYLE keeps description charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final VISUALSTYLE reset releases retained description charge");
+        }
+
+        ExposedVisualStyle rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.desc == previousDescription
+                     && rejectedBudget->used() == previousDescription.size(),
+                 "one-byte-under VISUALSTYLE description replacement preserves the old value and charge");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected VISUALSTYLE reset releases its previous description charge");
+        }
+    }
+}
+
+void testDxfGroupDescriptionOwnerBudget(TestContext& t) {
+    const std::string groupName = "GROUP";
+    const std::string previousDescription = "old group description";
+    const std::string description(256u, 'G');
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedGroupDescriptionBudgetWire(binary);
+        t.expect(!records.empty(), "generated GROUP description records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Group* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedGroup group;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!group.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = group;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        ExposedGroup admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == groupName
+                     && admitted.m_description == description
+                     && admittedBudget->used()
+                         == groupName.size() + description.size(),
+                 "GROUP name and replaced description retain only live logical bytes at the exact replacement-peak cap");
+        if (exact) {
+            DRW_Group copied(admitted);
+            DRW_Group assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used()
+                         == groupName.size() + description.size()
+                         && copied.m_description == description
+                         && assigned.m_description == description,
+                     "GROUP description lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used()
+                         == groupName.size() + description.size(),
+                     "assigned GROUP keeps its description charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final GROUP reset releases retained name and description charges");
+        }
+
+        ExposedGroup rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.name == groupName
+                     && rejected.m_description == previousDescription
+                     && rejectedBudget->used()
+                         == groupName.size() + previousDescription.size(),
+                 "one-byte-under GROUP description replacement preserves the prior value and charge");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected GROUP reset releases its retained text lease");
+        }
+
+        const std::string drawing =
+            generatedGroupDescriptionBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated GROUP OBJECTS drawing and sentinel are writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-group-description-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary GROUP OBJECTS input is generated in temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            GroupBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].handle == 0xAu
+                && capture.values[0].m_description == description
+                && capture.values[1].handle == 0xBu
+                && capture.values[1].m_description
+                    == "following description";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        GroupBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(facadeExactCap != 0u && refused
+                     && callbacksAfterRefusal == 0u,
+                 "one-byte-under GROUP OBJECTS budget refuses before callbacks");
+        t.expect(resourceDiagnostic,
+                 "GROUP OBJECTS retained-byte refusal reports ResourceLimit");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].m_description == description
+                     && capture.values[1].m_description
+                         == "following description",
+                 "same-facade exact-budget retry publishes GROUP and following sentinel");
+    }
+}
+
+void testDxfTextstyleTextOwnerBudget(TestContext& t) {
+    const std::string styleName = "STANDARD";
+    const std::string oldFont = "old-font";
+    const std::string oldBigFont = "old-bigfont";
+    const std::string font = "LiberationSans.ttf";
+    const std::string bigFont(256u, 'B');
+    const std::size_t expectedOwnerBytes = styleName.size()
+        + font.size() + bigFont.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedTextstyleTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated STYLE font-name records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Textstyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedTextstyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedTextstyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == styleName
+                     && admitted.font == font
+                     && admitted.bigFont == bigFont
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "STYLE name, font and bigfont retain only live logical bytes at the exact cap");
+
+        if (exact) {
+            ExposedTextstyle copied(admitted);
+            ExposedTextstyle assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.font == font
+                         && assigned.bigFont == bigFont,
+                     "STYLE font-name lease survives copy construction, assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned STYLE keeps font-name charges after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u
+                         && assigned.font == "txt"
+                         && assigned.bigFont.empty(),
+                     "final STYLE reset releases font-name lease and restores defaults");
+        }
+
+        if (exactCap != 0u) {
+            ExposedTextstyle rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u, &rejected,
+                                            &rejectedBudget);
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.name == styleName
+                         && rejected.font == font
+                         && rejected.bigFont == oldBigFont
+                         && rejectedBudget->used() == styleName.size()
+                             + font.size() + oldBigFont.size(),
+                     "one-byte-under STYLE bigfont replacement preserves the prior value and live charges");
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected STYLE reset releases retained font-name bytes");
+        }
+
+        const std::string drawing =
+            generatedTextstyleTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated STYLE TABLES drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-style-font-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary STYLE TABLES source is generated in temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            TextstyleBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].name == styleName
+                && capture.values[0].font == font
+                && capture.values[0].bigFont == bigFont
+                && capture.values[1].name == "SENTINEL_STYLE"
+                && capture.values[1].font == "next-font";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        TextstyleBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under STYLE TABLES input is refused before style callbacks");
+        t.expect(resourceDiagnostic,
+                 "STYLE retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].font == font
+                     && capture.values[0].bigFont == bigFont
+                     && capture.values[1].name == "SENTINEL_STYLE",
+                 "same-facade exact-budget retry recovers STYLE and following-row sentinel");
+    }
+}
+
+void testDxfDimstyleTextOwnerBudget(TestContext& t) {
+    const std::string longPost(256u, 'P');
+    const std::size_t expectedOwnerBytes = std::string("STANDARD").size()
+        + longPost.size() + std::string("alternate-post").size()
+        + 5u * 2u;
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedDimstyleTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DIMSTYLE retained-text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedDimstyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedDimstyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedDimstyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == "STANDARD"
+                     && admitted.dimpost == longPost
+                     && admitted.dimapost == "alternate-post"
+                     && admitted.dimblk == "2B"
+                     && admitted.dimblk1 == "2C"
+                     && admitted.dimblk2 == "2D"
+                     && admitted.dimtxsty == "2A"
+                     && admitted.dimldrblk == "2E"
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "DIMSTYLE prefix, arrow and style-reference text retain only final logical values at exact peak");
+
+        if (exact) {
+            ExposedDimstyle copied(admitted);
+            ExposedDimstyle assigned;
+            assigned = admitted;
+            ExposedDimstyle moved(std::move(copied));
+            ExposedDimstyle moveAssigned;
+            moveAssigned = std::move(moved);
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && moveAssigned.dimpost == longPost
+                         && assigned.dimldrblk == "2E"
+                         && copied.dimpost.empty()
+                         && copied.dimblk.empty()
+                         && moved.dimpost.empty(),
+                     "DIMSTYLE text lease follows copy, assignment and move construction/assignment without retaining moved-from strings");
+            moved.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned DIMSTYLE keeps text charges after sibling and moved-from resets");
+            moveAssigned.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "remaining DIMSTYLE copy keeps text charges after moved destination reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DIMSTYLE reset releases all retained text owners");
+        }
+
+        std::ostringstream replacementOutput(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> replacementWriter = binary
+            ? std::unique_ptr<dxfWriter>(
+                  new dxfWriterBinary(&replacementOutput))
+            : std::unique_ptr<dxfWriter>(
+                  new dxfWriterAscii(&replacementOutput));
+        const bool replacementWritten =
+            replacementWriter->writeString(3, "old-post")
+            && replacementWriter->writeString(3, longPost);
+        replacementWriter.reset();
+        const std::string replacementRecords = replacementWritten
+            ? replacementOutput.str() : std::string{};
+        ExposedDimstyle rejectedReplacement;
+        std::shared_ptr<DxfReadRetainedBudget> replacementBudget;
+        const bool replacementUnder = !parseRecords(
+            replacementRecords, std::string("old-post").size()
+                + longPost.size() - 1u,
+            &rejectedReplacement, &replacementBudget);
+        t.expect(replacementUnder && replacementBudget != nullptr
+                     && replacementBudget->exceeded()
+                     && rejectedReplacement.dimpost == "old-post"
+                     && replacementBudget->used()
+                            == std::string("old-post").size(),
+                 "one-byte-under DIMSTYLE prefix replacement preserves the previous value and charge");
+        rejectedReplacement.reset();
+        t.expect(replacementBudget != nullptr
+                     && replacementBudget->used() == 0u,
+                 "rejected DIMSTYLE replacement releases its surviving lease on reset");
+
+        const std::string drawing =
+            generatedDimstyleTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated DIMSTYLE TABLES drawing and following sentinel are writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-dimstyle-text-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary DIMSTYLE TABLES source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            DimstyleBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].dimpost == longPost
+                && capture.values[0].dimblk == "2B"
+                && capture.values[0].dimtxsty == "2A"
+                && capture.values[1].name == "SENTINEL_DIMSTYLE"
+                && capture.values[1].dimpost == "sentinel-post";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+        t.expect(facadeExactCap != 0u && fullReadSucceeds(facadeExactCap),
+                 "full DIMSTYLE read has a measured exact retained-byte cap");
+        if (facadeExactCap == 0u)
+            continue;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        DimstyleBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under DIMSTYLE TABLES budget refuses before callbacks");
+        t.expect(resourceDiagnostic,
+                 "DIMSTYLE retained-text refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].dimpost == longPost
+                     && capture.values[1].name == "SENTINEL_DIMSTYLE",
+                 "same-facade exact-budget retry publishes DIMSTYLE and following sentinel");
+    }
+}
+
+void testDxfImageDefNameOwnerBudget(TestContext& t) {
+    const std::string oldName = "old-image.png";
+    const std::string imageName(256u, 'I');
+    const std::string sentinelName = "sentinel-image.png";
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedImageDefNameBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated IMAGEDEF filename records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_ImageDef* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedImageDef image;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!image.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = image;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedImageDef admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == imageName
+                     && admittedBudget->used() == imageName.size(),
+                 "IMAGEDEF filename replacement retains only the live logical bytes at the exact cap");
+        if (exact) {
+            DRW_ImageDef copied(admitted);
+            DRW_ImageDef assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == imageName.size()
+                         && copied.name == imageName
+                         && assigned.name == imageName,
+                     "IMAGEDEF filename lease survives copy construction, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == imageName.size(),
+                     "assigned IMAGEDEF retains the filename charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final IMAGEDEF reset releases the retained filename lease");
+        }
+
+        if (exactCap != 0u) {
+            ExposedImageDef rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u,
+                                            &rejected, &rejectedBudget);
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.name == oldName
+                         && rejectedBudget->used() == oldName.size(),
+                     "one-byte-under IMAGEDEF filename replacement preserves its prior value and charge");
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected IMAGEDEF reset releases the prior filename charge");
+        }
+
+        const std::string drawing =
+            generatedImageDefNameBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated IMAGEDEF OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-imagedef-name-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary IMAGEDEF OBJECTS source is generated in temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            ImageDefBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].name == imageName
+                && capture.values[1].name == sentinelName;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        ImageDefBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under IMAGEDEF OBJECTS input is refused before image callbacks");
+        t.expect(resourceDiagnostic,
+                 "IMAGEDEF retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].name == imageName
+                     && capture.values[1].name == sentinelName,
+                 "same-facade exact-budget retry recovers IMAGEDEF and the following object sentinel");
+    }
+}
+
+void testDxfMaterialTextOwnerBudget(TestContext& t) {
+    const std::string materialName(256u, 'M');
+    const std::string materialDescription(256u, 'D');
+    const std::string oldSpecularMapFileName = "old-specular-map.png";
+    const std::string specularMapFileName(256u, 'F');
+    const std::string oldReflectionMapFileName = "old-reflection-map.exr";
+    const std::string reflectionMapFileName(256u, 'R');
+    const std::string oldOpacityMapFileName = "old-opacity-map.png";
+    const std::string opacityMapFileName(256u, 'O');
+    const std::string bumpMapFileName(256u, 'B');
+    const std::string oldRefractionMapFileName = "old-refraction-map.exr";
+    const std::string refractionMapFileName(256u, 'N');
+    const std::string oldNormalMapFileName = "old-normal-map.png";
+    const std::string normalMapFileName(256u, 'Q');
+    const std::string sentinelName = "SENTINEL_MATERIAL";
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedMaterialTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated MATERIAL text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Material* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedMaterial material;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!material.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = material;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        const std::size_t expectedBytes =
+            materialName.size() + materialDescription.size()
+            + specularMapFileName.size() + reflectionMapFileName.size()
+            + opacityMapFileName.size() + bumpMapFileName.size()
+            + refractionMapFileName.size() + normalMapFileName.size();
+
+        ExposedMaterial admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.m_name == materialName
+                     && admitted.m_description == materialDescription
+                     && admitted.m_specularMapFileName
+                            == specularMapFileName
+                     && admitted.m_reflectionMapFileName
+                            == reflectionMapFileName
+                     && admitted.m_opacityMapFileName == opacityMapFileName
+                     && admitted.m_bumpMapFileName == bumpMapFileName
+                     && admitted.m_refractionMapFileName
+                            == refractionMapFileName
+                     && admitted.m_normalMapFileName == normalMapFileName
+                     && admittedBudget->used() == expectedBytes,
+                 "MATERIAL name, description, and map filename replacements retain only live logical bytes at the exact cap");
+        if (exact) {
+            DRW_Material copied(admitted);
+            DRW_Material assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedBytes
+                         && copied.m_name == materialName
+                         && assigned.m_description == materialDescription
+                         && copied.m_specularMapFileName
+                                == specularMapFileName
+                         && assigned.m_reflectionMapFileName
+                                == reflectionMapFileName
+                         && copied.m_opacityMapFileName == opacityMapFileName
+                     && assigned.m_bumpMapFileName == bumpMapFileName
+                     && copied.m_refractionMapFileName
+                            == refractionMapFileName
+                     && assigned.m_normalMapFileName == normalMapFileName,
+                     "MATERIAL text lease survives copy construction, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedBytes,
+                     "assigned MATERIAL retains both text charges after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final MATERIAL reset releases both retained text charges");
+        }
+
+        ExposedMaterial rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        const std::size_t expectedUnderBytes =
+            materialName.size() + materialDescription.size()
+            + specularMapFileName.size() + reflectionMapFileName.size()
+            + opacityMapFileName.size() + bumpMapFileName.size();
+        const std::size_t expectedUnderBytesWithRefraction =
+            expectedUnderBytes + refractionMapFileName.size()
+            + oldNormalMapFileName.size();
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.m_name == materialName
+                     && rejected.m_description == materialDescription
+                     && rejected.m_specularMapFileName
+                            == specularMapFileName
+                     && rejected.m_reflectionMapFileName
+                            == reflectionMapFileName
+                     && rejected.m_opacityMapFileName == opacityMapFileName
+                     && rejected.m_bumpMapFileName == bumpMapFileName
+                     && rejected.m_refractionMapFileName
+                            == refractionMapFileName
+                     && rejected.m_normalMapFileName == oldNormalMapFileName
+                     && rejectedBudget->used() == expectedUnderBytesWithRefraction,
+                 "one-byte-under MATERIAL normal-map filename replacement preserves its previous value and live charges");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected MATERIAL reset releases retained text charges");
+        }
+
+        const std::string drawing = generatedMaterialTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated MATERIAL OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-material-text-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary MATERIAL OBJECTS source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            MaterialBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].m_name == materialName
+                && capture.values[0].m_description == materialDescription
+                && capture.values[1].m_name == sentinelName;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        MaterialBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under MATERIAL input is refused before material callbacks");
+        t.expect(resourceDiagnostic,
+                 "MATERIAL retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].m_name == materialName
+                     && capture.values[1].m_name == sentinelName,
+                 "same-facade exact-budget retry recovers MATERIAL and following sentinel");
+    }
+}
+
+void testDxfUnderlayDefinitionTextOwnerBudget(TestContext& t) {
+    const std::string oldFilename = "old.pdf";
+    const std::string oldSheet = "old sheet";
+    const std::string filename(256u, 'U');
+    const std::string sheetName(256u, 'S');
+    const std::size_t expectedBytes = filename.size() + sheetName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedUnderlayTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated UNDERLAYDEFINITION text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_UnderlayDefinition* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedUnderlayDefinition definition;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = definition;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        ExposedUnderlayDefinition admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.filename == filename
+                     && admitted.sheetName == sheetName
+                     && admittedBudget->used() == expectedBytes,
+                 "UNDERLAYDEFINITION filename and sheet name retain only current logical bytes");
+        if (exact) {
+            DRW_UnderlayDefinition copied(admitted);
+            DRW_UnderlayDefinition assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedBytes
+                         && copied.filename == filename
+                         && assigned.sheetName == sheetName,
+                     "UNDERLAYDEFINITION text lease survives copy construction, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedBytes,
+                     "assigned UNDERLAYDEFINITION keeps text charges after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final UNDERLAYDEFINITION reset releases both text charges");
+        }
+
+        ExposedUnderlayDefinition rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = !parseRecords(records, exactCap - 1u, &rejected,
+                                         &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.filename == filename
+                     && rejected.sheetName == oldSheet
+                     && rejectedBudget->used() == filename.size()
+                         + oldSheet.size(),
+                 "one-byte-under UNDERLAYDEFINITION replacement preserves the old sheet and live charges");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected UNDERLAYDEFINITION reset releases retained text");
+        }
+
+        const std::string drawing = generatedUnderlayTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated UNDERLAYDEFINITION OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-underlay-text-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary UNDERLAYDEFINITION OBJECTS source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string path = binaryPath.string();
+            dxfRW codec(binary ? path.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            UnderlayDefinitionBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].filename == filename
+                && capture.values[0].sheetName == sheetName
+                && capture.values[1].filename == "sentinel.pdf";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string path = binaryPath.string();
+        dxfRW codec(binary ? path.c_str() : nullptr);
+        UnderlayDefinitionBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under UNDERLAYDEFINITION input is refused before callbacks");
+        t.expect(resourceDiagnostic,
+                 "UNDERLAYDEFINITION retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].filename == filename
+                     && capture.values[1].filename == "sentinel.pdf",
+                 "same-facade exact-budget retry recovers UNDERLAYDEFINITION and sentinel");
+    }
+}
+
+void testDxfScaleNameOwnerBudget(TestContext& t) {
+    const std::string oldName = "old-scale";
+    const std::string scaleName(256u, 'S');
+    const std::string sentinelName = "SENTINEL_SCALE";
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedScaleNameBudgetWire(binary);
+        t.expect(!records.empty(), "generated SCALE name records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Scale* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedScale scale;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!scale.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = scale;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedScale admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.name == scaleName
+                     && admittedBudget->used() == scaleName.size(),
+                 "SCALE code-2/code-300 aliases share one live-name charge");
+        if (exact) {
+            ExposedScale copied(admitted);
+            ExposedScale assigned;
+            assigned = admitted;
+            assigned.reset();
+            t.expect(admittedBudget->used() == scaleName.size()
+                         && copied.name == scaleName,
+                     "SCALE inherited name lease survives copy/assignment lifetime");
+            copied.reset();
+            t.expect(admittedBudget->used() == scaleName.size(),
+                     "SCALE copy keeps name lease after sibling reset");
+            admitted.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final SCALE reset releases the inherited name charge");
+        }
+
+        ExposedScale rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.name == oldName
+                     && rejectedBudget->used() == oldName.size(),
+                 "one-byte-under SCALE alternate-code replacement preserves the base name");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected SCALE reset releases its prior name charge");
+        }
+
+        const std::string drawing = generatedScaleNameBudgetWire(binary, true);
+        t.expect(!drawing.empty(), "generated SCALE OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-scale-name-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary SCALE OBJECTS source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string path = binaryPath.string();
+            dxfRW codec(binary ? path.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            ScaleNameBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].name == scaleName
+                && capture.values[1].name == sentinelName;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string path = binaryPath.string();
+        dxfRW codec(binary ? path.c_str() : nullptr);
+        ScaleNameBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "under-cap SCALE OBJECTS input is refused before scale callbacks");
+        t.expect(resourceDiagnostic,
+                 "SCALE retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].name == scaleName
+                     && capture.values[1].name == sentinelName,
+                 "same-facade exact-budget retry recovers SCALE and sentinel");
+    }
+}
+
+void testDxfPointCloudDefFilenameOwnerBudget(TestContext& t) {
+    const std::string oldFilename = "old-pointcloud.pts";
+    const std::string sourceFilename(256u, 'P');
+    const std::string sentinelFilename = "SENTINEL_POINTCLOUD.pts";
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedPointCloudDefNameBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated POINTCLOUDDEFINITION filename records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_PointCloudDef* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedPointCloudDef definition;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = definition;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedPointCloudDef admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.m_sourceFilename == sourceFilename
+                     && admittedBudget->used() == sourceFilename.size(),
+                 "POINTCLOUDDEFINITION filename replacement retains only current logical bytes");
+        if (exact) {
+            DRW_PointCloudDef copied(admitted);
+            DRW_PointCloudDef assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == sourceFilename.size()
+                         && copied.m_sourceFilename == sourceFilename
+                         && assigned.m_sourceFilename == sourceFilename,
+                     "POINTCLOUDDEFINITION filename lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == sourceFilename.size(),
+                     "assigned POINTCLOUDDEFINITION keeps the filename charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final POINTCLOUDDEFINITION reset releases its filename charge");
+        }
+
+        ExposedPointCloudDef rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.m_sourceFilename == oldFilename
+                     && rejectedBudget->used() == oldFilename.size(),
+                 "one-byte-under POINTCLOUDDEFINITION filename replacement preserves prior value and charge");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected POINTCLOUDDEFINITION reset releases its prior filename charge");
+        }
+
+        const std::string drawing =
+            generatedPointCloudDefNameBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated POINTCLOUDDEFINITION OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-pointclouddef-name-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary POINTCLOUDDEFINITION OBJECTS source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string path = binaryPath.string();
+            dxfRW codec(binary ? path.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            PointCloudDefBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].m_sourceFilename == sourceFilename
+                && capture.values[1].m_sourceFilename == sentinelFilename;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string path = binaryPath.string();
+        dxfRW codec(binary ? path.c_str() : nullptr);
+        PointCloudDefBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "under-cap POINTCLOUDDEFINITION input is refused before callbacks");
+        t.expect(resourceDiagnostic,
+                 "POINTCLOUDDEFINITION retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].m_sourceFilename == sourceFilename
+                     && capture.values[1].m_sourceFilename == sentinelFilename,
+                 "same-facade exact-budget retry recovers POINTCLOUDDEFINITION and sentinel");
+    }
+}
+
+void testDxfPointCloudExNameOwnerBudget(TestContext& t) {
+    const std::string name(256u, 'N');
+    const std::string intensityScheme(257u, 'I');
+    const std::string currentScheme(258u, 'C');
+    const std::string classificationScheme(259u, 'K');
+    const std::size_t retainedTextBytes = name.size()
+        + intensityScheme.size() + currentScheme.size()
+        + classificationScheme.size();
+    const std::size_t expectedOwnerBytes = retainedTextBytes + 1u; // layer "0"
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedPointCloudExNameBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated POINTCLOUDEX text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_PointCloudEx* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedPointCloudEx pointCloud;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!pointCloud.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && pointCloud.finalizeDxf()
+                && !budget->exceeded();
+            if (output != nullptr)
+                *output = pointCloud;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedPointCloudEx admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr,
+                 "POINTCLOUDEX generated text streams parse at the measured cap");
+        t.expect(admitted.name == name
+                     && admitted.intensityColorScheme == intensityScheme
+                     && admitted.currentColorScheme == currentScheme
+                     && admitted.classificationColorScheme
+                            == classificationScheme,
+                 "POINTCLOUDEX name and color-scheme fields are retained");
+        t.expect(admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "POINTCLOUDEX fields charge exact retained logical bytes");
+        if (exact) {
+            ExposedPointCloudEx copied(admitted);
+            ExposedPointCloudEx assigned;
+            assigned = admitted;
+            admitted.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.name == name
+                         && assigned.classificationColorScheme
+                                == classificationScheme,
+                     "POINTCLOUDEX text lease survives copy/assignment and source reset");
+            copied.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned POINTCLOUDEX keeps its shared text charge");
+            assigned.resetDwgState();
+            t.expect(admittedBudget->used() == 0u,
+                     "final POINTCLOUDEX reset releases text ownership");
+        }
+
+        ExposedPointCloudEx underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded(),
+                 "one-byte-under POINTCLOUDEX text budget refuses the generated record stream");
+        if (underBudgetLedger != nullptr) {
+            underBudget.resetDwgState();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected POINTCLOUDEX parser releases retained text charges on reset");
+        }
+
+        const std::string drawing =
+            generatedPointCloudExNameBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated POINTCLOUDEX entities drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-pointcloudex-name-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary POINTCLOUDEX drawing uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string path = binaryPath.string();
+            dxfRW codec(binary ? path.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            PointCloudExNameBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.pointClouds.size() == 1u
+                && capture.lines.size() == 1u
+                && capture.pointClouds.front().name == name
+                && capture.pointClouds.front().classificationColorScheme
+                    == classificationScheme
+                && capture.lines.front().basePoint.x == 1.0
+                && capture.lines.front().secPoint.z == 6.0;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string path = binaryPath.string();
+        dxfRW codec(binary ? path.c_str() : nullptr);
+        PointCloudExNameBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const bool withheld = capture.pointClouds.empty()
+            && capture.lines.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && withheld,
+                 "under-cap POINTCLOUDEX input is refused before entity and sentinel callbacks");
+        t.expect(resourceDiagnostic,
+                 "POINTCLOUDEX retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.pointClouds.size() == 1u
+                     && capture.lines.size() == 1u
+                     && capture.pointClouds.front().name == name
+                     && capture.pointClouds.front().intensityColorScheme
+                            == intensityScheme
+                     && capture.pointClouds.front().currentColorScheme
+                            == currentScheme
+                     && capture.pointClouds.front().classificationColorScheme
+                            == classificationScheme
+                     && capture.lines.front().basePoint.x == 1.0
+                     && capture.lines.front().secPoint.z == 6.0,
+                 "same-facade exact-budget retry publishes POINTCLOUDEX and LINE sentinel");
+    }
+}
+
+void testDxfPointCloudTextOwnerBudget(TestContext& t) {
+    const std::string filename(256u, 'F');
+    const std::string sourceA(257u, 'A');
+    const std::string sourceB(258u, 'B');
+    const std::string ucsName(259u, 'U');
+    const std::size_t expectedOwnerBytes = filename.size() + sourceA.size()
+        + sourceB.size() + ucsName.size() + 1u; // inherited layer "0"
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedPointCloudNameBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated POINTCLOUD text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_PointCloud* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedPointCloud pointCloud;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!pointCloud.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && pointCloud.finalizeDxf()
+                && !budget->exceeded();
+            if (output != nullptr)
+                *output = pointCloud;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedPointCloud admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.savedFilename == filename
+                     && admitted.sourceFiles.size() == 2u
+                     && admitted.sourceFiles[0] == sourceA
+                     && admitted.sourceFiles[1] == sourceB
+                     && admitted.ucsName == ucsName,
+                 "POINTCLOUD retains filename, bounded source-file list, and UCS name");
+        t.expect(admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "POINTCLOUD strings charge exact retained logical bytes");
+        if (exact) {
+            ExposedPointCloud copied(admitted);
+            ExposedPointCloud assigned;
+            assigned = admitted;
+            admitted.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.sourceFiles.size() == 2u
+                         && assigned.ucsName == ucsName,
+                     "POINTCLOUD aggregate text lease survives copy/assignment and source reset");
+            copied.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned POINTCLOUD keeps its shared text charge");
+            assigned.resetDwgState();
+            t.expect(admittedBudget->used() == 0u,
+                     "final POINTCLOUD reset releases text ownership");
+        }
+
+        ExposedPointCloud underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded(),
+                 "one-byte-under POINTCLOUD aggregate text budget refuses the record stream");
+        if (underBudgetLedger != nullptr) {
+            underBudget.resetDwgState();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected POINTCLOUD parse releases text ownership on reset");
+        }
+    }
+}
+
+void testDxfPointCloudColorMapSchemeOwnerBudget(TestContext& t) {
+    const std::string intensity(100u, 'I');
+    const std::string elevation(101u, 'E');
+    const std::string classification(102u, 'C');
+    const std::string rampA(103u, 'A');
+    const std::string rampB(104u, 'B');
+    const std::string classRamp(105u, 'K');
+    const std::size_t expectedOwnerBytes = intensity.size() + elevation.size()
+        + classification.size() + rampA.size() + rampB.size()
+        + classRamp.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedPointCloudColorMapSchemeOwnerWire(binary);
+        t.expect(!records.empty(),
+                 "generated POINTCLOUDCOLORMAP scheme records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_PointCloudColorMap* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedPointCloudColorMap colorMap;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!colorMap.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = colorMap;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedPointCloudColorMap admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_defaultIntensityColorScheme == intensity
+                     && admitted.m_defaultElevationColorScheme == elevation
+                     && admitted.m_defaultClassificationColorScheme
+                            == classification
+                     && admitted.m_colorRamps.size() == 1u
+                     && admitted.m_colorRamps.front().m_colorSchemes.size()
+                            == 2u
+                     && admitted.m_colorRamps.front().m_colorSchemes[0] == rampA
+                     && admitted.m_colorRamps.front().m_colorSchemes[1] == rampB
+                     && admitted.m_classificationColorRamps.size() == 1u
+                     && admitted.m_classificationColorRamps.front()
+                            .m_colorSchemes.front() == classRamp,
+                 "POINTCLOUDCOLORMAP retains default and both ramp scheme families");
+        t.expect(admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "POINTCLOUDCOLORMAP scheme strings charge exact logical bytes");
+        if (exact) {
+            ExposedPointCloudColorMap copied(admitted);
+            ExposedPointCloudColorMap assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_colorRamps.front().m_colorSchemes[1]
+                                == rampB
+                         && assigned.m_classificationColorRamps.front()
+                                .m_colorSchemes.front() == classRamp,
+                     "POINTCLOUDCOLORMAP text lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned POINTCLOUDCOLORMAP keeps all scheme charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final POINTCLOUDCOLORMAP reset releases scheme ownership");
+        }
+
+        ExposedPointCloudColorMap underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded(),
+                 "one-byte-under POINTCLOUDCOLORMAP scheme budget refuses the stream");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected POINTCLOUDCOLORMAP parse releases partial ownership on reset");
+        }
+    }
+}
+
+void testDxfLayerTextOwnerBudget(TestContext& t) {
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string layerName = "LAYERA";
+    const std::string oldLineType = "OLD";
+    const std::string lineType = "NEWLINETYPE";
+    const std::string plotStyle = "1A";
+    const std::string material = "2B";
+    const std::size_t expectedOwnerBytes = layerName.size() + lineType.size()
+        + plotStyle.size() + material.size();
+    const std::size_t replacementPeakBytes = expectedOwnerBytes
+        + oldLineType.size();
+    const std::size_t priorOwnerBytes = layerName.size() + oldLineType.size()
+        + plotStyle.size() + material.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedLayerTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated LAYER text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Layer* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget,
+            bool* outputTokensTransferred) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            LayerParseProbe layer;
+            bool parsed = true;
+            bool tokensTransferred = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!layer.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+                if ((code == DRW::dxfCode::PLOTSTYLE || code == 347)
+                    && !reader->getStringView().empty())
+                    tokensTransferred = false;
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = layer;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            if (outputTokensTransferred != nullptr)
+                *outputTokensTransferred = tokensTransferred;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        LayerParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        bool admittedTokensTransferred = false;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget,
+                                        &admittedTokensTransferred);
+        t.expect(exact && admitted.name == layerName
+                     && admitted.lineType == lineType
+                     && admitted.handlePlotS == plotStyle
+                     && admitted.handleMaterialS == material,
+                 "LAYER retains its name, replacement linetype, plotstyle, and material handle");
+        t.expect(admittedTokensTransferred,
+                 "LAYER transfers plotstyle and material handle tokens from the reader in ASCII/Binary DXF");
+        t.expect(exactCap >= replacementPeakBytes
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LAYER owner counters charge live text while admission covers the replacement peak");
+        if (exact) {
+            LayerParseProbe copied(admitted);
+            LayerParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.lineType == lineType
+                         && assigned.handleMaterialS == material,
+                     "LAYER parsed text lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned LAYER keeps its shared text charge");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final LAYER reset releases all parsed text owners");
+        }
+
+        LayerParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger, nullptr);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.name == layerName
+                     && underBudget.lineType == oldLineType
+                     && underBudget.handlePlotS == plotStyle
+                     && underBudget.handleMaterialS == material
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under LAYER replacement preserves the prior linetype and all live text charges");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected LAYER parse releases prior text charges on reset");
+        }
+    }
+}
+
+void testDxfTableStyleNameOwnerBudget(TestContext& t) {
+    class TableStyleParseProbe final : public DRW_TableStyle {
+    public:
+        using DRW_TableStyle::parseCode;
+    };
+
+    const std::string oldName = "OLD";
+    const std::string newName = "TABLESTYLE_NAME_REPLACEMENT";
+    const std::size_t replacementPeakBytes = oldName.size() + newName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedTableStyleNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated TABLESTYLE name-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_TableStyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            TableStyleParseProbe tableStyle;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tableStyle.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = tableStyle;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        TableStyleParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.name == newName
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == newName.size(),
+                 "TABLESTYLE replacement retains only the current name charge");
+        t.expect(exactCap >= replacementPeakBytes,
+                 "TABLESTYLE reader admission covers old and replacement-name peak");
+        if (exact) {
+            TableStyleParseProbe copied(admitted);
+            TableStyleParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == newName.size()
+                         && copied.name == newName
+                         && assigned.name == newName,
+                     "TABLESTYLE name lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == newName.size(),
+                     "assigned TABLESTYLE retains the shared name charge");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final TABLESTYLE reset releases its name charge");
+        }
+
+        TableStyleParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.name == oldName
+                     && underBudgetLedger->used() == oldName.size(),
+                 "one-byte-under TABLESTYLE replacement preserves the old name and charge");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected TABLESTYLE parse releases its old name on reset");
+        }
+    }
+}
+
+void testDxfDictionaryVarValueOwnerBudget(TestContext& t) {
+    class DictionaryVarParseProbe final : public DRW_DictionaryVar {
+    public:
+        using DRW_DictionaryVar::parseCode;
+    };
+
+    const std::string oldValue = "OLD";
+    const std::string newValue = "DICTIONARYVAR_VALUE_REPLACEMENT";
+    const std::size_t replacementPeakBytes = oldValue.size() + newValue.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedDictionaryVarValueOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DICTIONARYVAR value-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_DictionaryVar* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            DictionaryVarParseProbe dictionaryVar;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dictionaryVar.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = dictionaryVar;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        DictionaryVarParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_value == newValue
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == newValue.size(),
+                 "DICTIONARYVAR replacement retains only the live value charge");
+        t.expect(exactCap >= replacementPeakBytes,
+                 "DICTIONARYVAR reader admission covers old and replacement-value peak");
+        if (exact) {
+            DictionaryVarParseProbe copied(admitted);
+            DictionaryVarParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == newValue.size()
+                         && copied.m_value == newValue
+                         && assigned.m_value == newValue,
+                     "DICTIONARYVAR value lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == newValue.size(),
+                     "assigned DICTIONARYVAR retains the shared value charge");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DICTIONARYVAR reset releases its value charge");
+        }
+
+        DictionaryVarParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_value == oldValue
+                     && underBudgetLedger->used() == oldValue.size(),
+                 "one-byte-under DICTIONARYVAR replacement preserves the old value and charge");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected DICTIONARYVAR parse releases the old value on reset");
+        }
+    }
+}
+
+void testDxfDictionaryEntryNameOwnerBudget(TestContext& t) {
+    class DictionaryParseProbe final : public DRW_Dictionary {
+    public:
+        using DRW_Dictionary::parseCode;
+    };
+
+    const std::string firstName = "A";
+    const std::string secondName = "B2";
+    const std::string lastName(128u, 'N');
+    const std::size_t priorOwnerBytes = firstName.size() + secondName.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes + lastName.size();
+    const std::size_t ownerPeakBytes = expectedOwnerBytes;
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedDictionaryEntryNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DICTIONARY entry-name records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Dictionary* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            DictionaryParseProbe dictionary;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dictionary.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && dictionary.hasCompleteDxfEntries()
+                && !budget->exceeded();
+            if (output != nullptr)
+                *output = dictionary;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        DictionaryParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_entries.size() == 3u
+                     && admitted.m_entries[0].m_name == firstName
+                     && admitted.m_entries[0].m_handle == 0xA1u
+                     && admitted.m_entries[0].m_dxfHandleCode
+                            == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+                     && admitted.m_entries[1].m_name == secondName
+                     && admitted.m_entries[1].m_handle == 0xA2u
+                     && admitted.m_entries[1].m_dxfHandleCode
+                            == DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                     && admitted.m_entries[2].m_name == lastName
+                     && admitted.m_entries[2].m_handle == 0xA3u,
+                 "DICTIONARY transfers pending names into ordered soft/hard-owned entries");
+        t.expect(exactCap >= ownerPeakBytes && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "DICTIONARY entry-name aggregation charges each live key exactly once");
+        if (exact) {
+            DictionaryParseProbe copied(admitted);
+            DictionaryParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_entries.size() == 3u
+                         && assigned.m_entries.back().m_name == lastName,
+                     "DICTIONARY entry-name leases survive copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned DICTIONARY keeps all entry-name charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DICTIONARY reset releases the aggregate name lease");
+        }
+
+        DictionaryParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_entries.size() == 2u
+                     && underBudget.m_entries[0].m_name == firstName
+                     && underBudget.m_entries[1].m_name == secondName
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under DICTIONARY name budget refuses before publishing the final key");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected DICTIONARY parse releases retained entry names on reset");
+        }
+    }
+}
+
+void testDxfLayerIndexEntryNameOwnerBudget(TestContext& t) {
+    class LayerIndexParseProbe final : public DRW_LayerIndex {
+    public:
+        using DRW_LayerIndex::parseCode;
+    };
+
+    const std::string firstName = "A";
+    const std::string secondName = "B2";
+    const std::string lastName(128u, 'L');
+    const std::size_t priorOwnerBytes = firstName.size() + secondName.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes + lastName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedLayerIndexEntryNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated LAYER_INDEX entry-name records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_LayerIndex* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            LayerIndexParseProbe layerIndex;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!layerIndex.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && layerIndex.finalizeDxf()
+                && !budget->exceeded();
+            if (output != nullptr)
+                *output = layerIndex;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        LayerIndexParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.entries.size() == 3u
+                     && admitted.entries[0].indexLong == 1
+                     && admitted.entries[0].name == firstName
+                     && admitted.entries[0].entryHandle == 0xB1u
+                     && admitted.entries[1].indexLong == 2
+                     && admitted.entries[1].name == secondName
+                     && admitted.entries[1].entryHandle == 0xB2u
+                     && admitted.entries[2].indexLong == 3
+                     && admitted.entries[2].name == lastName
+                     && admitted.entries[2].entryHandle == 0xB3u,
+                 "LAYER_INDEX transfers each pending name into its ordered indexed handle entry");
+        t.expect(exactCap >= expectedOwnerBytes && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LAYER_INDEX name owners charge each live entry exactly once");
+        if (exact) {
+            LayerIndexParseProbe copied(admitted);
+            LayerIndexParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.entries.size() == 3u
+                         && assigned.entries.back().name == lastName,
+                     "LAYER_INDEX name leases survive copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned LAYER_INDEX retains the aggregate name charge");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final LAYER_INDEX reset releases all entry-name charges");
+        }
+
+        LayerIndexParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.entries.size() == 2u
+                     && underBudget.entries[0].name == firstName
+                     && underBudget.entries[1].name == secondName
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under LAYER_INDEX name budget refuses before the last entry is published");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected LAYER_INDEX parse releases prior entry-name charges on reset");
+        }
+    }
+}
+
+void testDxfRenderSettingsTextOwnerBudget(TestContext& t) {
+    class RenderSettingsParseProbe final : public DRW_RenderSettings {
+    public:
+        using DRW_RenderSettings::parseCode;
+    };
+
+    const std::string name(64u, 'N');
+    const std::string image(80u, 'I');
+    const std::string description(96u, 'D');
+    const std::size_t expectedOwnerBytes = 2u
+        * (name.size() + image.size() + description.size());
+    const std::size_t priorOwnerBytes = 2u * (name.size() + image.size());
+    const std::size_t finalPeakBytes = expectedOwnerBytes
+        + description.size(); // current reader value plus retained aliases
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedRenderSettingsTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated RENDERSETTINGS text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_RenderSettings* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            RenderSettingsParseProbe settings;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!settings.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            if (parsed && !budget->exceeded())
+                settings.finalize();
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = settings;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        RenderSettingsParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_strings.size() == 3u
+                     && admitted.m_strings[0] == name
+                     && admitted.m_strings[1] == image
+                     && admitted.m_strings[2] == description
+                     && admitted.m_name == name
+                     && admitted.m_environmentImageFilename == image
+                     && admitted.m_description == description,
+                 "RENDERSETTINGS preserves positional strings and their named projections");
+        t.expect(exactCap >= finalPeakBytes && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "RENDERSETTINGS charges both raw positional strings and live named projections");
+        if (exact) {
+            RenderSettingsParseProbe copied(admitted);
+            RenderSettingsParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_environmentImageFilename == image
+                         && assigned.m_description == description,
+                     "RENDERSETTINGS text owners survive copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned RENDERSETTINGS keeps all retained text charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final RENDERSETTINGS reset releases vector and projection owners");
+        }
+
+        RenderSettingsParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_strings.size() == 2u
+                     && underBudget.m_strings[0] == name
+                     && underBudget.m_strings[1] == image
+                     && underBudget.m_name == name
+                     && underBudget.m_environmentImageFilename == image
+                     && underBudget.m_description.empty()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under RENDERSETTINGS admission rolls back the unpublishable third string");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected RENDERSETTINGS parse releases positional and named string charges on reset");
+        }
+    }
+}
+
+void testDxfViewportTextOwnerBudget(TestContext& t) {
+    class ViewportParseProbe final : public DRW_Viewport {
+    public:
+        using DRW_Viewport::parseCode;
+        using DRW_Viewport::resetDwgState;
+    };
+
+    const std::string style(128u, 'S');
+    const std::string ambientColor(200u, 'C');
+    const std::size_t expectedOwnerBytes = style.size() + ambientColor.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedViewportTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated VIEWPORT text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Viewport* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ViewportParseProbe viewport;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!viewport.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = viewport;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ViewportParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.styleSheet == style
+                     && admitted.ambientColorName == ambientColor,
+                 "VIEWPORT retains the replacement style sheet and final ambient color name");
+        t.expect(exactCap >= expectedOwnerBytes + ambientColor.size()
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "VIEWPORT owner lease charges only live strings after color-code replacement");
+        if (exact) {
+            ViewportParseProbe copied(admitted);
+            ViewportParseProbe assigned;
+            assigned = admitted;
+            admitted.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.styleSheet == style
+                         && assigned.ambientColorName == ambientColor,
+                     "VIEWPORT text leases survive copy/assignment and source reset");
+            copied.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned VIEWPORT keeps the style/name lease");
+            assigned.resetDwgState();
+            t.expect(admittedBudget->used() == 0u,
+                     "final VIEWPORT reset releases both retained text owners");
+        }
+
+        ViewportParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.styleSheet == style
+                     && underBudget.ambientColorName.empty()
+                     && underBudgetLedger->used() == style.size(),
+                 "one-byte-under VIEWPORT color-name admission preserves the live style and prior color clearing");
+        if (underBudgetLedger != nullptr) {
+            underBudget.resetDwgState();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected VIEWPORT parse releases style and ambient-name charges on reset");
+        }
+    }
+}
+
+void testDxfLayerFilterNameOwnerBudget(TestContext& t) {
+    class LayerFilterParseProbe final : public DRW_LayerFilter {
+    public:
+        using DRW_LayerFilter::parseCode;
+    };
+
+    const std::string firstName = "LayerA";
+    const std::string secondName(64u, 'F');
+    const std::size_t expectedOwnerBytes = firstName.size() + secondName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedLayerFilterNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated LAYERFILTER name-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_LayerFilter* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            LayerFilterParseProbe filter;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!filter.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = filter;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        LayerFilterParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_names.size() == 2u
+                     && admitted.m_names[0] == firstName
+                     && admitted.m_names[1] == secondName
+                     && admitted.m_nameCount == 2u
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LAYERFILTER names and count are retained under the aggregate owner budget");
+        if (exact) {
+            LayerFilterParseProbe copied(admitted);
+            LayerFilterParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_names[1] == secondName
+                         && assigned.m_nameCount == 2u,
+                     "LAYERFILTER name lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned LAYERFILTER keeps both name charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final LAYERFILTER reset releases all name owners");
+        }
+
+        LayerFilterParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_names.size() == 1u
+                     && underBudget.m_names.front() == firstName
+                     && underBudget.m_nameCount == 1u
+                     && underBudgetLedger->used() == firstName.size(),
+                 "one-byte-under LAYERFILTER growth rejects the second name and preserves the first");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected LAYERFILTER parse releases retained names on reset");
+        }
+    }
+}
+
+void testDxfLightListNameOwnerBudget(TestContext& t) {
+    class LightListParseProbe final : public DRW_LightList {
+    public:
+        using DRW_LightList::parseCode;
+    };
+
+    const std::string firstName = "LightA";
+    const std::string secondName = "LightB";
+    const std::string lastName(128u, 'L');
+    const std::size_t priorOwnerBytes = firstName.size() + secondName.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes + lastName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedLightListNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated LIGHTLIST name-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_LightList* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            LightListParseProbe lightList;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!lightList.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = lightList;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        LightListParseProbe admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admitted.m_lightCount == 3u
+                     && admitted.m_lights.size() == 3u
+                     && admitted.m_lights[0].m_handle == 0xA1u
+                     && admitted.m_lights[0].m_name == firstName
+                     && admitted.m_lights[1].m_handle == 0xA2u
+                     && admitted.m_lights[1].m_name == secondName
+                     && admitted.m_lights[2].m_handle == 0xA3u
+                     && admitted.m_lights[2].m_name == lastName
+                     && admittedBudget != nullptr
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LIGHTLIST retains each named handle entry exactly once and in order");
+        if (exact) {
+            LightListParseProbe copied(admitted);
+            LightListParseProbe assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_lights.size() == 3u
+                         && assigned.m_lights.back().m_name == lastName,
+                     "LIGHTLIST name lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned LIGHTLIST keeps all named-entry charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final LIGHTLIST reset releases its name lease");
+        }
+
+        LightListParseProbe underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_lights.size() == 2u
+                     && underBudget.m_lights[0].m_name == firstName
+                     && underBudget.m_lights[1].m_name == secondName
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under LIGHTLIST admission refuses before publishing the final named light");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected LIGHTLIST parse releases prior names on reset");
+        }
+    }
+}
+
+void testDxfDimensionAssociationXrefTextOwnerBudget(TestContext& t) {
+    const std::string className = "AcDbOsnapPointRef";
+    const std::string xrefText(160u, 'X');
+    const std::string intersectionXrefText(128u, 'I');
+    const std::string secondXrefText(96u, 'Y');
+    const std::size_t priorOwnerBytes = className.size() + xrefText.size()
+        + intersectionXrefText.size() + className.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes
+        + secondXrefText.size();
+
+    for (const bool binary : {false, true}) {
+        {
+            std::ostringstream orphanWire(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> orphanWriter = binary
+                ? std::unique_ptr<dxfWriter>(
+                      new dxfWriterBinary(&orphanWire))
+                : std::unique_ptr<dxfWriter>(
+                      new dxfWriterAscii(&orphanWire));
+            const bool orphanWritable =
+                orphanWriter->writeString(100, "AcDbDimAssoc")
+                && orphanWriter->writeString(301, "ORPHAN-XREF")
+                && orphanWriter->writeString(1, "AcDbOsnapPointRef")
+                && orphanWriter->writeInt16(72, 1)
+                && orphanWriter->writeString(331, "B1")
+                && orphanWriter->writeString(301, "ATTACHED-XREF");
+            t.expect(orphanWritable,
+                     "generated orphan DIMASSOC XREF controls are writable");
+            if (orphanWritable) {
+                const std::string orphanRecords = orphanWire.str();
+                std::istringstream input(orphanRecords,
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(
+                          new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(
+                          new dxfReaderAscii(&input));
+                auto budget = std::make_shared<DxfReadRetainedBudget>(256u);
+                reader->setRetainedByteBudget(budget);
+                ExposedDimensionAssociation association;
+                bool parsed = true;
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (!association.parseCode(code, reader)) {
+                        parsed = false;
+                        break;
+                    }
+                }
+                t.expect(parsed && association.m_hasUnrepresentableDetail
+                             && association.m_osnapRefs.size() == 1u
+                             && association.m_osnapRefs[0].m_className
+                                 == className
+                             && association.m_osnapRefs[0]
+                                    .m_xrefObjectHandleString
+                                 == "ATTACHED-XREF"
+                             && budget->used()
+                                 == className.size()
+                                     + std::string("ATTACHED-XREF").size(),
+                         "orphan XREF is discarded without desynchronizing the following owned reference in ASCII/Binary DXF");
+            }
+        }
+
+        const std::string records =
+            generatedDimensionAssociationXrefTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DIMASSOC XREF text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_DimensionAssociation* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedDimensionAssociation association;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!association.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = association;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedDimensionAssociation admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_osnapRefs.size() == 2u
+            && admitted.m_hasUnrepresentableDetail
+            && admitted.m_osnapRefs[0].m_className == className
+            && admitted.m_osnapRefs[0].m_xrefObjectHandleString == xrefText
+            && admitted.m_osnapRefs[0].m_intersectionXrefObjectHandleString
+                == intersectionXrefText
+            && admitted.m_osnapRefs[1].m_className == className
+            && admitted.m_osnapRefs[1].m_xrefObjectHandleString
+                == secondXrefText
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "DIMASSOC charges each live class/XREF string once, replacing duplicate XREF text");
+        if (retained) {
+            ExposedDimensionAssociation copied(admitted);
+            ExposedDimensionAssociation assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_osnapRefs[0].m_xrefObjectHandleString
+                             == xrefText
+                         && assigned.m_osnapRefs[1].m_xrefObjectHandleString
+                             == secondXrefText,
+                     "DIMASSOC XREF text leases survive copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned DIMASSOC keeps all retained XREF text charges");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DIMASSOC reset releases all class/XREF text owners");
+        }
+
+        ExposedDimensionAssociation underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool refusedReplacement = underBudget.m_osnapRefs.size() == 1u
+            && underBudget.m_osnapRefs[0].m_xrefObjectHandleString
+                == "XREF_OLD"
+            && underBudgetLedger != nullptr
+            && underBudgetLedger->used()
+                == className.size() + std::string("XREF_OLD").size();
+        const bool refusedFinalString = underBudget.m_osnapRefs.size() == 2u
+            && underBudget.m_osnapRefs[0].m_xrefObjectHandleString == xrefText
+            && underBudget.m_osnapRefs[0]
+                   .m_intersectionXrefObjectHandleString
+                == intersectionXrefText
+            && underBudget.m_osnapRefs[1].m_xrefObjectHandleString.empty()
+            && underBudgetLedger != nullptr
+            && underBudgetLedger->used() == priorOwnerBytes;
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && (refusedReplacement || refusedFinalString),
+                 "one-byte-under DIMASSOC budget refuses atomically at an XREF string boundary");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected DIMASSOC parse releases prior class/XREF text owners on reset");
+        }
+    }
+}
+
+void testDxfDataLinkTextOwnerBudget(TestContext& t) {
+    const std::string adapter = "EXCEL";
+    const std::string description(64u, 'D');
+    const std::string tooltip(72u, 'T');
+    const std::string connection(80u, 'C');
+    const std::string updateStatus(88u, 'S');
+    const std::string firstCustom(96u, '1');
+    const std::string finalCustom(128u, '2');
+    const std::size_t priorOwnerBytes = adapter.size() + description.size()
+        + tooltip.size() + connection.size() + updateStatus.size()
+        + firstCustom.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes + finalCustom.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedDataLinkTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DATALINK text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_DataLink* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedDataLink dataLink;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dataLink.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = dataLink;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedDataLink admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_dataAdapter == adapter
+            && admitted.m_description == description
+            && admitted.m_tooltip == tooltip
+            && admitted.m_connectionString == connection
+            && admitted.m_updateStatus == updateStatus
+            && admitted.m_customData.size() == 2u
+            && admitted.m_customData[0].m_targetHandle == 0xA1u
+            && admitted.m_customData[0].m_text == firstCustom
+            && admitted.m_customData[1].m_targetHandle == 0xA2u
+            && admitted.m_customData[1].m_text == finalCustom
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "DATALINK charges all published scalar and custom-data text owners exactly once");
+
+        std::string customDataMarkerRecords = records;
+        const std::size_t beginPosition =
+            customDataMarkerRecords.find("DATAMAP_BEGIN");
+        const bool replacedBegin = beginPosition != std::string::npos;
+        if (replacedBegin)
+            customDataMarkerRecords.replace(beginPosition,
+                std::string("DATAMAP_BEGIN").size(), "CUSTOMDATA");
+        ExposedDataLink customDataMarkerRoute;
+        std::shared_ptr<DxfReadRetainedBudget> customDataMarkerBudget;
+        const bool customDataMarkerParsed = replacedBegin && parseRecords(
+            customDataMarkerRecords, 1u << 20u, &customDataMarkerRoute,
+            &customDataMarkerBudget);
+        t.expect(customDataMarkerParsed
+                     && customDataMarkerRoute.m_customData.size() == 2u
+                     && customDataMarkerRoute.m_updateStatus == updateStatus,
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " DATALINK accepts the CUSTOMDATA group-1 marker route");
+
+        std::string largeGroup305Value =
+            generatedDataLinkTextOwnerBudgetWire(binary, true);
+        const std::size_t group305ValuePosition =
+            largeGroup305Value.find("CUSTOMDATA");
+        const bool replacedGroup305Value =
+            group305ValuePosition != std::string::npos;
+        if (replacedGroup305Value)
+            largeGroup305Value.replace(group305ValuePosition,
+                std::string("CUSTOMDATA").size(), std::string(32768u, 'X'));
+        ExposedDataLink group305ValueRoute;
+        std::shared_ptr<DxfReadRetainedBudget> group305ValueBudget;
+        const bool group305ValueParsed = replacedGroup305Value && parseRecords(
+            largeGroup305Value, 1u << 20u, &group305ValueRoute,
+            &group305ValueBudget);
+        t.expect(group305ValueParsed && group305ValueBudget != nullptr
+                     && group305ValueRoute.m_customData.size() == 2u
+                     && group305ValueRoute.m_customData[0].m_text == firstCustom
+                     && group305ValueRoute.m_customData[1].m_text == finalCustom
+                     && group305ValueRoute.m_updateStatus == updateStatus
+                     && group305ValueBudget->used() == expectedOwnerBytes,
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " DATALINK group-305 token is discarded without altering custom-data state or retained-byte accounting");
+
+        for (const std::string& marker : {
+                 std::string("DATAMAP_BEGIN"),
+                 std::string("DATAMAP_END")}) {
+            std::string malformed = records;
+            const std::size_t position = malformed.find(marker);
+            if (position == std::string::npos) {
+                t.expect(false, "generated DATALINK DATAMAP marker is present");
+                continue;
+            }
+            malformed.replace(position, marker.size(), std::string(32768u, 'X'));
+            ExposedDataLink routed;
+            std::shared_ptr<DxfReadRetainedBudget> markerBudget;
+            const bool malformedParsed = parseRecords(
+                malformed, 1u << 20u,
+                &routed, &markerBudget);
+            const bool markerNotRecognized = marker == "DATAMAP_BEGIN"
+                ? routed.m_customData.empty()
+                    && routed.m_updateStatus == updateStatus
+                : routed.m_customData.size() == 3u
+                    && routed.m_customData.back().m_text == updateStatus
+                    && routed.m_updateStatus == updateStatus;
+            t.expect(malformedParsed && markerNotRecognized,
+                     std::string(binary ? "Binary" : "ASCII")
+                         + " DATALINK does not mistake a long unknown token for "
+                         + marker + " (parsed="
+                         + (malformedParsed ? "true" : "false")
+                         + ", custom-count="
+                         + std::to_string(routed.m_customData.size())
+                         + ", update-status=" + routed.m_updateStatus + ")");
+        }
+
+        if (retained) {
+            ExposedDataLink copied(admitted);
+            ExposedDataLink assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_connectionString == connection
+                         && assigned.m_customData[1].m_text == finalCustom,
+                     "DATALINK retained-text lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned DATALINK keeps every text-owner charge");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DATALINK reset releases scalar and custom text owners");
+        }
+
+        ExposedDataLink underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        t.expect(underCap && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudget.m_customData.size() == 1u
+                     && underBudget.m_customData[0].m_text == firstCustom
+                     && underBudget.m_customData[0].m_targetHandle == 0xA1u
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under DATALINK budget refuses the final custom-data string before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected DATALINK parse releases prior text owners on reset");
+        }
+    }
+}
+
+void testDxfTableCellTextOwnerBudget(TestContext& t) {
+    const std::string style(96u, 'S');
+    const std::string cellText = std::string(512u, 'A')
+        + std::string(512u, 'B');
+    const std::string attributeText(2048u, 'C');
+    const std::size_t priorOwnerBytes = style.size() + 2u * cellText.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes
+        + attributeText.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedTableCellTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated TABLE cell text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedTable* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedTable table;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!table.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = table;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedTable admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_content.m_rows.size() == 1u
+            && admitted.m_content.m_rows[0].m_cells.size() == 1u
+            && admitted.m_content.m_rows[0].m_cells[0].m_textStyleName == style
+            && admitted.m_content.m_rows[0].m_cells[0].m_contents.size() == 1u
+            && admitted.m_content.m_rows[0].m_cells[0].m_contents[0].m_text
+                == cellText
+            && admitted.m_content.m_rows[0].m_cells[0].m_contents[0]
+                   .m_value.m_value.type() == DRW_Variant::STRING
+            && std::string(admitted.m_content.m_rows[0].m_cells[0]
+                               .m_contents[0].m_value.m_value.c_str()) == cellText
+            && admitted.m_content.m_rows[0].m_cells[0].m_attributes.size() == 1u
+            && admitted.m_content.m_rows[0].m_cells[0].m_attributes[0].m_text
+                == attributeText
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "TABLE charges style, attribute, and both cell-text owners exactly once");
+
+        if (retained) {
+            ExposedTable copied(admitted);
+            ExposedTable assigned;
+            assigned = admitted;
+            admitted.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_content.m_rows[0].m_cells[0]
+                                .m_contents[0].m_text == cellText
+                         && assigned.m_content.m_rows[0].m_cells[0]
+                                .m_attributes[0].m_text == attributeText,
+                     "TABLE text lease survives copy/assignment after source reset");
+            copied.resetDwgState();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned TABLE keeps all text-owner charges after copy reset");
+            assigned.resetDwgState();
+            t.expect(admittedBudget->used() == 0u,
+                     "final TABLE reset releases style, cell, and attribute text owners");
+        }
+
+        ExposedTable underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool preserved = underBudget.m_content.m_rows.size() == 1u
+            && underBudget.m_content.m_rows[0].m_cells.size() == 1u
+            && underBudget.m_content.m_rows[0].m_cells[0].m_textStyleName == style
+            && underBudget.m_content.m_rows[0].m_cells[0].m_contents[0].m_text
+                == cellText
+            && underBudget.m_content.m_rows[0].m_cells[0].m_attributes.size() == 1u
+            && underBudget.m_content.m_rows[0].m_cells[0].m_attributes[0].m_text.empty();
+        t.expect(underCap && preserved && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under TABLE budget refuses the attribute string before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.resetDwgState();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected TABLE parse releases prior text owners on reset");
+        }
+    }
+}
+
+void testDxfGeoDataCivilMarkerViews(TestContext& t) {
+    const auto parseRecords = [](bool binary, const std::string& records,
+                                 ExposedGeoData& output) {
+        std::istringstream input(records, std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!output.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedGeoDataCivilMarkerWire(binary);
+        t.expect(!records.empty(),
+                 "generated legacy GEODATA Civil-marker records are writable");
+        if (records.empty())
+            continue;
+
+        ExposedGeoData baseline;
+        const bool parsed = parseRecords(binary, records, baseline);
+        t.expect(parsed && baseline.m_legacy.m_civil.m_present
+                     && baseline.m_legacy.m_civil.m_rotationAngle == 1.25,
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " GEODATA begin/end markers route only the enclosed Civil value");
+
+        for (const std::string& marker : {
+                 std::string("CIVIC3D_DATA_BEGIN"),
+                 std::string("CIVIC3D_DATA_END")}) {
+            std::string malformed = records;
+            const std::size_t position = malformed.find(marker);
+            if (position == std::string::npos) {
+                t.expect(false,
+                         "generated legacy GEODATA Civil marker is present");
+                continue;
+            }
+            malformed.replace(position, marker.size(), std::string(32768u, 'X'));
+            ExposedGeoData routed;
+            const bool malformedParsed = parseRecords(binary, malformed, routed);
+            const bool rejectedAsMarker = marker == "CIVIC3D_DATA_BEGIN"
+                ? !routed.m_legacy.m_civil.m_present
+                    && routed.m_legacy.m_civil.m_rotationAngle == 0.0
+                : routed.m_legacy.m_civil.m_present
+                    && routed.m_legacy.m_civil.m_rotationAngle == 2.5;
+            t.expect(malformedParsed && rejectedAsMarker,
+                     std::string(binary ? "Binary" : "ASCII")
+                         + " GEODATA does not mistake a long unknown token for "
+                         + marker);
+        }
+    }
+}
+
+void testDxfGeoDataTextOwnerBudget(TestContext& t) {
+    const std::string firstDefinition(31u, 'A');
+    const std::string secondDefinition(47u, 'B');
+    const std::string thirdDefinition(53u, 'C');
+    const std::string legacyDescription(64u, 'D');
+    const std::string legacyDatum(72u, 'E');
+    const std::string rssTag(80u, 'R');
+    const std::string observationFrom(96u, 'F');
+    const std::string observationTo(112u, 'T');
+    const std::string coverage(2048u, 'V');
+
+    for (const bool binary : {false, true}) {
+        for (const bool legacy : {false, true}) {
+            const std::string records =
+                generatedGeoDataTextOwnerBudgetWire(binary, legacy);
+            t.expect(!records.empty(),
+                     "generated GEODATA text-owner records are writable");
+            if (records.empty())
+                continue;
+
+            const std::string coordinateDefinition = firstDefinition
+                + secondDefinition + (legacy ? std::string{} : thirdDefinition);
+            const std::size_t legacyTextBytes = legacy
+                ? legacyDescription.size() + legacyDatum.size() : 0u;
+            const std::size_t priorOwnerBytes = coordinateDefinition.size()
+                + legacyTextBytes + rssTag.size() + observationFrom.size()
+                + observationTo.size();
+            const std::size_t expectedOwnerBytes = priorOwnerBytes
+                + coverage.size();
+
+            const auto parseRecords = [binary](
+                const std::string& sourceRecords, std::size_t limit,
+                ExposedGeoData* output,
+                std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+                std::istringstream input(sourceRecords,
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+                reader->setRetainedByteBudget(budget);
+                ExposedGeoData geoData;
+                bool parsed = true;
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (!geoData.parseCode(code, reader)) {
+                        parsed = false;
+                        break;
+                    }
+                }
+                parsed = parsed && !budget->exceeded();
+                if (output != nullptr)
+                    *output = geoData;
+                if (outputBudget != nullptr)
+                    *outputBudget = budget;
+                return parsed;
+            };
+
+            std::size_t low = 0u;
+            std::size_t high = records.size() * 16u + 4096u;
+            while (low < high) {
+                const std::size_t middle = low + (high - low) / 2u;
+                if (parseRecords(records, middle, nullptr, nullptr))
+                    high = middle;
+                else
+                    low = middle + 1u;
+            }
+            const std::size_t exactCap = low;
+
+            ExposedGeoData admitted;
+            std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+            const bool exact = parseRecords(records, exactCap, &admitted,
+                                            &admittedBudget);
+            const bool retained = exact && admittedBudget != nullptr
+                && admitted.m_coordinateSystemDefinition
+                    == coordinateDefinition
+                && admitted.m_geoRssTag == rssTag
+                && admitted.m_observationFromTag == observationFrom
+                && admitted.m_observationToTag == observationTo
+                && admitted.m_observationCoverageTag == coverage
+                && (!legacy
+                    || (admitted.m_legacy.m_coordinateSystemDescription
+                            == legacyDescription
+                        && admitted.m_legacy.m_coordinateSystemDatum
+                            == legacyDatum))
+                && admittedBudget->used() == expectedOwnerBytes;
+            t.expect(retained,
+                     "GEODATA charges modern and archival text destinations exactly once");
+
+            if (retained) {
+                ExposedGeoData copied(admitted);
+                ExposedGeoData assigned;
+                assigned = admitted;
+                admitted.reset();
+                t.expect(admittedBudget->used() == expectedOwnerBytes
+                             && copied.m_coordinateSystemDefinition
+                                    == coordinateDefinition
+                             && assigned.m_observationCoverageTag == coverage,
+                         "GEODATA text lease survives copy/assignment after source reset");
+                copied.reset();
+                t.expect(admittedBudget->used() == expectedOwnerBytes,
+                         "assigned GEODATA keeps text-owner charges after copy reset");
+                assigned.reset();
+                t.expect(admittedBudget->used() == 0u,
+                         "final GEODATA reset releases all retained text owners");
+            }
+
+            ExposedGeoData underBudget;
+            std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+            const bool underCap = exactCap != 0u
+                && !parseRecords(records, exactCap - 1u, &underBudget,
+                                 &underBudgetLedger);
+            const bool preserved = underBudget.m_coordinateSystemDefinition
+                    == coordinateDefinition
+                && underBudget.m_geoRssTag == rssTag
+                && underBudget.m_observationFromTag == observationFrom
+                && underBudget.m_observationToTag == observationTo
+                && underBudget.m_observationCoverageTag.empty()
+                && (!legacy
+                    || (underBudget.m_legacy.m_coordinateSystemDescription
+                            == legacyDescription
+                        && underBudget.m_legacy.m_coordinateSystemDatum
+                            == legacyDatum));
+            t.expect(underCap && preserved && underBudgetLedger != nullptr
+                         && underBudgetLedger->exceeded()
+                         && underBudgetLedger->used() == priorOwnerBytes,
+                     "one-byte-under GEODATA budget refuses coverage before publication");
+            if (underBudgetLedger != nullptr) {
+                underBudget.reset();
+                t.expect(underBudgetLedger->used() == 0u,
+                         "rejected GEODATA parse releases prior text owners on reset");
+            }
+        }
+    }
+}
+
+void testDxfClassParserRetainedTextBudget(TestContext& t) {
+    const std::string recNameA = "REC_" + std::string(1024u, 'R');
+    const std::string classNameA = "CLASS_" + std::string(2048u, 'C');
+    const std::string appNameA = "APP_" + std::string(512u, 'A');
+    const std::string recNameB = "REC_" + std::string(256u, 'S');
+    const std::string classNameB = "CLASS_" + std::string(256u, 'D');
+    const std::string appNameB = "APP_" + std::string(256u, 'B');
+    const auto classRecord = [](const std::string& recName,
+                                const std::string& className,
+                                const std::string& appName) {
+        return "0\nCLASS\n1\n" + recName + "\n2\n" + className
+            + "\n3\n" + appName
+            + "\n90\n498\n280\n0\n281\n0\n91\n1\n";
+    };
+    const std::string drawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n0\nENDSEC\n"
+        "0\nSECTION\n2\nCLASSES\n"
+        + classRecord(recNameA, classNameA, appNameA)
+        + classRecord(recNameB, classNameB, appNameB)
+        + "0\nENDSEC\n0\nEOF\n";
+    const auto expect = [&t](bool condition, const char* detail) {
+        const std::string label = std::string("DXF CLASSES retained-text ")
+            + detail;
+        t.expect(condition, label.c_str());
+    };
+
+    const auto readMatches = [&](std::size_t limit,
+                                 DxfClassReadCapture& capture,
+                                 dxfRW& codec) {
+        codec.setDxfReadRetainedByteBudget(limit);
+        std::string input = drawing;
+        return codec.readAscii(&capture, false, input)
+            && capture.classes.size() == 2u
+            && capture.classes[0].recName == recNameA
+            && capture.classes[0].className == classNameA
+            && capture.classes[0].appName == appNameA
+            && capture.classes[1].recName == recNameB
+            && capture.classes[1].className == classNameB
+            && capture.classes[1].appName == appNameB;
+    };
+    const auto succeeds = [&](std::size_t limit) {
+        dxfRW codec(nullptr);
+        DxfClassReadCapture capture;
+        return readMatches(limit, capture, codec);
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = drawing.size() * 8u + 4096u;
+    expect(succeeds(high), "generated two-row section parses with ample budget");
+    if (!succeeds(high))
+        return;
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (succeeds(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactBudget = low;
+    expect(exactBudget > recNameA.size() + classNameA.size() + appNameA.size()
+                           + recNameB.size() + classNameB.size() + appNameB.size(),
+           "exact section budget includes parser record overhead");
+
+    dxfRW codec(nullptr);
+    DxfClassReadCapture capture;
+    const bool refused = exactBudget != 0u
+        && !readMatches(exactBudget - 1u, capture, codec);
+    const DRW_OperationDiagnostic diagnostic = codec.getLastDiagnostic();
+    expect(refused && capture.classes.empty(),
+           "one-byte-under limit refuses before publishing any staged class");
+    expect(diagnostic.cause == DRW::OperationCause::ResourceLimit
+               && diagnostic.code == "dxf-retained-byte-budget",
+           "class-text exhaustion reports the retained-byte resource diagnostic");
+    expect(readMatches(exactBudget, capture, codec),
+           "same-facade exact-budget retry publishes both complete classes");
+}
+
+void testDxfBlockRecordParserRetainedBudget(TestContext& t) {
+    const std::string nameA = "MODEL_" + std::string(128u, 'M');
+    const std::string nameB = "PAPER_" + std::string(96u, 'P');
+    const std::string previewHexA(32u * 1024u, 'A');
+    const std::string previewHexB(96u, 'B');
+    const std::vector<std::uint8_t> previewA(previewHexA.size() / 2u, 0xAAu);
+    const std::vector<std::uint8_t> previewB(48u, 0xBBu);
+    const std::vector<std::uint32_t> insertsA {0x30u, 0x31u};
+    const std::vector<std::uint32_t> insertsB {0x32u};
+    const std::string longUnknownApplicationMarker(32u * 1024u, 'U');
+    const std::string unknownApplicationGroup =
+        "102\n{" + longUnknownApplicationMarker
+        + "\n1\nignored-value\n2\nspoofed-name\n5\nFFFF\n330\nDEAD\n"
+          "70\n24\n280\n0\n281\n1\n340\nABCD\n310\nFFFF\n102\n}\n";
+    const auto previewGroups = [](const std::string& hex) {
+        constexpr std::size_t MaxHexChars = 254u;
+        std::string groups;
+        for (std::size_t offset = 0; offset < hex.size();
+             offset += MaxHexChars) {
+            const std::size_t chunkSize = std::min(
+                MaxHexChars, hex.size() - offset);
+            groups.append("310\n");
+            groups.append(hex, offset, chunkSize);
+            groups.push_back('\n');
+        }
+        return groups;
+    };
+    const auto blockRecord = [&previewGroups](
+            const std::string& handle, const std::string& name,
+            const std::string& previewHex, const std::string& insertGroups) {
+        return "0\nBLOCK_RECORD\n5\n" + handle
+            + "\n330\n1\n100\nAcDbSymbolTableRecord\n"
+              "100\nAcDbBlockTableRecord\n2\n" + name
+            + "\n70\n0\n280\n1\n281\n0\n340\n20\n"
+            + previewGroups(previewHex) + insertGroups;
+    };
+    const std::string drawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n0\nENDSEC\n"
+        "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nBLOCK_RECORD\n70\n2\n"
+        + blockRecord("10", nameA, previewHexA,
+                      "102\n{BLKREFS\n331\n30\n331\n31\n102\n}\n"
+                          + unknownApplicationGroup)
+        + blockRecord("11", nameB, previewHexB,
+                      "102\n{BLKREFS\n331\n32\n102\n}\n")
+        + "0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
+
+    struct Attempt {
+        bool read {false};
+        std::vector<DRW_Block_Record> records;
+        std::string contextNameA;
+        std::string contextNameB;
+        std::vector<std::uint8_t> contextPreviewA;
+        std::vector<std::uint8_t> contextPreviewB;
+        std::vector<std::uint32_t> contextInsertsA;
+        std::vector<std::uint32_t> contextInsertsB;
+        std::shared_ptr<DxfReadRetainedBudget> budget;
+        DRW_OperationDiagnostic diagnostic;
+    };
+    const auto run = [&drawing](std::size_t limit) {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(limit);
+        BlockRecordReadCapture capture;
+        std::string input = drawing;
+        Attempt attempt;
+        attempt.read = codec.readAscii(&capture, false, input);
+        attempt.records = capture.records;
+        attempt.contextNameA =
+            codec.getReadingContext()->resolveBlockRecordName(0x10u);
+        attempt.contextNameB =
+            codec.getReadingContext()->resolveBlockRecordName(0x11u);
+        attempt.contextPreviewA =
+            codec.getReadingContext()->resolveBlockRecordPreview(0x10u);
+        attempt.contextPreviewB =
+            codec.getReadingContext()->resolveBlockRecordPreview(0x11u);
+        attempt.contextInsertsA =
+            codec.getReadingContext()->resolveBlockRecordInsertHandles(0x10u);
+        attempt.contextInsertsB =
+            codec.getReadingContext()->resolveBlockRecordInsertHandles(0x11u);
+        attempt.budget = codec.m_activeDxfReadRetainedBudget;
+        attempt.diagnostic = codec.getLastDiagnostic();
+        return attempt;
+    };
+
+    const Attempt generous = run(drawing.size() * 8u + 4096u);
+    t.expect(generous.read && generous.records.size() == 2u,
+             "generated two-row BLOCK_RECORD drawing parses with ample retained budget");
+    if (!generous.read || generous.records.size() != 2u)
+        return;
+
+    std::size_t low = 0u;
+    std::size_t high = drawing.size() * 8u + 4096u;
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (run(middle).read)
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const Attempt exact = run(low);
+    const std::size_t primaryOwnerBytes = nameA.size() + nameB.size()
+        + previewA.size() + previewB.size()
+        + (insertsA.size() + insertsB.size()) * sizeof(std::uint32_t);
+    t.expect(exact.read && exact.records.size() == 2u
+                 && exact.records[0].name == nameA
+                 && exact.records[1].name == nameB
+                 && exact.records[0].previewData == previewA
+                 && exact.records[1].previewData == previewB
+                 && exact.records[0].insertHandles == insertsA
+                 && exact.records[1].insertHandles == insertsB,
+             "staged BLOCK_RECORD callbacks retain both names, previews, and INSERT handles");
+    t.expect(exact.contextNameA == nameA && exact.contextNameB == nameB
+                 && exact.contextPreviewA == previewA
+                 && exact.contextPreviewB == previewB
+                 && exact.contextInsertsA == insertsA
+                 && exact.contextInsertsB == insertsB,
+             "parsing context receives complete BLOCK_RECORD projections");
+    t.expect(exact.budget != nullptr
+                 && exact.budget->used() == primaryOwnerBytes * 2u,
+             "exact retained budget charges public and context-owned BLOCK_RECORD payloads once each");
+
+    dxfRW retryCodec(nullptr);
+    BlockRecordReadCapture retryCapture;
+    retryCodec.setDxfReadRetainedByteBudget(low == 0u ? 0u : low - 1u);
+    std::string underInput = drawing;
+    const bool refused = low != 0u
+        && !retryCodec.readAscii(&retryCapture, false, underInput);
+    const bool noPublication = retryCapture.records.empty()
+        && retryCodec.getReadingContext()->blockRecordMap.empty();
+    t.expect(refused && noPublication
+                 && retryCodec.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && retryCodec.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget",
+             "one-byte-under BLOCK_RECORD budget refuses before callbacks or context publication");
+    retryCodec.setDxfReadRetainedByteBudget(low);
+    std::string retryInput = drawing;
+    const bool retried = retryCodec.readAscii(&retryCapture, false, retryInput);
+    t.expect(retried && retryCapture.records.size() == 2u
+                 && retryCodec.getReadingContext()
+                        ->resolveBlockRecordName(0x10u) == nameA
+                 && retryCodec.getReadingContext()
+                        ->resolveBlockRecordName(0x11u) == nameB,
+             "same-facade exact-budget retry publishes both BLOCK_RECORDs and resolves their handles");
+}
+
+void testDxfSectionTextOwnerBudget(TestContext& t) {
+    const std::string firstDestination = "SECTION_DESTINATION_OLD";
+    const std::string replacementDestination(48u, 'D');
+    const std::string secondDestination(56u, 'F');
+    const std::string plotStyle(64u, 'P');
+    const std::string hatchPattern(72u, 'H');
+    const std::string lineType(80u, 'T');
+    const std::string layer(2048u, 'L');
+    const std::size_t priorOwnerBytes = firstDestination.size()
+        + replacementDestination.size() + secondDestination.size()
+        + plotStyle.size() + hatchPattern.size() + lineType.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes + layer.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedSectionTextOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated SECTION_SETTINGS text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedSection* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedSection section;
+            section.m_kind = DRW_Section::Settings;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!section.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = section;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedSection admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_destinationFile == firstDestination
+            && admitted.m_types.size() == 2u
+            && admitted.m_types[0].m_destinationFile
+                == replacementDestination
+            && admitted.m_types[1].m_destinationFile == secondDestination
+            && admitted.m_types[1].m_geometry.size() == 1u
+            && admitted.m_types[1].m_geometry[0].m_plotStyle == plotStyle
+            && admitted.m_types[1].m_geometry[0].m_hatchPattern
+                == hatchPattern
+            && admitted.m_types[1].m_geometry[0].m_lineType == lineType
+            && admitted.m_types[1].m_geometry[0].m_layer == layer
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "SECTION_SETTINGS charges mirrored/replaced destinations and nested geometry strings exactly");
+
+        if (retained) {
+            ExposedSection copied(admitted);
+            ExposedSection assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_types[1].m_geometry[0].m_layer == layer
+                         && assigned.m_destinationFile == firstDestination,
+                     "SECTION_SETTINGS text lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned SECTION_SETTINGS retains nested text charges after copy reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final SECTION_SETTINGS reset releases all retained text owners");
+        }
+
+        ExposedSection underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool preserved = underBudget.m_destinationFile
+                == firstDestination
+            && underBudget.m_types.size() == 2u
+            && underBudget.m_types[0].m_destinationFile
+                == replacementDestination
+            && underBudget.m_types[1].m_geometry.size() == 1u
+            && underBudget.m_types[1].m_geometry[0].m_lineType == lineType
+            && underBudget.m_types[1].m_geometry[0].m_layer.empty();
+        t.expect(underCap && preserved && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under SECTION_SETTINGS budget refuses the final layer before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected SECTION_SETTINGS parse releases prior text owners on reset");
+        }
+    }
+}
+
+bool modelDocViewStyleHatchMatches(const DRW_DetailViewStyle&,
+                                   const std::string&) {
+    return true;
+}
+
+bool modelDocViewStyleHatchMatches(const DRW_SectionViewStyle& style,
+                                   const std::string& expected) {
+    return style.m_hatchPattern == expected;
+}
+
+bool modelDocViewStyleFinalTextEmpty(const DRW_DetailViewStyle& style) {
+    return style.m_viewLabelPattern.empty();
+}
+
+bool modelDocViewStyleFinalTextEmpty(const DRW_SectionViewStyle& style) {
+    return style.m_hatchPattern.empty();
+}
+
+template <typename Style>
+void testDxfModelDocViewStyleTextOwnerBudgetCase(TestContext& t,
+                                                  bool sectionStyle) {
+    const std::string description(72u, 'D');
+    const std::string displayName(88u, 'N');
+    const std::string excludeCharacters(96u, 'E');
+    const std::string labelPattern(104u, 'L');
+    const std::string hatchPattern(1024u, 'H');
+    const std::size_t priorOwnerBytes = description.size() + displayName.size()
+        + excludeCharacters.size()
+        + (sectionStyle ? labelPattern.size() : 0u);
+    const std::size_t expectedOwnerBytes = priorOwnerBytes
+        + (sectionStyle ? hatchPattern.size() : labelPattern.size());
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedModelDocViewStyleTextOwnerBudgetWire(binary, sectionStyle);
+        t.expect(!records.empty(),
+                 "generated model-document view-style text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            Style* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            Style style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        Style admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_modelDoc.m_description == description
+            && admitted.m_modelDoc.m_displayName == displayName
+            && admitted.m_identifierExcludeCharacters == excludeCharacters
+            && admitted.m_viewLabelPattern == labelPattern
+            && modelDocViewStyleHatchMatches(admitted, hatchPattern)
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "model-document and view-style text fields retain only live owner bytes");
+
+        if (retained) {
+            Style copied(admitted);
+            Style assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.m_modelDoc.m_displayName == displayName
+                         && assigned.m_identifierExcludeCharacters
+                                == excludeCharacters,
+                     "view-style text lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned view style retains owner charges after copy reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final view-style reset releases every retained text owner");
+        }
+
+        Style underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool finalTextEmpty = modelDocViewStyleFinalTextEmpty(underBudget);
+        const bool preserved = underBudget.m_modelDoc.m_description
+                == description
+            && underBudget.m_modelDoc.m_displayName == displayName
+            && underBudget.m_identifierExcludeCharacters == excludeCharacters
+            && (sectionStyle
+                    ? underBudget.m_viewLabelPattern == labelPattern
+                    : underBudget.m_viewLabelPattern.empty());
+        t.expect(underCap && preserved && finalTextEmpty
+                     && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under view-style budget refuses the final pattern before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected view-style parse releases prior text owners on reset");
+        }
+    }
+}
+
+void testDxfModelDocViewStyleTextOwnerBudget(TestContext& t) {
+    testDxfModelDocViewStyleTextOwnerBudgetCase<ExposedDetailViewStyle>(
+        t, false);
+    testDxfModelDocViewStyleTextOwnerBudgetCase<ExposedSectionViewStyle>(
+        t, true);
+}
+
+template <class Style>
+void testDxfViewStyleSubclassMarkerBudgetCase(TestContext& t,
+                                              bool sectionStyle) {
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedViewStyleSubclassMarkerWire(binary, sectionStyle);
+        t.expect(!records.empty(),
+                 "generated view-style subclass-marker records are writable");
+        if (records.empty())
+            continue;
+
+        std::istringstream input(records, std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        auto budget = std::make_shared<DxfReadRetainedBudget>(1u << 20u);
+        reader->setRetainedByteBudget(budget);
+        Style style;
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!style.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        const bool routed = style.m_modelDoc.m_modelDocClassVersion == 11u
+            && style.m_classVersion == 22u && style.flags == 0x1234;
+        t.expect(parsed && !budget->exceeded(),
+                 "long view-style subclass markers parse within their transient record-text bound");
+        t.expect(budget->used() == 0u,
+                 "view-style subclass markers retain no string-owner bytes");
+        t.expect(routed,
+                 "unknown view-style subclass marker does not disturb known-state routing");
+    }
+}
+
+void testDxfViewStyleSubclassMarkerBudget(TestContext& t) {
+    testDxfViewStyleSubclassMarkerBudgetCase<ExposedDetailViewStyle>(
+        t, false);
+    testDxfViewStyleSubclassMarkerBudgetCase<ExposedSectionViewStyle>(
+        t, true);
+}
+
+void testDxfMLineStyleLinetypeOwnerBudget(TestContext& t) {
+    const std::string firstLinetype = "CONTINUOUS";
+    const std::string finalLinetype(2048u, 'M');
+    const std::size_t priorOwnerBytes = firstLinetype.size();
+    const std::size_t expectedOwnerBytes =
+        priorOwnerBytes + finalLinetype.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedMLineStyleLinetypeOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated MLINESTYLE linetype-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedMLineStyle* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedMLineStyle style;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!style.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = style;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedMLineStyle admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.validateDxfRecord()
+            && admitted.elements.size() == 2u
+            && admitted.elements[0].linetype == firstLinetype
+            && admitted.elements[1].linetype == finalLinetype
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "MLINESTYLE accounts each retained element linetype by its owner");
+
+        if (retained) {
+            ExposedMLineStyle copied(admitted);
+            ExposedMLineStyle assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.elements[1].linetype == finalLinetype
+                         && assigned.elements[0].linetype == firstLinetype,
+                     "MLINESTYLE element text lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned MLINESTYLE retains element text charges after copy reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final MLINESTYLE reset releases every element linetype charge");
+        }
+
+        ExposedMLineStyle underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool preserved = underBudget.elements.size() == 2u
+            && underBudget.elements[0].linetype == firstLinetype
+            && underBudget.elements[1].linetype.empty()
+            && underBudget.elements[1].offset == -0.5
+            && underBudget.validateDxfRecord() == false;
+        t.expect(underCap && preserved && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under MLINESTYLE budget rejects the final linetype before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected MLINESTYLE parse releases earlier element text owners on reset");
+        }
+    }
+}
+
+void testDxfXRecordStringOwnerBudget(TestContext& t) {
+    const std::string firstText(128u, 'X');
+    const std::string finalText(2048u, 'R');
+    const std::size_t priorOwnerBytes = 2u * firstText.size();
+    const std::size_t expectedOwnerBytes = priorOwnerBytes
+        + 2u * finalText.size();
+
+    for (const bool binary : {false, true}) for (const int finalCode : {1,103,104,106,107,108,109}) {
+        const std::string records = generatedXRecordStringOwnerBudgetWire(binary,finalCode);
+        t.expect(!records.empty(),
+                 "generated XRECORD string-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedXRecord* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedXRecord record;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!record.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = record;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedXRecord admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.m_values.size() == 2u
+            && admitted.m_dataEntries.size() == 2u
+            && admitted.m_values[0].type() == DRW_Variant::STRING
+            && admitted.m_values[0].code() == 100
+            && std::string(admitted.m_values[0].c_str()) == firstText
+            && std::string(admitted.m_dataEntries[0].c_str()) == firstText
+            && admitted.m_values[1].code() == finalCode
+            && admitted.m_dataEntries[1].code() == finalCode
+            && std::string(admitted.m_values[1].c_str()) == finalText
+            && std::string(admitted.m_dataEntries[1].c_str()) == finalText
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "XRECORD accounts both compatibility and ordered string owners");
+
+        if (retained) {
+            ExposedXRecord copied(admitted);
+            ExposedXRecord assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && std::string(copied.m_dataEntries[1].c_str())
+                                == finalText
+                         && std::string(assigned.m_values[0].c_str())
+                                == firstText,
+                     "XRECORD text lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned XRECORD retains mirrored strings after copy reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final XRECORD reset releases all mirrored string charges");
+        }
+
+        ExposedXRecord underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool preserved = underBudget.m_values.size() == 1u
+            && underBudget.m_dataEntries.size() == 1u
+            && std::string(underBudget.m_values[0].c_str()) == firstText
+            && std::string(underBudget.m_dataEntries[0].c_str()) == firstText;
+        t.expect(underCap && preserved && underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded()
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under XRECORD budget refuses the final mirrored string before publication");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected XRECORD parse releases earlier mirrored string owners on reset");
+        }
+    }
+}
+
+void testDxfDbColorBookNameOwnerBudget(TestContext& t) {
+    const std::string previousBook = "Old";
+    const std::string previousName = "Prev";
+    const std::string finalBook = "ColorBook";
+    const std::string finalName = "ColorEntry";
+    const std::size_t priorOwnerBytes =
+        previousBook.size() + previousName.size();
+    const std::size_t expectedOwnerBytes = finalBook.size() + finalName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedDbColorBookNameOwnerBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated DBCOLOR book/name records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            ExposedDbColor* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedDbColor color;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!color.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = color;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        const std::vector<std::pair<std::string,
+                                    std::pair<std::string, std::string>>>
+            splitCases = {
+                {"PlainName", {"", "PlainName"}},
+                {"$OnlyName", {"", "OnlyName"}},
+                {"OnlyBook$", {"OnlyBook", ""}},
+                {"First$Second$Third", {"First", "Second$Third"}},
+                {"$", {"", ""}}};
+        for (const auto& splitCase : splitCases) {
+            const std::string edgeRecords =
+                generatedDbColorBookNameOwnerBudgetWire(
+                    binary, splitCase.first);
+            const std::size_t expectedBytes = splitCase.second.first.size()
+                + splitCase.second.second.size();
+            ExposedDbColor edgeColor;
+            std::shared_ptr<DxfReadRetainedBudget> edgeBudget;
+            const bool edgeParsed = parseRecords(
+                edgeRecords, edgeRecords.size() * 16u + 4096u, &edgeColor,
+                &edgeBudget);
+            t.expect(edgeParsed && edgeColor.bookName == splitCase.second.first
+                         && edgeColor.name == splitCase.second.second
+                         && edgeBudget != nullptr
+                         && edgeBudget->used() == expectedBytes,
+                     "DBCOLOR in-place group-430 split preserves separator edge semantics and exact owner bytes");
+            edgeColor.reset();
+            t.expect(edgeBudget != nullptr && edgeBudget->used() == 0u,
+                     "DBCOLOR edge-case split releases its retained-byte lease on reset");
+        }
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedDbColor admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        const bool retained = exact && admittedBudget != nullptr
+            && admitted.bookName == finalBook
+            && admitted.name == finalName
+            && admittedBudget->used() == expectedOwnerBytes;
+        t.expect(retained,
+                 "DBCOLOR accounts both strings split from group 430");
+
+        if (retained) {
+            ExposedDbColor copied(admitted);
+            ExposedDbColor assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.bookName == finalBook
+                         && copied.name == finalName
+                         && assigned.bookName == finalBook
+                         && assigned.name == finalName,
+                     "DBCOLOR split-string lease survives copy/assignment and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned DBCOLOR keeps both split-string owners live");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final DBCOLOR reset releases both split-string charges");
+        }
+
+        ExposedDbColor underBudget;
+        std::shared_ptr<DxfReadRetainedBudget> underBudgetLedger;
+        const bool underCap = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &underBudget,
+                             &underBudgetLedger);
+        const bool preserved = underBudget.bookName == previousBook
+            && underBudget.name == previousName;
+        t.expect(underCap,
+                 "one-byte-under DBCOLOR budget refuses the replacement");
+        t.expect(preserved,
+                 "one-byte-under DBCOLOR refusal preserves both prior strings");
+        t.expect(underBudgetLedger != nullptr
+                     && underBudgetLedger->exceeded(),
+                 "one-byte-under DBCOLOR refusal marks the budget exceeded");
+        t.expect(underBudgetLedger != nullptr
+                     && underBudgetLedger->used() == priorOwnerBytes,
+                 "one-byte-under DBCOLOR refusal restores the prior owner charge");
+        if (underBudgetLedger != nullptr) {
+            underBudget.reset();
+            t.expect(underBudgetLedger->used() == 0u,
+                     "rejected DBCOLOR replacement releases prior split-string owners on reset");
+        }
+    }
+}
+
+void testDxfNavisworksPathOwnerBudget(TestContext& t) {
+    const std::string oldPath = "old-model.nwd";
+    const std::string path(256u, 'N');
+    const std::string sentinelPath = "SENTINEL_MODEL.nwd";
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedNavisworksPathBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated NAVISWORKSMODELDEF path records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_NavisworksModelDef* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedNavisworksModelDef definition;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = definition;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedNavisworksModelDef admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.m_path == path
+                     && admittedBudget->used() == path.size(),
+                 "NAVISWORKSMODELDEF path replacement retains only current logical bytes");
+        if (exact) {
+            ExposedNavisworksModelDef copied(admitted);
+            ExposedNavisworksModelDef assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == path.size()
+                         && copied.m_path == path
+                         && assigned.m_path == path,
+                     "NAVISWORKSMODELDEF path lease survives copy/assignment after source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == path.size(),
+                     "assigned NAVISWORKSMODELDEF keeps its path charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final NAVISWORKSMODELDEF reset releases the path charge");
+        }
+
+        ExposedNavisworksModelDef rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactCap != 0u
+            && !parseRecords(records, exactCap - 1u, &rejected,
+                             &rejectedBudget);
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.m_path == oldPath
+                     && rejectedBudget->used() == oldPath.size(),
+                 "one-byte-under NAVISWORKSMODELDEF path replacement preserves previous value and charge");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected NAVISWORKSMODELDEF reset releases prior path charge");
+        }
+
+        const std::string drawing =
+            generatedNavisworksPathBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated NAVISWORKSMODELDEF OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-navisworks-path-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary NAVISWORKSMODELDEF source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string source = binaryPath.string();
+            dxfRW codec(binary ? source.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            NavisworksModelDefBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].m_path == path
+                && capture.values[1].m_path == sentinelPath;
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+
+        const std::string source = binaryPath.string();
+        dxfRW codec(binary ? source.c_str() : nullptr);
+        NavisworksModelDefBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "under-cap NAVISWORKSMODELDEF input is refused before callbacks");
+        t.expect(resourceDiagnostic,
+                 "NAVISWORKSMODELDEF retained-byte refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].m_path == path
+                     && capture.values[1].m_path == sentinelPath,
+                 "same-facade exact-budget retry recovers NAVISWORKSMODELDEF and sentinel");
+    }
+}
+
+void testDxfPlotSettingsTextOwnerBudget(TestContext& t) {
+    const std::string pageSetupName = "page setup";
+    const std::string printerConfig = "printer configuration";
+    const std::string paperSize = "ISO_A4";
+    const std::string plotViewName = "model view";
+    const std::string currentStyleSheet(256u, 'S');
+    const std::size_t expectedOwnerBytes = pageSetupName.size()
+        + printerConfig.size() + paperSize.size() + plotViewName.size()
+        + currentStyleSheet.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedPlotSettingsTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated PLOTSETTINGS text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_PlotSettings* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedPlotSettings settings;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!settings.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = settings;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedPlotSettings admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.pageSetupName == pageSetupName
+                     && admitted.printerConfig == printerConfig
+                     && admitted.paperSize == paperSize
+                     && admitted.plotViewName == plotViewName
+                     && admitted.currentStyleSheet == currentStyleSheet
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "all five PLOTSETTINGS DXF text fields retain only their live logical bytes");
+
+        if (exact) {
+            DRW_PlotSettings copied(admitted);
+            DRW_PlotSettings assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.currentStyleSheet == currentStyleSheet
+                         && assigned.currentStyleSheet == currentStyleSheet,
+                     "PLOTSETTINGS text lease survives copy construction, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned PLOTSETTINGS keeps the retained text charge after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final PLOTSETTINGS reset releases its retained text lease");
+        }
+
+        if (exactCap != 0u) {
+            ExposedPlotSettings rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u, &rejected,
+                                            &rejectedBudget);
+            const std::size_t precedingBytes = pageSetupName.size()
+                + printerConfig.size() + paperSize.size() + plotViewName.size()
+                + std::string("old").size();
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.pageSetupName == pageSetupName
+                         && rejected.printerConfig == printerConfig
+                         && rejected.paperSize == paperSize
+                         && rejected.plotViewName == plotViewName
+                         && rejected.currentStyleSheet == "old"
+                         && rejectedBudget->used() == precedingBytes,
+                     "one-byte-under PLOTSETTINGS replacement preserves the prior final field and all five live charges");
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected PLOTSETTINGS text replacement releases its prior lease on reset");
+        }
+    }
+}
+
+void testDxfLayoutPlotSettingsTextOwnerBudget(TestContext& t) {
+    const std::string pageSetupName = "page setup";
+    const std::string printerConfig = "printer configuration";
+    const std::string paperSize = "ISO_A4";
+    const std::string plotViewName = "model view";
+    const std::string currentStyleSheet(256u, 'L');
+    const std::string layoutName(1024u, 'N');
+    const std::size_t expectedOwnerBytes = pageSetupName.size()
+        + printerConfig.size() + paperSize.size() + plotViewName.size()
+        + currentStyleSheet.size() + layoutName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records =
+            generatedLayoutPlotSettingsTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated LAYOUT plot-prefix text records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary](
+            const std::string& sourceRecords, std::size_t limit,
+            DRW_Layout* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(sourceRecords,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedLayout layout;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!layout.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            parsed = parsed && !budget->exceeded();
+            if (output != nullptr)
+                *output = layout;
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed;
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(records, middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+
+        ExposedLayout admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(records, exactCap, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && admittedBudget != nullptr
+                     && admitted.pageSetupName == pageSetupName
+                     && admitted.printerConfig == printerConfig
+                     && admitted.paperSize == paperSize
+                     && admitted.plotViewName == plotViewName
+                     && admitted.currentStyleSheet == currentStyleSheet
+                     && admitted.name == layoutName
+                     && admittedBudget->used() == expectedOwnerBytes,
+                 "LAYOUT charges five plot-prefix strings and subclassed name at their exact live lengths");
+
+        if (exact) {
+            DRW_Layout copied(admitted);
+            DRW_Layout assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes
+                         && copied.name == layoutName
+                         && assigned.currentStyleSheet == currentStyleSheet,
+                     "LAYOUT retained text lease survives copy, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedOwnerBytes,
+                     "assigned LAYOUT retains charge after copied sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final LAYOUT reset releases the embedded plot/name lease");
+        }
+
+        if (exactCap != 0u) {
+            ExposedLayout rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = parseRecords(records, exactCap - 1u,
+                                            &rejected, &rejectedBudget);
+            const std::size_t precedingBytes = pageSetupName.size()
+                + printerConfig.size() + paperSize.size() + plotViewName.size()
+                + currentStyleSheet.size() + std::string("old").size();
+            t.expect(!under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && rejected.pageSetupName == pageSetupName
+                         && rejected.printerConfig == printerConfig
+                         && rejected.paperSize == paperSize
+                         && rejected.plotViewName == plotViewName
+                         && rejected.currentStyleSheet == currentStyleSheet
+                         && rejected.name == "old"
+                         && rejectedBudget->used() == precedingBytes,
+                     "one-byte-under LAYOUT name replacement preserves prior subclass value and all live field charges");
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected LAYOUT text replacement releases retained lease on reset");
+        }
+
+        const std::string drawing =
+            generatedLayoutPlotSettingsTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated full LAYOUT OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-layout-retained-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath, std::ios::binary);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "generated Binary LAYOUT drawing is written to temporary storage");
+        }
+        struct LayoutScratchCleanup {
+            std::filesystem::path path;
+            ~LayoutScratchCleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup {binaryPath};
+        const std::string filename = binaryPath.string();
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            LayoutBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].pageSetupName == pageSetupName
+                && capture.values[0].printerConfig == printerConfig
+                && capture.values[0].paperSize == paperSize
+                && capture.values[0].plotViewName == plotViewName
+                && capture.values[0].currentStyleSheet == currentStyleSheet
+                && capture.values[0].name == layoutName
+                && capture.values[1].name == "SENTINEL_LAYOUT";
+        };
+        std::size_t facadeLow = 0u;
+        std::size_t facadeHigh = drawing.size() * 16u + 8192u;
+        while (facadeLow < facadeHigh) {
+            const std::size_t middle = facadeLow
+                + (facadeHigh - facadeLow) / 2u;
+            if (fullReadSucceeds(middle))
+                facadeHigh = middle;
+            else
+                facadeLow = middle + 1u;
+        }
+        const std::size_t facadeExactCap = facadeLow;
+        t.expect(facadeExactCap != 0u && fullReadSucceeds(facadeExactCap),
+                 "full ASCII/Binary LAYOUT read has a measured exact retained-byte cap");
+        if (facadeExactCap == 0u)
+            continue;
+
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        LayoutBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        t.expect(refused && capture.values.empty(),
+                 "under-budget full LAYOUT read refuses before publishing either layout callback");
+        t.expect(resourceDiagnostic,
+                 "full LAYOUT retained-byte refusal reports its resource diagnostic");
+
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].name == layoutName
+                     && capture.values[0].currentStyleSheet == currentStyleSheet
+                     && capture.values[1].name == "SENTINEL_LAYOUT",
+                 "same-facade exact-budget retry publishes the LAYOUT and following sentinel");
+    }
+}
+
+void testDxfTextStyleOwnerBudget(TestContext& t) {
+    class TextParseProbe final : public DRW_Text {
+    public:
+        using DRW_Text::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+
+    const std::string source = "7\nOLD\n7\nSTYLE\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(38u);
+        TextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && text.style == "STYLE" && budget->used() == 5u,
+                 "TEXT style replacement fits the exact peak and retains only its final derived field value");
+        TextParseProbe copy(text);
+        text.resetDwgState();
+        t.expect(budget->used() == 5u && copy.style == "STYLE",
+                 "copied TEXT keeps the derived style lease after the source resets");
+        copy.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final copied TEXT reset releases the derived style lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(37u);
+        TextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && text.style == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under TEXT style replacement preserves the prior value and its retained charge");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected derived style field releases its surviving lease on reset");
+    }
+    {
+        class ArcTextParseProbe final : public DRW_ArcAlignedText {
+        public:
+            using DRW_ArcAlignedText::parseCode;
+            using DRW_ArcAlignedText::resetDwgState;
+        };
+
+        auto budget = std::make_shared<DxfReadRetainedBudget>(56u);
+        ArcTextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input("7\nARCSTYLE\n");
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && text.style == "ARCSTYLE" && budget->used() == 8u,
+                 "ARCALIGNEDTEXT's direct style-code path uses the inherited retained-string owner");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases its inherited style-string lease");
+    }
+}
+
+void testDxfTextValueOwnerBudget(TestContext& t) {
+    class TextParseProbe final : public DRW_Text {
+    public:
+        using DRW_Text::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    class RTextParseProbe final : public DRW_RText {
+    public:
+        using DRW_RText::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+    class AttribParseProbe final : public DRW_Attrib {
+    public:
+        using DRW_Attrib::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+    const auto parse = [](auto& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    const std::string source = "1\nOLD\n1\nTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        TextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "TEXT group-1 replacement fits its exact peak and retains only the live value");
+        TextParseProbe copy(text);
+        TextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 4u && copy.text == "TEXT"
+                     && assigned.text == "TEXT",
+                 "copied TEXT values keep the shared retained-text charge after source reset");
+        copy.resetDwgState();
+        t.expect(budget->used() == 4u,
+                 "assignment copy keeps the TEXT value charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TEXT value reset releases the retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        TextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(!parsed,
+                 "one-byte-under TEXT replacement is rejected");
+        t.expect(budget->exceeded(),
+                 "one-byte-under TEXT replacement latches the quota failure");
+        t.expect(text.text == "OLD" && budget->used() == 3u,
+                 "one-byte-under TEXT replacement preserves its prior value and charge");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TEXT replacement releases its surviving lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "ARCALIGNEDTEXT's direct group-1 path retains text with the inherited owner");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases its inherited retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        RTextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "RTEXT's inherited group-1 path retains its projected text value");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "RTEXT reset releases its inherited retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        AttribParseProbe attribute;
+        const bool parsed = parse(attribute, source, budget);
+        t.expect(parsed && attribute.text == "TEXT" && budget->used() == 4u,
+                 "single-line ATTRIB delegates group-1 ownership to DRW_Text");
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTRIB reset releases its inherited retained-text lease");
+    }
+}
+
+void testDxfArcAlignedFontOwnerBudget(TestContext& t) {
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    const auto parse = [](ArcTextParseProbe& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    {
+        const std::string source = "2\nOLD\n2\nFONT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget) && text.m_fontName == "FONT"
+                     && budget->used() == 4u,
+                 "ARCALIGNEDTEXT code-2 font replacement fits its exact peak");
+        ArcTextParseProbe copy(text);
+        ArcTextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 4u && copy.m_fontName == "FONT"
+                     && assigned.m_fontName == "FONT",
+                 "ARCALIGNEDTEXT font-name copy/assignment preserve the shared lease");
+        copy.resetDwgState();
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "last copied ARCALIGNEDTEXT font owner releases its charge");
+    }
+    {
+        const std::string source = "2\nOLD\n2\nFONT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        ArcTextParseProbe text;
+        t.expect(!parse(text, source, budget) && budget->exceeded()
+                     && text.m_fontName == "OLD" && budget->used() == 3u,
+                 "one-byte-under font replacement preserves the previous font name");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected font replacement releases its retained lease on reset");
+    }
+    {
+        const std::string source = "3\nOLD\n3\nBIGF\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget) && text.m_bigFontName == "BIGF"
+                     && budget->used() == 4u,
+                 "ARCALIGNEDTEXT code-3 big-font replacement fits its exact peak");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases the retained big-font name");
+    }
+}
+
+void testDxfArcAlignedD2TRetentionBudget(TestContext& t) {
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    const auto parse = [](ArcTextParseProbe& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    const std::string replacement = "42\n1\n42\n2.5\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(23u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, replacement, budget)
+                     && text.m_textSize == "2.5" && budget->used() == 3u,
+                 "ARCALIGNEDTEXT text-size D2T replacement fits the exact preformatted-output peak");
+        ArcTextParseProbe copy(text);
+        ArcTextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 3u && copy.m_textSize == "2.5"
+                     && assigned.m_textSize == "2.5",
+                 "D2T text-size copy and assignment preserve the retained value through reset");
+        copy.resetDwgState();
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final D2T text-size owner reset releases the retained lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(22u);
+        ArcTextParseProbe text;
+        t.expect(!parse(text, replacement, budget) && budget->exceeded()
+                     && text.m_textSize == "1" && budget->used() == 1u,
+                 "one-byte-under D2T replacement rejects before formatting and preserves the prior field");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected D2T replacement releases its previous field lease on reset");
+    }
+    {
+        const std::string source =
+            "41\n1.25\n42\n2.5\n43\n-0.75\n44\n0\n"
+            "45\n123456.789\n46\n-1.7976931348623157e308\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget)
+                     && text.m_xScale == "1.25"
+                     && text.m_textSize == "2.5"
+                     && text.m_charSpacing == "-0.75"
+                     && text.m_offsetFromArc == "0"
+                     && text.m_rightOffset == "123457"
+                     && text.m_leftOffset == "-1.79769e+308"
+                     && budget->used() == 32u,
+                 "all six bounded D2T fields retain their canonical formatted values, including maximum exponent");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases every D2T field lease");
+    }
+}
+
+void testDxfAttribTagOwnerBudget(TestContext& t) {
+    class AttribParseProbe final : public DRW_Attrib {
+    public:
+        using DRW_Attrib::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+    class AttdefParseProbe final : public DRW_Attdef {
+    public:
+        using DRW_Attdef::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\nTAG\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(24u);
+        AttribParseProbe attribute;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!attribute.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && attribute.tag == "TAG" && budget->used() == 3u,
+                 "ATTRIB tag replacement fits the exact peak and retains only the live tag");
+        AttribParseProbe copy(attribute);
+        AttribParseProbe assigned;
+        assigned = attribute;
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 3u && copy.tag == "TAG"
+                     && assigned.tag == "TAG",
+                 "ATTRIB copy construction and assignment preserve the source-read tag lease");
+        copy.resetAttribDwgState();
+        t.expect(budget->used() == 3u,
+                 "ATTRIB assignment copy keeps the shared tag lease after sibling reset");
+        assigned.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "final ATTRIB copy reset releases the tag lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(23u);
+        AttribParseProbe attribute;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!attribute.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && attribute.tag == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under ATTRIB tag replacement preserves its old value and charge");
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected ATTRIB tag replacement releases its remaining lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(24u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.tag == "TAG" && budget->used() == 3u,
+                 "ATTDEF code-2 delegation uses the inherited ATTRIB tag owner");
+        definition.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTDEF reset path releases the inherited tag lease");
+    }
+}
+
+void testDxfAttdefPromptOwnerBudget(TestContext& t) {
+    class AttdefParseProbe final : public DRW_Attdef {
+    public:
+        using DRW_Attdef::parseCode;
+        using DRW_Attdef::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nPROMPT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(45u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.prompt == "PROMPT"
+                     && budget->used() == 6u,
+                 "ATTDEF prompt replacement retains only the live value at the exact transient peak");
+        AttdefParseProbe copy(definition);
+        AttdefParseProbe assigned;
+        assigned = definition;
+        definition.resetDwgState();
+        t.expect(budget->used() == 6u && copy.prompt == "PROMPT"
+                     && assigned.prompt == "PROMPT",
+                 "ATTDEF prompt lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "ATTDEF assignment copy keeps the prompt charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final ATTDEF reset releases its prompt lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && definition.prompt == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under ATTDEF prompt replacement preserves its prior value and charge");
+        definition.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected ATTDEF prompt replacement releases its lease on reset");
+    }
+    {
+        const std::string nestedSource =
+            "100\nEmbedded Object\n3\nCONT\n"
+            "100\nAcDbAttributeDefinition\n3\nPROMPT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(nestedSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.mtext != nullptr
+                     && definition.mtext->text == "CONT"
+                     && definition.prompt == "PROMPT" && budget->used() == 10u,
+                 "embedded MTEXT code-3 continuation and later ATTDEF prompt keep separate owners");
+        definition.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTDEF reset releases both prompt and embedded-MTEXT text leases");
+    }
+}
+
+void testDxfDimensionStyleOwnerBudget(TestContext& t) {
+    class DimensionParseProbe final : public DRW_Dimension {
+    public:
+        using DRW_Dimension::parseCode;
+        using DRW_Dimension::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nDIMSTYLE\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(59u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && dimension.getStyle() == "DIMSTYLE"
+                     && budget->used() == 8u,
+                 "DIMENSION style replacement retains only its live value at the exact transient peak");
+        DimensionParseProbe copy(dimension);
+        DimensionParseProbe assigned;
+        assigned = dimension;
+        dimension.resetDwgState();
+        t.expect(budget->used() == 8u && copy.getStyle() == "DIMSTYLE"
+                     && assigned.getStyle() == "DIMSTYLE",
+                 "DIMENSION style lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 8u,
+                 "DIMENSION assignment copy keeps the style charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final DIMENSION reset releases its style lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(58u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && dimension.getStyle() == "OLD" && budget->used() == 3u,
+                 "one-byte-under DIMENSION style replacement preserves the previous style and charge");
+        dimension.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected DIMENSION style replacement releases its lease on reset");
+    }
+}
+
+void testDxfDimensionTextOwnerBudget(TestContext& t) {
+    class DimensionParseProbe final : public DRW_Dimension {
+    public:
+        using DRW_Dimension::parseCode;
+        using DRW_Dimension::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && dimension.getText() == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "DIMENSION custom text replacement retains only its live value at the exact transient peak");
+        DimensionParseProbe copy(dimension);
+        DimensionParseProbe assigned;
+        assigned = dimension;
+        dimension.resetDwgState();
+        t.expect(budget->used() == 7u && copy.getText() == "DIMTEXT"
+                     && assigned.getText() == "DIMTEXT",
+                 "DIMENSION custom text lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "DIMENSION assignment copy keeps the text charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final DIMENSION reset releases its custom text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed,
+                 "under-cap DIMENSION text replacement is rejected");
+        t.expect(budget->exceeded(),
+                 "under-cap DIMENSION text replacement latches the budget failure");
+        t.expect(dimension.getText() == "OLD",
+                 "under-cap DIMENSION text replacement preserves the previous value");
+        t.expect(budget->used() == 3u,
+                 "under-cap DIMENSION text replacement preserves only the previous field charge");
+        dimension.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected DIMENSION text replacement releases its lease on reset");
+    }
+}
+
+void testDxfDimensionBlockNameOwnerBudget(TestContext& t) {
+    class DimensionParseProbe final : public DRW_Dimension {
+    public:
+        using DRW_Dimension::parseCode;
+        using DRW_Dimension::resetDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\n*D1234\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        DimensionParseProbe dimension;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!dimension.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && dimension.getName() == "*D1234"
+            && budget->used() == 6u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "DIMENSION block-name control succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "DIMENSION block-name control establishes its minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && dimension.getName() == "*D1234"
+                     && budget->used() == 6u,
+                 "DIMENSION block-name replacement succeeds at the measured exact peak");
+        DimensionParseProbe copy(dimension);
+        DimensionParseProbe assigned;
+        assigned = dimension;
+        dimension.resetDwgState();
+        t.expect(budget->used() == 6u && copy.getName() == "*D1234"
+                     && assigned.getName() == "*D1234",
+                 "DIMENSION block-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "DIMENSION assignment copy retains the block-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final DIMENSION reset releases its block-name lease");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && dimension.getName() == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under DIMENSION block-name replacement preserves the old value and charge");
+        dimension.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected DIMENSION block-name replacement releases its lease on reset");
+    }
+
+    std::ostringstream binaryOutput(std::ios::out | std::ios::binary);
+    dxfWriterBinary binaryWriter(&binaryOutput);
+    const bool binaryWritten = binaryWriter.writeString(2, "OLD")
+        && binaryWriter.writeString(2, "*D1234");
+    t.expect(binaryWritten && !binaryWriter.hasWriteError(),
+             "generated Binary DIMENSION block-name records are writable");
+    if (!binaryWritten || binaryWriter.hasWriteError())
+        return;
+    const std::string binarySource = binaryOutput.str();
+    const auto parseBinary = [&binarySource](
+            std::size_t limit, DimensionParseProbe* destination,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget,
+            bool* transferred) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        DimensionParseProbe dimension;
+        std::istringstream input(binarySource,
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderBinary>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!dimension.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+            if (code == 2 && transferred != nullptr)
+                *transferred = reader->getStringView().empty();
+        }
+        if (destination != nullptr)
+            *destination = dimension;
+        if (outputBudget != nullptr)
+            *outputBudget = budget;
+        return parsed && !budget->exceeded();
+    };
+    std::size_t binaryLow = 0u;
+    std::size_t binaryHigh = binarySource.size() * 16u + 4096u;
+    while (binaryLow < binaryHigh) {
+        const std::size_t middle = binaryLow + (binaryHigh - binaryLow) / 2u;
+        if (parseBinary(middle, nullptr, nullptr, nullptr))
+            binaryHigh = middle;
+        else
+            binaryLow = middle + 1u;
+    }
+    DimensionParseProbe binaryAdmitted;
+    std::shared_ptr<DxfReadRetainedBudget> binaryBudget;
+    bool binaryTokenTransferred = false;
+    const bool binaryExact = parseBinary(binaryLow, &binaryAdmitted,
+                                         &binaryBudget,
+                                         &binaryTokenTransferred);
+    t.expect(binaryExact && binaryTokenTransferred
+                 && binaryAdmitted.getName() == "*D1234"
+                 && binaryBudget != nullptr && binaryBudget->used() == 6u,
+             "Binary DIMENSION group-2 token transfers into the final block-name owner");
+    if (binaryLow != 0u) {
+        DimensionParseProbe binaryRejected;
+        std::shared_ptr<DxfReadRetainedBudget> binaryUnderBudget;
+        const bool binaryUnder = parseBinary(binaryLow - 1u,
+                                             &binaryRejected,
+                                             &binaryUnderBudget, nullptr);
+        t.expect(!binaryUnder && binaryRejected.getName() == "OLD"
+                     && binaryUnderBudget != nullptr
+                     && binaryUnderBudget->exceeded()
+                     && binaryUnderBudget->used() == 3u,
+                 "one-byte-under Binary DIMENSION replacement preserves the prior block name and charge");
+    }
+}
+
+void testDxfToleranceTextOwnerBudget(TestContext& t) {
+    class ToleranceParseProbe final : public DRW_Tolerance {
+    public:
+        using DRW_Tolerance::parseCode;
+        using DRW_Tolerance::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && tolerance.text == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "TOLERANCE visual-text replacement retains only its live value at the exact transient peak");
+        ToleranceParseProbe copy(tolerance);
+        ToleranceParseProbe assigned;
+        assigned = tolerance;
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 7u && copy.text == "DIMTEXT"
+                     && assigned.text == "DIMTEXT",
+                 "TOLERANCE text lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "TOLERANCE assignment copy keeps the text charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TOLERANCE reset releases its visual-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && tolerance.text == "OLD" && budget->used() == 3u,
+                 "one-byte-under TOLERANCE text replacement preserves the previous value and charge");
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TOLERANCE text replacement releases its lease on reset");
+    }
+}
+
+void testDxfToleranceStyleNameOwnerBudget(TestContext& t) {
+    class ToleranceParseProbe final : public DRW_Tolerance {
+    public:
+        using DRW_Tolerance::parseCode;
+        using DRW_Tolerance::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nDIMSTYLE\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(59u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && tolerance.dimStyleName == "DIMSTYLE"
+                     && budget->used() == 8u,
+                 "TOLERANCE style-name replacement retains only its live value at the exact transient peak");
+        ToleranceParseProbe copy(tolerance);
+        ToleranceParseProbe assigned;
+        assigned = tolerance;
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 8u && copy.dimStyleName == "DIMSTYLE"
+                     && assigned.dimStyleName == "DIMSTYLE",
+                 "TOLERANCE style-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 8u,
+                 "TOLERANCE assignment copy keeps the style-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TOLERANCE reset releases its style-name lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(58u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && tolerance.dimStyleName == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under TOLERANCE style-name replacement preserves the prior value and charge");
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TOLERANCE style-name replacement releases its lease on reset");
+    }
+}
+
+void testDxfBlockXrefPathOwnerBudget(TestContext& t) {
+    class BlockParseProbe final : public DRW_Block {
+    public:
+        using DRW_Block::parseCode;
+        using DRW_Block::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && block.xrefPath == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "BLOCK xref-path replacement retains only its live value at the exact transient peak");
+        BlockParseProbe copy(block);
+        BlockParseProbe assigned;
+        assigned = block;
+        block.resetDwgState();
+        t.expect(budget->used() == 7u && copy.xrefPath == "DIMTEXT"
+                     && assigned.xrefPath == "DIMTEXT",
+                 "BLOCK xref-path lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "BLOCK assignment copy keeps the xref-path charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final BLOCK reset releases its xref-path lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && block.xrefPath == "OLD" && budget->used() == 3u,
+                 "one-byte-under BLOCK xref-path replacement preserves the prior value and charge");
+        block.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected BLOCK xref-path replacement releases its lease on reset");
+    }
+}
+
+void testDxfBlockNameOwnerBudget(TestContext& t) {
+    class BlockParseProbe final : public DRW_Block {
+    public:
+        using DRW_Block::parseCode;
+        using DRW_Block::resetDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\nDIMNAME\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && block.name == "DIMNAME"
+                     && budget->used() == 7u,
+                 "BLOCK name replacement retains only its live value at the exact transient peak");
+        BlockParseProbe copy(block);
+        BlockParseProbe assigned;
+        assigned = block;
+        block.resetDwgState();
+        t.expect(budget->used() == 7u && copy.name == "DIMNAME"
+                     && assigned.name == "DIMNAME",
+                 "BLOCK name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "BLOCK assignment copy keeps the name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final BLOCK reset releases its name lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && block.name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under BLOCK name replacement preserves the prior value and charge");
+        block.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected BLOCK name replacement releases its lease on reset");
+    }
+}
+
+void testDxfMLineStyleNameOwnerBudget(TestContext& t) {
+    class MLineParseProbe final : public DRW_MLine {
+    public:
+        using DRW_MLine::parseCode;
+        using DRW_MLine::resetDwgState;
+    };
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream wire(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&wire))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&wire));
+        const bool writable = writer->writeString(2, "OLD")
+            && writer->writeString(2, "DIMNAME");
+        t.expect(writable,
+                 "generated MLINE style-name owner records are writable");
+        if (!writable)
+            continue;
+        const std::string source = wire.str();
+
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        MLineParseProbe line;
+        bool parsed = true;
+        bool tokensTransferred = true;
+        {
+            std::istringstream input(source,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!line.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+                if (code == 2 && !reader->getStringView().empty())
+                    tokensTransferred = false;
+            }
+        }
+        t.expect(parsed && line.styleName == "DIMNAME"
+                     && budget->used() == 7u,
+                 "MLINE style-name replacement retains only its live value at the exact transient peak");
+        t.expect(tokensTransferred,
+                 "MLINE transfers style-name tokens from the ASCII/Binary reader");
+        MLineParseProbe copy(line);
+        MLineParseProbe assigned;
+        assigned = line;
+        line.resetDwgState();
+        t.expect(budget->used() == 7u && copy.styleName == "DIMNAME"
+                     && assigned.styleName == "DIMNAME",
+                 "MLINE style-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "MLINE assignment copy keeps the style-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final MLINE reset releases its style-name lease");
+        auto underBudget = std::make_shared<DxfReadRetainedBudget>(51u);
+        MLineParseProbe underLine;
+        bool underParsed = true;
+        {
+            std::istringstream input(source,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setRetainedByteBudget(underBudget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!underLine.parseCode(code, reader)) {
+                    underParsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!underParsed && underBudget->exceeded()
+                     && underLine.styleName == "OLD"
+                     && underBudget->used() == 3u,
+                 "one-byte-under MLINE style-name replacement preserves the prior value and charge");
+        underLine.resetDwgState();
+        t.expect(underBudget->used() == 0u,
+                 "rejected MLINE style-name replacement releases its lease on reset");
+    }
+}
+
+void testDxfOle2FrameClientOwnerBudget(TestContext& t) {
+    class Ole2FrameParseProbe final : public DRW_Ole2Frame {
+    public:
+        using DRW_Ole2Frame::parseCode;
+        using DRW_Ole2Frame::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        Ole2FrameParseProbe frame;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!frame.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && frame.m_oleClient == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "OLE2FRAME client replacement retains only its live value at the exact transient peak");
+        Ole2FrameParseProbe copy(frame);
+        Ole2FrameParseProbe assigned;
+        assigned = frame;
+        frame.resetDwgState();
+        t.expect(budget->used() == 7u && copy.m_oleClient == "DIMTEXT"
+                     && assigned.m_oleClient == "DIMTEXT",
+                 "OLE2FRAME client lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "OLE2FRAME assignment copy keeps the client charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final OLE2FRAME reset releases its client lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        Ole2FrameParseProbe frame;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!frame.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && frame.m_oleClient == "OLD" && budget->used() == 3u,
+                 "one-byte-under OLE2FRAME client replacement preserves the prior value and charge");
+        frame.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected OLE2FRAME client replacement releases its lease on reset");
+    }
+}
+
+void testDxfLeaderStyleOwnerBudget(TestContext& t) {
+    class LeaderParseProbe final : public DRW_Leader {
+    public:
+        using DRW_Leader::parseCode;
+        using DRW_Leader::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nLEADER\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(45u);
+        LeaderParseProbe leader;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!leader.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && leader.style == "LEADER" && budget->used() == 6u,
+                 "LEADER style replacement retains only the live field at the exact transient peak");
+        LeaderParseProbe copy(leader);
+        LeaderParseProbe assigned;
+        assigned = leader;
+        leader.resetDwgState();
+        t.expect(budget->used() == 6u && copy.style == "LEADER"
+                     && assigned.style == "LEADER",
+                 "LEADER style lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "LEADER assignment copy keeps the style charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final LEADER reset releases its style lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LeaderParseProbe leader;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!leader.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && leader.style == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under LEADER style replacement preserves its previous value and charge");
+        leader.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected LEADER style replacement releases its lease on reset");
+    }
+}
+
+void testDxfXDataStringOwnerBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string source =
+        "1000\nalpha\n1001\nAPP\n1002\n{\n1003\nLayer\n"
+        "1004\nA1B2\n1005\nA1\n";
+    std::ostringstream binaryBytes;
+    dxfWriterBinary binaryWriter(&binaryBytes);
+    const int binaryCodes[] = {1000, 1001, 1002, 1003, 1004, 1005};
+    const char* binaryValues[] = {"alpha", "APP", "{", "Layer", "A1B2", "A1"};
+    bool binaryWritten = true;
+    for (std::size_t index = 0; index < 6u; ++index)
+        binaryWritten = binaryWriter.writeString(binaryCodes[index],
+                                                   binaryValues[index])
+            && binaryWritten;
+    const auto stringsMatch = [](const std::array<const DRW_Variant*, 6>& values) {
+        const int codes[] = {1000, 1001, 1002, 1003, 1004, 1005};
+        const char* strings[] = {"alpha", "APP", "{", "Layer", "A1B2", "A1"};
+        for (std::size_t index = 0; index < values.size(); ++index) {
+            if (values[index] == nullptr
+                || values[index]->code() != codes[index]
+                || values[index]->type() != DRW_Variant::STRING
+                || values[index]->content.s == nullptr
+                || *values[index]->content.s != strings[index])
+                return false;
+        }
+        return true;
+    };
+    const auto parse = [&source](auto& model,
+                                 const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!model.parseCode(code, reader))
+                return false;
+            if (code >= 1000 && code <= 1005
+                && !reader->getStringView().empty())
+                return false;
+        }
+        return true;
+    };
+    const auto parseBinary = [&binaryBytes, &binaryWritten](
+            auto& model,
+            const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        if (!binaryWritten)
+            return false;
+        std::istringstream input(binaryBytes.str(), std::ios::binary);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderBinary>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!model.parseCode(code, reader))
+                return false;
+            if (code >= 1000 && code <= 1005
+                && !reader->getStringView().empty())
+                return false;
+        }
+        return true;
+    };
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LineParseProbe line;
+        const bool parsed = parse(line, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (line.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = line.extData[index].get();
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "entity typed XDATA strings, controls and raw spellings fit the exact peak and survive reader teardown");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 20u,
+                 "copied entity XDATA retains the shared source-read lease");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases typed XDATA string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(43u);
+        LineParseProbe line;
+        const bool parsed = parse(line, budget);
+        t.expect(!parsed && line.extData.size() == 3u && budget->exceeded()
+                     && budget->used() == 9u,
+                 "entity XDATA growth rejects one byte under the exact peak without appending the refused value");
+        line.reset();
+        t.expect(budget->used() == 0u,
+                 "entity XDATA quota refusal releases its remaining owner lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LayerParseProbe layer;
+        const bool parsed = parse(layer, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (layer.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = layer.extData[index];
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "table-entry typed XDATA uses the same exact peak and retained-string owner");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 20u,
+                 "copied table-entry XDATA retains the shared source-read lease");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases typed XDATA string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(43u);
+        LayerParseProbe layer;
+        const bool parsed = parse(layer, budget);
+        t.expect(!parsed && layer.extData.size() == 3u && budget->exceeded()
+                     && budget->used() == 9u,
+                 "table-entry XDATA quota refusal rolls back only the incomplete string insertion");
+        layer.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry XDATA quota refusal releases its lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LineParseProbe line;
+        const bool parsed = parseBinary(line, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (line.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = line.extData[index].get();
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "binary entity XDATA transfers all string and binary tokens into retained owners");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LayerParseProbe layer;
+        const bool parsed = parseBinary(layer, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (layer.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = layer.extData[index];
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "binary table-entry XDATA transfers all string and binary tokens into retained owners");
+    }
+}
+
+void testDxfRawCarrierRetentionBudget(TestContext& t) {
+    const std::string sectionSource =
+        "0\nSECTION\n2\nUNKNOWN\n1\npayload\n0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(sectionSource.size() + 63u);
+        RawCarrierRetentionSink sink;
+        std::string content = sectionSource;
+        t.expect(codec.readAscii(&sink, false, content)
+                     && sink.sectionCount == 1u
+                     && sink.section.m_name == "UNKNOWN"
+                     && sink.section.m_groups.size() == 1u
+                     && sink.section.m_groups.front().code() == 1
+                     && sink.section.m_groups.front().type()
+                            == DRW_Variant::STRING
+                     && sink.section.m_groups.front().content.s != nullptr
+                     && *sink.section.m_groups.front().content.s == "payload"
+                     && sink.section.m_rawValues.size() == 1u
+                     && sink.section.m_rawValues.front() == "payload"
+                     && sink.section.m_retainedTextLease != nullptr
+                     && sink.section.m_retainedTextLease->bytes() == 21u
+                     && codec.m_activeDxfReadRetainedBudget->used() == 21u,
+                 "unknown-section name plus typed/raw string copies share a lifetime lease at their exact generated peak");
+        auto budget = codec.m_activeDxfReadRetainedBudget;
+        sink.section = DRW_RawDxfSection{};
+        t.expect(budget->used() == 0u,
+                 "dropping the consumer's section value releases the shared carrier lease");
+    }
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(sectionSource.size() + 62u);
+        RawCarrierRetentionSink rejected;
+        std::string content = sectionSource;
+        const bool sectionRead = codec.readAscii(&rejected, false, content);
+        t.expect(!sectionRead
+                     && rejected.sectionCount == 0u
+                     && codec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "raw section carrier insertion rejects before the over-budget group is copied or published");
+    }
+
+    const std::string longSectionName(32u * 1024u, 'U');
+    std::string longSectionSource = "0\nSECTION\n2\n";
+    longSectionSource.append(longSectionName);
+    longSectionSource.append("\n1\npayload\n0\nENDSEC\n0\nEOF\n");
+    {
+        dxfRW codec(nullptr);
+        RawCarrierRetentionSink sink;
+        std::string content = longSectionSource;
+        t.expect(codec.readAscii(&sink, false, content)
+                     && sink.sectionCount == 1u
+                     && sink.section.m_name == longSectionName
+                     && sink.section.m_groups.size() == 1u
+                     && sink.section.m_groups.front().code() == 1
+                     && sink.section.m_groups.front().content.s != nullptr
+                     && *sink.section.m_groups.front().content.s == "payload",
+                 "long unknown-section name is copied only into its retained carrier owner before reader advancement");
+    }
+
+    const std::string objectSource =
+        "0\nSECTION\n2\nOBJECTS\n0\nACMEOBJECT\n5\nA1\n1\npayload\n"
+        "0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(objectSource.size() + 70u);
+        RawCarrierRetentionSink sink;
+        std::string content = objectSource;
+        t.expect(codec.readAscii(&sink, false, content)
+                     && sink.objectCount == 1u
+                     && sink.object.name == "ACMEOBJECT"
+                     && sink.object.groups.size() == 2u
+                     && sink.object.groups[0].content.s != nullptr
+                     && *sink.object.groups[0].content.s == "A1"
+                     && sink.object.groups[1].content.s != nullptr
+                     && *sink.object.groups[1].content.s == "payload"
+                     && sink.object.rawValues.size() == 2u
+                     && sink.object.rawValues[0] == "A1"
+                     && sink.object.rawValues[1] == "payload"
+                     && sink.object.m_retainedTextLease != nullptr
+                     && sink.object.m_retainedTextLease->bytes() == 28u
+                     && codec.m_activeDxfReadRetainedBudget->used() == 28u,
+                 "raw object name and source/typed value copies remain charged across record boundaries and publication");
+    }
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(objectSource.size() + 69u);
+        RawCarrierRetentionSink rejected;
+        std::string content = objectSource;
+        const bool objectRead = codec.readAscii(&rejected, false, content);
+        t.expect(!objectRead
+                     && rejected.objectCount == 0u
+                     && codec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "raw object typed/raw destination growth rejects before callback publication");
+    }
+}
+
+void testDxfUnknownTableNameView(TestContext& t) {
+    const std::string tableName(96u, 'T');
+    std::string content = "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\n";
+    content.append(tableName);
+    content.append("\n0\nENDTAB\n0\nENDSEC\n0\nEOF\n");
+
+    dxfRW codec(nullptr);
+    FuzzInterface sink;
+    const bool parsed = codec.readAscii(&sink, false, content);
+    const auto diagnostic = codec.getLastDiagnostic();
+    const auto skipped = std::find_if(
+        diagnostic.secondary.begin(), diagnostic.secondary.end(),
+        [](const DRW::OperationDiagnosticEntry& entry) {
+            return entry.code == "unsupported-table-skipped";
+        });
+    const std::string expectedMessage =
+        "skipped 1 unsupported nested TABLE(s); names: "
+        + tableName.substr(0, 64u);
+    t.expect(parsed && skipped != diagnostic.secondary.end()
+                 && skipped->message == expectedMessage,
+             "long unknown table names are matched as record-scoped views and only the bounded diagnostic prefix is retained");
+
+    const auto parsesWithBudget = [&content](std::size_t limit) {
+        dxfRW bounded(nullptr);
+        bounded.setDxfReadRetainedByteBudget(limit);
+        FuzzInterface boundedSink;
+        std::string boundedContent = content;
+        return bounded.readAscii(&boundedSink, false, boundedContent);
+    };
+    std::size_t low = 0u;
+    std::size_t high = content.size() * 16u + 4096u;
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (parsesWithBudget(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactCap = low;
+    t.expect(exactCap != 0u,
+             "unknown-table diagnostic has a nonzero measured retained-byte peak");
+    if (exactCap == 0u)
+        return;
+
+    dxfRW exact(nullptr);
+    exact.setDxfReadRetainedByteBudget(exactCap);
+    FuzzInterface exactSink;
+    std::string exactContent = content;
+    const bool exactRead = exact.readAscii(&exactSink, false, exactContent);
+    const auto exactDiagnostic = exact.getLastDiagnostic();
+    const auto exactSkipped = std::find_if(
+        exactDiagnostic.secondary.begin(), exactDiagnostic.secondary.end(),
+        [](const DRW::OperationDiagnosticEntry& entry) {
+            return entry.code == "unsupported-table-skipped";
+        });
+    t.expect(exactCap != 0u && exactRead
+                 && exactSkipped != exactDiagnostic.secondary.end()
+                 && exactSkipped->message == expectedMessage
+                 && exact.m_activeDxfReadRetainedBudget != nullptr
+                 && exact.m_activeDxfReadRetainedBudget->used()
+                        >= exactSkipped->message.size(),
+             "unknown-table diagnostic remains charged to the exact retained-byte budget after reader completion");
+
+    dxfRW underBudget(nullptr);
+    underBudget.setDxfReadRetainedByteBudget(exactCap - 1u);
+    FuzzInterface rejectedSink;
+    std::string rejectedContent = content;
+    const bool underRead = underBudget.readAscii(
+        &rejectedSink, false, rejectedContent);
+    const auto underDiagnostic = underBudget.getLastDiagnostic();
+    t.expect(exactCap != 0u && !underRead
+                 && underDiagnostic.cause == DRW::OperationCause::ResourceLimit
+                 && underDiagnostic.code == "dxf-retained-byte-budget"
+                 && underBudget.m_activeDxfReadRetainedBudget != nullptr
+                 && underBudget.m_activeDxfReadRetainedBudget->exceeded(),
+             "one-byte-under retained budget refuses unknown-table diagnostic publication with a resource-limit outcome");
+
+    underBudget.setDxfReadRetainedByteBudget(exactCap);
+    FuzzInterface retrySink;
+    std::string retryContent = content;
+    const bool retried = underBudget.readAscii(
+        &retrySink, false, retryContent);
+    const auto retryDiagnostic = underBudget.getLastDiagnostic();
+    const auto retrySkipped = std::find_if(
+        retryDiagnostic.secondary.begin(), retryDiagnostic.secondary.end(),
+        [](const DRW::OperationDiagnosticEntry& entry) {
+            return entry.code == "unsupported-table-skipped";
+        });
+    t.expect(retried && retrySkipped != retryDiagnostic.secondary.end()
+                 && retrySkipped->message == expectedMessage,
+             "same-facade exact-budget retry publishes the unknown-table diagnostic after refusal");
+}
+
+void testEmptyRawCarrierNameRetention(TestContext& t) {
+    const auto verify = [&t](const std::string& content, bool entity,
+                             std::size_t nameBytes) {
+        // At the empty record's code-0 token, the reader retains strData and
+        // rawData (2x) plus the 4x text-getter bound. The carrier name is a
+        // separate retained destination, so this is the exact admission peak.
+        const std::size_t exactPeak = content.size() + 7u * nameBytes;
+        dxfRW exact(nullptr);
+        exact.setDxfReadRetainedByteBudget(exactPeak);
+        RawCarrierRetentionSink admitted;
+        std::string input = content;
+        const bool exactRead = exact.readAscii(&admitted, false, input);
+        const DRW_RawDxfObject& carrier = entity ? admitted.entity : admitted.object;
+        t.expect(exactRead
+                     && (entity ? admitted.entityCount : admitted.objectCount) == 1u
+                     && carrier.groups.empty()
+                     && carrier.m_retainedTextLease != nullptr
+                     && carrier.m_retainedTextLease->bytes() == nameBytes
+                     && exact.m_activeDxfReadRetainedBudget->used() == nameBytes,
+                 entity ? "empty raw-entity name lease fits the exact generated peak"
+                        : "empty raw-object name lease fits the exact generated peak");
+
+        dxfRW under(nullptr);
+        under.setDxfReadRetainedByteBudget(exactPeak - 1u);
+        RawCarrierRetentionSink rejected;
+        input = content;
+        t.expect(!under.readAscii(&rejected, false, input)
+                     && (entity ? rejected.entityCount : rejected.objectCount) == 0u
+                     && under.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && under.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "one-byte-under empty raw-carrier admission rejects before callback publication");
+    };
+
+    verify("0\nSECTION\n2\nOBJECTS\n0\nEMPTY123\n"
+           "0\nENDSEC\n0\nEOF\n", false, 8u);
+    verify("0\nSECTION\n2\nENTITIES\n0\nEMPTY123\n"
+           "0\nENDSEC\n0\nEOF\n", true, 8u);
+}
+
+void testDxfModernCompatibleTextWriterPassThrough(TestContext& t) {
+    const std::string value = u8"Résumé 🧭 \\U+0041";
+    for (const char* version : {"AC1021", "AC1032"}) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion(version, true);
+            writer->setCodePage("ANSI_1252");
+            const bool wrote = writer->writeUtf8String(1, value);
+            t.expect(wrote && !writer->hasWriteError(),
+                     "compatible R2007+ writer emits modern UTF-8 text");
+
+            std::istringstream input(output.str(), std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion(version, true);
+            reader->setCodePage("ANSI_1252");
+            int code = 0;
+            t.expect(reader->readRec(&code) && code == 1
+                         && reader->getRawValue() == value,
+                     "compatible R2007+ ASCII/Binary output is byte-identical UTF-8");
+        }
+    }
+
+    // The lossless policy must not take the no-conversion fast path: it quotes
+    // a semantic backslash that would otherwise be interpreted as CIF text.
+    std::ostringstream strictOutput(std::ios::out | std::ios::binary);
+    dxfWriterAscii strictWriter(&strictOutput);
+    strictWriter.setVersion("AC1021", true);
+    strictWriter.setTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+    t.expect(strictWriter.writeUtf8String(1, "prefix\\U+0041suffix"),
+             "strict modern text writer keeps semantic quoting enabled");
+    std::istringstream strictInput(strictOutput.str());
+    dxfReaderAscii strictReader(&strictInput);
+    strictReader.setVersion("AC1021", true);
+    int strictCode = 0;
+    t.expect(strictReader.readRec(&strictCode) && strictCode == 1
+                 && strictReader.getRawValue() == "prefix\\U+005CU+0041suffix",
+             "strict modern text output retains the quoted wire spelling");
+
+    // Legacy output still requires its configured single-byte conversion.
+    std::ostringstream legacyOutput(std::ios::out | std::ios::binary);
+    dxfWriterAscii legacyWriter(&legacyOutput);
+    legacyWriter.setVersion("AC1018", true);
+    legacyWriter.setCodePage("ANSI_1252");
+    t.expect(legacyWriter.writeUtf8String(1, u8"café"),
+             "legacy compatible output still uses its codepage converter");
+    std::istringstream legacyInput(legacyOutput.str());
+    dxfReaderAscii legacyReader(&legacyInput);
+    legacyReader.setVersion("AC1018", true);
+    legacyReader.setCodePage("ANSI_1252");
+    int legacyCode = 0;
+    t.expect(legacyReader.readRec(&legacyCode) && legacyCode == 1
+                 && legacyReader.getRawValue() == std::string("caf\xE9", 4u),
+             "legacy compatible output preserves CP1252 wire bytes");
+}
+
+void testDxfModernCompatibleMTextNewlineOverlay(TestContext& t) {
+    const std::vector<std::pair<int, std::string>> expected {
+        {3, "A\\P"}, {3, "B\\P"}, {1, "C"}
+    };
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1021", true);
+        t.expect(writer->writeUtf8MTextChunks("A\nB\r\nC", 3, 1, 3, 3)
+                     && !writer->hasWriteError(),
+                 "modern compatible MTEXT maps LF and CRLF into bounded chunks");
+
+        std::istringstream input(output.str(), std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion("AC1021", true);
+        std::vector<std::pair<int, std::string>> actual;
+        int code = 0;
+        while (reader->readRec(&code))
+            actual.emplace_back(code, reader->getRawValue());
+        t.expect(actual == expected,
+                 "modern compatible MTEXT preserves ASCII/Binary chunk boundaries and order");
+
+        std::ostringstream unicodeOutput(std::ios::out | std::ios::binary);
+        dxfWriterAscii unicodeWriter(&unicodeOutput);
+        unicodeWriter.setVersion("AC1032", true);
+        t.expect(unicodeWriter.writeUtf8MTextChunks(u8"é\nB", 3, 1, 3, 2),
+                 "modern compatible MTEXT keeps a multibyte scalar intact at a chunk edge");
+        std::istringstream unicodeInput(unicodeOutput.str());
+        dxfReaderAscii unicodeReader(&unicodeInput);
+        unicodeReader.setVersion("AC1032", true);
+        int unicodeCode = 0;
+        t.expect(unicodeReader.readRec(&unicodeCode) && unicodeCode == 3
+                     && unicodeReader.getRawValue() == u8"é\\"
+                     && unicodeReader.readRec(&unicodeCode) && unicodeCode == 3
+                     && unicodeReader.getRawValue() == "P"
+                     && unicodeReader.readRec(&unicodeCode) && unicodeCode == 1
+                     && unicodeReader.getRawValue() == "B",
+                 "multibyte scalar and normalized paragraph marker retain exact chunk sequence");
+
+        std::ostringstream invalidOutput(std::ios::out | std::ios::binary);
+        dxfWriterAscii invalidWriter(&invalidOutput);
+        invalidWriter.setVersion("AC1021", true);
+        t.expect(!invalidWriter.writeUtf8MTextChunks("A\rB", 3, 1, 250, 250)
+                     && invalidOutput.str().empty()
+                     && invalidWriter.textFailure()
+                            == dxfWriter::TextFailure::UnsafeRecordText,
+                 "lone CR remains rejected before any MTEXT group is emitted");
+    }
+
+    const std::string modernText = u8"Résumé 🧭";
+    for (const char* version : {"AC1021", "AC1032"}) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion(version, true);
+            t.expect(writer->writeUtf8MTextChunks(modernText, 3, 1, 250, 250),
+                     "modern compatible MTEXT passes non-ASCII UTF-8 scalars without conversion loss");
+            std::istringstream input(output.str(),
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion(version, true);
+            int code = 0;
+            t.expect(reader->readRec(&code) && code == 1
+                         && reader->getRawValue() == modernText,
+                     "modern compatible MTEXT emits byte-identical multibyte UTF-8 without line breaks");
+        }
+    }
+
+    struct EquivalenceCase {
+        const char* source;
+        std::size_t maxBytes;
+        std::size_t maxCharacters;
+    };
+    const EquivalenceCase equivalenceCases[] = {
+        {"A\nB\r\nC", 3u, 3u},
+        {u8"é\nB", 3u, 2u},
+        {"A\r\nB\n", 2u, 2u},
+        {"AB\nCD", 1u, 1u},
+        {"A\n", 2u, 1u},
+        {u8"é\r\nX\nY", 3u, 2u}
+    };
+    for (const EquivalenceCase& row : equivalenceCases) {
+        std::string normalized;
+        for (std::size_t offset = 0; row.source[offset] != '\0'; ++offset) {
+            if (row.source[offset] == '\r') {
+                t.expect(row.source[offset + 1u] == '\n',
+                         "equivalence matrix contains only valid CRLF pairs");
+                ++offset;
+                normalized += "\\P";
+            } else if (row.source[offset] == '\n') {
+                normalized += "\\P";
+            } else {
+                normalized.push_back(row.source[offset]);
+            }
+        }
+        for (const bool binary : {false, true}) {
+            std::ostringstream overlaid(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> overlaidWriter = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&overlaid))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&overlaid));
+            overlaidWriter->setVersion("AC1021", true);
+            const bool overlaidOk = overlaidWriter->writeUtf8MTextChunks(
+                row.source, 3, 1, row.maxBytes, row.maxCharacters);
+
+            std::ostringstream reference(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> referenceWriter = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&reference))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&reference));
+            referenceWriter->setVersion("AC1021", true);
+            const bool referenceOk = referenceWriter->writeUtf8MTextChunks(
+                normalized, 3, 1, row.maxBytes, row.maxCharacters);
+            t.expect(overlaidOk == referenceOk
+                         && overlaid.str() == reference.str(),
+                     "lazy newline overlay matches normalized-input chunking byte-for-byte");
+        }
+    }
+}
+
+void testDxfGeoDataModernTextPreflightView(TestContext& t) {
+    using Policy = DRW::DxfTextWritePolicy;
+    struct Case {
+        const char* version;
+        std::string source;
+        std::string expectedWire;
+        Policy policy;
+        bool expectedWrite;
+    };
+    std::string cp1252Text;
+    for (int i = 0; i < 128; ++i)
+        cp1252Text += u8"é";
+    std::string cp1252Wire(128u, static_cast<char>(0xE9));
+    const Case cases[] = {
+        {"AC1021", std::string(255u, 'M'), std::string(255u, 'M'),
+         Policy::Compatible, true},
+        {"AC1021", std::string(256u, 'M'), {}, Policy::Compatible, false},
+        {"AC1021", std::string(255u, 'S'), std::string(255u, 'S'),
+         Policy::RequireLossless, true},
+        {"AC1021", std::string(256u, 'S'), {}, Policy::RequireLossless, false},
+        {"AC1018", cp1252Text, cp1252Wire, Policy::Compatible, true},
+        {"AC1018", std::string(256u, 'L'), {}, Policy::Compatible, false}
+    };
+
+    for (const Case& item : cases) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfRW codec(nullptr);
+            codec.version = std::string(item.version) == "AC1018"
+                ? DRW::AC1018 : DRW::AC1021;
+            codec.binFile = binary;
+            codec.writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            codec.writer->setVersion(item.version, true);
+            codec.writer->setTextWritePolicy(item.policy);
+
+            DRW_GeoData geo;
+            geo.m_version = 1;
+            geo.handle = 0x700u;
+            geo.parentHandle = 0x2u;
+            geo.m_coordinateSystemDefinition = item.source;
+            const bool written = codec.writeGeoData(&geo);
+            t.expect(written == item.expectedWrite,
+                     "GEODATA text admission keeps encoded-byte boundaries across policy/version");
+            if (!item.expectedWrite) {
+                t.expect(output.str().empty(),
+                         "rejected GEODATA text emits no partial object");
+                continue;
+            }
+
+            std::istringstream input(output.str(),
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion(item.version, true);
+            std::string actualWire;
+            bool foundDefinition = false;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (code == 301) {
+                    actualWire = reader->getRawValue();
+                    foundDefinition = true;
+                }
+            }
+            t.expect(foundDefinition && actualWire == item.expectedWire,
+                     "GEODATA definition wire bytes match modern identity or legacy conversion");
+        }
+    }
+
+    const std::string longDefinition(520u, 'D');
+    const std::vector<std::pair<int, std::string>> expectedChunks = {
+        {303, std::string(255u, 'D')},
+        {303, std::string(255u, 'D')},
+        {301, std::string(10u, 'D')}
+    };
+    const auto checkDefinitionChunks = [&t](
+            const char* version, bool binary, Policy policy,
+            const std::string& source,
+            const std::vector<std::pair<int, std::string>>& expected,
+            const char* label) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        dxfRW codec(nullptr);
+        codec.version = std::string(version) == "AC1032"
+            ? DRW::AC1032 : DRW::AC1021;
+        codec.binFile = binary;
+        codec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        codec.writer->setVersion(version, true);
+        codec.writer->setTextWritePolicy(policy);
+
+        DRW_GeoData geo;
+        geo.m_version = 2;
+        geo.handle = 0x701u;
+        geo.parentHandle = 0x2u;
+        geo.m_coordinateSystemDefinition = source;
+        const bool wroteGeo = codec.writeGeoData(&geo);
+        const bool wroteSentinel = wroteGeo
+            && codec.writer->writeString(0, "FOLLOWING");
+
+        std::istringstream input(output.str(),
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion(version, true);
+        std::vector<std::pair<int, std::string>> actual;
+        bool sawSentinel = false;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            const std::string value = reader->getRawValue();
+            if (code == 303 || code == 301)
+                actual.emplace_back(code, value);
+            if (code == 0 && value == "FOLLOWING") {
+                sawSentinel = true;
+                break;
+            }
+        }
+        t.expect(wroteGeo && wroteSentinel && actual == expected
+                     && sawSentinel
+                     && geo.m_coordinateSystemDefinition == source,
+                 label);
+    };
+
+    for (const char* version : {"AC1021", "AC1032"}) {
+        for (const bool binary : {false, true}) {
+            checkDefinitionChunks(version, binary, Policy::Compatible,
+                                  longDefinition, expectedChunks,
+                                  "GEODATA v2 borrows source and 255-byte chunk views with exact framing");
+            checkDefinitionChunks(version, binary, Policy::RequireLossless,
+                                  longDefinition, expectedChunks,
+                                  "strict GEODATA v2 chunking preserves ordered continuation and final groups");
+            for (const Policy policy : {Policy::Compatible,
+                                        Policy::RequireLossless}) {
+                const std::string policyName = policy == Policy::Compatible
+                    ? "compatible" : "strict";
+                const std::string newlineLabel =
+                    "GEODATA " + policyName
+                    + " writer preserves newline-to-caret-J normalization ("
+                    + version + (binary ? ", Binary)" : ", ASCII)");
+                checkDefinitionChunks(
+                    version, binary, policy, "Alpha\nBeta\nGamma",
+                    {{301, "Alpha^JBeta^JGamma"}}, newlineLabel.c_str());
+                checkDefinitionChunks(
+                    version, binary, policy,
+                    std::string(254u, 'A') + "\n" + std::string(20u, 'B'),
+                    {{303, std::string(254u, 'A')},
+                     {301, "^J" + std::string(20u, 'B')}},
+                    (newlineLabel + " at the 255-byte boundary").c_str());
+            }
+        }
+    }
+}
+
+void testDxfModelerTextChunkBorrow(TestContext& t) {
+    const std::string payload(520u, 'A');
+    const std::string exactBoundaryPayload = std::string(253u, 'A')
+        + "^BC";
+    const std::string caretSplitPayload = std::string(254u, 'A')
+        + "^B";
+    const std::vector<std::pair<int, std::string>> expected = {
+        {1, std::string(255u, 'A')},
+        {3, std::string(255u, 'A')},
+        {3, std::string(10u, 'A')},
+        {1, "SURFACE^ raw"},
+        {1, std::string(253u, 'A') + "^ "},
+        {3, "BC"},
+        {1, std::string(254u, 'A')},
+        {3, "^ B"}
+    };
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        dxfRW codec(nullptr);
+        codec.version = DRW::AC1024;
+        codec.binFile = binary;
+        codec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        codec.writer->setVersion("AC1024", true);
+
+        DRW_PlaneSurface surface;
+        surface.handle = 0x702u;
+        surface.modelerFormatVersion = 1;
+        surface.rawAcisData.assign(payload.begin(), payload.end());
+        const bool wroteSurface = codec.writeSurface(&surface);
+
+        const std::string rawSurfacePayload = "SURFACE^ raw";
+        DRW_PlaneSurface rawCaretSurface;
+        rawCaretSurface.handle = 0x703u;
+        rawCaretSurface.modelerFormatVersion = 1;
+        rawCaretSurface.rawAcisData.assign(rawSurfacePayload.begin(),
+                                           rawSurfacePayload.end());
+        const bool wroteRawCaretSurface = wroteSurface
+            && codec.writeSurface(&rawCaretSurface);
+
+        DRW_ModelerGeometry exactBoundary(DRW::E3DSOLID);
+        exactBoundary.handle = 0x704u;
+        exactBoundary.m_modelerVersion = 1;
+        exactBoundary.m_rawBytes.assign(exactBoundaryPayload.begin(),
+                                        exactBoundaryPayload.end());
+        exactBoundary.m_dxfPayloadChunks.emplace_back(
+            1, 0, exactBoundaryPayload.size());
+        const bool wroteExactBoundary = wroteRawCaretSurface
+            && codec.writeModelerGeometry(&exactBoundary);
+
+        DRW_ModelerGeometry caretSplit(DRW::E3DSOLID);
+        caretSplit.handle = 0x705u;
+        caretSplit.m_modelerVersion = 1;
+        caretSplit.m_rawBytes.assign(caretSplitPayload.begin(),
+                                     caretSplitPayload.end());
+        caretSplit.m_dxfPayloadChunks.emplace_back(
+            1, 0, caretSplitPayload.size());
+        const bool wroteCaretSplit = wroteExactBoundary
+            && codec.writeModelerGeometry(&caretSplit);
+        const bool wroteSentinel = wroteCaretSplit
+            && codec.writer->writeString(0, "FOLLOWING");
+
+        std::istringstream input(output.str(),
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion("AC1024", true);
+        std::vector<std::pair<int, std::string>> actual;
+        bool sawSentinel = false;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            const std::string value = reader->getRawValue();
+            if (code == 1 || code == 3)
+                actual.emplace_back(code, value);
+            if (code == 0 && value == "FOLLOWING") {
+                sawSentinel = true;
+                break;
+            }
+        }
+        t.expect(wroteSurface && wroteRawCaretSurface && wroteExactBoundary
+                     && wroteCaretSplit
+                     && wroteSentinel && actual == expected
+                     && sawSentinel
+                     && std::string(surface.rawAcisData.begin(),
+                                    surface.rawAcisData.end()) == payload
+                     && std::string(rawCaretSurface.rawAcisData.begin(),
+                                    rawCaretSurface.rawAcisData.end())
+                         == rawSurfacePayload
+                     && std::string(exactBoundary.m_rawBytes.begin(),
+                                    exactBoundary.m_rawBytes.end())
+                         == exactBoundaryPayload
+                     && std::string(caretSplit.m_rawBytes.begin(),
+                                    caretSplit.m_rawBytes.end())
+                         == caretSplitPayload,
+                 "modeler SAT text stack buffer preserves escaped caret boundaries while SURFACE raw caret bytes and following record remain exact");
+
+        // Narrow qualified-source metadata exercises the same chunk buffer
+        // through the legacy SAT-v1 transform, which can itself produce '^'.
+        const std::vector<std::uint8_t> satV1Payload(128u, 'A');
+        DRW_ModelerGeometry satV1(DRW::E3DSOLID);
+        satV1.handle = 0x706u;
+        satV1.m_modelerVersion = 1;
+        satV1.m_dwgSourceVersion = DRW::AC1015;
+        satV1.m_objectSize = static_cast<std::uint32_t>(satV1Payload.size());
+        satV1.m_hasModelerData = true;
+        satV1.m_dwgAcisPayload = satV1Payload;
+        DRW_ModelerPayloadRange satRange;
+        satRange.m_kind = DRW_ModelerPayloadRange::Kind::Sat;
+        satRange.m_section = DRW_ModelerPayloadRange::Section::Body;
+        satRange.m_length = satV1Payload.size();
+        satRange.m_declaredByteSize = satV1Payload.size();
+        satRange.m_consistency = DRW_ModelerPayloadRange::Consistency::Exact;
+        satRange.m_confidence =
+            DRW_ModelerPayloadRange::Confidence::DeclaredSize;
+        satV1.m_payloadRanges.push_back(satRange);
+
+        std::ostringstream satV1Output(std::ios::out | std::ios::binary);
+        dxfRW satV1Codec(nullptr);
+        satV1Codec.version = DRW::AC1015;
+        satV1Codec.binFile = binary;
+        satV1Codec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&satV1Output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&satV1Output));
+        satV1Codec.writer->setVersion("AC1015", true);
+        const bool wroteSatV1 = satV1Codec.writeModelerGeometry(&satV1);
+        const bool wroteSatV1Sentinel = wroteSatV1
+            && satV1Codec.writer->writeString(0, "FOLLOWING");
+
+        std::istringstream satV1Input(satV1Output.str(),
+                                     std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> satV1Reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&satV1Input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&satV1Input));
+        satV1Reader->setVersion("AC1015", true);
+        std::string satV1FirstChunk;
+        std::vector<std::pair<int, std::string>> satV1Actual;
+        bool sawSatV1Sentinel = false;
+        while (satV1Reader->readRec(&code)) {
+            const std::string value = satV1Reader->getRawValue();
+            if (code == 1 || code == 3) {
+                satV1Actual.emplace_back(code, value);
+                if (code == 1)
+                    satV1FirstChunk = value;
+            }
+            if (code == 0 && value == "FOLLOWING") {
+                sawSatV1Sentinel = true;
+                break;
+            }
+        }
+        const std::string expectedSatV1FirstChunk = []() {
+            std::string value;
+            for (std::size_t i = 0; i < 127u; ++i)
+                value += "^ ";
+            return value;
+        }();
+        t.expect(wroteSatV1 && wroteSatV1Sentinel
+                     && satV1Actual == std::vector<std::pair<int, std::string>>({
+                         {1, expectedSatV1FirstChunk}, {3, "^ "}})
+                     && satV1FirstChunk.size() == 254u
+                     && sawSatV1Sentinel
+                     && satV1.m_dwgAcisPayload == satV1Payload,
+                 "SAT-v1 transform-generated caret pairs stay intact across the 255-byte chunk boundary");
+    }
+}
+
+void testDxfBinaryChunkStackBuffer(TestContext& t) {
+    static const char hex[] = "0123456789ABCDEF";
+    std::vector<std::uint8_t> payload(300u);
+    for (std::size_t i = 0; i < payload.size(); ++i)
+        payload[i] = static_cast<std::uint8_t>((i * 37u + 19u) & 0xFFu);
+
+    std::vector<std::string> expectedChunks;
+    for (std::size_t off = 0; off < payload.size(); off += 127u) {
+        const std::size_t count = std::min<std::size_t>(127u, payload.size() - off);
+        std::string expected;
+        expected.reserve(count * 2u);
+        for (std::size_t i = 0; i < count; ++i) {
+            const std::uint8_t byte = payload[off + i];
+            expected.push_back(hex[byte >> 4u]);
+            expected.push_back(hex[byte & 0x0Fu]);
+        }
+        expectedChunks.push_back(std::move(expected));
+    }
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        dxfRW codec(nullptr);
+        codec.version = DRW::AC1024;
+        codec.binFile = binary;
+        codec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        codec.writer->setVersion("AC1024", true);
+
+        DRW_RevolvedSurface surface;
+        surface.handle = 0x703u;
+        surface.id = 17u;
+        surface.dxfBinaryData = payload;
+        const bool wroteSurface = codec.writeSurface(&surface);
+        const bool wroteSentinel = wroteSurface
+            && codec.writer->writeString(0, "FOLLOWING");
+
+        std::istringstream input(output.str(),
+                                 std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion("AC1024", true);
+        std::vector<std::string> actualChunks;
+        std::vector<int> declaredCounts;
+        bool sawSentinel = false;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (code == 310)
+                actualChunks.push_back(reader->getString());
+            if (code == 90)
+                declaredCounts.push_back(reader->getInt32());
+            if (code == 0 && reader->getRawValue() == "FOLLOWING") {
+                sawSentinel = true;
+                break;
+            }
+        }
+        t.expect(wroteSurface && wroteSentinel
+                     && actualChunks == expectedChunks
+                     && declaredCounts == std::vector<int>({17, 300})
+                     && sawSentinel && surface.dxfBinaryData == payload,
+                 "binary group-310 vector chunks preserve exact 127/127/46-byte framing, payload, and following record");
+    }
+}
+
+void testDxfAcdsQualificationHexView(TestContext& t) {
+    static constexpr char hexDigits[] = "0123456789ABCDEF";
+    const std::vector<std::uint8_t> payload = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i',
+        'l', 'e', 0xFCu, 0x53u, 0x00u, 0x00u};
+    std::string hex;
+    for (const std::uint8_t byte : payload) {
+        hex.push_back(hexDigits[byte >> 4u]);
+        hex.push_back(hexDigits[byte & 0x0Fu]);
+    }
+
+    DRW_RawDxfSection qualified;
+    qualified.m_name = "ACDSDATA";
+    qualified.m_version = DRW::AC1027;
+    qualified.m_groups.emplace_back(0, "ACDSRECORD");
+    qualified.m_groups.emplace_back(90, 1);
+    qualified.m_groups.emplace_back(2, "AcDbDs::ID");
+    qualified.m_groups.emplace_back(320, "A01");
+    qualified.m_groups.emplace_back(2, "ASM_Data");
+    qualified.m_groups.emplace_back(94, static_cast<int>(payload.size()));
+    qualified.m_groups.emplace_back(310, hex);
+
+    DRW_RawDxfSection malformed = qualified;
+    malformed.m_groups.back() = DRW_Variant(310, hex.substr(0, hex.size() - 1u)
+        + "G");
+
+    for (const bool binary : {false, true}) {
+        const auto writeQualified = [&](const DRW_RawDxfSection& section,
+                                        bool expected) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfRW codec(nullptr);
+            codec.version = DRW::AC1027;
+            codec.binFile = binary;
+            codec.writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            codec.writer->setVersion("AC1027", true);
+            codec.setRawDxfSections({section});
+
+            DRW_ModelerGeometry modeler(DRW::E3DSOLID);
+            modeler.handle = 0xA01u;
+            modeler.m_dwgSourceVersion = DRW::AC1027;
+            modeler.m_modelerVersion = 2;
+            modeler.m_hasModelerData = true;
+            modeler.m_isEmpty = false;
+            modeler.setHasDataStorageBinaryData(true);
+            modeler.hasDataStorageRecord = true;
+            modeler.dataStorageHandle = modeler.handle;
+            modeler.dataStorageHandleKey = "A01";
+            modeler.dataStorageData = payload;
+
+            const bool wroteModeler = codec.writeModelerGeometry(&modeler);
+            const bool wroteSentinel = wroteModeler
+                && codec.writer->writeString(0, "FOLLOWING");
+            t.expect(wroteModeler == expected
+                         && codec.m_writeError != expected
+                         && (expected ? wroteSentinel : output.str().empty())
+                         && modeler.dataStorageData == payload,
+                     expected
+                         ? "ACDS group-310 string view qualifies exact SAB bytes"
+                         : "malformed ACDS group-310 hex fails before publication");
+        };
+
+        writeQualified(qualified, true);
+        writeQualified(malformed, false);
+    }
+}
+
+void testDxfOleBinaryChunkStackBuffer(TestContext& t) {
+    static const char hex[] = "0123456789ABCDEF";
+    std::vector<std::uint8_t> payload(300u);
+    for (std::size_t i = 0; i < payload.size(); ++i)
+        payload[i] = static_cast<std::uint8_t>((i * 53u + 7u) & 0xFFu);
+
+    std::vector<std::string> expectedChunks;
+    for (std::size_t off = 0; off < payload.size(); off += 127u) {
+        const std::size_t count = std::min<std::size_t>(127u, payload.size() - off);
+        std::string expected;
+        expected.reserve(count * 2u);
+        for (std::size_t i = 0; i < count; ++i) {
+            const std::uint8_t byte = payload[off + i];
+            expected.push_back(hex[byte >> 4u]);
+            expected.push_back(hex[byte & 0x0Fu]);
+        }
+        expectedChunks.push_back(std::move(expected));
+    }
+
+    for (const bool oleFrame : {false, true}) {
+        for (const bool binary : {false, true}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            dxfRW codec(nullptr);
+            codec.version = DRW::AC1024;
+            codec.binFile = binary;
+            codec.writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            codec.writer->setVersion("AC1024", true);
+
+            DRW_Ole2Frame ole2;
+            DRW_OleFrame ole;
+            ole2.handle = ole.handle = 0x704u;
+            ole2.m_payloadBytes = ole.m_payloadBytes = payload;
+            const bool wroteEntity = oleFrame
+                ? codec.writeOleFrame(&ole)
+                : codec.writeOle2Frame(&ole2);
+            const bool wroteSentinel = wroteEntity
+                && codec.writer->writeString(0, "FOLLOWING");
+
+            std::istringstream input(output.str(),
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            reader->setVersion("AC1024", true);
+            std::vector<std::string> actualChunks;
+            std::vector<int> declaredCounts;
+            bool sawOleTrailer = false;
+            bool sawSentinel = false;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (code == 310)
+                    actualChunks.push_back(reader->getString());
+                if (code == 90)
+                    declaredCounts.push_back(reader->getInt32());
+                if (code == 1 && reader->getString() == "OLE")
+                    sawOleTrailer = true;
+                if (code == 0 && reader->getRawValue() == "FOLLOWING") {
+                    sawSentinel = true;
+                    break;
+                }
+            }
+            t.expect(wroteEntity && wroteSentinel
+                         && actualChunks == expectedChunks
+                         && declaredCounts == std::vector<int>({300})
+                         && sawOleTrailer && sawSentinel
+                         && (oleFrame ? ole.m_payloadBytes : ole2.m_payloadBytes)
+                                == payload,
+                     "OLE2FRAME/OLEFRAME group-310 stack chunks preserve exact framing, trailer, payload, and following record");
+        }
+    }
+}
+
+void testDxfRawSectionWriterCommonPath(TestContext& t) {
+    std::ostringstream output;
+    dxfRW codec(nullptr);
+    codec.version = DRW::AC1027;
+    codec.writer = std::make_unique<dxfWriterAscii>(&output);
+
+    DRW_RawDxfSection section;
+    section.m_name = "X-OPAQUE";
+    section.m_version = DRW::AC1027;
+    section.m_hasRawValues = true;
+    section.m_groups.emplace_back(0, "RAWREC");
+    section.m_groups.emplace_back(1, "payload");
+    section.m_rawValues = {"RAWREC", "payload"};
+
+    const bool wrote = codec.writeRawDxfSection(section);
+    t.expect(wrote && !codec.m_writeError
+                 && output.str().find("X-OPAQUE") != std::string::npos
+                 && output.str().find("RAWREC") != std::string::npos
+                 && output.str().find("payload") != std::string::npos,
+             "common raw-section replay validates and streams without a mutable section clone");
+    t.expect(section.m_name == "X-OPAQUE"
+                 && section.m_groups.size() == 2u
+                 && section.m_groups[0].c_str() != nullptr
+                 && std::string(section.m_groups[0].c_str()) == "RAWREC"
+                 && section.m_groups[1].c_str() != nullptr
+                 && std::string(section.m_groups[1].c_str()) == "payload"
+                 && section.m_rawValues.size() == 2u
+                 && section.m_rawValues[0] == "RAWREC"
+                 && section.m_rawValues[1] == "payload",
+             "common raw-section write leaves caller-owned typed and source-spelling vectors unchanged");
+
+    DRW_RawDxfSection transferredSection;
+    transferredSection.m_name = "X-TRANSFERRED";
+    transferredSection.m_groups.emplace_back(0, "TRANSFERRED_RECORD");
+    transferredSection.m_groups.emplace_back(1, "transferred payload");
+    std::vector<DRW_RawDxfSection> transferredSections;
+    transferredSections.push_back(std::move(transferredSection));
+    const DRW_Variant* transferredGroupStorage =
+        transferredSections.front().m_groups.data();
+    dxfRW transferCodec(nullptr);
+    const bool adopted = transferCodec.adoptRawDxfSectionsForWrite(
+        std::move(transferredSections));
+    std::vector<DRW_RawDxfSection> returnedSections;
+    transferCodec.returnAdoptedRawDxfSections(returnedSections);
+    t.expect(adopted && transferredSections.empty()
+                 && returnedSections.size() == 1u
+                 && returnedSections.front().m_groups.data()
+                     == transferredGroupStorage
+                 && returnedSections.front().m_groups.size() == 2u,
+             "synchronous raw-section transfer and restoration preserve nested group storage without copying");
+
+    std::ostringstream binaryOutput(std::ios::out | std::ios::binary);
+    dxfRW binaryCodec(nullptr);
+    binaryCodec.version = DRW::AC1027;
+    binaryCodec.binFile = true;
+    binaryCodec.writer = std::make_unique<dxfWriterBinary>(&binaryOutput);
+    DRW_RawDxfSection binarySection;
+    binarySection.m_name = "X-BINARY";
+    binarySection.m_version = DRW::AC1027;
+    binarySection.m_hasRawValues = true;
+    binarySection.m_groups.emplace_back(0, "BINREC");
+    binarySection.m_groups.emplace_back(1, u8"Résumé");
+    // Binary output uses the typed carrier; retaining these source values
+    // verifies that bypassing rawValues does not mutate the input model.
+    binarySection.m_rawValues = {"BINREC", u8"Résumé"};
+    t.expect(binaryCodec.writeRawDxfSection(binarySection)
+                 && !binaryCodec.m_writeError,
+             "binary raw-section route synchronously writes typed string views");
+    std::istringstream binaryInput(binaryOutput.str(),
+                                   std::ios::in | std::ios::binary);
+    dxfReaderBinary binaryReader(&binaryInput);
+    binaryReader.setVersion("AC1027", true);
+    std::vector<std::pair<int, std::string>> binaryRecords;
+    int binaryCode = 0;
+    while (binaryReader.readRec(&binaryCode))
+        binaryRecords.emplace_back(binaryCode, binaryReader.getRawValue());
+    t.expect(binaryRecords.size() == 5u
+                 && binaryRecords[0] == std::make_pair(0, std::string("SECTION"))
+                 && binaryRecords[1] == std::make_pair(2, std::string("X-BINARY"))
+                 && binaryRecords[2] == std::make_pair(0, std::string("BINREC"))
+                 && binaryRecords[3] == std::make_pair(1, std::string(u8"Résumé"))
+                 && binaryRecords[4] == std::make_pair(0, std::string("ENDSEC")),
+             "binary raw-section typed string emission preserves exact record bytes and order");
+    t.expect(binarySection.m_groups.size() == 2u
+                 && std::string(binarySection.m_groups[1].c_str()) == u8"Résumé"
+                 && binarySection.m_rawValues[1] == u8"Résumé",
+             "binary typed-string emission leaves caller carrier values unchanged");
+
+    std::ostringstream acdsOutput;
+    dxfRW acdsCodec(nullptr);
+    acdsCodec.version = DRW::AC1027;
+    acdsCodec.writer = std::make_unique<dxfWriterAscii>(&acdsOutput);
+    DRW_RawDxfSection acds;
+    acds.m_name = "ACDSDATA";
+    acds.m_version = DRW::AC1027;
+    acds.m_groups.emplace_back(0, "ACDSSCHEMA");
+    acds.m_groups.emplace_back(1, "schema-only");
+    t.expect(acdsCodec.writeRawDxfSection(acds)
+                 && acdsOutput.str().find("schema-only") != std::string::npos
+                 && acds.m_groups.size() == 2u
+                 && acds.m_groups[1].c_str() != nullptr
+                 && std::string(acds.m_groups[1].c_str()) == "schema-only",
+             "ACDSDATA without an ASM_Data owner record streams without a remap copy");
+
+    acdsCodec.m_writingContext.modelerSourceHandleToMintedMap.emplace(
+        0xA1u, 0xB2u);
+    acdsCodec.m_writingContext.modelerSourceHandleToMintedMap.emplace(
+        0xC3u, 0xD4u);
+    DRW_RawDxfSection acdsWithOwner;
+    acdsWithOwner.m_name = "ACDSDATA";
+    acdsWithOwner.m_version = DRW::AC1027;
+    acdsWithOwner.m_hasRawValues = true;
+    acdsWithOwner.m_groups.emplace_back(0, "ACDSRECORD");
+    acdsWithOwner.m_groups.emplace_back(2, "AcDbDs::ID");
+    acdsWithOwner.m_groups.emplace_back(320, "A1");
+    acdsWithOwner.m_groups.emplace_back(2, "ASM_Data");
+    acdsWithOwner.m_groups.emplace_back(0, "ACDSRECORD");
+    acdsWithOwner.m_groups.emplace_back(2, "AcDbDs::ID");
+    acdsWithOwner.m_groups.emplace_back(320, "C3");
+    acdsWithOwner.m_groups.emplace_back(2, "ASM_Data");
+    acdsWithOwner.m_rawValues = {
+        "ACDSRECORD", "AcDbDs::ID", "A1", "ASM_Data",
+        "ACDSRECORD", "AcDbDs::ID", "C3", "ASM_Data"};
+    t.expect(acdsCodec.writeRawDxfSection(acdsWithOwner)
+                 && acdsOutput.str().find("B2") != std::string::npos
+                 && acdsOutput.str().find("D4") != std::string::npos
+                 && acdsWithOwner.m_groups[2].c_str() != nullptr
+                 && std::string(acdsWithOwner.m_groups[2].c_str()) == "A1"
+                 && acdsWithOwner.m_groups[6].c_str() != nullptr
+                 && std::string(acdsWithOwner.m_groups[6].c_str()) == "C3"
+                 && acdsWithOwner.m_rawValues[2] == "A1"
+                 && acdsWithOwner.m_rawValues[6] == "C3",
+             "ACDSDATA emits multiple remapped ASM_Data owner overlays without cloning or mutating the caller carrier");
+
+    std::ostringstream missingOwnerMapOutput;
+    dxfRW missingOwnerMapCodec(nullptr);
+    missingOwnerMapCodec.version = DRW::AC1027;
+    missingOwnerMapCodec.writer =
+        std::make_unique<dxfWriterAscii>(&missingOwnerMapOutput);
+    t.expect(!missingOwnerMapCodec.writeRawDxfSection(acdsWithOwner)
+                 && missingOwnerMapOutput.str().empty()
+                 && acdsWithOwner.m_groups[2].c_str() != nullptr
+                 && std::string(acdsWithOwner.m_groups[2].c_str()) == "A1"
+                 && acdsWithOwner.m_rawValues[2] == "A1",
+             "ACDSDATA refuses an unresolved overlay before output and preserves caller data");
+
+    std::ostringstream malformedOutput;
+    dxfRW malformedCodec(nullptr);
+    malformedCodec.version = DRW::AC1027;
+    malformedCodec.writer = std::make_unique<dxfWriterAscii>(&malformedOutput);
+    DRW_RawDxfSection duplicateAsmData;
+    duplicateAsmData.m_name = "ACDSDATA";
+    duplicateAsmData.m_version = DRW::AC1027;
+    duplicateAsmData.m_groups.emplace_back(0, "ACDSRECORD");
+    duplicateAsmData.m_groups.emplace_back(2, "AcDbDs::ID");
+    duplicateAsmData.m_groups.emplace_back(320, "A1");
+    duplicateAsmData.m_groups.emplace_back(2, "ASM_Data");
+    duplicateAsmData.m_groups.emplace_back(2, "ASM_Data");
+    t.expect(!malformedCodec.writeRawDxfSection(duplicateAsmData)
+                 && duplicateAsmData.m_groups.size() == 5u
+                 && duplicateAsmData.m_groups[2].c_str() != nullptr
+                 && std::string(duplicateAsmData.m_groups[2].c_str()) == "A1"
+                 && malformedOutput.str().empty(),
+             "ACDSDATA marker candidate still fails closed on duplicate ASM_Data without mutating or publishing input");
+
+    const std::string binaryHex(254u, 'A');
+    for (const bool binary : {false, true}) {
+        DRW_RawDxfSection binaryDataSection;
+        binaryDataSection.m_name = "X-BYTES";
+        binaryDataSection.m_version = DRW::AC1027;
+        binaryDataSection.m_hasRawValues = true;
+        binaryDataSection.m_groups.emplace_back(0, "BYTES");
+        binaryDataSection.m_groups.emplace_back(1004, binaryHex);
+        binaryDataSection.m_rawValues = {"BYTES", binaryHex};
+
+        std::ostringstream bytesOutput(std::ios::out | std::ios::binary);
+        dxfRW bytesCodec(nullptr);
+        bytesCodec.version = DRW::AC1027;
+        bytesCodec.binFile = binary;
+        bytesCodec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&bytesOutput))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&bytesOutput));
+        bytesCodec.writer->setVersion("AC1027", true);
+        const bool wroteBytes = bytesCodec.writeRawDxfSection(binaryDataSection);
+
+        std::istringstream bytesInput(bytesOutput.str(),
+                                      std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> bytesReader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&bytesInput))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&bytesInput));
+        bytesReader->setVersion("AC1027", true);
+        bool foundExactHex = false;
+        int bytesCode = 0;
+        while (bytesReader->readRec(&bytesCode)) {
+            const std::string value = bytesReader->getRawValue();
+            if (bytesCode == 1004)
+                foundExactHex = value == binaryHex;
+        }
+        t.expect(wroteBytes && !bytesCodec.m_writeError && foundExactHex
+                     && binaryDataSection.m_groups.size() == 2u
+                     && std::string(binaryDataSection.m_groups[1].c_str())
+                         == binaryHex,
+                 "raw DXF binary hex group validates as a source view and preserves 127 bytes in ASCII/Binary output");
+
+        DRW_RawDxfSection invalidBytesSection = binaryDataSection;
+        const std::string invalidHex = std::string(253u, 'A') + "G";
+        invalidBytesSection.m_groups[1] = DRW_Variant(1004, invalidHex);
+        invalidBytesSection.m_rawValues[1] = invalidHex;
+        std::ostringstream invalidBytesOutput(std::ios::out | std::ios::binary);
+        dxfRW invalidBytesCodec(nullptr);
+        invalidBytesCodec.version = DRW::AC1027;
+        invalidBytesCodec.binFile = binary;
+        invalidBytesCodec.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&invalidBytesOutput))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&invalidBytesOutput));
+        invalidBytesCodec.writer->setVersion("AC1027", true);
+        t.expect(!invalidBytesCodec.writeRawDxfSection(invalidBytesSection)
+                     && invalidBytesCodec.m_writeError
+                     && invalidBytesOutput.str().empty(),
+                 "raw DXF binary hex validation still rejects a bad digit before output");
+    }
+}
+
+void testDxfHeaderCommentRetentionBudget(TestContext& t) {
+    const std::string plainDrawing = admissionDrawing();
+    const std::string source = "999\nalpha\n999\nbeta\n" + plainDrawing;
+    std::string content = source;
+    dxfRW codec(nullptr);
+    AdmissionInterface rejected;
+    rejected.codec = &codec;
+    codec.setDxfReadRetainedByteBudget(source.size() + 38u);
+    t.expect(!codec.readAscii(&rejected, false, content)
+                 && rejected.lines.empty()
+                 && codec.header.getComments() == "alpha"
+                 && codec.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && codec.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget",
+             "aggregate comment retention rejects before copying the over-budget second comment");
+
+    codec.setDxfReadRetainedByteBudget(source.size() + 58u);
+    content = source;
+    AdmissionInterface exact;
+    exact.codec = &codec;
+    t.expect(codec.readAscii(&exact, false, content)
+                 && exact.lines.size() == 2u
+                 && codec.header.getComments() == "alpha\nbeta",
+             "exact aggregate retention admits pre-SECTION comments and inserts one charged newline");
+
+    const auto commentBudget = codec.m_activeDxfReadRetainedBudget;
+    codec.setDxfReadRetainedByteBudget(plainDrawing.size() + 4096u);
+    content = plainDrawing;
+    AdmissionInterface reset;
+    reset.codec = &codec;
+    t.expect(codec.readAscii(&reset, false, content)
+                 && reset.lines.size() == 2u
+                 && codec.header.getComments().empty()
+                 && commentBudget->used() == 0u,
+             "the next read releases prior header-comment retention and starts from a fresh budget");
+}
+
+void testDxfTokenFacadeBudget(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-token-budget-" + std::to_string(nonce) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    const std::string filename = path.string();
+    for (const int era : {0, 1, 2}) {
+        for (const bool comments : {false, true}) {
+            const std::string value(17, 'x');
+            std::string content = "0\nSECTION\n2\nLOCAL\n";
+            content += comments ? "999\n" : "1\n";
+            content += value + "\n0\nENDSEC\n0\nEOF";
+            std::string wire = content;
+            if (era != 0) {
+                wire = "AutoCAD Binary DXF\r\n";
+                wire += static_cast<char>(26); wire += '\0';
+                const auto pair = [era, &wire](int code, const std::string& text) {
+                    if (era == 1 && code >= 255) {
+                        wire += static_cast<char>(255);
+                        wire += static_cast<char>(code & 255);
+                        wire += static_cast<char>(code >> 8);
+                    } else {
+                        wire += static_cast<char>(code & 255);
+                        if (era == 2) wire += static_cast<char>(code >> 8);
+                    }
+                    wire += text; wire += '\0';
+                };
+                pair(0, "SECTION"); pair(2, "LOCAL"); pair(comments ? 999 : 1, value);
+                pair(0, "ENDSEC"); pair(0, "EOF");
+            }
+            { std::ofstream output(path, std::ios::binary); output.write(wire.data(), static_cast<std::streamsize>(wire.size())); }
+            dxfRW reader(filename.c_str());
+            t.expect(reader.dxfReadTokenByteBudget() == DRW::kDefaultDxfReadTokenByteBudget,
+                     "facade has the documented one-MiB token acquisition default");
+            reader.setDxfReadTokenByteBudget(16);
+            FuzzInterface rejected;
+            t.expect(!reader.read(&rejected, false)
+                         && reader.getError() == DRW::BAD_CODE_PARSED
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                         && reader.getLastDiagnostic().code == "dxf-token-byte-budget"
+                         && rejected.rawSectionCount == 0,
+                     "file readers and ignored comments reject overlong tokens before raw-section publication");
+            t.expect(!reader.read(nullptr, false)
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument,
+                     "new early argument failure cannot reuse a previous reader token diagnostic");
+            reader.setDxfReadTokenByteBudget(17);
+            FuzzInterface raised;
+            t.expect(reader.read(&raised, false) && raised.rawSectionCount == 1
+                         && reader.getLastDiagnostic().cause == DRW::OperationCause::None,
+                     "raising the token cap permits a fresh file-backed read in each era");
+            FuzzInterface memoryRejected;
+            reader.setDxfReadTokenByteBudget(16);
+            t.expect(!reader.readAscii(&memoryRejected, false, content)
+                         && reader.getLastDiagnostic().code == "dxf-token-byte-budget",
+                     "memory ASCII applies a configured cap after a binary file read");
+            reader.setDxfReadTokenByteBudget(17);
+            FuzzInterface memoryRaised;
+            t.expect(reader.readAscii(&memoryRaised, false, content)
+                         && memoryRaised.rawSectionCount == 1,
+                     "memory ASCII fresh reset/raised cap preserves final newline-less EOF");
+        }
+    }
+    const std::string crlf = "0\r\nSECTION\r\n2\r\nLOCAL\r\n1\r\n12345678\r\n0\r\nENDSEC\r\n0\r\nEOF";
+    { std::ofstream output(path, std::ios::binary); output.write(crlf.data(), static_cast<std::streamsize>(crlf.size())); }
+    dxfRW crlfReader(filename.c_str());
+    crlfReader.setDxfReadTokenByteBudget(8);
+    FuzzInterface crlfRejected;
+    t.expect(!crlfReader.read(&crlfRejected, false)
+                 && crlfReader.getLastDiagnostic().code == "dxf-token-byte-budget",
+             "file-backed ASCII counts CR before LF, including on text-translating platforms");
+    crlfReader.setDxfReadTokenByteBudget(9);
+    FuzzInterface crlfRaised;
+    t.expect(crlfReader.read(&crlfRaised, false) && crlfRaised.rawSectionCount == 1,
+             "raising the physical CRLF cap retains normal ASCII normalization");
+    // A normal entity parser reports a stage fallback after its failed token;
+    // the acquisition cause must already own the first diagnostic.
+    std::string entity = "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nA0\n1\n"
+        + std::string(17, 'x') + "\n0\nLINE\n5\nA1\n10\n0\n20\n0\n11\n1\n21\n1\n0\nENDSEC\n0\nEOF\n";
+    dxfRW typed(nullptr);
+    typed.setDxfReadTokenByteBudget(16);
+    class EntitySink final : public FuzzInterface {
+    public:
+        void addLine(const DRW_Line&) override { ++entities; }
+        void addText(const DRW_Text&) override { ++entities; }
+        std::size_t entities{0};
+    } sink;
+    t.expect(!typed.readAscii(&sink, false, entity)
+                 && typed.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                 && typed.getLastDiagnostic().code == "dxf-token-byte-budget"
+                 && sink.entities == 0,
+             "typed parse fallback preserves token ResourceLimit and publishes no later LINE");
+    typed.setError(DRW::BAD_UNKNOWN);
+    t.expect(typed.getLastDiagnostic().code == "dxf-token-byte-budget",
+             "later generic errors do not replace the first token acquisition diagnostic");
+
+    std::string repeated = "0\nSECTION\n2\nLOCAL\n";
+    for (int index = 0; index < 20; ++index) repeated += "1\n12345678\n";
+    repeated += "0\nENDSEC\n0\nEOF\n";
+    typed.setDxfReadTokenByteBudget(8);
+    FuzzInterface repeatedSink;
+    t.expect(typed.readAscii(&repeatedSink, false, repeated) && repeatedSink.rawSectionCount == 1,
+             "one-token byte ceiling is not a cumulative acquisition or retention budget");
+
+    std::string composed = "0\nSECTION\n2\nENTITIES\n"
+        "0\nLINE\n10\n1\n20\n2\n11\n3\n21\n4\n"
+        "0\nTEXT\n10\n0\n20\n0\n40\n1\n1\n" + std::string(17, 'x')
+        + "\n0\nLINE\n10\n5\n20\n6\n11\n7\n21\n8\n"
+          "0\nENDSEC\n0\nEOF\n";
+    for (int nested = 0; nested < 3; ++nested) {
+        dxfRW codec(filename.c_str());
+        codec.setDxfReadTokenByteBudget(16);
+        AdmissionInterface outer;
+        int attempts = 0;
+        outer.callback = [&]() {
+            ++attempts;
+            const auto reader = codec.reader.get();
+            const auto diagnostic = codec.getLastDiagnostic();
+            t.expect(codec.m_readTokenBudgetActive
+                         && codec.m_readInputByteBudgetActive
+                         && codec.m_wholeOperationActive,
+                     "first LINE callback observes the current token/input budgets armed");
+            FuzzInterface rejected;
+            std::string content = admissionDrawing();
+            const bool accepted = nested == 0 ? codec.readAscii(&rejected, false, content)
+                : nested == 1 ? codec.read(&rejected, false)
+                              : codec.write(&rejected, DRW::AC1024, false);
+            t.expect(!accepted && codec.reader.get() == reader
+                         && codec.m_readTokenBudgetActive && codec.m_wholeOperationActive
+                         && codec.m_readInputByteBudgetActive
+                         && sameAdmissionDiagnostic(codec.getLastDiagnostic(), diagnostic),
+                     "rejected nested read/readAscii/write leaves outer token/input budget generations armed");
+        };
+        t.expect(!codec.readAscii(&outer, false, composed) && attempts == 1
+                     && outer.lines.size() == 1 && outer.lines[0].basePoint.x == 1
+                     && codec.getError() == DRW::BAD_CODE_PARSED
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code == "dxf-token-byte-budget"
+                     && !codec.m_readTokenBudgetActive
+                     && !codec.m_readInputByteBudgetActive
+                     && !codec.m_wholeOperationActive,
+                 "outer exhaustion after nested rejection retains its cause and no later LINE");
+        codec.setDxfReadTokenByteBudget(17);
+        AdmissionInterface retry;
+        t.expect(codec.readAscii(&retry, false, composed) && retry.lines.size() == 2
+                     && retry.lines.back().secPoint.y == 8
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::None,
+                 "raised-budget retry follows nested rejection and outer overflow");
+    }
+
+    { std::ofstream output(path, std::ios::binary); output << composed; }
+    for (const bool fileBacked : {false, true}) {
+        dxfRW codec(filename.c_str());
+        codec.setDxfReadTokenByteBudget(16);
+        AdmissionInterface throwing;
+        throwing.callback = [&]() {
+            t.expect(codec.reader != nullptr && codec.m_readTokenBudgetActive
+                         && codec.m_readInputByteBudgetActive
+                         && codec.m_wholeOperationActive,
+                     "actual throwing callback observes an owned reader and armed operation");
+            throw std::runtime_error("token-budget callback interruption");
+        };
+        bool caught = false;
+        try {
+            if (fileBacked) (void)codec.read(&throwing, false);
+            else (void)codec.readAscii(&throwing, false, composed);
+        } catch (const std::runtime_error&) { caught = true; }
+        const auto retained = codec.reader.get();
+        t.expect(caught && throwing.lines.size() == 1 && retained != nullptr
+                     && !codec.m_readTokenBudgetActive
+                     && !codec.m_readInputByteBudgetActive
+                     && !codec.m_wholeOperationActive,
+                 "actual file/memory callback throw retains its reader but disarms both operation flags");
+        t.expect(!codec.readAscii(nullptr, false, composed) && codec.reader.get() == retained
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument
+                     && !codec.m_readTokenBudgetActive
+                     && !codec.m_readInputByteBudgetActive
+                     && !codec.m_wholeOperationActive,
+                 "early next rejection owns its diagnostic without dereferencing the interrupted stream");
+        codec.setDxfReadTokenByteBudget(17);
+        AdmissionInterface retry;
+        t.expect(codec.readAscii(&retry, false, composed) && retry.lines.size() == 2
+                     && codec.getLastDiagnostic().cause == DRW::OperationCause::None
+                     && !codec.m_readTokenBudgetActive
+                     && !codec.m_readInputByteBudgetActive
+                     && !codec.m_wholeOperationActive,
+                 "raised-budget fresh reader recovers after a real throw and early rejection");
+    }
+
+    // Model an interrupted operation that retained its failed owned reader.
+    // An early next rejection must not borrow that reader's acquisition flag.
+    std::istringstream staleInput("1\nlong-value\n");
+    dxfRW stale(nullptr);
+    stale.reader = std::make_unique<dxfReaderAscii>(&staleInput);
+    stale.reader->setTokenByteBudget(2);
+    int code = 0;
+    t.expect(!stale.reader->readRec(&code) && stale.reader->tokenByteBudgetExceeded(),
+             "interrupted-reader token diagnostic control is nonvacuous");
+    stale.m_readTokenBudgetActive = true;
+    t.expect(!stale.readAscii(nullptr, false, entity)
+                 && stale.reader->tokenByteBudgetExceeded()
+                 && stale.getLastDiagnostic().cause == DRW::OperationCause::InvalidArgument
+                 && !stale.m_readTokenBudgetActive,
+             "early next rejection is bound to its operation, not a stale reader token flag");
+}
+
 class ExposedDwgReader15 final : public dwgReader15 {
 public:
     ExposedDwgReader15(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
@@ -2605,23 +17594,72 @@ void testDwgModelerDataStorageLinking(TestContext& t) {
     std::vector<std::uint8_t> secondPayload = sab;
     secondPayload.push_back(0x22u);
     orderReader.appendDataStorageSection(makeDataStorageTestSection(
-        {makeDataStorageTestRecord(0x81u, "81", firstPayload),
-         makeDataStorageTestRecord(0x82u, "82", secondPayload)}));
-    DRW_ModelerGeometry secondModeler(DRW::E3DSOLID);
-    secondModeler.handle = 0x82u;
-    secondModeler.setHasDataStorageBinaryData(true);
-    DRW_ModelerGeometry firstModeler(DRW::E3DSOLID);
-    firstModeler.handle = 0x81u;
-    firstModeler.setHasDataStorageBinaryData(true);
-    orderReader.linkDataStorage(secondModeler);
-    orderReader.linkDataStorage(firstModeler);
-    t.expect(secondModeler.dataStorageData == secondPayload
-                 && firstModeler.dataStorageData == firstPayload
-                 && secondModeler.m_modelerVersion == 2
-                 && firstModeler.m_modelerVersion == 2
+        {makeDataStorageTestRecord(0x70u, "70", secondPayload),
+         makeDataStorageTestRecord(0x10u, "10", sab),
+         makeDataStorageTestRecord(0x90u, "90", firstPayload)}));
+    orderReader.m_dataStorageSections.front().records[0].segmentIndex = 7u;
+    orderReader.m_dataStorageSections.front().records[0].schemaIndex = 4u;
+    orderReader.m_dataStorageSections.front().records[1].segmentIndex = 2u;
+    orderReader.m_dataStorageSections.front().records[1].schemaIndex = 8u;
+    orderReader.m_dataStorageSections.front().records[2].segmentIndex = 5u;
+    orderReader.m_dataStorageSections.front().records[2].schemaIndex = 1u;
+
+    // Record order (70, 10, 90), sorted handle order (10, 70, 90), and
+    // owner traversal order (90, 10, 70) are all distinct. The three bodies
+    // are intentionally owned by model space and two different block records.
+    DRW_ModelerGeometry nestedBody(DRW::BODY);
+    nestedBody.handle = 0x70u;
+    nestedBody.parentHandle = 0xC00u;
+    // ODA v5.4.1 does not establish the external AcDs modeler-version
+    // normalization for BODY. Keep the carrier association, but prove that
+    // linking it does not silently promote it to a qualified SAB modeler.
+    nestedBody.m_isEmpty = true;
+    nestedBody.m_modelerVersion = 168;
+    nestedBody.setHasDataStorageBinaryData(true);
+    nestedBody.dataStorageHandle = 0x70u;
+    nestedBody.dataStorageHandleKey = "70";
+    DRW_ModelerGeometry modelSpaceBody(DRW::REGION);
+    modelSpaceBody.handle = 0x10u;
+    modelSpaceBody.parentHandle = 0xA00u;
+    modelSpaceBody.setHasDataStorageBinaryData(true);
+    modelSpaceBody.dataStorageHandle = 0x10u;
+    modelSpaceBody.dataStorageHandleKey = "10";
+    DRW_ModelerGeometry rootBlockBody(DRW::E3DSOLID);
+    rootBlockBody.handle = 0x90u;
+    rootBlockBody.parentHandle = 0xB00u;
+    rootBlockBody.setHasDataStorageBinaryData(true);
+    rootBlockBody.dataStorageHandle = 0x90u;
+    rootBlockBody.dataStorageHandleKey = "90";
+
+    orderReader.linkDataStorage(rootBlockBody);
+    orderReader.linkDataStorage(modelSpaceBody);
+    orderReader.linkDataStorage(nestedBody);
+    orderReader.finalizeDataStorageLinks();
+    t.expect(nestedBody.hasDataStorageRecord
+                 && nestedBody.dataStorageData == secondPayload
+                 && nestedBody.dataStorageSegmentIndex == 7u
+                 && nestedBody.dataStorageSchemaIndex == 4u
+                 && nestedBody.m_modelerVersion == 168
+                 && nestedBody.m_isEmpty
+                 && nestedBody.parentHandle == 0xC00u
+                 && modelSpaceBody.hasDataStorageRecord
+                 && modelSpaceBody.dataStorageData == sab
+                 && modelSpaceBody.dataStorageSegmentIndex == 2u
+                 && modelSpaceBody.dataStorageSchemaIndex == 8u
+                 && modelSpaceBody.m_modelerVersion == 2
+                 && !modelSpaceBody.m_isEmpty
+                 && modelSpaceBody.parentHandle == 0xA00u
+                 && rootBlockBody.hasDataStorageRecord
+                 && rootBlockBody.dataStorageData == firstPayload
+                 && rootBlockBody.dataStorageSegmentIndex == 5u
+                 && rootBlockBody.dataStorageSchemaIndex == 1u
+                 && rootBlockBody.m_modelerVersion == 2
+                 && !rootBlockBody.m_isEmpty
+                 && rootBlockBody.parentHandle == 0xB00u
                  && orderReader.linkFailures() == 0u
-                 && orderReader.linkedRecordCount() == 2u,
-             "AcDs SAB records bind by entity handle independent of traversal order");
+                 && orderReader.linkedRecordCount() == 3u
+                 && orderReader.m_dataStorageOrphanRecords == 0u,
+             "AcDs bodies bind by handle across distinct block owners and record orders");
 
     dwgRW mismatchOwner(nullptr);
     ExposedDwgReader27 mismatchReader(
@@ -2740,12 +17778,655 @@ void testDwgModelerDataStorageLinking(TestContext& t) {
                  && versionReader.m_dataStorageSections[0].orphanRecordCount
                         == 1u,
              "wrong-version DataStorage remains unlinked and is reported orphaned");
+
+    std::vector<std::uint8_t> keyOnlyPayload = sab;
+    keyOnlyPayload.push_back(0xD3u);
+    std::vector<std::uint8_t> handleOnlyPayload = sab;
+    handleOnlyPayload.push_back(0xD4u);
+    dwgRW singleIdentityOwner(nullptr);
+    ExposedDwgReader27 singleIdentityReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &singleIdentityOwner);
+    singleIdentityReader.setFormatVersion(DRW::AC1027);
+    singleIdentityReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xD2u, "D2", sab),
+         makeDataStorageTestRecord(0xD3u, "D3", keyOnlyPayload),
+         makeDataStorageTestRecord(0xD4u, "D4", handleOnlyPayload)}));
+
+    DRW_ModelerGeometry keyOnlyModeler(DRW::E3DSOLID);
+    keyOnlyModeler.handle = 0xD2u;
+    keyOnlyModeler.setHasDataStorageBinaryData(true);
+    keyOnlyModeler.dataStorageHandle = DRW::NoHandle;
+    keyOnlyModeler.dataStorageHandleKey = "D3";
+    singleIdentityReader.linkDataStorage(keyOnlyModeler);
+    t.expect(keyOnlyModeler.hasDataStorageRecord
+                 && keyOnlyModeler.dataStorageHandle == 0xD3u
+                 && keyOnlyModeler.dataStorageHandleKey == "D3"
+                 && keyOnlyModeler.dataStorageData == keyOnlyPayload,
+             "explicit DataStorage handle key resolves without a numeric view or entity-handle fallback");
+
+    DRW_ModelerGeometry handleOnlyModeler(DRW::E3DSOLID);
+    handleOnlyModeler.handle = 0xD2u;
+    handleOnlyModeler.setHasDataStorageBinaryData(true);
+    handleOnlyModeler.dataStorageHandle = 0xD4u;
+    handleOnlyModeler.dataStorageHandleKey.clear();
+    singleIdentityReader.linkDataStorage(handleOnlyModeler);
+    t.expect(handleOnlyModeler.hasDataStorageRecord
+                 && handleOnlyModeler.dataStorageHandle == 0xD4u
+                 && handleOnlyModeler.dataStorageHandleKey == "D4"
+                 && handleOnlyModeler.dataStorageData == handleOnlyPayload
+                 && singleIdentityReader.linkFailures() == 0u
+                 && singleIdentityReader.linkedRecordCount() == 2u,
+             "explicit numeric DataStorage handle resolves without a lexical view or entity-handle fallback");
+
+    DRW_ModelerGeometry missingKeyModeler(DRW::E3DSOLID);
+    missingKeyModeler.handle = 0xD2u;
+    missingKeyModeler.setHasDataStorageBinaryData(true);
+    missingKeyModeler.dataStorageHandle = DRW::NoHandle;
+    missingKeyModeler.dataStorageHandleKey = "D5";
+    singleIdentityReader.linkDataStorage(missingKeyModeler);
+    DRW_ModelerGeometry missingHandleModeler(DRW::E3DSOLID);
+    missingHandleModeler.handle = 0xD2u;
+    missingHandleModeler.setHasDataStorageBinaryData(true);
+    missingHandleModeler.dataStorageHandle = 0xD5u;
+    missingHandleModeler.dataStorageHandleKey.clear();
+    singleIdentityReader.linkDataStorage(missingHandleModeler);
+    singleIdentityReader.finalizeDataStorageLinks();
+    t.expect(!missingKeyModeler.hasDataStorageRecord
+                 && missingKeyModeler.dataStorageData.empty()
+                 && !missingHandleModeler.hasDataStorageRecord
+                 && missingHandleModeler.dataStorageData.empty()
+                 && singleIdentityReader.linkFailures() == 2u
+                 && singleIdentityReader.linkedRecordCount() == 2u
+                 && singleIdentityReader.m_dataStorageOrphanRecords == 1u,
+             "missing explicit DataStorage identity views never fall back to the entity handle");
+
+    dwgRW unversionedOwner(nullptr);
+    ExposedDwgReader27 unversionedReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &unversionedOwner);
+    unversionedReader.setFormatVersion(DRW::AC1027);
+    DRW_DataStorageSection unversionedSection = makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xD6u, "D6", sab)});
+    unversionedSection.m_version = DRW::UNKNOWNV;
+    unversionedReader.appendDataStorageSection(std::move(unversionedSection));
+    DRW_ModelerGeometry unversionedModeler(DRW::REGION);
+    unversionedModeler.handle = 0xD5u;
+    unversionedModeler.setHasDataStorageBinaryData(true);
+    unversionedModeler.dataStorageHandle = 0xD6u;
+    unversionedModeler.dataStorageHandleKey = "D6";
+    unversionedReader.linkDataStorage(unversionedModeler);
+    unversionedReader.finalizeDataStorageLinks();
+    t.expect(unversionedModeler.hasDataStorageRecord
+                 && unversionedModeler.dataStorageHandle == 0xD6u
+                 && unversionedModeler.dataStorageData == sab
+                 && unversionedReader.linkFailures() == 0u
+                 && unversionedReader.linkedRecordCount() == 1u
+                 && unversionedReader.m_dataStorageOrphanRecords == 0u,
+             "unknown-version DataStorage section still requires an exact owner identity");
+
+    dwgRW preAc1027Owner(nullptr);
+    ExposedDwgReader27 preAc1027Reader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &preAc1027Owner);
+    preAc1027Reader.setFormatVersion(DRW::AC1024);
+    preAc1027Reader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xD7u, "D7", sab)}));
+    DRW_ModelerGeometry preAc1027Modeler(DRW::E3DSOLID);
+    preAc1027Modeler.handle = 0xD8u;
+    preAc1027Modeler.setHasDataStorageBinaryData(true);
+    preAc1027Modeler.dataStorageHandle = 0xD7u;
+    preAc1027Modeler.dataStorageHandleKey = "D7";
+    preAc1027Reader.linkDataStorage(preAc1027Modeler);
+    preAc1027Reader.finalizeDataStorageLinks();
+    t.expect(!preAc1027Modeler.hasDataStorageRecord
+                 && preAc1027Modeler.dataStorageData.empty()
+                 && preAc1027Reader.linkFailures() == 0u
+                 && preAc1027Reader.linkedRecordCount() == 0u
+                 && preAc1027Reader.m_dataStorageOrphanRecords == 1u,
+             "AC1024 reader does not link AC1027 DataStorage records");
+
+    dwgRW unadvertisedOwner(nullptr);
+    ExposedDwgReader27 unadvertisedReader(
+        std::make_unique<dwgBuffer>(backing.data(), backing.size()),
+        &unadvertisedOwner);
+    unadvertisedReader.setFormatVersion(DRW::AC1027);
+    unadvertisedReader.appendDataStorageSection(makeDataStorageTestSection(
+        {makeDataStorageTestRecord(0xD9u, "D9", sab)}));
+    DRW_ModelerGeometry unadvertisedModeler(DRW::E3DSOLID);
+    unadvertisedModeler.handle = 0xDAu;
+    unadvertisedModeler.dataStorageHandle = 0xD9u;
+    unadvertisedModeler.dataStorageHandleKey = "D9";
+    unadvertisedReader.linkDataStorage(unadvertisedModeler);
+    unadvertisedReader.finalizeDataStorageLinks();
+    t.expect(!unadvertisedModeler.hasDataStorageRecord
+                 && unadvertisedModeler.dataStorageData.empty()
+                 && unadvertisedReader.linkFailures() == 0u
+                 && unadvertisedReader.linkedRecordCount() == 0u
+                 && unadvertisedReader.m_dataStorageOrphanRecords == 1u,
+             "unadvertised DataStorage handle fields do not claim an out-of-line record");
 }
 
 class ExposedMLeader final : public DRW_MLeader {
 public:
     using DRW_MLeader::parseCode;
+    void resetForTest() { resetDwgState(); }
 };
+
+void testDxfMLeaderEntityTextOwnerBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (const bool blockLabels : {false, true}) {
+            const std::string records =
+                generatedMLeaderEntityTextBudgetWire(binary, blockLabels);
+            t.expect(!records.empty(),
+                     "generated ASCII/Binary MLEADER text records are writable");
+            if (records.empty())
+                continue;
+
+            const std::string retainedText = blockLabels
+                ? std::string(128u, 'L') + std::string(256u, 'F')
+                : std::string(256u, 'C');
+            const auto valuesMatch = [blockLabels](const ExposedMLeader& value,
+                                                    bool final) {
+                if (blockLabels) {
+                    return value.blockLabels.size() == 2u
+                        && value.blockLabels[0].labelText
+                            == std::string(128u, 'L')
+                        && value.blockLabels[1].labelText
+                            == (final ? std::string(256u, 'F')
+                                      : std::string("OLD-LAST"));
+                }
+                return value.context.textLabel
+                    == (final ? std::string(256u, 'C')
+                              : std::string("OLD-CONTEXT"));
+            };
+            const auto parseRecords = [binary, &records, &valuesMatch](
+                std::size_t limit, ExposedMLeader* output,
+                std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+                std::istringstream input(records,
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+                reader->setRetainedByteBudget(budget);
+                ExposedMLeader parsed;
+                bool ok = true;
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (!parsed.parseCode(code, reader)) {
+                        ok = false;
+                        break;
+                    }
+                }
+                ok = ok && !budget->exceeded();
+                if (output != nullptr)
+                    *output = parsed;
+                if (outputBudget != nullptr)
+                    *outputBudget = budget;
+                return ok;
+            };
+
+            std::size_t low = 0u;
+            std::size_t high = records.size() * 16u + 4096u;
+            while (low < high) {
+                const std::size_t middle = low + (high - low) / 2u;
+                if (parseRecords(middle, nullptr, nullptr))
+                    high = middle;
+                else
+                    low = middle + 1u;
+            }
+            const std::size_t exactCap = low;
+            ExposedMLeader admitted;
+            std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+            const bool exact = parseRecords(exactCap, &admitted,
+                                            &admittedBudget);
+            t.expect(exact && admittedBudget != nullptr
+                         && valuesMatch(admitted, true)
+                         && admittedBudget->used() == retainedText.size()
+                         && !admittedBudget->exceeded(),
+                     "MLEADER nested text replacements retain only final logical values at the measured exact cap");
+            if (exact) {
+                ExposedMLeader copied(admitted);
+                ExposedMLeader assigned;
+                assigned = admitted;
+                admitted.resetForTest();
+                t.expect(admittedBudget->used() == retainedText.size()
+                             && valuesMatch(copied, true)
+                             && valuesMatch(assigned, true),
+                         "MLEADER nested text lease survives copy, assignment, and source reset");
+                copied.resetForTest();
+                ExposedMLeader moved(std::move(assigned));
+                assigned.resetForTest();
+                ExposedMLeader moveAssigned;
+                moveAssigned = std::move(moved);
+                moved.resetForTest();
+                t.expect(admittedBudget->used() == retainedText.size()
+                             && valuesMatch(moveAssigned, true),
+                         "MLEADER nested text lease transfers through move operations");
+                moveAssigned.resetForTest();
+                t.expect(admittedBudget->used() == 0u,
+                         "final MLEADER reset releases all nested text charges");
+            }
+
+            ExposedMLeader rejected;
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const bool under = exactCap != 0u
+                && !parseRecords(exactCap - 1u, &rejected, &rejectedBudget);
+            const std::size_t priorBytes = blockLabels
+                ? 128u + std::string("OLD-LAST").size()
+                : std::string("OLD-CONTEXT").size();
+            t.expect(under && rejectedBudget != nullptr
+                         && rejectedBudget->exceeded()
+                         && valuesMatch(rejected, false)
+                         && rejectedBudget->used() == priorBytes,
+                     "one-byte-under MLEADER nested text admission preserves the prior values and retained-byte charge");
+            if (rejectedBudget != nullptr) {
+                rejected.resetForTest();
+                t.expect(rejectedBudget->used() == 0u,
+                         "rejected MLEADER nested text reset releases surviving charges");
+            }
+        }
+    }
+}
+
+void testDxfMLeaderTextCallbackBudget(TestContext& t) {
+    class Capture final : public FuzzInterface {
+    public:
+        void addMLeader(const DRW_MLeader *value) override {
+            events.emplace_back("MLEADER");
+            if (value != nullptr) {
+                if (value->context.hasTextContents)
+                    nestedTextValues.push_back(value->context.textLabel);
+                for (const DRW_MLeader::BlockLabelEntry& entry :
+                     value->blockLabels)
+                    nestedTextValues.push_back(entry.labelText);
+            }
+        }
+
+        void addLine(const DRW_Line& value) override {
+            events.emplace_back("LINE");
+            lineHandles.push_back(value.handle);
+            lineStarts.push_back(value.basePoint);
+            lineEnds.push_back(value.secPoint);
+        }
+
+        std::vector<std::string> events;
+        std::vector<std::string> nestedTextValues;
+        std::vector<std::uint32_t> lineHandles;
+        std::vector<DRW_Coord> lineStarts;
+        std::vector<DRW_Coord> lineEnds;
+    };
+
+    for (const bool binary : {false, true}) {
+        for (const bool blockLabels : {false, true}) {
+        const std::string textLabel(512u, 'M');
+        const std::vector<std::string> expectedTextValues = blockLabels
+            ? std::vector<std::string>{std::string(128u, 'L'), textLabel}
+            : std::vector<std::string>{textLabel};
+        const std::string drawing =
+            generatedMLeaderTextCallbackBudgetDrawing(binary, blockLabels);
+        t.expect(!drawing.empty(),
+                 "generated ASCII/Binary MLEADER nested-text callback drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto directory = std::filesystem::temp_directory_path()
+            / ("libdxfrw-mleader-text-callback-budget-"
+               + std::to_string(nonce));
+        std::error_code filesystemError;
+        if (!std::filesystem::create_directory(directory, filesystemError)
+            || filesystemError) {
+            t.expect(false,
+                     "create isolated temporary directory for MLEADER callback budget");
+            continue;
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove_all(path, error);
+            }
+        } cleanup{directory};
+
+        const auto path = directory / (binary
+            ? (blockLabels ? "mleader-block-binary.dxf" : "mleader-text-binary.dxf")
+            : (blockLabels ? "mleader-block-ascii.dxf" : "mleader-text-ascii.dxf"));
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "generated MLEADER callback drawing uses disposable storage");
+        }
+
+        const std::string filename = path.string();
+        const auto callbacksMatch = [&expectedTextValues](
+                const Capture& capture) {
+            return capture.events == std::vector<std::string>{"MLEADER", "LINE"}
+                && capture.nestedTextValues == expectedTextValues
+                && capture.lineHandles.size() == 1u
+                && capture.lineHandles.front() != 0u
+                && capture.lineStarts.size() == 1u
+                && capture.lineEnds.size() == 1u
+                && capture.lineStarts.front().x == 3.0
+                && capture.lineStarts.front().y == 4.0
+                && capture.lineStarts.front().z == 5.0
+                && capture.lineEnds.front().x == 6.0
+                && capture.lineEnds.front().y == 7.0
+                && capture.lineEnds.front().z == 8.0;
+        };
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            dxfRW codec(filename.c_str());
+            codec.setDxfReadRetainedByteBudget(limit);
+            Capture capture;
+            return codec.read(&capture, false) && callbacksMatch(capture);
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = drawing.size() * 16u + 4096u;
+        const bool ampleRead = fullReadSucceeds(high);
+        t.expect(ampleRead,
+                 "full MLEADER/LINE drawing succeeds with ample retained-byte budget");
+        if (!ampleRead)
+            continue;
+
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        t.expect(exactCap > textLabel.size() && fullReadSucceeds(exactCap),
+                 "MLEADER nested-text callback is admitted at the measured exact retained-byte peak");
+        if (exactCap == 0u)
+            continue;
+
+        dxfRW codec(filename.c_str());
+        Capture capture;
+        codec.setDxfReadRetainedByteBudget(exactCap - 1u);
+        const bool refused = !codec.read(&capture, false);
+        const bool noEntityCallbacks = capture.events.empty()
+            && capture.nestedTextValues.empty()
+            && capture.lineHandles.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(exactCap);
+        const bool retried = codec.read(&capture, false);
+        t.expect(refused && noEntityCallbacks,
+                 "one-byte-under MLEADER text budget refuses before MLEADER or following LINE callbacks");
+        t.expect(resourceDiagnostic,
+                 "MLEADER callback refusal reports retained-byte ResourceLimit");
+        t.expect(retried && callbacksMatch(capture),
+                 "same-facade exact-budget retry publishes nested-text MLEADER then the following LINE with expected values");
+        }
+    }
+}
+
+void testDxfBackgroundTextOwnerBudget(TestContext& t) {
+    class BackgroundParseProbe final : public DRW_Background {
+    public:
+        using DRW_Background::parseCode;
+    };
+
+    struct TextField {
+        DRW_Background::Kind kind;
+        int code;
+        const char* oldValue;
+        char finalCharacter;
+        const char* description;
+    };
+    const std::array<TextField, 2> fields{{
+        {DRW_Background::Ibl, 1, "OLD-IBL", 'I', "IBL name"},
+        {DRW_Background::Image, 300, "OLD-IMAGE", 'F', "image file name"}
+    }};
+
+    for (const bool binary : {false, true}) {
+        for (const TextField& field : fields) {
+            const std::string finalValue(512u, field.finalCharacter);
+            std::ostringstream wire(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&wire))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&wire));
+            const bool generated = writer->writeString(field.code,
+                                                       field.oldValue)
+                && writer->writeString(field.code, finalValue);
+            writer.reset();
+            const std::string source = generated ? wire.str() : std::string{};
+            t.expect(!source.empty(),
+                     std::string("generated ") + (binary ? "Binary " : "ASCII ")
+                         + field.description + " owner records are writable");
+            if (source.empty())
+                continue;
+
+            const auto parseRecords = [binary, &field, &source, &finalValue](
+                    std::size_t limit,
+                    BackgroundParseProbe* output,
+                    std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+                std::istringstream input(source,
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader = binary
+                    ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                    : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+                auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+                reader->setRetainedByteBudget(budget);
+                BackgroundParseProbe parsed;
+                parsed.m_kind = field.kind;
+                bool ok = true;
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (!parsed.parseCode(code, reader)) {
+                        ok = false;
+                        break;
+                    }
+                }
+                ok = ok && !budget->exceeded();
+                if (output != nullptr)
+                    *output = parsed;
+                if (outputBudget != nullptr)
+                    *outputBudget = budget;
+                return ok
+                    && (field.kind == DRW_Background::Ibl
+                            ? parsed.m_iblName == finalValue
+                            : parsed.m_fileName == finalValue);
+            };
+
+            std::size_t low = 0u;
+            std::size_t high = source.size() * 16u + 4096u;
+            while (low < high) {
+                const std::size_t middle = low + (high - low) / 2u;
+                if (parseRecords(middle, nullptr, nullptr))
+                    high = middle;
+                else
+                    low = middle + 1u;
+            }
+            const std::size_t exactCap = low;
+            std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+            bool exact = false;
+            {
+                BackgroundParseProbe admitted;
+                exact = parseRecords(exactCap, &admitted, &admittedBudget);
+                t.expect(exact && admittedBudget != nullptr
+                             && admittedBudget->used() == finalValue.size(),
+                         std::string("Background ") + field.description
+                             + " retains exactly its final value at the measured cap");
+
+                if (exact) {
+                    BackgroundParseProbe copied(admitted);
+                    BackgroundParseProbe assigned;
+                    assigned = admitted;
+                    t.expect(admittedBudget->used() == finalValue.size()
+                                 && (field.kind == DRW_Background::Ibl
+                                         ? copied.m_iblName == finalValue
+                                             && assigned.m_iblName == finalValue
+                                         : copied.m_fileName == finalValue
+                                             && assigned.m_fileName == finalValue),
+                             std::string("Background ") + field.description
+                                 + " lease survives copy construction and assignment");
+                }
+            }
+            t.expect(admittedBudget != nullptr
+                         && admittedBudget->used() == 0u,
+                     std::string("Background ") + field.description
+                         + " copies release the final retained charge at teardown");
+
+            std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+            const std::size_t oldBytes = std::string(field.oldValue).size();
+            {
+                BackgroundParseProbe rejected;
+                const bool under = exactCap != 0u
+                    && !parseRecords(exactCap - 1u, &rejected,
+                                     &rejectedBudget);
+                const std::string& priorValue = field.kind == DRW_Background::Ibl
+                    ? rejected.m_iblName : rejected.m_fileName;
+                t.expect(under && rejectedBudget != nullptr
+                             && rejectedBudget->exceeded()
+                             && rejectedBudget->used() == oldBytes
+                             && priorValue == field.oldValue,
+                         std::string("one-byte-under Background ")
+                             + field.description
+                             + " budget preserves the previous value and charge");
+            }
+            t.expect(rejectedBudget != nullptr
+                         && rejectedBudget->used() == 0u,
+                     std::string("rejected Background ") + field.description
+                         + " lease releases its prior value at teardown");
+        }
+    }
+}
+
+void testDxfMPolygonFillColorCallbackBudget(TestContext& t) {
+    class Capture final : public FuzzInterface {
+    public:
+        void addMPolygon(const DRW_MPolygon* value) override {
+            events.emplace_back("MPOLYGON");
+            if (value != nullptr)
+                fillColorNames.push_back(value->fillColorName);
+        }
+
+        void addLine(const DRW_Line& value) override {
+            events.emplace_back("LINE");
+            lineHandles.push_back(value.handle);
+            lineStarts.push_back(value.basePoint);
+            lineEnds.push_back(value.secPoint);
+        }
+
+        std::vector<std::string> events;
+        std::vector<std::string> fillColorNames;
+        std::vector<std::uint32_t> lineHandles;
+        std::vector<DRW_Coord> lineStarts;
+        std::vector<DRW_Coord> lineEnds;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string fillColorName(512u, 'P');
+        const std::string drawing =
+            generatedMPolygonFillColorCallbackBudgetDrawing(binary);
+        t.expect(!drawing.empty(),
+                 "generated ASCII/Binary MPOLYGON fill-name callback drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto directory = std::filesystem::temp_directory_path()
+            / ("libdxfrw-mpolygon-fill-callback-budget-"
+               + std::to_string(nonce));
+        std::error_code filesystemError;
+        if (!std::filesystem::create_directory(directory, filesystemError)
+            || filesystemError) {
+            t.expect(false,
+                     "create isolated temporary directory for MPOLYGON callback budget");
+            continue;
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove_all(path, error);
+            }
+        } cleanup{directory};
+
+        const auto path = directory / (binary
+            ? "mpolygon-binary.dxf" : "mpolygon-ascii.dxf");
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "generated MPOLYGON callback drawing uses disposable storage");
+        }
+
+        const auto callbacksMatch = [&fillColorName](const Capture& capture) {
+            return capture.events == std::vector<std::string>{"MPOLYGON", "LINE"}
+                && capture.fillColorNames == std::vector<std::string>{fillColorName}
+                && capture.lineHandles.size() == 1u
+                && capture.lineHandles.front() != 0u
+                && capture.lineStarts.size() == 1u
+                && capture.lineEnds.size() == 1u
+                && capture.lineStarts.front().x == 3.0
+                && capture.lineStarts.front().y == 4.0
+                && capture.lineStarts.front().z == 5.0
+                && capture.lineEnds.front().x == 6.0
+                && capture.lineEnds.front().y == 7.0
+                && capture.lineEnds.front().z == 8.0;
+        };
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            dxfRW codec(path.string().c_str());
+            codec.setDxfReadRetainedByteBudget(limit);
+            Capture capture;
+            return codec.read(&capture, false) && callbacksMatch(capture);
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = drawing.size() * 16u + 4096u;
+        const bool ampleRead = fullReadSucceeds(high);
+        t.expect(ampleRead,
+                 "full MPOLYGON/LINE drawing succeeds with ample retained-byte budget");
+        if (!ampleRead)
+            continue;
+
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        t.expect(exactCap > fillColorName.size()
+                     && fullReadSucceeds(exactCap),
+                 "MPOLYGON fill-name callback is admitted at the measured exact retained-byte peak");
+        if (exactCap == 0u)
+            continue;
+
+        dxfRW codec(path.string().c_str());
+        Capture capture;
+        codec.setDxfReadRetainedByteBudget(exactCap - 1u);
+        const bool refused = !codec.read(&capture, false);
+        const bool noEntityCallbacks = capture.events.empty()
+            && capture.fillColorNames.empty()
+            && capture.lineHandles.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(exactCap);
+        const bool retried = codec.read(&capture, false);
+        t.expect(refused && noEntityCallbacks,
+                 "one-byte-under MPOLYGON fill-name budget refuses before MPOLYGON or following LINE callbacks");
+        t.expect(resourceDiagnostic,
+                 "MPOLYGON callback refusal reports retained-byte ResourceLimit");
+        t.expect(retried && callbacksMatch(capture),
+                 "same-facade exact-budget retry publishes MPOLYGON then following LINE with exact fill name and coordinates");
+    }
+}
 
 class ExposedDimArc final : public DRW_DimArc {
 public:
@@ -2761,7 +18442,2025 @@ class ExposedModelerGeometry final : public DRW_ModelerGeometry {
 public:
     using DRW_ModelerGeometry::DRW_ModelerGeometry;
     using DRW_ModelerGeometry::parseCode;
+    using DRW_ModelerGeometry::resetDwgState;
+    std::size_t retainedBytes() const noexcept {
+        return DxfAcisCarrierTestAccess::retainedBytes(*this);
+    }
 };
+
+void testDxfModelerTextDirectAppend(TestContext& t) {
+    const std::string wire = "1\nLEFT^ RIGHT\n3\nCONT\n1\nEND\n";
+    std::istringstream input(wire);
+    std::unique_ptr<dxfReader> reader =
+        std::make_unique<dxfReaderAscii>(&input);
+    auto budget = std::make_shared<DxfReadRetainedBudget>(4096u);
+    reader->setRetainedByteBudget(budget);
+    ExposedModelerGeometry model(DRW::E3DSOLID);
+    bool parsed = true;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (!model.parseCode(code, reader)) {
+            parsed = false;
+            break;
+        }
+    }
+
+    const std::vector<std::uint8_t> expected{
+        'L', 'E', 'F', 'T', '^', 'R', 'I', 'G', 'H', 'T',
+        'C', 'O', 'N', 'T', '\n', 'E', 'N', 'D'};
+    const bool chunksMatch = model.m_dxfPayloadChunks.size() == 3u
+        && model.m_dxfPayloadChunks[0].m_groupCode == 1
+        && model.m_dxfPayloadChunks[0].m_offset == 0u
+        && model.m_dxfPayloadChunks[0].m_length == 10u
+        && model.m_dxfPayloadChunks[1].m_groupCode == 3
+        && model.m_dxfPayloadChunks[1].m_offset == 10u
+        && model.m_dxfPayloadChunks[1].m_length == 4u
+        && model.m_dxfPayloadChunks[2].m_groupCode == 1
+        && model.m_dxfPayloadChunks[2].m_offset == 15u
+        && model.m_dxfPayloadChunks[2].m_length == 3u;
+    t.expect(parsed && model.m_rawBytes == expected && chunksMatch
+                 && model.retainedBytes() == expected.size(),
+             "modeler text chunks decode escaped carets directly into retained bytes with exact offsets and lease size");
+}
+
+void testDxfGroup310DirectDecode(TestContext& t) {
+    static constexpr char hexDigits[] = "0123456789ABCDEF";
+    std::vector<std::uint8_t> payload(300u);
+    for (std::size_t i = 0; i < payload.size(); ++i)
+        payload[i] = static_cast<std::uint8_t>((i * 29u + 7u) & 0xFFu);
+
+    const auto makeDxf = [](bool binary,
+                            const std::function<bool(dxfWriter&)>& writeBody) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1024", true);
+        if (!writeBody(*writer) || !writer->writeString(0, "FOLLOWING"))
+            return std::string{};
+        return output.str();
+    };
+    const auto writeHexChunks = [&](dxfWriter& writer,
+                                    const std::vector<std::uint8_t>& bytes) {
+        for (std::size_t offset = 0; offset < bytes.size(); offset += 127u) {
+            const std::size_t count = std::min<std::size_t>(127u,
+                                                            bytes.size() - offset);
+            std::string hex;
+            hex.reserve(count * 2u);
+            for (std::size_t index = 0; index < count; ++index) {
+                const std::uint8_t byte = bytes[offset + index];
+                hex.push_back(hexDigits[byte >> 4u]);
+                hex.push_back(hexDigits[byte & 0x0Fu]);
+            }
+            if (!writer.writeString(310, hex))
+                return false;
+        }
+        return true;
+    };
+    const auto writeHexChunk = [&](dxfWriter& writer,
+                                   std::initializer_list<std::uint8_t> bytes) {
+        std::string hex;
+        hex.reserve(bytes.size() * 2u);
+        for (const std::uint8_t byte : bytes) {
+            hex.push_back(hexDigits[byte >> 4u]);
+            hex.push_back(hexDigits[byte & 0x0Fu]);
+        }
+        return writer.writeString(310, hex);
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "Binary" : "ASCII";
+
+        const std::string ole2Input = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbOle2Frame")
+                && writer.writeInt32(90, static_cast<int>(payload.size()))
+                && writeHexChunks(writer, payload);
+        });
+        ExposedOle2Frame ole2;
+        const bool ole2Parsed = !ole2Input.empty()
+            && parseGeneratedDxfUntilFollowing(ole2, ole2Input, binary);
+        t.expect(ole2Parsed && ole2.m_payloadBytes == payload
+                     && ole2.m_payloadPresent && !ole2.m_payloadTooLarge,
+                 encoding + " OLE2FRAME decodes group-310 chunks directly into its retained payload");
+
+        const std::string oleInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbOleFrame")
+                && writer.writeInt32(90, static_cast<int>(payload.size()))
+                && writeHexChunks(writer, payload);
+        });
+        ExposedOleFrame ole;
+        const bool oleParsed = !oleInput.empty()
+            && parseGeneratedDxfUntilFollowing(ole, oleInput, binary);
+        t.expect(oleParsed && ole.m_payloadBytes == payload
+                     && ole.m_payloadPresent && !ole.m_payloadTooLarge,
+                 encoding + " OLEFRAME decodes group-310 chunks directly into its retained payload");
+
+        const std::string xrecordInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbXrecord")
+                && writeHexChunks(writer, payload);
+        });
+        ExposedXRecord xrecord;
+        const bool xrecordParsed = !xrecordInput.empty()
+            && parseGeneratedDxfUntilFollowing(xrecord, xrecordInput, binary);
+        std::vector<std::uint8_t> xrecordCompatibilityBytes;
+        std::vector<std::uint8_t> xrecordOrderedBytes;
+        bool xrecordViewsValid = xrecord.m_values.size() == 3u
+            && xrecord.m_dataEntries.size() == 3u;
+        for (std::size_t index = 0; index < xrecord.m_values.size(); ++index) {
+            const DRW_Variant& compatibility = xrecord.m_values[index];
+            const DRW_Variant& ordered = xrecord.m_dataEntries[index];
+            xrecordViewsValid = xrecordViewsValid
+                && compatibility.code() == 310
+                && compatibility.type() == DRW_Variant::BINARY
+                && compatibility.binary() != nullptr
+                && ordered.code() == 310
+                && ordered.type() == DRW_Variant::BINARY
+                && ordered.binary() != nullptr;
+            if (compatibility.binary() != nullptr)
+                xrecordCompatibilityBytes.insert(
+                    xrecordCompatibilityBytes.end(),
+                    compatibility.binary()->begin(),
+                    compatibility.binary()->end());
+            if (ordered.binary() != nullptr)
+                xrecordOrderedBytes.insert(xrecordOrderedBytes.end(),
+                                           ordered.binary()->begin(),
+                                           ordered.binary()->end());
+        }
+        t.expect(xrecordParsed && xrecordViewsValid
+                     && xrecordCompatibilityBytes == payload
+                     && xrecordOrderedBytes == payload,
+                 encoding + " XRECORD decodes borrowed group-310 text into matching compatibility and ordered payload views");
+
+        const std::string extrudedInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbExtrudedSurface")
+                && writer.writeInt32(90, 31)
+                && writer.writeInt32(90, static_cast<int>(payload.size()))
+                && writeHexChunks(writer, payload);
+        });
+        ExposedExtrudedSurface extruded;
+        const bool extrudedParsed = !extrudedInput.empty()
+            && parseGeneratedDxfUntilFollowing(extruded, extrudedInput, binary);
+        t.expect(extrudedParsed && extruded.dxfBinaryData == payload
+                     && extruded.finalizeDxf(),
+                 encoding + " EXTRUDEDSURFACE decodes declared group-310 payload directly");
+
+        const std::string revolvedInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbRevolvedSurface")
+                && writer.writeInt32(90, 41)
+                && writer.writeInt32(90, static_cast<int>(payload.size()))
+                && writeHexChunks(writer, payload);
+        });
+        ExposedRevolvedSurface revolved;
+        const bool revolvedParsed = !revolvedInput.empty()
+            && parseGeneratedDxfUntilFollowing(revolved, revolvedInput, binary);
+        t.expect(revolvedParsed && revolved.dxfBinaryData == payload
+                     && revolved.finalizeDxf(),
+                 encoding + " REVOLVEDSURFACE decodes declared group-310 payload directly");
+
+        const std::vector<std::uint8_t> pathPayload{0xA5u, 0x5Au};
+        const std::string sweptInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbSweptSurface")
+                && writer.writeInt32(90, 51)
+                && writer.writeInt32(90, static_cast<int>(payload.size()))
+                && writeHexChunks(writer, payload)
+                && writer.writeInt32(90, 52)
+                && writer.writeInt32(90,
+                                     static_cast<int>(pathPayload.size()))
+                && writeHexChunks(writer, pathPayload);
+        });
+        ExposedSweptSurface swept;
+        const bool sweptParsed = !sweptInput.empty()
+            && parseGeneratedDxfUntilFollowing(swept, sweptInput, binary);
+        t.expect(sweptParsed && swept.sweepData == payload
+                     && swept.pathData == pathPayload && swept.finalizeDxf(),
+                 encoding + " SWEPTSURFACE routes direct group-310 decode into the declared sweep/path payloads");
+
+        const std::string loftedInput = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbLoftedSurface")
+                && writer.writeInt32(90, 7)
+                && writeHexChunks(writer, payload);
+        });
+        ExposedLoftedSurface lofted;
+        const bool loftedParsed = !loftedInput.empty()
+            && parseGeneratedDxfUntilFollowing(lofted, loftedInput, binary);
+        std::vector<std::uint8_t> loftedPayload;
+        bool loftedVariantsValid = lofted.dxfReferenceData.size() == 4u
+            && lofted.dxfReferenceData[0].code() == 90
+            && lofted.dxfReferenceData[0].i_val() == 7;
+        for (std::size_t index = 1;
+             index < lofted.dxfReferenceData.size(); ++index) {
+            const DRW_Variant& variant = lofted.dxfReferenceData[index];
+            loftedVariantsValid = loftedVariantsValid && variant.code() == 310
+                && variant.type() == DRW_Variant::BINARY
+                && variant.binary() != nullptr;
+            if (variant.binary() != nullptr)
+                loftedPayload.insert(loftedPayload.end(),
+                                     variant.binary()->begin(),
+                                     variant.binary()->end());
+        }
+        t.expect(loftedParsed && loftedVariantsValid
+                     && loftedPayload == payload && lofted.finalizeDxf(),
+                 encoding + " LOFTEDSURFACE decodes borrowed group-310 text into moved variant-owned payloads");
+
+        const std::string extrudedOverrun = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbExtrudedSurface")
+                    && writer.writeInt32(90, 31)
+                    && writer.writeInt32(90, 1)
+                    && writeHexChunk(writer, {0xA5u})
+                    && writeHexChunk(writer, {0x5Au});
+            });
+        ExposedExtrudedSurface rejectedExtruded;
+        t.expect(!extrudedOverrun.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         rejectedExtruded, extrudedOverrun, binary)
+                     && rejectedExtruded.dxfBinaryData
+                         == std::vector<std::uint8_t>{0xA5u},
+                 encoding + " EXTRUDEDSURFACE preserves its accepted prefix when a later group-310 chunk exceeds the declared size");
+
+        const std::string revolvedOverrun = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbRevolvedSurface")
+                    && writer.writeInt32(90, 41)
+                    && writer.writeInt32(90, 1)
+                    && writeHexChunk(writer, {0xA5u})
+                    && writeHexChunk(writer, {0x5Au});
+            });
+        ExposedRevolvedSurface rejectedRevolved;
+        t.expect(!revolvedOverrun.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         rejectedRevolved, revolvedOverrun, binary)
+                     && rejectedRevolved.dxfBinaryData
+                         == std::vector<std::uint8_t>{0xA5u},
+                 encoding + " REVOLVEDSURFACE preserves its accepted prefix when a later group-310 chunk exceeds the declared size");
+
+        const std::string sweptOverrun = makeDxf(binary, [&](dxfWriter& writer) {
+            return writer.writeString(100, "AcDbSweptSurface")
+                && writer.writeInt32(90, 51)
+                && writer.writeInt32(90, 1)
+                && writeHexChunk(writer, {0xA5u})
+                && writeHexChunk(writer, {0x5Au});
+        });
+        ExposedSweptSurface rejectedSwept;
+        t.expect(!sweptOverrun.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         rejectedSwept, sweptOverrun, binary)
+                     && rejectedSwept.sweepData
+                         == std::vector<std::uint8_t>{0xA5u}
+                     && rejectedSwept.pathData.empty(),
+                 encoding + " SWEPTSURFACE preserves its accepted sweep prefix when a later group-310 chunk exceeds the declared size");
+    }
+}
+
+void testDxfModelerUidOwnerBudget(TestContext& t) {
+    const std::string source = "2\nOLD\n2\nUID-123\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        ExposedModelerGeometry modeler(DRW::E3DSOLID);
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!modeler.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && modeler.m_hasDxfModelerUid
+            && modeler.m_dxfModelerUid == "UID-123"
+            && budget->used() == 7u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "modeler UID replacement succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "modeler UID replacement establishes its minimum admitted budget");
+
+    {
+        std::ostringstream wire(std::ios::out | std::ios::binary);
+        dxfWriterBinary writer(&wire);
+        const bool writable = writer.writeString(2, "OLD")
+            && writer.writeString(2, "UID-123");
+        t.expect(writable,
+                 "generated Binary modeler UID owner records are writable");
+        if (writable) {
+            const std::string binarySource = wire.str();
+            auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+            ExposedModelerGeometry modeler(DRW::E3DSOLID);
+            bool parsed = true;
+            bool tokensTransferred = true;
+            {
+                std::istringstream input(binarySource,
+                                         std::ios::in | std::ios::binary);
+                std::unique_ptr<dxfReader> reader =
+                    std::make_unique<dxfReaderBinary>(&input);
+                reader->setRetainedByteBudget(budget);
+                int code = 0;
+                while (reader->readRec(&code)) {
+                    if (!modeler.parseCode(code, reader)) {
+                        parsed = false;
+                        break;
+                    }
+                    if (code == 2 && !reader->getStringView().empty())
+                        tokensTransferred = false;
+                }
+            }
+            t.expect(parsed && tokensTransferred
+                         && modeler.m_hasDxfModelerUid
+                         && modeler.m_dxfModelerUid == "UID-123"
+                         && budget->used() == 7u && !budget->exceeded(),
+                     "Binary modeler UID transfer preserves value, consumes tokens, and fits the measured ASCII budget");
+        }
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        ExposedModelerGeometry modeler(DRW::E3DSOLID);
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!modeler.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && modeler.m_hasDxfModelerUid
+                     && modeler.m_dxfModelerUid == "UID-123"
+                     && budget->used() == 7u,
+                 "modeler UID replacement succeeds at the minimum admitted budget");
+        ExposedModelerGeometry copy(modeler);
+        ExposedModelerGeometry assigned(DRW::E3DSOLID);
+        assigned = modeler;
+        modeler.resetDwgState();
+        t.expect(budget->used() == 7u && copy.m_hasDxfModelerUid
+                     && assigned.m_hasDxfModelerUid
+                     && copy.m_dxfModelerUid == "UID-123"
+                     && assigned.m_dxfModelerUid == "UID-123",
+                 "modeler UID lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "assigned modeler keeps the UID charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final modeler reset releases the UID lease");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        ExposedModelerGeometry modeler(DRW::E3DSOLID);
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!modeler.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && modeler.m_hasDxfModelerUid
+                     && modeler.m_dxfModelerUid == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under UID replacement preserves the prior value and charge");
+        modeler.resetDwgState();
+        t.expect(budget->used() == 0u && !modeler.m_hasDxfModelerUid
+                     && modeler.m_dxfModelerUid.empty(),
+                 "modeler reset clears and releases the UID owner");
+    }
+}
+
+void testDxfSectionObjectNameOwnerBudget(TestContext& t) {
+    const std::string source =
+        "100\nAcDbSection\n1\nOLD\n"
+        "100\nAcDbSection\n1\nSEC-123\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        ExposedSectionObject section;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!section.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && section.m_name == "SEC-123"
+            && budget->used() == 7u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "SECTIONOBJECT name replacement succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "SECTIONOBJECT name replacement establishes its minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        ExposedSectionObject section;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!section.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && section.m_name == "SEC-123"
+                     && budget->used() == 7u,
+                 "SECTIONOBJECT name replacement succeeds at the minimum admitted budget");
+        ExposedSectionObject copy(section);
+        ExposedSectionObject assigned;
+        assigned = section;
+        section.resetDwgState();
+        t.expect(budget->used() == 7u && copy.m_name == "SEC-123"
+                     && assigned.m_name == "SEC-123",
+                 "SECTIONOBJECT name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "assigned SECTIONOBJECT keeps the name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final SECTIONOBJECT reset releases the name lease");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        ExposedSectionObject section;
+        std::size_t recordsRead = 0u;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                ++recordsRead;
+                if (!section.parseCode(code, reader)) {
+                    break;
+                }
+            }
+        }
+        t.expect(recordsRead < 4u && budget->exceeded()
+                     && section.m_name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under SECTIONOBJECT budget stops before replacing the prior name");
+        section.resetDwgState();
+        t.expect(budget->used() == 0u && section.m_name.empty(),
+                 "rejected SECTIONOBJECT name replacement releases its lease on reset");
+    }
+}
+
+void testSectionObjectIndicatorColorDxfGroups(TestContext& t) {
+    ExposedSectionObject canonical;
+    t.expect(parseDxfRecords(canonical,
+                             "100\nAcDbSection\n63\n231\n")
+                 && canonical.m_indicatorColor == 231u,
+             "SECTIONOBJECT parses documented indicator-color group 63");
+
+    ExposedSectionObject legacy;
+    t.expect(parseDxfRecords(legacy,
+                             "100\nAcDbSection\n62\n230\n")
+                 && legacy.m_indicatorColor == 230u,
+             "SECTIONOBJECT accepts the former libdxfrw group-62 spelling");
+}
+
+void testDxfShapeStyleNameOwnerBudget(TestContext& t) {
+    const std::string source = "2\nOLD\n2\nGLYPH1\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        ExposedShape shape;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!shape.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && shape.m_styleName == "GLYPH1"
+            && budget->used() == 6u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "SHAPE style-name replacement succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "SHAPE style-name replacement establishes its minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        ExposedShape shape;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!shape.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && shape.m_styleName == "GLYPH1"
+                     && budget->used() == 6u,
+                 "SHAPE style-name replacement succeeds at the minimum admitted budget");
+        ExposedShape copy(shape);
+        ExposedShape assigned;
+        assigned = shape;
+        shape.resetDwgState();
+        t.expect(budget->used() == 6u && copy.m_styleName == "GLYPH1"
+                     && assigned.m_styleName == "GLYPH1",
+                 "SHAPE style-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "assigned SHAPE keeps its style-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u && assigned.m_styleName.empty(),
+                 "final SHAPE reset clears and releases the style-name owner");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        ExposedShape shape;
+        std::size_t recordsRead = 0u;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                ++recordsRead;
+                if (!shape.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(recordsRead < 4u && budget->exceeded()
+                     && shape.m_styleName == "OLD" && budget->used() == 3u,
+                 "one-byte-under SHAPE budget stops before replacing the prior style name");
+        shape.resetDwgState();
+        t.expect(budget->used() == 0u && shape.m_styleName.empty(),
+                 "rejected SHAPE style-name replacement releases its owner on reset");
+    }
+
+    class ShapeCapture final : public FuzzInterface {
+    public:
+        void addShape(const DRW_Shape& value) override {
+            ++count;
+            styleName = value.m_styleName;
+        }
+
+        std::size_t count {0};
+        std::string styleName;
+    } capture;
+    std::string drawing =
+        "0\nSECTION\n2\nENTITIES\n"
+        "0\nSHAPE\n2\nGLYPH1\n10\n1\n20\n2\n40\n3\n"
+        "0\nENDSEC\n0\nEOF\n";
+    dxfRW codec(nullptr);
+    const bool read = codec.readAscii(&capture, false, drawing);
+    t.expect(read && capture.count == 1u && capture.styleName == "GLYPH1",
+             "SHAPE callback retains the decoded style name after required-field validation");
+    t.expect(codec.getTextReadObservations().semanticDecodeCalls == 1u,
+             "SHAPE style-name validation reuses its decoded value without a duplicate semantic decode");
+}
+
+void testDxfGeoPositionMarkerNotesOwnerBudget(TestContext& t) {
+    const std::string source = "1\nOLD\n1\nNOTES\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        ExposedGeoPositionMarker marker;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!marker.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && marker.m_notes == "NOTES"
+            && budget->used() == 5u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "GEOPOSITIONMARKER notes replacement succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "GEOPOSITIONMARKER notes replacement establishes its minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        ExposedGeoPositionMarker marker;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!marker.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && marker.m_notes == "NOTES" && budget->used() == 5u,
+                 "GEOPOSITIONMARKER notes replacement succeeds at the minimum admitted budget");
+        ExposedGeoPositionMarker copy(marker);
+        ExposedGeoPositionMarker assigned;
+        assigned = marker;
+        marker.resetDwgState();
+        t.expect(budget->used() == 5u && copy.m_notes == "NOTES"
+                     && assigned.m_notes == "NOTES",
+                 "GEOPOSITIONMARKER notes lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 5u,
+                 "assigned GEOPOSITIONMARKER keeps notes charge after sibling reset");
+        ExposedGeoPositionMarker moved(std::move(assigned));
+        assigned.resetDwgState();
+        t.expect(budget->used() == 5u && moved.m_notes == "NOTES",
+                 "GEOPOSITIONMARKER move construction transfers the notes lease");
+        ExposedGeoPositionMarker moveAssigned;
+        moveAssigned = std::move(moved);
+        moved.resetDwgState();
+        t.expect(budget->used() == 5u && moveAssigned.m_notes == "NOTES",
+                 "GEOPOSITIONMARKER move assignment transfers the notes lease");
+        moveAssigned.resetDwgState();
+        t.expect(budget->used() == 0u && moveAssigned.m_notes.empty(),
+                 "final GEOPOSITIONMARKER reset clears notes and releases the owner lease");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        ExposedGeoPositionMarker marker;
+        std::size_t recordsRead = 0u;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                ++recordsRead;
+                if (!marker.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(recordsRead < 4u && budget->exceeded()
+                     && marker.m_notes == "OLD" && budget->used() == 3u,
+                 "one-byte-under GEOPOSITIONMARKER budget stops before replacing prior notes");
+        marker.resetDwgState();
+        t.expect(budget->used() == 0u && marker.m_notes.empty(),
+                 "rejected GEOPOSITIONMARKER notes replacement releases its surviving lease on reset");
+    }
+}
+
+void testDxfMTextBackgroundColorNameOwnerBudget(TestContext& t) {
+    class MTextParseProbe final : public DRW_MText {
+    public:
+        using DRW_MText::parseCode;
+        using DRW_MText::resetDwgState;
+    };
+    const std::string source = "431\nOLD\n431\nCOLOR-NAME\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        MTextParseProbe text;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!text.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && text.m_backgroundColorName == "COLOR-NAME"
+            && budget->used() == 10u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "MTEXT background color-name replacement succeeds with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "MTEXT background color-name replacement establishes its minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        MTextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && text.m_backgroundColorName == "COLOR-NAME"
+                     && budget->used() == 10u,
+                 "MTEXT background color-name replacement succeeds at the minimum admitted budget");
+        MTextParseProbe copy(text);
+        MTextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 10u
+                     && copy.m_backgroundColorName == "COLOR-NAME"
+                     && assigned.m_backgroundColorName == "COLOR-NAME",
+                 "MTEXT background color-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 10u,
+                 "assigned MTEXT keeps the background color-name charge after sibling reset");
+        MTextParseProbe moved(std::move(assigned));
+        assigned.resetDwgState();
+        t.expect(budget->used() == 10u
+                     && moved.m_backgroundColorName == "COLOR-NAME",
+                 "MTEXT move construction transfers the background color-name lease");
+        MTextParseProbe moveAssigned;
+        moveAssigned = std::move(moved);
+        moved.resetDwgState();
+        t.expect(budget->used() == 10u
+                     && moveAssigned.m_backgroundColorName == "COLOR-NAME",
+                 "MTEXT move assignment transfers the background color-name lease");
+        moveAssigned.resetDwgState();
+        t.expect(budget->used() == 0u
+                     && moveAssigned.m_backgroundColorName.empty(),
+                 "final MTEXT reset clears and releases the background color-name owner");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        MTextParseProbe text;
+        std::size_t recordsRead = 0u;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                ++recordsRead;
+                if (!text.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(recordsRead < 4u && budget->exceeded()
+                     && text.m_backgroundColorName == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under MTEXT budget stops before replacing the prior background color name");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u && text.m_backgroundColorName.empty(),
+                 "rejected MTEXT replacement releases its surviving owner on reset");
+    }
+}
+
+void testDxfHatchTextOwnerBudget(TestContext& t) {
+    class HatchParseProbe final : public DRW_Hatch {
+    public:
+        using DRW_Hatch::parseCode;
+        using DRW_Hatch::resetDwgState;
+    };
+    const std::string source =
+        "2\nOLD\n2\nANSI31\n470\nOLD\n470\nLINEAR\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        HatchParseProbe hatch;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!hatch.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && hatch.name == "ANSI31"
+            && hatch.gradName == "LINEAR"
+            && budget->used() == 12u && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "HATCH pattern and gradient-name replacements succeed with ample budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > 0u && acceptsAtLimit(exactPeak),
+             "HATCH retained text replacements establish their minimum admitted budget");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        HatchParseProbe hatch;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!hatch.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && hatch.name == "ANSI31" && hatch.gradName == "LINEAR"
+                     && budget->used() == 12u,
+                 "HATCH pattern and gradient names succeed at their minimum admitted budget");
+        HatchParseProbe copy(hatch);
+        HatchParseProbe assigned;
+        assigned = hatch;
+        hatch.resetDwgState();
+        t.expect(budget->used() == 12u && copy.name == "ANSI31"
+                     && copy.gradName == "LINEAR"
+                     && assigned.name == "ANSI31"
+                     && assigned.gradName == "LINEAR",
+                 "HATCH text leases survive copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 12u,
+                 "assigned HATCH keeps both text charges after sibling reset");
+        HatchParseProbe moved(std::move(assigned));
+        assigned.resetDwgState();
+        t.expect(budget->used() == 12u && moved.name == "ANSI31"
+                     && moved.gradName == "LINEAR",
+                 "HATCH move construction transfers both text leases");
+        HatchParseProbe moveAssigned;
+        moveAssigned = std::move(moved);
+        moved.resetDwgState();
+        t.expect(budget->used() == 12u && moveAssigned.name == "ANSI31"
+                     && moveAssigned.gradName == "LINEAR",
+                 "HATCH move assignment transfers both text leases");
+        moveAssigned.resetDwgState();
+        t.expect(budget->used() == 0u && moveAssigned.name.empty()
+                     && moveAssigned.gradName.empty(),
+                 "final HATCH reset clears and releases both text owners");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        HatchParseProbe hatch;
+        std::size_t recordsRead = 0u;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                ++recordsRead;
+                if (!hatch.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(recordsRead == 4u && budget->exceeded()
+                     && hatch.name == "ANSI31" && hatch.gradName == "OLD"
+                     && budget->used() == 9u,
+                 "one-byte-under HATCH budget preserves the prior gradient name and charge");
+        hatch.resetDwgState();
+        t.expect(budget->used() == 0u && hatch.name.empty()
+                     && hatch.gradName.empty(),
+                 "rejected HATCH replacement releases all surviving text on reset");
+    }
+}
+
+void testDxfMPolygonFillColorNameOwnerBudget(TestContext& t) {
+    class MPolygonParseProbe final : public DRW_MPolygon {
+    public:
+        using DRW_MPolygon::parseCode;
+        using DRW_MPolygon::resetDwgState;
+    };
+    const std::string source =
+        "430\nOLD\n430\nMPOLYGON-FILL-COLOR-NAME\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        MPolygonParseProbe polygon;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!polygon.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed
+            && polygon.fillColorName == "MPOLYGON-FILL-COLOR-NAME"
+            && budget->used() == sizeof("MPOLYGON-FILL-COLOR-NAME") - 1u
+            && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "MPOLYGON fill color name parses with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > sizeof("MPOLYGON-FILL-COLOR-NAME") - 1u
+                 && acceptsAtLimit(exactPeak),
+             "MPOLYGON fill-name replacement admits its measured transient peak");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        MPolygonParseProbe polygon;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!polygon.parseCode(code, reader))
+                    break;
+            }
+        }
+        const std::size_t retainedBytes =
+            sizeof("MPOLYGON-FILL-COLOR-NAME") - 1u;
+        t.expect(polygon.fillColorName == "MPOLYGON-FILL-COLOR-NAME"
+                     && budget->used() == retainedBytes,
+                 "MPOLYGON fill-name lease survives reader teardown");
+        MPolygonParseProbe copy(polygon);
+        MPolygonParseProbe assigned;
+        assigned = polygon;
+        polygon.resetDwgState();
+        t.expect(budget->used() == retainedBytes
+                     && copy.fillColorName == "MPOLYGON-FILL-COLOR-NAME"
+                     && assigned.fillColorName == "MPOLYGON-FILL-COLOR-NAME",
+                 "MPOLYGON fill-name lease survives copy and assignment");
+        copy.resetDwgState();
+        MPolygonParseProbe moved(std::move(assigned));
+        assigned.resetDwgState();
+        MPolygonParseProbe moveAssigned;
+        moveAssigned = std::move(moved);
+        moved.resetDwgState();
+        t.expect(budget->used() == retainedBytes
+                     && moveAssigned.fillColorName
+                         == "MPOLYGON-FILL-COLOR-NAME",
+                 "MPOLYGON fill-name lease transfers through move operations");
+        moveAssigned.resetDwgState();
+        t.expect(budget->used() == 0u && moveAssigned.fillColorName.empty(),
+                 "final MPOLYGON reset releases its retained fill-name charge");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        MPolygonParseProbe polygon;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!polygon.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(budget->exceeded()
+                     && polygon.fillColorName == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under MPOLYGON fill-name budget preserves prior value and charge");
+        polygon.resetDwgState();
+        t.expect(budget->used() == 0u && polygon.fillColorName.empty(),
+                 "rejected MPOLYGON replacement releases its surviving owner on reset");
+    }
+}
+
+void testDxfInsertBlockNameOwnerBudget(TestContext& t) {
+    class InsertParseProbe final : public DRW_Insert {
+    public:
+        using DRW_Insert::parseCode;
+        using DRW_Insert::resetDwgState;
+    };
+    const std::string source = "2\nOLD\n2\nBLOCK_REFERENCE_TARGET\n";
+    const auto acceptsAtLimit = [&source](std::size_t limit) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        InsertParseProbe insert;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!insert.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        return parsed && insert.name == "BLOCK_REFERENCE_TARGET"
+            && budget->used() == sizeof("BLOCK_REFERENCE_TARGET") - 1u
+            && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(acceptsAtLimit(high),
+             "INSERT block name parses with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (acceptsAtLimit(middle))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > sizeof("BLOCK_REFERENCE_TARGET") - 1u
+                 && acceptsAtLimit(exactPeak),
+             "INSERT block-name replacement admits its measured transient peak");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        InsertParseProbe insert;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!insert.parseCode(code, reader))
+                    break;
+            }
+        }
+        const std::size_t retainedBytes =
+            sizeof("BLOCK_REFERENCE_TARGET") - 1u;
+        t.expect(insert.name == "BLOCK_REFERENCE_TARGET"
+                     && budget->used() == retainedBytes,
+                 "INSERT name lease survives reader teardown");
+        InsertParseProbe copy(insert);
+        InsertParseProbe assigned;
+        assigned = insert;
+        insert.resetDwgState();
+        t.expect(budget->used() == retainedBytes
+                     && copy.name == "BLOCK_REFERENCE_TARGET"
+                     && assigned.name == "BLOCK_REFERENCE_TARGET",
+                 "INSERT name lease survives copy and assignment");
+        copy.resetDwgState();
+        InsertParseProbe moved(std::move(assigned));
+        assigned.resetDwgState();
+        InsertParseProbe moveAssigned;
+        moveAssigned = std::move(moved);
+        moved.resetDwgState();
+        t.expect(budget->used() == retainedBytes
+                     && moveAssigned.name == "BLOCK_REFERENCE_TARGET",
+                 "INSERT name lease transfers through move operations");
+        moveAssigned.resetDwgState();
+        t.expect(budget->used() == 0u && moveAssigned.name.empty(),
+                 "final INSERT reset releases its retained block-name charge");
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        InsertParseProbe insert;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!insert.parseCode(code, reader))
+                    break;
+            }
+        }
+        t.expect(budget->exceeded() && insert.name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under INSERT name budget preserves prior value and charge");
+        insert.resetDwgState();
+        t.expect(budget->used() == 0u && insert.name.empty(),
+                 "rejected INSERT replacement releases its surviving owner on reset");
+    }
+}
+
+std::string generatedInsertNameCallbackBudgetWire(bool binary) {
+    std::ostringstream stream(std::ios::out | std::ios::binary);
+    if (binary) {
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1027", true);
+    const auto text = [&writer](int code, const std::string& value) {
+        return writer->writeString(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+
+    const std::string blockName = "BLOCK_TARGET_" + std::string(512u, 'I');
+    bool ok = text(0, "SECTION") && text(2, "HEADER")
+        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(0, "ENDSEC") && text(0, "SECTION")
+        && text(2, "ENTITIES")
+        && text(0, "INSERT") && text(5, "A1")
+        && text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbBlockReference") && text(2, blockName)
+        && real(10, 1.0) && real(20, 2.0) && real(30, 0.0)
+        && text(0, "LINE") && text(5, "A2")
+        && text(100, "AcDbEntity") && text(8, "0")
+        && text(100, "AcDbLine") && real(10, 3.0) && real(20, 4.0)
+        && real(11, 5.0) && real(21, 6.0)
+        && text(0, "ENDSEC") && text(0, "EOF");
+    const bool writeSucceeded = ok && !writer->hasWriteError();
+    writer.reset();
+    return writeSucceeded ? stream.str() : std::string{};
+}
+
+void testDxfInsertBlockNameCallbackBudget(TestContext& t) {
+    class Capture final : public FuzzInterface {
+    public:
+        void addInsert(const DRW_Insert& value) override {
+            events.emplace_back("INSERT");
+            names.push_back(value.name);
+            insertionPoints.push_back(value.basePoint);
+        }
+
+        void addLine(const DRW_Line& value) override {
+            events.emplace_back("LINE");
+            lineHandles.push_back(value.handle);
+        }
+
+        std::vector<std::string> events;
+        std::vector<std::string> names;
+        std::vector<DRW_Coord> insertionPoints;
+        std::vector<std::uint32_t> lineHandles;
+    };
+
+    const std::string blockName = "BLOCK_TARGET_" + std::string(512u, 'I');
+    for (const bool binary : {false, true}) {
+        const std::string drawing =
+            generatedInsertNameCallbackBudgetWire(binary);
+        t.expect(!drawing.empty(),
+                 "generated INSERT callback-budget drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto directory = std::filesystem::temp_directory_path()
+            / ("libdxfrw-insert-name-callback-budget-"
+               + std::to_string(nonce));
+        std::error_code filesystemError;
+        if (!std::filesystem::create_directory(directory, filesystemError)
+            || filesystemError) {
+            t.expect(false,
+                     "create isolated temporary directory for INSERT callback budget");
+            continue;
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove_all(path, error);
+            }
+        } cleanup{directory};
+
+        const auto path = directory / (binary ? "insert-binary.dxf"
+                                              : "insert-ascii.dxf");
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "generated INSERT callback-budget bytes use disposable storage");
+        }
+
+        const std::string filename = path.string();
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            dxfRW codec(filename.c_str());
+            codec.setDxfReadRetainedByteBudget(limit);
+            Capture capture;
+            return codec.read(&capture, false)
+                && capture.events == std::vector<std::string>{"INSERT", "LINE"}
+                && capture.names == std::vector<std::string>{blockName}
+                && capture.insertionPoints.size() == 1u
+                && capture.insertionPoints.front().x == 1.0
+                && capture.insertionPoints.front().y == 2.0
+                && capture.lineHandles == std::vector<std::uint32_t>{0xA2u};
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = drawing.size() * 16u + 4096u;
+        t.expect(fullReadSucceeds(high),
+                 "INSERT ENTITIES drawing succeeds with ample retained-byte budget");
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        t.expect(exactCap > blockName.size() && fullReadSucceeds(exactCap),
+                 "INSERT callback path admits at its measured exact retained-byte peak");
+        if (exactCap == 0u)
+            continue;
+
+        dxfRW codec(filename.c_str());
+        Capture capture;
+        codec.setDxfReadRetainedByteBudget(exactCap - 1u);
+        const bool refused = !codec.read(&capture, false);
+        const bool noEntityCallbacks = capture.events.empty()
+            && capture.names.empty() && capture.lineHandles.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+
+        codec.setDxfReadRetainedByteBudget(exactCap);
+        const bool retried = codec.read(&capture, false);
+        t.expect(refused && noEntityCallbacks,
+                 "one-byte-under INSERT name budget refuses before INSERT or following LINE callbacks");
+        t.expect(resourceDiagnostic,
+                 "INSERT name callback refusal reports retained-byte ResourceLimit");
+        t.expect(retried
+                     && capture.events
+                         == std::vector<std::string>{"INSERT", "LINE"}
+                     && capture.names == std::vector<std::string>{blockName}
+                     && capture.insertionPoints.size() == 1u
+                     && capture.insertionPoints.front().x == 1.0
+                     && capture.insertionPoints.front().y == 2.0
+                     && capture.lineHandles
+                         == std::vector<std::uint32_t>{0xA2u},
+                 "same-facade exact-budget retry publishes INSERT then following LINE");
+    }
+}
+
+void testDxfHatchGradientStopTextOwnerBudget(TestContext& t) {
+    class HatchParseProbe final : public DRW_Hatch {
+    public:
+        using DRW_Hatch::parseCode;
+        using DRW_Hatch::resetDwgState;
+    };
+    const std::string source =
+        "2\nANSI31\n470\nLINEAR\n453\n1\n463\n0.5\n"
+        "432\nOLDNAME\n432\nCOLORNAME\n"
+        "433\nOLDBOOK\n433\nBOOKNAME\n";
+    const auto parsesAtLimit = [&source](std::size_t limit,
+                                         std::size_t expectedBytes,
+                                         HatchParseProbe* parsedHatch = nullptr,
+                                         std::size_t* recordsRead = nullptr) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        HatchParseProbe localHatch;
+        HatchParseProbe& hatch = parsedHatch != nullptr
+            ? *parsedHatch : localHatch;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        std::size_t count = 0u;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            ++count;
+            if (!hatch.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        if (recordsRead != nullptr)
+            *recordsRead = count;
+        if (!parsed || hatch.gradColors.size() != 1u
+            || hatch.gradColors[0].colorName != "COLORNAME"
+            || hatch.gradColors[0].colorBookName != "BOOKNAME"
+            || budget->used() != expectedBytes || budget->exceeded())
+            return false;
+        return true;
+    };
+
+    constexpr std::size_t expectedRetainedBytes =
+        sizeof("ANSI31") - 1u + sizeof("LINEAR") - 1u
+        + sizeof("COLORNAME") - 1u + sizeof("BOOKNAME") - 1u;
+    std::size_t low = 0u;
+    std::size_t high = 4096u;
+    t.expect(parsesAtLimit(high, expectedRetainedBytes),
+             "HATCH gradient stop color/book names parse with ample retained-byte budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (parsesAtLimit(middle, expectedRetainedBytes))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    t.expect(exactPeak > expectedRetainedBytes
+                 && parsesAtLimit(exactPeak, expectedRetainedBytes),
+             "HATCH gradient stop names establish an exact retained-byte peak");
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak);
+        HatchParseProbe hatch;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!hatch.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        reader.reset();
+        t.expect(parsed && hatch.gradColors.size() == 1u
+                     && hatch.gradColors[0].colorName == "COLORNAME"
+                     && hatch.gradColors[0].colorBookName == "BOOKNAME"
+                     && budget->used() == expectedRetainedBytes,
+                 "HATCH gradient stop names remain charged after reader teardown");
+        if (hatch.gradColors.size() == 1u) {
+            HatchParseProbe copy(hatch);
+            HatchParseProbe assigned;
+            assigned = hatch;
+            hatch.resetDwgState();
+            t.expect(budget->used() == expectedRetainedBytes
+                         && copy.gradColors[0].colorName == "COLORNAME"
+                         && copy.gradColors[0].colorBookName == "BOOKNAME"
+                         && assigned.gradColors[0].colorName == "COLORNAME"
+                         && assigned.gradColors[0].colorBookName == "BOOKNAME",
+                     "HATCH gradient stop lease survives copy and assignment");
+            copy.resetDwgState();
+            HatchParseProbe moved(std::move(assigned));
+            assigned.resetDwgState();
+            HatchParseProbe moveAssigned;
+            moveAssigned = std::move(moved);
+            moved.resetDwgState();
+            t.expect(budget->used() == expectedRetainedBytes
+                         && moveAssigned.gradColors.size() == 1u,
+                     "HATCH gradient stop lease transfers through move operations");
+            moveAssigned.resetDwgState();
+            t.expect(budget->used() == 0u,
+                     "final HATCH reset releases gradient stop names");
+        }
+    }
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(exactPeak - 1u);
+        HatchParseProbe hatch;
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        std::size_t recordsRead = 0u;
+        bool parsed = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            ++recordsRead;
+            if (!hatch.parseCode(code, reader)) {
+                parsed = false;
+                break;
+            }
+        }
+        reader.reset();
+        t.expect(!parsed && recordsRead == 8u && budget->exceeded()
+                     && hatch.gradColors.size() == 1u
+                     && hatch.gradColors[0].colorName == "COLORNAME"
+                     && hatch.gradColors[0].colorBookName == "OLDBOOK"
+                     && budget->used()
+                         == expectedRetainedBytes - (sizeof("BOOKNAME") - 1u)
+                            + (sizeof("OLDBOOK") - 1u),
+                 "one-byte-under HATCH budget preserves the old stop book name and charge");
+        hatch.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected HATCH gradient stop replacement releases on reset");
+    }
+}
+
+void testDxfSunStudyTextOwnerBudget(TestContext& t) {
+    const std::string setupName(32u, 'S');
+    const std::string description(64u, 'D');
+    const std::string sheetSetName(128u, 'T');
+    const std::string sheetSubsetName(256u, 'U');
+    const std::size_t expectedRetainedBytes = setupName.size()
+        + description.size() + sheetSetName.size() + sheetSubsetName.size();
+
+    for (const bool binary : {false, true}) {
+        const std::string records = generatedSunStudyTextBudgetWire(binary);
+        t.expect(!records.empty(),
+                 "generated SUNSTUDY text-owner records are writable");
+        if (records.empty())
+            continue;
+
+        const auto parseRecords = [binary, &records](
+            std::size_t limit, DRW_SunStudy* output,
+            std::shared_ptr<DxfReadRetainedBudget>* outputBudget) {
+            std::istringstream input(records,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+            reader->setRetainedByteBudget(budget);
+            ExposedSunStudy study;
+            bool parsed = true;
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!study.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+            if (output != nullptr)
+                *output = study;
+            reader.reset();
+            if (outputBudget != nullptr)
+                *outputBudget = budget;
+            return parsed && !budget->exceeded();
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = records.size() * 16u + 4096u;
+        t.expect(parseRecords(high, nullptr, nullptr),
+                 "SUNSTUDY text-owner parser succeeds with ample budget");
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (parseRecords(middle, nullptr, nullptr))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactPeak = low;
+        ExposedSunStudy admitted;
+        std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+        const bool exact = parseRecords(exactPeak, &admitted,
+                                        &admittedBudget);
+        t.expect(exact && exactPeak > expectedRetainedBytes
+                     && admittedBudget != nullptr
+                     && admitted.m_setupName == setupName
+                     && admitted.m_description == description
+                     && admitted.m_sheetSetName == sheetSetName
+                     && admitted.m_sheetSubsetName == sheetSubsetName
+                     && admittedBudget->used() == expectedRetainedBytes,
+                 "SUNSTUDY four text fields remain charged after reader teardown at the exact peak");
+        if (exact) {
+            DRW_SunStudy copied(admitted);
+            DRW_SunStudy assigned;
+            assigned = admitted;
+            admitted.reset();
+            t.expect(admittedBudget->used() == expectedRetainedBytes
+                         && copied.m_setupName == setupName
+                         && copied.m_description == description
+                         && assigned.m_sheetSetName == sheetSetName
+                         && assigned.m_sheetSubsetName == sheetSubsetName,
+                     "SUNSTUDY text lease survives copy, assignment, and source reset");
+            copied.reset();
+            t.expect(admittedBudget->used() == expectedRetainedBytes,
+                     "assigned SUNSTUDY retains all four text charges after sibling reset");
+            assigned.reset();
+            t.expect(admittedBudget->used() == 0u,
+                     "final SUNSTUDY reset releases all four retained text charges");
+        }
+
+        ExposedSunStudy rejected;
+        std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+        const bool under = exactPeak != 0u
+            && !parseRecords(exactPeak - 1u, &rejected, &rejectedBudget);
+        const std::size_t preservedBytes = setupName.size()
+            + description.size() + sheetSetName.size()
+            + std::string("OLD_SUBSET").size();
+        t.expect(under && rejectedBudget != nullptr
+                     && rejectedBudget->exceeded()
+                     && rejected.m_setupName == setupName
+                     && rejected.m_description == description
+                     && rejected.m_sheetSetName == sheetSetName
+                     && rejected.m_sheetSubsetName == "OLD_SUBSET"
+                     && rejectedBudget->used() == preservedBytes,
+                 "one-byte-under SUNSTUDY subset replacement preserves the prior value and all live charges");
+        if (rejectedBudget != nullptr) {
+            rejected.reset();
+            t.expect(rejectedBudget->used() == 0u,
+                     "rejected SUNSTUDY reset releases retained text charges");
+        }
+
+        const std::string drawing =
+            generatedSunStudyTextBudgetWire(binary, true);
+        t.expect(!drawing.empty(),
+                 "generated SUNSTUDY OBJECTS drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-sunstudy-text-owner-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            t.expect(output.good(),
+                     "binary SUNSTUDY source uses temporary storage");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            SunStudyBudgetCapture capture;
+            bool read = false;
+            if (binary) {
+                read = codec.read(&capture, false);
+            } else {
+                std::string content = drawing;
+                read = codec.readAscii(&capture, false, content);
+            }
+            return read && capture.values.size() == 2u
+                && capture.values[0].m_setupName == setupName
+                && capture.values[0].m_description == description
+                && capture.values[0].m_sheetSetName == sheetSetName
+                && capture.values[0].m_sheetSubsetName == sheetSubsetName
+                && capture.values[1].m_setupName == "SENTINEL_SUNSTUDY";
+        };
+        low = 0u;
+        high = drawing.size() * 16u + 4096u;
+        t.expect(fullReadSucceeds(high),
+                 "SUNSTUDY OBJECTS input succeeds with ample budget");
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t facadeExactCap = low;
+        t.expect(facadeExactCap > 0u,
+                 "SUNSTUDY full-read exact budget is measurable");
+        if (facadeExactCap == 0u)
+            continue;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        SunStudyBudgetCapture capture;
+        codec.setDxfReadRetainedByteBudget(facadeExactCap - 1u);
+        bool refused = false;
+        if (binary) {
+            refused = !codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            refused = !codec.readAscii(&capture, false, content);
+        }
+        const std::size_t callbacksAfterRefusal = capture.values.size();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        codec.setDxfReadRetainedByteBudget(facadeExactCap);
+        bool retried = false;
+        if (binary) {
+            retried = codec.read(&capture, false);
+        } else {
+            std::string content = drawing;
+            retried = codec.readAscii(&capture, false, content);
+        }
+        t.expect(refused && callbacksAfterRefusal == 0u,
+                 "one-byte-under SUNSTUDY input is refused before object callbacks");
+        t.expect(resourceDiagnostic,
+                 "SUNSTUDY retained-text refusal reports its resource diagnostic");
+        t.expect(retried && capture.values.size() == 2u
+                     && capture.values[0].m_setupName == setupName
+                     && capture.values[0].m_sheetSubsetName == sheetSubsetName
+                     && capture.values[1].m_setupName == "SENTINEL_SUNSTUDY",
+                 "same-facade exact-budget retry recovers SUNSTUDY and following object sentinel");
+    }
+}
+
+template <typename Parsed, typename Owner>
+void testDxfAmbientColorNameOwnerBudgetForType(
+        TestContext& t, bool binary, UTF8STRING Owner::*field,
+        const char* ownerName) {
+    const std::string records = generatedAmbientColorNameOwnerRecords(binary);
+    const std::string ambientName(256u, 'C');
+    const auto fieldValue = [field](const Parsed& value)
+        -> const UTF8STRING& { return value.*field; };
+    const auto expect = [&t, ownerName](bool condition, const char* detail) {
+        const std::string label = std::string(ownerName) + " " + detail;
+        t.expect(condition, label.c_str());
+    };
+    expect(!records.empty(), "generated ambient-name records are writable");
+    if (records.empty())
+        return;
+
+    const auto parseRecords = [&](std::size_t limit, Parsed* output,
+                                  std::shared_ptr<DxfReadRetainedBudget>*
+                                      outputBudget) {
+        std::istringstream input(records, std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        auto budget = std::make_shared<DxfReadRetainedBudget>(limit);
+        reader->setRetainedByteBudget(budget);
+        Parsed parsed;
+        bool ok = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!parsed.parseCode(code, reader)) {
+                ok = false;
+                break;
+            }
+        }
+        if (output != nullptr)
+            *output = parsed;
+        reader.reset();
+        if (outputBudget != nullptr)
+            *outputBudget = budget;
+        return ok && !budget->exceeded();
+    };
+
+    std::size_t low = 0u;
+    std::size_t high = records.size() * 16u + 4096u;
+    expect(parseRecords(high, nullptr, nullptr),
+           "ambient-name parser succeeds with ample budget");
+    while (low < high) {
+        const std::size_t middle = low + (high - low) / 2u;
+        if (parseRecords(middle, nullptr, nullptr))
+            high = middle;
+        else
+            low = middle + 1u;
+    }
+    const std::size_t exactPeak = low;
+    Parsed admitted;
+    std::shared_ptr<DxfReadRetainedBudget> admittedBudget;
+    const bool exact = parseRecords(exactPeak, &admitted, &admittedBudget);
+    expect(exact && exactPeak > ambientName.size()
+               && admittedBudget != nullptr
+               && fieldValue(admitted) == ambientName
+               && admittedBudget->used() == ambientName.size(),
+           "ambient color-book name stays charged after reader teardown");
+    if (exact) {
+        Parsed copied(admitted);
+        Parsed assigned;
+        assigned = admitted;
+        admitted.reset();
+        expect(admittedBudget->used() == ambientName.size()
+                   && fieldValue(copied) == ambientName
+                   && fieldValue(assigned) == ambientName,
+               "ambient-name lease survives copy, assignment, and source reset");
+        copied.reset();
+        expect(admittedBudget->used() == ambientName.size(),
+               "assigned ambient name retains its charge after sibling reset");
+        assigned.reset();
+        expect(admittedBudget->used() == 0u,
+               "final reset releases the ambient-name charge");
+    }
+
+    Parsed rejected;
+    std::shared_ptr<DxfReadRetainedBudget> rejectedBudget;
+    const bool under = exactPeak != 0u
+        && !parseRecords(exactPeak - 1u, &rejected, &rejectedBudget);
+    expect(under && rejectedBudget != nullptr
+               && rejectedBudget->exceeded()
+               && fieldValue(rejected) == "OLD_AMBIENT"
+               && rejectedBudget->used() == std::string("OLD_AMBIENT").size(),
+           "one-byte-under replacement preserves its prior name and lease");
+    if (rejectedBudget != nullptr) {
+        rejected.reset();
+        expect(rejectedBudget->used() == 0u,
+               "reset releases the preserved ambient-name charge");
+    }
+}
+
+void testDxfVportViewAmbientColorNameOwnerBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        testDxfAmbientColorNameOwnerBudgetForType<ExposedVport>(
+            t, binary, &DRW_Vport::ambientColorName, "VPORT");
+        testDxfAmbientColorNameOwnerBudgetForType<ExposedView>(
+            t, binary, &DRW_View::m_ambientColorName, "VIEW");
+    }
+}
+
+void testDxfVportViewAmbientNameCallbackBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        for (const bool viewTable : {false, true}) {
+            const std::string drawing =
+                generatedVportViewAmbientNameDrawing(binary, viewTable);
+            const char* const tableName = viewTable ? "VIEW" : "VPORT";
+            const auto expect = [&t, binary, tableName](
+                    bool condition, const char* detail) {
+                const std::string label = std::string(tableName)
+                    + (binary ? " binary " : " ASCII ") + detail;
+                t.expect(condition, label.c_str());
+            };
+            expect(!drawing.empty(),
+                   "generated callback-boundary drawing is writable");
+            if (drawing.empty())
+                continue;
+
+            std::filesystem::path binaryPath;
+            if (binary) {
+                const auto nonce = std::chrono::steady_clock::now()
+                    .time_since_epoch().count();
+                binaryPath = std::filesystem::temp_directory_path()
+                    / ("libdxfrw-vport-view-ambient-name-"
+                       + std::to_string(nonce) + ".dxf");
+                std::ofstream output(binaryPath,
+                                     std::ios::binary | std::ios::trunc);
+                output.write(drawing.data(),
+                             static_cast<std::streamsize>(drawing.size()));
+                expect(output.good(), "temporary binary source is written");
+                output.close();
+            }
+            struct Cleanup {
+                std::filesystem::path path;
+                ~Cleanup() {
+                    if (!path.empty()) {
+                        std::error_code ignored;
+                        std::filesystem::remove(path, ignored);
+                    }
+                }
+            } cleanup{binaryPath};
+
+            const auto read = [&](dxfRW& codec,
+                                  VportViewAmbientNameCapture& capture) {
+                if (binary)
+                    return codec.read(&capture, false);
+                std::string content = drawing;
+                return codec.readAscii(&capture, false, content);
+            };
+            const auto hasExpectedRecords = [&] (
+                    const VportViewAmbientNameCapture& capture) {
+                if (viewTable) {
+                    return capture.vports.empty() && capture.views.size() == 2u
+                        && capture.views[0].name == "TARGET_VIEW"
+                        && capture.views[0].m_ambientColorName
+                            == std::string(256u, 'W')
+                        && capture.views[1].name == "SENTINEL_VIEW"
+                        && capture.views[1].m_ambientColorName
+                            == "FOLLOWING_AMBIENT_SENTINEL";
+                }
+                return capture.views.empty() && capture.vports.size() == 2u
+                    && capture.vports[0].name == "TARGET_VPORT"
+                    && capture.vports[0].ambientColorName
+                        == std::string(256u, 'C')
+                    && capture.vports[1].name == "SENTINEL_VPORT"
+                    && capture.vports[1].ambientColorName
+                        == "FOLLOWING_AMBIENT_SENTINEL";
+            };
+            const auto fullReadSucceeds = [&](std::size_t limit) {
+                const std::string filename = binaryPath.string();
+                dxfRW codec(binary ? filename.c_str() : nullptr);
+                codec.setDxfReadRetainedByteBudget(limit);
+                VportViewAmbientNameCapture capture;
+                return read(codec, capture) && hasExpectedRecords(capture);
+            };
+
+            std::size_t low = 0u;
+            std::size_t high = drawing.size() * 16u + 4096u;
+            expect(fullReadSucceeds(high),
+                   "full TABLES read succeeds with ample budget");
+            while (low < high) {
+                const std::size_t middle = low + (high - low) / 2u;
+                if (fullReadSucceeds(middle))
+                    high = middle;
+                else
+                    low = middle + 1u;
+            }
+            const std::size_t exactCap = low;
+            expect(exactCap > 0u,
+                   "full TABLES read has a measurable exact budget");
+            if (exactCap == 0u)
+                continue;
+
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            VportViewAmbientNameCapture capture;
+            codec.setDxfReadRetainedByteBudget(exactCap - 1u);
+            const bool refused = !read(codec, capture);
+            const std::size_t callbacksAfterRefusal = capture.vports.size()
+                + capture.views.size();
+            const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                    == DRW::OperationCause::ResourceLimit
+                && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+            codec.setDxfReadRetainedByteBudget(exactCap);
+            const bool retried = read(codec, capture);
+            expect(refused && callbacksAfterRefusal == 0u,
+                   "one-byte-under refusal precedes TABLE callback publication");
+            expect(resourceDiagnostic,
+                   "retained-text refusal reports the resource diagnostic");
+            expect(retried && hasExpectedRecords(capture),
+                   "same-facade exact-cap retry publishes both rows and the following sentinel");
+        }
+    }
+}
+
+void testDxfOle2FrameClientCallbackBudget(TestContext& t) {
+    for (const bool binary : {false, true}) {
+        const std::string drawing =
+            generatedOle2FrameClientCallbackDrawing(binary);
+        const std::string client(256u, 'C');
+        const auto expect = [&t, binary](bool condition, const char* detail) {
+            const std::string label = std::string(binary ? "OLE2FRAME binary "
+                                                         : "OLE2FRAME ASCII ")
+                + detail;
+            t.expect(condition, label.c_str());
+        };
+        expect(!drawing.empty(), "generated callback drawing is writable");
+        if (drawing.empty())
+            continue;
+
+        std::filesystem::path binaryPath;
+        if (binary) {
+            const auto nonce = std::chrono::steady_clock::now()
+                .time_since_epoch().count();
+            binaryPath = std::filesystem::temp_directory_path()
+                / ("libdxfrw-ole2frame-client-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ofstream output(binaryPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(drawing.data(),
+                         static_cast<std::streamsize>(drawing.size()));
+            expect(output.good(), "temporary binary source is written");
+            output.close();
+        }
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                if (!path.empty()) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
+            }
+        } cleanup{binaryPath};
+
+        const auto read = [&](dxfRW& codec,
+                              Ole2FrameClientCallbackCapture& capture) {
+            if (binary)
+                return codec.read(&capture, false);
+            std::string content = drawing;
+            return codec.readAscii(&capture, false, content);
+        };
+        const auto hasExpectedCallbacks = [&] (
+                const Ole2FrameClientCallbackCapture& capture) {
+            return capture.events == std::vector<std::string>{"OLE2FRAME", "LINE"}
+                && capture.frames.size() == 1u
+                && capture.frames.front().m_oleClient == client
+                && capture.frames.front().m_payloadBytes.empty();
+        };
+        const auto fullReadSucceeds = [&](std::size_t limit) {
+            const std::string filename = binaryPath.string();
+            dxfRW codec(binary ? filename.c_str() : nullptr);
+            codec.setDxfReadRetainedByteBudget(limit);
+            Ole2FrameClientCallbackCapture capture;
+            return read(codec, capture) && hasExpectedCallbacks(capture);
+        };
+
+        std::size_t low = 0u;
+        std::size_t high = drawing.size() * 16u + 4096u;
+        expect(fullReadSucceeds(high),
+               "full ENTITIES read succeeds with ample budget");
+        while (low < high) {
+            const std::size_t middle = low + (high - low) / 2u;
+            if (fullReadSucceeds(middle))
+                high = middle;
+            else
+                low = middle + 1u;
+        }
+        const std::size_t exactCap = low;
+        expect(exactCap > client.size(),
+               "full ENTITIES read has a measurable exact budget");
+        if (exactCap <= client.size())
+            continue;
+
+        const std::string filename = binaryPath.string();
+        dxfRW codec(binary ? filename.c_str() : nullptr);
+        Ole2FrameClientCallbackCapture capture;
+        codec.setDxfReadRetainedByteBudget(exactCap - 1u);
+        const bool refused = !read(codec, capture);
+        const bool callbacksSuppressed = capture.events.empty()
+            && capture.frames.empty();
+        const bool resourceDiagnostic = codec.getLastDiagnostic().cause
+                == DRW::OperationCause::ResourceLimit
+            && codec.getLastDiagnostic().code == "dxf-retained-byte-budget";
+        codec.setDxfReadRetainedByteBudget(exactCap);
+        const bool retried = read(codec, capture);
+        expect(refused && callbacksSuppressed,
+               "one-byte-under refusal precedes OLE2FRAME and LINE callbacks");
+        expect(resourceDiagnostic,
+               "retained-text refusal reports the resource diagnostic");
+        expect(retried && hasExpectedCallbacks(capture),
+               "same-facade exact-cap retry publishes OLE2FRAME and following LINE");
+    }
+}
 
 class ExposedSurface final : public DRW_Surface {
 public:
@@ -2798,6 +20497,83 @@ void testMLeaderParserStateCopyIsolation(TestContext& t) {
     copied.context.roots.front().connectionPoint.x = 42.0;
     t.expect(partial.context.roots.front().connectionPoint.x != 42.0,
              "MULTILEADER copy keeps context graph value ownership isolated");
+
+    ExposedMLeader toleranceContentType;
+    t.expect(parseDxfRecords(toleranceContentType, "172\n3\n")
+                 && toleranceContentType.styleContentType == 3u,
+             "MULTILEADER parser retains representable TOLERANCE content type");
+    ExposedMLeader unknownContentType;
+    t.expect(parseDxfRecords(unknownContentType, "172\n4\n")
+                 && unknownContentType.styleContentType == 4u,
+             "MULTILEADER parser preserves unknown representable content type for fail-closed output");
+    for (const char* invalid : {"-1"}) {
+        ExposedMLeader outOfRangeContentType;
+        const std::string records = std::string("172\n") + invalid + "\n";
+        t.expect(!parseDxfRecords(outOfRangeContentType, records),
+                 "MULTILEADER parser rejects out-of-range entity group 172 without narrowing");
+        ExposedMLeader outOfRangeFlowDirection;
+        const std::string contextRecords =
+            std::string("300\nCONTEXT_DATA{\n172\n") + invalid
+            + "\n301\n}\n";
+        t.expect(!parseDxfRecords(outOfRangeFlowDirection, contextRecords),
+                 "MULTILEADER parser rejects out-of-range context group 172 without narrowing");
+    }
+    std::stringstream oversizedFlowDirectionRecords("172\n65536\n0\nEOF\n");
+    dxfReaderAscii oversizedFlowDirectionReader(&oversizedFlowDirectionRecords);
+    int oversizedFlowDirectionCode = 0;
+    t.expect(!oversizedFlowDirectionReader.readRec(&oversizedFlowDirectionCode)
+                 && oversizedFlowDirectionCode == 172
+                 && oversizedFlowDirectionRecords.good(),
+             "DXF reader rejects group 172 values wider than its 16-bit wire field");
+    ExposedMLeader flowDirection;
+    t.expect(parseDxfRecords(flowDirection,
+                             "300\nCONTEXT_DATA{\n172\n6\n301\n}\n")
+                 && flowDirection.context.flowDirection == 6u
+                 && flowDirection.isDxfContextClosed(),
+             "MULTILEADER context group 172 remains scoped as text flow direction");
+}
+
+void testMTextOrientationState(TestContext& t) {
+    ExposedMText text;
+    t.expect(parseDxfRecords(text,
+        "11\n0\n21\n1\n31\n0\n50\n30\n101\nEmbedded Object\n"
+        "70\n1\n10\n1\n20\n0\n30\n0\n11\n2\n21\n3\n31\n0\n"
+        "40\n10\n41\n20\n42\n30\n43\n40\n44\n5\n45\n1\n"
+        "71\n2\n72\n3\n46\n2\n46\n18\n46\n24\n73\n0\n74\n0\n"),
+        "MTEXT orientation and redundant-context parser control succeeds");
+    text.updateAngle();
+    t.expect(text.angle == 30 && text.secPoint.y == 1
+                 && text.m_r2018XAxisDir.x == 1
+                 && text.m_r2018ColumnHeights
+                        == std::vector<double>({2.0, 18.0, 24.0}),
+             "MTEXT column direction/heights remain separate from main orientation");
+
+    ExposedMText unknownColumnField;
+    t.expect(!parseDxfRecords(unknownColumnField,
+        "11\n0\n21\n1\n31\n0\n50\n30\n101\nEmbedded Object\n"
+        "50\n2\n"),
+        "MTEXT embedded-column parser rejects an unrecognized nested group");
+    unknownColumnField.updateAngle();
+    t.expect(unknownColumnField.angle == 30
+                 && unknownColumnField.secPoint.y == 1,
+             "rejected embedded-column field cannot override main orientation");
+
+    ExposedMText copied(text), assigned;
+    assigned = text;
+    ExposedMText moved(std::move(copied)), moveAssigned;
+    moveAssigned = std::move(assigned);
+    for (auto* value : {&moved, &moveAssigned}) {
+        t.expect(parseDxfRecords(*value, "50\n15\n"), "copied MTEXT accepts new main orientation");
+        value->updateAngle();
+        t.expect(value->angle == 15 && value->secPoint.y == 1,
+                 "MTEXT copy/move resets transient redundant-column parser scope");
+    }
+    text.resetDwgState();
+    t.expect(parseDxfRecords(text, "11\n0\n21\n-1\n31\n0\n"),
+             "MTEXT reset accepts a fresh vector orientation");
+    text.updateAngle();
+    t.expect(text.angle == -90 && text.secPoint.y == -1 && text.m_r2018XAxisDir.x == 0,
+             "MTEXT reset clears prior orientation/cache/context state");
 }
 
 void testDimensionParserStateCopyIsolation(TestContext& t) {
@@ -2813,19 +20589,46 @@ void testDimensionParserStateCopyIsolation(TestContext& t) {
     ExposedDimArc arc;
     t.expect(parseDxfRecords(arc,
                              "100\nAcDbArcDimension\n40\n1.25\n41\n2.5\n"
-                             "70\n3\n71\n1\n17\n9\n"),
+                             "70\n1\n71\n0\n17\n9\n"),
              "DIMARC partial subclass parse succeeds");
+    t.expect(arc.isPartial && !arc.hasLeader && arc.arcSymbol == 0,
+             "DIMARC subclass flags are distinct from public arcSymbol");
+    // arcSymbol remains caller-owned display state, not DXF70 partial state.
+    arc.arcSymbol = 3;
     ExposedDimArc copiedArc(arc);
     ExposedDimArc assignedArc;
     assignedArc = arc;
     t.expect(copiedArc.arcStartAngle == 1.25
                  && copiedArc.arcEndAngle == 2.5
-                 && copiedArc.arcSymbol == 3 && copiedArc.isPartial
+                 && copiedArc.arcSymbol == 3 && copiedArc.isPartial && !copiedArc.hasLeader
                  && copiedArc.leaderPt2.x == 9.0
                  && assignedArc.arcStartAngle == 1.25
                  && assignedArc.arcEndAngle == 2.5
-                 && assignedArc.arcSymbol == 3 && assignedArc.isPartial,
+                 && assignedArc.arcSymbol == 3 && assignedArc.isPartial && !assignedArc.hasLeader,
              "DIMARC copy and assignment preserve persisted arc state");
+    ExposedDimArc movedArc(std::move(assignedArc));
+    ExposedDimArc moveAssignedArc;
+    moveAssignedArc = std::move(movedArc);
+    t.expect(moveAssignedArc.arcSymbol == 3 && moveAssignedArc.isPartial
+                 && !moveAssignedArc.hasLeader && moveAssignedArc.leaderPt2.x == 9.0,
+             "DIMARC move preserves independent flags and public arcSymbol");
+    for (int partialFlag : {0, 1}) {
+        for (int leaderFlag : {0, 1}) {
+            ExposedDimArc flags;
+            const auto records = "100\nAcDbArcDimension\n70\n"
+                + std::to_string(partialFlag) + "\n71\n" + std::to_string(leaderFlag) + "\n";
+            t.expect(parseDxfRecords(flags, records)
+                         && flags.isPartial == (partialFlag != 0)
+                         && flags.hasLeader == (leaderFlag != 0) && flags.arcSymbol == 0,
+                     "DIMARC literal Boolean flag combinations preserve independent meaning");
+        }
+    }
+    ExposedDimArc tolerantFlags;
+    t.expect(parseDxfRecords(tolerantFlags,
+                 "100\nAcDbArcDimension\n70\n3\n71\n-2\n")
+                 && tolerantFlags.isPartial && tolerantFlags.hasLeader
+                 && tolerantFlags.arcSymbol == 0,
+             "DIMARC retains deliberate nonzero-Boolean read compatibility");
     std::stringstream arcRecords("40\n8.0\n");
     std::unique_ptr<dxfReader> arcReader =
         std::make_unique<dxfReaderAscii>(&arcRecords);
@@ -2859,6 +20662,361 @@ void testDimensionParserStateCopyIsolation(TestContext& t) {
     t.expect(copiedRadial.jogPoint.x == 5.0
                  && copiedRadial.jogAngle == 6.5,
              "LARGE_RADIAL copy resets transient subclass routing");
+}
+
+void testDimensionAssociationUnsupportedDetailGuard(TestContext& t) {
+    struct UnsupportedField {
+        int code;
+        const char* value;
+    };
+    const std::vector<UnsupportedField> fields = {
+        // Unknown future AcDbDimAssoc body fields are also loss-guarded.
+        {77, "9"},
+    };
+    for (const UnsupportedField& field : fields) {
+        ExposedDimensionAssociation association;
+        const std::string records =
+            "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapPointRef\n"
+            "72\n0\n331\nB1\n"
+            + std::to_string(field.code) + "\n" + field.value + "\n";
+        t.expect(parseDxfRecords(association, records)
+                     && association.m_osnapRefs.size() == 1u
+                     && association.m_osnapRefs.front().m_objectHandle == 0xB1u
+                     && association.m_hasUnrepresentableDetail,
+                 "DIMASSOC unmodeled DXF subfield marks typed output unsafe");
+    }
+
+    ExposedDimensionAssociation retainedXdata;
+    t.expect(parseDxfRecords(retainedXdata,
+                 "100\nAcDbDimAssoc\n1001\nASSOC_META\n"
+                 "1000\nretained-value\n")
+                 && !retainedXdata.m_hasUnrepresentableDetail
+                 && retainedXdata.extData.size() == 2u,
+             "DIMASSOC modeled table-entry XDATA stays eligible for typed output");
+
+    ExposedDimensionAssociation unknownOsnapClass;
+    t.expect(parseDxfRecords(unknownOsnapClass,
+                 "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapCurveRef\n"
+                 "72\n0\n331\nB1\n")
+                 && unknownOsnapClass.m_hasUnrepresentableDetail,
+             "DIMASSOC unknown osnap reference class is loss-guarded");
+
+    ExposedDimensionAssociation unknownSubclass;
+    t.expect(parseDxfRecords(unknownSubclass,
+                 "100\nAcDbDimAssoc\n100\nAcDbDimAssocFuture\n")
+                 && unknownSubclass.m_hasUnrepresentableDetail,
+             "DIMASSOC unknown post-body subclass is loss-guarded");
+
+    for (const char* orphanField : {
+             "72\n0\n", "331\nB1\n", "74\n2\n", "92\n8\n",
+             "332\nC1\n", "301\nXREF_A1\n", "302\nXREF_B2\n"}) {
+        ExposedDimensionAssociation orphan;
+        const std::string records = std::string("100\nAcDbDimAssoc\n")
+            + orphanField;
+        t.expect(parseDxfRecords(orphan, records)
+                     && orphan.m_hasUnrepresentableDetail,
+                 "DIMASSOC orphan osnap field is loss-guarded");
+    }
+
+    for (const char* duplicateXrefFields : {
+             "301\nXREF_A1\n301\nXREF_A1\n",
+             "302\nXREF_B2\n302\nXREF_B2\n"}) {
+        ExposedDimensionAssociation duplicateXrefString;
+        const std::string records =
+            std::string("100\nAcDbDimAssoc\n90\n1\n"
+                        "1\nAcDbOsnapPointRef\n72\n1\n331\nB1\n")
+            + duplicateXrefFields;
+        t.expect(parseDxfRecords(duplicateXrefString, records)
+                     && duplicateXrefString.m_hasUnrepresentableDetail,
+                 "DIMASSOC duplicate XREF handle strings remain typed-write-guarded");
+    }
+
+    ExposedDimensionAssociation parsedDetail;
+    const bool parsed = parseDxfRecords(parsedDetail,
+        "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapPointRef\n"
+        "72\n0\n331\nB1\n77\n9\n");
+    parsedDetail.handle = 0xA0u;
+    parsedDetail.m_associativityFlags = 1u;
+    std::ostringstream output;
+    output << "sentinel";
+    dxfRW writer("");
+    writer.version = DRW::AC1032;
+    writer.writer = std::make_unique<dxfWriterAscii>(&output);
+    t.expect(parsed && parsedDetail.m_hasUnrepresentableDetail
+                 && !writer.writeDimensionAssociation(&parsedDetail)
+                 && output.str() == "sentinel",
+             "DIMASSOC typed writer refuses unknown details before publication");
+}
+
+void testDimensionAssociationDocumentedScalarFields(TestContext& t) {
+    const std::string source =
+        "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapPointRef\n"
+        "72\n1\n331\nB1\n73\n2\n91\n1048576\n40\n0.375\n"
+        "10\n1.25\n20\n-2.5\n30\n3.75\n75\n1\n";
+    ExposedDimensionAssociation parsed;
+    const bool parseOk = parseDxfRecords(parsed, source);
+    parsed.handle = 0x201u;
+    parsed.m_dimensionHandle = 0x220u;
+    parsed.m_associativityFlags = 1u;
+    const bool parsedFields = parseOk && !parsed.m_hasUnrepresentableDetail
+        && parsed.m_osnapRefs.size() == 1u
+        && parsed.m_osnapRefs.front().m_objectOsnapType == 1u
+        && parsed.m_osnapRefs.front().m_objectHandle == 0xB1u
+        && parsed.m_osnapRefs.front().m_hasSubentType
+        && parsed.m_osnapRefs.front().m_subentType == 2
+        && parsed.m_osnapRefs.front().m_hasGsMarker
+        && parsed.m_osnapRefs.front().m_gsMarker == 1048576
+        && parsed.m_osnapRefs.front().m_hasNearParameter
+        && parsed.m_osnapRefs.front().m_nearParameter == 0.375
+        && parsed.m_osnapRefs.front().m_hasOsnapPoint
+        && parsed.m_osnapRefs.front().m_osnapPoint.x == 1.25
+        && parsed.m_osnapRefs.front().m_osnapPoint.y == -2.5
+        && parsed.m_osnapRefs.front().m_osnapPoint.z == 3.75
+        && parsed.m_osnapRefs.front().m_hasLastPointRef
+        && parsed.m_osnapRefs.front().m_lastPointRef == 1;
+    t.expect(parsedFields,
+             "DIMASSOC retains documented main-object osnap scalar and point fields");
+    if (!parsedFields)
+        return;
+
+    ExposedDimensionAssociation copied(parsed);
+    ExposedDimensionAssociation assigned;
+    assigned = parsed;
+    const auto sameRef = [](const DRW_DimensionAssociationOsnapRef& lhs,
+                            const DRW_DimensionAssociationOsnapRef& rhs) {
+        return lhs.m_className == rhs.m_className
+            && lhs.m_objectOsnapType == rhs.m_objectOsnapType
+            && lhs.m_objectHandle == rhs.m_objectHandle
+            && lhs.m_hasSubentType == rhs.m_hasSubentType
+            && lhs.m_subentType == rhs.m_subentType
+            && lhs.m_hasGsMarker == rhs.m_hasGsMarker
+            && lhs.m_gsMarker == rhs.m_gsMarker
+            && lhs.m_hasNearParameter == rhs.m_hasNearParameter
+            && lhs.m_nearParameter == rhs.m_nearParameter
+            && lhs.m_hasOsnapPoint == rhs.m_hasOsnapPoint
+            && lhs.m_osnapPoint.x == rhs.m_osnapPoint.x
+            && lhs.m_osnapPoint.y == rhs.m_osnapPoint.y
+            && lhs.m_osnapPoint.z == rhs.m_osnapPoint.z
+            && lhs.m_hasLastPointRef == rhs.m_hasLastPointRef
+            && lhs.m_lastPointRef == rhs.m_lastPointRef
+            && lhs.m_hasIntersectionObjectHandle
+                == rhs.m_hasIntersectionObjectHandle
+            && lhs.m_intersectionObjectHandle
+                == rhs.m_intersectionObjectHandle
+            && lhs.m_hasIntersectionSubentType
+                == rhs.m_hasIntersectionSubentType
+            && lhs.m_intersectionSubentType
+                == rhs.m_intersectionSubentType
+            && lhs.m_hasIntersectionGsMarker
+                == rhs.m_hasIntersectionGsMarker
+            && lhs.m_intersectionGsMarker == rhs.m_intersectionGsMarker
+            && lhs.m_hasXrefObjectHandleString
+                == rhs.m_hasXrefObjectHandleString
+            && lhs.m_xrefObjectHandleString == rhs.m_xrefObjectHandleString
+            && lhs.m_hasIntersectionXrefObjectHandleString
+                == rhs.m_hasIntersectionXrefObjectHandleString
+            && lhs.m_intersectionXrefObjectHandleString
+                == rhs.m_intersectionXrefObjectHandleString;
+    };
+    t.expect(copied.m_osnapRefs.size() == parsed.m_osnapRefs.size()
+                 && assigned.m_osnapRefs.size() == parsed.m_osnapRefs.size()
+                 && sameRef(copied.m_osnapRefs.front(),
+                            parsed.m_osnapRefs.front())
+                 && sameRef(assigned.m_osnapRefs.front(),
+                            parsed.m_osnapRefs.front()),
+             "DIMASSOC osnap detail survives copy and assignment");
+
+    const auto parseOutput = [&t, &sameRef](
+        const std::string& bytes, bool binary,
+        const DRW_DimensionAssociationOsnapRef& expectedRef) {
+        std::istringstream input(bytes);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(
+                  std::make_unique<dxfReaderBinary>(&input))
+            : std::unique_ptr<dxfReader>(
+                  std::make_unique<dxfReaderAscii>(&input));
+        ExposedDimensionAssociation roundTrip;
+        bool bodyStarted = false;
+        bool ok = true;
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!bodyStarted) {
+                if (code == 100) {
+                    bodyStarted = true;
+                    ok = roundTrip.parseCode(code, reader) && ok;
+                } else {
+                    reader->getString();
+                }
+                continue;
+            }
+            ok = roundTrip.parseCode(code, reader) && ok;
+        }
+        const bool matches = ok && bodyStarted
+            && !roundTrip.m_hasUnrepresentableDetail
+            && roundTrip.m_osnapRefs.size() == 1u
+            && sameRef(roundTrip.m_osnapRefs.front(), expectedRef);
+        t.expect(matches,
+                 binary ? "Binary DIMASSOC documented detail writes and reads back"
+                         : "ASCII DIMASSOC documented detail writes and reads back");
+    };
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW writer("");
+        writer.version = DRW::AC1032;
+        writer.binFile = binary;
+        writer.writer = binary
+            ? std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterBinary>(&output))
+            : std::unique_ptr<dxfWriter>(
+                  std::make_unique<dxfWriterAscii>(&output));
+        t.expect(writer.writeDimensionAssociation(&copied),
+                 "DIMASSOC typed writer accepts fully represented scalar detail");
+        parseOutput(output.str(), binary, copied.m_osnapRefs.front());
+    }
+
+    const std::string intersectionSource =
+        "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapPointRef\n"
+        "72\n6\n331\nB1\n73\n2\n91\n1048576\n40\n0.375\n"
+        "301\nXREF_A1\n10\n1.25\n20\n-2.5\n30\n3.75\n"
+        "332\nC1\n74\n3\n92\n2097152\n302\nXREF_B2\n75\n1\n";
+    ExposedDimensionAssociation intersection;
+    const bool parsedIntersection =
+        parseDxfRecords(intersection, intersectionSource);
+    intersection.handle = 0x210u;
+    intersection.m_associativityFlags = 1u;
+    const bool hasIntersection = parsedIntersection
+        && !intersection.m_hasUnrepresentableDetail
+        && intersection.m_osnapRefs.size() == 1u
+        && intersection.m_osnapRefs.front().m_objectOsnapType == 6u
+        && intersection.m_osnapRefs.front().m_hasIntersectionObjectHandle
+        && intersection.m_osnapRefs.front().m_intersectionObjectHandle == 0xC1u
+        && intersection.m_osnapRefs.front().m_hasIntersectionSubentType
+        && intersection.m_osnapRefs.front().m_intersectionSubentType == 3
+        && intersection.m_osnapRefs.front().m_hasIntersectionGsMarker
+        && intersection.m_osnapRefs.front().m_intersectionGsMarker == 2097152
+        && intersection.m_osnapRefs.front().m_hasXrefObjectHandleString
+        && intersection.m_osnapRefs.front().m_xrefObjectHandleString == "XREF_A1"
+        && intersection.m_osnapRefs.front().m_hasIntersectionXrefObjectHandleString
+        && intersection.m_osnapRefs.front().m_intersectionXrefObjectHandleString
+            == "XREF_B2";
+    t.expect(hasIntersection,
+             "DIMASSOC intersection osnap retains its second geometry edge and attributes");
+    if (hasIntersection) {
+        ExposedDimensionAssociation intersectionCopy(intersection);
+        ExposedDimensionAssociation intersectionAssigned;
+        intersectionAssigned = intersection;
+        t.expect(sameRef(intersectionCopy.m_osnapRefs.front(),
+                         intersection.m_osnapRefs.front())
+                     && sameRef(intersectionAssigned.m_osnapRefs.front(),
+                                intersection.m_osnapRefs.front()),
+                 "DIMASSOC intersection detail survives copy and assignment");
+        for (const bool binary : {false, true}) {
+            std::ostringstream output;
+            dxfRW writer("");
+            writer.version = DRW::AC1032;
+            writer.binFile = binary;
+            writer.writer = binary
+                ? std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterBinary>(&output))
+                : std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterAscii>(&output));
+            t.expect(writer.writeDimensionAssociation(&intersectionCopy),
+                     "DIMASSOC intersection details write to ASCII/Binary DXF");
+            parseOutput(output.str(), binary,
+                        intersectionCopy.m_osnapRefs.front());
+        }
+        ExposedDimensionAssociation apparentIntersection(intersectionCopy);
+        apparentIntersection.m_osnapRefs.front().m_objectOsnapType = 11u;
+        std::ostringstream apparentOutput;
+        dxfRW apparentWriter("");
+        apparentWriter.version = DRW::AC1032;
+        apparentWriter.writer =
+            std::make_unique<dxfWriterAscii>(&apparentOutput);
+        t.expect(apparentWriter.writeDimensionAssociation(&apparentIntersection),
+                 "DIMASSOC apparent-intersection type 11 retains its second edge");
+        parseOutput(apparentOutput.str(), false,
+                    apparentIntersection.m_osnapRefs.front());
+        dwgBufferW dwgIntersectionBody;
+        t.expect(!intersection.encodeDwg(DRW::AC1021, &dwgIntersectionBody)
+                     && dwgIntersectionBody.size() == 0u,
+                 "DIMASSOC DXF intersection edge is refused by DWG encoder before bytes");
+    }
+
+    dwgBufferW dwgBody;
+    t.expect(!parsed.encodeDwg(DRW::AC1021, &dwgBody)
+                 && dwgBody.size() == 0u,
+             "DIMASSOC DXF-only details are refused by DWG encoder before bytes");
+
+    ExposedDimensionAssociation xrefOnly;
+    xrefOnly.m_associativityFlags = 1u;
+    DRW_DimensionAssociationOsnapRef xrefOnlyRef;
+    xrefOnlyRef.m_className = "AcDbOsnapPointRef";
+    xrefOnlyRef.m_objectOsnapType = 1u;
+    xrefOnlyRef.m_objectHandle = 0xB1u;
+    xrefOnlyRef.m_hasXrefObjectHandleString = true;
+    xrefOnlyRef.m_xrefObjectHandleString = "XREF_A1";
+    xrefOnly.m_osnapRefs.push_back(xrefOnlyRef);
+    dwgBufferW dwgXrefBody;
+    t.expect(!xrefOnly.encodeDwg(DRW::AC1021, &dwgXrefBody)
+                 && dwgXrefBody.size() == 0u,
+             "DIMASSOC XREF handle strings are refused by DWG encoder before bytes");
+
+    ExposedDimensionAssociation partialPoint;
+    t.expect(parseDxfRecords(partialPoint,
+                 "100\nAcDbDimAssoc\n90\n1\n"
+                 "1\nAcDbOsnapPointRef\n72\n1\n331\nB1\n"
+                 "10\n1.0\n"),
+             "DIMASSOC partial point remains tolerant-readable");
+    partialPoint.handle = 0x202u;
+    partialPoint.m_associativityFlags = 1u;
+    std::ostringstream refusedOutput;
+    refusedOutput << "sentinel";
+    dxfRW refusingWriter("");
+    refusingWriter.version = DRW::AC1032;
+    refusingWriter.writer = std::make_unique<dxfWriterAscii>(&refusedOutput);
+    t.expect(!refusingWriter.writeDimensionAssociation(&partialPoint)
+                 && refusedOutput.str() == "sentinel",
+             "DIMASSOC incomplete WCS point tuple fails before publication");
+
+    ExposedDimensionAssociation intersectionType;
+    t.expect(parseDxfRecords(intersectionType,
+                 "100\nAcDbDimAssoc\n90\n1\n"
+                 "1\nAcDbOsnapPointRef\n72\n6\n331\nB1\n")
+                 && !intersectionType.m_hasUnrepresentableDetail,
+             "DIMASSOC intersection type is retained while typed output checks edge completeness");
+    intersectionType.handle = 0x211u;
+    intersectionType.m_associativityFlags = 1u;
+    std::ostringstream incompleteIntersectionOutput;
+    incompleteIntersectionOutput << "sentinel";
+    dxfRW incompleteIntersectionWriter("");
+    incompleteIntersectionWriter.version = DRW::AC1032;
+    incompleteIntersectionWriter.writer =
+        std::make_unique<dxfWriterAscii>(&incompleteIntersectionOutput);
+    t.expect(!incompleteIntersectionWriter.writeDimensionAssociation(
+                 &intersectionType)
+                 && incompleteIntersectionOutput.str() == "sentinel",
+             "DIMASSOC intersection type without group 332 fails before publication");
+
+    DRW_DimensionAssociation missingMainGeometry;
+    missingMainGeometry.handle = 0x212u;
+    missingMainGeometry.m_associativityFlags = 1u;
+    DRW_DimensionAssociationOsnapRef missingMainRef;
+    missingMainRef.m_className = "AcDbOsnapPointRef";
+    missingMainRef.m_hasObjectOsnapType = true;
+    missingMainRef.m_objectOsnapType = 6u;
+    missingMainRef.m_hasIntersectionObjectHandle = true;
+    missingMainRef.m_intersectionObjectHandle = 0xC1u;
+    missingMainGeometry.m_osnapRefs.push_back(missingMainRef);
+    std::ostringstream missingMainOutput;
+    missingMainOutput << "sentinel";
+    dxfRW missingMainWriter("");
+    missingMainWriter.version = DRW::AC1032;
+    missingMainWriter.writer =
+        std::make_unique<dxfWriterAscii>(&missingMainOutput);
+    t.expect(!missingMainWriter.writeDimensionAssociation(&missingMainGeometry)
+                 && missingMainOutput.str() == "sentinel",
+             "DIMASSOC intersection type requires both geometry handles");
 }
 
 void testDxfProxyGraphicsStayOutOfAcis(TestContext& t) {
@@ -2985,6 +21143,183 @@ void testDxfThreeCornerFaceFallback(TestContext& t) {
                      && invalidFlagsCapture.faceCount == 0u,
                  "DXF 3DFACE rejects invisible-edge bits outside mask 0x0F");
     }
+}
+
+void testDxfSplinePointComponentOrder(TestContext& t) {
+    class SplineCapture final : public FuzzInterface {
+    public:
+        void addSpline(const DRW_Spline* value) override {
+            if (value != nullptr)
+                splines.push_back(*value);
+        }
+        void addLine(const DRW_Line& value) override {
+            ++lineCount;
+            line = value;
+        }
+
+        std::vector<DRW_Spline> splines;
+        std::size_t lineCount = 0;
+        DRW_Line line;
+    };
+
+    const auto emitInput = [](dxfWriter& writer) {
+        const auto text = [&writer](int code, const char* value) {
+            return writer.writeString(code, value);
+        };
+        const auto shortInteger = [&writer](int code, int value) {
+            return writer.writeInt16(code, value);
+        };
+        const auto real = [&writer](int code, double value) {
+            return writer.writeDouble(code, value);
+        };
+        const auto beginSpline = [&text, &shortInteger, &real](
+            const char* handle, int controlCount, int fitCount) {
+            return text(0, "SPLINE") && text(5, handle)
+                && text(100, "AcDbEntity") && text(8, "0")
+                && text(100, "AcDbSpline") && shortInteger(70, 0)
+                && shortInteger(71, 2)
+                && shortInteger(72, controlCount == 0 ? 0 : 6)
+                && shortInteger(73, controlCount)
+                && shortInteger(74, fitCount)
+                && real(42, 0.0000001) && real(43, 0.0000001)
+                && real(44, 0.0000001);
+        };
+
+        bool ok = text(0, "SECTION") && text(2, "HEADER")
+            && text(9, "$ACADVER") && text(1, "AC1027")
+            && text(0, "ENDSEC") && text(0, "SECTION")
+            && text(2, "ENTITIES")
+            && beginSpline("7A1", 3, 0);
+        if (!ok)
+            return false;
+        for (double knot : {0.0, 0.0, 0.0, 1.0, 1.0, 1.0})
+            ok = ok && real(40, knot);
+        // The three component arrays are valid but deliberately not in the
+        // conventional X/Y/Z sequence.
+        for (double y : {2.0, 5.0, 8.0})
+            ok = ok && real(20, y);
+        for (double z : {3.0, 6.0, 9.0})
+            ok = ok && real(30, z);
+        for (double x : {1.0, 4.0, 7.0})
+            ok = ok && real(10, x);
+
+        ok = ok && beginSpline("7A2", 0, 3);
+        // Fit-point arrays use their own 11/21/31 occurrence ordinals.
+        for (double y : {12.0, 15.0, 18.0})
+            ok = ok && real(21, y);
+        for (double z : {13.0, 16.0, 19.0})
+            ok = ok && real(31, z);
+        for (double x : {11.0, 14.0, 17.0})
+            ok = ok && real(11, x);
+
+        return ok && text(0, "LINE") && text(5, "7A3")
+            && text(8, "0") && real(10, 10.0) && real(20, 20.0)
+            && real(30, 30.0) && real(11, 40.0) && real(21, 50.0)
+            && real(31, 60.0) && text(0, "ENDSEC")
+            && text(0, "EOF");
+    };
+    const auto pointListMatches = [](
+        const std::vector<std::shared_ptr<DRW_Coord>>& points,
+        const std::array<std::array<double, 3>, 3>& expected) {
+        if (points.size() != expected.size())
+            return false;
+        for (std::size_t index = 0; index < expected.size(); ++index) {
+            if (points[index] == nullptr
+                || points[index]->x != expected[index][0]
+                || points[index]->y != expected[index][1]
+                || points[index]->z != expected[index][2])
+                return false;
+        }
+        return true;
+    };
+    const std::array<std::array<double, 3>, 3> expectedControlPoints{{
+        {{1.0, 2.0, 3.0}}, {{4.0, 5.0, 6.0}}, {{7.0, 8.0, 9.0}}
+    }};
+    const std::array<std::array<double, 3>, 3> expectedFitPoints{{
+        {{11.0, 12.0, 13.0}}, {{14.0, 15.0, 16.0}}, {{17.0, 18.0, 19.0}}
+    }};
+    const auto captureMatches = [&](const SplineCapture& capture) {
+        return capture.splines.size() == 2u
+            && pointListMatches(capture.splines[0].controllist,
+                                expectedControlPoints)
+            && capture.splines[0].fitlist.empty()
+            && capture.splines[1].controllist.empty()
+            && pointListMatches(capture.splines[1].fitlist,
+                                expectedFitPoints)
+            && capture.lineCount == 1u
+            && capture.line.basePoint.x == 10.0
+            && capture.line.basePoint.y == 20.0
+            && capture.line.basePoint.z == 30.0
+            && capture.line.secPoint.x == 40.0
+            && capture.line.secPoint.y == 50.0
+            && capture.line.secPoint.z == 60.0;
+    };
+
+    std::ostringstream asciiBytes;
+    dxfWriterAscii asciiWriter(&asciiBytes);
+    asciiWriter.setVersion("AC1027", true);
+    const bool asciiWritten = emitInput(asciiWriter);
+    std::string asciiContent = asciiBytes.str();
+    dxfRW asciiReader("");
+    SplineCapture asciiCapture;
+    const bool asciiRead = asciiWritten
+        && asciiReader.readAscii(&asciiCapture, false, asciiContent);
+    if (!asciiRead || !captureMatches(asciiCapture)) {
+        std::cerr << "SPLINE ASCII diagnostic: written=" << asciiWritten
+                  << " read=" << asciiRead << " splines="
+                  << asciiCapture.splines.size() << " lines="
+                  << asciiCapture.lineCount;
+        for (const DRW_Spline& spline : asciiCapture.splines)
+            std::cerr << " controls=" << spline.controllist.size()
+                      << " fits=" << spline.fitlist.size();
+        std::cerr << '\n';
+    }
+    t.expect(asciiRead && captureMatches(asciiCapture),
+             "ASCII DXF SPLINE control/fit components ignore legal group-code order");
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const std::filesystem::path binaryPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-spline-component-order-" + std::to_string(nonce)
+           + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } cleanup{binaryPath};
+    std::ostringstream binaryBytes(std::ios::out | std::ios::binary);
+    binaryBytes << "AutoCAD Binary DXF\r\n";
+    binaryBytes.put(static_cast<char>(26));
+    binaryBytes.put('\0');
+    dxfWriterBinary binaryWriter(&binaryBytes);
+    binaryWriter.setVersion("AC1027", true);
+    const bool binaryWritten = emitInput(binaryWriter);
+    const std::string binaryContent = binaryBytes.str();
+    {
+        std::ofstream output(binaryPath, std::ios::binary);
+        output.write(binaryContent.data(),
+                     static_cast<std::streamsize>(binaryContent.size()));
+    }
+    const std::string binaryFilename = binaryPath.string();
+    dxfRW binaryReader(binaryFilename.c_str());
+    SplineCapture binaryCapture;
+    const bool binaryRead = binaryWritten && binaryReader.read(
+        &binaryCapture, false);
+    if (!binaryRead || !captureMatches(binaryCapture)) {
+        std::cerr << "SPLINE Binary diagnostic: written=" << binaryWritten
+                  << " read=" << binaryRead << " splines="
+                  << binaryCapture.splines.size() << " lines="
+                  << binaryCapture.lineCount;
+        for (const DRW_Spline& spline : binaryCapture.splines)
+            std::cerr << " controls=" << spline.controllist.size()
+                      << " fits=" << spline.fitlist.size();
+        std::cerr << '\n';
+    }
+    t.expect(binaryRead && captureMatches(binaryCapture),
+             "Binary DXF SPLINE control/fit components ignore legal group-code order and preserve following LINE");
 }
 
 void testDxfSolidTraceCornerMapping(TestContext& t) {
@@ -3402,17 +21737,17 @@ void testDxfHatchElevationAndOcsBoundary(TestContext& t) {
         "50\n0\n51\n90\n73\n1\n",
         "HATCH rejects an elliptical-edge major-axis point without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n",
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n",
         "HATCH rejects a spline control point without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n13\n6\n",
         "HATCH rejects a spline start tangent without its Y group");
     rejectsIncompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n",
         "HATCH rejects a spline end tangent without its Y group");
 
@@ -3440,9 +21775,11 @@ void testDxfHatchElevationAndOcsBoundary(TestContext& t) {
         "92\n0\n93\n1\n72\n3\n10\n1\n20\n2\n11\n4\n21\n5\n"
         "40\n0.5\n50\n0\n51\n90\n73\n1\n",
         "HATCH accepts complete elliptical-edge point pairs");
+    // A degree-one control spline needs two controls/four full DXF knots.
+    // Keep the layout valid so these controls isolate coordinate-pair grammar.
     acceptsCompleteBoundaryPair(
-        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n2\n"
-        "40\n0\n40\n1\n96\n1\n10\n1\n20\n2\n97\n1\n"
+        "92\n0\n93\n1\n72\n4\n94\n1\n73\n0\n74\n0\n95\n4\n"
+        "40\n0\n40\n0\n40\n1\n40\n1\n96\n2\n10\n0\n20\n0\n10\n1\n20\n2\n97\n1\n"
         "11\n3\n21\n4\n12\n5\n22\n6\n13\n7\n23\n8\n",
         "HATCH accepts complete spline control, fit, and tangent pairs");
 
@@ -3639,10 +21976,21 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
     source.styleBlockScale = DRW_Coord{2.0, 3.0, 4.0};
     source.classVersion = 7;
     source.context.hasTextContents = true;
+    source.context.contentBasePoint = DRW_Coord{2.25, -3.5, 4.75};
     source.context.textLabel = "context text";
+    source.context.textNormal = DRW_Coord{0.25, -0.5, 0.75};
     source.context.textStyleHandle.ref = 0xA106u;
+    source.context.textLocation = DRW_Coord{5.25, -6.5, 7.75};
+    source.context.textDirection = DRW_Coord{-0.125, 0.25, 1.0};
     source.context.hasContentsBlock = true;
     source.context.blockTableRecordHandle.ref = 0xA107u;
+    source.context.blockNormal = DRW_Coord{0.0, 0.0, -1.0};
+    source.context.blockLocation = DRW_Coord{8.25, -9.5, 10.75};
+    source.context.blockScale = DRW_Coord{1.5, 2.5, 3.5};
+    source.context.blockRotation = 0.75;
+    source.context.basePoint = DRW_Coord{11.25, -12.5, 13.75};
+    source.context.baseDirection = DRW_Coord{0.0, 1.0, 0.0};
+    source.context.baseVertical = DRW_Coord{1.0, 0.0, 0.0};
     for (std::size_t i = 0; i < source.context.blockTransform.size(); ++i)
         source.context.blockTransform[i] = static_cast<double>(i + 1u);
 
@@ -3698,7 +22046,41 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
         const DRW_MLeaderRoot& parsedRoot = parsed.context.roots.front();
         const DRW_MLeaderLeaderLine& parsedLine =
             parsedRoot.leaderLines.front();
-        t.expect(parsedRoot.breaks.front().first.x == 4.0
+        t.expect(parsed.context.contentBasePoint.x == 2.25
+                     && parsed.context.contentBasePoint.y == -3.5
+                     && parsed.context.contentBasePoint.z == 4.75
+                     && parsed.context.textNormal.x == 0.25
+                     && parsed.context.textNormal.y == -0.5
+                     && parsed.context.textNormal.z == 0.75
+                     && parsed.context.textLocation.x == 5.25
+                     && parsed.context.textLocation.y == -6.5
+                     && parsed.context.textLocation.z == 7.75
+                     && parsed.context.textDirection.x == -0.125
+                     && parsed.context.textDirection.y == 0.25
+                     && parsed.context.textDirection.z == 1.0
+                     && parsed.context.blockNormal.z == -1.0
+                     && parsed.context.blockLocation.x == 8.25
+                     && parsed.context.blockLocation.y == -9.5
+                     && parsed.context.blockLocation.z == 10.75
+                     && parsed.context.blockScale.x == 1.5
+                     && parsed.context.blockScale.y == 2.5
+                     && parsed.context.blockScale.z == 3.5
+                     && parsed.context.blockRotation == 0.75
+                     && parsed.context.basePoint.x == 11.25
+                     && parsed.context.basePoint.y == -12.5
+                     && parsed.context.basePoint.z == 13.75
+                     && parsed.context.baseDirection.y == 1.0
+                     && parsed.context.baseVertical.x == 1.0
+                     && parsed.context.blockTransform
+                            == source.context.blockTransform
+                     && parsedRoot.connectionPoint.x == 1.0
+                     && parsedRoot.connectionPoint.y == 2.0
+                     && parsedRoot.connectionPoint.z == 3.0
+                     && parsedRoot.direction.y == 1.0
+                     && parsedLine.points.front().x == 10.0
+                     && parsedLine.points.front().y == 11.0
+                     && parsedLine.points.front().z == 12.0
+                     && parsedRoot.breaks.front().first.x == 4.0
                      && parsedRoot.breaks.front().second.z == 9.0
                      && parsedLine.breaks.front().first.y == 14.0
                      && parsedLine.breaks.front().second.z == 18.0
@@ -3712,6 +22094,230 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                      && parsed.styleBlockScale.z == 4.0
                      && parsed.classVersion == 7,
                      "MULTILEADER DXF round-trip preserves geometry handles and matrix");
+    }
+
+    for (const bool binary : {false, true}) {
+        const auto makeWire = [binary](bool overrun) {
+            std::ostringstream wire(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&wire))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&wire));
+            bool ok = writer->writeString(300, "CONTEXT_DATA{")
+                && writer->writeBool(290, false)
+                && writer->writeString(302, "LEADER{")
+                && writer->writeString(304, "LEADER_LINE{")
+                // Preserve the order within each repeated component array;
+                // only distinct X/Y/Z group codes are grouped separately.
+                && writer->writeDouble(20, 11.0)
+                && writer->writeDouble(20, 21.0)
+                && writer->writeDouble(30, 12.0)
+                && writer->writeDouble(30, 22.0);
+            if (overrun)
+                ok = ok && writer->writeDouble(20, 31.0);
+            ok = ok && writer->writeDouble(10, 10.0)
+                && writer->writeDouble(10, 20.0)
+                && writer->writeString(305, "}")
+                && writer->writeString(303, "}")
+                && writer->writeString(301, "}")
+                && writer->writeInt16(270, 7);
+            writer.reset();
+            return ok ? wire.str() : std::string{};
+        };
+        const auto parseWire = [binary](const std::string& bytes,
+                                        ExposedMLeader& output) {
+            std::istringstream input(bytes,
+                                     std::ios::in | std::ios::binary);
+            std::unique_ptr<dxfReader> reader = binary
+                ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+                : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+            int code = 0;
+            while (reader->readRec(&code))
+                if (!output.parseCode(code, reader))
+                    return false;
+            return true;
+        };
+        ExposedMLeader reordered;
+        const bool reorderedOk = parseWire(makeWire(false), reordered);
+        bool pointMatches = false;
+        if (reordered.context.roots.size() == 1u) {
+            const auto& lines = reordered.context.roots.front().leaderLines;
+            pointMatches = lines.size() == 1u
+                && lines.front().points.size() == 2u
+                && lines.front().points[0].x == 10.0
+                && lines.front().points[0].y == 11.0
+                && lines.front().points[0].z == 12.0
+                && lines.front().points[1].x == 20.0
+                && lines.front().points[1].y == 21.0
+                && lines.front().points[1].z == 22.0;
+        }
+        t.expect(reorderedOk && pointMatches
+                     && reordered.isDxfContextClosed()
+                     && reordered.classVersion == 7u,
+                 std::string("MULTILEADER repeated scoped vertices assemble by code in ")
+                     + (binary ? "Binary" : "ASCII")
+                     + " and leave the following entity-level field intact");
+        ExposedMLeader excessComponent;
+        t.expect(!parseWire(makeWire(true), excessComponent),
+                 std::string("MULTILEADER rejects excess scoped vertex component in ")
+                     + (binary ? "Binary" : "ASCII"));
+    }
+
+    // This is a representational-retention matrix, not a producer-validity
+    // matrix: the Autodesk code tables identify the content-type and context
+    // flags separately but do not enumerate every legal tuple. Exercise all
+    // modeled values without promoting any combination to supported output.
+    const auto sameCoord = [](const DRW_Coord &actual,
+                              const DRW_Coord &expected) {
+      return actual.x == expected.x && actual.y == expected.y &&
+             actual.z == expected.z;
+    };
+    for (const std::uint16_t contentType :
+         {std::uint16_t{0}, std::uint16_t{1}, std::uint16_t{2}}) {
+      for (unsigned int flagMask = 0; flagMask < 4u; ++flagMask) {
+        for (const bool hasLeaderRoot : {false, true}) {
+          for (const bool binary : {false, true}) {
+            DRW_MLeader matrixSource;
+            matrixSource.styleContentType = contentType;
+            matrixSource.context.hasTextContents = (flagMask & 1u) != 0;
+            matrixSource.context.hasContentsBlock = (flagMask & 2u) != 0;
+            matrixSource.context.flowDirection = 6;
+            matrixSource.context.contentBasePoint = DRW_Coord{1.25, -2.5, 3.75};
+            if (matrixSource.context.hasTextContents) {
+              matrixSource.context.textLabel = "matrix text";
+              matrixSource.context.textNormal = DRW_Coord{0.0, 0.0, 1.0};
+              matrixSource.context.textLocation = DRW_Coord{4.25, -5.5, 6.75};
+              matrixSource.context.textDirection = DRW_Coord{-0.25, 0.5, 0.75};
+            }
+            if (matrixSource.context.hasContentsBlock) {
+              matrixSource.context.blockNormal = DRW_Coord{0.0, 1.0, 0.0};
+              matrixSource.context.blockLocation = DRW_Coord{7.25, -8.5, 9.75};
+              matrixSource.context.blockScale = DRW_Coord{1.5, 2.5, 3.5};
+              matrixSource.context.blockRotation = 0.625;
+              for (std::size_t i = 0;
+                   i < matrixSource.context.blockTransform.size(); ++i)
+                matrixSource.context.blockTransform[i] =
+                    static_cast<double>(i + 1u) * 0.5;
+            }
+            DRW_MLeaderRoot matrixRoot;
+            matrixRoot.connectionPoint = DRW_Coord{10.25, -11.5, 12.75};
+            matrixRoot.direction = DRW_Coord{0.0, 1.0, 0.0};
+            DRW_MLeaderLeaderLine matrixLine;
+            matrixLine.points.emplace_back(DRW_Coord{13.25, -14.5, 15.75});
+            matrixRoot.leaderLines.push_back(matrixLine);
+            if (hasLeaderRoot)
+              matrixSource.context.roots.push_back(matrixRoot);
+
+            std::ostringstream matrixOutput;
+            dxfRW matrixWriter("");
+            matrixWriter.version = DRW::AC1027;
+            matrixWriter.binFile = binary;
+            matrixWriter.writer =
+                binary ? std::unique_ptr<dxfWriter>(
+                             std::make_unique<dxfWriterBinary>(&matrixOutput))
+                       : std::unique_ptr<dxfWriter>(
+                             std::make_unique<dxfWriterAscii>(&matrixOutput));
+            const bool written =
+                matrixWriter.writeMultiLeader(&matrixSource) &&
+                matrixWriter.writer->writeString(0, "WIRE_END");
+
+            std::stringstream matrixWire(matrixOutput.str(),
+                                         std::ios::in | std::ios::out |
+                                             std::ios::binary);
+            std::unique_ptr<dxfReader> matrixReader =
+                binary ? std::unique_ptr<dxfReader>(
+                             std::make_unique<dxfReaderBinary>(&matrixWire))
+                       : std::unique_ptr<dxfReader>(
+                             std::make_unique<dxfReaderAscii>(&matrixWire));
+            ExposedMLeader matrixParsed;
+            int matrixCode = 0;
+            bool matrixParseOk = true;
+            bool sawEntity = false;
+            bool sawSentinel = false;
+            while (matrixReader->readRec(&matrixCode)) {
+              if (matrixCode == 0) {
+                const std::string marker = matrixReader->getString();
+                if (!sawEntity) {
+                  sawEntity = marker == "MULTILEADER";
+                  if (!sawEntity)
+                    matrixParseOk = false;
+                  continue;
+                }
+                sawSentinel = marker == "WIRE_END";
+                break;
+              }
+              matrixParseOk =
+                  matrixParsed.parseCode(matrixCode, matrixReader) &&
+                  matrixParseOk;
+            }
+            bool matrixFieldsPreserved =
+                matrixParsed.styleContentType == contentType &&
+                matrixParsed.isDxfContextClosed() &&
+                matrixParsed.context.hasTextContents ==
+                    matrixSource.context.hasTextContents &&
+                matrixParsed.context.hasContentsBlock ==
+                    matrixSource.context.hasContentsBlock &&
+                matrixParsed.context.flowDirection == 6u &&
+                sameCoord(matrixParsed.context.contentBasePoint,
+                          matrixSource.context.contentBasePoint) &&
+                matrixParsed.context.roots.size() == (hasLeaderRoot ? 1u : 0u);
+            if (hasLeaderRoot) {
+              matrixFieldsPreserved =
+                  matrixFieldsPreserved &&
+                  sameCoord(matrixParsed.context.roots.front().connectionPoint,
+                            matrixRoot.connectionPoint) &&
+                  sameCoord(matrixParsed.context.roots.front().direction,
+                            matrixRoot.direction) &&
+                  matrixParsed.context.roots.front().leaderLines.size() == 1u &&
+                  matrixParsed.context.roots.front()
+                          .leaderLines.front()
+                          .points.size() == 1u &&
+                  sameCoord(matrixParsed.context.roots.front()
+                                .leaderLines.front()
+                                .points.front(),
+                            matrixLine.points.front());
+            }
+            if (matrixSource.context.hasTextContents) {
+              matrixFieldsPreserved =
+                  matrixFieldsPreserved &&
+                  matrixParsed.context.textLabel ==
+                      matrixSource.context.textLabel &&
+                  sameCoord(matrixParsed.context.textNormal,
+                            matrixSource.context.textNormal) &&
+                  sameCoord(matrixParsed.context.textLocation,
+                            matrixSource.context.textLocation) &&
+                  sameCoord(matrixParsed.context.textDirection,
+                            matrixSource.context.textDirection);
+            } else {
+              matrixFieldsPreserved =
+                  matrixFieldsPreserved &&
+                  matrixParsed.context.textLabel.empty() &&
+                  matrixParsed.context.textStyleHandle.ref == 0;
+            }
+            if (matrixSource.context.hasContentsBlock) {
+              matrixFieldsPreserved =
+                  matrixFieldsPreserved &&
+                  sameCoord(matrixParsed.context.blockNormal,
+                            matrixSource.context.blockNormal) &&
+                  sameCoord(matrixParsed.context.blockLocation,
+                            matrixSource.context.blockLocation) &&
+                  sameCoord(matrixParsed.context.blockScale,
+                            matrixSource.context.blockScale) &&
+                  matrixParsed.context.blockRotation ==
+                      matrixSource.context.blockRotation &&
+                  matrixParsed.context.blockTransform ==
+                      matrixSource.context.blockTransform;
+            } else {
+              matrixFieldsPreserved =
+                  matrixFieldsPreserved &&
+                  matrixParsed.context.blockTableRecordHandle.ref == 0;
+            }
+            t.expect(written && matrixParseOk && sawEntity && sawSentinel &&
+                         matrixFieldsPreserved,
+                     "generated MLEADER content-axis tuple preserves distinct "
+                     "modeled fields and framing");
+          }
+        }
+      }
     }
 
     DRW_MLeader invalid = source;
@@ -3730,6 +22336,8 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
     DRW_MLeader::ArrowHeadEntry arrow;
     arrow.isDefault = false;
     arrow.handle.ref = 0xA10Au;
+    arrow.dxfIndex = 0;
+    arrow.hasDxfIndex = true;
     legacy.arrowHeads.push_back(arrow);
     DRW_MLeader::BlockLabelEntry label;
     label.attDefHandle.ref = 0xA10Bu;
@@ -3755,7 +22363,9 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
         parseOk = parsedLegacy.parseCode(code, legacyReader) && parseOk;
     }
     t.expect(parseOk && parsedLegacy.arrowHeads.size() == 1u
-                 && !parsedLegacy.arrowHeads.front().isDefault
+                 && parsedLegacy.arrowHeads.front().isDefault
+                 && parsedLegacy.arrowHeads.front().hasDxfIndex
+                 && parsedLegacy.arrowHeads.front().dxfIndex == 0
                  && parsedLegacy.arrowHeads.front().handle.ref == 0xA10Au
                  && parsedLegacy.blockLabels.size() == 1u
                  && parsedLegacy.blockLabels.front().attDefHandle.ref == 0xA10Bu
@@ -3763,6 +22373,116 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                  && parsedLegacy.blockLabels.front().uiIndex == 3
                  && parsedLegacy.blockLabels.front().width == 12.5,
              "AC1021 MULTILEADER round-trip preserves legacy arrays");
+
+    const std::vector<std::pair<std::int32_t, std::uint32_t>> arrowIndexCases{
+        {7, 0xA10Du}, {0, 0xA10Au}, {2, 0xA10Cu}};
+    for (const bool binary : {false, true}) {
+        DRW_MLeader indexed = source;
+        indexed.arrowHeads.clear();
+        for (const auto& expected : arrowIndexCases) {
+            DRW_MLeader::ArrowHeadEntry entry;
+            entry.isDefault = false;
+            entry.dxfIndex = expected.first;
+            entry.hasDxfIndex = true;
+            entry.handle.ref = expected.second;
+            indexed.arrowHeads.push_back(entry);
+        }
+        std::ostringstream indexedOutput(std::ios::out | std::ios::binary);
+        dxfRW indexedOwner("");
+        indexedOwner.version = DRW::AC1021;
+        indexedOwner.binFile = binary;
+        indexedOwner.writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&indexedOutput))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&indexedOutput));
+        const bool wroteIndices = indexedOwner.writeMultiLeader(&indexed);
+        const bool wroteIndexSentinel = wroteIndices
+            && indexedOwner.writer->writeString(0, "FOLLOWING");
+
+        std::istringstream indexedInput(indexedOutput.str(),
+                                        std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> indexedReader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&indexedInput))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&indexedInput));
+        ExposedMLeader parsedIndices;
+        std::vector<int> arrowHeadWireCodes;
+        bool parsedIndicesOk = true;
+        bool sawIndexSentinel = false;
+        while (indexedReader->readRec(&code)) {
+            const std::string rawValue = indexedReader->getRawValue();
+            if (code == 94 || code == 345)
+                arrowHeadWireCodes.push_back(code);
+            if (code == 0 && rawValue == "FOLLOWING") {
+                sawIndexSentinel = true;
+                break;
+            }
+            if (code == 0)
+                continue;
+            parsedIndicesOk = parsedIndices.parseCode(code, indexedReader)
+                && parsedIndicesOk;
+        }
+        std::vector<int> expectedArrowHeadWireCodes;
+        for (std::size_t i = 0; i < arrowIndexCases.size(); ++i) {
+            expectedArrowHeadWireCodes.push_back(94);
+            expectedArrowHeadWireCodes.push_back(345);
+        }
+        bool indexedValuesPreserved =
+            parsedIndices.arrowHeads.size() == arrowIndexCases.size();
+        for (std::size_t i = 0; indexedValuesPreserved
+             && i < arrowIndexCases.size(); ++i) {
+            const DRW_MLeader::ArrowHeadEntry& actual =
+                parsedIndices.arrowHeads[i];
+            indexedValuesPreserved = actual.hasDxfIndex
+                && actual.dxfIndex == arrowIndexCases[i].first
+                && actual.handle.ref == arrowIndexCases[i].second
+                && actual.isDefault;
+        }
+        t.expect(wroteIndices && wroteIndexSentinel,
+                 "MLEADER indexed arrowheads write and retain following-record sentinel");
+        t.expect(parsedIndicesOk && sawIndexSentinel,
+                 "MLEADER indexed arrowheads parse through following-record sentinel");
+        t.expect(arrowHeadWireCodes == expectedArrowHeadWireCodes,
+                 "MLEADER arrowhead index/handle tags retain raw wire order");
+        t.expect(indexedValuesPreserved,
+                 "MLEADER arrowhead index presence and distinct handles survive parse");
+
+        ExposedMLeader copiedIndices = parsedIndices;
+        t.expect(copiedIndices.arrowHeads.size() == arrowIndexCases.size()
+                     && copiedIndices.arrowHeads[0].hasDxfIndex
+                     && copiedIndices.arrowHeads[0].dxfIndex == 7,
+                 "MLEADER copy preserves DXF arrowhead index presence and value");
+        copiedIndices.resetForTest();
+        t.expect(copiedIndices.arrowHeads.empty(),
+                 "MLEADER reset clears DXF arrowhead index entries");
+    }
+
+    DRW_MLeader unresolvedArrowIndex = source;
+    DRW_MLeader::ArrowHeadEntry unresolvedEntry;
+    unresolvedEntry.isDefault = false;
+    unresolvedEntry.handle.ref = 0xA10Du;
+    unresolvedArrowIndex.arrowHeads.push_back(unresolvedEntry);
+    std::ostringstream unresolvedArrowOutput;
+    dxfRW unresolvedArrowOwner("");
+    unresolvedArrowOwner.version = DRW::AC1021;
+    unresolvedArrowOwner.writer =
+        std::make_unique<dxfWriterAscii>(&unresolvedArrowOutput);
+    t.expect(!unresolvedArrowOwner.writeMultiLeader(&unresolvedArrowIndex)
+                 && unresolvedArrowOutput.str().empty()
+                 && unresolvedArrowOwner.getLastDiagnostic().code
+                        == "unrepresentable-mleader-arrowhead-index",
+             "DWG-style default flags refuse DXF conversion before publication");
+
+    DRW_MLeader modernArrowTarget = source;
+    modernArrowTarget.arrowHeads.push_back(arrow);
+    std::ostringstream modernArrowOutput;
+    dxfRW modernArrowOwner("");
+    modernArrowOwner.version = DRW::AC1027;
+    modernArrowOwner.writer =
+        std::make_unique<dxfWriterAscii>(&modernArrowOutput);
+    t.expect(!modernArrowOwner.writeMultiLeader(&modernArrowTarget)
+                 && modernArrowOutput.str().empty()
+                 && modernArrowOwner.getLastDiagnostic().code
+                        == "unrepresentable-mleader-arrowhead-index",
+             "legacy arrowhead index array refuses an unrepresented modern DXF target");
 
     DRW_MLeader oversizedLegacy = legacy;
     oversizedLegacy.arrowHeads.resize(DRW_MLeader::kMaxLeaderLines + 1u);
@@ -3804,6 +22524,53 @@ void testMLeaderDxfContextRoundTrip(TestContext& t) {
                   &oversizedBlockLabel)
                  && oversizedBlockLabelOutput.str().empty(),
              "AC1021 MULTILEADER writer rejects oversized block-label text");
+
+    for (const bool binary : {false, true}) {
+        for (const bool textBranch : {true, false}) {
+            std::stringstream wire(std::ios::in | std::ios::out
+                                   | std::ios::binary);
+            std::unique_ptr<dxfWriter> wireWriter = binary
+                ? std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterBinary>(&wire))
+                : std::unique_ptr<dxfWriter>(
+                      std::make_unique<dxfWriterAscii>(&wire));
+            const bool wireWritten =
+                wireWriter->writeString(300, "CONTEXT_DATA{")
+                && wireWriter->writeDouble(40, 1.0)
+                && wireWriter->writeBool(290, false)
+                && (textBranch
+                        ? wireWriter->writeString(304, "unflagged text")
+                        : wireWriter->writeBool(296, false)
+                              && wireWriter->writeString(341, "A10B"));
+            t.expect(wireWritten,
+                     "MLEADER malformed branch control is generated");
+            wireWriter.reset();
+            wire.seekg(0);
+
+            std::unique_ptr<dxfReader> wireReader = binary
+                ? std::unique_ptr<dxfReader>(
+                      std::make_unique<dxfReaderBinary>(&wire))
+                : std::unique_ptr<dxfReader>(
+                      std::make_unique<dxfReaderAscii>(&wire));
+            ExposedMLeader malformed;
+            int wireCode = 0;
+            bool accepted = true;
+            while (wireReader->readRec(&wireCode)) {
+                if (!malformed.parseCode(wireCode, wireReader)) {
+                    accepted = false;
+                    break;
+                }
+            }
+            const bool noPartialBranch = textBranch
+                ? malformed.context.textLabel.empty()
+                      && malformed.context.textStyleHandle.ref == 0
+                : malformed.context.blockTableRecordHandle.ref == 0;
+            t.expect(!accepted && noPartialBranch,
+                     textBranch
+                         ? "MLEADER rejects MTEXT payload under a false 290 flag"
+                         : "MLEADER rejects BLOCK handle under a false 296 flag");
+        }
+    }
 }
 
 // The linetype dash shape flag is a 4-bit field, and every validator has to
@@ -3942,6 +22709,9 @@ void testProxyPayloadCodesAreScopedToTheProxySubclass(TestContext& t) {
         // proxy payload codes.
         "100\nAcDbEvalGraph\n"
         "92\n100\n93\n22\n92\n200\n93\n33\n"
+        // Group 94 is not a proxy-object-ID terminator in this other
+        // subclass; its nonzero value remains opaque too.
+        "94\n17\n"
         "0\nENDSEC\n0\nEOF\n";
     t.expect(reader.readAscii(&interface_, false, content),
              "a proxy record carrying an inline AcDbEvalGraph reads");
@@ -3949,6 +22719,48 @@ void testProxyPayloadCodesAreScopedToTheProxySubclass(TestContext& t) {
              "the proxy object still reaches the caller");
     t.expect(interface_.rawObjectCount == 1u,
              "and its raw carrier does too");
+}
+
+void testProxySubclassMarkerUsesBorrowedView(TestContext& t) {
+    class ProxyCapture final : public FuzzInterface {
+    public:
+        void addProxyObject(const DRW_ProxyObject& value) override {
+            FuzzInterface::addProxyObject(value);
+            proxy = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            FuzzInterface::addRawDxfObject(value);
+            raw = value;
+        }
+
+        DRW_ProxyObject proxy;
+        DRW_RawDxfObject raw;
+    };
+
+    const std::string unknownSubclass(32u * 1024u, 'X');
+    std::string content =
+        "0\nSECTION\n2\nOBJECTS\n"
+        "0\nACAD_PROXY_OBJECT\n5\n2F2\n330\n2\n"
+        "100\nAcDbProxyObject\n"
+        "100\n";
+    content += unknownSubclass;
+    content += "\n92\n100\n93\n22\n"
+               "0\nENDSEC\n0\nEOF\n";
+
+    ProxyCapture interface_;
+    dxfRW reader(nullptr);
+    t.expect(reader.readAscii(&interface_, false, content),
+             "a large unknown proxy subclass marker remains parseable");
+    const std::size_t retainedMarkerCount = static_cast<std::size_t>(
+        std::count_if(interface_.raw.groups.begin(), interface_.raw.groups.end(),
+            [&unknownSubclass](const DRW_Variant& group) {
+                return group.code() == 100 && group.c_str() != nullptr
+                    && unknownSubclass == group.c_str();
+            }));
+    t.expect(interface_.proxyObjectCount == 1u
+                 && interface_.rawObjectCount == 1u
+                 && retainedMarkerCount == 1u,
+             "large unknown subclass is retained once and proxy parsing reaches ENDSEC");
 }
 
 // The same scoping must not be driven by a 100 that is somebody else's
@@ -3975,6 +22787,546 @@ void testProxySubclassMarkerIsIgnoredInsideApplicationGroups(TestContext& t) {
              "a 100 inside a 102 group does not re-arm proxy payload reading");
     t.expect(interface_.proxyObjectCount == 1u,
              "the record still reaches the caller");
+}
+
+void testProxyObjectIdSectionTerminator(TestContext& t) {
+    class ProxySectionCapture final : public FuzzInterface {
+    public:
+        void addProxyEntity(const DRW_ProxyEntity& value) override {
+            ++proxyEntityCount;
+            proxyEntity = value;
+        }
+        void addRawDxfEntity(const DRW_RawDxfObject&) override {
+            ++rawEntityCount;
+        }
+        void addProxyObject(const DRW_ProxyObject& value) override {
+            ++proxyObjectCount;
+            proxyObject = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject&) override {
+            ++rawObjectCount;
+        }
+
+        std::size_t proxyEntityCount{0};
+        std::size_t rawEntityCount{0};
+        std::size_t proxyObjectCount{0};
+        std::size_t rawObjectCount{0};
+        DRW_ProxyEntity proxyEntity;
+        DRW_ProxyObject proxyObject;
+    };
+    using Group = std::pair<int, std::string>;
+
+    const auto makeDxf = [](bool binary, bool entity,
+                            const std::vector<Group>& proxyGroups) {
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        if (binary) {
+            stream << "AutoCAD Binary DXF\r\n";
+            stream.put(static_cast<char>(26));
+            stream.put('\0');
+        }
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+        const auto text = [&](int code, const std::string& value) {
+            return writer->writeString(code, value);
+        };
+        const auto integer = [&](int code, const std::string& value) {
+            return writer->writeInt32(code, std::stoi(value));
+        };
+        const auto isInt32Code = [](int code) {
+            return code == 90 || code == 91 || code == 92 || code == 93
+                || code == 94 || code == 95;
+        };
+        bool written = text(0, "SECTION")
+            && text(2, entity ? "ENTITIES" : "OBJECTS")
+            && text(0, entity ? "ACAD_PROXY_ENTITY" : "ACAD_PROXY_OBJECT")
+            && text(5, entity ? "40" : "41")
+            && text(330, "2")
+            && text(100, entity ? "AcDbProxyEntity" : "AcDbProxyObject")
+            && integer(90, entity ? "498" : "499")
+            && integer(91, "500");
+        for (const Group& group : proxyGroups) {
+            if (!written)
+                break;
+            written = isInt32Code(group.first)
+                ? integer(group.first, group.second)
+                : text(group.first, group.second);
+        }
+        written = written && text(0, "ENDSEC") && text(0, "EOF")
+            && !writer->hasWriteError();
+        return written ? stream.str() : std::string{};
+    };
+
+    const auto readDxf = [](bool binary, const std::string& bytes,
+                            ProxySectionCapture& capture,
+                            std::size_t& caseNumber) {
+        if (bytes.empty())
+            return false;
+        if (!binary) {
+            dxfRW reader(nullptr);
+            std::string input = bytes;
+            return reader.readAscii(&capture, false, input);
+        }
+
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-proxy-object-id-" + std::to_string(nonce) + "-"
+               + std::to_string(caseNumber++) + ".dxf");
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+            if (!output.good())
+                return false;
+        }
+        const std::string filename = path.string();
+        bool read = false;
+        {
+            dxfRW reader(filename.c_str());
+            read = reader.read(&capture, false);
+        }
+        return read;
+    };
+
+    std::size_t caseNumber = 0;
+    for (bool binary : {false, true}) {
+        for (bool entity : {false, true}) {
+            ProxySectionCapture valid;
+            const bool validRead = readDxf(binary,
+                makeDxf(binary, entity,
+                    {{330, "31"}, {340, "32"}, {94, "0"}, {95, "2"}}),
+                valid, caseNumber);
+            const std::vector<DRW_ProxyObjectIdRef>& validRefs = entity
+                ? valid.proxyEntity.m_objectIdRefs
+                : valid.proxyObject.m_objectIdRefs;
+            const bool validCallbacks = entity
+                ? valid.proxyEntityCount == 1u && valid.rawEntityCount == 1u
+                    && valid.proxyObjectCount == 0u && valid.rawObjectCount == 0u
+                : valid.proxyObjectCount == 1u && valid.rawObjectCount == 1u
+                    && valid.proxyEntityCount == 0u && valid.rawEntityCount == 0u;
+            const std::string validLabel = std::string("proxy object-ID handles before 94=0 are captured in order (")
+                + (binary ? "binary " : "ASCII ")
+                + (entity ? "entity)" : "object)");
+            t.expect(validRead && validCallbacks && validRefs.size() == 2u
+                         && validRefs[0].m_dxfCode == 330
+                         && validRefs[0].m_handleCode == 4
+                         && validRefs[0].m_handle == 0x31u
+                         && validRefs[1].m_dxfCode == 340
+                         && validRefs[1].m_handleCode == 5
+                         && validRefs[1].m_handle == 0x32u,
+                     validLabel.c_str());
+
+            // Keep accepting legacy proxy records that omit 94; the change
+            // validates the terminator when present without narrowing the
+            // existing reader compatibility profile.
+            ProxySectionCapture noTerminator;
+            const bool noTerminatorRead = readDxf(binary,
+                makeDxf(binary, entity, {{330, "31"}}),
+                noTerminator, caseNumber);
+            const std::vector<DRW_ProxyObjectIdRef>& unterminatedRefs = entity
+                ? noTerminator.proxyEntity.m_objectIdRefs
+                : noTerminator.proxyObject.m_objectIdRefs;
+            const bool noTerminatorCallback = entity
+                ? noTerminator.proxyEntityCount == 1u
+                    && noTerminator.rawEntityCount == 1u
+                : noTerminator.proxyObjectCount == 1u
+                    && noTerminator.rawObjectCount == 1u;
+            t.expect(noTerminatorRead && noTerminatorCallback
+                         && unterminatedRefs.size() == 1u
+                         && unterminatedRefs.front().m_handle == 0x31u,
+                     "proxy object-ID capture remains compatible when group 94 is absent");
+
+            const std::vector<Group> payloadGroups = entity
+                ? std::vector<Group>{{92, "2"}, {310, "AABB"}, {93, "9"},
+                                     {310, "CCDD"}, {94, "0"}}
+                : std::vector<Group>{{93, "9"}, {310, "CCDD"}, {94, "0"}};
+            ProxySectionCapture payload;
+            const bool payloadRead = readDxf(binary,
+                makeDxf(binary, entity, payloadGroups), payload, caseNumber);
+            const bool payloadMatches = entity
+                ? payload.proxyEntityCount == 1u
+                    && payload.rawEntityCount == 1u
+                    && payload.proxyEntity.proxyGraphics.size() == 2u
+                    && static_cast<unsigned char>(
+                           payload.proxyEntity.proxyGraphics[0]) == 0xAAu
+                    && static_cast<unsigned char>(
+                           payload.proxyEntity.proxyGraphics[1]) == 0xBBu
+                    && payload.proxyEntity.m_hasProxyGraphicsByteSize
+                    && payload.proxyEntity.m_proxyGraphicsByteSize == 2u
+                    && payload.proxyEntity.numProxyGraph == 2
+                    && payload.proxyEntity.m_hasEntityDataBitSize
+                    && payload.proxyEntity.m_entityDataBitSize == 9u
+                    && payload.proxyEntity.m_entityData
+                        == std::vector<std::uint8_t>{0xCCu, 0xDDu}
+                    && payload.proxyEntity.m_unknownData.empty()
+                : payload.proxyObjectCount == 1u
+                    && payload.rawObjectCount == 1u
+                    && payload.proxyObject.m_binaryData.empty()
+                    && payload.proxyObject.m_hasObjectDataBitSize
+                    && payload.proxyObject.m_objectDataBitSize == 9u
+                    && payload.proxyObject.m_objectData
+                        == std::vector<std::uint8_t>{0xCCu, 0xDDu};
+            const std::string payloadLabel = std::string("proxy ")
+                + (entity ? "entity graphics/entity-data" : "object data")
+                + " byte and bit lengths remain separate ("
+                + (binary ? "binary)" : "ASCII)");
+            t.expect(payloadRead && payloadMatches, payloadLabel.c_str());
+
+            const std::array<std::pair<const char*, std::vector<Group>>, 3> invalidCases{{
+                {"nonzero terminator", {{330, "31"}, {94, "1"}}},
+                {"duplicate terminator", {{330, "31"}, {94, "0"}, {94, "0"}}},
+                {"reference after terminator", {{94, "0"}, {340, "33"}}}
+            }};
+            for (const auto& invalid : invalidCases) {
+                ProxySectionCapture rejected;
+                const bool read = readDxf(binary,
+                    makeDxf(binary, entity, invalid.second), rejected, caseNumber);
+                const bool noCallbacks = rejected.proxyEntityCount == 0u
+                    && rejected.rawEntityCount == 0u
+                    && rejected.proxyObjectCount == 0u
+                    && rejected.rawObjectCount == 0u;
+                const std::string label = std::string("proxy ") + invalid.first
+                    + " rejects before typed/raw publication";
+                t.expect(!read && noCallbacks, label.c_str());
+            }
+
+            const std::vector<Group> badPayloadGroups = entity
+                ? std::vector<Group>{{92, "3"}, {310, "AABB"}, {94, "0"}}
+                : std::vector<Group>{{93, "17"}, {310, "CCDD"}, {94, "0"}};
+            ProxySectionCapture badPayload;
+            const bool badPayloadRead = readDxf(binary,
+                makeDxf(binary, entity, badPayloadGroups), badPayload, caseNumber);
+            const bool noBadPayloadCallbacks = badPayload.proxyEntityCount == 0u
+                && badPayload.rawEntityCount == 0u
+                && badPayload.proxyObjectCount == 0u
+                && badPayload.rawObjectCount == 0u;
+            const std::string badPayloadLabel = std::string("proxy ")
+                + (entity ? "graphics byte" : "object-data bit")
+                + " length mismatch rejects before callback publication ("
+                + (binary ? "binary)" : "ASCII)");
+            t.expect(!badPayloadRead && noBadPayloadCallbacks,
+                     badPayloadLabel.c_str());
+
+            const std::vector<Group> surplusPayloadGroups = entity
+                ? std::vector<Group>{{92, "2"}, {310, "AABB"}, {93, "16"},
+                                     {310, "CCDD"}, {310, "EE"}, {94, "0"}}
+                : std::vector<Group>{{93, "16"}, {310, "CCDD"},
+                                     {310, "EE"}, {94, "0"}};
+            ProxySectionCapture surplusPayload;
+            const bool surplusPayloadRead = readDxf(binary,
+                makeDxf(binary, entity, surplusPayloadGroups),
+                surplusPayload, caseNumber);
+            const bool noSurplusPayloadCallbacks =
+                surplusPayload.proxyEntityCount == 0u
+                && surplusPayload.rawEntityCount == 0u
+                && surplusPayload.proxyObjectCount == 0u
+                && surplusPayload.rawObjectCount == 0u;
+            const std::string surplusPayloadLabel = std::string("proxy ")
+                + (entity ? "entity-data" : "object-data")
+                + " rejects a whole surplus byte beyond the declared bit span ("
+                + (binary ? "binary)" : "ASCII)");
+            t.expect(!surplusPayloadRead && noSurplusPayloadCallbacks,
+                     surplusPayloadLabel.c_str());
+
+            if (!entity) {
+                ProxySectionCapture objectWithEntityGraphicsLength;
+                const bool object92Read = readDxf(binary,
+                    makeDxf(binary, false,
+                        {{92, "2"}, {310, "AABB"}}),
+                    objectWithEntityGraphicsLength, caseNumber);
+                const bool noObject92Callbacks =
+                    objectWithEntityGraphicsLength.proxyEntityCount == 0u
+                    && objectWithEntityGraphicsLength.rawEntityCount == 0u
+                    && objectWithEntityGraphicsLength.proxyObjectCount == 0u
+                    && objectWithEntityGraphicsLength.rawObjectCount == 0u;
+                t.expect(!object92Read && noObject92Callbacks,
+                         "proxy object rejects entity-only group 92 before callback publication");
+            }
+        }
+    }
+}
+
+void testProxyEntityPayloadRetainedBudget(TestContext& t) {
+    class ProxyCaptureInterface final : public FuzzInterface {
+    public:
+        void addProxyEntity(const DRW_ProxyEntity& value) override {
+            ++proxyEntityCount;
+            proxyEntity = value;
+        }
+        void addRawDxfEntity(const DRW_RawDxfObject& value) override {
+            ++rawEntityCount;
+            rawEntity = value;
+        }
+        void addProxyObject(const DRW_ProxyObject& value) override {
+            ++proxyObjectCount;
+            proxyObject = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            ++rawObjectCount;
+            rawObject = value;
+        }
+
+        std::size_t proxyEntityCount{0};
+        std::size_t rawEntityCount{0};
+        std::size_t proxyObjectCount{0};
+        std::size_t rawObjectCount{0};
+        DRW_ProxyEntity proxyEntity;
+        DRW_RawDxfObject rawEntity;
+        DRW_ProxyObject proxyObject;
+        DRW_RawDxfObject rawObject;
+    };
+    std::string content =
+        "0\nSECTION\n2\nENTITIES\n"
+        "0\nACAD_PROXY_ENTITY\n5\n30\n100\nAcDbProxyEntity\n"
+        "92\n2\n310\nAABB\n0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(content.size() + 141u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, content),
+                 "proxy entity payload capture fits the exact raw-subclass/current-record peak");
+        t.expect(interface_.proxyEntityCount == 1u
+                     && interface_.rawEntityCount == 1u
+                     && interface_.proxyEntity.proxyGraphics.size() == 2u
+                     && interface_.proxyEntity.numProxyGraph == 2
+                     && static_cast<unsigned char>(
+                            interface_.proxyEntity.proxyGraphics[0]) == 0xAAu
+                     && static_cast<unsigned char>(
+                            interface_.proxyEntity.proxyGraphics[1]) == 0xBBu,
+                 "proxy entity callback retains the decoded primary payload and its raw source carrier");
+        t.expect(interface_.rawEntity.m_retainedTextLease != nullptr
+                     && interface_.rawEntity.m_retainedTextLease->bytes() == 60u,
+                 "raw proxy group spellings remain attached to their own retained lease");
+    }
+    {
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(content.size() + 140u);
+        ProxyCaptureInterface interface_;
+        std::string input = content;
+        t.expect(!reader.readAscii(&interface_, false, input)
+                     && reader.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget"
+                     && interface_.proxyEntityCount == 0u
+                     && interface_.rawEntityCount == 0u,
+                 "one-byte-under proxy payload-copy admission rejects before either callback");
+    }
+    {
+        const std::string hexPayload(128u, 'A');
+        std::string largeContent =
+            "0\nSECTION\n2\nENTITIES\n"
+            "0\nACAD_PROXY_ENTITY\n5\n31\n100\nAcDbProxyEntity\n"
+            "92\n64\n310\n" + hexPayload + "\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        // Peak at group 310: raw owner 309 + current binary record 384
+        // (strData/rawData/canonical hex) + decoded typed payload 64, in
+        // addition to the owned input snapshot. Hex decoding borrows the
+        // retained token rather than staging a second 128-byte string.
+        reader.setDxfReadRetainedByteBudget(largeContent.size() + 757u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, largeContent)
+                     && interface_.proxyEntityCount == 1u
+                     && interface_.proxyEntity.proxyGraphics.size() == 64u
+                     && interface_.rawEntity.m_retainedTextLease != nullptr
+                     && interface_.rawEntity.m_retainedTextLease->bytes() == 309u,
+                 "64-byte proxy payload and raw source fit the exact generated retained-byte peak");
+    }
+    {
+        const std::string hexPayload(128u, 'A');
+        std::string largeContent =
+            "0\nSECTION\n2\nENTITIES\n"
+            "0\nACAD_PROXY_ENTITY\n5\n31\n100\nAcDbProxyEntity\n"
+            "92\n64\n310\n" + hexPayload + "\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(largeContent.size() + 756u);
+        ProxyCaptureInterface interface_;
+        const bool read = reader.readAscii(&interface_, false, largeContent);
+        t.expect(!read,
+                 "one-byte-under proxy payload admission is rejected");
+        t.expect(reader.getLastDiagnostic().code
+                     == "dxf-retained-byte-budget",
+                 "one-byte-under proxy payload admission reports its resource cause");
+        t.expect(interface_.proxyEntityCount == 0u
+                     && interface_.rawEntityCount == 0u,
+                 "one-byte-under proxy payload admission rejects before callback publication");
+    }
+    {
+        std::string objectContent =
+            "0\nSECTION\n2\nOBJECTS\n"
+            "0\nACAD_PROXY_OBJECT\n5\n32\n100\nAcDbProxyObject\n"
+            "93\n16\n310\nAABB\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(objectContent.size() + 141u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, objectContent)
+                     && interface_.proxyObjectCount == 1u
+                     && interface_.rawObjectCount == 1u
+                     && interface_.proxyObject.m_binaryData.empty()
+                     && interface_.proxyObject.m_hasObjectDataBitSize
+                     && interface_.proxyObject.m_objectDataBitSize == 16u
+                     && interface_.proxyObject.m_objectData
+                            == std::vector<std::uint8_t>{0xAAu, 0xBBu},
+                 "proxy object payload and raw source fit the exact generated retained-byte peak");
+        dxfRW underReader(nullptr);
+        underReader.setDxfReadRetainedByteBudget(objectContent.size() + 140u);
+        ProxyCaptureInterface underInterface;
+        std::string underInput = objectContent;
+        t.expect(!underReader.readAscii(&underInterface, false, underInput)
+                     && underReader.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget"
+                     && underInterface.proxyObjectCount == 0u
+                     && underInterface.rawObjectCount == 0u,
+                 "one-byte-under proxy object payload admission rejects before callbacks");
+    }
+    {
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-binary-proxy-carrier-" + std::to_string(nonce)
+               + ".dxf");
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+        dxfWriterBinary writer(&stream);
+        const bool written = writer.writeString(0, "SECTION")
+            && writer.writeString(2, "OBJECTS")
+            && writer.writeString(0, "ACAD_PROXY_OBJECT")
+            && writer.writeString(5, "33")
+            && writer.writeString(330, "2")
+            && writer.writeString(100, "AcDbProxyObject")
+            && writer.writeInt32(93, 16)
+            && writer.writeString(310, "AABB")
+            && writer.writeString(0, "ENDSEC")
+            && writer.writeString(0, "EOF");
+        t.expect(written, "generated binary proxy-carrier source is valid");
+        {
+            const std::string bytes = stream.str();
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+            t.expect(output.good(), "generated binary proxy source is written");
+        }
+
+        const std::string filename = path.string();
+        dxfRW reader(filename.c_str());
+        reader.setDxfReadRetainedByteBudget(4096u);
+        ProxyCaptureInterface interface_;
+        const bool read = reader.read(&interface_, false);
+        std::size_t retainedRawStringBytes = 0u;
+        for (const DRW_Variant& group : interface_.rawObject.groups) {
+            if (group.type() == DRW_Variant::STRING)
+                retainedRawStringBytes += std::string(group.c_str()).size();
+        }
+        t.expect(read && interface_.proxyObjectCount == 1u
+                     && interface_.rawObjectCount == 1u
+                     && interface_.proxyObject.m_binaryData.empty()
+                     && interface_.proxyObject.m_hasObjectDataBitSize
+                     && interface_.proxyObject.m_objectDataBitSize == 16u
+                     && interface_.proxyObject.m_objectData
+                            == std::vector<std::uint8_t>{0xAAu, 0xBBu}
+                     && interface_.rawObject.m_retainedTextLease != nullptr
+                     && interface_.rawObject.m_retainedTextLease->bytes()
+                            == interface_.rawObject.name.size()
+                                + retainedRawStringBytes
+                     && interface_.rawObject.hasRawValues
+                            == false,
+                 "binary raw-proxy carrier retains canonical hex groups once and decoded payload separately");
+        bool foundBinaryCarrier = false;
+        for (const DRW_Variant& group : interface_.rawObject.groups) {
+            foundBinaryCarrier = foundBinaryCarrier
+                || (group.code() == 310
+                    && group.type() == DRW_Variant::STRING
+                    && std::string(group.c_str()) == "AABB");
+        }
+        t.expect(foundBinaryCarrier,
+                 "binary proxy carrier exposes canonical hexadecimal raw data");
+    }
+}
+
+void testRawDxfObjectNameRetainedBudget(TestContext& t) {
+    class RawObjectCapture final : public FuzzInterface {
+    public:
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            ++count;
+            object = value;
+        }
+
+        std::size_t count{0};
+        DRW_RawDxfObject object;
+    };
+
+    const std::string name = "CUSTOM_EMPTY_OBJECT";
+    const std::string content =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n"
+        "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n0\n" + name
+        + "\n0\nENDSEC\n0\nEOF\n";
+    struct Attempt {
+        bool read{false};
+        std::size_t callbackCount{0};
+        DRW_RawDxfObject object;
+        std::string diagnostic;
+    };
+    const auto run = [&content](std::size_t retainedBudget) {
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(retainedBudget);
+        RawObjectCapture interface_;
+        std::string input = content;
+        Attempt attempt;
+        attempt.read = reader.readAscii(&interface_, false, input);
+        attempt.callbackCount = interface_.count;
+        attempt.object = interface_.object;
+        attempt.diagnostic = reader.getLastDiagnostic().code;
+        return attempt;
+    };
+
+    std::size_t lower = content.size();
+    std::size_t upper = content.size() + name.size() * 8u + 16384u;
+    const Attempt generous = run(upper);
+    t.expect(generous.read && generous.callbackCount == 1u,
+             "an empty unknown OBJECTS record is delivered as a raw object");
+    if (!generous.read || generous.callbackCount != 1u)
+        return;
+
+    while (lower < upper) {
+        const std::size_t middle = lower + (upper - lower) / 2u;
+        if (run(middle).read)
+            upper = middle;
+        else
+            lower = middle + 1u;
+    }
+
+    const Attempt exact = run(lower);
+    t.expect(exact.read && exact.callbackCount == 1u
+                 && exact.object.name == name
+                 && exact.object.groups.empty()
+                 && exact.object.rawValues.empty(),
+             "the exact admitted budget preserves the name-only raw object");
+    t.expect(exact.object.m_retainedTextLease != nullptr
+                 && exact.object.m_retainedTextLease->bytes() == name.size(),
+             "the name-only raw object owns a lease charged for its copied name");
+    t.expect(lower > content.size(),
+             "retaining the raw object name requires budget beyond the input snapshot");
+    if (lower > 0u) {
+        const Attempt under = run(lower - 1u);
+        t.expect(!under.read
+                     && under.diagnostic == "dxf-retained-byte-budget"
+                     && under.callbackCount == 0u,
+                 "one byte below the name-only admission threshold rejects before callback publication");
+    }
 }
 
 
@@ -4089,13 +23441,1277 @@ void testEmbeddedAttributeDefinitionTextRouting(TestContext& t) {
 
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--dxf-operation-admission") {
+        TestContext focused;
+        testDxfOperationAdmission(focused);
+        std::cout << "DXF whole-operation admission: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--section-settings-color-code") {
+        TestContext focused;
+        testSectionSettingsDxfColorCode(focused);
+        std::cout << "SECTION_SETTINGS DXF color-code compatibility: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-spline-point-component-order") {
+        TestContext focused;
+        testDxfSplinePointComponentOrder(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SPLINE component-order assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF SPLINE component order: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--spatial-filter-dxf-validation") {
+        TestContext focused;
+        testSpatialFilterDxfValidation(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SPATIAL_FILTER validation assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SPATIAL_FILTER DXF validation: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-geodata-modern-text-preflight") {
+        TestContext focused;
+        testDxfGeoDataModernTextPreflightView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GEODATA text-preflight assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GEODATA text preflight: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-writer-output-property") {
+        TestContext focused;
+        testDxfWriterOutputProperty(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DXF writer-output assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF writer output property: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-ltype-retained-owner-budget") {
+        TestContext focused;
+        testDxfLTypeRetainedTextBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LTYPE retained-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LTYPE retained-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mline-style-description-owner-budget") {
+        TestContext focused;
+        testDxfMLineStyleDescriptionOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLINESTYLE description-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLINESTYLE description-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mline-style-linetype-owner-budget") {
+        TestContext focused;
+        testDxfMLineStyleLinetypeOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLINESTYLE linetype-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLINESTYLE linetype-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mleaderstyle-text-owner-budget") {
+        TestContext focused;
+        testDxfMLeaderStyleTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLEADERSTYLE text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLEADERSTYLE text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mleader-entity-text-owner-budget") {
+        TestContext focused;
+        testDxfMLeaderEntityTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLEADER entity text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLEADER entity text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-mleader-text-callback-budget") {
+        TestContext focused;
+        testDxfMLeaderTextCallbackBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLEADER callback-budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLEADER text callback budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mpolygon-fill-color-callback-budget") {
+        TestContext focused;
+        testDxfMPolygonFillColorCallbackBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MPOLYGON callback-budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MPOLYGON fill-color callback budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-visualstyle-description-owner-budget") {
+        TestContext focused;
+        testDxfVisualStyleDescriptionOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " VISUALSTYLE description-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "VISUALSTYLE description-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-group-description-owner-budget") {
+        TestContext focused;
+        testDxfGroupDescriptionOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GROUP description-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GROUP description-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-textstyle-font-owner-budget") {
+        TestContext focused;
+        testDxfTextstyleTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " STYLE font-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "STYLE font-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-dimstyle-text-owner-budget") {
+        TestContext focused;
+        testDxfDimstyleTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMSTYLE text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMSTYLE text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-dimension-name-owner-budget") {
+        TestContext focused;
+        testDxfDimensionBlockNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMENSION block-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMENSION block-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-dimstyle-typed-variant-budget") {
+        TestContext focused;
+        testDxfDimstyleVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMSTYLE typed-variant budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMSTYLE typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-header-typed-variant-budget") {
+        TestContext focused;
+        testDxfHeaderVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " HEADER typed-variant budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "HEADER typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-xrecord-typed-variant-budget") {
+        TestContext focused;
+        testDxfXRecordVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " XRECORD typed-variant budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "XRECORD typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-appdata-retained-owner-budget") {
+        TestContext focused;
+        testDxfAppDataRetentionBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " application-data retained-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF application-data retained-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-appdata-handle-token-transfer") {
+        TestContext focused;
+        testDxfAppDataHandleTokenTransfer(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " appData handle-token transfer assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF appData handle-token transfer: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-application-raw-typed-variant-budget") {
+        TestContext focused;
+        testDxfApplicationAndRawVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " application/raw typed-variant assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF application/raw typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-xdata-string-owner-budget") {
+        TestContext focused;
+        testDxfXDataStringOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " XDATA string-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF XDATA string ownership: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-captured-appdata-retained-budget") {
+        TestContext focused;
+        testDxfCapturedAppDataRetentionBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " captured app-data retained-byte assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Captured app-data retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-typed-object-name-retained-budget") {
+        TestContext focused;
+        testDxfTypedObjectRecordNameRetainedBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " typed OBJECTS record-name retained-byte assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Typed OBJECTS record-name retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-table-typed-variant-budget") {
+        TestContext focused;
+        testDxfTableTypedVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " TABLE typed-variant budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF TABLE typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-lofted-surface-typed-variant-budget") {
+        TestContext focused;
+        testDxfLoftedSurfaceVariantNodeBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LOFTEDSURFACE typed-variant budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LOFTEDSURFACE typed-variant budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-acis-carrier-retained-budget") {
+        TestContext focused;
+        testDxfAcisCarrierRetainedBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DXF ACIS carrier retained-byte assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF ACIS carrier retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-modeler-text-direct-append") {
+        TestContext focused;
+        testDxfModelerTextDirectAppend(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " modeler text direct-append assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Modeler text direct append: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-group-310-direct-decode") {
+        TestContext focused;
+        testDxfGroup310DirectDecode(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DXF group-310 direct-decode assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF group-310 direct decode: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-modeler-uid-owner-budget") {
+        TestContext focused;
+        testDxfModelerUidOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " modeler UID owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF modeler UID owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-section-object-name-owner-budget") {
+        TestContext focused;
+        testDxfSectionObjectNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SECTIONOBJECT name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SECTIONOBJECT name-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--sectionobject-indicator-color-groups") {
+        TestContext focused;
+        testSectionObjectIndicatorColorDxfGroups(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SECTIONOBJECT color-group assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SECTIONOBJECT indicator-color groups: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-shape-style-name-owner-budget") {
+        TestContext focused;
+        testDxfShapeStyleNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SHAPE style-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SHAPE style-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-geopositionmarker-notes-owner-budget") {
+        TestContext focused;
+        testDxfGeoPositionMarkerNotesOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GEOPOSITIONMARKER notes-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GEOPOSITIONMARKER notes-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-borrowed-subclass-markers") {
+        TestContext focused;
+        testDxfBorrowedSubclassMarkers(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " borrowed subclass-marker assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF borrowed subclass markers: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-raw-carrier-retention-budget") {
+        TestContext focused;
+        testDxfRawCarrierRetentionBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " raw-carrier retention assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF raw-carrier retention budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-unknown-table-name-view") {
+        TestContext focused;
+        testDxfUnknownTableNameView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " unknown-table-name assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF unknown-table-name view: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-mtext-borrowed-chunk-view") {
+        TestContext focused;
+        testDxfMTextAssemblyBudget(focused);
+        testDxfMTextBorrowedChunkView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MTEXT borrowed-chunk assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MTEXT borrowed chunk view: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-mtext-background-color-name-owner-budget") {
+        TestContext focused;
+        testDxfMTextBackgroundColorNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MTEXT background color-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MTEXT background color-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-insert-block-name-owner-budget") {
+        TestContext focused;
+        testDxfInsertBlockNameOwnerBudget(focused);
+        testDxfInsertBlockNameCallbackBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " INSERT block-name owner/callback assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "INSERT block-name owner/callback budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-hatch-text-owner-budget") {
+        TestContext focused;
+        testDxfHatchTextOwnerBudget(focused);
+        testDxfMPolygonFillColorNameOwnerBudget(focused);
+        testDxfHatchGradientStopTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " HATCH text owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "HATCH text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-sunstudy-text-owner-budget") {
+        TestContext focused;
+        testDxfSunStudyTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SUNSTUDY text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SUNSTUDY text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-vport-view-ambient-color-name-owner-budget") {
+        TestContext focused;
+        testDxfVportViewAmbientColorNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " VPORT/VIEW ambient-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "VPORT/VIEW ambient color-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-vport-view-ambient-name-callback-budget") {
+        TestContext focused;
+        testDxfVportViewAmbientNameCallbackBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " VPORT/VIEW callback-boundary assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "VPORT/VIEW ambient-name callback budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-ole2frame-client-callback-budget") {
+        TestContext focused;
+        testDxfOle2FrameClientCallbackBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " OLE2FRAME callback-boundary assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "OLE2FRAME client callback budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-imagedef-name-owner-budget") {
+        TestContext focused;
+        testDxfImageDefNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " IMAGEDEF filename-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "IMAGEDEF filename-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-material-text-owner-budget") {
+        TestContext focused;
+        testDxfMaterialTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MATERIAL text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MATERIAL text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-underlay-text-owner-budget") {
+        TestContext focused;
+        testDxfUnderlayDefinitionTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " UNDERLAYDEFINITION text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "UNDERLAYDEFINITION text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-scale-name-owner-budget") {
+        TestContext focused;
+        testDxfScaleNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SCALE name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SCALE name-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-pointclouddef-filename-owner-budget") {
+        TestContext focused;
+        testDxfPointCloudDefFilenameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " POINTCLOUDDEFINITION filename-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "POINTCLOUDDEFINITION filename-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-pointcloudex-name-owner-budget") {
+        TestContext focused;
+        testDxfPointCloudExNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " POINTCLOUDEX name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "POINTCLOUDEX name-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-pointcloud-text-owner-budget") {
+        TestContext focused;
+        testDxfPointCloudTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " POINTCLOUD text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "POINTCLOUD text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-pointcloud-colormap-scheme-owner-budget") {
+        TestContext focused;
+        testDxfPointCloudColorMapSchemeOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " POINTCLOUDCOLORMAP scheme-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "POINTCLOUDCOLORMAP scheme-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-layer-text-owner-budget") {
+        TestContext focused;
+        testDxfLayerTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LAYER text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LAYER text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-mline-style-name-owner-budget") {
+        TestContext focused;
+        testDxfMLineStyleNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLINE style-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLINE style-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-tablestyle-name-owner-budget") {
+        TestContext focused;
+        testDxfTableStyleNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " TABLESTYLE name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "TABLESTYLE name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-dictionaryvar-value-owner-budget") {
+        TestContext focused;
+        testDxfDictionaryVarValueOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DICTIONARYVAR value-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DICTIONARYVAR value owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-dictionary-entry-name-owner-budget") {
+        TestContext focused;
+        testDxfDictionaryEntryNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DICTIONARY entry-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DICTIONARY entry-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-layer-index-entry-name-owner-budget") {
+        TestContext focused;
+        testDxfLayerIndexEntryNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LAYER_INDEX entry-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LAYER_INDEX entry-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-render-settings-text-owner-budget") {
+        TestContext focused;
+        testDxfRenderSettingsTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " RENDERSETTINGS text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "RENDERSETTINGS text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-viewport-text-owner-budget") {
+        TestContext focused;
+        testDxfViewportTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " VIEWPORT text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "VIEWPORT text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-layerfilter-name-owner-budget") {
+        TestContext focused;
+        testDxfLayerFilterNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LAYERFILTER name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LAYERFILTER name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-lightlist-name-owner-budget") {
+        TestContext focused;
+        testDxfLightListNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LIGHTLIST name-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LIGHTLIST name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-dimassoc-xref-text-owner-budget") {
+        TestContext focused;
+        testDxfDimensionAssociationXrefTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMASSOC XREF text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMASSOC XREF text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-datalink-text-owner-budget") {
+        TestContext focused;
+        testDxfDataLinkTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DATALINK text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DATALINK text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-table-cell-text-owner-budget") {
+        TestContext focused;
+        testDxfTableCellTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " TABLE cell text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "TABLE cell text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-geodata-text-owner-budget") {
+        TestContext focused;
+        testDxfGeoDataTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GEODATA text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GEODATA text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-class-parser-retained-text-budget") {
+        TestContext focused;
+        testDxfClassParserRetainedTextBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DXF CLASSES retained-text assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF CLASSES parser retained-text budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-block-record-parser-retained-budget") {
+        TestContext focused;
+        testDxfBlockRecordParserRetainedBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " BLOCK_RECORD retained-budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "BLOCK_RECORD parser retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-section-text-owner-budget") {
+        TestContext focused;
+        testDxfSectionTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " SECTION_SETTINGS text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "SECTION_SETTINGS text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-xrecord-string-owner-budget") {
+        TestContext focused;
+        testDxfXRecordStringOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " XRECORD string-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "XRECORD string owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-dbcolor-book-name-owner-budget") {
+        TestContext focused;
+        testDxfDbColorBookNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DBCOLOR book/name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DBCOLOR book/name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-color-book-name-token-transfer") {
+        TestContext focused;
+        testDxfColorBookNameTokenTransfer(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " color-book name token-transfer assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF color-book name token transfer: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-entity-boundary-token-transfer") {
+        TestContext focused;
+        testDxfEntityBoundaryTokenTransfer(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " entity-boundary token-transfer assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF entity-boundary token transfer: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-dimension-block-name-owner-budget") {
+        TestContext focused;
+        testDxfDimensionBlockNameOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMENSION block-name owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMENSION block-name owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-modeldoc-viewstyle-text-owner-budget") {
+        TestContext focused;
+        testDxfModelDocViewStyleTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " model-document view-style text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "model-document view-style text owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-viewstyle-subclass-marker-budget") {
+        TestContext focused;
+        testDxfViewStyleSubclassMarkerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " view-style subclass-marker assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "view-style subclass-marker state: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-geodata-civil-marker-views") {
+        TestContext focused;
+        testDxfGeoDataCivilMarkerViews(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GEODATA Civil-marker assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GEODATA Civil-marker views: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-associative-subentity-handle-limit") {
+        TestContext focused;
+        testAssociativePersistentSubentityHandleLimit(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " associative subentity-handle assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "associative subentity-handle limit: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-navisworks-path-owner-budget") {
+        TestContext focused;
+        testDxfNavisworksPathOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " NAVISWORKSMODELDEF path-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "NAVISWORKSMODELDEF path-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-plot-settings-text-owner-budget") {
+        TestContext focused;
+        testDxfPlotSettingsTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " PLOTSETTINGS text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "PLOTSETTINGS text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-layout-plotsettings-text-owner-budget") {
+        TestContext focused;
+        testDxfLayoutPlotSettingsTextOwnerBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " LAYOUT plot-prefix text-owner assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "LAYOUT plot-prefix text-owner budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-modern-compatible-text-writer-pass-through") {
+        TestContext focused;
+        testDxfModernCompatibleTextWriterPassThrough(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " modern compatible text-writer assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Modern compatible text-writer pass-through: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-modern-compatible-mtext-newline-overlay") {
+        TestContext focused;
+        testDxfModernCompatibleMTextNewlineOverlay(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " modern compatible MTEXT assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Modern compatible MTEXT newline overlay: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dxf-geodata-modern-text-preflight-view") {
+        TestContext focused;
+        testDxfGeoDataModernTextPreflightView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " GEODATA text-preflight assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "GEODATA modern text-preflight view: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-modeler-text-chunk-borrow") {
+        TestContext focused;
+        testDxfModelerTextChunkBorrow(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " modeler-text chunk-borrow assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Modeler-text chunk borrow: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-acds-qualification-hex-view") {
+        TestContext focused;
+        testDxfAcdsQualificationHexView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " ACDSDATA qualification hex-view assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "ACDSDATA qualification hex view: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-binary-chunk-stack-buffer") {
+        TestContext focused;
+        testDxfBinaryChunkStackBuffer(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DXF binary-chunk assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DXF binary chunk stack buffer: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-ole-binary-chunk-stack-buffer") {
+        TestContext focused;
+        testDxfOleBinaryChunkStackBuffer(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " OLE binary-chunk assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "OLE binary chunk stack buffer: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-raw-section-writer-common-path") {
+        TestContext focused;
+        testDxfRawSectionWriterCommonPath(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " raw-section writer assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Raw-section writer common path: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-proxy-application-marker") {
+        TestContext focused;
+        testProxySubclassMarkerIsIgnoredInsideApplicationGroups(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " proxy application-marker assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Proxy application-marker capture: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-proxy-subclass-marker-view") {
+        TestContext focused;
+        testProxySubclassMarkerUsesBorrowedView(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " proxy subclass-marker view assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Proxy subclass-marker borrowed view: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-proxy-retained-budget") {
+        TestContext focused;
+        testProxyEntityPayloadRetainedBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " proxy retained-budget assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Proxy retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-proxy-object-id-terminator") {
+        TestContext focused;
+        testProxyObjectIdSectionTerminator(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " proxy object-id assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Proxy object-id handle parsing: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dxf-raw-object-name-retained-budget") {
+        TestContext focused;
+        testRawDxfObjectNameRetainedBudget(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " raw-object-name assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "Raw-object-name retained-byte budget: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dimassoc-unsupported-detail") {
+        TestContext focused;
+        testDimensionAssociationUnsupportedDetailGuard(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMASSOC unsupported-detail assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMASSOC unsupported-detail guard: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--dimassoc-documented-scalar-fields") {
+        TestContext focused;
+        testDimensionAssociationDocumentedScalarFields(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " DIMASSOC documented-field assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DIMASSOC documented scalar fields: PASS\n";
+        return 0;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mleader-group172-validation") {
+        TestContext focused;
+        testMLeaderParserStateCopyIsolation(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLEADER group-172 assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLEADER group-172 validation: PASS\n";
+        return 0;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--mleader-context-roundtrip") {
+        TestContext focused;
+        testMLeaderDxfContextRoundTrip(focused);
+        if (focused.failures != 0) {
+            std::cerr << focused.failures
+                      << " MLEADER context round-trip assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "MLEADER context round-trip: PASS\n";
+        return 0;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--repeated-dxf-record-robustness") {
+        TestContext focused;
+        testRepeatedDxfRecordRobustness(focused);
+        std::cout << "Repeated DXF record robustness: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     TestContext context;
+    testSectionSettingsDxfColorCode(context);
+    testImageAdjustmentCarrierDomains(context);
+    testAssociativePersistentSubentityHandleLimit(context);
+    testSpatialFilterDxfValidation(context);
+    testDxfOperationAdmission(context);
+    testLeaderAdvisoryCountState(context);
     testPublicOwnershipContracts(context);
     testEmbeddedAttributeTextRouting(context);
     testCheckedArithmetic(context);
     testNullAndOwnershipContracts(context);
     testMalformedInMemoryInputs(context);
+    testDxfWriterOutputProperty(context);
     testDxfReadFuzzSmoke(context);
     testDwgReadFuzzSmoke(context);
     testDxfReadAsciiResetsFormatState(context);
@@ -4103,10 +24719,117 @@ int main() {
     testDxfReadResetsHeaderState(context);
     testDwgReadResetsVersionState(context);
     testDxfAggregateRecordBudget(context);
+    testRepeatedDxfRecordRobustness(context);
+    testDxfTokenByteBudget(context);
+    testDxfInputByteBudget(context);
+    testDxfOwnedSnapshotBudget(context);
+    testDxfReaderRecordTextBudget(context);
+    testDxfMTextAssemblyBudget(context);
+    testDxfAppDataRetentionBudget(context);
+    testDxfAppDataHandleTokenTransfer(context);
+    testDxfCapturedAppDataRetentionBudget(context);
+    testDxfTypedObjectRecordNameRetainedBudget(context);
+    testDxfCommonStringOwnerBudget(context);
+    testDxfColorBookNameTokenTransfer(context);
+    testDxfEntityBoundaryTokenTransfer(context);
+    testDxfLTypeRetainedTextBudget(context);
+    testDxfMLineStyleDescriptionOwnerBudget(context);
+    testDxfMLineStyleLinetypeOwnerBudget(context);
+    testDxfXRecordStringOwnerBudget(context);
+    testDxfDbColorBookNameOwnerBudget(context);
+    testDxfMLeaderStyleTextOwnerBudget(context);
+    testDxfMLeaderEntityTextOwnerBudget(context);
+    testDxfMLeaderTextCallbackBudget(context);
+    testDxfVisualStyleDescriptionOwnerBudget(context);
+    testDxfGroupDescriptionOwnerBudget(context);
+    testDxfImageDefNameOwnerBudget(context);
+    testDxfMaterialTextOwnerBudget(context);
+    testDxfUnderlayDefinitionTextOwnerBudget(context);
+    testDxfScaleNameOwnerBudget(context);
+    testDxfPointCloudDefFilenameOwnerBudget(context);
+    testDxfPointCloudExNameOwnerBudget(context);
+    testDxfPointCloudTextOwnerBudget(context);
+    testDxfPointCloudColorMapSchemeOwnerBudget(context);
+    testDxfLayerTextOwnerBudget(context);
+    testDxfTableStyleNameOwnerBudget(context);
+    testDxfDictionaryVarValueOwnerBudget(context);
+    testDxfDictionaryEntryNameOwnerBudget(context);
+    testDxfLayerIndexEntryNameOwnerBudget(context);
+    testDxfRenderSettingsTextOwnerBudget(context);
+    testDxfViewportTextOwnerBudget(context);
+    testDxfLayerFilterNameOwnerBudget(context);
+    testDxfLightListNameOwnerBudget(context);
+    testDxfDimensionAssociationXrefTextOwnerBudget(context);
+    testDxfDataLinkTextOwnerBudget(context);
+    testDxfTableCellTextOwnerBudget(context);
+    testDxfGeoDataTextOwnerBudget(context);
+    testDxfClassParserRetainedTextBudget(context);
+    testDxfSectionTextOwnerBudget(context);
+    testDxfModelDocViewStyleTextOwnerBudget(context);
+    testDxfViewStyleSubclassMarkerBudget(context);
+    testDxfNavisworksPathOwnerBudget(context);
+    testDxfPlotSettingsTextOwnerBudget(context);
+    testDxfLayoutPlotSettingsTextOwnerBudget(context);
+    testDxfTextStyleOwnerBudget(context);
+    testDxfTextValueOwnerBudget(context);
+    testDxfDimstyleTextOwnerBudget(context);
+    testDxfArcAlignedFontOwnerBudget(context);
+    testDxfArcAlignedD2TRetentionBudget(context);
+    testDxfAttribTagOwnerBudget(context);
+    testDxfAttdefPromptOwnerBudget(context);
+    testDxfDimensionStyleOwnerBudget(context);
+    testDxfDimensionTextOwnerBudget(context);
+    testDxfDimensionBlockNameOwnerBudget(context);
+    testDxfToleranceTextOwnerBudget(context);
+    testDxfToleranceStyleNameOwnerBudget(context);
+    testDxfBlockXrefPathOwnerBudget(context);
+    testDxfBlockNameOwnerBudget(context);
+    testDxfMLineStyleNameOwnerBudget(context);
+    testDxfOle2FrameClientOwnerBudget(context);
+    testDxfLeaderStyleOwnerBudget(context);
+    testDxfXDataStringOwnerBudget(context);
+    testDxfRawCarrierRetentionBudget(context);
+    testEmptyRawCarrierNameRetention(context);
+    testDxfMTextDecodeWorkBudget(context);
+    testDxfXdataVariantNodeBudget(context);
+    testDxfApplicationAndRawVariantNodeBudget(context);
+    testDxfTableTypedVariantNodeBudget(context);
+    testDxfDimstyleVariantNodeBudget(context);
+    testDxfHeaderVariantNodeBudget(context);
+    testDxfLoftedSurfaceVariantNodeBudget(context);
+    testDxfAcisCarrierRetainedBudget(context);
+    testDxfModelerUidOwnerBudget(context);
+    testDxfGroup310DirectDecode(context);
+    testDxfSectionObjectNameOwnerBudget(context);
+    testDxfShapeStyleNameOwnerBudget(context);
+    testDxfGeoPositionMarkerNotesOwnerBudget(context);
+    testDxfMTextBackgroundColorNameOwnerBudget(context);
+    testDxfHatchTextOwnerBudget(context);
+    testDxfMPolygonFillColorNameOwnerBudget(context);
+    testDxfMPolygonFillColorCallbackBudget(context);
+    testDxfInsertBlockNameOwnerBudget(context);
+    testDxfInsertBlockNameCallbackBudget(context);
+    testDxfHatchGradientStopTextOwnerBudget(context);
+    testDxfSunStudyTextOwnerBudget(context);
+    testDxfVportViewAmbientColorNameOwnerBudget(context);
+    testDxfVportViewAmbientNameCallbackBudget(context);
+    testDxfOle2FrameClientCallbackBudget(context);
+    testDxfModernCompatibleTextWriterPassThrough(context);
+    testDxfModernCompatibleMTextNewlineOverlay(context);
+    testDxfGeoDataModernTextPreflightView(context);
+    testDxfModelerTextChunkBorrow(context);
+    testDxfAcdsQualificationHexView(context);
+    testDxfBinaryChunkStackBuffer(context);
+    testDxfOleBinaryChunkStackBuffer(context);
+    testDxfHeaderCommentRetentionBudget(context);
+    testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);
     testDwgModelerDataStorageLinking(context);
     testMLeaderParserStateCopyIsolation(context);
+    testMTextOrientationState(context);
     testDimensionParserStateCopyIsolation(context);
+    testDimensionAssociationUnsupportedDetailGuard(context);
+    testDimensionAssociationDocumentedScalarFields(context);
     testDxfProxyGraphicsStayOutOfAcis(context);
     testDxfThreeCornerFaceFallback(context);
     testDxfSolidTraceCornerMapping(context);
@@ -4116,7 +24839,11 @@ int main() {
     testMLeaderDxfContextRoundTrip(context);
     testLinetypeDashFlagIsFourBits(context);
     testProxyPayloadCodesAreScopedToTheProxySubclass(context);
+    testProxySubclassMarkerUsesBorrowedView(context);
     testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
+    testProxyObjectIdSectionTerminator(context);
+    testProxyEntityPayloadRetainedBudget(context);
+    testRawDxfObjectNameRetainedBudget(context);
     testUnrecognisedAcadVersionIsNotFatal(context);
     testStrayAcadVersionValueCannotDowngrade(context);
     testEmbeddedAttributeDefinitionTextRouting(context);

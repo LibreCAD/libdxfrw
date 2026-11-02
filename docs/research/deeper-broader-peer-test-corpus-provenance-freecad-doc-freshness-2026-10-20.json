@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer test-corpus provenance and FreeCAD documentation freshness",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Audit candidate DWG/DXF test corpus provenance and producer identity across LibreDWG and ACadSharp",
+    "Reconcile FreeCAD documentation status with runtime qualification requirements",
+    "Improve efficient, license-aware external fixture admission without adding local test-loop cost",
+    "Preserve the existing fast-first implementation cadence and no-external-fixture-commit policy"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG test tree and hacking notes",
+      "reference": "https://github.com/LibreDWG/libredwg/tree/master/test",
+      "status": "primary_source_test_layout",
+      "observation": "The test tree separates unit-testing, xmlsuite, and test-data. HACKING uses the corpus for fuzzing and unknown-field reverse engineering. These are separate test-input classes and do not by themselves establish per-file producer or redistribution permission."
+    },
+    {
+      "project": "LibreDWG dwgadd",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "status": "documented_external_input_producer",
+      "observation": "The manual describes dwgadd as a way to create DWGs from scratch or add entities. An exact pinned dwgadd output may exercise libdxfrw's reader, but it is not independent evidence for LibreDWG's own writer and not a substitute for ODA layout authority."
+    },
+    {
+      "project": "ACadSharp samples and maintainer provenance response",
+      "reference": "https://github.com/DomCR/ACadSharp/discussions/520",
+      "status": "reader_fixture_corpus_with_incomplete_per_file_provenance",
+      "observation": "The maintainer says the samples directory contains drawings used by the Tests project to check reader behavior. The public response does not identify the producer or creation process for each DWG/DXF file, nor establish per-file license/redistribution metadata."
+    },
+    {
+      "project": "ACadSharp AC1027 sample metadata",
+      "reference": "https://github.com/DomCR/ACadSharp/blob/master/samples/sample_AC1027.dwg",
+      "status": "candidate_external_input_not_downloaded",
+      "observation": "The GitHub file page reports sample_AC1027.dwg as 1.04 MB. No binary was downloaded, and no assumption is made about its producer or semantic coverage."
+    },
+    {
+      "project": "FreeCAD documentation repository archive state",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation",
+      "status": "archived_documentation_snapshot",
+      "observation": "GitHub displays the documentation repository as archived on 2026-04-01. Its checked-in pages are retained as route background, but they are not a live contract for later FreeCAD builds."
+    },
+    {
+      "project": "FreeCAD Draft Workbench documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_Workbench.md",
+      "status": "test_object_generator_documentation",
+      "observation": "The page documents a generator for FreeCAD test objects. That supports an application-object smoke-test pattern but does not itself establish a DWG writer, a DWG/DXF conformance corpus, or ACIS/AcDs coverage."
+    },
+    {
+      "project": "FreeCAD DWG import documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "status": "documented_converter_route_snapshot",
+      "observation": "The page describes DWG import through an external converter to DXF followed by the FreeCAD DXF importer. Qualification must bind the exact tested executable/build, converter, importer, settings, intermediate output, and object dispositions."
+    },
+    {
+      "project": "LibreDWG package smoke-test example",
+      "reference": "https://github.com/Homebrew/homebrew-core/blob/main/Formula/lib/libredwg.rb",
+      "status": "small_smoke_test_pattern",
+      "observation": "The formula stages a named DWG input and checks that dwgread creates DXF output. This is a compact process/conversion smoke, not broad semantic compatibility evidence or a general fixture redistribution grant."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Refined existing PAR-07/S8 test-input admission: require per-file provenance, immutable identity, producer, version, and license status; keep external artifacts temporary; reject same-writer self-output as independent evidence; bind FreeCAD claims to the exact runtime route because the documentation source repository is archived.",
+    "nextImplementation": "Continue the local-ready fast slice queue. Use existing admitted fixtures or locally generated scratch controls; defer optional external samples to the already-planned composed checkpoint.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-test-corpus-provenance-freecad-doc-freshness-2026-10-20.json"
+    ],
+    "limitations": "Source documentation and repository contents may change. ACadSharp's public discussion identifies its sample folder as reader-test input but does not provide per-file producer/licensing provenance. FreeCAD's documentation repository is archived; any later native qualification must use an exact application build and selected runtime route. No external corpus or peer runtime was inspected locally."
+  },
+  "validation": {
+    "planEdit": "Added a source-backed corpus provenance crosswalk, an archived-documentation freshness caveat, and a fast-first sample-admission protocol. No finding/subplan, dependency, or implementation cadence changed.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; new receipt checked for trailing whitespace",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

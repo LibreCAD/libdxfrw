@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Autodesk DXF dictionary-name contract and ACIS peer-loss cross-check",
+  "mode": "Official format/API source review, current peer issue review, and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve whether DetailViewStyle and SectionViewStyle names are DXF dictionary keys or object fields.",
+    "Compare public DXF/API evidence with the existing generated PAR-138 profile and independent LibreDWG DXF observation.",
+    "Refresh open-source peer evidence for silent R2013+ AcDs SAB payload loss and compound INSERT sequence validity.",
+    "Refine existing implementation gates without creating duplicate findings or promoting support claims."
+  ],
+  "method": {
+    "kind": "Read-only official Autodesk and GitHub primary-source review plus local plan audit",
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbDictionary.html",
+      "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-02DE5688-DA00-417D-8B3F-C21699A2020D.htm",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__getDetailViewStyleDictionary_AcDbDictionary___AcDb__OpenMode.html",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-__MEMBERTYPE_Methods_AcDbDatabase.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DetailViewStyle_Name.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SectionViewStyle_Name.html",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1351"
+    ],
+    "localEvidenceReused": [
+      "Existing generated ASCII/Binary PAR-138 profile retains style display names as dictionary keys but delivers empty DRW_TableEntry::name to typed callbacks.",
+      "Prior research observed LibreDWG-produced DXF with the NOD -> ACAD_*VIEWSTYLE child dictionary -> named style entry -> owned style object hierarchy.",
+      "Existing PAR-49/7G.3 compound block/INSERT sequence test plan already covers generated ATTRIB and SEQEND closure."
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "limitations": "Autodesk references establish DXF dictionary representation and API collection identity, but not DWG-origin style-name decoding, typed serialization, or native rendering. LibreDWG issue #1411 is a reporter's result against the pinned 0.14.8593 build and is not a reproduction against current master or libdxfrw. NEWS evidence is project-authored historical scope. No peer binary or native application was executed in this pass."
+  },
+  "observations": {
+    "par138NameRepresentation": {
+      "normativeDxfRule": "A DICTIONARY repeats group-3 entry-name and group-350 child-handle pairs; the OBJECTS example identifies the first dictionary as the named-object root.",
+      "apiIdentity": "AutoCAD API methods locate DetailViewStyle and SectionViewStyle collections under ACAD_DETAILVIEWSTYLE and ACAD_SECTIONVIEWSTYLE in the named-object dictionary; both object classes expose Name.",
+      "dictionaryNameRules": "AutoCAD documents dictionary keys as unique and case-insensitive, with potentially arbitrary length; the key is independent of the referenced object. The implementation only needs ASCII-insensitive matching for the two fixed root keys and handle-based child association, preserving original child-key spelling.",
+      "conclusion": "The DXF typed name is derived from the unique child-dictionary entry key. It is not an assumed group-2 field in the style object.",
+      "localGap": "The generated local style graph retains dictionary keys while typed callbacks receive empty DRW_TableEntry::name.",
+      "implementationReadiness": "Representation research is resolved. Implement bounded order-independent root-key/child-dictionary/entry/object handle and owner joining; malformed or ambiguous graphs leave the typed name unset while raw evidence remains available."
+    },
+    "libredwgAcDsPeerReport": {
+      "issue": 1411,
+      "reportedBuild": "LibreDWG 0.14.8593 at short commit 8a1ae764, --enable-release, Linux x86-64",
+      "reportedFailureShape": "R2013+ REGION/3DSOLID/BODY records remain in conversion output while SAB geometry stored in AcDb:AcDsPrototype_1b is absent; the issue supplies an ezdxf-generated SAB reproducer and reports a separate confidential AutoCAD R2018 observation.",
+      "evidenceCeiling": "Peer/reporter observation at the stated build, not a libdxfrw defect or current LibreDWG master qualification.",
+      "planEffect": "Retain separate source-object, shell, inline-carrier, AcDs record/key/owner, byte-preservation, and B-rep semantic dispositions. Entity-count parity is insufficient; silent payload loss is not success."
+    },
+    "libredwgCompoundSequencePeerReport": {
+      "issue": 1351,
+      "reportedStatus": "Issue comment reports the failure fixed on named master commit 56a05f98, with ezdxf structure read and ATTRIB/SEQEND counts checked.",
+      "evidenceCeiling": "Historical peer regression status; no current libdxfrw defect or behavior inferred.",
+      "planEffect": "Keep existing generated local sequence checks and the planned composed strict-peer checkpoint; do not duplicate the existing local coverage."
+    }
+  },
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-07/S8", "PAR-49/7G.3"],
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

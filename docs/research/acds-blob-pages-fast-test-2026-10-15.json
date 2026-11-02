@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-acds-blob-pages-fast-test-v1",
+  "completedAt": "2026-10-15",
+  "baselineCommit": "339e1bb",
+  "scope": "Generated in-memory AC1027 DataStorage blob-page regression. Test-only change; no parser/writer change or on-disk drawing fixture.",
+  "test": {
+    "source": "tests/graph_preservation_tests.cpp",
+    "function": "testDataStorageBlobPages",
+    "executable": "libdxfrw_graph_preservation_tests",
+    "ctest": "libdxfrw_graph_preservation",
+    "generatedInput": {
+      "storage": "local std::vector<uint8_t>; no file read or write",
+      "pageCount": 2,
+      "logicalPageToSegmentIndex": [4, 3],
+      "physicalSegmentIndexOrder": [3, 4],
+      "firstPageBytes": 16,
+      "lastPageBytes": 13,
+      "records": ["0xA17 blob reference", "0xA18 ordinary suffix sentinel"],
+      "payload": "Authored ACIS BinaryFile marker plus a short textual body label; intentionally not a valid SAB."
+    },
+    "positiveAssertions": [
+      "section structurally valid and replay allowed",
+      "exact owner handle lookup and canonical handle key",
+      "two-page descriptor metadata and nonuniform page lengths",
+      "exact concatenated payload bytes and ACIS marker offset/length",
+      "physical segment ordering differs from logical page order",
+      "following ordinary record payload remains intact"
+    ],
+    "malformedControls": [
+      "second page start offset is noncontiguous",
+      "second page header count disagrees with descriptor",
+      "page reference points to a non-blob segment"
+    ],
+    "malformedExpectedOutcome": "Disable structural replay, omit the invalid blob record without partial payload, emit the blob-page structural diagnostic, and preserve the independent suffix record."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "focusedTestResult": "1/1 passed in 0.18 seconds",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT RUN",
+    "nativeCad": "NOT RUN",
+    "externalReader": "NOT RUN"
+  },
+  "impact": {
+    "productionCodeChanged": false,
+    "newCtestRegistered": false,
+    "drawingOrSabFixtureAdded": false,
+    "newDependency": false,
+    "supportClaimsPromoted": false,
+    "findingSubplanCountsChanged": false,
+    "externalJStatuses": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

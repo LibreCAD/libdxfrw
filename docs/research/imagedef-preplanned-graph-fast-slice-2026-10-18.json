@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-59 preplanned IMAGEDEF identity and graph emission",
+  "mode": "local implementation slice with generated fast validation",
+  "scope": [
+    "Preplan source IMAGEDEF identity by import generation and source handle before entity emission",
+    "Preserve same-path distinct definitions and shared IMAGE-to-definition identity",
+    "Retain definition scalar, application-data, and XDATA payload while regenerating output ownership and reactor handles",
+    "Validate IMAGE, IMAGEDEF, reactor, NOD, image dictionary, and reverse-owner relationships through the existing CLI test"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "Added a setup-time copied IMAGEDEF source plan keyed by (importGeneration, sourceHandle).",
+      "Materialized fresh output IMAGEDEF handles before entity emission and bound images through that plan; kept the filename-only writeImage overload intact.",
+      "Regenerated dictionary keys, IMAGE 340/360 links, IMAGEDEF_REACTOR objects, per-definition reactor lists, and output dictionary ownership without collapsing definitions that share a path.",
+      "Preserved IMAGEDEF version, pixel dimensions, pixel sizes, loaded/resolution fields, nonrelationship appData, XDATA, and extension-dictionary links; stale reactor/XDICTIONARY app-data links are replaced by the generated graph.",
+      "Expanded the generated image-path CLI control to cover two images sharing one definition plus a third image using a distinct same-path definition, including wire-level graph closure assertions and the exact unclipped full-image pixel rectangle."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+    ],
+    "results": [
+      "Adapter test and dwg2dxf strict -Werror targets built successfully.",
+      "dwg2dxf_image_path_cli passed 1/1; generated ASCII source traversed two CLI conversions and the verification checked IMAGE 340/360, IMAGEDEF dictionary ownership/root placement, reactor back-links, distinct sibling keys, shared identity, distinct same-path identity, and definition metadata/XDATA.",
+      "libdxfrw_dxf_fixtures passed 1/1."
+    ],
+    "fixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "fullSuitesRun": false
+  },
+  "limitsAndNextSteps": {
+    "pixelSizeGroup12Versus21": "Unresolved; parser/writer wire mapping is unchanged pending an independent discriminator and versioned evidence.",
+    "notYetCovered": [
+      "Earlier/later sibling named-dictionary ordering",
+      "Destination-preserving failed-write and corrected-retry for the complete IMAGE graph",
+      "Byte-independent raw scan and versioned producer evidence for the group-12 versus group-21 normative mapping",
+      "Composed U/V transformed-bounds consumer checks"
+    ],
+    "supportClaimsPromoted": 0,
+    "externalPeersRun": false,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingOwner": "PAR-59 / 7P.5b",
+    "completedSubstep": "7P.5b.2 preplanned IMAGEDEF identity and graph emission",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeWasBroadlyDirty": true,
+    "unrelatedChangesPreserved": true,
+    "receiptAndPlanAreUncommitted": true
+  }
+}

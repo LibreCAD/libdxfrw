@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw-dwg-dxf-evidence-v1",
+  "id": "p4-ac1024-tablestyle-output-proof-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 TABLESTYLE class-bound output proof",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "trackedFixture": false,
+    "note": "Existing local input used for diagnosis and proof; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "source": "dwg2dxf/dx_iface.cpp",
+    "sha256": "be9d0aaa6c368f9b49689db367055a50d7a3d6a7e10542b727262a7d52d24e8b",
+    "changes": [
+      "Removed the fixed resolved custom-class type requirement for the AC1024 TABLESTYLE output profile.",
+      "Admit the source only when its opaque frame matches the exact handle, AC1024 version, custom-class flag, typed-payload proof, AcDbTableStyle class and TABLESTYLE record, and when the typed Standard style and ACAD_TABLESTYLE root/key/owner graph match."
+    ],
+    "observedResolvedCustomClassType": 506,
+    "classTypePolicy": "Observed from this physical input and bound through its parsed record/class identity; not hard-coded."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+      "result": "PASS with warning-as-error enabled",
+      "dwg2dxfSha256": "b31de11e4fec35a5f02facb102cb1cd73ffe17a0fbf14dc7bbb3688afa7d5840",
+      "adapterTestSha256": "0cf999ab0501660f413831d8af384fa504cd936fccab5ca74d4806685c16d679"
+    },
+    "physicalAsciiBinaryOutputReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback tests/samples/AC1024/title_block-arch.dwg",
+      "result": "PASS for ASCII and Binary. Fresh readback verified source fields, ACAD_TABLESTYLE root/key/owner roles, rich cell styles, borders/colors/margins, and remapped text-style references. Both encodings also passed atomic refusal and same-adapter retry controls.",
+      "logSha256": "dc60b692573412acd459417bd7ea27bd959e8965fcc751e5406ee8d53391c4ff"
+    },
+    "strictCompleteConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 <output.dxf>",
+      "result": "Expected atomic refusal at whole-document gate after qualification advanced from 94/109 to 95/109. The TABLESTYLE callback 0x0096 cleared; 14 unrelated callback identities remain.",
+      "destinationSentinelPreserved": true,
+      "logSha256": "fa7682d658cc2b56b2340b5366b759f1a1c25ede20173426f10383aaf08dcf74",
+      "supportClaimEffect": "none"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R tablestyle --output-on-failure",
+      "result": "11/14 passed, including libdxfrw_tablestyle_source_proof. Three companion tests failed: libdxfrw_tablestyle_identity_domains, libdxfrw_tablestyle_content_format_enum_domains, and libdxfrw_tablestyle_nested_raw_net. Those failures do not execute the changed AC1024 DWG source-admission branch; their baseline status is unverified.",
+      "relevantPhysicalSelector": "libdxfrw_tablestyle_source_proof PASS; physical AC1024 readback selector above PASS."
+    }
+  },
+  "remainingUnqualifiedIdentities": [
+    {
+      "handle": "0x000A",
+      "type": 82
+    },
+    {
+      "handle": "0x000F",
+      "type": 82
+    },
+    {
+      "handle": "0x0052",
+      "type": 34
+    },
+    {
+      "handle": "0x00F2",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x0107",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1069",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1116",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1117",
+      "sourceFrame": "missing"
+    },
+    {
+      "handle": "0x1118",
+      "type": 513,
+      "record": "BLOCKVISIBILITYPARAMETER",
+      "class": "AcDbBlockVisibilityParameter"
+    },
+    {
+      "handle": "0x1119",
+      "type": 514,
+      "record": "BLOCKVISIBILITYGRIP",
+      "class": "AcDbBlockVisibilityGrip"
+    },
+    {
+      "handle": "0x111A",
+      "type": 515,
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "class": "AcDbBlockGripExpr"
+    },
+    {
+      "handle": "0x111B",
+      "type": 515,
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "class": "AcDbBlockGripExpr"
+    },
+    {
+      "handle": "0x1122",
+      "type": 519,
+      "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+      "class": "AcDbDynamicBlockPurgePreventer"
+    },
+    {
+      "handle": "0x121C",
+      "type": 42,
+      "standardPayloadMatched": true
+    }
+  ],
+  "supportClaimEffect": "none",
+  "planImpact": {
+    "completedLocalActionRemoved": "AC1024 TABLESTYLE source/class admission and physical ASCII/Binary output readback for handle 0x0096.",
+    "next": "Reconcile and close the remaining 14 callback identities without weakening strict document refusal."
+  }
+}

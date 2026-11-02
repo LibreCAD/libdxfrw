@@ -1,0 +1,398 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "S2.3.9.4.29.B3",
+  "parent_commit": "b6bf2f9",
+  "production_baseline": "5c3c76e11ab34b7d7266315b8d733aacd5f7b60a",
+  "scope": "Generated AC1024 legacy-SAT block transport and strict required-target/carrier refusal. No nested DWG AcDs/SAB, native acceptance or B-rep semantics.",
+  "source_sha256": {
+    "src/libdxfrw.cpp": "e89eb55dab8a94ceaf99bdfa9d6a881746d050739f8d61ebf244e54fda10ea53",
+    "src/libdxfrw.h": "c2a5af7a72b91e783b6e3a7271eda5f3d67bcec5d60320426b2a46d00ea70613",
+    "tests/modeler_block_census_tests.cpp": "8b55f92662b62e62b74c8cb0c80a0b458629531a5589e9b89149a35af73c2aa1",
+    "tests/dwg_local_roundtrip_tests.cpp": "bf63d4dc18608f9513777fe235e315bede737d82fa25e48718ebb0e82ebca6a1"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw.a": "76b4bc3d5129d97c9237f89a0fa41e0594ea27a1f24f4282908744611cb8947e",
+    "build/libdxfrw_dwg_local_roundtrip": "da898c9621cb333cc1f2562838bf32defece334438ee573c714855d02b9e8465",
+    "build/dwg2dxf/dwg2dxf": "943ae93093949a9a6cae18a2fca898e48032bdc852b92d49a614c5082eb6463b"
+  },
+  "baseline": {
+    "cohort": "Initial five-fault B3 harness, not the final seven-fault/diagnostic/compatibility cohort",
+    "executable": "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv/modeler-b3-before",
+    "sha256": "8083e11df4b39acf9a345143d6a128bdf94dc172ec3056297569eea78efb7357",
+    "production_cpp_sha256": "c9c7441851daac02a3207bfb1bae753168750db6787173efd780f58941edd7e6",
+    "command": "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv/modeler-b3-before --modeler-block-failures /private/tmp",
+    "exit_code": 1,
+    "correct_rejections": 16,
+    "corrected_fresh_data_retries": 20,
+    "invalid_publications": 4,
+    "fresh_retained_directory": "/private/tmp/libdxfrw-modeler-block-failures-782256145589583",
+    "retained_directory_limit": "Corrected retries overwrite negative destinations. Final directory files are not the original invalid-output witness.",
+    "gap": "Missing nested INSERT target was accepted and published in both encodings with existing and absent destinations.",
+    "actual_cli_baseline": "Frozen B2 CLI separately exits0 for both dangling inputs; final physical/typed checker rejects both outputs."
+  },
+  "implementation": {
+    "strict_fix": "writeInsert requires its name to resolve in the existing planned BLOCK_RECORD index when requireResolvedBlockOwners=true and target>AC1009, before record emission.",
+    "no_new_inventory_or_walk": true,
+    "diagnostics": [
+      "unresolved-insert-target",
+      "unrepresentable-modeler-carrier",
+      "unsupported-modeler-target"
+    ],
+    "modeler_admission": "Unchanged; new messages identify already-rejected unrepresentable carriers or unsupported R12 target.",
+    "compatibility": "Default-false facade/adapter and R12 ordinary INSERT fallback unchanged; no new pure virtual/API signature/public layout.",
+    "retry": "Same adapter with corrected fresh dx_data. No generic whole-model same-data rollback guarantee.",
+    "named_omission_policy": "Generic carrier rejection remains unnamed; R12 family rejection keeps existing named leftOut accounting."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip dwg2dxf lc3_compat_check --parallel 2; exit0, no work to do against final source",
+    "strict_compile": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -fsyntax-only src/libdxfrw.cpp tests/modeler_block_census_tests.cpp; exit0",
+    "focused_command": "build/libdxfrw_dwg_local_roundtrip --modeler-block-failures",
+    "focused_exit_code": 0,
+    "genuine_rejection_destination_checks": 28,
+    "corrected_fresh_data_retries": 28,
+    "compatibility_controls": 4,
+    "faults": [
+      "nested missing INSERT target",
+      "explicit unresolved modeler owner",
+      "legacy inline SAT at AC1027 without admitted modern carrier",
+      "group310/nontext carrier at legacy target",
+      "duplicate 3DSOLID/REGION source identity",
+      "root/modelspace missing INSERT target",
+      "modeler output at AC1009/R12"
+    ],
+    "cross_product": "7 faults x ASCII/binary x existing/absent destination",
+    "compatibility_control_limit": "Tolerant modern dangling INSERT and strict R12 dangling ordinary INSERT in both encodings are malformed-policy calibrations, not valid-format positives.",
+    "retained_final_source_ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "log_sha256": "ad01d3fbe91a1e20d11f38a3fa90edc465a250b2bafe3efcd3a98fdfce3c0a05",
+      "source_binding": "Final source/binaries unchanged since this checkpoint; docs-only research intervened. No full-suite rerun.",
+      "tests": [
+        {
+          "name": "libdxfrw_dwg_local_roundtrip",
+          "passed": true,
+          "reported_seconds": 2.47
+        },
+        {
+          "name": "libdxfrw_dxf_fixtures",
+          "passed": true,
+          "reported_seconds": 3.08
+        }
+      ],
+      "contained_b1": "positive8/negative14",
+      "contained_b2": "verified16/oracle_rejections12",
+      "contained_b3": "rejected28/fresh-data retries28/compatibility4"
+    }
+  },
+  "actual_cli": {
+    "directory": "/private/tmp/libdxfrw-b3-final-cli.U26AJo",
+    "binary_sha256": {
+      "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf": "943ae93093949a9a6cae18a2fca898e48032bdc852b92d49a614c5082eb6463b",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip": "da898c9621cb333cc1f2562838bf32defece334438ee573c714855d02b9e8465",
+      "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv/dwg2dxf-before": "ce3952ff0428653bda93c90e33a020718a56bcc94e76efde3e042f6ff0f95d31"
+    },
+    "files_sha256": {
+      "ascii-positive-2.dxf": "9504c0abcbae613f052ed02048d25543710704fc078567fb3f65f59391437cc9",
+      "ascii-positive-1.dxf": "9504c0abcbae613f052ed02048d25543710704fc078567fb3f65f59391437cc9",
+      "ascii-missing.dxf": "04a43846ad42d1bdbe8d52695b0d2f4a2fb804349fc740dd9b8a4d41555a136c",
+      "binary-existing.dxf": "b1de116e633623988b29cd3a982d8f800f9f22c27f748cfaea92d790c29c1702",
+      "ascii-before.dxf": "16ebb49c40e3c9de2fa047eecf2e578053c5c0176c2214369601d15f0095df0d",
+      "binary-missing.dxf": "0f65e24bf6c5d6a9399763df9f6a4c4ce574a4e376a75d1667fc5bc1751c581a",
+      "binary-positive-2.dxf": "38946a138e0960c13ee1059682d3373bd7b3a9b157102d73a860426dc43c9bca",
+      "ascii-existing.dxf": "ed8b00ec43f4d5619f0b4e9e3f6aa7adfbe9aa672d39ffcced5d16ca01cbd41c",
+      "binary-positive-1.dxf": "38946a138e0960c13ee1059682d3373bd7b3a9b157102d73a860426dc43c9bca",
+      "binary-input.dxf": "3908425c85a41ed8db22b778b0cd5cc03311632d310de3ce38365a807b5485b0",
+      "ascii-input.dxf": "f7a517eb720183c309edc762911d074d49047be5ef1c1ad1635d55913f3476fd",
+      "binary-before.dxf": "1306095872b7e1d023cf1e1d0a79fa503741e48df41142059741aaf4bb8e63d7"
+    },
+    "observations": [
+      {
+        "kind": "baseline-invalid-publication",
+        "encoding": "ascii",
+        "conversion": {
+          "argv": [
+            "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv/dwg2dxf-before",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-missing.dxf",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-before.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-missing.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-before.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-before.dxf"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "Modeler block owner/carrier binding failed: \"/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-before.dxf\"\n"
+        }
+      },
+      {
+        "kind": "strict-rejection",
+        "encoding": "ascii",
+        "existing_destination": false,
+        "destination_preserved_or_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-missing.dxf",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-absent.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unresolved-insert-target: INSERT target has no emitted BLOCK_RECORD\n"
+        }
+      },
+      {
+        "kind": "strict-rejection",
+        "encoding": "ascii",
+        "existing_destination": true,
+        "destination_preserved_or_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-missing.dxf",
+            "-y",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-existing.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unresolved-insert-target: INSERT target has no emitted BLOCK_RECORD\n"
+        }
+      },
+      {
+        "kind": "unsupported-r12",
+        "encoding": "ascii",
+        "output_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-input.dxf",
+            "-R12",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-r12.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unsupported-modeler-target: 3DSOLID/REGION/BODY is unavailable in this DXF target\n"
+        }
+      },
+      {
+        "kind": "positive",
+        "encoding": "ascii",
+        "pass": 1,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-input.dxf",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-1.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-input.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-1.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-1.dxf"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "kind": "positive",
+        "encoding": "ascii",
+        "pass": 2,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-1.dxf",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-2.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-1.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-2.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/ascii-positive-2.dxf"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "kind": "baseline-invalid-publication",
+        "encoding": "binary",
+        "conversion": {
+          "argv": [
+            "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv/dwg2dxf-before",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-missing.dxf",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-before.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-missing.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-before.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-before.dxf"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "Modeler block owner/carrier binding failed: \"/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-before.dxf\"\n"
+        }
+      },
+      {
+        "kind": "strict-rejection",
+        "encoding": "binary",
+        "existing_destination": false,
+        "destination_preserved_or_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-missing.dxf",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-absent.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unresolved-insert-target: INSERT target has no emitted BLOCK_RECORD\n"
+        }
+      },
+      {
+        "kind": "strict-rejection",
+        "encoding": "binary",
+        "existing_destination": true,
+        "destination_preserved_or_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-missing.dxf",
+            "-y",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-existing.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unresolved-insert-target: INSERT target has no emitted BLOCK_RECORD\n"
+        }
+      },
+      {
+        "kind": "unsupported-r12",
+        "encoding": "binary",
+        "output_absent": true,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-input.dxf",
+            "-R12",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-r12.dxf"
+          ],
+          "exit": 1,
+          "stdout": "\nConversion failed\n",
+          "stderr": "DXF export failed: unsupported-modeler-target: 3DSOLID/REGION/BODY is unavailable in this DXF target\n"
+        }
+      },
+      {
+        "kind": "positive",
+        "encoding": "binary",
+        "pass": 1,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-input.dxf",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-1.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-input.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-1.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-1.dxf"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      {
+        "kind": "positive",
+        "encoding": "binary",
+        "pass": 2,
+        "conversion": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-1.dxf",
+            "-b",
+            "-o",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-2.dxf"
+          ],
+          "exit": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-1.dxf to /private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-2.dxf\n",
+          "stderr": ""
+        },
+        "checker": {
+          "argv": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_local_roundtrip",
+            "--verify-modeler-blocks",
+            "/private/tmp/libdxfrw-b3-final-cli.U26AJo/binary-positive-2.dxf"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    ]
+  },
+  "actual_cli_summary": {
+    "strict_missing_target_rejections": 4,
+    "unsupported_r12_rejections": 2,
+    "valid_conversions": 4,
+    "valid_output_verifiers": 4,
+    "per_encoding_second_output_byte_stable": true,
+    "target_version_limit": "CLI -R12 rejection is actual target evidence. AC1027 carrier refusal is adapter API evidence; unsupported -v2013 option is excluded."
+  },
+  "closure": "Scoped S2.3.9.4.29 local implementation complete; original B1/B2 reports remain frozen.",
+  "not_qualified": [
+    "native geometry/associativity/fill/render",
+    "nested DWG AcDs/SAB",
+    "general ACIS semantic support",
+    "whole BLOCK metadata",
+    "whole-model same-data rollback",
+    "external J items"
+  ],
+  "full_suite_run": false,
+  "new_fixture_payload": false,
+  "new_ctest_registration": false,
+  "new_dependency": false,
+  "support_claim_promotions": 0
+}

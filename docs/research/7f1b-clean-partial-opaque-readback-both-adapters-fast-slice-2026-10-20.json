@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7F.1b clean, partial, and opaque DWG readback on both adapters",
+  "mode": "Generated fast integration/self-test slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Execute generated DWG readback controls through both the exact locked-target adapter and the standalone adapter binary.",
+    "Cover clean, intentionally partial malformed-HATCH, and opaque custom-object outcomes without committing testing DWG/DXF fixtures.",
+    "Keep target-side absent observation APIs explicitly unavailable and preserve the 7AG.4 qualification holdback."
+  ],
+  "changes": [
+    {
+      "file": "tools/build_semantic_adapter.py",
+      "detail": "The controlled builder self-test now executes the standalone adapter artifact as well as the exact locked-target artifact, so both linked C++ adapter self-tests run after fresh builds."
+    },
+    {
+      "file": "tests/semantic_differential_adapter.cpp",
+      "detail": "Added a locally generated clean AC1027 DWG readback sentinel that checks one LINE's exact endpoints, successful read, no diagnostics, complete observations when available, and truthful unavailable/readerApiNotPresent status otherwise. Existing partial and opaque readback sentinels run in the same self-test. Scratch DWGs are removed by RAII."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Updated the 7F status row and recorded the gap, local gates, validation, and self-unblocking continuation."
+    }
+  ],
+  "assessment": {
+    "newConfirmedProductionDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansAdvanced": [
+      "7F.1b generated clean/partial/opaque readback execution now covers both fresh target and standalone adapter binaries",
+      "7AG.4 remains a separate compile-contract/profile gate and does not block local readback harness work"
+    ],
+    "productionBehaviorChanged": false,
+    "testCodeChanged": true,
+    "qualificationManifestChanged": false,
+    "testsRun": 2,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The fast integration path now executes the same generated clean, partial, and opaque readback sentinels against freshly built target and standalone adapter binaries. This is harness coverage only; it neither qualifies the pair nor promotes format, consumer, or semantic support."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py --self-test",
+        "result": "PASS; 11.38 seconds; fresh controlled target and standalone builds, then both linked adapter --self-test executables"
+      },
+      {
+        "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -B -m py_compile tools/build_semantic_adapter.py tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tools/build_semantic_adapter.py tools/run_qualified_differential_v2.py tests/semantic_differential_adapter.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "repositoryNote": "The shared worktree contains broad unrelated modifications; only the named files were changed for this slice, and no unrelated work was staged or committed."
+  }
+}

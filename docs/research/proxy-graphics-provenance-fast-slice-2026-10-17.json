@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-proxy-graphics-provenance-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Implement the 7AP.2 common proxy-cache provenance and explicit caller-owned replay authorization policy. Do not emit cached bytes or change default conversion behavior.",
+  "method": {
+    "kind": "Source-generated in-memory parser and cache-lifecycle controls",
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "publicApiChanged": true,
+    "binaryCompatibility": "DRW_Entity layout changed; downstream binaries require rebuild",
+    "writerEmissionChanged": false,
+    "dedicatedProxyRawRouteChanged": false
+  },
+  "coverage": {
+    "callerAuthoredCache": [
+      "default provenance and replay authorization",
+      "exact declared/actual byte count admission",
+      "explicit authorization and revoke",
+      "copy preserves provenance/authorization",
+      "reset clears cache and provenance",
+      "mismatched count refuses authorization"
+    ],
+    "parsedDxf": [
+      {
+        "version": "AC1021",
+        "countCode": 92,
+        "encodings": ["ASCII", "Binary"]
+      },
+      {
+        "version": "AC1024",
+        "countCode": 160,
+        "encodings": ["ASCII", "Binary"]
+      }
+    ],
+    "parsedCache": [
+      "exact bytes and declared count",
+      "origin, encoding, source version, and count-code provenance",
+      "parsed cache remains unauthorized by default",
+      "geometry edit does not grant authorization",
+      "explicit acknowledgment retains source provenance",
+      "authorization can be revoked"
+    ],
+    "dwgProvenanceAssignment": "implemented and compiled; dedicated DWG parser control not run"
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy",
+      "result": "PASS",
+      "details": "Typed proxy-loss policy and generated provenance/authorization cases pass."
+    },
+    {
+      "command": "cmake --build build-gcc --target lc3_compat_check",
+      "result": "PASS",
+      "details": "LibreCAD_3 2D-consumer source-compatibility compile gate."
+    },
+    {
+      "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/intern/dxfreader.h tests/dxf_fixture_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "planImpact": {
+    "completedLocalSlice": "7AP.2 proxy-cache provenance and explicit caller-owned replay authorization",
+    "stillOpen": [
+      "writer-side replay eligibility and actual byte emission",
+      "immutable source/edit snapshot or enforced cache invalidation",
+      "exact source/target version compatibility",
+      "resource-index/reference closure",
+      "generated 0/127/128/255/256-byte ASCII/Binary, group 92/160 chunk/count/next-record matrix",
+      "dedicated DWG provenance parser control"
+    ],
+    "fullSuiteRun": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

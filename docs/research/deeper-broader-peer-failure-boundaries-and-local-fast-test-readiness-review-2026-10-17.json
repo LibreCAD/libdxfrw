@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-peer-failure-boundary-readiness-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh current open-source DWG/DXF failure reports and map their specific failure boundaries to local traversal, EED, and DXF-string source/test coverage; identify fast implementation-ready controls without treating peer reports as local defects.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local source and test inspection",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1357",
+      "https://github.com/LibreDWG/libredwg/issues/1412",
+      "https://github.com/LibreDWG/libredwg/issues/1415",
+      "https://github.com/LibreDWG/libredwg/milestone/23",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "ODA Open Design Specification for .dwg files v5.4.1, section 28, printed page 269"
+    ],
+    "localInspection": [
+      "src/intern/dwgreader.cpp: readDwgBlocks ownership preflight, walkBlockRecordEntities, and readDwgEed",
+      "tests/dwg_reader_matrix_tests.cpp: testModelerBlockWalkRejectsBadOwnership",
+      "src/intern/dxfwriter.cpp: length-aware ASCII and binary string writes",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-14/PAR-26, PAR-49/7G.3, PAR-66/7AN, and string-framing owners"
+    ],
+    "evidenceRule": "Peer issue bodies, issue status, branch commits, release notes, and formal releases are separate evidence grades. Peer reports generate local test questions only. DWG parsing remains governed by ODA; support requires route-specific source identity, owner, output, and acceptance evidence."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG unresolved owned-entity iterator report #1357",
+      "observed": "The report describes an iterator that returned NULL both for end-of-list and an unresolved entity reference, truncating following DXF output. The reporter later said the issue was fixed on LibreDWG master and verified aggregate model-space counts for three AC1021 files against ODA. GitHub still displayed the issue as open in the checked milestone.",
+      "localObservation": "The production readDwgBlocks path preflights ownership and quarantines the entire BLOCK_RECORD if an entMap handle is missing. The lower walkBlockRecordEntities path warns and continues. The current ownership test exercises only a one-element missing list at the lower seam; it does not exercise valid/missing/valid siblings or the outer preflight transaction.",
+      "disposition": "Historical peer failure pattern, not an active current-master peer defect or a local bug. Add generated coverage for both local policies and make incomplete status observable."
+    },
+    {
+      "topic": "LibreDWG C DXF string report #1412",
+      "observed": "The issue reports a cquote C buffer whose terminator is placed at buffer capacity, allowing allocator residue through strlen, and a latent empty-after-transformation path that could omit a group.",
+      "localObservation": "The audited local writer uses length-aware std::string writes. Existing generated control-character tests inspect ASCII rollback, binary physical framing, following records, and destination preservation. No analogous capacity-based C-string path was found in the audited local route.",
+      "disposition": "Peer-only mechanism; retain existing text framing checks and do not add allocator perturbation absent an analogous local buffer."
+    },
+    {
+      "topic": "LibreDWG CMC report #1415",
+      "observed": "The open issue reports a CMC index/method conversion problem and invalid truecolor-to-ACI fallback behavior in LibreDWG.",
+      "localObservation": "The plan already records generated R2004+ method-discriminated CMC inputs and a local CMC-to-LAYER-to-ASCII/binary-DXF route with group 62/420, readback, off-state, refusal, and retry assertions.",
+      "disposition": "No duplicate local test or finding; keep the source method/index and compatibility fallback distinct."
+    },
+    {
+      "topic": "LibreDWG milestone title leads #1406 and #1426; ODA EED contract",
+      "observed": "The milestone titles mention viewport numbering per block rather than per entmode and item-local EED sizing. Full issue bodies were unavailable in this review, so the titles do not establish format rules. ODA v5.4.1 section 28 defines each EED application record as a bit-short data length, application handle, and data items; the length covers data items but excludes the size prefix and application handle.",
+      "localObservation": "readDwgEed allocates exactly the declared per-application data span, parses through a bounded sub-buffer, and checks variable- and fixed-width items. No focused generated DWG EED chunk-boundary vector was found in the inspected test sources.",
+      "disposition": "Treat the peer titles as discovery leads only. Add a generated two-application valid case and an item-overrun negative with a following object sentinel under existing parser-safety test owners; do not infer an EED maximum or new grammar."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "gitDiffCheck": true
+  }
+}

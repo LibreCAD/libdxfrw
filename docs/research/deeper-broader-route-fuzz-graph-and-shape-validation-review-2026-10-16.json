@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-deeper-broader-route-fuzz-graph-and-shape-validation-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden source research on route-specific fuzzing, FIELD graph regression classes, partial DXF reads, and independent B-rep checker limits; refine existing implementation owners without promoting format support.",
+  "method": {
+    "kind": "Read-only review of current LibreDWG source/documentation and fuzz setup, ACadSharp project discussions and reader examples, OCCT 8.0.1 API documentation, and local implementation plan/status",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "newDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "researchBoundary": "LibreDWG master pages and ACadSharp issue/discussion reports are source or reporter evidence, not reproduced behavior here. OCCT documentation describes checker behavior but no kernel was run. These sources refine test selection only; they do not establish a local defect or format-support claim."
+  },
+  "evidence": [
+    {
+      "topic": "Route-specific fuzzing and readback evidence",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgrewrite.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/AGENTS.md"
+      ],
+      "observed": "LibreDWG documents separate input, output, conversion, and rewrite fuzz targets. The rewrite harness decodes input, encodes an output version, and decodes the output. The fuzz setup separates crash, hang, and leak artifacts and supports replay. Repository guidance prefers dxf-check for ODA round trips and limits JSON round-trip usefulness to files through R2000.",
+      "doesNotEstablish": [
+        "that a peer fuzz finding exists in libdxfrw",
+        "that decode-encode-decode proves independent semantic correctness",
+        "that the peer's full fuzz schedule or tools should run after every local slice",
+        "that a JSON route is a valid modern-DWG semantic comparator"
+      ],
+      "planUse": "Refine PAR-12/PAR-14 and existing scheduled fuzz owners with route-specific fast controls and separate scheduled ASCII-DXF, binary-DXF, DWG-version, and writer/readback entry points where available. Do not add a new generic fuzz target or per-slice long run solely to mirror LibreDWG."
+    },
+    {
+      "topic": "FIELD graph regression selection",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "LibreDWG 0.14.1 NEWS reports fixes involving FIELDLIST standard handles and FIELD child/object references, among other handle-stream and ownership-related regressions. LibreDWG documents historical code origin in QCAD Community Edition, so it is a concrete comparator/regression lead but not necessarily an independent parser lineage for QCAD-derived components.",
+      "doesNotEstablish": [
+        "the normative FIELD root group-code meaning",
+        "a producer-qualified FIELD/FIELDLIST wire profile",
+        "that libdxfrw has the same defect",
+        "successful output remapping or full object emission"
+      ],
+      "planUse": "Extend existing 7G.3d FIELD graph test design to keep FIELDLIST membership, child ownership, object-pointer edges, and type-64 CadValue handles distinct. Continue to require actual emitted-handle inventory, one-time remapping, and readback closure before enabling serialization."
+    },
+    {
+      "topic": "Partial DXF reads versus whole-document preservation",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/discussions/316",
+        "https://github.com/DomCR/ACadSharp/issues/339",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs"
+      ],
+      "observed": "An ACadSharp maintainer discussion reports input-specific incomplete DXFs with no version, and separately ownerless entities and missing table records. ACadSharp issue #339 records a section-specific partial-reading path for problematic or unsupported-version DXFs; current examples expose ReadEntities and ReadTables as separate APIs. These reports and APIs distinguish partial extraction from a full drawing read.",
+      "doesNotEstablish": [
+        "that all missing-version or ownerless DXFs should be accepted as complete drawings",
+        "that missing ownership can be safely inferred or entities rehomed",
+        "that ACadSharp behavior is normative or has been independently reproduced",
+        "that libdxfrw needs a new public partial-read API"
+      ],
+      "planUse": "Refine existing parser admission and graph-owner checks with locally generated absent-version, absent-owner, and missing-table controls. Report section-level result separately from full-document validity and do not synthesize version/owner data or promote a partial read as round-trip preservation."
+    },
+    {
+      "topic": "Independent B-rep validity checker scope",
+      "sources": [
+        "https://www.occt3d.com/dev/doc/refman/html/class_b_rep_check___analyzer.html"
+      ],
+      "observed": "OCCT 8.0.1 documents BRepCheck_Analyzer checks for selected topological and parameterization criteria. The default exactness flag is false and uses finite-point checking; exact mode is slower and more correct for its documented same-parameter edge check. Several tolerance and geometric checks are explicitly marked not yet implemented.",
+      "doesNotEstablish": [
+        "that any extracted ACIS/SAB payload is parsed or semantically correct",
+        "that IsValid alone proves expected shape identity or measures",
+        "that OCCT constitutes two independent geometry-kernel witnesses",
+        "that this kernel or CAD Assistant is installed, licensed, or executed locally"
+      ],
+      "planUse": "At the existing composed semantic gate, record checker version and settings and compare source-known analytic shape type, topology, bounds, area, volume, centroid, and units. Keep OCCT optional and pair validity with independent expected invariants."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "perSliceValidationExpanded": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "nextActions": [
+      "Keep fast regressions generated in memory and attached to the exact parser/writer route changed by a slice.",
+      "Keep broad fuzz campaigns scheduled; separate ASCII DXF, binary DXF, DWG-version, and writer/readback entry points where existing harnesses support them.",
+      "Resolve FIELD wire semantics and then verify actual writer emission, one-time remapping, and post-write graph closure before removing fail-closed export behavior.",
+      "Represent partial section extraction separately from full-document acceptance; never auto-rehome ownerless entities or infer a missing version for a support claim.",
+      "Use an optional composed geometric witness with recorded checker settings and independent analytic invariants; do not treat one validity Boolean as sufficient."
+    ],
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": 0
+  }
+}

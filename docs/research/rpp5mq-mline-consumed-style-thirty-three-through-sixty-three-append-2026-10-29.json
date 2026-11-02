@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mq consumed MLINE append source counts 33 through 63",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "f627369c6953bb1d18bbd43f516da681b63a7db0",
+  "scope": "Qualifies runtime-generated AC1027 one-element append profiles for consumed MLINESTYLE source counts 33 through 63, producing target counts 34 through 64. The evidence is source-count specific and does not imply full format or document support.",
+  "contract": {
+    "admission": "For each source count, the fixture generator emits ordered source tuples using the same deterministic offset, ACI and alternating ByLayer/Continuous linetype patterns, then appends exactly one tuple. Flags are 2 and angles are unchanged. Two source-bound open, uncut and unfilled MLINE consumers use each style.",
+    "geometry": "Every source MLINE segment parameter is checked against the source minimum; the append recalculates all parameters against the target minimum. Consumer scale, justification, extrusion, vertices, directions, miters, per-element parameter pairs, group-42 absence and area-fill state match the selected geometry profile.",
+    "identityAndOutput": "Each style retains source identity and emits the exact target group-71 count and ordered tuple data. Unique ByLayer and Continuous LTYPE providers are checked. Both consumers keep the group-340 target and emit group 73 equal to the target count with exact group-74/group-41/group-75 values. Fresh import checks all output fields in model space and a named block.",
+    "failureAndRetry": "Unsupported style flags and late live-consumer mutation each refuse before publication while preserving destination and caller-state contracts. Corrected state retries on the same adapter for both ASCII and binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. All DXF inputs and outputs are generated at runtime and removed after success; no fixtures are committed.",
+    "limits": "New evidence is limited to one-element consumed-style appends for counts 33 through 63 under the exact generated source and consumer profiles. Other counts, append batches, removals, MLINE schema/carrier/version variants, native semantics and whole-document closure remain unqualified. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source → ASCII AC1027 output",
+      "ASCII source → binary AC1027 output",
+      "binary source → ASCII AC1027 output",
+      "binary source → binary AC1027 output"
+    ],
+    "qualifiedProfiles": [
+      {"sourceCounts": "33 through 63 inclusive", "targetCounts": "34 through 64 inclusive", "operation": "append one tuple"}
+    ],
+    "failureAndRetry": "Each source count has four output combinations, eight readbacks, two unsupported-flag refusals, two late-mutation refusals and four corrected same-adapter retries."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "elapsed": "11.65 seconds",
+      "summary": "The full selected-count selector passed for counts 13 through 64 and 128: 212 successful source/output combinations, 424 readbacks, 106 unsupported-flag refusals, 106 late-mutation refusals and 212 corrected same-adapter retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_selected_source_counts$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS before code commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "runSelectedConsumedAppendSourceCounts generates source counts 13 through 64 plus 128 using consumedSourceCountRecipe and applies the shared transaction/output/readback controls. Runtime files are removed on success.",
+    "implementationCommit": "f627369c6953bb1d18bbd43f516da681b63a7db0",
+    "tests/dxf_fixture_tests.cpp": "6e2d9eaf9d13ce99aa2862cb69a92733f54fa8b8b8eae12dd730195789d82c20",
+    "tests/CMakeLists.txt": "6df81213e98a148ac7c96c849e0d27fb122427a9c2f8a488591f19fe157decc1",
+    "testExecutableSha256": "f5dccaedc1fe5620a8bbef3b2c62e9d8319180d220fb9fe357bccf7178f1be02"
+  },
+  "next": "Source count 65→target 66 is the next adjacent append profile."
+}

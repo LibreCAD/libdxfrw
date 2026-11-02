@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bi",
+  "date": "2026-10-24",
+  "request": "Commit the implementation and update the plan.",
+  "status": "COMMITTED_DEPENDENCY_COMPLETE_IMPLEMENTATION_CHECKPOINT_CLEAN_TREE_BUILD_AND_FAST_RASTER_REGRESSIONS_PASS",
+  "implementationCommit": "70b5af27d38e2b5bb9c3d2362c4131925fc2587e",
+  "parentCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "verifiedTree": "795f2f291df87932805211eb73adb0f2f6fc01fc",
+  "committedTree": "795f2f291df87932805211eb73adb0f2f6fc01fc",
+  "treeIdentityMatched": true,
+  "scope": {
+    "modifiedTrackedPaths": 98,
+    "newImplementationSupportPaths": 21,
+    "researchReceipts": 2057,
+    "totalCommittedPaths": 2176,
+    "insertions": 559478,
+    "deletions": 47288,
+    "boundary": "Latest RPP5bh depends on earlier uncommitted plan work. This is a dependency-complete checkpoint through RPP5bh, not a raster-only diff or fresh qualification of every earlier change.",
+    "sourceVisibilityFix": "Expose the five required previously ignored converter support files in addition to the two raster headers; include all seven required new converter sources explicitly.",
+    "excluded": [
+      "All17 unverified tests/samples DWGs",
+      "Local AGENTS/CLAUDE and editor/agent settings",
+      "Caches and Python bytecode",
+      "Build outputs and CTest logs",
+      "Root scratch files"
+    ],
+    "drawingFixturesCommitted": false,
+    "filesDeleted": false,
+    "remoteMutation": false
+  },
+  "validation": {
+    "cleanArchive": {
+      "root": "/tmp/libdxfrw-commit-check.yXCgzt",
+      "fromTree": "795f2f291df87932805211eb73adb0f2f6fc01fc",
+      "worktreeDependencies": false,
+      "excludedDrawingDependencies": false,
+      "configure": "PASS",
+      "build": "PASS",
+      "targets": [
+        "dxfrw",
+        "dwg2dxf",
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "lc3_compat_check"
+      ],
+      "policy": "Existing strict warning policy; no suppression",
+      "tests": [
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_raster_dwg_source_profile_eed",
+        "dwg2dxf_selected_raster_reactor_metadata"
+      ],
+      "passed": 3,
+      "total": 3,
+      "parallelism": 3,
+      "wallSeconds": 3.11
+    },
+    "existingWorktree": {
+      "sameTestsPassed": 3,
+      "total": 3,
+      "wallSeconds": 3.14
+    },
+    "inheritedRpp5bh": {
+      "fast": 47,
+      "asan": 43,
+      "owning": 5,
+      "receipt": "docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json",
+      "boundary": "Prior validation is retained as capture-time evidence, not rerun/re-attested wholesale by committing. No parser/writer implementation was changed during this commit operation."
+    },
+    "stagedWhitespaceCheck": "PASS",
+    "excludedPathAudit": "PASS",
+    "fullProjectSuite": "NOT_RUN",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "planUpdate": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "section": "Commit checkpoint — RPP-5bi dependency-complete implementation and plan update (2026-10-24)",
+    "strategy": "Follow-up documentation commit records the already-created implementation commit; no self-referential commit hash or history rewrite.",
+    "historicalReceipts": "Preserved byte-for-byte, including capture-time uncommitted status and historical source hashes. Earlier plan statements describe their original snapshot and are superseded by this checkpoint."
+  },
+  "supportClaims": {
+    "promoted": false,
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "next": [
+    "Independent CLASSES/text and producer LAYER/codepage byte-order qualification",
+    "Full IMAGE/common-state, NOD/image-dictionary and composed document semantics",
+    "Audited, measured converter build deduplication with separate sanitizer configurations",
+    "Broader APPID/LAYER, XRECORD, AC1024/container/SUN, TABLE/extension, MATERIAL and integration queues"
+  ],
+  "bindings": [
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "bfdc3b4cd816243a728c099a6c5e40dc78ea5cf91d5d925e05a80c45f70bcf31"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "bcd7c0a17dee62a72eff3efa845e46133d702d53424187c6ce8cf13dcd6e32f1"
+    },
+    {
+      "path": "docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json",
+      "sha256": "9f0389d4e6e34b286e4a8873cc15c18d2be9d7112b1b5f92256a2363d4356831"
+    },
+    {
+      "path": "/tmp/rpp5bi-clean-configure.log",
+      "sha256": "d26a405eca68e5714cbb62a8b84243346ba6d8d9a439efb6a788076dcc0752eb"
+    },
+    {
+      "path": "/tmp/rpp5bi-clean-build.log",
+      "sha256": "5b8f83bb78b7f12b1de3546cfb05baef6f3ede8d49de1f8b9ba09506651fa9c6"
+    },
+    {
+      "path": "/tmp/rpp5bi-clean-tests.log",
+      "sha256": "62cf85030711c81a80ceaf6b446766b4539e309eee883a4cf56404fc25509c0a"
+    },
+    {
+      "path": "/tmp/rpp5bi-implementation-commit.log",
+      "sha256": "de7dc85e49c6d7965ba94300b734f6a729a16cb63ce5c9ec8def6083efbc2472"
+    }
+  ]
+}

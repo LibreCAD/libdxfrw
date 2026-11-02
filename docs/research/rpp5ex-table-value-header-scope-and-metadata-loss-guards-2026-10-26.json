@@ -1,0 +1,330 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5ex",
+  "date": "2026-10-26",
+  "state": "VERIFIED",
+  "title": "TABLE value/header scalar isolation and metadata loss guards",
+  "parentCommit": "efa9cfbb5e942e1ce11e4e9b918573feaee9e447",
+  "scope": "Repair DXF TABLE CELL_VALUE flag/unit ownership and refuse legacy plain-cell output that would discard retained metadata. Not full typed value/override/format/cache parsing or output/native qualification.",
+  "findings": [
+    {
+      "id": "value-header-mask-corruption",
+      "reproduced": true,
+      "log": "/tmp/rpp5ex-metadata-red.log",
+      "observation": "Actual AC1021 import with value flags0/units0 overwrote existing TABLE masks4660/22136 instead of retaining scoped value metadata.",
+      "fix": "Route scoped93/94 to existing DRW_CadValue formatFlags/unitType. Outside CELL_VALUE retain existing header assignment; nonnegative input bounds unchanged."
+    },
+    {
+      "id": "legacy-table-value-metadata-loss",
+      "reproduced": true,
+      "log": "/tmp/rpp5ex-writer-fresh-red.log",
+      "observation": "Fresh public plain TABLE writer accepted nonzero value format flags and replaced the destination without emitting the metadata.",
+      "fix": "Preflight seven unencoded metadata categories before record publication: format flags, units, data size, format string, display string, object ID and raw bytes. Refuse atomically until an explicit full-value output path exists."
+    },
+    {
+      "id": "sequential-success-reuse-diagnostic",
+      "reproducedByInitialMixedFixture": true,
+      "causeIsolated": false,
+      "fixed": false,
+      "log": "/tmp/rpp5ex-writer-diagnostic.log",
+      "observation": "Initial fixture performed a positive export before a failed metadata attempt; its subsequent corrected export failed. Fresh candidate drawings isolate the metadata-loss bug and first-failure corrected retries. The earlier mixed sequential failure remains required follow-up, not erased or reported fixed.",
+      "next": "Positive-only first/second export witness with original/live TABLE and synthetic INSERT handles/owners before/after each attempt; identify cause and verify destination/readback/consumer behavior."
+    }
+  ],
+  "implementation": [
+    "Use existing CELL_VALUE state and current content owner; no new public fields, callbacks, vtable, storage payloads or DWG byte-layout/reader changes.",
+    "Retain original scalar admission and publication/copy/move behavior; preserve separate 2D INSERT projection.",
+    "The independent TABLE source profile still refuses extended metadata envelopes; raw/model replay is not promoted to complete payload/dependency/output evidence.",
+    "Keep ordinary supported plain text/block-cell writer path; refuse metadata the legacy writer cannot serialize rather than silently flatten it.",
+    "Keep full objective and follow-ups in the self-updated plan."
+  ],
+  "controls": {
+    "originalImportProfiles": 240,
+    "matrix": {
+      "versions": [
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII LF",
+        "ASCII CRLF",
+        "Binary"
+      ],
+      "scopes": [
+        "ENTITIES",
+        "BLOCKS"
+      ],
+      "headerOrder": [
+        "before value",
+        "after value"
+      ],
+      "flagUnitPairs": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          2147483647,
+          8
+        ]
+      ]
+    },
+    "retentionNotSemanticValidityOfEveryPair": true,
+    "originalAndTypedSnapshotsAndRetainedCopiesMoves": true,
+    "actualOriginalAndTypedMutations": 16,
+    "negativeScalarRefusalsWithCorrectedImports": 8,
+    "failedTailRefusalsWithCorrectedImports": 4,
+    "publicMetadataWriteRefusalsWithSentinelAndCorrectedSameFacadeReadbacks": 56,
+    "separatePlainTextPositiveOutputControls": 8,
+    "writerMatrix": "Four revisions x two encodings x seven metadata fields; text-cell controls, not all block-cell value shapes.",
+    "extendedEnvelopeProfilesQualified": false,
+    "outputOrSupportPromotion": false,
+    "runtimeAuthoredRecipesOnly": true,
+    "externalDrawingPayloadsOrDerivativesCommitted": false,
+    "strictCompileCorrection": "One misleading test indentation corrected; warning policy unchanged."
+  },
+  "research": [
+    {
+      "kind": "authoritative local primary specification",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "version": "5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "20.4.96 TABLE",
+        "20.4.99 Value"
+      ],
+      "page": 241,
+      "method": "Confirm alternate filename and version; text extraction plus complete page241 visual inspection.",
+      "use": "Value format flags93 and unit type94 are distinct from TABLE header masks. TABLE/TABLECONTENT and full payload envelopes remain separate."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DXF/DxfStreamReader/DxfSectionReaderBase.cs",
+      "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "sha256": "46e38f00be44cdd27a1d7331ae890b16408c44ef372d19d5e8fe7597c7ec99a5",
+      "localCleanFileMatchesGitShow": true,
+      "use": "Independent source reader routes scoped format flags to value fields. No peer executable/native application run or source code copied."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "use": "Parent/cell/table-property field-scope context; not a full producer-specific CadValue or native semantic certificate."
+    }
+  ],
+  "validation": {
+    "scope": "Exact affected cohort, not full-project suite. Fast owning tests per edit; integration cohort only at boundary.",
+    "targets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_field_retained_budget_tests",
+      "libdxfrw_dimstyle_optional_handle_tests"
+    ],
+    "normalBuildPassed": true,
+    "asanO1BuildPassed": true,
+    "normal": {
+      "passed": 93,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 111.64,
+      "parallelism": 2,
+      "exitCode": 0,
+      "log": "/tmp/rpp5ex-final-normal-ctest.log",
+      "exactExecutedNameSetMatches": true
+    },
+    "asan": {
+      "passed": 93,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 24.75,
+      "parallelism": 4,
+      "exitCode": 0,
+      "optimization": "-O1",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "log": "/tmp/rpp5ex-final-asan-ctest.log",
+      "exactExecutedNameSetMatches": true
+    },
+    "fastOwning": {
+      "passed": 5,
+      "failed": 0,
+      "seconds": 7.52,
+      "log": "/tmp/rpp5ex-owning-final-green.log"
+    },
+    "configurations": "Normal existing build plus reused separate Debug/-O1/-fsanitize=address/-fno-omit-frame-pointer build. Original Debug/O0 ASan configuration left unchanged; no new passing Debug/O0 claim.",
+    "asanBuildDirectory": "/tmp/rpp5ew-asan-o1-kioC8h",
+    "normalRuntimeCompletedBeforeAsanRuntime": true,
+    "registeredSelectedNamesAndOrder": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_dxf_proxy_subclass_marker_view",
+      "libdxfrw_dxf_proxy_retained_budget",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_dxf_proxy_graphic_loss_policy",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_block_owners",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_compound_body_replay",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_application_handle_width",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_layout_source_proof",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_original_layout_roles",
+      "libdxfrw_original_entities_roles",
+      "libdxfrw_block_primary_source",
+      "libdxfrw_block_producer_origins",
+      "libdxfrw_block_empty_polyline_source",
+      "libdxfrw_original_block_roles",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_table_block_source_transport",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_table_original_bodies",
+      "libdxfrw_table_original_profiles",
+      "libdxfrw_table_value_metadata_scopes",
+      "libdxfrw_layout_graph_read_contract",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_rooted_image_dictionary_closure",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_plotsettings_capture_limits",
+      "libdxfrw_plotsettings_visualstyle_shade_reference",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dxf_polyface_completed_pool",
+      "dwg_block_record_layout_association",
+      "dwg_layout_compound_insert_owner_roundtrip",
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_dimstyle_optional_handles_ascii_cli",
+      "dwg2dxf_dimstyle_optional_handles_binary_cli"
+    ],
+    "namesAndOrderIdenticalAcrossConfigurations": true,
+    "prior91NamesAndOrderPreservedAfterRemovingNewAndAdditionalLegacySelector": true,
+    "executedNameSetsExactlyMatchSelection": true,
+    "noFailedSkippedOrDisabledSelectedTests": true,
+    "normalAndAsanCountersMatch": true,
+    "compiledSourceManifestUnchanged": true,
+    "manifest": "/tmp/rpp5ex-sources-before.sha256",
+    "sourceHashCheck": "/tmp/rpp5ex-final-source-check.log",
+    "warningPolicy": "Existing owning -Wall -Wextra -pedantic -Werror retained; no suppression, assertion removal or existing CTest cap increase.",
+    "compatibility": "Both LibreCAD_3 compile targets and existing TABLE writer/merge/2D consumer affected controls pass; not formal ABI or native application qualification.",
+    "notAPerformanceBenchmark": "Different optimization/scheduling and uncontrolled host conditions; no throughput or no-regression claim."
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticsAndKernel": "NOT_RUN",
+    "supportClaimPromotion": false,
+    "remoteMutation": false
+  },
+  "next": [
+    "Isolate and fix the retained successful-export reuse diagnostic using a positive-only TABLE/fallback identity witness.",
+    "Complete full TABLE typed scalar/coordinate/object/binary values, payload/format/display separation, bounded envelopes/truncation and table-global row/border overrides with independent source/output proof.",
+    "Close original TABLESTYLE/BLOCK_RECORD/FIELD/ATTDEF/common/name/application/proxy/codepage/nested INSERT dependencies and full B2b/B3/C source/live/edited/emitted, remapping/readback, rollback/retry/destination/IMAGE/document/native/carrier/schema/owner/memory/performance parity.",
+    "Preserve LibreCAD/LibreCAD_3 and dwg2dxf/FreeCAD2D/3D consumers; require native Linux/Windows and independent ACIS/ACDS semantics/kernel evidence before support promotion.",
+    "Continue safe local work, self-update/unblock/commit/report slices and commit no external drawings."
+  ],
+  "fileSha256": {
+    "src/drw_entities.cpp": "9a4eed642ba291e298fc0ba4c03d6f40cb3572149ffc628fc1854b4f61040838",
+    "src/libdxfrw.cpp": "ddd2d41a9a2c237089afe4aa6d03818e3d41735ead32a16241a19ae859c58f1e",
+    "tests/CMakeLists.txt": "733b921be63c0ef20aaf9d6368403a611e62b1e0fa930de79cb4d4c34d58037c",
+    "tests/table_content_dxf_tests.cpp": "ff214d00865335e60179bd8fd9a97fd4d28844a7dc412a2f54d09ebb1c137720",
+    "tests/table_value_scope_controls.h": "5ca0b2130c6f4077d5b180d952d266f7cd6e34ca3e2cde7b1dd4fe16f060950a",
+    "/tmp/rpp5ex-sources-before.sha256": "fc4197c59038ff707e6f6dbacf13dc28c25f0fc2d24dab33d5e24ef498de938d",
+    "/tmp/rpp5ex-final-source-check.log": "13ad19959c06cdc6b5f57940f24508bf91a4a75d3cc8d2a08d0e59320361016a",
+    "/tmp/rpp5ex-final-normal-build.log": "f9959b45a397332f7d533944549acfe60036460ada554e1d5389a98c510f8fd0",
+    "/tmp/rpp5ex-final-asan-build.log": "8c2ef5b408e23ea677bdde7d65713cc8f878e5bff33ac347134317ffa771e176",
+    "/tmp/rpp5ex-final-normal-ctest.log": "f986e5550bc61dace446c39d6a2062e5f78e599d40f55d23e13e1980de47743f",
+    "/tmp/rpp5ex-final-asan-ctest.log": "9a86856495c10c93d3ac204d87bf586750e16c331a6d1e85d18dd037cf663ba0",
+    "/tmp/rpp5ex-metadata-red.log": "2a89a922a90ff37a854ad0895624a4ff48a89b2be84c79445f5c879e201f02ee",
+    "/tmp/rpp5ex-writer-fresh-red.log": "fb1cd2f2505525d86e14da477c036e2f58551dba25369a003580c187d700573c",
+    "/tmp/rpp5ex-writer-diagnostic.log": "c9d785e3ed342aaf48d58b5b2cb2a4b9b77239de11ccd6e4bb8ff6217a13ce8d",
+    "/tmp/rpp5ex-red-build.log": "a57ee644fca1f8de398c936ea84d73f0a9aa8324ee5c602ca2f9e1a979fae96a",
+    "/tmp/rpp5ex-owning-final-green.log": "d89f54ece4a725423c70a840bc2613e66bbc226a95d19935d48e51319ee40ee5"
+  }
+}

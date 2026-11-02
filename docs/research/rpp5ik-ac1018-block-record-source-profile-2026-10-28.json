@@ -1,0 +1,75 @@
+{
+  "schema": "ac1018-block-record-source-profile-v1",
+  "date": "2026-10-28",
+  "codeCommit": "387481a3bf247e1a103a62161fefea61ba9fb470",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1018 opt-in BLOCK_RECORD source-field inventory stored separately from modeled replay. The 6F2-shaped ordered grammar is an exact bounded subset, not an owner/graph/output, full-format or native-semantic certificate.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Independent repository sample; native authoring not independently certified.",
+    "selected": "ASCII AC1018 BLOCK_RECORD 6F2 [30381,30685), owner 1, MyBlock, 20 groups; source role indices self 0, XDICT 360 at 2 to 6F3, owner 330 at 4 to 1, block name at 7, explicit null layout 340 at 8, BLKREFS 331 at 10 to 704, XDATA APPID names at 12 and 14."
+  },
+  "originalProbe": {
+    "result": "PASS",
+    "default": "Existing raw/model capture remains, no opt-in structural profile.",
+    "explicitOptIn": "Production StructuralInput stores a complete 20-span profile, after matched captured-field replay with source AC1018/codec AC1015 ANSI_1252 context. Resource rawTypedMatched, structural bodyMatched and originBound remain false.",
+    "independentScanner": "Separate byte scanner checked all 20 field/role/index tuples and selected handle values against the original physical span; it observes structure, not application semantics or target resolution.",
+    "artifacts": "build/agent-attribute-profile/ac1018-block-record-profile-final/",
+    "probeSourceSha256": "bee290ff4b2c57ff03adede2348bc15242f9bc8414e880207258a73cd2748872",
+    "probeBinarySha256": "dadd292f12e205d31f4b1a573a9e017775a315ef81fffba4ba7c4952bae31a5e",
+    "stdoutSha256": "25cf342701c671854315a66388ce7bbee408fa97686d04c934f5af55fabff2e2",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scannerSha256": "7bc7d5ec4c13d05468192e458d838bff4e4196f125a5748812fbc847e1fa856c",
+    "scannerReportSha256": "20d3baa1831380b91680045d1394756fb58e6cc9b4938b54139f155da15ec3b4",
+    "adapterObjectSha256": "b6cbd8e2f1ff11164303582e9d862c2bd04946c46dcde6763d81b17f8a6636ba",
+    "librarySha256": "037d1e3e04781f7c778117318a0b9c3bcdad5baf1066932062aa7477de480b43"
+  },
+  "bindings": {
+    "profileHeaderSha256": "833340a7a6021ecde4126c1cdf572cb9df7d7d0e9e9135980b50a5ef8bf78232",
+    "profileControlsSha256": "ffae52506cb36a8a1000a415ffb0d93cb96d3527f9cdd5cd123df1e187151a98",
+    "adapterSourceSha256": "e318e9dc11e67b60a8288a87a7fcd4cf77561a5a64ec603c82d71f719734ad19",
+    "dataHeaderSha256": "829f6987f50067623bba348dc1388b905bc7f08de0f0ddfc7de3c9c926c5ff57",
+    "adapterTestSha256": "6c21bb9f1b79d0de3057e9691a650f909dcea48aaad1b30828527068ae7b8622",
+    "normalTestBinarySha256": "254b5c342a39efdd0c5196552586ea9a9342d5505fdd83ec080db20b57ba5e74",
+    "priorReplayReceiptSha256": "9d6a48cc38c62d2c3e41ee5466362dd92f49bb913bb3ceb7803e2cc5e7c8d62a"
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_legacy_adapter_capture",
+      "libdxfrw_block_legacy_capture",
+      "libdxfrw_block_record_legacy_observation",
+      "libdxfrw_block_record_legacy_adapter",
+      "libdxfrw_block_source_proof"
+    ],
+    "normal": {
+      "result": "PASS 6/6",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "14cd107a86a2c88c7041dbe08600adc8d0a38d14e0d50732f697438b03e5cec0"
+    },
+    "asan": {
+      "result": "PASS 6/6",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "testBinarySha256": "8ac007e29dcb69289c0202433d98109eafbc8d02b620db1e42d973972a3c0a4c",
+      "librarySha256": "a03ad77600aa122b59ef18793c4b9a1713225d4b9f62ab89f1ddb32853605fe9",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "811f2faea6e457f2831f4af3ab31a137d8ee9ffed5bec035625a7e1f640644ad"
+    },
+    "controls": "Locally authored ASCII/binary controls independently check all 18 field spans and roles, 26 direct refusals per encoding, raw/model/context/selection mutations and retries, structural budgets and retries, and modeled replay succeeding while an unknown field keeps the source profile refused. Focused selectors, not a full suite."
+  },
+  "references": {
+    "autodeskBlockRecord": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+    "autodeskXdata": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "libredwgBlkrefs": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg.spec#L3588-L3600",
+    "referenceScope": "Autodesk specifies BLOCK_RECORD 340 layout reference, 310 preview and ACAD DesignCenter XDATA; LibreDWG writes BLKREFS insert handles. These references do not prove target closure, producer semantics or interpretation of this source."
+  },
+  "limitations": [
+    "Additional opt-in structural/replay/profile budget is not consumed by default legacy BLOCK consumers; existing legacy BLOCK_RECORD raw/model capture is unchanged. Opted-in quota failure leaves proof unqualified.",
+    "Profile explicitly requires the witnessed ordered XDICT and single BLKREFS groups, explicit null 340 and bounded XDATA; absent/non-null layout, preview 310, other legal orders, additional XDATA and names requiring non-ASCII decoding remain refused.",
+    "Profile completion does not set rawTypedMatched, StructuralAudit.bodyMatched, BLOCK reconciliation or output eligibility; original identity census, typed target/ownership, APPID dependencies, recursive closure, failure/output and independent semantic evidence remain open. Do not equate XDATA units with group 70 modeled units.",
+    "Private adapter data layout changed; rebuild dwg2dxf and its adapter dependents. No DRW_Interface virtual was added. No drawing fixtures were committed."
+  ]
+}

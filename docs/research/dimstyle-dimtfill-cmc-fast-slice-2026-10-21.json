@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 DIMSTYLE DIMTFILLCLR DWG CMC metadata retention",
+  "mode": "generated AC1024/AC1032 writer-wire-parser fast slice",
+  "scope": [
+    "Retain method, RGB, optional color-name, and color-book-name for the R2007+ DIMSTYLE DIMTFILLCLR CMC field",
+    "Emit method-specific C0/C1/C2/C3 payloads and optional strings through the bounded detached string stream",
+    "Verify wire order, parse retention, subsequent BS fields, copy/reset, and refusal before output for unsupported or unrepresentable state"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.68 DIMSTYLE"],
+      "finding": "ODA §20.4.68 defines table-record DIMCLRD/E/T and the distinct R2007+ DIMTFILLCLR as CMC. This receipt specifically covers DIMTFILLCLR retention; the 2026-10-22 correction receipt covers the three other fields. §2.11 defines the generic CMC method, RGB payload, and optional name/book flags and TV strings. The §9 header-system variables with similar names are different fields."
+    },
+    "dxfMappingAudit": {
+      "reference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "finding": "The Autodesk DIMSTYLE DXF reference lists the dimension-index color fields (groups 176–178), but does not establish a DIMTFILLCLR mapping for truecolor/name/book companions. No mapping to generic 420/430/431 groups is inferred."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.h", "src/drw_objects.cpp"],
+      "finding": "DIMTFILLCLR now retains scalar, method, optional RGB, flags, color name, and color-book name. Parsing uses the bounded CMC reader. Writing validates representable C0/C1/C2/C3 state before output and sends flagged strings through a distinct detached string buffer.",
+      "compatibility": "Appended public fields change DRW_Dimstyle size; downstream consumers must rebuild. No virtual interface changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Generated C0 ByLayer with name/book, C1 ByBlock with name, C2 black RGB with name/book, and C3 ACI with book cases are independently walked for string-stream order, CMC method/flags/payload, and following BS fields. Production parsing retains the state. Copy, assignment, reset, unsupported C4 refusal, and missing detached-string refusal are covered.",
+      "limit": "Generated vectors establish local codec consistency only; they are not producer-authored or native-consumer evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append DIMTFILLCLR RGB, method, flags, name, and book-name companions and preserve them through copy/assignment/reset.",
+      "Capture the bounded CMC payload and optional strings on parse.",
+      "Write explicit supported CMC methods and optional strings through the detached stream.",
+      "Reject unsupported methods, inconsistent scalar/RGB/flag state, and named output without a distinct detached stream before emitting the record prefix."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_dimstyle_dimtfill_cmc",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dimstyle_dimclr_bs|libdxfrw_dimstyle_dimtfill_cmc|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (9/9)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimstyle-dimtfill-cmc-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "DIMTFILLCLR DXF mapping and producer-authored DWG semantics remain unqualified.",
+    "Continue the PAR-134 audit for remaining scalar-only CMC consumers and class-specific DXF mappings; do not infer generic color groups.",
+    "SECTIONOBJECT group 411 and HATCH C5 producer semantics remain separate evidence gaps.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

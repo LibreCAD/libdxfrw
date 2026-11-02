@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-location-v1",
+  "observedAt": "2026-10-21",
+  "title": "Parser-fed non-finite ACIS location rejection",
+  "evidenceKind": "generated local parser/model/projector fast test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "signature": "ACIS BinaryFile",
+    "version": 21800,
+    "carrier": "generated SAB bytes"
+  },
+  "cases": [
+    {
+      "value": "NaN",
+      "field": "rooted point LocationVec.x",
+      "parseAndBuild": "PASS",
+      "rootedProjection": "REJECTED",
+      "failure": "InvalidModel",
+      "failedNode": "root body",
+      "preseededOutputCleared": true
+    },
+    {
+      "value": "+infinity",
+      "field": "rooted point LocationVec.x",
+      "parseAndBuild": "PASS",
+      "rootedProjection": "REJECTED",
+      "failure": "InvalidModel",
+      "failedNode": "root body",
+      "preseededOutputCleared": true
+    },
+    {
+      "value": "-infinity",
+      "field": "rooted point LocationVec.x",
+      "parseAndBuild": "PASS",
+      "rootedProjection": "REJECTED",
+      "failure": "InvalidModel",
+      "failedNode": "root body",
+      "preseededOutputCleared": true
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "buildResult": "PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "focusedCTestResult": "PASS (1/1)",
+    "fullTestSuiteRun": false,
+    "gitDiffCheck": "PASS (scoped paths)"
+  },
+  "planImpact": {
+    "productionCodeChanged": false,
+    "persistentFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "This is generated structural/safety evidence for the parser-to-model-to-rooted-projector path only.",
+    "It does not validate ACIS B-rep semantics, native CAD acceptance, DWG AcDs association, or general SAB profiles.",
+    "It does not assert that parsing should reject non-finite tokens; the existing projection boundary rejects the invalid geometry.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

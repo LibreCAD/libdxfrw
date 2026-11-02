@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "slice": "PAR-49/7G.3 composite BLOCK/INSERT sequence closure",
+  "status": "LOCAL_PARTIAL_COMPLETE",
+  "base_commit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "changes": [
+    {
+      "path": "tests/block_owner_tests.cpp",
+      "sha256": "2208e2792c6359c370c2a0fe727beb9df4d228b45732232eceebe5024415c59e",
+      "summary": "Extended the existing generated block-owner control across ASCII and Binary DXF: twelve ordered ATTRIB records and SEQEND follow an INSERT in an earlier named block; a later block contains an attribute-free INSERT; empty anonymous, populated anonymous, and paper-layout block definitions follow. Assertions cover the seven-row BLOCK_RECORD/BLOCK/ENDBLK identity bijection, child owners and per-body type counts, group 66 and sequence termination, sibling order, fixed model/paper sentinels, terminal section and EOF."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "73f6829289f8238a91295147c42f9e1010dca82e6c6225d3b2be99bf2c1cbf18",
+      "summary": "Records the completed generated fast slice, its scope/evidence ceiling, focused validation, and current uncommitted status in the implementation-progress ledger."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_block_owner_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_block_owners$' --output-on-failure",
+      "result": "PASS (1/1, 0.34 s)"
+    },
+    {
+      "command": "git diff --check -- tests/block_owner_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "evidence_limits": [
+    "ASCII/Binary DXF output was generated locally at runtime; no drawing fixture was added or committed.",
+    "The assertions qualify local DXF writer/adapter structure only. They do not reproduce LibreDWG's implementation-specific cursor failure, qualify DWG reader source completeness, establish native CAD acceptance, or promote semantic support claims.",
+    "No full test suite, external peer executable, native CAD application, dependency, or new CTest registration was used."
+  ],
+  "commit": {
+    "status": "NOT_COMMITTED",
+    "reason": "The task filesystem grant is read-only for .git metadata; the broad worktree also contains pre-existing user changes."
+  },
+  "plan_totals": {
+    "findings": 134,
+    "top_level_subplans": 76
+  },
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

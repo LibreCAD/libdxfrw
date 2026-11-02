@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-cross-peer-repeated-record-robustness-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Cross-check current open-source parser robustness and strict-consumer reports against local DXF read paths and regression coverage, then refine only existing implementation owners.",
+  "method": {
+    "kind": "Read-only research over current official project documentation, source-linked issue reports and release notes, plus targeted local source and test inspection",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "localInspection": [
+      "dxfReader::readRec skips post-SECTION comments iteratively and charges each physical record against its record budget.",
+      "Entity XDATA group values are parsed iteratively; typed item, node, retained-string, and input-token ceilings exist as distinct controls.",
+      "DRW_Image::parseCode bounds IMAGE/WIPEOUT group-91 clip counts; WIPEOUT validates the resulting boundary before callback, while duplicate/restarted group-91 sequences need explicit generated disposition coverage.",
+      "Existing hardening tests include a small ignored-comment budget case and comment-retention lifecycle checks; existing IMAGE/WIPEOUT controls test boundary counts but not long repeated-record cases in both encodings."
+    ],
+    "evidenceRule": "Peer issue claims are mutable, route/build-specific discovery evidence. They neither transfer defects nor define DXF limits. Local source inspection is not a regression result; generated local tests still need to pass before any implementation status change."
+  },
+  "evidence": [
+    {
+      "topic": "Repeated DXF records can exhaust the parser call stack in a peer implementation",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": "The open issue reports recursive per-item advancement for comment runs, XDATA application blocks, and IMAGE/WIPEOUT group-91 clip-boundary groups. Its reproduction thresholds are tied to ACadSharp 3.8.0/master v3.8.10 paths and affect the reporter's ASCII/binary routes.",
+      "doesNotEstablish": [
+        "matching recursive paths or a local crash in libdxfrw",
+        "normative maximum counts for comments, XDATA applications, or clip-boundary groups",
+        "that peer thresholds should be copied into local format validation"
+      ],
+      "planUse": "Under existing PAR-14/PAR-26/7BA/7S, add generated ASCII/binary stress and malformed controls for comments, repeated XDATA applications, and duplicate/restarted group 91. Assert iterative completion or bounded refusal, exact cursor/record progress, no partial callbacks, and following-entity alignment."
+    },
+    {
+      "topic": "Cross-project support statements require operation- and consumer-specific claims",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "LibreDWG records version-specific bounds, allocation, pointer-lifetime, and progress fixes and documents separate fuzz routes. ezdxf describes ASCII/binary DXF and unknown-tag preservation while its drawing add-on documents no ACIS rendering and XY projection for 3D entities.",
+      "doesNotEstablish": [
+        "any corresponding local defect",
+        "general 3D geometry or B-rep semantics from raw DXF preservation",
+        "that a peer source declaration or self-roundtrip is independent acceptance"
+      ],
+      "planUse": "Keep parser robustness, opaque carrier retention, explicit-geometry projection, ACIS semantics, and native application acceptance in separate evidence lanes; preserve the existing scheduled fuzz/sanitizer cadence."
+    },
+    {
+      "topic": "DIMSTYLE and TABLE peer leads now have bounded local controls but remain unqualified externally",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/DomCR/ACadSharp/issues/1264"
+      ],
+      "observed": "The open DIMSTYLE report describes AutoCAD rejection of ACadSharp 3.6.35 output and an AutoCAD DXFOUT comparison; the TABLE report identifies a block-cell value discrepancy. The local plan records an AC1024 DIMSTYLE compatibility candidate and an ambiguous empty TABLE-cell ASCII/binary control.",
+      "doesNotEstablish": [
+        "a normative DIMSTYLE subclass rule across versions",
+        "native/strict-consumer acceptance of the local candidate",
+        "semantic equivalence of the peer's DWG table value and local DXF control"
+      ],
+      "planUse": "Retain external acceptance pending for DIMSTYLE and fail-closed incomplete TABLE export; do not promote support from local generated controls."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "immediateFastTestOrderRefined": true,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

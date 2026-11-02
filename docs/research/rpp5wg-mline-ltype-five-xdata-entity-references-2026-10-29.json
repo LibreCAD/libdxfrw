@@ -1,0 +1,96 @@
+{
+  "id": "RPP-5wg",
+  "title": "Five ordered MLINE LTYPE XDATA entity references",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "a48c36d9eb57aab849acf26f6c8570fc71fc8565",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_providers": [
+      { "type": "LINE", "source_handle": "0xA900", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 1.25 },
+      { "type": "LINE", "source_handle": "0xA902", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 7.5 },
+      { "type": "LINE", "source_handle": "0xA903", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 13.5 },
+      { "type": "LINE", "source_handle": "0xA904", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 19.5 },
+      { "type": "LINE", "source_handle": "0xA905", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 25.5 }
+    ],
+    "xdata_order": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" },
+      { "code": 1005, "value": "A900", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A902", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A903", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A904", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A905", "role": "soft-pointer entity handle" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Generated physical XDATA, imported typed values, five unique source handles, captured LINE roles, and model-space owner bindings agree. The five target LINEs are independently matched by their distinct start-X values.",
+    "output": "Across all four ASCII/binary source-output pairs, staged physical output checks exact ordered XDATA and remapped handles. Fresh typed readback verifies all five references point to their corresponding emitted model-space LINE and owner.",
+    "failure_retry": "For all four encoding pairs, removal of the fifth target refuses atomically and preserves a destination sentinel; restoring its saved list position succeeds on the same adapter. A late mutation of the fifth target handle also refuses with destination preservation; restoring the source handle succeeds on the same adapter and rechecks output/readback.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 100,
+      "whole_focused_test_readbacks": 218,
+      "whole_focused_test_refusals": 118,
+      "whole_focused_test_retries": 118
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 5.90 seconds)"
+    },
+    "normal_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+      "result": "PASS (profiles=100; readbacks=218; refusals=118; retries=118)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice expands runtime-generated tests and does not change production ownership, allocation, lifetime or parser behavior.",
+    "source_bindings": {
+      "test_source_sha256": "64e766efaf5dcba2d545439428bd5f6f9d00191f2153abfff6b413f55c837d45",
+      "normal_executable_sha256": "e7bc37beb1097eed1ff78adc7caa22c2d402798e1052210e3d7a02d023d19dad",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies five ordered code-1005 references to distinct model-space LINEs in one AC1027 simple-LTYPE XDATA profile. Six-or-more references, other target types/sections, different XDATA compositions, versions and application meanings remain unqualified.",
+    "This is selected transport and identity evidence only. It does not establish recursive document closure, native MLINE rendering or broader format support."
+  ],
+  "next": "Select a new source-backed P2 witness and identify its missing parser/model, origin join, dependency role or independent semantic evidence."
+}

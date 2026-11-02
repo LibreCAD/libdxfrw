@@ -1,0 +1,1383 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5fw",
+  "date": "2026-10-27",
+  "dateTimezone": "America/Toronto",
+  "state": "VERIFIED_SELECTED_PRESET_CALLBACK_GUARD_AND_EMITTED_DICTIONARY_FIELDS",
+  "parentCommit": "23062d0a6caffa08113866cc7040475b72abe305",
+  "fileSha256": {
+    "dwg2dxf/dx_iface.cpp": "a6ebc783dc71170a9d2b032a27feec3b35672be902030b9c221ca24bd4e207a7",
+    "dwg2dxf/dx_iface.h": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e",
+    "dwg2dxf/dx_standard_output.h": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e",
+    "tests/CMakeLists.txt": "0747a8a5d14bd7fcde000d3ccd9634b38172e75c09cd535143f7219c58e31de0",
+    "tests/render_preset_graph_output_controls.h": "6a013cab5099b1325919fc01a8deb16cf42e2afb4cdd11997285a9b9728ff2d4",
+    "tests/table_content_dxf_tests.cpp": "5248ffb35ae1c50f74d865213f313b197c9627e4afbd4d4446867b46b6d89eda"
+  },
+  "scope": "Close a confirmed preset preflight/callback publication gap; inspect actual selected canonical preset bodies and staged dictionaries, preserve raw handle roles, and independently verify selected emitted graph fields. Full edited/recursive/coupled/native/semantic qualification remains open.",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "title": "Autodesk DICTIONARY DXF codes",
+      "finding": "Dictionary hard-owner and cloning fields are separate from ordered entry names and ownership handles; validate retained explicit entry roles rather than infer every entry from flag280."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "title": "Autodesk common object DXF codes",
+      "finding": "Separate application groups and persistent reactor/extension groups from the object owner330. Application contents do not provide an alternative object identity."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+      "title": "Autodesk DXF group-code ranges",
+      "finding": "Arbitrary IDs and translated pointer/ownership roles are distinct. New preset transport mode retains arbitrary IDs and the library raw policy for application-local5 while translating admitted references."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+      "title": "Autodesk PLOTSETTINGS DXF table",
+      "finding": "333 is the shade target. The generic published mode table omits SDK modes4/5; this slice tests the inherited local selected mode5 route, without promoting full format/native acceptance."
+    }
+  ],
+  "implementation": [
+    "Repeat the retained model/raw RenderSettings check in the staged OBJECTS inspector after callbacks. Preflight alone allowed a callback to alter the model and still publish old replayed values.",
+    "Select individually captured canonical preset rows with actual named membership and compare emitted names, ordered scalar transport and mapped handles against their immutable original carriers. Reject duplicate/missing/wrong-family records.",
+    "Capture staged dictionaries through the existing bounded source capture when a named canonical preset exists even without XRECORDs. Inspect actual common metadata, flags, ordered names, targets and explicit350/360 roles; reuse generated-NOD projection/identity proof.",
+    "Add an opt-in ObjectScopes raw-handle policy for this transport check. Preserve arbitrary IDs and code5 inside application groups; map translated references. Existing callers keep their previous default. Caller field/width/profile admission stays required.",
+    "Reuse existing post-callback source checks and output transaction rollback. No public model/facade/source-view fields, interface slots or native DWG parser layouts changed."
+  ],
+  "controls": {
+    "graphProfiles": 40,
+    "bodies": 10,
+    "declaredOutputVersion": "AC1027",
+    "encodings": [
+      "ASCII LF",
+      "binary"
+    ],
+    "dictionaryFlagRoleVariants": [
+      "soft entries/hardOwner0/cloning1",
+      "hard entries/hardOwner1/cloning3"
+    ],
+    "independentDictionaryReferenceFields": 1760,
+    "observedFieldMutationComparisonRefusals": 1240,
+    "callbackEditRollbacks": 88,
+    "callbackEdits": [
+      "header model flag",
+      "header raw flag",
+      "header preset-dictionary cloning",
+      "header extension-dictionary cloning",
+      "header entry role",
+      "temporary raw flag restored after writing",
+      "temporary dictionary cloning restored after writing",
+      "post-write model flag",
+      "post-write raw flag",
+      "post-write dictionary cloning",
+      "post-write removal of both live preset lists"
+    ],
+    "exactOneUnderDictionaryLimits": 2,
+    "scopedHandleProfiles": 2,
+    "scopedRoles": [
+      "arbitrary320 source40 stays40",
+      "translated330 source40 becomesC",
+      "application-local5 source40 stays40"
+    ],
+    "scopedTemporaryEditRollbacks": 6,
+    "reachedInspectorAllocationFaults": 128,
+    "unreachedOffsets": 4,
+    "correctedInspectorExecutions": 132,
+    "correctedImportExportRetries": 96,
+    "faultSchedule": "Isolate faults inside the actual preset OBJECTS inspector on a direct codec. Real fixture/IO/assertions run outside injection. Each reached failure must refuse and preserve a sentinel, each unreached offset must actually write, and each same-codec correction independently verifies selected emitted bodies. Offsets0..511 per encoding, stop after two consecutive unreached offsets. Finite controls, not exhaustive allocation/RSS proof."
+  },
+  "development": [
+    "Baseline23062d0a with the new regression publishes header-time model edit0, failing after17 graph positives. Preserve baseline-build.log/baseline-tests.log and locally generated scratch evidence.",
+    "Initial actual-body/dictionary guard passes the seven-test owning cohort and callback cases. Review discovers that unconditional handle translation would reject valid arbitrary/application-local data.",
+    "Retain pre-handle-role-review build/package evidence, add an explicit opt-in raw handle mode and scoped positive/temporary-edit controls, then refreeze and rebuild final inputs. No final runtime claim is made for superseded inputs.",
+    "Correct the test no-edit sentinel to avoid mutating corrected retries, and distinguish a reached rollback from an actually successful unreached write. All final counters and individual behaviors are checked.",
+    "After the115-test checkpoint passes normally/ASan, a new callback edit10 proves an empty-input bypass when both live preset lists are removed. Add planned-count checks; only dx_iface.cpp and this test header change. Rebuild all11 targets and use nine final focused tests instead of repeating the broad cohort for the isolated guard."
+  ],
+  "limits": [
+    "The graph walker checks locally authored selected AC1027 output and two handle-scope profiles. It is independent of production parsing for these field comparisons, not an external CAD/kernel acceptance oracle or arbitrary producer/version denominator.",
+    "The runtime body inspector applies to captured canonical named presets. Existing uncaptured/unqualified replay gets no new certificate; unknown application semantics, wide-ID/native namespaces and arbitrary remap routes remain open.",
+    "Generated NOD proof owns the root projection. Selected dictionary/preset inspection does not complete edited typed rewriting, PLOTSETTINGS/LAYOUT/VIEWPORT live-to-emitted consumer binding, all rendering providers or recursive/coupled/whole-document closure.",
+    "Existing logical source byte/item limits and a bounded map allowance are not allocator-capacity, RSS or controlled performance proof. Allocation schedules are finite.",
+    "Archive production inclusion is checked, while the legacy source-release/CMake/test inventory gap and a real extracted-source build remain unqualified. New graph test helper remains part of that repair queue.",
+    "Nine resource families, ATTDEF rawTypedMatched=false, ledger CLOSED and full owner/recursive/output flags false. J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL; native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain NOT_RUN."
+  ],
+  "next": [
+    "Repair the measured production archive gap: 59 actual library/CLI compile inputs are absent, including 18 C++ sources. Use the saved Ninja/source dependency audit; separately repair CMake/test modules and qualify extracted-source builds.",
+    "Complete edited typed rewriting, actual emitted consumer/provider shade bindings, arbitrary remap/collision routes and recursive/coupled/whole-document ownership.",
+    "Complete remaining optional/absent/alias/extension rendering profiles, active/global/environment/background/live-section/sun, VIEWPORT wire/spec reconciliation, clipping/overrides and remaining entity/material/reactor/IMAGE/control/name/XDATA/HEADER/native-collation dependencies.",
+    "Finish TABLE Values/multiple-content/linked-data/format semantics, full B2b/B3/C native bit/schema/owner/version/corpus work, release inventory/source builds, consumers and measured memory/performance.",
+    "Keep platform/ACIS/ACDS evidence gates separate; continue fast owning checks, target reuse, frozen final inputs and self-updating committed slices with no external drawing payload/derivative in Git."
+  ],
+  "releaseInventoryProbe": {
+    "objects": 39,
+    "actualProductionInputs": 148,
+    "missing": 59,
+    "missingCpp": 18,
+    "artifact": "production-archive-input-audit.json",
+    "qualification": "Read-only comparison of actual CMake library/CLI compile sources and Ninja header dependencies against the final Autotools archive. Does not qualify a source-release build or all CMake tests/modules.",
+    "missingPaths": [
+      "dwg2dxf/dx_batch_input.h",
+      "dwg2dxf/dx_batch_output_names.cpp",
+      "dwg2dxf/dx_batch_output_names.h",
+      "dwg2dxf/dx_cli.h",
+      "dwg2dxf/dx_dwg_class_evidence.h",
+      "dwg2dxf/dx_dwg_class_section_wire.h",
+      "dwg2dxf/dx_dwg_class_wire.h",
+      "dwg2dxf/dx_table_source_profile.h",
+      "dwg2dxf/dx_table_value_source_profile.h",
+      "src/drw_acis.cpp",
+      "src/drw_acis.h",
+      "src/drw_base.cpp",
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h",
+      "src/handle_allocator.h",
+      "src/intern/drw_dimvar_migration.h",
+      "src/intern/drw_reserve.h",
+      "src/intern/dwg_dxf_output_transaction.cpp",
+      "src/intern/dwg_dxf_output_transaction.h",
+      "src/intern/dwg_fixed_handles.h",
+      "src/intern/dwg_header_time.h",
+      "src/intern/dwgbufferw.cpp",
+      "src/intern/dwgbufferw.h",
+      "src/intern/dwghatchboundary.h",
+      "src/intern/dwgheadersection.h",
+      "src/intern/dwgobjectframe.cpp",
+      "src/intern/dwgobjectframe.h",
+      "src/intern/dwgreader32.cpp",
+      "src/intern/dwgreader32.h",
+      "src/intern/dwgreaderR11.cpp",
+      "src/intern/dwgreaderR11.h",
+      "src/intern/dwgreaderR1_40.cpp",
+      "src/intern/dwgreaderR1_40.h",
+      "src/intern/dwgsafety.h",
+      "src/intern/dwgtemplate.h",
+      "src/intern/dwgvaluekind.h",
+      "src/intern/dwgwriter.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter18.cpp",
+      "src/intern/dwgwriter18.h",
+      "src/intern/dwgwriter21.cpp",
+      "src/intern/dwgwriter21.h",
+      "src/intern/dwgwriter24.cpp",
+      "src/intern/dwgwriter24.h",
+      "src/intern/dwgwriter27.cpp",
+      "src/intern/dwgwriter27.h",
+      "src/intern/dwgwriter32.cpp",
+      "src/intern/dwgwriter32.h",
+      "src/intern/dwgwriterlayoutvalidation.cpp",
+      "src/intern/dwgwriterlayoutvalidation.h",
+      "src/intern/dxfcode.h",
+      "src/intern/dxfnumber.h",
+      "src/intern/dxfparserlimits.h",
+      "src/intern/dxftable.h",
+      "src/intern/dxftablecapacity.h",
+      "src/intern/dxfvalue.h",
+      "src/intern/proxygraphicdecoder.cpp",
+      "src/intern/proxygraphicdecoder.h"
+    ],
+    "missingCppPaths": [
+      "dwg2dxf/dx_batch_output_names.cpp",
+      "src/drw_acis.cpp",
+      "src/drw_base.cpp",
+      "src/drw_datastorage.cpp",
+      "src/intern/dwg_dxf_output_transaction.cpp",
+      "src/intern/dwgbufferw.cpp",
+      "src/intern/dwgobjectframe.cpp",
+      "src/intern/dwgreader32.cpp",
+      "src/intern/dwgreaderR11.cpp",
+      "src/intern/dwgreaderR1_40.cpp",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter18.cpp",
+      "src/intern/dwgwriter21.cpp",
+      "src/intern/dwgwriter24.cpp",
+      "src/intern/dwgwriter27.cpp",
+      "src/intern/dwgwriter32.cpp",
+      "src/intern/dwgwriterlayoutvalidation.cpp",
+      "src/intern/proxygraphicdecoder.cpp"
+    ],
+    "hostScope": "Observed macOS CMake/Ninja production dependencies; other platform/conditional inputs and all CMake/test support remain separate inventory obligations."
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalLayoutReferenceDispositionsCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "selectedOriginalViewUcsTargetsCanMatch": true,
+    "selectedOriginalViewportTargetsCanMatch": true,
+    "selectedCanonicalPrimaryVisualStyleSourcesCanMatch": true,
+    "selectedRootedOriginalVisualStyleTargetsCanMatch": true,
+    "observedCommentedCanonicalVisualStyleSourcesCanMatch": true,
+    "selectedCanonicalRenderPresetSourcesCanMatch": true,
+    "selectedRootedOriginalLayoutPresetTargetsCanMatch": true,
+    "viewportShadeSourceQualified": false,
+    "editedRenderSettingsTypedRewritingQualified": false,
+    "selectedAc1027PresetEmittedBodiesMatchAuthoredLiterals": true,
+    "completeEmittedObjectDictionaryGraphQualified": false,
+    "selectedCapturedPresetOutputBodiesAndDictionariesInspected": true,
+    "selectedCallbackPresetEditsRefuseBeforePublication": true,
+    "rawHandleScopeControlsPass": true
+  },
+  "validation": {
+    "scope": "Shared converter/transport changes passed115 affected tests in normal/ASan at the pinned broad checkpoint. A subsequent isolated planned-count guard changes only dx_iface.cpp and its test header; all11 targets rebuilt and nine focused rendering/FreeCAD CLI tests passed at final inputs. No final115-test/full-suite claim.",
+    "sharedChangeCheckpoint": {
+      "receiptSha256": "56a8ed16eb562891518fb29d08d278eddc005147ea04f06d4d26397efef371fd",
+      "sourceManifestSha256": "5f570d2614cbc05dd4f0f3494eb60c7679158320c19c094550b42f55a8c7b3f9",
+      "sourceManifestFiles": 432,
+      "fileSha256": {
+        "dwg2dxf/dx_iface.cpp": "bc94cc9e794b5c8d7fe04a0be8f4920e50202b1295d26b08def523466999f9dd",
+        "dwg2dxf/dx_iface.h": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e",
+        "dwg2dxf/dx_standard_output.h": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e",
+        "tests/CMakeLists.txt": "0747a8a5d14bd7fcde000d3ccd9634b38172e75c09cd535143f7219c58e31de0",
+        "tests/render_preset_graph_output_controls.h": "1fb83e99cf1c33fe751bc9729be7c383be17c03f1929fea867a9700454bc1e15",
+        "tests/table_content_dxf_tests.cpp": "5248ffb35ae1c50f74d865213f313b197c9627e4afbd4d4446867b46b6d89eda"
+      },
+      "validation": {
+        "scope": "115 affected tests plus two focused selectors per configuration; shared converter/transport changes justify this cohort, not a full-suite/native application claim.",
+        "targets": [
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_field_retained_budget_tests",
+          "libdxfrw_table_geometry_dxf_tests",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_gbk_codepage_tests"
+        ],
+        "builds": {
+          "normal": {
+            "start": "2026-10-27T21:35:15.099449+00:00",
+            "end": "2026-10-27T21:35:15.119890+00:00",
+            "seconds": 0.020365959004266188,
+            "exitCode": 0,
+            "targets": [
+              "libdxfrw_table_content_dxf_tests",
+              "libdxfrw_dwg2dxf_adapter_tests",
+              "libdxfrw_field_retained_budget_tests",
+              "libdxfrw_table_geometry_dxf_tests",
+              "libdxfrw_3d_consumer_probe",
+              "dwg2dxf",
+              "lc3_compat_check",
+              "libdxfrw_dxf_fixture_tests",
+              "libdxfrw_hardening_tests",
+              "libdxfrw_symbol_output_tests",
+              "libdxfrw_gbk_codepage_tests"
+            ]
+          },
+          "asan": {
+            "start": "2026-10-27T21:35:15.225394+00:00",
+            "end": "2026-10-27T21:39:36.774705+00:00",
+            "seconds": 261.54634429200087,
+            "exitCode": 0,
+            "targets": [
+              "libdxfrw_table_content_dxf_tests",
+              "libdxfrw_dwg2dxf_adapter_tests",
+              "libdxfrw_field_retained_budget_tests",
+              "libdxfrw_table_geometry_dxf_tests",
+              "libdxfrw_3d_consumer_probe",
+              "dwg2dxf",
+              "lc3_compat_check",
+              "libdxfrw_dxf_fixture_tests",
+              "libdxfrw_hardening_tests",
+              "libdxfrw_symbol_output_tests",
+              "libdxfrw_gbk_codepage_tests"
+            ]
+          }
+        },
+        "registeredSelectedNamesAndOrder": [
+          "libdxfrw_symbol_name_wire_inspection",
+          "libdxfrw_symbol_unicode_keys",
+          "libdxfrw_xrecord_xdata_channels",
+          "libdxfrw_xrecord_normal_string_codes",
+          "libdxfrw_xrecord_legacy_double_codes",
+          "libdxfrw_xrecord_legacy_boolean_codes",
+          "libdxfrw_appid_name_source",
+          "libdxfrw_layer_name_source",
+          "libdxfrw_dxf_layer_text_owner_budget",
+          "libdxfrw_dxf_appdata_retained_owner_budget",
+          "libdxfrw_dxf_xdata_string_owner_budget",
+          "libdxfrw_dxf_ltype_retained_owner_budget",
+          "libdxfrw_dxf_unknown_table_name_view",
+          "libdxfrw_dxf_xrecord_string_owner_budget",
+          "libdxfrw_datalink_text_owner_budget",
+          "libdxfrw_render_settings_text_owner_budget",
+          "libdxfrw_material_root_output_compatibility",
+          "libdxfrw_material_color_lexemes",
+          "libdxfrw_material_strict_color_closure",
+          "libdxfrw_classic_vertex_xdata",
+          "libdxfrw_legacy_mtext_xdata_identity",
+          "libdxfrw_layer_dwg_cmc_roundtrip",
+          "libdxfrw_view_vport_ambient_cmc",
+          "libdxfrw_dictionary_with_default_writer",
+          "libdxfrw_field_graph_export_refusal",
+          "libdxfrw_table_callback_owner_order",
+          "libdxfrw_tablestyle_nested_raw_net",
+          "dwg2dxf_dictionary_default_raw_capture_limits",
+          "dwg2dxf_basic_table_typed_capture_limits",
+          "dwg2dxf_dictionary_default_typed_capture_limits",
+          "dwg2dxf_render_background_sun_raw_capture_limits",
+          "dwg2dxf_field_carrier_raw_capture_limits",
+          "dwg2dxf_render_settings_typed_capture_limits",
+          "dwg2dxf_table_style_typed_capture_limits",
+          "dwg2dxf_field_carrier_typed_capture_limits",
+          "dwg2dxf_datalink_typed_capture_limits",
+          "dwg2dxf_xrecord_typed_capture_limits",
+          "dwg2dxf_material_typed_capture_limits",
+          "libdxfrw_dictionary_default_adapter_roundtrip",
+          "libdxfrw_table_geometry_dxf_projection",
+          "libdxfrw_table_content_dxf_projection",
+          "libdxfrw_table_compound_source",
+          "libdxfrw_table_content_source_proof",
+          "libdxfrw_table_content_bindings",
+          "libdxfrw_table_block_source_bindings",
+          "libdxfrw_table_block_name_bindings",
+          "libdxfrw_entities_source_transport",
+          "libdxfrw_entities_delivery_transport",
+          "libdxfrw_entities_immutable_origins",
+          "libdxfrw_entities_compound_source",
+          "libdxfrw_entities_primary_source",
+          "libdxfrw_layout_source_proof",
+          "libdxfrw_identity_source_namespace",
+          "libdxfrw_structural_source_origins",
+          "libdxfrw_dictionary_source_origins",
+          "libdxfrw_original_layout_roles",
+          "libdxfrw_original_entities_roles",
+          "libdxfrw_original_block_roles",
+          "libdxfrw_original_attdef_roles",
+          "libdxfrw_table_block_source_transport",
+          "libdxfrw_table_original_inputs",
+          "libdxfrw_table_original_bodies",
+          "libdxfrw_table_original_profiles",
+          "libdxfrw_table_value_metadata_scopes",
+          "libdxfrw_table_export_reuse",
+          "libdxfrw_table_value_payload",
+          "libdxfrw_table_value_inventory_selftest",
+          "libdxfrw_table_value_original_profiles",
+          "libdxfrw_table_original_reference_targets",
+          "libdxfrw_resource_original_publications",
+          "libdxfrw_symbol_original_publications",
+          "libdxfrw_original_dependency_targets",
+          "libdxfrw_style_font_xdata_scopes",
+          "libdxfrw_plotstyle_original_sources",
+          "libdxfrw_dictionary_effective_ownership",
+          "libdxfrw_table_geometry_dependencies",
+          "libdxfrw_original_entity_dependencies",
+          "libdxfrw_original_layout_dependencies",
+          "libdxfrw_view_ucs_original_sources",
+          "libdxfrw_viewport_original_sources",
+          "libdxfrw_layout_graph_read_contract",
+          "libdxfrw_cellstylemap_source_profiles",
+          "libdxfrw_cellstylemap_source_proof",
+          "libdxfrw_tablestyle_source_proof",
+          "libdxfrw_symbol_source_proof",
+          "libdxfrw_complex_symbol_bindings",
+          "libdxfrw_auxiliary_source_proof",
+          "libdxfrw_spine_source_proof",
+          "libdxfrw_block_record_source_proof",
+          "libdxfrw_field_retained_owner_budget",
+          "dwg2dxf_field_dxf_multichunk_value",
+          "dwg2dxf_standard_dwg_appid_dependencies",
+          "dwg2dxf_standard_dwg_layer_dependencies",
+          "dwg2dxf_generated_root_common_closure",
+          "dwg2dxf_native_xrecord_binary_transport",
+          "dwg2dxf_branched_xrecord_common",
+          "dwg2dxf_xrecord_owned_extension",
+          "libdxfrw_table_entry_datastorage_refusal",
+          "dwg2dxf_generated_dictionary_scalar_transport",
+          "libdxfrw_plotsettings_visualstyle_shade_reference",
+          "libdxfrw_render_settings_owner_order",
+          "libdxfrw_rendering_dxf_projections",
+          "libdxfrw_rendering_original_publications",
+          "libdxfrw_rendering_input_failures",
+          "libdxfrw_rendering_model_replay",
+          "libdxfrw_rendering_model_failures",
+          "libdxfrw_visual_style_primary_properties",
+          "libdxfrw_rendering_original_sources",
+          "libdxfrw_objects_physical_sources",
+          "libdxfrw_render_preset_sources",
+          "libdxfrw_render_preset_output",
+          "libdxfrw_render_preset_graph_output",
+          "dwg2dxf_freecad_cli_compat",
+          "dwg2dxf_freecad_installed_cli_compat",
+          "libdxfrw_3d_consumer_probe"
+        ],
+        "addedAffectedNames": [
+          "libdxfrw_render_preset_output",
+          "libdxfrw_render_preset_graph_output",
+          "dwg2dxf_generated_root_common_closure",
+          "dwg2dxf_native_xrecord_binary_transport",
+          "dwg2dxf_branched_xrecord_common",
+          "dwg2dxf_xrecord_owned_extension",
+          "dwg2dxf_generated_dictionary_scalar_transport",
+          "libdxfrw_material_root_output_compatibility",
+          "libdxfrw_material_color_lexemes",
+          "libdxfrw_material_strict_color_closure",
+          "dwg2dxf_material_typed_capture_limits"
+        ],
+        "prior104NamesAndRelativeOrderPreserved": true,
+        "identicalRegisteredNamesOrderLabelsAndTimeouts": true,
+        "exactExecutedNameSetsMatchSelection": true,
+        "normal": {
+          "start": "2026-10-27T21:39:50.076670+00:00",
+          "end": "2026-10-27T21:42:18.797687+00:00",
+          "seconds": 148.71892704200582,
+          "exitCode": 0,
+          "focusedUcsOptions": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+              "--ucs-orthographic-options"
+            ],
+            "exitCode": 0,
+            "seconds": 0.12668891600333154
+          },
+          "focusedViewportHandles": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+              "--viewport-typed-handle-remap"
+            ],
+            "exitCode": 0,
+            "seconds": 0.04842258300050162
+          },
+          "passed": 115,
+          "failed": 0,
+          "ctestSeconds": 148.53
+        },
+        "asan": {
+          "start": "2026-10-27T21:42:18.830877+00:00",
+          "end": "2026-10-27T21:43:43.913384+00:00",
+          "seconds": 85.0815605000098,
+          "exitCode": 0,
+          "focusedUcsOptions": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests",
+              "--ucs-orthographic-options"
+            ],
+            "exitCode": 0,
+            "seconds": 0.39814999999362044
+          },
+          "focusedViewportHandles": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests",
+              "--viewport-typed-handle-remap"
+            ],
+            "exitCode": 0,
+            "seconds": 0.025568999990355223
+          },
+          "passed": 115,
+          "failed": 0,
+          "ctestSeconds": 84.64
+        },
+        "owningCounterLines": [
+          "CELLSTYLEMAP proof: 8 routes; 387 typed mutation kinds; 3096 mismatch/recovery pairs; 88 raw refusals/recoveries; 64 boundaries; 24 callback/recovery controls; exact roles and immutable cache",
+          "Effective dictionary ownership profiles=192; original markers=192; flag/reference spans=384; live-state independence=192; owner controls=48; owner refusals=36; cycle controls=24; cycle refusals=18; absent/opaque policy controls=18; unknown policies=6; exact/one-under limits=36; reached finalization failures=384; unreached offsets=0; corrected imports=126; corrected finalizations=384",
+          "Object physical profiles=168; observed fields=13176; mapped raw groups=11424; ignored comments=1752; named fields=672; exact/one-under limits=9; mapping refusals=54; public opt-in profiles=6; immutable getters/queries=207; callback throws=21; corrected imports=84; reached collector failures=11; unreached offsets=2; corrected collectors=13",
+          "Original LAYOUT dependency profiles=96; original markers=288; reference spans=1968; mode spans=312; live-state independence=96; field/mode/target refusals=144; prerequisite refusals=6; exact/one-under limits=36; context refusals=36; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=228; corrected finalizations=384",
+          "Original dependency profiles=144; original markers=6120; physical reference spans=15432; resource-only profiles=12; field/name/owner/producer refusals=174; exact/one-under limits=36; immutable/cross-import refusals=42; advisory/live independence=144; reached finalization failures=384; unreached offsets=0; corrected imports=636",
+          "Original entity dependency profiles=72; original entity markers=2016; physical reference spans=10416; live-state independence=72; field/target/unsupported refusals=174; exact/one-under limits=36; context refusals=36; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=258; corrected finalizations=384",
+          "Plot source profiles=120; original markers=336; reference spans=1368; field/graph refusals=45; parser refusals=6; callback refusals=45; exact/one-under limits=24; immutable owner controls=21; live-state independence=120; reached allocation failures=85; proof failures=56; adjacent capture failures=29; unreached offsets=131; public lifetime controls=6; corrected imports=330",
+          "Render preset emitted graph profiles=40; dictionary/reference fields=1760; observed field refusals=1240; callback edit rollbacks=80; exact/one-under dictionary limits=2; scoped handle profiles=2; scoped handle rollbacks=6; reached inspector faults=128; unreached offsets=4; corrected inspections=132; corrected retries=88",
+          "Render preset emitted profiles=40; independent body fields=1396; handle/owner checks=80; field/code refusals=2792; raw edit rollbacks=40; corrected retries=40",
+          "Render preset source profiles=240; independent fields=12456; handle/name roles=1680; scalar binder refusals=7944; LAYOUT target uses=480; commented profiles=120; immutable queries=240; schema/root refusals=36; raw export/readbacks=20; typed write/readbacks=20; destination rollbacks=100; exact/one-under source limits=6; reached finalizer failures=230; unreached offsets=4; corrected finalizations=234; corrected retries=142",
+          "Rendering input allocation profiles=4; immutable queries=4; reached failures=152; unreached offsets=16; corrected imports=168",
+          "Rendering model allocation profiles=4; immutable queries=4; reached failures=146; unreached offsets=8; corrected finalizations=154",
+          "Rendering modeled replay profiles=192; actual field refusals=450; common/header/cursor refusals=40; corrected imports=490; exact/one-under replay allowances=8",
+          "Rendering projection profiles=504; exact raw fields=15840; scope controls=6; exact/one-under ownership controls=6; corrected retries=3; public lifetimes=504; typed writer/readback/refusal controls=306",
+          "Rendering publication profiles=576; immutable input pairs=20; callback refusals=80; corrected retries=84; exact/one-under limits=80; phase snapshot controls=20; owner/metadata substitutions=80; pending snapshot controls=10",
+          "Rendering source profiles=48; independent physical fields=2496; dictionary key/target fields=192; reference roles=336; rooted target uses=240; primary binder refusals=1632; source/owner/dependency refusals=36; corrected retries=69; exact/one-under limits=6; context refusals=9; prerequisite refusals=6; literal text controls=3; commented source matches=9; immutable queries=50; reached allocations=72; unreached offsets=4; corrected finalizations=76",
+          "Resource original profiles=288; original markers=1152; callback/cursor/throw refusals=60; immutable/cross-import refusals=30; pending-state refusals=6; raw-only fallbacks=6; exact/one-under limits=36; reached finalization failures=48; unreached offsets=144; public lifetimes=10; corrected imports=330",
+          "STYLE scoped font profiles=216; copy/assignment controls=216; original profiles=168; withheld profiles=48; output/readbacks=432; edited font/readbacks=432; source opt-out controls=6; callback throw/retries=6; escaped APPID profiles=3; empty family profiles=3; valid INTEGER64 flags=2; legacy ASCII/Binary profiles=8; invalid output/retries=12; unsupported target/retries=2; reached writer allocation failures=41; unreached offsets=87; integer-node limits=2; physical integer spans=4032; corrected retries=148",
+          "Symbol original profiles=768; original markers=6144; callback/cursor/throw refusals=72; pre-staging pending refusals=24; field/owner refusals=48; default-off controls=6; exact/one-under limits=36; immutable/cross-import refusals=30; reached finalization failures=96; unreached offsets=96; public lifetimes=48; APPID flag domains=8; corrected imports=402; APPID physical output/readbacks=16; invalid output/corrected retries=4",
+          "TABLE Value inventory: 9 positives; 18 refusals; no payload/support promotion",
+          "TABLE geometry dependency profiles=72; original markers=144; physical pair/target spans=216; live-state independence=72; refusals=72; mismatched pairs=18; unavailable pairs=42; prerequisite refusals=12; exact/one-under limits=36; context refusals=24; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=144; corrected finalizations=384",
+          "TABLE independent Value profiles=432; physical spans=30816; owner/FIELD/value roles=48; mistyped=876; missing=870; duplicate=852; unknown=876; grammar refusal/corrections=180; immutable/cross-import refusals=42; exact/one-under proof limits=36; reached allocation faults=96; unreached offsets=0; corrected retries=246",
+          "TABLE original reference profiles=408; original target markers=816; missing/null/kind/producer/cell-block refusals=66; replay-only target refusals=12; duplicate target refusals=6; bounded mutual-reference controls=6; immutable/cross-import refusals=132; exact/one-under limits=36; reached allocation failures=222; unreached offsets=162; corrected imports=594",
+          "TABLE structured value profiles=216; canonical marker refusals/corrections=8; exact/one-under value byte limits=28; reached value allocation faults=14; unreached offsets=98; node limits=24; malformed envelope retries=76; associated empty block values=4; cell/LINE alignment retries=4; producer-shaped Value controls=264",
+          "VIEW/UCS source profiles=144; original markers=432; scalar/reference spans=14544; live-state independence=144; callback/state/throw refusals=78; field/namespace refusals=90; exact/one-under limits=48; context refusals=36; reached finalization failures=384; unreached offsets=0; corrected imports=348; corrected finalizations=384; public lifetimes=20; optional/case profiles=24; capture allocation failures=66; capture unreached offsets=30; flag output/readbacks=16; output refusal/retries=8",
+          "VIEWPORT original profiles=72; original markers=72; scalar spans=4200; immutable queries=72; modeled field refusals=72; callback/field/owner refusals=120; pending original states=6; exact/one-under limits=36; corrected imports=240; reached dependency failures=384; unreached offsets=0; corrected finalizations=384; reference spans=864; frozen-layer cap controls=6; callback throw/retries=6; public lifetimes=12",
+          "VisualStyle primary profiles=144; independently retained raw fields=3640; callback lifetime retries=4; metadata refusals=10; corrected retries=14; pending cursor controls=56"
+        ],
+        "owningCountersMatchAcrossConfigurations": true,
+        "all26PreviousOwningCounterLinesUnchanged": true,
+        "evidenceDirectory": "build/rpp5fw-evidence",
+        "sourceManifest": "build/rpp5fw-evidence/sources-before.sha256",
+        "sourceManifestFiles": 432,
+        "sourceManifestSha256": "5f570d2614cbc05dd4f0f3494eb60c7679158320c19c094550b42f55a8c7b3f9",
+        "sourceManifestUnchangedThroughBothRuntimes": true,
+        "bothBuildsCompletedBeforeFinalRuntimes": true,
+        "normalCompletedBeforeAsan": true,
+        "workers": 2,
+        "configurations": {
+          "normal": {
+            "path": "/Users/dli/dev/libdxfrw/build",
+            "cache": [
+              "CMAKE_BUILD_TYPE:STRING=",
+              "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+              "CMAKE_CXX_FLAGS:STRING=",
+              "CMAKE_CXX_FLAGS_DEBUG:STRING=-g"
+            ],
+            "actualCompileCommands": [
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw/src/intern -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o -MF CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o.d -o CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o -c /Users/dli/dev/libdxfrw/src/libdxfrw.cpp",
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw -std=c++17 -MD -MT CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o -MF CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o.d -o CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp",
+              "/usr/bin/clang++ -DLIBDXFRW_DXF_FIXTURE_DIR=\\\"/Users/dli/dev/libdxfrw/tests/fixtures/dxf\\\" -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw -std=c++17 -MD -MT CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o -MF CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o.d -o CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/dxf_fixture_tests.cpp",
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -MF tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o.d -o tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/table_content_dxf_tests.cpp"
+            ],
+            "cliCompileCommand": "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf/../src -I/Users/dli/dev/libdxfrw/src -F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o -MF dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o.d -o dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp",
+            "ninjaSha256": "b94decfde95387ba26d641e03985e59e0170fc024a2bfcb31150b1a8a5e9da00"
+          },
+          "asan": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build",
+            "cache": [
+              "CMAKE_BUILD_TYPE:STRING=Debug",
+              "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+              "CMAKE_CXX_FLAGS:STRING=-O1 -fsanitize=address -fno-omit-frame-pointer",
+              "CMAKE_CXX_FLAGS_DEBUG:STRING=-g"
+            ],
+            "actualCompileCommands": [
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw/src/intern -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o -MF CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o.d -o CMakeFiles/dxfrw.dir/src/libdxfrw.cpp.o -c /Users/dli/dev/libdxfrw/src/libdxfrw.cpp",
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -MD -MT CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o -MF CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o.d -o CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp",
+              "/usr/bin/clang++ -DLIBDXFRW_DXF_FIXTURE_DIR=\\\"/Users/dli/dev/libdxfrw/tests/fixtures/dxf\\\" -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -MD -MT CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o -MF CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o.d -o CMakeFiles/libdxfrw_dxf_fixture_tests.dir/tests/dxf_fixture_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/dxf_fixture_tests.cpp",
+              "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -MF tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o.d -o tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/table_content_dxf_tests.cpp"
+            ],
+            "cliCompileCommand": "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf/../src -I/Users/dli/dev/libdxfrw/src -F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o -MF dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o.d -o dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp",
+            "ninjaSha256": "593be48be2814a1bf45039b576578c80dccc0ef0b0bf5a60a7d6a350101ca884"
+          }
+        },
+        "asanEnvironment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+        "originalDebugO0AsanUnchanged": true,
+        "warningPolicy": "-Werror preserved; explicit strict fixture syntax check passes.",
+        "strictFixture": {
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-fsyntax-only",
+            "-I.",
+            "-Isrc",
+            "-DLIBDXFRW_DXF_FIXTURE_DIR=\"/Users/dli/dev/libdxfrw/tests/fixtures/dxf\"",
+            "tests/dxf_fixture_tests.cpp"
+          ],
+          "exitCode": 0,
+          "log": "strict-fixture-final.log"
+        },
+        "fullSuiteRun": false,
+        "formalAbiOrNativeApplicationQualification": false,
+        "controlledMemoryOrPerformanceComparison": false,
+        "packaging": {
+          "start": "2026-10-27T21:32:53.477074+00:00",
+          "end": "2026-10-27T21:33:09.057342+00:00",
+          "seconds": 15.580011291996925,
+          "steps": [
+            {
+              "step": "autoreconf",
+              "exitCode": 0
+            },
+            {
+              "step": "configure",
+              "exitCode": 0
+            },
+            {
+              "step": "dist",
+              "exitCode": 0
+            }
+          ],
+          "sourceDirectory": "/Users/dli/dev/libdxfrw/build/rpp5fw-evidence/autotools-source-final",
+          "archives": [
+            {
+              "name": "libdxfrw-2.0.0.tar.bz2",
+              "members": 146,
+              "headers": [
+                {
+                  "path": "dwg2dxf/dx_standard_output.h",
+                  "sha256": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e"
+                },
+                {
+                  "path": "dwg2dxf/dx_iface.h",
+                  "sha256": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e"
+                },
+                {
+                  "path": "dwg2dxf/dx_iface.cpp",
+                  "sha256": "bc94cc9e794b5c8d7fe04a0be8f4920e50202b1295d26b08def523466999f9dd"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendersettings_source_profile.h",
+                  "sha256": "2b6617fefc3aabe50ba860c56ef6d6f46965b6ab398f503f78061ad970fa3104"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_roots.h",
+                  "sha256": "5f2c979590eb33e85b0083c78d66cfe43afabc28d2ccfcec2108f273b30be5a4"
+                },
+                {
+                  "path": "src/intern/dxfobjectphysicalsource.h",
+                  "sha256": "e171bb03660489dfdef2a44c974edd0cbb96d0be476c1732eb6ec7d485e4d76e"
+                },
+                {
+                  "path": "src/drw_interface.h",
+                  "sha256": "333ecfe42fe5826bcd101f0456249a706449e3eed854996edf63f7d6404bc09e"
+                },
+                {
+                  "path": "dwg2dxf/dx_visualstyle_source_profile.h",
+                  "sha256": "b2968dda27f0f896d854a6e695787d50f479e5db5d79a244022fc18d44d0eae7"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_sources.h",
+                  "sha256": "860360ad4f7375665a36770a9e23c1fedf62bf111e89816ecb081efc534e254c"
+                },
+                {
+                  "path": "src/intern/dxfrenderingsource.h",
+                  "sha256": "0a7975f8b1619e42f8a04d06ac1c4995af44dd42d51290f65ca922f41696d7a5"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_inputs.h",
+                  "sha256": "3821ea19aa69941c52e9b450cd962f2e905a89506c726de861bf75c746548e16"
+                },
+                {
+                  "path": "src/libdxfrw.h",
+                  "sha256": "61b60780464f3693d1bc7fb9c10a5123ac0bff7090f801421c6264af2a9e065c"
+                },
+                {
+                  "path": "src/drw_objects.h",
+                  "sha256": "d32ec1f06adcd1bf734214c2138b4f4fceec2584bce8285270634293885821e6"
+                },
+                {
+                  "path": "src/intern/dxfrendersettings.h",
+                  "sha256": "56062a502cd0c27d6f2db113dd072b210843037bac4ba2eb2fd72252b1829970"
+                },
+                {
+                  "path": "dwg2dxf/dx_dependency_audit.h",
+                  "sha256": "050ed989015288931f844fc1c42743542e3ce7dd82379f0ec9085afd407807b2"
+                },
+                {
+                  "path": "dwg2dxf/dx_plotstyle_source.h",
+                  "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+                },
+                {
+                  "path": "src/intern/dxfstylefont.h",
+                  "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+                },
+                {
+                  "path": "src/intern/dxfviewucs.h",
+                  "sha256": "bcdc6765716229159b899523f1bfb10144301867e1c33fcc928bd496003aca49"
+                },
+                {
+                  "path": "dwg2dxf/dx_viewucs_source.h",
+                  "sha256": "4f574f1bb44d68eedebb04d59b73dbbdcce9186cd11df441cb9c3ddbeb477cf2"
+                },
+                {
+                  "path": "dwg2dxf/dx_viewucs_source_profile.h",
+                  "sha256": "a6b868efeae2aeba4a9fa5beb1c8944d721f63993301f5667b72dbf075f519cd"
+                },
+                {
+                  "path": "src/intern/dxfreader.h",
+                  "sha256": "1d5b02200dc207ca76e7aca41b02f788f62f5c54fd30ab42a87671a8204c82c4"
+                },
+                {
+                  "path": "src/intern/dxfcompound.h",
+                  "sha256": "1661461ef8faeda750ab1e3a15346bee6e4a17258e27bc164b7326eb5566b665"
+                },
+                {
+                  "path": "dwg2dxf/dx_compound_source_profile.h",
+                  "sha256": "3f9a41ffe1055bf1c07069d2f4ba30775459f83a3fd9db7cf9a978e515a99935"
+                }
+              ],
+              "archiveSha256": "6cd29a00d6a10cc1c87f097c9526569f76d81fe9cdbdb5ba6e0715499d5e98d7"
+            },
+            {
+              "name": "libdxfrw-2.0.0.tar.gz",
+              "members": 146,
+              "headers": [
+                {
+                  "path": "dwg2dxf/dx_standard_output.h",
+                  "sha256": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e"
+                },
+                {
+                  "path": "dwg2dxf/dx_iface.h",
+                  "sha256": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e"
+                },
+                {
+                  "path": "dwg2dxf/dx_iface.cpp",
+                  "sha256": "bc94cc9e794b5c8d7fe04a0be8f4920e50202b1295d26b08def523466999f9dd"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendersettings_source_profile.h",
+                  "sha256": "2b6617fefc3aabe50ba860c56ef6d6f46965b6ab398f503f78061ad970fa3104"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_roots.h",
+                  "sha256": "5f2c979590eb33e85b0083c78d66cfe43afabc28d2ccfcec2108f273b30be5a4"
+                },
+                {
+                  "path": "src/intern/dxfobjectphysicalsource.h",
+                  "sha256": "e171bb03660489dfdef2a44c974edd0cbb96d0be476c1732eb6ec7d485e4d76e"
+                },
+                {
+                  "path": "src/drw_interface.h",
+                  "sha256": "333ecfe42fe5826bcd101f0456249a706449e3eed854996edf63f7d6404bc09e"
+                },
+                {
+                  "path": "dwg2dxf/dx_visualstyle_source_profile.h",
+                  "sha256": "b2968dda27f0f896d854a6e695787d50f479e5db5d79a244022fc18d44d0eae7"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_sources.h",
+                  "sha256": "860360ad4f7375665a36770a9e23c1fedf62bf111e89816ecb081efc534e254c"
+                },
+                {
+                  "path": "src/intern/dxfrenderingsource.h",
+                  "sha256": "0a7975f8b1619e42f8a04d06ac1c4995af44dd42d51290f65ca922f41696d7a5"
+                },
+                {
+                  "path": "dwg2dxf/dx_rendering_inputs.h",
+                  "sha256": "3821ea19aa69941c52e9b450cd962f2e905a89506c726de861bf75c746548e16"
+                },
+                {
+                  "path": "src/libdxfrw.h",
+                  "sha256": "61b60780464f3693d1bc7fb9c10a5123ac0bff7090f801421c6264af2a9e065c"
+                },
+                {
+                  "path": "src/drw_objects.h",
+                  "sha256": "d32ec1f06adcd1bf734214c2138b4f4fceec2584bce8285270634293885821e6"
+                },
+                {
+                  "path": "src/intern/dxfrendersettings.h",
+                  "sha256": "56062a502cd0c27d6f2db113dd072b210843037bac4ba2eb2fd72252b1829970"
+                },
+                {
+                  "path": "dwg2dxf/dx_dependency_audit.h",
+                  "sha256": "050ed989015288931f844fc1c42743542e3ce7dd82379f0ec9085afd407807b2"
+                },
+                {
+                  "path": "dwg2dxf/dx_plotstyle_source.h",
+                  "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+                },
+                {
+                  "path": "src/intern/dxfstylefont.h",
+                  "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+                },
+                {
+                  "path": "src/intern/dxfviewucs.h",
+                  "sha256": "bcdc6765716229159b899523f1bfb10144301867e1c33fcc928bd496003aca49"
+                },
+                {
+                  "path": "dwg2dxf/dx_viewucs_source.h",
+                  "sha256": "4f574f1bb44d68eedebb04d59b73dbbdcce9186cd11df441cb9c3ddbeb477cf2"
+                },
+                {
+                  "path": "dwg2dxf/dx_viewucs_source_profile.h",
+                  "sha256": "a6b868efeae2aeba4a9fa5beb1c8944d721f63993301f5667b72dbf075f519cd"
+                },
+                {
+                  "path": "src/intern/dxfreader.h",
+                  "sha256": "1d5b02200dc207ca76e7aca41b02f788f62f5c54fd30ab42a87671a8204c82c4"
+                },
+                {
+                  "path": "src/intern/dxfcompound.h",
+                  "sha256": "1661461ef8faeda750ab1e3a15346bee6e4a17258e27bc164b7326eb5566b665"
+                },
+                {
+                  "path": "dwg2dxf/dx_compound_source_profile.h",
+                  "sha256": "3f9a41ffe1055bf1c07069d2f4ba30775459f83a3fd9db7cf9a978e515a99935"
+                }
+              ],
+              "archiveSha256": "b2417f57d2d36d69c9727a481bfad9ffe048c09262f77aae04d55a75c233b753"
+            }
+          ],
+          "copyfileDisable": true,
+          "appleDoubleMetadataAbsent": true,
+          "fullAutotoolsBuildQualified": false,
+          "cmakeTestSourceReleaseQualified": false,
+          "omittedCmakeTestHelpers": [
+            "tests/render_preset_output_controls.h",
+            "tests/render_preset_graph_output_controls.h",
+            "tests/render_preset_source_controls.h",
+            "tests/object_physical_controls.h",
+            "tests/rendering_source_controls.h",
+            "tests/visual_style_property_controls.h",
+            "tests/rendering_model_controls.h",
+            "tests/rendering_input_failure_controls.h"
+          ]
+        },
+        "packagingCompletedBeforeFinalRuntimes": true,
+        "artifacts": {
+          "asan-build.log": "ec532200020b72846073256136a2c650b26d7d0315019fb410f240674fb765d9",
+          "owning-tests.log": "80943d465196811eca6a0156d1e3d32f88fee9082a6bc1d2f4dbb2e60a243642",
+          "handle-role-review-tests.log": "795c3996e33445b56814a3079bb14910ecabb41134364f521ea0894c2fc66f3b",
+          "normal-build.log": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794",
+          "asan-ucs-options.log": "d07887725d8c7d69ca48b4cbadbb44e2af94e6392fd78f56654059857aee3fd9",
+          "owning-final-tests.log": "6f14d3983dffe9d9efa91424ce1e8685a6b825c48f5ab5b96264b476ead77633",
+          "packaging-autoreconf.log": "4d9c7c110a9364c4bae50c33bbd31d8a5fa2cbc3a27c48fb39846964e615962c",
+          "scoped-handle-controls-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+          "qualification.json": "661f0c141f6e6e4881376bf68190bb14cd05a1448854667b5dc2ab0964180693",
+          "strict-fixture-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "asan-selected.json": "b46fed061ada93be3f2d2862f5fa25f322378143a3a6df21650826fd48927212",
+          "asan-tests.log": "97dff6a244bc3fb3c27f6d9b68359110cf92cb3c13bff9bc5d6467b5bd5229dd",
+          "owning-build.log": "3d2008d66daffd6069aa2d681717c483d93074fe78c5789f107d79834098190d",
+          "make_receipt.py": "0035068e65c71fccc637f4703c27177dcda61105f17fa1beb238aca3f1793dd7",
+          "handle-role-review-build.log": "d73b24e817323709e328397e0c41815bfe9f9cacdc63911ee0147be663c3def4",
+          "run_qualification.py": "847f6f9e9e4d71fb73383f613f148351e1123ed884bbc9b3f7edcd7c7202c2ea",
+          "normal-LastTest.log": "03a7f2d7351ae68cf2d8f50029d40dd5122ec15b93887e3c54cdb40db0aeba83",
+          "normal-tests.log": "19ff341d215021519566f1e47d5210351c767979cea5f51cfd1986a3bb6021a8",
+          "normal-tests.json": "ad46bc8a81657c2ab40bdadae21014230339aeed8159c36f151f1033e9d8e9dc",
+          "normal-viewport-handles.log": "2bd787384672ee1638d86037c977d0b69191b355273d913237fb588e0378c914",
+          "owning-final-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+          "source-check-before-runtime.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+          "scoped-handle-controls-tests.log": "f7ef5d6984e5f59c075ff083afc75ae9c14985ea093755b882f49c6cad62bfd5",
+          "asan-build.json": "2831c4fd5c07666f630066e0bc0bdbbf2276de5026badd52be30df3b19170982",
+          "strict-fixture.json": "84e537abf3b013bb1cb6e665255c663b26140c042e528a73985fae11e6b1258a",
+          "source-check-after-normal.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+          "owning-failure-controls-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+          "normal-selected.json": "7cec87b62d1dc126df9aff16a0ec0c18b1b6f08b33b6f4adfd587cb2386e431f",
+          "baseline-build.log": "6590e45c525f4fc13ac5e60ddc95372e46a4953f05476ff2ebd1fe8e13331395",
+          "packaging.json": "7b9ecf4acb84d7cb8fb514612102d04fb4d0010cb82159ff338a8df2e267dfb1",
+          "normal-build.json": "be83578b996de0586166d987f6f5600e15a72f433e5a3f9f701f50868c03ac2f",
+          "packaging-driver.log": "96e2bc06bbe82904ed60fbab9ecfd57625f863ac0fc64f09396b54f5217b9252",
+          "research.json": "9bfc2acfd69deebb881e3c9f6db3f51e059c4273b5371e6988a779d7128781c8",
+          "selection.json": "3aff6478a992537bfccae9c7b1b2b85f1980c26ea3f7e28fbb8de854cff4d966",
+          "check_packaging.py": "9515285cf4f8236d78f7a1e2479d9c8129adf74dcd0b3212c072e12dc1b1d980",
+          "asan-tests.json": "822083fe6d44c3975393671425eb7749f7e74357ce9a9f943d06d81709c2f12a",
+          "qualification-driver.log": "a0226a5f5c10a0cf142c015c0a5b51fd36df77de30216c3fc8cf99f7a5e0d381",
+          "asan-viewport-handles.log": "2bd787384672ee1638d86037c977d0b69191b355273d913237fb588e0378c914",
+          "baseline-tests.log": "8c1c6bd867dde9ec8c72a924d6d8826a986eefa21345b2d365e16d2735f7cde1",
+          "packaging-dist.log": "7fae2b4cdd2bf9913d2f3519b4c891655534c68a57e3f645ea967209a4aba405",
+          "asan-LastTest.log": "3cb2f6dc5d1a983a69d823601be715e054ebc358d9386c11a05f16b85fb042d4",
+          "normal-ucs-options.log": "d07887725d8c7d69ca48b4cbadbb44e2af94e6392fd78f56654059857aee3fd9",
+          "selection-setup.json": "63d8cb2a9d19720decf7490679a0ee7fd17d5e3af2afab4e8c589a6cb945eb2a",
+          "build_selected.py": "8814191e12eda64fec3634920ec81f6e70c40919585d4b60cbc2ba8714ee6c73",
+          "source-check-after-asan.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+          "packaging-configure.log": "c0a3fd7903ba501bfc4b444b5a02afb794bdaf7ca4b21a4dd78629acb7110785",
+          "configurations.json": "b1244d5d487a94dc492ff2045e60a60ad75b7f9d46fe9c1dd654d9b3e9093de9"
+        }
+      }
+    },
+    "changedAfterCheckpoint": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/render_preset_graph_output_controls.h"
+    ],
+    "final": {
+      "names": [
+        "libdxfrw_render_preset_graph_output",
+        "libdxfrw_render_preset_output",
+        "libdxfrw_render_preset_sources",
+        "libdxfrw_render_settings_owner_order",
+        "libdxfrw_rendering_dxf_projections",
+        "libdxfrw_rendering_original_sources",
+        "libdxfrw_rendering_model_replay",
+        "dwg2dxf_freecad_cli_compat",
+        "dwg2dxf_freecad_installed_cli_compat"
+      ],
+      "regex": "^(libdxfrw_render_preset_graph_output|libdxfrw_render_preset_output|libdxfrw_render_preset_sources|libdxfrw_render_settings_owner_order|libdxfrw_rendering_dxf_projections|libdxfrw_rendering_original_sources|libdxfrw_rendering_model_replay|dwg2dxf_freecad_cli_compat|dwg2dxf_freecad_installed_cli_compat)$",
+      "registrationsMatch": true,
+      "sourceManifestFiles": 432,
+      "bothBuildsAndPackageBeforeRuntimes": true,
+      "normalBeforeAsan": true,
+      "builds": {
+        "normal": {
+          "start": "2026-10-27T21:47:35.185683+00:00",
+          "end": "2026-10-27T21:48:39.642470+00:00",
+          "seconds": 64.45599224999023,
+          "exitCode": 0,
+          "targets": [
+            "libdxfrw_table_content_dxf_tests",
+            "libdxfrw_dwg2dxf_adapter_tests",
+            "libdxfrw_field_retained_budget_tests",
+            "libdxfrw_table_geometry_dxf_tests",
+            "libdxfrw_3d_consumer_probe",
+            "dwg2dxf",
+            "lc3_compat_check",
+            "libdxfrw_dxf_fixture_tests",
+            "libdxfrw_hardening_tests",
+            "libdxfrw_symbol_output_tests",
+            "libdxfrw_gbk_codepage_tests"
+          ]
+        },
+        "asan": {
+          "start": "2026-10-27T21:49:52.152178+00:00",
+          "end": "2026-10-27T21:53:58.964191+00:00",
+          "seconds": 246.80920249999326,
+          "exitCode": 0,
+          "targets": [
+            "libdxfrw_table_content_dxf_tests",
+            "libdxfrw_dwg2dxf_adapter_tests",
+            "libdxfrw_field_retained_budget_tests",
+            "libdxfrw_table_geometry_dxf_tests",
+            "libdxfrw_3d_consumer_probe",
+            "dwg2dxf",
+            "lc3_compat_check",
+            "libdxfrw_dxf_fixture_tests",
+            "libdxfrw_hardening_tests",
+            "libdxfrw_symbol_output_tests",
+            "libdxfrw_gbk_codepage_tests"
+          ]
+        }
+      },
+      "results": {
+        "normal": {
+          "start": "2026-10-27T21:54:23.427281+00:00",
+          "end": "2026-10-27T21:54:33.150217+00:00",
+          "seconds": 9.722708041997976,
+          "exitCode": 0,
+          "executed": [
+            {
+              "name": "libdxfrw_render_preset_graph_output",
+              "status": "Passed    1.64 sec"
+            },
+            {
+              "name": "dwg2dxf_freecad_installed_cli_compat",
+              "status": "Passed    1.36 sec"
+            },
+            {
+              "name": "libdxfrw_rendering_original_sources",
+              "status": "Passed    1.89 sec"
+            },
+            {
+              "name": "libdxfrw_render_preset_sources",
+              "status": "Passed    7.56 sec"
+            },
+            {
+              "name": "libdxfrw_rendering_dxf_projections",
+              "status": "Passed    3.94 sec"
+            },
+            {
+              "name": "dwg2dxf_freecad_cli_compat",
+              "status": "Passed    1.31 sec"
+            },
+            {
+              "name": "libdxfrw_render_preset_output",
+              "status": "Passed    0.33 sec"
+            },
+            {
+              "name": "libdxfrw_rendering_model_replay",
+              "status": "Passed    0.46 sec"
+            },
+            {
+              "name": "libdxfrw_render_settings_owner_order",
+              "status": "Passed    0.82 sec"
+            }
+          ],
+          "passed": 9,
+          "counters": [
+            "Render preset emitted graph profiles=40; dictionary/reference fields=1760; observed field refusals=1240; callback edit rollbacks=88; exact/one-under dictionary limits=2; scoped handle profiles=2; scoped handle rollbacks=6; reached inspector faults=128; unreached offsets=4; corrected inspections=132; corrected retries=96",
+            "Render preset emitted profiles=40; independent body fields=1396; handle/owner checks=80; field/code refusals=2792; raw edit rollbacks=40; corrected retries=40",
+            "Render preset source profiles=240; independent fields=12456; handle/name roles=1680; scalar binder refusals=7944; LAYOUT target uses=480; commented profiles=120; immutable queries=240; schema/root refusals=36; raw export/readbacks=20; typed write/readbacks=20; destination rollbacks=100; exact/one-under source limits=6; reached finalizer failures=230; unreached offsets=4; corrected finalizations=234; corrected retries=142",
+            "Rendering modeled replay profiles=192; actual field refusals=450; common/header/cursor refusals=40; corrected imports=490; exact/one-under replay allowances=8",
+            "Rendering projection profiles=504; exact raw fields=15840; scope controls=6; exact/one-under ownership controls=6; corrected retries=3; public lifetimes=504; typed writer/readback/refusal controls=306",
+            "Rendering source profiles=48; independent physical fields=2496; dictionary key/target fields=192; reference roles=336; rooted target uses=240; primary binder refusals=1632; source/owner/dependency refusals=36; corrected retries=69; exact/one-under limits=6; context refusals=9; prerequisite refusals=6; literal text controls=3; commented source matches=9; immutable queries=50; reached allocations=72; unreached offsets=4; corrected finalizations=76"
+          ]
+        },
+        "asan": {
+          "start": "2026-10-27T21:54:33.183052+00:00",
+          "end": "2026-10-27T21:54:38.951863+00:00",
+          "seconds": 5.768720082996879,
+          "exitCode": 0,
+          "executed": [
+            {
+              "name": "libdxfrw_rendering_dxf_projections",
+              "status": "Passed    1.90 sec"
+            },
+            {
+              "name": "dwg2dxf_freecad_installed_cli_compat",
+              "status": "Passed    1.28 sec"
+            },
+            {
+              "name": "libdxfrw_rendering_original_sources",
+              "status": "Passed    1.06 sec"
+            },
+            {
+              "name": "libdxfrw_render_preset_sources",
+              "status": "Passed    4.31 sec"
+            },
+            {
+              "name": "libdxfrw_render_preset_graph_output",
+              "status": "Passed    0.83 sec"
+            },
+            {
+              "name": "dwg2dxf_freecad_cli_compat",
+              "status": "Passed    0.89 sec"
+            },
+            {
+              "name": "libdxfrw_rendering_model_replay",
+              "status": "Passed    0.30 sec"
+            },
+            {
+              "name": "libdxfrw_render_preset_output",
+              "status": "Passed    0.13 sec"
+            },
+            {
+              "name": "libdxfrw_render_settings_owner_order",
+              "status": "Passed    0.52 sec"
+            }
+          ],
+          "passed": 9,
+          "counters": [
+            "Render preset emitted graph profiles=40; dictionary/reference fields=1760; observed field refusals=1240; callback edit rollbacks=88; exact/one-under dictionary limits=2; scoped handle profiles=2; scoped handle rollbacks=6; reached inspector faults=128; unreached offsets=4; corrected inspections=132; corrected retries=96",
+            "Render preset emitted profiles=40; independent body fields=1396; handle/owner checks=80; field/code refusals=2792; raw edit rollbacks=40; corrected retries=40",
+            "Render preset source profiles=240; independent fields=12456; handle/name roles=1680; scalar binder refusals=7944; LAYOUT target uses=480; commented profiles=120; immutable queries=240; schema/root refusals=36; raw export/readbacks=20; typed write/readbacks=20; destination rollbacks=100; exact/one-under source limits=6; reached finalizer failures=230; unreached offsets=4; corrected finalizations=234; corrected retries=142",
+            "Rendering modeled replay profiles=192; actual field refusals=450; common/header/cursor refusals=40; corrected imports=490; exact/one-under replay allowances=8",
+            "Rendering projection profiles=504; exact raw fields=15840; scope controls=6; exact/one-under ownership controls=6; corrected retries=3; public lifetimes=504; typed writer/readback/refusal controls=306",
+            "Rendering source profiles=48; independent physical fields=2496; dictionary key/target fields=192; reference roles=336; rooted target uses=240; primary binder refusals=1632; source/owner/dependency refusals=36; corrected retries=69; exact/one-under limits=6; context refusals=9; prerequisite refusals=6; literal text controls=3; commented source matches=9; immutable queries=50; reached allocations=72; unreached offsets=4; corrected finalizations=76"
+          ]
+        }
+      }
+    },
+    "finalOwningCounterLines": [
+      "Render preset emitted graph profiles=40; dictionary/reference fields=1760; observed field refusals=1240; callback edit rollbacks=88; exact/one-under dictionary limits=2; scoped handle profiles=2; scoped handle rollbacks=6; reached inspector faults=128; unreached offsets=4; corrected inspections=132; corrected retries=96",
+      "Render preset emitted profiles=40; independent body fields=1396; handle/owner checks=80; field/code refusals=2792; raw edit rollbacks=40; corrected retries=40",
+      "Render preset source profiles=240; independent fields=12456; handle/name roles=1680; scalar binder refusals=7944; LAYOUT target uses=480; commented profiles=120; immutable queries=240; schema/root refusals=36; raw export/readbacks=20; typed write/readbacks=20; destination rollbacks=100; exact/one-under source limits=6; reached finalizer failures=230; unreached offsets=4; corrected finalizations=234; corrected retries=142",
+      "Rendering modeled replay profiles=192; actual field refusals=450; common/header/cursor refusals=40; corrected imports=490; exact/one-under replay allowances=8",
+      "Rendering projection profiles=504; exact raw fields=15840; scope controls=6; exact/one-under ownership controls=6; corrected retries=3; public lifetimes=504; typed writer/readback/refusal controls=306",
+      "Rendering source profiles=48; independent physical fields=2496; dictionary key/target fields=192; reference roles=336; rooted target uses=240; primary binder refusals=1632; source/owner/dependency refusals=36; corrected retries=69; exact/one-under limits=6; context refusals=9; prerequisite refusals=6; literal text controls=3; commented source matches=9; immutable queries=50; reached allocations=72; unreached offsets=4; corrected finalizations=76"
+    ],
+    "fivePriorSelectedCounterLinesUnchanged": true,
+    "sourceManifestFiles": 432,
+    "sourceManifestSha256": "6c6d076beb1b50c3d1ef0a0083be33fbcf5e1b8b67186b602d16d96fcb4ca72a",
+    "sourceManifestUnchangedThroughFinalRuntimes": true,
+    "packaging": {
+      "start": "2026-10-27T21:47:35.625867+00:00",
+      "end": "2026-10-27T21:48:30.310569+00:00",
+      "seconds": 54.68387841699587,
+      "steps": [
+        {
+          "step": "autoreconf",
+          "exitCode": 0
+        },
+        {
+          "step": "configure",
+          "exitCode": 0
+        },
+        {
+          "step": "dist",
+          "exitCode": 0
+        }
+      ],
+      "sourceDirectory": "/Users/dli/dev/libdxfrw/build/rpp5fw-evidence/autotools-source-cardinality-final",
+      "archives": [
+        {
+          "name": "libdxfrw-2.0.0.tar.bz2",
+          "members": 146,
+          "headers": [
+            {
+              "path": "dwg2dxf/dx_standard_output.h",
+              "sha256": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e"
+            },
+            {
+              "path": "dwg2dxf/dx_iface.h",
+              "sha256": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e"
+            },
+            {
+              "path": "dwg2dxf/dx_iface.cpp",
+              "sha256": "a6ebc783dc71170a9d2b032a27feec3b35672be902030b9c221ca24bd4e207a7"
+            },
+            {
+              "path": "dwg2dxf/dx_rendersettings_source_profile.h",
+              "sha256": "2b6617fefc3aabe50ba860c56ef6d6f46965b6ab398f503f78061ad970fa3104"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_roots.h",
+              "sha256": "5f2c979590eb33e85b0083c78d66cfe43afabc28d2ccfcec2108f273b30be5a4"
+            },
+            {
+              "path": "src/intern/dxfobjectphysicalsource.h",
+              "sha256": "e171bb03660489dfdef2a44c974edd0cbb96d0be476c1732eb6ec7d485e4d76e"
+            },
+            {
+              "path": "src/drw_interface.h",
+              "sha256": "333ecfe42fe5826bcd101f0456249a706449e3eed854996edf63f7d6404bc09e"
+            },
+            {
+              "path": "dwg2dxf/dx_visualstyle_source_profile.h",
+              "sha256": "b2968dda27f0f896d854a6e695787d50f479e5db5d79a244022fc18d44d0eae7"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_sources.h",
+              "sha256": "860360ad4f7375665a36770a9e23c1fedf62bf111e89816ecb081efc534e254c"
+            },
+            {
+              "path": "src/intern/dxfrenderingsource.h",
+              "sha256": "0a7975f8b1619e42f8a04d06ac1c4995af44dd42d51290f65ca922f41696d7a5"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_inputs.h",
+              "sha256": "3821ea19aa69941c52e9b450cd962f2e905a89506c726de861bf75c746548e16"
+            },
+            {
+              "path": "src/libdxfrw.h",
+              "sha256": "61b60780464f3693d1bc7fb9c10a5123ac0bff7090f801421c6264af2a9e065c"
+            },
+            {
+              "path": "src/drw_objects.h",
+              "sha256": "d32ec1f06adcd1bf734214c2138b4f4fceec2584bce8285270634293885821e6"
+            },
+            {
+              "path": "src/intern/dxfrendersettings.h",
+              "sha256": "56062a502cd0c27d6f2db113dd072b210843037bac4ba2eb2fd72252b1829970"
+            },
+            {
+              "path": "dwg2dxf/dx_dependency_audit.h",
+              "sha256": "050ed989015288931f844fc1c42743542e3ce7dd82379f0ec9085afd407807b2"
+            },
+            {
+              "path": "dwg2dxf/dx_plotstyle_source.h",
+              "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+            },
+            {
+              "path": "src/intern/dxfstylefont.h",
+              "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+            },
+            {
+              "path": "src/intern/dxfviewucs.h",
+              "sha256": "bcdc6765716229159b899523f1bfb10144301867e1c33fcc928bd496003aca49"
+            },
+            {
+              "path": "dwg2dxf/dx_viewucs_source.h",
+              "sha256": "4f574f1bb44d68eedebb04d59b73dbbdcce9186cd11df441cb9c3ddbeb477cf2"
+            },
+            {
+              "path": "dwg2dxf/dx_viewucs_source_profile.h",
+              "sha256": "a6b868efeae2aeba4a9fa5beb1c8944d721f63993301f5667b72dbf075f519cd"
+            },
+            {
+              "path": "src/intern/dxfreader.h",
+              "sha256": "1d5b02200dc207ca76e7aca41b02f788f62f5c54fd30ab42a87671a8204c82c4"
+            },
+            {
+              "path": "src/intern/dxfcompound.h",
+              "sha256": "1661461ef8faeda750ab1e3a15346bee6e4a17258e27bc164b7326eb5566b665"
+            },
+            {
+              "path": "dwg2dxf/dx_compound_source_profile.h",
+              "sha256": "3f9a41ffe1055bf1c07069d2f4ba30775459f83a3fd9db7cf9a978e515a99935"
+            }
+          ],
+          "archiveSha256": "3178a79cf74a676a46be6e91b9ba81ad36d94bbfc0f81704c04e17889a6d0d2d"
+        },
+        {
+          "name": "libdxfrw-2.0.0.tar.gz",
+          "members": 146,
+          "headers": [
+            {
+              "path": "dwg2dxf/dx_standard_output.h",
+              "sha256": "898fc92d0d70a64041e9207aa631ad02c8cf94bda5b98363a87f42c978e88d9e"
+            },
+            {
+              "path": "dwg2dxf/dx_iface.h",
+              "sha256": "a6373b692d166e461f92fd9983b22bc477c444d9a86e6339552623468275e91e"
+            },
+            {
+              "path": "dwg2dxf/dx_iface.cpp",
+              "sha256": "a6ebc783dc71170a9d2b032a27feec3b35672be902030b9c221ca24bd4e207a7"
+            },
+            {
+              "path": "dwg2dxf/dx_rendersettings_source_profile.h",
+              "sha256": "2b6617fefc3aabe50ba860c56ef6d6f46965b6ab398f503f78061ad970fa3104"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_roots.h",
+              "sha256": "5f2c979590eb33e85b0083c78d66cfe43afabc28d2ccfcec2108f273b30be5a4"
+            },
+            {
+              "path": "src/intern/dxfobjectphysicalsource.h",
+              "sha256": "e171bb03660489dfdef2a44c974edd0cbb96d0be476c1732eb6ec7d485e4d76e"
+            },
+            {
+              "path": "src/drw_interface.h",
+              "sha256": "333ecfe42fe5826bcd101f0456249a706449e3eed854996edf63f7d6404bc09e"
+            },
+            {
+              "path": "dwg2dxf/dx_visualstyle_source_profile.h",
+              "sha256": "b2968dda27f0f896d854a6e695787d50f479e5db5d79a244022fc18d44d0eae7"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_sources.h",
+              "sha256": "860360ad4f7375665a36770a9e23c1fedf62bf111e89816ecb081efc534e254c"
+            },
+            {
+              "path": "src/intern/dxfrenderingsource.h",
+              "sha256": "0a7975f8b1619e42f8a04d06ac1c4995af44dd42d51290f65ca922f41696d7a5"
+            },
+            {
+              "path": "dwg2dxf/dx_rendering_inputs.h",
+              "sha256": "3821ea19aa69941c52e9b450cd962f2e905a89506c726de861bf75c746548e16"
+            },
+            {
+              "path": "src/libdxfrw.h",
+              "sha256": "61b60780464f3693d1bc7fb9c10a5123ac0bff7090f801421c6264af2a9e065c"
+            },
+            {
+              "path": "src/drw_objects.h",
+              "sha256": "d32ec1f06adcd1bf734214c2138b4f4fceec2584bce8285270634293885821e6"
+            },
+            {
+              "path": "src/intern/dxfrendersettings.h",
+              "sha256": "56062a502cd0c27d6f2db113dd072b210843037bac4ba2eb2fd72252b1829970"
+            },
+            {
+              "path": "dwg2dxf/dx_dependency_audit.h",
+              "sha256": "050ed989015288931f844fc1c42743542e3ce7dd82379f0ec9085afd407807b2"
+            },
+            {
+              "path": "dwg2dxf/dx_plotstyle_source.h",
+              "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+            },
+            {
+              "path": "src/intern/dxfstylefont.h",
+              "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+            },
+            {
+              "path": "src/intern/dxfviewucs.h",
+              "sha256": "bcdc6765716229159b899523f1bfb10144301867e1c33fcc928bd496003aca49"
+            },
+            {
+              "path": "dwg2dxf/dx_viewucs_source.h",
+              "sha256": "4f574f1bb44d68eedebb04d59b73dbbdcce9186cd11df441cb9c3ddbeb477cf2"
+            },
+            {
+              "path": "dwg2dxf/dx_viewucs_source_profile.h",
+              "sha256": "a6b868efeae2aeba4a9fa5beb1c8944d721f63993301f5667b72dbf075f519cd"
+            },
+            {
+              "path": "src/intern/dxfreader.h",
+              "sha256": "1d5b02200dc207ca76e7aca41b02f788f62f5c54fd30ab42a87671a8204c82c4"
+            },
+            {
+              "path": "src/intern/dxfcompound.h",
+              "sha256": "1661461ef8faeda750ab1e3a15346bee6e4a17258e27bc164b7326eb5566b665"
+            },
+            {
+              "path": "dwg2dxf/dx_compound_source_profile.h",
+              "sha256": "3f9a41ffe1055bf1c07069d2f4ba30775459f83a3fd9db7cf9a978e515a99935"
+            }
+          ],
+          "archiveSha256": "24a64172bba9e53f08aedfda5ba7ded64ed9dce4c24fd2da2bc41f3baa4d14cf"
+        }
+      ],
+      "copyfileDisable": true,
+      "appleDoubleMetadataAbsent": true,
+      "fullAutotoolsBuildQualified": false,
+      "cmakeTestSourceReleaseQualified": false,
+      "omittedCmakeTestHelpers": [
+        "tests/render_preset_output_controls.h",
+        "tests/render_preset_graph_output_controls.h",
+        "tests/render_preset_source_controls.h",
+        "tests/object_physical_controls.h",
+        "tests/rendering_source_controls.h",
+        "tests/visual_style_property_controls.h",
+        "tests/rendering_model_controls.h",
+        "tests/rendering_input_failure_controls.h"
+      ]
+    },
+    "fullSuiteRun": false,
+    "formalAbiOrNativeApplicationQualification": false,
+    "controlledMemoryOrPerformanceComparison": false,
+    "originalDebugO0AsanUnchanged": true,
+    "evidenceDirectory": "build/rpp5fw-evidence",
+    "artifacts": {
+      "asan-build.log": "1794996729ccf2fc3745a79c365f6ceae588eaa23232bd840c2499c20f0c8e45",
+      "owning-tests.log": "80943d465196811eca6a0156d1e3d32f88fee9082a6bc1d2f4dbb2e60a243642",
+      "final-source-check-after-asan.json": "e18ec8406c564bad2f0d87fa28f3b95e513ac06630519d23ac074d8b3efc3ced",
+      "handle-role-review-tests.log": "795c3996e33445b56814a3079bb14910ecabb41134364f521ea0894c2fc66f3b",
+      "normal-build.log": "7c8d5d79a8e4800220fc231977116ded6a0512e542037e2ecae52e339c60c2fa",
+      "asan-ucs-options.log": "d07887725d8c7d69ca48b4cbadbb44e2af94e6392fd78f56654059857aee3fd9",
+      "owning-final-tests.log": "6f14d3983dffe9d9efa91424ce1e8685a6b825c48f5ab5b96264b476ead77633",
+      "packaging-autoreconf.log": "4d9c7c110a9364c4bae50c33bbd31d8a5fa2cbc3a27c48fb39846964e615962c",
+      "scoped-handle-controls-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "qualification.json": "661f0c141f6e6e4881376bf68190bb14cd05a1448854667b5dc2ab0964180693",
+      "empty-container-reproduction-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "strict-fixture-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "final-source-check-before-runtime.json": "e18ec8406c564bad2f0d87fa28f3b95e513ac06630519d23ac074d8b3efc3ced",
+      "asan-selected.json": "b46fed061ada93be3f2d2862f5fa25f322378143a3a6df21650826fd48927212",
+      "asan-tests.log": "97dff6a244bc3fb3c27f6d9b68359110cf92cb3c13bff9bc5d6467b5bd5229dd",
+      "owning-build.log": "3d2008d66daffd6069aa2d681717c483d93074fe78c5789f107d79834098190d",
+      "production-archive-input-audit.json": "b542fd1a90b15e451a184163d0a19ba809d11430f11b63f3ebde7d84f85629c3",
+      "make_receipt.py": "0035068e65c71fccc637f4703c27177dcda61105f17fa1beb238aca3f1793dd7",
+      "final-qualification-driver.log": "569696cb7bde311088c89ab191adad42c533c4ffe8e0246b53545be158e2d1f5",
+      "handle-role-review-build.log": "d73b24e817323709e328397e0c41815bfe9f9cacdc63911ee0147be663c3def4",
+      "run_final_qualification.py": "0ba867c3c4b11b8b4848be382947834201cb2007452a80768a8b0872122dfc56",
+      "run_qualification.py": "847f6f9e9e4d71fb73383f613f148351e1123ed884bbc9b3f7edcd7c7202c2ea",
+      "normal-LastTest.log": "03a7f2d7351ae68cf2d8f50029d40dd5122ec15b93887e3c54cdb40db0aeba83",
+      "normal-tests.log": "19ff341d215021519566f1e47d5210351c767979cea5f51cfd1986a3bb6021a8",
+      "normal-tests.json": "ad46bc8a81657c2ab40bdadae21014230339aeed8159c36f151f1033e9d8e9dc",
+      "normal-viewport-handles.log": "2bd787384672ee1638d86037c977d0b69191b355273d913237fb588e0378c914",
+      "owning-final-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "source-check-before-runtime.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+      "empty-container-reproduction-tests.log": "44a4cf14f4ba40d3eba445215098d9849a3a144dcd5bd3acd3db944a62ee01d0",
+      "scoped-handle-controls-tests.log": "f7ef5d6984e5f59c075ff083afc75ae9c14985ea093755b882f49c6cad62bfd5",
+      "asan-build.json": "c3bc45dd9d88fe18bde938d6fd621b9a649e7862e32a88eff05cc7fec0e55333",
+      "final-cardinality-change.json": "33fbf22aeded883fffb57f20a9d7dd53f1732671768d470877ebce888d60cb38",
+      "strict-fixture.json": "84e537abf3b013bb1cb6e665255c663b26140c042e528a73985fae11e6b1258a",
+      "source-check-after-normal.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+      "owning-failure-controls-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "final-asan-tests.json": "dd57134a5c04437a17806372cdc47c4aae4a2a552119afdf85db7dbc1d5a3ac1",
+      "final-source-check-after-normal.json": "e18ec8406c564bad2f0d87fa28f3b95e513ac06630519d23ac074d8b3efc3ced",
+      "normal-selected.json": "7cec87b62d1dc126df9aff16a0ec0c18b1b6f08b33b6f4adfd587cb2386e431f",
+      "baseline-build.log": "6590e45c525f4fc13ac5e60ddc95372e46a4953f05476ff2ebd1fe8e13331395",
+      "final-asan-tests.log": "0f5b1ea9a82f07e9b7c9736b8d900b48730717a19d3e1e0df70331effbab6512",
+      "make_final_receipt.py": "c7ec55dd589ca65671dc944e899c64e9f463242f1f6afbbf8f72115ba293ab9e",
+      "packaging.json": "2fbace5a9939506ce1478355bed338d05d761a93d3368f5c347b07ee15b5049e",
+      "normal-build.json": "65c3257b104839f8a9faae4bd8c70592614e02fb700778f4b925c30019414195",
+      "packaging-driver.log": "4973178805789e7d2e1cbd2a2104d2ee9825bf63cb80fe43a36ddc7f75a7d72e",
+      "research.json": "99e5c2470f1ebb3533db14638f8d1fd45a2b7d95220d572ae7fc3cd959d80c54",
+      "final-normal-tests.log": "ff2b5efe172e4727d154e0b19fd579ce0f47d5d37864dc45a84e94e8178f422a",
+      "selection.json": "3aff6478a992537bfccae9c7b1b2b85f1980c26ea3f7e28fbb8de854cff4d966",
+      "check_packaging.py": "6d1910106140491e0f7541fb3015a83c0d4a477e8408c4451d9b33f85d3f3558",
+      "asan-tests.json": "822083fe6d44c3975393671425eb7749f7e74357ce9a9f943d06d81709c2f12a",
+      "qualification-driver.log": "a0226a5f5c10a0cf142c015c0a5b51fd36df77de30216c3fc8cf99f7a5e0d381",
+      "asan-viewport-handles.log": "2bd787384672ee1638d86037c977d0b69191b355273d913237fb588e0378c914",
+      "baseline-tests.log": "8c1c6bd867dde9ec8c72a924d6d8826a986eefa21345b2d365e16d2735f7cde1",
+      "packaging-dist.log": "1ac2232f56841a65b3a3657c3554d39abea60293754c8533214e0cf2a9af6ce6",
+      "asan-LastTest.log": "3cb2f6dc5d1a983a69d823601be715e054ebc358d9386c11a05f16b85fb042d4",
+      "normal-ucs-options.log": "d07887725d8c7d69ca48b4cbadbb44e2af94e6392fd78f56654059857aee3fd9",
+      "final-qualification.json": "1cf7e01ea4b8846ad4699d1b81b20a6368f862494062cf5f0f6b648ceb58be33",
+      "final-registration.json": "9851902e5277db5af2ea1010c04050fd0a204770d3077118775fa067bdb666a1",
+      "selection-setup.json": "63d8cb2a9d19720decf7490679a0ee7fd17d5e3af2afab4e8c589a6cb945eb2a",
+      "build_selected.py": "8814191e12eda64fec3634920ec81f6e70c40919585d4b60cbc2ba8714ee6c73",
+      "source-check-after-asan.log": "152153d90a8c0ad35f7e3c3747fe113903639f4c4189a271172743f8d2cd1627",
+      "final-normal-tests.json": "18143f5d626d2520ef64d8ef40cc61324de37eea33e29e43b05f8f5a42a5e430",
+      "packaging-configure.log": "c0a3fd7903ba501bfc4b444b5a02afb794bdaf7ca4b21a4dd78629acb7110785",
+      "configurations.json": "b1244d5d487a94dc492ff2045e60a60ad75b7f9d46fe9c1dd654d9b3e9093de9"
+    }
+  },
+  "developmentEvidence": {
+    "baselineFailure": "baseline-tests.log",
+    "baselineBuild": "baseline-build.log",
+    "initialOwningControls": "owning-final-tests.log",
+    "roleCorrectedControls": "scoped-handle-controls-tests.log",
+    "supersededBuilds": {
+      "asan-build.log": "acd868037c701d135928b429b2b549f689a7c36ebc818cdcadde4b0d4e703448",
+      "sources-before.sha256": "c0f1aa81425680192856409e7f3d8108fd7ab301432ba49dbe4e23ba353d3330",
+      "normal-build.log": "0a87a71271524f9a5dab9fbea712b1ec570ae73f1201448013d9989708039d06",
+      "owning-final-tests.log": "6f14d3983dffe9d9efa91424ce1e8685a6b825c48f5ab5b96264b476ead77633",
+      "packaging-autoreconf.log": "4d9c7c110a9364c4bae50c33bbd31d8a5fa2cbc3a27c48fb39846964e615962c",
+      "asan-build.json": "1ea33e50416f45998b2a47a453f71ed80829f0dcc75b16ee199edf69d0208afa",
+      "packaging.json": "6c32ab6dee4334efa1bc7dd637a5690d461b5ff4015999bf2d3bb3dee60a3566",
+      "normal-build.json": "e447ef9af6aac5128ea4abc7800e027c716a6c8a0701f70db57529cf17cdfc52",
+      "packaging-driver.log": "487fe9411afb27762789b27648615416ea9a6e5300f5393a2721f16f2fd754b6",
+      "packaging-dist.log": "842a5ace51184bd252e247f9c8c1e0938fa54957194a8a0f9ab6ace407d3108b",
+      "packaging-configure.log": "c0a3fd7903ba501bfc4b444b5a02afb794bdaf7ca4b21a4dd78629acb7110785"
+    },
+    "note": "Superseded builds/package checks completed, but no final runtime qualification is claimed for those inputs. Final runtime uses the432-file corrected manifest.",
+    "emptyContainerFailure": "empty-container-reproduction-tests.log",
+    "finalChange": "final-cardinality-change.json",
+    "broadSourceManifest": "broad-qualified/sources-before.sha256",
+    "finalSourceManifest": "sources-before.sha256"
+  },
+  "documentationSha256": {
+    "docs/3D_CONSUMER_CONTRACT.md": "2dc93b7113296ccb8a3823060a9e2acad94554a48c0fbbcc8f7b165eb4e0f79b"
+  }
+}

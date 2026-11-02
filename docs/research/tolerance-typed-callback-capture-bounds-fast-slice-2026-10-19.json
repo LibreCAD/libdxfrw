@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c TOLERANCE typed callback retention",
+  "scope": [
+    "Account DRW_Tolerance text and dimStyleName strings in typed callback byte estimates",
+    "Fail closed before entity publication when combined tolerance retained bytes exceed the existing budget"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "A tolerance-specific estimator now charges both owned strings with the existing logical terminator allowance.",
+      "Generated in-memory controls assert exact default and populated accounting, deep-copy preservation, and one-byte-over aggregate-budget refusal before entity publication."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --typed-entity-capture-limits",
+    "ctests": [
+      {
+        "name": "dwg2dxf_typed_entity_capture_limits",
+        "result": "passed"
+      }
+    ],
+    "diff_check": "passed for implementation, test, plan, and receipts",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "The byte estimate is logical size-based, not allocator-capacity or RSS accounting.",
+    "This closes TOLERANCE typed-callback retention accounting only; format semantics and native consumer qualification remain separate."
+  ]
+}

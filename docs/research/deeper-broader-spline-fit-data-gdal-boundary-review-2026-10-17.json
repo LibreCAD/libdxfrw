@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw-deeper-broader-spline-fit-data-gdal-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the ACadSharp #1299 SPLINE report with the Autodesk DXF field contract, GDAL's documented DXF projection and its open fit-only SPLINE error report, then identify the smallest local validation gap without promoting an unverified peer failure.",
+  "method": {
+    "kind": "Primary-source web research plus targeted local source/test/plan inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "gdalExecutableRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-5E7D51E2-1595-4E0C-85F8-2D7CBD166A08.htm",
+      "https://github.com/OSGeo/gdal/issues/10397",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/DomCR/ACadSharp/issues/1299"
+    ],
+    "localFilesInspected": [
+      "src/drw_entities.cpp: DRW_Spline::parseCode, validateDxf, and fit/control payload checks",
+      "src/libdxfrw.cpp: writeDxfSplineBody tag counts and fit/control/tangent emission",
+      "tests/dwg_local_roundtrip_tests.cpp: generated fit-only SPLINE in runDxfSplineHelixRoundTrip and target registration",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-22/7H/7I/7AB and prior ACadSharp/GDAL SPLINE reviews"
+    ],
+    "artifactStatus": "ACadSharp #1299 links a DWG/DXF ZIP that was not downloaded. GDAL #10397 contains a textual AcDbSpline excerpt reporting five fit points and a GDAL 3.9.0 error; it is a separate input/report and was not independently reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk documents distinct SPLINE fit-point and control-point payloads",
+      "observed": "The Autodesk DXF reference identifies group 73 as control-point count and group 10/20/30 as control points, while group 74 counts optional fit points and group 11/21/31 carries fit points. The SPLINE command reference describes fit-point and control-vertex construction as separate methods.",
+      "boundary": "These references do not validate every omission, malformed count, producer variant, or the private ACadSharp #1299 file.",
+      "disposition": "Maintain fit-only and control-only as separate payload modes. Do not fabricate one mode from the other."
+    },
+    {
+      "topic": "GDAL issue #10397 is a fit-only compatibility lead, not a libdxfrw reproduction",
+      "observed": "The still-open issue reports GDAL 3.9.0 on Windows failing on a shown AcDbSpline with degree 3, fit count 5, repeated fit points and tangent/tolerance fields, but no visible group 10 control-point values. It is not the ACadSharp #1299 source or emitted DXF.",
+      "boundary": "The issue excerpt does not establish full-file validity, whether omitted group 73 is accepted by all producers, or the behavior of current GDAL releases. It gives no evidence of a local libdxfrw failure.",
+      "disposition": "Add a locally-authored ephemeral fit-only input under the existing SPLINE owner; do not copy the report as a committed fixture or change parser policy to imitate GDAL."
+    },
+    {
+      "topic": "GDAL's DXF route is a lossy projection and not a raw SPLINE oracle",
+      "observed": "Current GDAL documentation maps SPLINE to a tessellated OGR LINESTRING and states that the interpolated polyline has eight vertices per control point. RawCodeValues contains only tags not handled by the reader, so handled SPLINE arrays are not preserved there as a full raw record.",
+      "boundary": "The current documentation does not settle the historical GDAL 3.9.0 issue or establish exact behavior for the fit-only case.",
+      "disposition": "Pin GDAL and options only at the composed optional checkpoint. Record exact diagnostic and projected geometry separately; neither parse failure nor tessellation is a canonical DXF/SPLINE semantic verdict."
+    },
+    {
+      "topic": "Local code and tests support fit-only SPLINE but the current input coverage is self-generated",
+      "observed": "Local parse/validation allows a nonempty fit list with empty control, knot, and weight lists. The writer emits group 73 from control-list size and group 74 from fit-list size before fit coordinates. Existing ASCII/Binary API round-trip controls include a fit-only spline and check fit points and tangents.",
+      "boundary": "The current control begins from a libdxfrw model and is read by the same library; it does not independently exercise input tag order or assert the raw 73=0/74=n wire sequence.",
+      "disposition": "Extend the existing local-roundtrip target with a focused source-generated fit-only ASCII/Binary input, an output-wire assertion, and a following-LINE sentinel. No fixture file or new CTest is required."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastNextAction": "Add one fit-only SPLINE ASCII/Binary in-memory source pair and writer-wire assertion in the existing local-roundtrip target; expose a focused selector, preserve a following-LINE sentinel, and defer GDAL to the composed optional checkpoint.",
+    "qualificationBoundary": "Exact SPLINE tag/model preservation, independent curve semantics, GDAL OGR projection, and native CAD acceptance are separate outcomes. GDAL issue #10397 and ACadSharp #1299 do not promote support or establish a local defect."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "gitDiffCheck": true,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

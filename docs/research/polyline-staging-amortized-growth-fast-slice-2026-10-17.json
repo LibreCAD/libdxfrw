@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-polyline-staging-amortized-growth-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PARTIAL_IMPLEMENTATION_LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Implement the bounded amortized-capacity-growth substep of PAR-92 / 7BA for DWG POLYLINE child staging; retain all membership, ordering, and ownership work as open.",
+  "implementation": {
+    "productionFiles": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp"
+    ],
+    "behavior": [
+      "Add internal checked geometric reservation helpers for vectors and unordered maps, each bounded by an explicit element-count ceiling and with allocation exceptions converted to a false result.",
+      "Use geometric reservation for the pending POLYLINE owner map, child-first orphan owner map, and orphan child vector; remove the redundant per-child reserve from the declared-parent staged-child vector, which is pre-reserved from the declared child list.",
+      "Reject declared child counts above dwgSafety::MaxOwnedObjectCount and inconsistent adopted-orphan counts before staging publication.",
+      "Preserve authoritative declared-child order and existing callbacks/ownership behavior; no membership index, reverse claim index, aggregate byte budget, or deterministic worst-case map guarantee is introduced."
+    ],
+    "testFiles": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "testCoverage": [
+      "Generated in-memory component control grows a vector and unordered_map through 512 entries and bounds growth events to at most 10 vector capacity changes and 12 bucket-count changes on the configured standard library.",
+      "The control verifies count-ceiling refusal does not change capacity and verifies vector and owner-map reservation allocation failures are rejected; the owner map succeeds on a subsequent retry.",
+      "A focused --polyline-staging-growth selector is wired into the existing reader-matrix executable; the ordinary matrix invokes the same test."
+    ],
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_reader_matrix$'",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/intern/dwgreader.h src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp docs/research/polyline-staging-amortized-growth-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedGrowthSelector": "passed",
+      "owningReaderMatrixCTest": "passed: 1/1",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false
+  },
+  "qualification": {
+    "odaSpecChangedOrReinterpreted": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "127/71; PAR-92/7BA remains open",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing modifications and mixed implementation work"
+  },
+  "remaining": [
+    "Build bounded declared-handle to source-position and staged-handle membership structures without replacing the authoritative child order.",
+    "Bound cross-parent claims with a reverse index or measured alternative and preserve competing-owner rejection semantics.",
+    "Add aggregate live and peak capacity/index byte accounting, including repeated claims and allocation-failure rollback; the one-million-element ceiling is not a byte budget.",
+    "Add parent-first, child-first, reverse/interleaved arrival, competing-parent, missing/duplicate/foreign child, adoption, SEQEND, terminalization, lease, and retry transcripts with bounded operation counters.",
+    "Re-profile the original comparison workload after the membership indexes land; keep full suites/sanitizers at the scheduled composed checkpoint."
+  ],
+  "nextReadinessSlice": "Design and implement a bounded declared/staged membership index with small direct work counters while retaining callback order and staged-frame identity; do not combine it with reverse-claim semantics until rollback and owner-claim lifetimes are mapped."
+}

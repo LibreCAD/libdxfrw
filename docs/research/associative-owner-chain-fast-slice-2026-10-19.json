@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-06/7BV.4b bounded associative owner-chain reachability",
+  "mode": "Generated local ASCII/Binary fast controls plus primary-source status review; implementation progress",
+  "baselineCommit": "de27a33",
+  "changes": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_data.h",
+        "sha256": "64c78b387511d2e84515bfc8c4787b1a3b0fd7de337f727ba6d032824479892a",
+        "change": "Added rooted owner-chain count and scan-complete evidence to the associative DXF import receipt, explicitly separated from graph closure and serializer qualification."
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "4caa8350357ea86acbdcfd315bfd61469de2b86e74358b54379aa2d6e0a3e389",
+        "change": "Added a bounded owner inventory over typed dictionaries and associative records, requiring each dictionary-to-child edge in the typed entry list and the chain to reach the position-identified NOD."
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "eff3f99f59afebe521f99ca353aab5735e25effd538cab58ed18f30476fb1436",
+        "change": "Added generated rooted NOD/dictionary/action graphs to ASCII, Binary, and strict-refusal controls; verified rooted count and numeric diagnostics."
+      }
+    ]
+  },
+  "research": {
+    "sources": [
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "observation": "The reviewed mutable master registry marks ASSOCACTION and ASSOCACTIONPARAM UNSTABLE, several related types UNSTABLE or DEBUGGING, and some related types STABLE."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "observation": "The current documentation lists ASSOCACTION, ASSOCNETWORK, and ASSOCGEOMDEPENDENCY among unhandled/broken/undertested features and also describes several associative routes as halfway. This is not a field grammar or semantic oracle."
+      }
+    ],
+    "lineageAndPinning": "LibreDWG is an independent implementation route but shares ODA specification lineage. These mutable master pages were not bound to an immutable commit in this pass; their status labels are discovery evidence only, not independent qualification."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "passed; 2/2 tests"
+    },
+    {
+      "command": "cmake --build build --target dwg2dxf lc3_compat_check -j2",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "result": "passed"
+    }
+  ],
+  "limits": {
+    "ownerInventoryCaps": {
+      "nodes": 200000,
+      "dictionaryEdges": 200000,
+      "ownerDepth": 64
+    },
+    "semanticBoundary": "Proves only a typed owner chain through known DICTIONARY/associative nodes, with dictionary entries checked on DICTIONARY edges. It does not prove class-specific references, all OBJECTS ownership classes, reactors, arbitrary data references, output-handle bindings, or semantic evaluation. qualifiedRecords remains zero and strict output still refuses."
+  },
+  "commit": {
+    "created": false,
+    "reason": ".git is read-only in this workspace; preserve the existing dirty worktree without staging unrelated changes."
+  }
+}

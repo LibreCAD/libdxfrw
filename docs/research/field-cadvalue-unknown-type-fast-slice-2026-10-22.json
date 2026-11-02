@@ -1,0 +1,52 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-unknown-type",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "e2a996ae26e30ad99645b367da667b4d383e7cc9fed6e0f5828b36d6ba1a4b07",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "kUnknown (type 0) semantic completeness and writer admission",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA names type 0 kUnknown and defines a BL payload framing, but does not give it known typed semantics.",
+    "localGap": "FIELD readCadValue accepted the integer-shaped BL as a complete typed value, unlike TABLE's semantic-incomplete disposition for type 0. The typed FIELD validity predicate also did not reject parser-retained incomplete shells."
+  },
+  "change": "FIELD type 0 with a BL payload now returns through the bounded incomplete-shell path while retaining the observed integer-shaped value for diagnostics. Empty type-0 values are also marked incomplete after CadValue parsing. DRW_Field::isDwgPayloadValid rejects parser-retained incomplete shells, preventing encodeDwg from emitting them as complete typed records.",
+  "generatedControls": {
+    "ac1021": [
+      "type-0 BL payload retained only in an incomplete shell",
+      "empty-flag type-0 value remains incomplete",
+      "typed validity and DWG re-encoding refuse incomplete shells"
+    ],
+    "ac1024": [
+      "type-0 BL payload retained only in an incomplete shell",
+      "empty-flag type-0 value remains incomplete",
+      "typed validity and DWG re-encoding refuse incomplete shells"
+    ]
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (14/14)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

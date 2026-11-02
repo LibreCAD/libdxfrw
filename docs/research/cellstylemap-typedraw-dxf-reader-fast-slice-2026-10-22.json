@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "CELLSTYLEMAP typed/raw DXF reader path",
+  "mode": "Generated ASCII/Binary writer output imported through dx_iface",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "ee8fd4082e3aaeb627fa250f7498de7fc7a1590bfb49db2c429aaeaf0b1466a3",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.101 TABLESTYLE", "20.4.102 CELLSTYLEMAP"],
+      "pages": "244-246",
+      "finding": "The map parser follows the documented style/content and TABLESTYLE extension-dictionary object model."
+    },
+    {
+      "title": "LibreDWG DXF marker mapping and importer",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "finding": "Used as a peer schema cross-check for CELLSTYLEMAP marker/group-code framing; not used as evidence of native CAD acceptance."
+    }
+  ],
+  "implementation": {
+    "changes": [
+      "Added CELLSTYLEMAP to OBJECTS dispatch and a dedicated typed parser with record-state/count/identity validation for cell-style, content, margin, grid, color, handle, and name groups.",
+      "Withheld typed callbacks when parser state or versioned style identity is invalid while retaining the full ordered raw DXF object carrier.",
+      "Stored CELLSTYLEMAP raw carriers under the existing bounded SORTENTSTABLE/TABLESTYLE raw-record/group/byte budget; typed callback copies remain under CELLSTYLEMAP's existing typed budget.",
+      "Extended generated ASCII/Binary output tests to import through dx_iface and assert typed/raw retention plus remapped text-style and linetype references."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/cellstylemap-typedraw-dxf-reader-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2 (-Werror)",
+    "generatedWriterAndReadback": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --cell-style-map-dxf-writer (ASCII and Binary output, typed/raw import, IDs/names, remapped references)",
+    "focusedCtest": "PASS: libdxfrw_cellstylemap_dxf_writer (1/1)",
+    "failClosedAdapter": "PASS: --cell-style-map-typed-capture-fail-closed",
+    "compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "diffCheck": "PASS: scoped to CELLSTYLEMAP parser, adapter, graph, test, plan, and receipt files",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "independentDxfReaderRun": 0,
+    "cellStyleMapTypedRawDxfReaderImplemented": true,
+    "cellStyleMapRootedGraphPreflightImplemented": true,
+    "dxfOriginCellStyleMapGraphAccepted": false,
+    "fileExportGraphRoundtripImplemented": false,
+    "adapterExportGateRemainsFailClosed": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Pair DXF-origin typed maps with raw carriers in the rooted graph, verify exact raw/typed identity and projection, and implement generated ASCII/Binary fileExport/readback for the complete owner closure."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  },
+  "researchConclusion": {
+    "resolved": "Generated ASCII and Binary CELLSTYLEMAP objects emitted by the low-level writer can now be imported into both typed records and bounded ordered raw carriers by dx_iface, with handle references preserved.",
+    "unresolved": "The graph preflight does not yet admit DXF-origin maps, and no fileExport/readback object-graph roundtrip or independent reader acceptance is proven. The adapter must continue refusing all map exports."
+  }
+}

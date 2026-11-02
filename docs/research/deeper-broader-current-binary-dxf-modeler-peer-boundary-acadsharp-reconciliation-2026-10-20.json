@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Current Binary-DXF/modeler peer boundary and ACadSharp report reconciliation",
+  "mode": "Primary-source/documentation and issue-body research only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh GDAL's current Binary-DXF and 3D extensibility boundaries against its historical known-issues page.",
+    "Reconcile ACadSharp issues #1297 and #1299 to existing local MTEXT/SPLINE owners and evidence gates.",
+    "Refine optional peer/native readiness without expanding routine validation or importing customer fixtures."
+  ],
+  "sources": [
+    {
+      "name": "GDAL current DXF driver documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observations": [
+        "Binary-DXF input is documented starting with GDAL 3.12.",
+        "AC1027+ DXF_3D_EXTENSIBLE_MODE exposes raw ASMData and a 12-real ASMTransform; the default reader skips 3DSOLID, REGION, BODY, and SURFACE.",
+        "The route is an OGR feature projection; spline geometry is tessellated and the driver does not convert ASM payloads to OGR B-rep geometry."
+      ]
+    },
+    {
+      "name": "GDAL historical DXF known-issues page",
+      "url": "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+      "observations": [
+        "The page is approximately eight years old and should not be used alone as the current capability matrix."
+      ]
+    },
+    {
+      "name": "ACadSharp issue #1297",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "observations": [
+        "The report describes AutoCAD 2025 rejecting an AC1032 DWG with MTEXT frame-only flag 16 while reported flag 17 and AC1027 flag 16 controls open.",
+        "The issue reports a byte-identical MTEXT object after a correction while whole-file rejection remained; absent style objects are hypotheses, not an isolated cause.",
+        "The issue is peer DWG-writer/native evidence and does not establish a libdxfrw defect."
+      ]
+    },
+    {
+      "name": "ACadSharp issue #1299",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "observations": [
+        "The report attaches source DWG and converted DXF and names ACadSharp NuGet 3.8.0, but does not identify the failing SPLINE handle/arrays, GDAL build/options, or independent expected curve.",
+        "The attached customer ZIP was not downloaded or inspected."
+      ]
+    }
+  ],
+  "planEdits": {
+    "addedTopSummary": true,
+    "addedResearchSection": true,
+    "updatedImplementationOrder": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "localTestsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuiteRun": false,
+    "receiptJsonValidation": "PASS: jq empty",
+    "scopedDiffCheck": "PASS: git diff --check for plan; awk trailing-whitespace check for both receipts"
+  },
+  "assessment": {
+    "localDisposition": "Reuse existing generated MTEXT flag/version vectors, SPLINE controls, and composed native evidence gates; no new local defect or test was identified.",
+    "implementationSpeed": "No optional peer, external drawing, native app, or full suite added to per-slice validation. Missing external evidence remains NOT_RUN/DEFERRED_EXTERNAL and must not stop local implementation.",
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

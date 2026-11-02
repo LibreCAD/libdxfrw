@@ -1,0 +1,1051 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "committed_baseline": "5c3c76e11ab34b7d7266315b8d733aacd5f7b60a",
+  "owner": "PAR-05 / Slice 3; comparator calibration PAR-57/77",
+  "scope": "Unit codec and declared alias policy only. No DWG ingest, generated drawing, native CAD, independent CAD round-trip or support qualification.",
+  "source_sha256": {
+    "src/intern/drw_textcodec.cpp": "f83f8fdb1e454e7c8edd9674a8dc5adf2909f3684e81012486208addb067ab31",
+    "src/intern/drw_textcodec.h": "cfe0fa8faf55f9a4c1dc5ad66b55227814e1107d430519dafa2fa120e9114300",
+    "src/intern/drw_cptables.h": "76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0",
+    "src/intern/drw_cptable932.h": "3e51e2fc41a81cbdeebae79336d3a09fbcbc1e8db00406942f3f48921b268118",
+    "src/intern/drw_cptable936.h": "01049223b0a592a420990c112991249573c44732684130ac81f6732b7fa8cb30",
+    "src/intern/drw_cptable949.h": "422e5f2665cd60c90e111b436dbec4e96c423081016aab618eef5920601fabe5",
+    "src/intern/drw_cptable950.h": "92a64407ebaf7f0ed9d18c420ccab1ab32608ffd057499a35e8884a6938eb470",
+    "src/intern/dwgreader.cpp": "dcea98497365303865f714d4c78bb27341fb0ebc5abf307a24b47dfdb4b68dbe",
+    "src/drw_datastorage.cpp": "152a5dbf10fd68eee2fbe293b02cb39ef4cbb195b0271877d5ad514994922401",
+    "src/drw_acis.cpp": "af8599262d726fa8c45c75bce36e7a369039ce3c062c0cd7984a3c69d4931139",
+    "tests/gbk_codepage_tests.cpp": "aeea87a658f5eb100a98a27661e984a1d571a783d4e6cd3f994d7645da7105ed"
+  },
+  "unchanged_existing_wip_sha256": {
+    "src/libdxfrw.cpp": "e89eb55dab8a94ceaf99bdfa9d6a881746d050739f8d61ebf244e54fda10ea53",
+    "src/libdxfrw.h": "c2a5af7a72b91e783b6e3a7271eda5f3d67bcec5d60320426b2a46d00ea70613",
+    "tests/modeler_block_census_tests.cpp": "8b55f92662b62e62b74c8cb0c80a0b458629531a5589e9b89149a35af73c2aa1",
+    "tests/dwg_local_roundtrip_tests.cpp": "bf63d4dc18608f9513777fe235e315bede737d82fa25e48718ebb0e82ebca6a1"
+  },
+  "runtime": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "target": "arm64-apple-darwin27.0.0",
+    "python": "3.9.6 (default, Aug 25 2026, 21:26:21) \n[Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "reproduction": {
+    "scratch_directory": "/private/tmp/libdxfrw-broader-codec.YMVBfJ",
+    "compile": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc DIRECTORY/probe.cpp src/intern/drw_textcodec.cpp -o DIRECTORY/probe",
+    "run": "python3 DIRECTORY/compare.py DIRECTORY/probe",
+    "compile_and_run_exit_code": 0,
+    "source_version": "DRW::AC1015",
+    "probe_cpp_sha256": "79cbba78c6000a043782933d1f97fe5eed7682211cb2a398aefdd12d8d92f901",
+    "oracle_script_sha256": "f439ce8bc28433ee8a7c1fe128504054a53cbe913292bfeea69c103be1fd55b5",
+    "executable_sha256": "fb5c97c7c82b6c78e0d87af20dbdc4a05b1e65242a5233ac643d57000f40c695",
+    "probe_cpp": "#include \"intern/drw_textcodec.h\"\n#include <clocale>\n#include <iomanip>\n#include <iostream>\n#include <sstream>\n#include <string>\n\nstd::string hex(const std::string& input) {\n    std::ostringstream out;\n    for (unsigned char byte : input)\n        out << std::hex << std::setw(2) << std::setfill('0')\n            << static_cast<unsigned int>(byte);\n    return out.str();\n}\n\nstd::string bytes(const std::string& input) {\n    std::string out;\n    for (std::size_t i = 0; i < input.size(); i += 2)\n        out.push_back(static_cast<char>(std::stoul(input.substr(i, 2), nullptr, 16)));\n    return out;\n}\n\nint main(int argc, char** argv) {\n    if (argc == 2 && std::setlocale(LC_CTYPE, argv[1]) == nullptr)\n        return 77;\n    struct Row { const char* name; const char* input; const char* oracle; };\n    const Row rows[] = {\n        {\"ANSI_1252\", \"80\", \"cp1252\"}, {\"LATIN1\", \"80\", \"iso8859_1\"},\n        {\"ISO-8859-1\", \"80\", \"iso8859_1\"}, {\"ISO8859-2\", \"a1\", \"iso8859_2\"},\n        {\"ISO8859-3\", \"a1\", \"iso8859_3\"}, {\"ISO8859-4\", \"a1\", \"iso8859_4\"},\n        {\"ISO8859-5\", \"b0\", \"iso8859_5\"}, {\"KOI8-R\", \"e1\", \"koi8_r\"},\n        {\"KOI8-U\", \"e1\", \"koi8_u\"}, {\"IBM 866\", \"80\", \"cp866\"},\n        {\"CP866\", \"80\", \"cp866\"}, {\"IBM 850\", \"80\", \"cp850\"},\n        {\"CP850\", \"80\", \"cp850\"}, {\"APPLE ROMAN\", \"80\", \"mac_roman\"},\n        {\"MACINTOSH\", \"80\", \"mac_roman\"}, {\"ISO8859-6\", \"ac\", \"iso8859_6\"},\n        {\"ISO8859-7\", \"a1\", \"iso8859_7\"}, {\"ISO8859-8\", \"e0\", \"iso8859_8\"},\n        {\"ISO8859-9\", \"d0\", \"iso8859_9\"}, {\"ISO8859-10\", \"a1\", \"iso8859_10\"},\n        {\"ISO8859-13\", \"a1\", \"iso8859_13\"}, {\"ISO8859-15\", \"a4\", \"iso8859_15\"},\n        {\"ISO8859-8\", \"df\", \"iso8859_8\"}, {\"ISO8859-9\", \"80\", \"iso8859_9\"},\n        {\"EUC-JP\", \"a4a2\", \"euc_jp\"}, {\"ANSI_932\", \"82a0\", \"cp932\"},\n        {\"GB18030\", \"81308130\", \"gb18030\"}, {\"ANSI_936\", \"d6d0\", \"gbk\"},\n        {\"ANSI_949\", \"b0a1\", \"cp949\"}, {\"ansi_949\", \"b0a1\", \"cp949\"},\n        {\"BIG5-HKSCS\", \"8862\", \"big5hkscs\"}, {\"ANSI_950\", \"a4a4\", \"cp950\"},\n        {\"BIG5-HKSCS\", \"8864\", \"big5hkscs\"},\n        {\"BIG5-HKSCS\", \"88a3\", \"big5hkscs\"},\n        {\"BIG5-HKSCS\", \"88a5\", \"big5hkscs\"}\n    };\n    for (bool dxf : {false, true}) {\n        for (const auto& row : rows) {\n            DRW_TextCodec codec;\n            codec.setVersion(DRW::AC1015, dxf);\n            codec.setCodePage(row.name, dxf);\n            const std::string decoded = codec.toUtf8(bytes(row.input));\n            std::cout << \"{\\\"alias\\\":\\\"\" << row.name << \"\\\",\\\"oracle\\\":\\\"\"\n                      << row.oracle << \"\\\",\\\"dxf\\\":\" << (dxf ? \"true\" : \"false\")\n                      << \",\\\"input_hex\\\":\\\"\" << row.input << \"\\\",\\\"selected\\\":\\\"\"\n                      << codec.getCodePage() << \"\\\",\\\"decoded_utf8_hex\\\":\\\"\"\n                      << hex(decoded) << \"\\\",\\\"reencoded_hex\\\":\\\"\"\n                      << hex(codec.fromUtf8(decoded)) << \"\\\",\\\"redecoded_utf8_hex\\\":\\\"\"\n                      << hex(codec.toUtf8(codec.fromUtf8(decoded))) << \"\\\"}\\n\";\n        }\n    }\n}\n",
+    "oracle_script": "import codecs\nimport json\nimport subprocess\nimport sys\n\nresult = []\nfor locale in (\"C\", \"tr_TR.ISO8859-9\"):\n    proc = subprocess.run([sys.argv[1], locale], capture_output=True, text=True,\n                          timeout=15, check=False)\n    if proc.returncode == 77:\n        result.append({\"locale\": locale, \"status\": \"UNAVAILABLE\"})\n        continue\n    if proc.returncode:\n        raise RuntimeError((proc.returncode, proc.stderr))\n    rows = [json.loads(line) for line in proc.stdout.splitlines()]\n    for row in rows:\n        expected = bytes.fromhex(row[\"input_hex\"]).decode(row[\"oracle\"], \"strict\")\n        row[\"expected_utf8_hex\"] = expected.encode(\"utf-8\").hex()\n        row[\"match\"] = row[\"decoded_utf8_hex\"] == row[\"expected_utf8_hex\"]\n        emitted = bytes.fromhex(row[\"reencoded_hex\"]).decode(row[\"oracle\"], \"strict\")\n        row[\"literal_byte_roundtrip\"] = row[\"reencoded_hex\"] == row[\"input_hex\"]\n        row[\"oracle_codec\"] = codecs.lookup(row[\"oracle\"]).name\n        row[\"reencoded_oracle_utf8_hex\"] = emitted.encode(\"utf-8\").hex()\n    result.append({\"locale\": locale, \"status\": \"EXECUTED\", \"rows\": rows,\n                   \"matches\": sum(row[\"match\"] for row in rows), \"total\": len(rows)})\nprint(json.dumps({\"python\": sys.version, \"profiles\": result}, indent=2))\n"
+  },
+  "result": {
+    "unique_vectors": 35,
+    "format_flag_profiles": [
+      "DWG-style dxfFormat=false unit configuration",
+      "legacy DXF-style dxfFormat=true unit configuration"
+    ],
+    "locales": [
+      {
+        "locale": "C",
+        "status": "EXECUTED",
+        "cells": 70,
+        "matching_anchor_cells": 24,
+        "mismatching_anchor_cells": 46,
+        "byte_stable_but_wrong_cells": 36,
+        "empty_decode_cells": 8
+      },
+      {
+        "locale": "tr_TR.ISO8859-9",
+        "status": "EXECUTED",
+        "cells": 70,
+        "matching_anchor_cells": 24,
+        "mismatching_anchor_cells": 46,
+        "byte_stable_but_wrong_cells": 36,
+        "empty_decode_cells": 8
+      }
+    ],
+    "total_cells": 140,
+    "matching_anchor_cells": 48,
+    "mismatching_anchor_cells": 92,
+    "byte_stable_but_wrong_cells": 72,
+    "empty_decode_cells": 16,
+    "all_four_profiles_identical": true,
+    "deduplication": "The 35 vectors below occur once in each of the two format-flag configurations and two locales; outputs were compared before deduplication.",
+    "locale_limit": "The lowercase ansi_949 anchor passes in both available locales on this macOS runtime. No local Turkish-locale failure is asserted.",
+    "hkscs_limit": "All four two-scalar anchors decode correctly. Re-encoding uses a character plus a CIF escape; local DXF-aware reread preserves both scalars. This is not raw-byte identity or evidence of data loss.",
+    "policy_limit": "Mismatch is against the exact named standard codec, not proof that each extra alias is a canonical permitted DWG/DXF declaration. Changing aliases requires explicit compatibility policy.",
+    "vectors": [
+      {
+        "alias": "ANSI_1252",
+        "oracle": "cp1252",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "e282ac",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp1252",
+        "reencoded_oracle_utf8_hex": "e282ac"
+      },
+      {
+        "alias": "LATIN1",
+        "oracle": "iso8859_1",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c280",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-1",
+        "reencoded_oracle_utf8_hex": "c280"
+      },
+      {
+        "alias": "ISO-8859-1",
+        "oracle": "iso8859_1",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c280",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-1",
+        "reencoded_oracle_utf8_hex": "c280"
+      },
+      {
+        "alias": "ISO8859-2",
+        "oracle": "iso8859_2",
+        "input_hex": "a1",
+        "selected": "ANSI_1250",
+        "decoded_utf8_hex": "cb87",
+        "reencoded_hex": "a1",
+        "redecoded_utf8_hex": "cb87",
+        "expected_utf8_hex": "c484",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-2",
+        "reencoded_oracle_utf8_hex": "c484"
+      },
+      {
+        "alias": "ISO8859-3",
+        "oracle": "iso8859_3",
+        "input_hex": "a1",
+        "selected": "ANSI_1254",
+        "decoded_utf8_hex": "c2a1",
+        "reencoded_hex": "a1",
+        "redecoded_utf8_hex": "c2a1",
+        "expected_utf8_hex": "c4a6",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-3",
+        "reencoded_oracle_utf8_hex": "c4a6"
+      },
+      {
+        "alias": "ISO8859-4",
+        "oracle": "iso8859_4",
+        "input_hex": "a1",
+        "selected": "ANSI_1257",
+        "decoded_utf8_hex": "",
+        "reencoded_hex": "",
+        "redecoded_utf8_hex": "",
+        "expected_utf8_hex": "c484",
+        "match": false,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "iso8859-4",
+        "reencoded_oracle_utf8_hex": ""
+      },
+      {
+        "alias": "ISO8859-5",
+        "oracle": "iso8859_5",
+        "input_hex": "b0",
+        "selected": "ANSI_1251",
+        "decoded_utf8_hex": "c2b0",
+        "reencoded_hex": "b0",
+        "redecoded_utf8_hex": "c2b0",
+        "expected_utf8_hex": "d090",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-5",
+        "reencoded_oracle_utf8_hex": "d090"
+      },
+      {
+        "alias": "KOI8-R",
+        "oracle": "koi8_r",
+        "input_hex": "e1",
+        "selected": "ANSI_1251",
+        "decoded_utf8_hex": "d0b1",
+        "reencoded_hex": "e1",
+        "redecoded_utf8_hex": "d0b1",
+        "expected_utf8_hex": "d090",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "koi8-r",
+        "reencoded_oracle_utf8_hex": "d090"
+      },
+      {
+        "alias": "KOI8-U",
+        "oracle": "koi8_u",
+        "input_hex": "e1",
+        "selected": "ANSI_1251",
+        "decoded_utf8_hex": "d0b1",
+        "reencoded_hex": "e1",
+        "redecoded_utf8_hex": "d0b1",
+        "expected_utf8_hex": "d090",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "koi8-u",
+        "reencoded_oracle_utf8_hex": "d090"
+      },
+      {
+        "alias": "IBM 866",
+        "oracle": "cp866",
+        "input_hex": "80",
+        "selected": "ANSI_1251",
+        "decoded_utf8_hex": "d082",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "d082",
+        "expected_utf8_hex": "d090",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp866",
+        "reencoded_oracle_utf8_hex": "d090"
+      },
+      {
+        "alias": "CP866",
+        "oracle": "cp866",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "d090",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp866",
+        "reencoded_oracle_utf8_hex": "d090"
+      },
+      {
+        "alias": "IBM 850",
+        "oracle": "cp850",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c387",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp850",
+        "reencoded_oracle_utf8_hex": "c387"
+      },
+      {
+        "alias": "CP850",
+        "oracle": "cp850",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c387",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp850",
+        "reencoded_oracle_utf8_hex": "c387"
+      },
+      {
+        "alias": "APPLE ROMAN",
+        "oracle": "mac_roman",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c384",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "mac-roman",
+        "reencoded_oracle_utf8_hex": "c384"
+      },
+      {
+        "alias": "MACINTOSH",
+        "oracle": "mac_roman",
+        "input_hex": "80",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c384",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "mac-roman",
+        "reencoded_oracle_utf8_hex": "c384"
+      },
+      {
+        "alias": "ISO8859-6",
+        "oracle": "iso8859_6",
+        "input_hex": "ac",
+        "selected": "ANSI_1256",
+        "decoded_utf8_hex": "c2ac",
+        "reencoded_hex": "ac",
+        "redecoded_utf8_hex": "c2ac",
+        "expected_utf8_hex": "d88c",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-6",
+        "reencoded_oracle_utf8_hex": "d88c"
+      },
+      {
+        "alias": "ISO8859-7",
+        "oracle": "iso8859_7",
+        "input_hex": "a1",
+        "selected": "ANSI_1253",
+        "decoded_utf8_hex": "ce85",
+        "reencoded_hex": "a1",
+        "redecoded_utf8_hex": "ce85",
+        "expected_utf8_hex": "e28098",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-7",
+        "reencoded_oracle_utf8_hex": "e28098"
+      },
+      {
+        "alias": "ISO8859-8",
+        "oracle": "iso8859_8",
+        "input_hex": "e0",
+        "selected": "ANSI_1255",
+        "decoded_utf8_hex": "d790",
+        "reencoded_hex": "e0",
+        "redecoded_utf8_hex": "d790",
+        "expected_utf8_hex": "d790",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-8",
+        "reencoded_oracle_utf8_hex": "d790"
+      },
+      {
+        "alias": "ISO8859-9",
+        "oracle": "iso8859_9",
+        "input_hex": "d0",
+        "selected": "ANSI_1254",
+        "decoded_utf8_hex": "c49e",
+        "reencoded_hex": "d0",
+        "redecoded_utf8_hex": "c49e",
+        "expected_utf8_hex": "c49e",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-9",
+        "reencoded_oracle_utf8_hex": "c49e"
+      },
+      {
+        "alias": "ISO8859-10",
+        "oracle": "iso8859_10",
+        "input_hex": "a1",
+        "selected": "ANSI_1257",
+        "decoded_utf8_hex": "",
+        "reencoded_hex": "",
+        "redecoded_utf8_hex": "",
+        "expected_utf8_hex": "c484",
+        "match": false,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "iso8859-10",
+        "reencoded_oracle_utf8_hex": ""
+      },
+      {
+        "alias": "ISO8859-13",
+        "oracle": "iso8859_13",
+        "input_hex": "a1",
+        "selected": "ANSI_1257",
+        "decoded_utf8_hex": "",
+        "reencoded_hex": "",
+        "redecoded_utf8_hex": "",
+        "expected_utf8_hex": "e2809d",
+        "match": false,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "iso8859-13",
+        "reencoded_oracle_utf8_hex": ""
+      },
+      {
+        "alias": "ISO8859-15",
+        "oracle": "iso8859_15",
+        "input_hex": "a4",
+        "selected": "ANSI_1252",
+        "decoded_utf8_hex": "c2a4",
+        "reencoded_hex": "a4",
+        "redecoded_utf8_hex": "c2a4",
+        "expected_utf8_hex": "e282ac",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-15",
+        "reencoded_oracle_utf8_hex": "e282ac"
+      },
+      {
+        "alias": "ISO8859-8",
+        "oracle": "iso8859_8",
+        "input_hex": "df",
+        "selected": "ANSI_1255",
+        "decoded_utf8_hex": "",
+        "reencoded_hex": "",
+        "redecoded_utf8_hex": "",
+        "expected_utf8_hex": "e28097",
+        "match": false,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "iso8859-8",
+        "reencoded_oracle_utf8_hex": ""
+      },
+      {
+        "alias": "ISO8859-9",
+        "oracle": "iso8859_9",
+        "input_hex": "80",
+        "selected": "ANSI_1254",
+        "decoded_utf8_hex": "e282ac",
+        "reencoded_hex": "80",
+        "redecoded_utf8_hex": "e282ac",
+        "expected_utf8_hex": "c280",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "iso8859-9",
+        "reencoded_oracle_utf8_hex": "c280"
+      },
+      {
+        "alias": "EUC-JP",
+        "oracle": "euc_jp",
+        "input_hex": "a4a2",
+        "selected": "ANSI_932",
+        "decoded_utf8_hex": "efbda4efbda2",
+        "reencoded_hex": "a4a2",
+        "redecoded_utf8_hex": "efbda4efbda2",
+        "expected_utf8_hex": "e38182",
+        "match": false,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "euc_jp",
+        "reencoded_oracle_utf8_hex": "e38182"
+      },
+      {
+        "alias": "ANSI_932",
+        "oracle": "cp932",
+        "input_hex": "82a0",
+        "selected": "ANSI_932",
+        "decoded_utf8_hex": "e38182",
+        "reencoded_hex": "82a0",
+        "redecoded_utf8_hex": "e38182",
+        "expected_utf8_hex": "e38182",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp932",
+        "reencoded_oracle_utf8_hex": "e38182"
+      },
+      {
+        "alias": "GB18030",
+        "oracle": "gb18030",
+        "input_hex": "81308130",
+        "selected": "ANSI_936",
+        "decoded_utf8_hex": "3f3f",
+        "reencoded_hex": "3f3f",
+        "redecoded_utf8_hex": "3f3f",
+        "expected_utf8_hex": "c280",
+        "match": false,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "gb18030",
+        "reencoded_oracle_utf8_hex": "3f3f"
+      },
+      {
+        "alias": "ANSI_936",
+        "oracle": "gbk",
+        "input_hex": "d6d0",
+        "selected": "ANSI_936",
+        "decoded_utf8_hex": "e4b8ad",
+        "reencoded_hex": "d6d0",
+        "redecoded_utf8_hex": "e4b8ad",
+        "expected_utf8_hex": "e4b8ad",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "gbk",
+        "reencoded_oracle_utf8_hex": "e4b8ad"
+      },
+      {
+        "alias": "ANSI_949",
+        "oracle": "cp949",
+        "input_hex": "b0a1",
+        "selected": "ANSI_949",
+        "decoded_utf8_hex": "eab080",
+        "reencoded_hex": "b0a1",
+        "redecoded_utf8_hex": "eab080",
+        "expected_utf8_hex": "eab080",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp949",
+        "reencoded_oracle_utf8_hex": "eab080"
+      },
+      {
+        "alias": "ansi_949",
+        "oracle": "cp949",
+        "input_hex": "b0a1",
+        "selected": "ANSI_949",
+        "decoded_utf8_hex": "eab080",
+        "reencoded_hex": "b0a1",
+        "redecoded_utf8_hex": "eab080",
+        "expected_utf8_hex": "eab080",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp949",
+        "reencoded_oracle_utf8_hex": "eab080"
+      },
+      {
+        "alias": "BIG5-HKSCS",
+        "oracle": "big5hkscs",
+        "input_hex": "8862",
+        "selected": "ANSI_950",
+        "decoded_utf8_hex": "c38acc84",
+        "reencoded_hex": "88665c552b30333034",
+        "redecoded_utf8_hex": "c38acc84",
+        "expected_utf8_hex": "c38acc84",
+        "match": true,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "big5hkscs",
+        "reencoded_oracle_utf8_hex": "c38a5c552b30333034"
+      },
+      {
+        "alias": "ANSI_950",
+        "oracle": "cp950",
+        "input_hex": "a4a4",
+        "selected": "ANSI_950",
+        "decoded_utf8_hex": "e4b8ad",
+        "reencoded_hex": "a4a4",
+        "redecoded_utf8_hex": "e4b8ad",
+        "expected_utf8_hex": "e4b8ad",
+        "match": true,
+        "literal_byte_roundtrip": true,
+        "oracle_codec": "cp950",
+        "reencoded_oracle_utf8_hex": "e4b8ad"
+      },
+      {
+        "alias": "BIG5-HKSCS",
+        "oracle": "big5hkscs",
+        "input_hex": "8864",
+        "selected": "ANSI_950",
+        "decoded_utf8_hex": "c38acc8c",
+        "reencoded_hex": "88665c552b30333043",
+        "redecoded_utf8_hex": "c38acc8c",
+        "expected_utf8_hex": "c38acc8c",
+        "match": true,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "big5hkscs",
+        "reencoded_oracle_utf8_hex": "c38a5c552b30333043"
+      },
+      {
+        "alias": "BIG5-HKSCS",
+        "oracle": "big5hkscs",
+        "input_hex": "88a3",
+        "selected": "ANSI_950",
+        "decoded_utf8_hex": "c3aacc84",
+        "reencoded_hex": "88a75c552b30333034",
+        "redecoded_utf8_hex": "c3aacc84",
+        "expected_utf8_hex": "c3aacc84",
+        "match": true,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "big5hkscs",
+        "reencoded_oracle_utf8_hex": "c3aa5c552b30333034"
+      },
+      {
+        "alias": "BIG5-HKSCS",
+        "oracle": "big5hkscs",
+        "input_hex": "88a5",
+        "selected": "ANSI_950",
+        "decoded_utf8_hex": "c3aacc8c",
+        "reencoded_hex": "88a75c552b30333043",
+        "redecoded_utf8_hex": "c3aacc8c",
+        "expected_utf8_hex": "c3aacc8c",
+        "match": true,
+        "literal_byte_roundtrip": false,
+        "oracle_codec": "big5hkscs",
+        "reencoded_oracle_utf8_hex": "c3aa5c552b30333043"
+      }
+    ]
+  },
+  "primary_mapping_anchors": [
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT",
+      "input": "A1",
+      "scalar": "U+0104"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT",
+      "input": "A1",
+      "scalar": "U+0104"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT",
+      "input": "A1",
+      "scalar": "U+201D"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT",
+      "input": "A1",
+      "scalar": null,
+      "note": "UNDEFINED; local alias routing returns an empty string"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT",
+      "input": "80",
+      "scalar": "U+0080"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT",
+      "input": "80",
+      "scalar": "U+20AC"
+    },
+    {
+      "url": "https://docs.python.org/3.9/library/codecs.html",
+      "role": "Independent standard-codec anchor generation; no drawing format authority"
+    }
+  ],
+  "peer_source_pins": [
+    {
+      "repository": "mozman/ezdxf",
+      "revision": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+      "path": "src/ezdxf/tools/codepage.py",
+      "blob_sha1": "50488318fda31dccd2a43f54b5c4ba3529f170e5",
+      "observation": "Suffix lookup falls back to cp1252; default peer agreement cannot validate unknown/extra aliases."
+    },
+    {
+      "repository": "LibreDWG/libredwg",
+      "revision": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "path": "src/codepages.c",
+      "blob_sha1": "8a707e019d0fe72c8068501cbb6988499424f638",
+      "observation": "Separate ISO, DOS, Mac and Windows identifiers in peer inventory; not permission to copy tables or assume local format behavior."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/pull/1453",
+      "head": "62715b2296e66718dea92ec15064e06ebce0f748",
+      "state": "open/unmerged",
+      "observation": "Peer scan-length underflow lead; inspected local bounded loops do not use the reported memmem recovery pattern."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1301",
+      "head": "d01351eecee6746d67c581b1054c730a3c605930",
+      "state": "open/unmerged",
+      "role": "Test-selection and scope lead only; no peer binary or attachment executed."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1302",
+      "head": "8a7704b5414630ea1c5eac94a80520aeff797fbb",
+      "state": "open/unmerged",
+      "role": "Test-selection and scope lead only; no peer binary or attachment executed."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1304",
+      "head": "f921817e11e1ef42491111113d8239ac0aeba2df",
+      "state": "open/unmerged",
+      "role": "Test-selection and scope lead only; no peer binary or attachment executed."
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "path": "src/Mod/Draft/importDWG.py",
+      "blob_sha1": "8ceba7eaf31234c891621652cca414f102b495a0",
+      "line_range": "265-320",
+      "observation": "dwg2dxf -o wrapper checks output-file existence. It cannot alone prove complete or semantically valid conversion."
+    },
+    {
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observation": "RawCodeValues contains unhandled groups only; pin encoding, escape translation and projection options."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/tools/xclip.html",
+      "observation": "2D path API projects WCS paths to XY; not an arbitrary-3D clip oracle."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "observation": "FIELD child ownership, referenced object IDs and typed ID values have distinct handle roles."
+    }
+  ],
+  "not_run": [
+    "Full test suite",
+    "Native CAD/FreeCAD",
+    "Actual CLI conversions",
+    "DWG format parser changes or qualification",
+    "Peer binary execution",
+    "External drawing downloads"
+  ],
+  "production_changes": false,
+  "external_fixture_added": false,
+  "new_runtime_dependency": false,
+  "new_ctest_registration": false,
+  "remote_writes": false,
+  "peer_horizon": {
+  "selection": "12 recently updated open issue/PR entries per repository, not exhaustive",
+  "repositories": [
+    {
+      "repository": "LibreDWG/libredwg",
+      "items": [
+        {
+          "number": 1453,
+          "title": "acds: bound the ACIS BinaryFile scan index to dat->size",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1453",
+          "updated_at": "2026-10-14T17:50:20Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1432,
+          "title": "in_dxf: import the annotation-scale context data of TEXT, MTEXT and dimensions",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1432",
+          "updated_at": "2026-10-14T15:43:00Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1452,
+          "title": "encode.c: UBSan misaligned BITCODE_RS load in dwg_encode_eed_data on R2007+ DXF with xdata string",
+          "url": "https://github.com/LibreDWG/libredwg/issues/1452",
+          "updated_at": "2026-10-14T14:02:41Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1451,
+          "title": "in_dxf: heap-use-after-free in add_FIELD on a FIELD object with no child values (93 0)",
+          "url": "https://github.com/LibreDWG/libredwg/issues/1451",
+          "updated_at": "2026-10-14T14:02:37Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1450,
+          "title": "in_dxf: heap-buffer-overflow READ in add_LTYPE_dashes (bit_wcs2cpy) on r2007+ DXF linetype with dash text",
+          "url": "https://github.com/LibreDWG/libredwg/issues/1450",
+          "updated_at": "2026-10-14T14:02:35Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1449,
+          "title": "dxf: write LAYOUT 331 from viewports[0] when active_viewport is NULL",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1449",
+          "updated_at": "2026-10-13T18:47:34Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1448,
+          "title": "encode: bound ovr.cellstyle.borders copy in downconvert_TABLESTYLE",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1448",
+          "updated_at": "2026-10-13T17:24:39Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1447,
+          "title": "Keep undecodable objects as ACAD_PROXY_ENTITY/OBJECT (R2000 DWG and DXF)",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1447",
+          "updated_at": "2026-10-12T22:32:19Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1446,
+          "title": "TABLE, TABLECONTENT and TABLESTYLE: read, write to R2000, DXF",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1446",
+          "updated_at": "2026-10-12T22:32:16Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1444,
+          "title": "Writing R2000 from newer (and from R13/R14) drawings as AutoCAD does",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1444",
+          "updated_at": "2026-10-12T22:32:11Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1443,
+          "title": "R2010+ ATTRIB and R2018 multi-line ATTRIB/ATTDEF",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1443",
+          "updated_at": "2026-10-12T22:32:09Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1441,
+          "title": "out_json: no NaN or infinity in the JSON output",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1441",
+          "updated_at": "2026-10-12T22:32:04Z",
+          "kind": "pull_request"
+        }
+      ]
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "items": [
+        {
+          "number": 1304,
+          "title": "fix(dxf): read and write the flip arrow flags of a dimension",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1304",
+          "updated_at": "2026-10-15T11:01:20Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1275,
+          "title": "feat: read Tianzheng custom objects, their geometry and their text",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1275",
+          "updated_at": "2026-10-15T10:24:11Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1296,
+          "title": "Write MTEXT background fill and text frame codes to DXF",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1296",
+          "updated_at": "2026-10-15T09:52:59Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1292,
+          "title": "DimensionAssociation: complete DIMASSOC read/write (DWG and DXF), leader owners, Clone and document guard",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1292",
+          "updated_at": "2026-10-15T09:13:38Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1295,
+          "title": "DimensionStyle: read the main arrow block (DIMBLK)",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1295",
+          "updated_at": "2026-10-15T08:03:42Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1302,
+          "title": "Fix DWG/DXF round-trip and version-conversion defects (R2007 output, tables, dimensions, SHAPE, XDATA, transforms)",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1302",
+          "updated_at": "2026-10-15T06:49:06Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1204,
+          "title": "Add DWG reading for Mechanical BOM objects",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1204",
+          "updated_at": "2026-10-15T01:17:38Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1301,
+          "title": "Field: resolve values that point to an object, and write child fields in DXF",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1301",
+          "updated_at": "2026-10-14T21:49:25Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1240,
+          "title": "Feature-1195 write acis entities",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+          "updated_at": "2026-10-14T17:02:49Z",
+          "kind": "pull_request"
+        },
+        {
+          "number": 1299,
+          "title": "Converting existing working DWG file to DXF is creating bad spline data",
+          "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+          "updated_at": "2026-10-14T15:34:22Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1297,
+          "title": "DWG (AC1032): an MTEXT with only the text frame flag makes AutoCAD reject the file",
+          "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+          "updated_at": "2026-10-14T09:17:59Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1294,
+          "title": "fix: guard against empty or truncated OLE2FRAME binary data",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1294",
+          "updated_at": "2026-10-14T02:30:32Z",
+          "kind": "pull_request"
+        }
+      ]
+    },
+    {
+      "repository": "hakanaktt/acadrust",
+      "items": [
+        {
+          "number": 136,
+          "title": "Binary DXF writer: 15 group codes written at the wrong width (DIMASSOC, VISUALSTYLE, dynamic blocks, …)",
+          "url": "https://github.com/hakanaktt/acadrust/issues/136",
+          "updated_at": "2026-10-14T11:52:58Z",
+          "kind": "issue"
+        },
+        {
+          "number": 135,
+          "title": "AcDbAssocGeomDependency: persistent subent id decoded with the wrong layout — hard \"Truncated DWG stream\" in 0.6.4, silently kept as Unknown on main (AC1024)",
+          "url": "https://github.com/hakanaktt/acadrust/issues/135",
+          "updated_at": "2026-10-13T20:51:42Z",
+          "kind": "issue"
+        },
+        {
+          "number": 110,
+          "title": "AC1009 DWG Read support?",
+          "url": "https://github.com/hakanaktt/acadrust/issues/110",
+          "updated_at": "2026-10-13T13:27:18Z",
+          "kind": "issue"
+        },
+        {
+          "number": 134,
+          "title": "0.6.4 regression: AC1032 drawings that 0.6.3 opens now fail on AcDbMLeaderObjectContextData records (\"Truncated DWG stream\")",
+          "url": "https://github.com/hakanaktt/acadrust/issues/134",
+          "updated_at": "2026-10-13T04:25:33Z",
+          "kind": "issue"
+        },
+        {
+          "number": 133,
+          "title": "DWG reader moves orphaned entities (owner block missing) into model space, drawing phantom dimensions",
+          "url": "https://github.com/hakanaktt/acadrust/issues/133",
+          "updated_at": "2026-10-13T04:25:09Z",
+          "kind": "issue"
+        },
+        {
+          "number": 132,
+          "title": "DXF → DWG silently drops custom-class entities/objects, entity colour-book names (430) and table-record xdata",
+          "url": "https://github.com/hakanaktt/acadrust/issues/132",
+          "updated_at": "2026-10-11T19:00:29Z",
+          "kind": "issue"
+        },
+        {
+          "number": 130,
+          "title": "2010+ DWG tables: merged cells and table-style title/header suppression are lost between DWG and DXF",
+          "url": "https://github.com/hakanaktt/acadrust/issues/130",
+          "updated_at": "2026-10-11T19:00:03Z",
+          "kind": "issue"
+        },
+        {
+          "number": 131,
+          "title": "Pre-2007 code pages: DOS437 decoded as Cyrillic (IBM866); other DOS pages, MAC-ROMAN and JOHAB mapped to the wrong encoding",
+          "url": "https://github.com/hakanaktt/acadrust/issues/131",
+          "updated_at": "2026-10-11T18:59:17Z",
+          "kind": "issue"
+        },
+        {
+          "number": 127,
+          "title": "DxfWriter omits $ANGBASE, $ANGDIR, $FILLETRAD, $CHAMFERA/B, $ELEVATION and $THICKNESS from HEADER (reader and DWG side handle them)",
+          "url": "https://github.com/hakanaktt/acadrust/issues/127",
+          "updated_at": "2026-10-11T18:33:04Z",
+          "kind": "issue"
+        },
+        {
+          "number": 125,
+          "title": "DxfWriter writes TEXT oblique angle (group 51) in radians; DxfReader reads degrees, so 10° becomes 0.17°",
+          "url": "https://github.com/hakanaktt/acadrust/issues/125",
+          "updated_at": "2026-10-10T20:05:26Z",
+          "kind": "issue"
+        },
+        {
+          "number": 124,
+          "title": "DWG reader panics (slice index out of range) instead of returning Err on malformed header data",
+          "url": "https://github.com/hakanaktt/acadrust/issues/124",
+          "updated_at": "2026-10-10T20:04:55Z",
+          "kind": "issue"
+        },
+        {
+          "number": 123,
+          "title": "DWG reader on malformed object data: clamps counts to 100k + zero-pads, and allocates unbounded (~12 TiB) causing process abort",
+          "url": "https://github.com/hakanaktt/acadrust/issues/123",
+          "updated_at": "2026-10-10T20:04:39Z",
+          "kind": "issue"
+        }
+      ]
+    },
+    {
+      "repository": "mozman/ezdxf",
+      "items": [
+        {
+          "number": 1310,
+          "title": "ezdxf HIDDEN linetype displays as dots instead of dashes",
+          "url": "https://github.com/mozman/ezdxf/issues/1310",
+          "updated_at": "2026-10-04T04:38:38Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1389,
+          "title": "Bug: MTEXT Explode fails to wrap continuous CJK text (width overflow)",
+          "url": "https://github.com/mozman/ezdxf/issues/1389",
+          "updated_at": "2026-09-07T07:03:33Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1386,
+          "title": "PSLTSCALE Support in Drawing Addon",
+          "url": "https://github.com/mozman/ezdxf/issues/1386",
+          "updated_at": "2026-05-28T07:37:41Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1271,
+          "title": "Unable to Extract Arabic Script Text from DXF File Using ezdxf",
+          "url": "https://github.com/mozman/ezdxf/issues/1271",
+          "updated_at": "2026-04-25T19:35:15Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1362,
+          "title": "Matplotlib export: layouts renders only frame (entities missing)",
+          "url": "https://github.com/mozman/ezdxf/issues/1362",
+          "updated_at": "2025-12-26T05:55:27Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1354,
+          "title": "After verification, the ODAFileConverter cannot be used on the CentOS system.",
+          "url": "https://github.com/mozman/ezdxf/issues/1354",
+          "updated_at": "2025-12-02T09:28:45Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1326,
+          "title": "Invalid PROXY  decoding when WIPEOUT exist ",
+          "url": "https://github.com/mozman/ezdxf/issues/1326",
+          "updated_at": "2025-09-24T06:58:17Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1244,
+          "title": "Drawing Colors Not Displayed in ezdxf Viewer",
+          "url": "https://github.com/mozman/ezdxf/issues/1244",
+          "updated_at": "2025-09-08T10:30:23Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1311,
+          "title": "After using render(), the position of the text changed for DIMENTION",
+          "url": "https://github.com/mozman/ezdxf/issues/1311",
+          "updated_at": "2025-07-01T09:12:10Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1305,
+          "title": "XCLIP on INSERT returns wrong clipping path in get_wcs_clipping_path()",
+          "url": "https://github.com/mozman/ezdxf/issues/1305",
+          "updated_at": "2025-06-13T01:15:55Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1275,
+          "title": "High CPU usage and eventually OOM when trying to draw layout",
+          "url": "https://github.com/mozman/ezdxf/issues/1275",
+          "updated_at": "2025-04-04T12:10:00Z",
+          "kind": "issue"
+        },
+        {
+          "number": 1262,
+          "title": "PDF glyph rendering issues with MatplotlibBackend",
+          "url": "https://github.com/mozman/ezdxf/issues/1262",
+          "updated_at": "2025-03-18T23:30:13Z",
+          "kind": "issue"
+        }
+      ]
+    }
+  ]
+},
+  "support_claim_promotions": 0,
+  "deferred_external_unchanged": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

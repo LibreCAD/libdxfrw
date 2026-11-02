@@ -1,0 +1,63 @@
+{
+  "id": "RPP-5um",
+  "title": "MLINE-referenced simple LTYPE with one binary XDATA chunk",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "b0af5d07",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1004, "hex_bytes": "00A57FFF1234CDEF", "byte_count": 8 }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "About Extended Data (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "relevant_rule": "XDATA group 1004 carries binary data in chunks of at most 127 bytes; ASCII DXF represents those bytes as hexadecimal digits. This receipt tests one eight-byte chunk."
+  },
+  "proof": {
+    "source": "Physical source fields and fresh import verify the exact APPID and 1004 hex chunk. Import-time origin, raw/typed equality, the AppIdName role and APPID name lookup bind the provider.",
+    "output": "The staged output proof checks exact 1001/1004 order and hex bytes in ASCII and binary DXF, APPID row common fields/flags/emitted owner and fresh typed readback of the chunk.",
+    "failure_retry": "Removing the source APPID provider refuses export and preserves the destination sentinel; restoring it succeeds on the same adapter. A late APPID-name mutation also refuses atomically and succeeds after correction on the same adapter.",
+    "counts": {
+      "positive_profiles": 28,
+      "successful_readbacks": 63,
+      "refusals_with_destination_preservation": 35,
+      "same_adapter_retries": 35
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_ltype_appid_xdata|libdxfrw_xrecord_xdata_channels|libdxfrw_dxf_xdata_string_owner_budget|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_mixed_segments)$' --output-on-failure",
+    "focused_result": "PASS (5/5)",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+    "asan_build_result": "PASS",
+    "asan_command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "asan_result": "PASS (1/1)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=28; readbacks=63; refusals=35; retries=35",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This receipt qualifies one eight-byte, uppercase-hex 1004 string chunk under one APPID. It does not qualify multi-chunk ordering, the 127-byte boundary, malformed hex/length refusal for this LTYPE schema, other XDATA values/orders, 1003/1005 dependency roles, coordinate tuples, APPID metadata, other LTYPE schemas or versions.",
+    "The receipt establishes transport only. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure, or broader LTYPE provider support."
+  ]
+}

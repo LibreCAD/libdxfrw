@@ -32,9 +32,70 @@
 
 #include <drw_interface.h>
 #include <drw_base.h>
+#include <libdxfrw.h>
 #include <type_traits>
+#include <utility>
 
 namespace {
+
+// Separate from the older LibreCAD_3 callback surface above: this is the
+// actual current LibreCAD bf58e1e878f71d6c5c051ccd3dd3d0981c19644a facade
+// call (rs_filterdxfrw.cpp:4418), including its input-only enum spellings.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
+                  DRW::DxfTextEncoding::Declared)),
+              "LibreCAD text interpretation setter must remain noexcept");
+[[maybe_unused]] bool currentLibreCadRead(dxfRW& reader,
+    DRW_Interface* adapter, bool legacyRecovery, std::string& content) {
+    reader.setDxfTextEncoding(legacyRecovery
+        ? DRW::DxfTextEncoding::LegacyLibreCadUtf8
+        : DRW::DxfTextEncoding::Declared);
+    return reader.readAscii(adapter, true, content);
+}
+
+// New opt-in library API, not an assertion that current consumers select it.
+// Their existing declared/Compatible input remains available unchanged.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfCodePagePolicy(
+                  DRW::DxfCodePagePolicy::ExactNamed)),
+              "explicit DXF input mapping setter must remain noexcept");
+static_assert(std::is_same<decltype(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+                  DRW::DxfCodePagePolicy>::value,
+              "persistent DXF input policy query must retain its public type");
+static_assert(noexcept(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+              "persistent DXF input policy query must remain noexcept");
+static_assert(std::is_same<decltype(DRW_DxfTextReadObservations{}.codePagePolicy),
+                  DRW::DxfCodePagePolicy>::value,
+              "owned read snapshot must expose the applied input policy");
+static_assert(std::is_same<decltype(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)), std::uint64_t>::value,
+              "owned source profile query must retain its fixed counter type");
+static_assert(noexcept(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)),
+              "owned source profile query must remain noexcept");
+
+// Additional unconditional calls in the same current consumer source. These
+// three signatures are source coverage only; the other two facade gaps and a
+// full external adapter build remain separate acceptance work.
+static_assert(std::is_same<decltype(&dxfRW::getSourceVersion),
+                  DRW::Version (dxfRW::*)() const>::value,
+              "LibreCAD accepted source-version getter must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::isReservedHandle),
+                  bool (dxfRW::*)(std::uint32_t) const>::value,
+              "LibreCAD explicit reservation query must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::addDxfWriteHandleRemap),
+                  void (dxfRW::*)(std::uint32_t, std::uint32_t)>::value,
+              "LibreCAD BLOCK_RECORD remap callback must retain its exact signature");
+[[maybe_unused]] DRW::Version currentLibreCadSource(const dxfRW& reader) {
+    return reader.getSourceVersion();
+}
+[[maybe_unused]] bool currentLibreCadGroupReservation(const dxfRW& writer,
+                                                     std::uint32_t handle) {
+    return !writer.isReservedHandle(handle);
+}
+[[maybe_unused]] void currentLibreCadBlockRemap(dxfRW& writer,
+                                                std::uint32_t source,
+                                                std::uint32_t emitted) {
+    writer.addDxfWriteHandleRemap(source, emitted);
+}
 
 class LC3CompatCheck : public DRW_Interface {
 public:

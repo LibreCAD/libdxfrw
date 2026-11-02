@@ -1,0 +1,94 @@
+{
+  "id": "RPP-5xb",
+  "title": "AC1027 MLINE LTYPE XDATA reference to SOLID entities",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "2a64a3a0984dc2036d2eb0c118f9d62ca5f1e746",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One code-1005 XDATA soft pointer in the source-bound EditDash LTYPE to a SOLID in model-space ENTITIES or named AuthorityBlock BLOCKS.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handle": "0xA900"
+    },
+    "target": {
+      "type": "SOLID",
+      "subclass": "AcDbTrace",
+      "source_owners": {
+        "model_space": "0x201",
+        "AuthorityBlock": "0x203"
+      },
+      "corner_1": [1.0, 2.0, 3.0],
+      "corner_2": [4.0, 2.0, 3.0],
+      "corner_3": [4.0, 5.0, 3.0],
+      "corner_4": [1.0, 5.0, 3.0]
+    },
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output, for each source section.",
+    "runtime_fixture": "The focused test writes source drawings under a temporary directory and removes them; no test fixture file was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "SOLID (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+        "relevant_rule": "Defines the AcDbTrace subclass and the group-10 through group-13 corner fields with their Y/Z components."
+      },
+      {
+        "title": "About 1005 Group Codes (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8243079C-B44F-493A-BAF7-1D11A6E6C78C.htm",
+        "relevant_rule": "An XDATA group-1005 handle has soft-pointer behavior and is translated when its host object is merged into another drawing."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector binds the physical SOLID record, exact DRW_Solid dynamic type, source handle 0xA900, source owner (model-space block record 0x201 or AuthorityBlock record 0x203), section, callback and unique live entity. All four source corner tuples are verified in the typed model.",
+    "output": "All eight section/encoding combinations verify the remapped code-1005 value against the emitted SOLID identity and owner, AcDbTrace subclass, all four physical corners, ordered LTYPE XDATA and fresh typed readback.",
+    "failure_retry": "Removing the target refuses output with destination preservation for all eight combinations; restoring the target permits same-adapter retry. Two additional controls mutate the target handle after APPID emission (one ASCII case per source section), require atomic refusal and destination preservation, restore the source handle, and retry successfully with complete output/readback proof.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 324,
+      "whole_focused_test_readbacks": 726,
+      "whole_focused_test_refusals": 402,
+      "whole_focused_test_retries": 402
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "2a64a3a0984dc2036d2eb0c118f9d62ca5f1e746",
+    "changes": "Adds SOLID record naming, exact dynamic type and callback mapping to the existing code-1005 source collector and finalizer for ENTITIES and BLOCKS. Existing parser and writer callbacks are reused; no public API or consumer callback changed.",
+    "claim_boundary": "This qualifies only the selected AC1027 SOLID code-1005 transport and identity profile. It does not establish general code-1005 support, recursive document closure, native CAD meaning, other versions or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 19.57 seconds); aggregate assertions include all selected profiles and refusal/retry controls."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "adapter_source_sha256": "4473f1702148779f53a9f7b49a7b5e89365130e82318505dba0369e42c46d973",
+      "test_source_sha256": "64ef06d481f2d0e45641545e0bb802ee864aa6f27746a3b6761d1476d966c915",
+      "normal_executable_sha256": "ae4f39719cc43151a3c7f96e4e61b427f89f03c09103183a9fd04f95a40515d1",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "focused_ctest_log_sha256": "2227f10abf93868f27376a5ae9ee441a528392a9de5720d4e873aaf1e469e89a",
+      "plan_sha256_before_receipt_update": "a7c1098e79771440811c4cea213665acf51da2597a2cdf0fddab7ce9e39ad98b"
+    }
+  },
+  "limits": [
+    "Only the selected AC1027 SOLID four-corner profile in model-space ENTITIES and named AuthorityBlock BLOCKS is qualified. Other SOLID shapes, TRACE, other entity types, mixed-target sets, XDATA compositions and versions remain open.",
+    "This evidence checks parsed and emitted corner fields; it does not qualify native rendering or broader OCS/extrusion behavior.",
+    "Successful source/output transport does not prove complete document dependency closure or support-claim eligibility."
+  ],
+  "next": "Select another distinct code-1005 target type or mixed-target profile from a current source witness; preserve exact source binding, emitted identity, readback, refusal, rollback and retry gates."
+}

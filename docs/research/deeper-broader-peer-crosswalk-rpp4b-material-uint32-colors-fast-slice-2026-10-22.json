@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "date": "2026-10-22",
+  "title": "RPP-4b typed MATERIAL unsigned ambient/diffuse color values",
+  "mode": "Official-reference-backed local implementation fast slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "fa77e96b039d8e78cb983004b7e298c4c8bb58dbd172d45505cfa563aceb8b79",
+  "relatedResearchReceipt": "docs/research/deeper-broader-peer-crosswalk-implementation-readiness-2026-10-22.json",
+  "method": {
+    "localSourceAndTestsChanged": [
+      "src/intern/dxfreader.h and src/intern/dxfreader.cpp: scoped MATERIAL-only unsigned I32 decoding for groups 90/91 with preserved signed behavior elsewhere",
+      "src/drw_objects.h and src/drw_objects.cpp: uint32_t ambient/diffuse colors and explicit presence",
+      "src/libdxfrw.cpp and src/libdxfrw.h: typed/raw MATERIAL ASCII and Binary writing, raw validation, and cross-encoding unsigned serialization",
+      "tests/dxf_fixture_tests.cpp: generated UINT32_MAX and high-bit source, typed/raw capture, direct typed writer, replay, and both encoding conversions"
+    ],
+    "officialReference": {
+      "title": "Autodesk MATERIAL (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "fieldsUsed": "Groups 90 and 91 are unsigned 32-bit AcCmEntityColor values for ambient and diffuse colors.",
+      "role": "Normative DXF field-width/domain reference; no DWG body layout changed."
+    },
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": true,
+    "localBuildRun": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "limitations": "Typed handling is limited to MATERIAL groups 90/91 in DXF. DWG MATERIAL tail bits, specular color, maps, mapper matrices, and remaining documented fields remain unimplemented. Local round-trip evidence does not constitute native CAD semantic qualification."
+  },
+  "implementation": {
+    "subplan": "RPP-4b",
+    "status": "IMPLEMENTED_AND_FOCUSED_TESTED",
+    "fields": [90, 91],
+    "integerReaderScope": "ASCII unsigned values above INT32_MAX are permitted only while processing MATERIAL and only for groups 90/91. Binary I32 records retain their exact uint32 bit pattern; signed accessors and parsing remain unchanged for other contexts.",
+    "rawReplay": "MATERIAL UINT32 values use INTEGER64 typed carriers; Binary output emits the original 32-bit pattern and ASCII output emits unsigned decimal, including binary-to-ASCII projection.",
+    "generatedCoverage": [
+      "ASCII and Binary input of UINT32_MAX and 0x80000001",
+      "typed values, presence, copy/reset, and raw-net capture",
+      "direct typed writer output including explicit default and zero values",
+      "same-encoding graph replay and ASCII-to-Binary/Binary-to-ASCII conversion",
+      "following LINE alignment sentinel and malformed-factor output preservation/retry"
+    ],
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2",
+    "tests": "PASS: CTest subset libdxfrw_dxf_fixtures, libdxfrw_hardening, libdxfrw_dxf_binary_group_width_guard, dxf_hatch_derived_pixel_size_presence, dwg_hatch_reference_graph (5/5)",
+    "diffCheck": "PASS: git diff --check over changed reader, MATERIAL, HATCH, tests, CMake, and plan files",
+    "fullSuite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "nativeFreeCADLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsSemantics": "NOT_RUN",
+    "planUpdated": true
+  },
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "disposition": "RPP-4b_IMPLEMENTED; generated ASCII/Binary tests including UINT32_MAX and both cross-encoding conversions pass; map/mapper/DWG semantics, external gates, and support promotion remain outstanding; worktree is uncommitted and unstaged."
+}

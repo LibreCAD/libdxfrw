@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-acds-record-boundary-fast-test-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "5eaa61a",
+  "implementationCommit": "3792076",
+  "scope": "ODA v5.4.1 DataStorage inline/blob record span enforcement and generated tests",
+  "sourceAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "24.2.2.3",
+    "printedPages": "254-256",
+    "rule": "A record span ends at the next consecutive payload stream offset or, for the last record, at the segment end. The inline record's 4-byte size field plus dataSize must fit. Direct byte arrays are at most 0x40000 bytes; larger byte arrays use the blob-reference marker.",
+    "localReference": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+  },
+  "changes": [
+    {
+      "file": "src/drw_datastorage.h",
+      "detail": "Added the named 0x40000 inline-payload maximum from ODA §24.2.2.3."
+    },
+    {
+      "file": "src/drw_datastorage.cpp",
+      "detail": "Builds a sorted payload-local-offset index per data segment; bounds direct records and full blob descriptors by the next record or segment end; rejects oversized direct payloads."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "detail": "Adds generated in-memory exact-limit and over-limit direct payloads, direct-record overlap and blob-descriptor overlap negatives, and suffix-record survival assertions alongside the existing two-page reversed-physical-order test."
+    }
+  ],
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS",
+    "ctest": "libdxfrw_graph_preservation 1/1 passed in 0.26 seconds",
+    "fullSuite": "NOT RUN",
+    "externalPrograms": "NOT RUN",
+    "diskFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

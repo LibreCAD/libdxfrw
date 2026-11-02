@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "deeper-broader-xref-path-peer-fix-release-boundary-refresh-2026-10-18",
+  "date": "2026-10-18",
+  "status": "RESEARCH_ONLY_PLAN_UPDATE",
+  "scope": "Refresh XREF path versus application dependency packaging boundaries, and current ACadRust issue/fix provenance; reconcile with existing PAR-65/7AM.1, PAR-131/7CA, custom-record, named-color, and bounded-object owners.",
+  "sources": [
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1881",
+      "identity": "OpenCADStudio v2026.41 build cff240ef71b4; issue identifies main commit 5f5b64e",
+      "observation": "The report says two XREFs load in the application, while ETRANSMIT packages only the host because packaging resolves the literal stored path differently from the loader and silently skips nonexistent joined paths.",
+      "boundary": "Application-level path resolution and archive packaging; not a DWG/DXF path grammar rule or libdxfrw reproduction."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/132",
+      "identity": "Issue reports acadrust 0.6.3 and main ea68744; candidate commit 95a8c2f dated 2026-10-11",
+      "observation": "The issue reports separate DXF-to-DWG loss paths for raw-only custom classes, group-430 color-book names, and table/block-record XDATA. Maintainer asked for a retest after the candidate commit; no public retest result is shown.",
+      "boundary": "Version-bound peer evidence; not a local defect or a verified peer release result."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "identity": "Issue reports acadrust 0.6.4; candidate commit 0e46236; downstream opencadcodec merge 69ef6fc incorporates upstream main a1a216d",
+      "observation": "The report attributes 70/351 private-corpus AC1032 failures to bounded record decoding, including 65 AcDbMLeaderObjectContextData records. The issue remains open, requests a corpus retest, and publishes no result.",
+      "boundary": "Peer/version regression signal; no public private-corpus retest, authoritative layout evidence, or libdxfrw reproduction."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "related_paths": ["src/drw_entities.cpp", "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md (PAR-65/7AM.1)"],
+      "identity": "Local worktree source review",
+      "observation": "DRW_Block retains xrefPath parsed from DXF BLOCK group 1, while dxfRW::writeBlock currently emits an empty group-1 string. This is already owned by PAR-65/7AM.1.",
+      "boundary": "Source-confirmed local writer gap; generated raw-output testing is still required to establish runtime behavior and close the planned slice."
+    }
+  ],
+  "plan_changes": [
+    "Refined PAR-65/7AM.1 to start with a generated relative XREF path and exact raw ASCII/Binary BLOCK group-1 output assertion plus following-record alignment.",
+    "Separated stored path bytes, consumer path resolution, and archive/transmittal dependency membership in support claims and optional composed consumer evidence.",
+    "Refreshed ACadRust #132/#134 candidate-fix status; keep both non-normative until their requested external retests are published.",
+    "Preserved the existing bounded-record policy and standalone MLEADER context-object deferral; no bounds relaxation or new object grammar is justified."
+  ],
+  "counts": {
+    "findings": 134,
+    "top_level_subplans": 76,
+    "external_only_items": {
+      "status": "DEFERRED_EXTERNAL",
+      "non_promoting": true,
+      "items": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    }
+  },
+  "validation": {
+    "plan_only": true,
+    "external_drawings_downloaded": false,
+    "external_peer_apps_run": false,
+    "fixtures_added": false,
+    "tests_run": false,
+    "support_claim_promoted": false,
+    "full_suite_cadence_changed": false,
+    "recommended_slice_validation": [
+      "strict owning target build",
+      "focused selector",
+      "owning CTest",
+      "git diff --check"
+    ]
+  }
+}

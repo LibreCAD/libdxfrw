@@ -1,0 +1,57 @@
+{
+  "title": "S3.7c ACIS ellipse-edge endpoint incidence",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Check both decoded DRW_AcisEdge endpoints against the full untrimmed analytic ellipse locus.",
+    "tolerancePolicy": "The caller supplies a finite nonnegative dimensionless frame tolerance and a finite nonnegative linear endpoint-distance tolerance; no modeler defaults are inferred.",
+    "semanticLimit": "Endpoint-to-full-locus incidence only. The function neither derives a finite parameter interval nor interprets native ACIS parameter direction.",
+    "non_claims": [
+      "finite ellipse edge trim or arc interval",
+      "pcurve or face-domain correctness",
+      "placement or source-unit application",
+      "B-rep validity",
+      "native consumer qualification",
+      "independent semantic support"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab21800_exact_endpoint_incidence": "PASS",
+    "inclusive_linear_tolerance_boundary": "PASS",
+    "just_outside_tolerance_refuses": "PASS",
+    "missing_endpoint_refuses": "PASS",
+    "invalid_frame_or_linear_tolerance_refuses": "PASS",
+    "wrong_curve_profile_refuses": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.07 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_acisEllipseEdgeEndpointsWithinTolerance)",
+    "diff_check": "PASS (scoped implementation and test paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

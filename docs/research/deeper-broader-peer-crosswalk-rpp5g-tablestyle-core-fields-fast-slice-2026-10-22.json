@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5g TABLESTYLE core header domain and duplicate-field refusal",
+  "mode": "Generated ASCII/Binary malformed-record and sentinel validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "2b8ed9c792a0048707a86e03e4667d84838b8ee386f2111896ccfa43a5e79250",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "domains": {
+      "group70": [0, 1],
+      "group280TitleSuppression": [0, 1],
+      "group281HeaderSuppression": [0, 1]
+    }
+  },
+  "implementation": {
+    "changes": [
+      "DRW_TableStyle's DXF parse state now records top-level core fields so repeated description, flow, flags, margins, or suppression values invalidate typed projection rather than silently using a later value.",
+      "FlowDirection group 70 and title/header suppression values are constrained to documented 0/1 domains; horizontal and vertical margins must be finite.",
+      "Generated ASCII/Binary records exercise duplicate group 70, out-of-domain FlowDirection 2, and invalid group 281; they retain all raw records, withhold malformed typed callbacks, and continue to a valid TABLESTYLE sentinel."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5g-tablestyle-core-fields-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "focusedOwner": "PASS: libdxfrw_tablestyle_nested_raw_net (1/1)",
+    "diffCheck": "PASS: git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/dwg2dxf_adapter_tests.cpp dwg2dxf/dx_iface.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicCppLayoutChanged": true,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; binary ABI compatibility is not claimed and downstream consumers must rebuild",
+    "rawCarrierPreserved": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Keep the generic MATERIAL procedural-property sequence raw until complete name/type/value cardinality and color-component association are evidenced.",
+      "Keep MATERIAL self-illumination groups 90 and 149 untyped pending an authoritative discriminating witness.",
+      "Continue the broad source-backed DWG/DXF parity plan; RPP-5f refusal is not typed-edit merging or a complete typed cell-style writer."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-group-description-object-callback-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Close the GROUP description retained-owner validation gap at the full DXF OBJECTS callback boundary, including refusal-before-callback and same-facade retry, without committing drawing fixtures.",
+  "implementation": {
+    "file": "tests/hardening_tests.cpp",
+    "behavior": [
+      "Extends generatedGroupDescriptionBudgetWire with a full OBJECTS drawing mode while preserving the existing direct-parser wire test.",
+      "Adds GROUP subclass framing and a second GROUP sentinel with a distinct numeric handle and description.",
+      "Adds GroupBudgetCapture to observe only the typed GROUP callback boundary.",
+      "For ASCII and Binary DXF, discovers the minimum successful full-read retained-byte budget; verifies cap-minus-one refusal occurs before any GROUP callbacks and reports ResourceLimit/dxf-retained-byte-budget.",
+      "Raises the same dxfRW facade to the measured exact cap and retries; asserts both GROUP callbacks, expected handles/descriptions, and sentinel order. Binary input is generated under a unique temporary path and removed by scoped cleanup."
+    ]
+  },
+  "commands": [
+    "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "build-gcc/libdxfrw_hardening_tests --dxf-group-description-owner-budget",
+    "cmake --build build-gcc --target lc3_compat_check -j2",
+    "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure"
+  ],
+  "results": {
+    "strictTarget": "passed",
+    "focusedSelector": "passed for ASCII and Binary",
+    "compatibilityTarget": "passed",
+    "owningCTest": "passed 1/1"
+  },
+  "limits": {
+    "productionCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "dwgStorageQualified": false,
+    "postCallbackMutationQualified": false,
+    "writerOrProjectionCopiesQualified": false,
+    "binaryAbiClaim": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "Uncommitted; shared checkout contains broad pre-existing user changes. No staging or commit was attempted."
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingOwner": "7S.2c.d.17.21 GROUP description",
+    "newTestSlice": "7S.2c.d.17.22 GROUP OBJECTS callback boundary",
+    "nextReadyScope": "Continue independent 7S.2c public-mutation and writer-copy accounting, then any uncovered specialized raw/typed carriers; no parser-wide memory claim follows from this callback closure."
+  }
+}

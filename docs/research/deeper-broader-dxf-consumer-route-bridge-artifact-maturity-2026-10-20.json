@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF consumer-route and bridge artifact maturity",
+  "mode": "Primary-source web research with bounded local plan and harness audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expand the peer map to an open-source DXF callback consumer and a current DWG-to-DXF application bridge.",
+    "Distinguish file-open success, callback delivery, bridge conversion, writer disposition, and semantic/native acceptance.",
+    "Refine optional comparator admission and existing FreeCAD validation without adding routine peer runs or new prerequisites."
+  ],
+  "sources": [
+    {
+      "project": "QCAD / dxflib",
+      "urls": [
+        "https://github.com/qcad/qcad",
+        "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox",
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_dxf.cpp"
+      ],
+      "revision": "Public QCAD master/project and current API documentation reviewed 2026-10-20.",
+      "observed": "QCAD describes itself as an open-source 2D CAD application; its README says DWG support is available through an optional proprietary plugin. Its DXF module is based on dxflib. DL_Dxf::in routes group data through a caller-supplied creation interface, drains the group reader to EOF, and returns true once the file could be opened.",
+      "limits": "Documentation is not a runtime result. File-open success does not establish complete parse, callback coverage, semantic field fidelity, writer compatibility, or an open DWG parser."
+    },
+    {
+      "project": "CADCraft",
+      "urls": [
+        "https://git.mitgai.net/storytold/cadcraft/blob/main/docs/file-format-parity.md",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs"
+      ],
+      "revision": "Mutable project parity document and helper source reviewed 2026-10-20; no immutable commit was executed or independently resolved in this pass.",
+      "observed": "The parity document describes DWG reads as an ACadRust 0.6.3 DWG-to-ASCII-DXF bridge followed by a separate DXF read. It marks AC1012/AC1014 untested and AC1032 real-file testing untested; later roundtrips listed are synthetic. It says proxy, ACIS, and custom-object output loss is unmeasured. The helper uses failsafe reading, derives notes from skipped source records, performs cleanup/postprocessing, then serializes DXF.",
+      "limits": "This is application-authored scope evidence, not independently reproduced codec coverage. Skipped-record notes do not inventory later cleanup or writer omissions. Results cannot be transferred to another ACadRust package or release without binding that artifact."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5"
+      ],
+      "revision": "Public v0.6.5 release reviewed 2026-10-20.",
+      "observed": "The release is a separate artifact from CADCraft's documented ACadRust 0.6.3 dependency.",
+      "limits": "No package was downloaded or executed. This observation establishes only a version/provenance distinction, not a compatibility result."
+    },
+    {
+      "project": "FreeCAD consumer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Public documentation reviewed 2026-10-20; GitHub marks the documentation repository archived on 2026-04-01.",
+      "observed": "The route documentation distinguishes selectable C++ and legacy Python importer subsets and states that stock FreeCAD importers do not read ACIS/SAT solids.",
+      "limits": "Archived documentation is a route description, not runtime qualification for a future FreeCAD build or selected importer."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "surface": "FreeCAD-form converter CLI test",
+      "paths": [
+        "tests/run_freecad_dwg2dxf_compat_test.cmake"
+      ],
+      "observation": "The existing harness removes its test-local output before conversion, checks successful process status and expected ASCII DXF/version, performs a dwg2dxf readback with version check, and requires atomic refusal for selected unsupported records. It is a converter/CLI check, not a native FreeCAD application import. No new test was needed."
+    },
+    {
+      "surface": "Peer route classification",
+      "paths": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observation": "The plan already treats ACadRust-derived applications as a shared parser lineage and keeps FreeCAD converter/importer/modeler outcomes separate. The new section narrows QCAD to a DXF callback consumer, records the file-open-only meaning of its documented boolean result, and tightens CADCraft artifact and source-to-output accounting."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: classify peers by actual route and lineage; keep converter, DXF import, record disposition, and modeler semantics distinct.",
+      "PAR-06/PAR-49: reconcile source identity through decode diagnostics, bridge transformations, writer disposition, and independent reopen.",
+      "FreeCAD consumer qualification: preserve exact selected importer/platform gates and score only the tested consumer subset."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-consumer-route-bridge-artifact-maturity-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added QCAD/dxflib as an optional DXF callback-consumer comparator only; documented that its DWG plugin is proprietary and its boolean read result only confirms file-open status.",
+    "Recorded CADCraft's documented ACadRust 0.6.3 DWG-to-DXF bridge, synthetic versus real-file qualification limits, and unmeasured proxy/ACIS/custom-object loss without treating it as an independent parser.",
+    "Required distinct accounting for source decode/skip diagnostics, bridge cleanup, output writer disposition, and independent reopen; preserved exact package/source artifact identity.",
+    "Confirmed reuse of the existing FreeCAD-form CLI harness, whose fresh-output, status, DXF-version, readback, and refusal checks do not substitute for a native application import."
+  ],
+  "limitations": [
+    "All peer sources are public project documentation/API/source; no peer binary or native application was run.",
+    "CADCraft's parity page is mutable and was not pinned to a commit in this research-only pass; its assertions remain advisory until exact artifact binding.",
+    "QCAD documentation does not establish complete DXF compatibility or DWG support through the proprietary plugin.",
+    "The FreeCAD importer matrix is in an archived documentation repository and requires exact-build runtime qualification.",
+    "J256, J260, J268, J284, J293, and J295 remain external-only and cannot promote support claims."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Not requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

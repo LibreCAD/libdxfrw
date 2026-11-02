@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-polyface-vertex-wire-flags-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_RAW_WIRE_REGRESSION_PASSES",
+  "scope": "Inspect emitted AC1009 and AC1021 ASCII and Binary DXF polyface records before typed document import can normalize group-70 roles or face indices.",
+  "implementation": {
+    "productionBehaviorChanged": false,
+    "existingDxfFixtureTestExtended": true,
+    "focusedInvocationAdded": "--classic-vertex-xdata",
+    "newTestTargetAdded": false,
+    "newCTestRegistrationAdded": false,
+    "newFixtureAdded": false,
+    "newDependencyAdded": false
+  },
+  "generatedInput": {
+    "parentPolylineFlags": 64,
+    "writerVersions": ["AC1009", "AC1021"],
+    "binaryReaderSelectedByVersion": {
+      "AC1009": "dxfReaderBinaryR12",
+      "AC1021": "dxfReaderBinary"
+    },
+    "sourceVerticesAreInterleaved": true,
+    "emittedVertexRoles": ["coordinate", "coordinate", "coordinate", "face"],
+    "ascii": {
+      "typedExport": true,
+      "rawScanReachedEof": true,
+      "parentGroup70": 64,
+      "vertexGroup70": [192, 192, 192, 128],
+      "faceLocation": [0, 0, 0],
+      "faceIndices": {"71": -1, "72": 2, "73": 3, "74": "absent"}
+    },
+    "binary": {
+      "typedExport": true,
+      "rawScanReachedEof": true,
+      "parentGroup70": 64,
+      "vertexGroup70": [192, 192, 192, 128],
+      "faceLocation": [0, 0, 0],
+      "faceIndices": {"71": -1, "72": 2, "73": 3, "74": "absent"}
+    },
+    "sameRoleAndIndexAssertionsRunForBothWriterVersions": true,
+    "temporaryFilesRemoved": true
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focusedFastTest": {
+      "command": "./build-gcc/libdxfrw_dxf_fixture_tests --classic-vertex-xdata",
+      "result": "passed"
+    },
+    "owningFastCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "durationSeconds": 3.17
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md",
+      "result": "passed"
+    },
+    "fullRepositoryTestSuite": "not run; the focused invocation and owning DXF fixture CTest were run",
+    "independentPeerOrNativeRun": "not run"
+  },
+  "changedFileHash": {
+    "path": "tests/dxf_fixture_tests.cpp",
+    "sha256": "8f3b43fc11f31f434b0ec24bf7b5b3e97e89053a56f86e275d62eb1444c6a653"
+  },
+  "evidenceBoundary": {
+    "establishes": [
+      "the local writer emits polyface coordinate VERTEX flags 192 and face VERTEX flags 128 for generated AC1009 and AC1021 ASCII and Binary DXF",
+      "the emitted coordinate records precede the face record in the tested canonical output",
+      "the tested face record has an explicit zero location, retains the signed -1 invisible-edge index, and stops its index list before group 74",
+      "the parent POLYLINE carries group 70 value 64"
+    ],
+    "doesNotEstablish": [
+      "independent peer or native CAD acceptance",
+      "DWG polyface VERTEX flag layout",
+      "semantic support beyond these generated writer profiles"
+    ]
+  },
+  "planImpact": {
+    "findings": 125,
+    "topLevelSubplans": 71,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktreeState": "local uncommitted implementation slice; unrelated existing worktree changes were not staged or modified"
+}

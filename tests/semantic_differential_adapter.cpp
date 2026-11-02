@@ -1,14 +1,15 @@
 /******************************************************************************
 ** Deterministic semantic-evidence adapter for libdxfrw.                     **
 **                                                                           **
-** This source is deliberately limited to the public libdxfrw API and C++17 **
-** so the same translation unit can be compiled against the standalone      **
-** package and LibreCAD's pinned bundled package.                            **
+** Adapter operations use the public libdxfrw API and C++17 so this source  **
+** builds against standalone and LibreCAD's pinned package. Generated raw   **
+** DWG controls share a test-only, spec-shaped body builder.                **
 ******************************************************************************/
 
 #include "drw_interface.h"
 #include "libdwgr.h"
 #include "libdxfrw.h"
+#include "generated_raw_dwg_object.h"
 
 #include <algorithm>
 #include <array>
@@ -30,6 +31,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -283,6 +285,288 @@ Field pointField(const std::string& name, const DRW_Coord& value) {
     return Field{name, "point3d", pointJson(value)};
 }
 
+template <typename T, typename = void>
+struct HasModelerDwgSourceVersion : std::false_type {};
+template <typename T>
+struct HasModelerDwgSourceVersion<T, std::void_t<decltype(
+    std::declval<const T&>().m_dwgSourceVersion)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasModelerDwgAcisPayload : std::false_type {};
+template <typename T>
+struct HasModelerDwgAcisPayload<T, std::void_t<decltype(
+    std::declval<const T&>().m_dwgAcisPayload)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasModelerDxfPayloadChunks : std::false_type {};
+template <typename T>
+struct HasModelerDxfPayloadChunks<T, std::void_t<decltype(
+    std::declval<const T&>().m_dxfPayloadChunks)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasModelerPayloadStatusName : std::false_type {};
+template <typename T>
+struct HasModelerPayloadStatusName<T, std::void_t<decltype(
+    std::declval<const T&>().modelerPayloadStatusName())>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasPayloadRangeBitOffset : std::false_type {};
+template <typename T>
+struct HasPayloadRangeBitOffset<T, std::void_t<decltype(
+    std::declval<const T&>().m_bitOffset)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasSurfaceDxfPayloadChunks : std::false_type {};
+template <typename T>
+struct HasSurfaceDxfPayloadChunks<T, std::void_t<decltype(
+    std::declval<const T&>().dxfPayloadChunks)>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasDwgReadObservations : std::false_type {};
+template <typename T>
+struct HasDwgReadObservations<T, std::void_t<decltype(
+    std::declval<const T&>().getReadObservations())>> : std::true_type {};
+
+template <typename T, typename ExpectedReturn, typename = void>
+struct DwgReadObservationsMethodProfile {
+    static constexpr bool present = false;
+    static constexpr bool exactConstNoexceptSignature = false;
+};
+template <typename T, typename ExpectedReturn>
+struct DwgReadObservationsMethodProfile<T, ExpectedReturn, std::void_t<
+    decltype(&T::getReadObservations)>> {
+    static constexpr bool present = true;
+    static constexpr bool exactConstNoexceptSignature = std::is_same<
+        decltype(&T::getReadObservations),
+        ExpectedReturn (T::*)() const noexcept>::value;
+};
+
+struct ReadObservationsExactSignatureProbe {
+    int getReadObservations() const noexcept;
+};
+struct ReadObservationsMutableSignatureProbe {
+    int getReadObservations() noexcept;
+};
+struct ReadObservationsMayThrowSignatureProbe {
+    int getReadObservations() const;
+};
+struct ReadObservationsWrongReturnSignatureProbe {
+    long getReadObservations() const noexcept;
+};
+struct ReadObservationsAbsentSignatureProbe {};
+
+static_assert(DwgReadObservationsMethodProfile<
+                  ReadObservationsExactSignatureProbe, int>::present
+              && DwgReadObservationsMethodProfile<
+                  ReadObservationsExactSignatureProbe,
+                  int>::exactConstNoexceptSignature,
+              "self-test profile must accept the exact accessor signature");
+static_assert(DwgReadObservationsMethodProfile<
+                  ReadObservationsMutableSignatureProbe, int>::present
+              && !DwgReadObservationsMethodProfile<
+                  ReadObservationsMutableSignatureProbe,
+                  int>::exactConstNoexceptSignature,
+              "self-test profile must reject a non-const accessor");
+static_assert(DwgReadObservationsMethodProfile<
+                  ReadObservationsMayThrowSignatureProbe, int>::present
+              && !DwgReadObservationsMethodProfile<
+                  ReadObservationsMayThrowSignatureProbe,
+                  int>::exactConstNoexceptSignature,
+              "self-test profile must reject a potentially-throwing accessor");
+static_assert(DwgReadObservationsMethodProfile<
+                  ReadObservationsWrongReturnSignatureProbe, int>::present
+              && !DwgReadObservationsMethodProfile<
+                  ReadObservationsWrongReturnSignatureProbe,
+                  int>::exactConstNoexceptSignature,
+              "self-test profile must reject a changed accessor return type");
+static_assert(!DwgReadObservationsMethodProfile<
+                   ReadObservationsAbsentSignatureProbe, int>::present,
+              "self-test profile must distinguish an absent accessor");
+
+struct SemanticAdapterCapabilityProfileV1 {
+#ifdef LIBDXFRW_SEMANTIC_SIDE_TARGET
+    static constexpr const char* name = "semantic-adapter-capabilities-v1";
+    static constexpr const char* side = "target";
+    static constexpr bool dwgReadObservations = false;
+    static constexpr bool modelerDwgSourceVersion = false;
+    static constexpr bool modelerDwgAcisPayload = false;
+    static constexpr bool modelerDxfPayloadChunks = false;
+    static constexpr bool modelerPayloadStatusName = false;
+    static constexpr bool payloadRangeBitOffset = false;
+    static constexpr bool surfaceDxfPayloadChunks = false;
+#else
+    static constexpr const char* name = "semantic-adapter-capabilities-v1";
+    static constexpr const char* side = "standalone";
+    static constexpr bool dwgReadObservations = true;
+    static constexpr bool modelerDwgSourceVersion = true;
+    static constexpr bool modelerDwgAcisPayload = true;
+    static constexpr bool modelerDxfPayloadChunks = true;
+    static constexpr bool modelerPayloadStatusName = true;
+    static constexpr bool payloadRangeBitOffset = true;
+    static constexpr bool surfaceDxfPayloadChunks = true;
+#endif
+};
+
+void emitCapabilityProfile(std::ostream& out) {
+    const auto boolean = [](bool value) {
+        return value ? "true" : "false";
+    };
+    out << "{\"schema\":1,\"name\":"
+        << jsonString(SemanticAdapterCapabilityProfileV1::name)
+        << ",\"side\":"
+        << jsonString(SemanticAdapterCapabilityProfileV1::side)
+        << ",\"capabilities\":{"
+        << "\"dwgReadObservations\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::dwgReadObservations)
+        << ",\"modelerDwgSourceVersion\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::modelerDwgSourceVersion)
+        << ",\"modelerDwgAcisPayload\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::modelerDwgAcisPayload)
+        << ",\"modelerDxfPayloadChunks\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::modelerDxfPayloadChunks)
+        << ",\"modelerPayloadStatusName\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::modelerPayloadStatusName)
+        << ",\"payloadRangeBitOffset\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::payloadRangeBitOffset)
+        << ",\"surfaceDxfPayloadChunks\":"
+        << boolean(SemanticAdapterCapabilityProfileV1::surfaceDxfPayloadChunks)
+        << "}}";
+}
+
+#ifdef LIBDXFRW_SEMANTIC_SIDE_TARGET
+static_assert(DwgReadObservationsMethodProfile<dwgRW, void>::present
+                  == SemanticAdapterCapabilityProfileV1::dwgReadObservations,
+              "pinned target getReadObservations capability changed");
+static_assert(!SemanticAdapterCapabilityProfileV1::dwgReadObservations,
+              "target profile must declare no read-observations API");
+static_assert(HasModelerDwgSourceVersion<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDwgSourceVersion,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_ModelerGeometry::m_dwgSourceVersion must be absent");
+static_assert(HasModelerDwgAcisPayload<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDwgAcisPayload,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_ModelerGeometry::m_dwgAcisPayload must be absent");
+static_assert(HasModelerDxfPayloadChunks<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDxfPayloadChunks,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_ModelerGeometry::m_dxfPayloadChunks must be absent");
+static_assert(HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerPayloadStatusName,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_ModelerGeometry::modelerPayloadStatusName must be absent");
+static_assert(HasPayloadRangeBitOffset<DRW_ModelerPayloadRange>::value
+                  == SemanticAdapterCapabilityProfileV1::payloadRangeBitOffset,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_ModelerPayloadRange::m_bitOffset must be absent");
+static_assert(HasSurfaceDxfPayloadChunks<DRW_Surface>::value
+                  == SemanticAdapterCapabilityProfileV1::surfaceDxfPayloadChunks,
+              "pinned LibreCAD target capability profile changed: "
+              "DRW_Surface::dxfPayloadChunks must be absent");
+static_assert(SemanticAdapterCapabilityProfileV1::name[0] != '\0',
+              "target capability profile must have a name");
+#else
+static_assert(DwgReadObservationsMethodProfile<
+                  dwgRW, DwgReadObservations>::present
+              == SemanticAdapterCapabilityProfileV1::dwgReadObservations
+              && DwgReadObservationsMethodProfile<
+                  dwgRW, DwgReadObservations>::exactConstNoexceptSignature,
+              "standalone capability profile requires "
+              "DwgReadObservations getReadObservations() const noexcept");
+static_assert(HasModelerDwgSourceVersion<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDwgSourceVersion
+              && std::is_same<decltype(std::declval<DRW_ModelerGeometry&>()
+                                           .m_dwgSourceVersion),
+                              DRW::Version>::value,
+              "standalone capability profile requires the typed DWG source version");
+static_assert(HasModelerDwgAcisPayload<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDwgAcisPayload
+              && std::is_same<decltype(std::declval<DRW_ModelerGeometry&>()
+                                           .m_dwgAcisPayload),
+                              std::vector<std::uint8_t>>::value,
+              "standalone capability profile requires the exact DWG ACIS payload vector");
+static_assert(HasModelerDxfPayloadChunks<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerDxfPayloadChunks
+              && std::is_same<decltype(std::declval<DRW_ModelerGeometry&>()
+                                           .m_dxfPayloadChunks),
+                              std::vector<DRW_ModelerPayloadChunk>>::value,
+              "standalone capability profile requires ordered DXF modeler chunks");
+static_assert(HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+                  == SemanticAdapterCapabilityProfileV1::modelerPayloadStatusName
+              && std::is_same<
+                  decltype(&DRW_ModelerGeometry::modelerPayloadStatusName),
+                  const char* (DRW_ModelerGeometry::*)() const noexcept>::value,
+              "standalone capability profile requires the exact payload-status accessor");
+static_assert(HasPayloadRangeBitOffset<DRW_ModelerPayloadRange>::value
+                  == SemanticAdapterCapabilityProfileV1::payloadRangeBitOffset
+              && std::is_same<decltype(std::declval<DRW_ModelerPayloadRange&>()
+                                           .m_bitOffset),
+                              std::uint8_t>::value,
+              "standalone capability profile requires bit-precise payload ranges");
+static_assert(HasSurfaceDxfPayloadChunks<DRW_Surface>::value
+                  == SemanticAdapterCapabilityProfileV1::surfaceDxfPayloadChunks
+              && std::is_same<decltype(std::declval<DRW_Surface&>()
+                                           .dxfPayloadChunks),
+                              std::vector<DRW_ModelerPayloadChunk>>::value,
+              "standalone capability profile requires ordered DXF surface chunks");
+static_assert(SemanticAdapterCapabilityProfileV1::name[0] != '\0',
+              "standalone capability profile must have a name");
+#endif
+
+template <typename T>
+bool setModelerDwgSourceVersion(T& modeler, DRW::Version version) {
+    if constexpr (HasModelerDwgSourceVersion<T>::value) {
+        modeler.m_dwgSourceVersion = version;
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool setModelerDwgAcisPayload(T& modeler,
+                              const std::vector<std::uint8_t>& payload) {
+    if constexpr (HasModelerDwgAcisPayload<T>::value) {
+        modeler.m_dwgAcisPayload = payload;
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool setModelerDxfPayloadChunk(T& modeler) {
+    if constexpr (HasModelerDxfPayloadChunks<T>::value) {
+        using Chunks = typename std::decay<decltype(
+            modeler.m_dxfPayloadChunks)>::type;
+        using Chunk = typename Chunks::value_type;
+        Chunk chunk(310, 1, 2);
+        modeler.m_dxfPayloadChunks.push_back(chunk);
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool setSurfaceDxfPayloadChunk(T& surface) {
+    if constexpr (HasSurfaceDxfPayloadChunks<T>::value) {
+        using Chunks = typename std::decay<decltype(
+            surface.dxfPayloadChunks)>::type;
+        using Chunk = typename Chunks::value_type;
+        Chunk chunk(310, 1, 2);
+        surface.dxfPayloadChunks.push_back(chunk);
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool setPayloadRangeBitOffset(T& range, std::size_t bitOffset) {
+    if constexpr (HasPayloadRangeBitOffset<T>::value) {
+        range.m_bitOffset = bitOffset;
+        return true;
+    }
+    return false;
+}
+
 struct CallbackRow {
     std::string id;
     std::size_t ordinal = 0;
@@ -369,9 +653,16 @@ public:
         writeRecipeSucceeded_ = true;
     }
     bool writeRecipeSucceeded() const { return writeRecipeSucceeded_; }
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
     void enable3DConsumerProbe() { threeDConsumerProbe_ = true; }
-#endif
+    void enablePartialDwgReadbackControl() {
+        partialDwgReadbackControl_ = true;
+    }
+    void enableOpaqueDwgReadbackControl() {
+        opaqueDwgReadbackControl_ = true;
+        opaqueDwgReadbackObject_ = libdxfrw_test::makeRawCustomObject(
+            DRW::AC1027, 500, 0x700u, "SEMANTIC_OPAQUE_TEST",
+            "AcDbSemanticOpaqueTest", "LIBDXFRW_SEMANTIC_TEST");
+    }
 
     void addHeader(const DRW_Header*) override {
         addCallback("addHeader");
@@ -437,6 +728,37 @@ public:
     SEMANTIC_OPAQUE_VALUE(addDataStorage, DRW_DataStorageSection, "DATASTORAGE")
     SEMANTIC_OPAQUE_VALUE(addDxfClass, DRW_Class, "DXF_CLASS")
 
+#ifdef LIBDXFRW_SEMANTIC_SIDE_STANDALONE
+    void addNamedObjectDictionary(const DRW_Dictionary& d) override {
+        std::vector<Field> fields;
+        fields.push_back(stringField("recordClass", "DICTIONARY"));
+        fields.push_back(stringField("entity", "DICTIONARY"));
+        appendIdentityHandleFields(fields, d.handle, d.parentHandle);
+        fields.push_back(stringField("name", d.name));
+        fields.push_back(intField("cloning", d.cloning));
+        fields.push_back(intField("hardOwner", d.hardOwner));
+        fields.push_back(uintField("entryCount", d.m_entries.size()));
+        fields.push_back(boolField(
+            "entriesComplete",
+            facade_ == "dwgRW" ? d.hasCompleteDwgEntries()
+                                : d.hasCompleteDxfEntries()));
+        for (std::size_t i = 0; i < d.m_entries.size(); ++i) {
+            const std::string prefix = "entry." + std::to_string(i);
+            fields.push_back(stringField(prefix + ".name", d.m_entries[i].m_name));
+            fields.push_back(uintField(prefix + ".handle", d.m_entries[i].m_handle));
+        }
+        const std::size_t recordIndex = addRecord(
+            "addNamedObjectDictionary", "table", "DICTIONARY", fields);
+        addOwnerEdges(records[recordIndex], d.handle, d.parentHandle);
+        for (const DRW_Dictionary::Entry& entry : d.m_entries) {
+            if (entry.m_handle != 0)
+                addEdge("handleReference", "node:" + records[recordIndex].id,
+                        ensureHandleNode(entry.m_handle));
+        }
+        addExcluded(records[recordIndex].id, "dictionaryExtensionsAndRawData");
+    }
+#endif
+
     void addBlock(const DRW_Block& d) override {
         std::vector<Field> fields = entityFields(d, "BLOCK", "BLOCK");
         fields.push_back(stringField("name", d.name));
@@ -452,6 +774,47 @@ public:
         }
         addExcluded(records[recordIndex].id, "unmodeledBlockPayload");
     }
+#ifdef LIBDXFRW_SEMANTIC_SIDE_STANDALONE
+    void addBlockEnd(const DRW_Block& d) override {
+        std::vector<Field> fields = entityFields(d, "ENDBLK", "ENDBLK");
+        addEntityRecord("addBlockEnd", "ENDBLK", std::move(fields), d, true);
+    }
+
+    void addBlockRecord(const DRW_Block_Record& d) override {
+        std::vector<Field> fields;
+        fields.push_back(stringField("recordClass", "BLOCK_RECORD"));
+        fields.push_back(stringField("entity", "BLOCK_RECORD"));
+        appendIdentityHandleFields(fields, d.handle, d.parentHandle);
+        fields.push_back(stringField("name", d.name));
+        fields.push_back(intField("flags", d.flags));
+        fields.push_back(intField("insertionUnits", d.insUnits));
+        fields.push_back(pointField("basePoint", d.basePoint));
+        fields.push_back(stringField("xrefPath", d.xrefPath));
+        fields.push_back(stringField("description", d.description));
+        fields.push_back(boolField("canExplode", d.canExplode));
+        fields.push_back(intField("blockScaling", d.blockScaling));
+        fields.push_back(uintField("layoutHandle", d.layoutHandle));
+        fields.push_back(uintField("insertCount", d.insertCount));
+        fields.push_back(uintField("insertHandleCount", d.insertHandles.size()));
+        for (std::size_t i = 0; i < d.insertHandles.size(); ++i)
+            fields.push_back(uintField("insertHandle." + std::to_string(i),
+                                       d.insertHandles[i]));
+        const std::size_t recordIndex = addRecord(
+            "addBlockRecord", "table", "BLOCK_RECORD", fields);
+        addOwnerEdges(records[recordIndex], d.handle, d.parentHandle);
+        if (d.layoutHandle != 0)
+            addEdge("handleReference", "node:" + records[recordIndex].id,
+                    ensureHandleNode(d.layoutHandle));
+        if (!d.previewData.empty()) {
+            const std::string carrierId = addCarrier(
+                "blockRecordPreview", d.previewData.data(), d.previewData.size(),
+                "preserved", records[recordIndex].id);
+            callbacks[records[recordIndex].callbackOrdinal].carrierIds.push_back(
+                carrierId);
+        }
+        addExcluded(records[recordIndex].id, "unmodeledBlockRecordPayload");
+    }
+#endif
     void setBlock(int handle) override {
         const std::string handleNode = ensureHandleNode(static_cast<std::uint32_t>(handle));
         for (NodeRow& node : nodes) {
@@ -706,25 +1069,26 @@ public:
     void addModelerGeometry(const DRW_ModelerGeometry& d) override {
         std::vector<Field> fields = entityFields(d, "MODELER_GEOMETRY",
                                                  "MODELER_GEOMETRY");
+        std::vector<std::string> excludedFields;
         fields.push_back(intField("entityType", static_cast<int>(d.eType)));
         fields.push_back(intField("modelerVersion", d.m_modelerVersion));
-        fields.push_back(intField("dwgSourceVersion",
-                                  static_cast<int>(d.m_dwgSourceVersion)));
+        if (!appendModelerDwgSourceVersionField(fields, d))
+            excludedFields.push_back("dwgSourceVersion");
         fields.push_back(uintField("bodyBitSize", d.m_bodyBitSize));
         fields.push_back(uintField("objectSize", d.m_objectSize));
         fields.push_back(boolField("isEmpty", d.m_isEmpty));
         fields.push_back(boolField("hasModelerData", d.m_hasModelerData));
+        if (!appendModelerPayloadStatusField(fields, d))
+            excludedFields.push_back("modelerPayloadStatus");
         fields.push_back(boolField("modelerDataUnknownBit", d.m_modelerDataUnknownBit));
         fields.push_back(boolField("hasWireframe", d.m_hasWireframe));
         fields.push_back(handleField("historyHandle", d.m_historyHandle));
         fields.push_back(boolField("hasRawBytes", !d.m_rawBytes.empty()));
         fields.push_back(uintField("rawByteCount", d.m_rawBytes.size()));
-        fields.push_back(boolField("hasDwgInlineAcisPayload",
-                                   !d.m_dwgAcisPayload.empty()));
-        fields.push_back(uintField("dwgInlineAcisByteCount",
-                                   d.m_dwgAcisPayload.size()));
-        appendPayloadChunkFields(fields, "dxfPayloadChunk",
-                                 d.m_dxfPayloadChunks, d.m_rawBytes);
+        if (!appendModelerDwgAcisPayloadFields(fields, d))
+            excludedFields.push_back("dwgInlineAcisPayload");
+        if (!appendModelerDxfPayloadChunkFields(fields, d, d.m_rawBytes))
+            excludedFields.push_back("dxfPayloadChunks");
         appendDataStorageFields(fields, d);
         fields.push_back(stringField("rawByteCarrierKind",
             facade_ == "dwgRW" && direction_ == "read"
@@ -743,7 +1107,8 @@ public:
             fields.push_back(intField(prefix + ".kind", static_cast<int>(range.m_kind)));
             fields.push_back(intField(prefix + ".section", static_cast<int>(range.m_section)));
             fields.push_back(uintField(prefix + ".offset", range.m_offset));
-            fields.push_back(uintField(prefix + ".bitOffset", range.m_bitOffset));
+            if (!appendPayloadRangeBitOffset(fields, prefix, range))
+                excludedFields.push_back(prefix + ".bitOffset");
             fields.push_back(uintField(prefix + ".length", range.m_length));
             fields.push_back(uintField(prefix + ".declaredByteSize", range.m_declaredByteSize));
             fields.push_back(intField(prefix + ".consistency", static_cast<int>(range.m_consistency)));
@@ -752,6 +1117,12 @@ public:
         }
         const std::size_t recordIndex = addEntityRecord(
             "addModelerGeometry", "MODELER_GEOMETRY", fields, d, false);
+        for (const std::string& source : excludedFields)
+            addExcluded(records[recordIndex].id, source);
+        if (d.m_historyHandle != 0) {
+            addEdge("historyReference", "node:" + records[recordIndex].id,
+                    ensureHandleNode(d.m_historyHandle));
+        }
         if (!d.m_rawBytes.empty()) {
             const std::string carrierName = facade_ == "dwgRW" && direction_ == "read"
                 ? "dwgModelerObjectFrameBody-unclassified-payload"
@@ -761,14 +1132,7 @@ public:
             attachCarrierToRecord(recordIndex, carrierName,
                                   d.m_rawBytes.data(), d.m_rawBytes.size());
         }
-        if (!d.m_dwgAcisPayload.empty()) {
-            attachCarrierToRecord(recordIndex,
-                                  facade_ == "dwgRW" && direction_ == "read"
-                                      ? "dwgModelerInlineAcisPayload"
-                                      : "unclassifiedModelerInlineAcisPayload",
-                                  d.m_dwgAcisPayload.data(),
-                                  d.m_dwgAcisPayload.size());
-        }
+        attachModelerDwgAcisPayloadCarrier(recordIndex, d);
     }
     SEMANTIC_OPAQUE_VALUE(addLight, DRW_Light, "LIGHT")
     SEMANTIC_OPAQUE_VALUE(addCamera, DRW_Camera, "CAMERA")
@@ -825,12 +1189,12 @@ public:
         addEntityRecord("addText", "TEXT", fields, d, false);
     }
     SEMANTIC_OPAQUE_VALUE(addAttDef, DRW_Attdef, "ATTDEF")
-    void addDimAlign(const DRW_DimAligned* d) override { addPointerEntity("addDimAlign", "DIMALIGNED", d); }
-    void addDimLinear(const DRW_DimLinear* d) override { addPointerEntity("addDimLinear", "DIMLINEAR", d); }
+    void addDimAlign(const DRW_DimAligned* d) override { addDimension("addDimAlign", "DIMALIGNED", d); }
+    void addDimLinear(const DRW_DimLinear* d) override { addDimension("addDimLinear", "DIMLINEAR", d); }
     void addDimRadial(const DRW_DimRadial* d) override {
         if (d == nullptr) { addNullDiagnostic("addDimRadial"); return; }
         if (const auto* value = dynamic_cast<const DRW_DimLargeRadial*>(d)) {
-            std::vector<Field> fields = entityFields(*value, "LARGE_RADIAL", "LARGE_RADIAL");
+            std::vector<Field> fields = dimensionFields(*value, "LARGE_RADIAL");
             fields.push_back(pointField("center", value->getCenterPoint()));
             fields.push_back(pointField("chord", value->getChordPoint()));
             fields.push_back(pointField("overrideCenter", value->overrideCenterPoint));
@@ -840,13 +1204,13 @@ public:
             addEntityRecord("addDimRadial", "LARGE_RADIAL", fields, *value, false);
             return;
         }
-        addPointerEntity("addDimRadial", "DIMRADIAL", d);
+        addDimension("addDimRadial", "DIMRADIAL", d);
     }
-    void addDimDiametric(const DRW_DimDiametric* d) override { addPointerEntity("addDimDiametric", "DIMDIAMETRIC", d); }
-    void addDimAngular(const DRW_DimAngular* d) override { addPointerEntity("addDimAngular", "DIMANGULAR", d); }
-    void addDimAngular3P(const DRW_DimAngular3p* d) override { addPointerEntity("addDimAngular3P", "DIMANGULAR3P", d); }
-    void addDimOrdinate(const DRW_DimOrdinate* d) override { addPointerEntity("addDimOrdinate", "DIMORDINATE", d); }
-    void addDimArc(const DRW_DimArc* d) override { addPointerEntity("addDimArc", "DIMARC", d); }
+    void addDimDiametric(const DRW_DimDiametric* d) override { addDimension("addDimDiametric", "DIMDIAMETRIC", d); }
+    void addDimAngular(const DRW_DimAngular* d) override { addDimension("addDimAngular", "DIMANGULAR", d); }
+    void addDimAngular3P(const DRW_DimAngular3p* d) override { addDimension("addDimAngular3P", "DIMANGULAR3P", d); }
+    void addDimOrdinate(const DRW_DimOrdinate* d) override { addDimension("addDimOrdinate", "DIMORDINATE", d); }
+    void addDimArc(const DRW_DimArc* d) override { addDimension("addDimArc", "DIMARC", d); }
     void addLeader(const DRW_Leader* d) override { addPointerEntity("addLeader", "LEADER", d); }
     void addHatch(const DRW_Hatch* d) override { addPointerEntity("addHatch", "HATCH", d); }
     void addMPolygon(const DRW_MPolygon* d) override {
@@ -889,9 +1253,12 @@ public:
         default: break;
         }
         std::vector<Field> fields = entityFields(*d, entity, entity);
-        appendSurfaceFields(fields, *d);
+        std::vector<std::string> excludedFields;
+        appendSurfaceFields(fields, *d, excludedFields);
         const std::size_t recordIndex = addEntityRecord(
             "addSurface", entity, fields, *d, false);
+        for (const std::string& source : excludedFields)
+            addExcluded(records[recordIndex].id, source);
         if (!d->rawAcisData.empty()) {
             const std::string carrierName = facade_ == "dwgRW" && direction_ == "read"
                 ? "dwgSurfaceReaderPayload-unclassified"
@@ -1027,174 +1394,42 @@ public:
         addTable("addPlotSettings", "PLOTSETTINGS", *d);
     }
 
-    void writeHeader(DRW_Header&) override { addCallback("writeHeader"); }
-    void writeDwgClasses() override { addCallback("writeDwgClasses"); }
-    void collectDwgAppIds() override { addCallback("collectDwgAppIds"); }
-    void writeBlocks() override { addCallback("writeBlocks"); }
-    void writeBlockRecords() override { addCallback("writeBlockRecords"); }
-    void writeEntities() override {
-        addCallback("writeEntities");
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
-        if (threeDConsumerProbe_) {
-            if (dxfWriter_ == nullptr) {
+    void writeHeader(DRW_Header& header) override {
+        if (partialDwgReadbackControl_ || opaqueDwgReadbackControl_)
+            header.vars.clear();
+        addCallback("writeHeader");
+    }
+    void writeDwgClasses() override {
+        addCallback("writeDwgClasses");
+        if (opaqueDwgReadbackControl_) {
+            if (dwgWriter_ == nullptr) {
                 writeRecipeSucceeded_ = false;
                 return;
             }
-            bool wrote = true;
-            DRW_Circle defaultCircle;
-            defaultCircle.layer = "probe_circle_default";
-            defaultCircle.basePoint = DRW_Coord{6.0, -3.0, 1.5};
-            defaultCircle.radious = 2.5;
-            defaultCircle.thickness = 0.75;
-            wrote = dxfWriter_->writeCircle(&defaultCircle) && wrote;
-
-            DRW_Circle obliqueCircle;
-            obliqueCircle.layer = "probe_circle_oblique";
-            obliqueCircle.basePoint = DRW_Coord{2.0, 3.0, 5.0};
-            obliqueCircle.radious = 4.0;
-            obliqueCircle.thickness = 0.5;
-            obliqueCircle.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            wrote = dxfWriter_->writeCircle(&obliqueCircle) && wrote;
-
-            DRW_Arc negativeNormalArc;
-            negativeNormalArc.layer = "probe_arc_negative_normal";
-            negativeNormalArc.basePoint = DRW_Coord{2.0, 3.0, 4.0};
-            negativeNormalArc.radious = 7.0;
-            negativeNormalArc.thickness = 0.125;
-            negativeNormalArc.extPoint = DRW_Coord{0.0, 0.0, -1.0};
-            negativeNormalArc.staangle = 10.0 / ARAD;
-            negativeNormalArc.endangle = 70.0 / ARAD;
-            wrote = dxfWriter_->writeArc(&negativeNormalArc) && wrote;
-
-            DRW_Ellipse defaultEllipse;
-            defaultEllipse.layer = "probe_ellipse_default";
-            defaultEllipse.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-            defaultEllipse.secPoint = DRW_Coord{5.0, 0.0, 0.0};
-            defaultEllipse.ratio = 0.5;
-            defaultEllipse.staparam = 0.0;
-            defaultEllipse.endparam = 2.0 * M_PI;
-            wrote = dxfWriter_->writeEllipse(&defaultEllipse) && wrote;
-
-            DRW_Ellipse tiltedEllipse;
-            tiltedEllipse.layer = "probe_ellipse_tilted_partial";
-            tiltedEllipse.basePoint = DRW_Coord{-2.0, 4.0, 6.0};
-            tiltedEllipse.secPoint = DRW_Coord{2.0, -1.0, 0.0};
-            tiltedEllipse.extPoint = DRW_Coord{1.0 / 3.0, 2.0 / 3.0,
-                                                2.0 / 3.0};
-            tiltedEllipse.ratio = 0.4;
-            tiltedEllipse.staparam = 0.25;
-            tiltedEllipse.endparam = 1.75;
-            wrote = dxfWriter_->writeEllipse(&tiltedEllipse) && wrote;
-
-            DRW_3Dface face;
-            face.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-            face.secPoint = DRW_Coord{4.0, 5.0, 6.0};
-            face.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
-            face.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
-            face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
-            wrote = dxfWriter_->write3dface(&face) && wrote;
-
-            DRW_Polyline polyline;
-            polyline.flags = 8;
-            polyline.vertexcount = 2;
-            polyline.addVertex(DRW_Vertex{13.0, 14.0, 15.0, 0.0});
-            polyline.addVertex(DRW_Vertex{16.0, 17.0, 18.0, 0.0});
-            for (const auto& vertex : polyline.vertlist)
-                vertex->flags = 32;
-            wrote = dxfWriter_->writePolyline(&polyline) && wrote;
-
-            DRW_Polyline polyface;
-            polyface.layer = "probe_pface";
-            polyface.flags = 64;
-            polyface.vertexcount = 4;
-            polyface.facecount = 1;
-            polyface.addVertex(DRW_Vertex{1.0, 2.0, 3.0, 0.0});
-            polyface.addVertex(DRW_Vertex{4.0, 5.0, 6.0, 0.0});
-            polyface.addVertex(DRW_Vertex{7.0, 8.0, 9.0, 0.0});
-            polyface.addVertex(DRW_Vertex{10.0, 11.0, 12.0, 0.0});
-            for (std::size_t i = 0; i < 4; ++i)
-                polyface.vertlist[i]->flags = 192;
-            DRW_Vertex faceRecord;
-            faceRecord.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
-            faceRecord.vindex1 = 1;
-            faceRecord.vindex2 = -2;
-            faceRecord.vindex3 = 3;
-            faceRecord.vindex4 = -4;
-            polyface.addVertex(faceRecord);
-            wrote = dxfWriter_->writePolyline(&polyface) && wrote;
-
-            DRW_Mesh mesh;
-            mesh.vertices = {DRW_Coord{20.0, 21.0, 22.0},
-                             DRW_Coord{23.0, 24.0, 25.0},
-                             DRW_Coord{26.0, 27.0, 28.0}};
-            mesh.faces = {{0, 1, 2}};
-            mesh.edges = {{0, 1}, {1, 2}};
-            mesh.creases = {0.25, 0.75};
-            wrote = dxfWriter_->writeMesh(&mesh) && wrote;
-
-            DRW_Insert insert;
-            insert.name = "PROBE_BLOCK";
-            insert.basePoint = DRW_Coord{30.0, 31.0, 32.0};
-            insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            insert.xscale = -2.0;
-            insert.yscale = 3.0;
-            insert.zscale = 4.0;
-            insert.angle = 0.5;
-            insert.colcount = 2;
-            insert.rowcount = 3;
-            insert.colspace = 7.0;
-            insert.rowspace = 8.0;
-            wrote = dxfWriter_->writeInsert(&insert) && wrote;
-
-            DRW_Spline spline;
-            spline.degree = 2;
-            spline.ncontrol = 3;
-            spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-            spline.normalVec = DRW_Coord{0.0, 0.0, 1.0};
-            spline.controllist = {
-                std::make_shared<DRW_Coord>(40.0, 41.0, 42.0),
-                std::make_shared<DRW_Coord>(43.0, 44.0, 45.0),
-                std::make_shared<DRW_Coord>(46.0, 47.0, 48.0)};
-            wrote = dxfWriter_->writeSpline(&spline) && wrote;
-
-            DRW_LWPolyline ocsPolyline;
-            ocsPolyline.elevation = 5.0;
-            ocsPolyline.extPoint = DRW_Coord{0.0, 1.0, 0.0};
-            ocsPolyline.addVertex(DRW_Vertex2D{2.0, 3.0, 0.25});
-            ocsPolyline.addVertex(DRW_Vertex2D{4.0, 5.0, 0.0});
-            wrote = dxfWriter_->writeLWPolyline(&ocsPolyline) && wrote;
-
-            DRW_LoftedSurface lofted;
-            lofted.modelerFormatVersion = 1;
-            lofted.uIsolines = 10;
-            lofted.vIsolines = 11;
-            lofted.dxfReferenceData.emplace_back(90, std::int32_t{2});
-            lofted.dxfReferenceData.emplace_back(310,
-                std::vector<std::uint8_t>{0x12u, 0x34u, 0x56u});
-            wrote = dxfWriter_->writeSurface(&lofted) && wrote;
-            writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
-            return;
+            writeRecipeSucceeded_ = dwgWriter_->registerRawDwgObjectClass(
+                &opaqueDwgReadbackObject_) && writeRecipeSucceeded_;
         }
-#endif
-        DRW_Line line;
-        line.layer = "0";
-        line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
-        line.secPoint = DRW_Coord{4.0, 5.0, 6.0};
-        line.extPoint = DRW_Coord{0.0, 0.0, 1.0};
-        line.thickness = 0.25;
-        if (dxfWriter_ != nullptr)
-            writeRecipeSucceeded_ = dxfWriter_->writeLine(&line) && writeRecipeSucceeded_;
-        else if (dwgWriter_ != nullptr)
-            writeRecipeSucceeded_ = dwgWriter_->writeLine(&line) && writeRecipeSucceeded_;
-        else
-            writeRecipeSucceeded_ = false;
     }
+    void collectDwgAppIds() override { addCallback("collectDwgAppIds"); }
+    void writeBlocks() override { addCallback("writeBlocks"); }
+    void writeBlockRecords() override { addCallback("writeBlockRecords"); }
+    void writeEntities() override;
     void writeLTypes() override { addCallback("writeLTypes"); }
     void writeLayers() override { addCallback("writeLayers"); }
     void writeTextstyles() override { addCallback("writeTextstyles"); }
     void writeVports() override { addCallback("writeVports"); }
     void writeDimstyles() override { addCallback("writeDimstyles"); }
-    void writeObjects() override { addCallback("writeObjects"); }
+    void writeObjects() override {
+        addCallback("writeObjects");
+        if (opaqueDwgReadbackControl_) {
+            if (dwgWriter_ == nullptr) {
+                writeRecipeSucceeded_ = false;
+                return;
+            }
+            writeRecipeSucceeded_ = dwgWriter_->writeRawDwgObject(
+                &opaqueDwgReadbackObject_) && writeRecipeSucceeded_;
+        }
+    }
     bool finalizeDwgWrite() override {
         addCallback("finalizeDwgWrite");
         return true;
@@ -1203,6 +1438,12 @@ public:
         addCallback("finalizeDwgWriteStructure");
         return true;
     }
+#ifdef LIBDXFRW_SEMANTIC_SIDE_STANDALONE
+    bool finalizeDxfWrite() override {
+        addCallback("finalizeDxfWrite");
+        return true;
+    }
+#endif
     void writeAppId() override { addCallback("writeAppId"); }
     void writeViews() override { addCallback("writeViews"); }
     void writeUCSs() override { addCallback("writeUCSs"); }
@@ -1374,6 +1615,57 @@ private:
         addBasicEntity(callback, recordClass, *d);
     }
 
+    std::vector<Field> dimensionFields(const DRW_Dimension& d,
+                                       const std::string& recordClass) {
+        auto fields = entityFields(d, recordClass, recordClass);
+        fields.push_back(pointField("definitionPointWcs", d.getDefPoint()));
+        fields.push_back(pointField("textPointOcs", d.getTextPoint()));
+        fields.push_back(pointField("extrusion", d.getExtrusion()));
+        fields.push_back(intField("dimensionType", d.type));
+        fields.push_back(stringField("text", d.getText()));
+        fields.push_back(stringField("style", d.getStyle()));
+        if (const auto* aligned = dynamic_cast<const DRW_DimAligned*>(&d)) {
+            fields.push_back(pointField("clonePointOcs", aligned->getClonepoint()));
+            fields.push_back(pointField("definition1Wcs", aligned->getDef1Point()));
+            fields.push_back(pointField("definition2Wcs", aligned->getDef2Point()));
+        } else if (const auto* angular = dynamic_cast<const DRW_DimAngular*>(&d)) {
+            fields.push_back(pointField("firstLine1Wcs", angular->getFirstLine1()));
+            fields.push_back(pointField("firstLine2Wcs", angular->getFirstLine2()));
+            fields.push_back(pointField("secondLine1Wcs", angular->getSecondLine1()));
+            fields.push_back(pointField("arcPointOcs", angular->getDimPoint()));
+        } else if (const auto* angular = dynamic_cast<const DRW_DimAngular3p*>(&d)) {
+            fields.push_back(pointField("firstLineWcs", angular->getFirstLine()));
+            fields.push_back(pointField("secondLineWcs", angular->getSecondLine()));
+            fields.push_back(pointField("vertexWcs", angular->getVertexPoint()));
+        } else if (const auto* radial = dynamic_cast<const DRW_DimRadial*>(&d)) {
+            if (dynamic_cast<const DRW_DimLargeRadial*>(radial) == nullptr)
+                fields.push_back(pointField("diameterPointWcs", radial->getDiameterPoint()));
+        } else if (const auto* diametric = dynamic_cast<const DRW_DimDiametric*>(&d)) {
+            fields.push_back(pointField("diameter1Wcs", diametric->getDiameter1Point()));
+        } else if (const auto* ordinate = dynamic_cast<const DRW_DimOrdinate*>(&d)) {
+            fields.push_back(pointField("featureWcs", ordinate->getFirstLine()));
+            fields.push_back(pointField("leaderEndWcs", ordinate->getSecondLine()));
+        } else if (const auto* arc = dynamic_cast<const DRW_DimArc*>(&d)) {
+            fields.push_back(pointField("extension1Wcs", arc->getExtLine1()));
+            fields.push_back(pointField("extension2Wcs", arc->getExtLine2()));
+            fields.push_back(pointField("arcCenterWcs", arc->getArcCenter()));
+            fields.push_back(boolField("isPartial", arc->isPartial));
+            fields.push_back(boolField("hasLeader", arc->hasLeader));
+            // ARC_DIMENSION's optional leader grammar is distinct from the
+            // ordinary angular dimension's OCS group16; preserve raw fields
+            // without inferring a leader coordinate conversion.
+            fields.push_back(pointField("leader1Stored", arc->getLeaderPt1()));
+            fields.push_back(pointField("leader2Stored", arc->leaderPt2));
+        }
+        return fields;
+    }
+
+    void addDimension(const std::string& callback, const std::string& recordClass,
+                      const DRW_Dimension* d) {
+        if (d == nullptr) { addNullDiagnostic(callback); return; }
+        addEntityRecord(callback, recordClass, dimensionFields(*d, recordClass), *d, true);
+    }
+
     void attachCarrierToRecord(std::size_t recordIndex, const std::string& source,
                                const void* bytes, std::size_t size) {
         if (recordIndex >= records.size())
@@ -1412,13 +1704,86 @@ private:
                                      entity.dataStoragePayloadMarkerSection));
     }
 
+    template <typename T>
+    bool appendModelerDwgSourceVersionField(
+        std::vector<Field>& fields, const T& modeler) const {
+        if constexpr (HasModelerDwgSourceVersion<T>::value) {
+            fields.push_back(intField("dwgSourceVersion",
+                                      static_cast<int>(modeler.m_dwgSourceVersion)));
+            return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    bool appendModelerDwgAcisPayloadFields(
+        std::vector<Field>& fields, const T& modeler) const {
+        if constexpr (HasModelerDwgAcisPayload<T>::value) {
+            fields.push_back(boolField("hasDwgInlineAcisPayload",
+                                       !modeler.m_dwgAcisPayload.empty()));
+            fields.push_back(uintField("dwgInlineAcisByteCount",
+                                       modeler.m_dwgAcisPayload.size()));
+            return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    bool appendModelerDxfPayloadChunkFields(
+        std::vector<Field>& fields, const T& modeler,
+        const std::vector<std::uint8_t>& bytes) const {
+        if constexpr (HasModelerDxfPayloadChunks<T>::value) {
+            appendPayloadChunkFields(fields, "dxfPayloadChunk",
+                                     modeler.m_dxfPayloadChunks, bytes);
+            return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    bool appendModelerPayloadStatusField(
+        std::vector<Field>& fields, const T& modeler) const {
+        if constexpr (HasModelerPayloadStatusName<T>::value) {
+            fields.push_back(stringField("modelerPayloadStatus",
+                                         modeler.modelerPayloadStatusName()));
+            return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    void attachModelerDwgAcisPayloadCarrier(
+        std::size_t recordIndex, const T& modeler) {
+        if constexpr (HasModelerDwgAcisPayload<T>::value) {
+            if (!modeler.m_dwgAcisPayload.empty()) {
+                attachCarrierToRecord(recordIndex,
+                                      facade_ == "dwgRW" && direction_ == "read"
+                                          ? "dwgModelerInlineAcisPayload"
+                                          : "unclassifiedModelerInlineAcisPayload",
+                                      modeler.m_dwgAcisPayload.data(),
+                                      modeler.m_dwgAcisPayload.size());
+            }
+        }
+    }
+
+    template <typename T>
+    bool appendPayloadRangeBitOffset(std::vector<Field>& fields,
+                                    const std::string& prefix,
+                                    const T& range) const {
+        if constexpr (HasPayloadRangeBitOffset<T>::value) {
+            fields.push_back(uintField(prefix + ".bitOffset", range.m_bitOffset));
+            return true;
+        }
+        return false;
+    }
+
+    template <typename Chunks>
     void appendPayloadChunkFields(
         std::vector<Field>& fields, const std::string& name,
-        const std::vector<DRW_ModelerPayloadChunk>& chunks,
-        const std::vector<std::uint8_t>& bytes) const {
+        const Chunks& chunks, const std::vector<std::uint8_t>& bytes) const {
         fields.push_back(uintField(name + ".count", chunks.size()));
         for (std::size_t i = 0; i < chunks.size(); ++i) {
-            const DRW_ModelerPayloadChunk& chunk = chunks[i];
+            const auto& chunk = chunks[i];
             const std::string prefix = name + "." + std::to_string(i);
             const bool inBounds = chunk.m_offset <= bytes.size()
                 && chunk.m_length <= bytes.size() - chunk.m_offset;
@@ -1552,8 +1917,21 @@ private:
         }
     }
 
+    template <typename T>
+    bool appendSurfaceDxfPayloadChunkFields(
+        std::vector<Field>& fields, const T& surface) const {
+        if constexpr (HasSurfaceDxfPayloadChunks<T>::value) {
+            appendPayloadChunkFields(fields, "dxfAcisChunk",
+                                     surface.dxfPayloadChunks,
+                                     surface.rawAcisData);
+            return true;
+        }
+        return false;
+    }
+
     void appendSurfaceFields(std::vector<Field>& fields,
-                             const DRW_Surface& surface) const {
+                             const DRW_Surface& surface,
+                             std::vector<std::string>& excludedFields) const {
         fields.push_back(intField("uIsolines", surface.uIsolines));
         fields.push_back(intField("vIsolines", surface.vIsolines));
         fields.push_back(intField("modelerFormatVersion", surface.modelerFormatVersion));
@@ -1561,8 +1939,8 @@ private:
         fields.push_back(intField("acisVersion", surface.acisVersion));
         fields.push_back(boolField("hasRawAcisData", !surface.rawAcisData.empty()));
         fields.push_back(uintField("rawAcisByteCount", surface.rawAcisData.size()));
-        appendPayloadChunkFields(fields, "dxfAcisChunk", surface.dxfPayloadChunks,
-                                 surface.rawAcisData);
+        if (!appendSurfaceDxfPayloadChunkFields(fields, surface))
+            excludedFields.push_back("dxfAcisChunks");
         appendDataStorageFields(fields, surface);
         fields.push_back(stringField("rawAcisCarrierKind",
             facade_ == "dwgRW" && direction_ == "read"
@@ -1852,10 +2230,202 @@ private:
     dxfRW* dxfWriter_ = nullptr;
     dwgRW* dwgWriter_ = nullptr;
     bool writeRecipeSucceeded_ = true;
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
     bool threeDConsumerProbe_ = false;
-#endif
+    bool partialDwgReadbackControl_ = false;
+    bool opaqueDwgReadbackControl_ = false;
+    DRW_UnsupportedObject opaqueDwgReadbackObject_;
 };
+
+void SemanticSink::writeEntities() {
+    addCallback("writeEntities");
+    if (partialDwgReadbackControl_) {
+        if (dwgWriter_ == nullptr) {
+            writeRecipeSucceeded_ = false;
+            return;
+        }
+
+        // Generated-only control: the non-finite LINE coordinate is preserved
+        // by the writer, rejected by the bounded reader, and followed by a
+        // valid LINE to prove record-level recovery continues.
+        DRW_Line malformed;
+        malformed.basePoint = DRW_Coord{
+            std::numeric_limits<double>::quiet_NaN(), 12.0, 13.0};
+        malformed.secPoint = DRW_Coord{21.0, 22.0, 23.0};
+        bool wrote = dwgWriter_->writeLine(&malformed);
+        DRW_Line followingLine;
+        followingLine.basePoint = DRW_Coord{11.0, 12.0, 13.0};
+        followingLine.secPoint = DRW_Coord{21.0, 22.0, 23.0};
+        wrote = dwgWriter_->writeLine(&followingLine) && wrote;
+        writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
+        return;
+    }
+    if (opaqueDwgReadbackControl_) {
+        if (dwgWriter_ == nullptr) {
+            writeRecipeSucceeded_ = false;
+            return;
+        }
+        DRW_Line line;
+        line.basePoint = DRW_Coord{11.0, 12.0, 13.0};
+        line.secPoint = DRW_Coord{21.0, 22.0, 23.0};
+        writeRecipeSucceeded_ = dwgWriter_->writeLine(&line)
+            && writeRecipeSucceeded_;
+        return;
+    }
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
+    if (threeDConsumerProbe_) {
+        if (dxfWriter_ == nullptr) {
+            writeRecipeSucceeded_ = false;
+            return;
+        }
+        bool wrote = true;
+        DRW_Circle defaultCircle;
+        defaultCircle.layer = "probe_circle_default";
+        defaultCircle.basePoint = DRW_Coord{6.0, -3.0, 1.5};
+        defaultCircle.radious = 2.5;
+        defaultCircle.thickness = 0.75;
+        wrote = dxfWriter_->writeCircle(&defaultCircle) && wrote;
+
+        DRW_Circle obliqueCircle;
+        obliqueCircle.layer = "probe_circle_oblique";
+        obliqueCircle.basePoint = DRW_Coord{2.0, 3.0, 5.0};
+        obliqueCircle.radious = 4.0;
+        obliqueCircle.thickness = 0.5;
+        obliqueCircle.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        wrote = dxfWriter_->writeCircle(&obliqueCircle) && wrote;
+
+        DRW_Arc negativeNormalArc;
+        negativeNormalArc.layer = "probe_arc_negative_normal";
+        negativeNormalArc.basePoint = DRW_Coord{2.0, 3.0, 4.0};
+        negativeNormalArc.radious = 7.0;
+        negativeNormalArc.thickness = 0.125;
+        negativeNormalArc.extPoint = DRW_Coord{0.0, 0.0, -1.0};
+        negativeNormalArc.staangle = 10.0 / ARAD;
+        negativeNormalArc.endangle = 70.0 / ARAD;
+        wrote = dxfWriter_->writeArc(&negativeNormalArc) && wrote;
+
+        DRW_Ellipse defaultEllipse;
+        defaultEllipse.layer = "probe_ellipse_default";
+        defaultEllipse.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+        defaultEllipse.secPoint = DRW_Coord{5.0, 0.0, 0.0};
+        defaultEllipse.ratio = 0.5;
+        defaultEllipse.staparam = 0.0;
+        defaultEllipse.endparam = 2.0 * M_PI;
+        wrote = dxfWriter_->writeEllipse(&defaultEllipse) && wrote;
+
+        DRW_Ellipse tiltedEllipse;
+        tiltedEllipse.layer = "probe_ellipse_tilted_partial";
+        tiltedEllipse.basePoint = DRW_Coord{-2.0, 4.0, 6.0};
+        tiltedEllipse.secPoint = DRW_Coord{2.0, -1.0, 0.0};
+        tiltedEllipse.extPoint = DRW_Coord{1.0 / 3.0, 2.0 / 3.0,
+                                            2.0 / 3.0};
+        tiltedEllipse.ratio = 0.4;
+        tiltedEllipse.staparam = 0.25;
+        tiltedEllipse.endparam = 1.75;
+        wrote = dxfWriter_->writeEllipse(&tiltedEllipse) && wrote;
+
+        DRW_3Dface face;
+        face.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+        face.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+        face.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
+        face.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
+        face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+        wrote = dxfWriter_->write3dface(&face) && wrote;
+
+        DRW_Polyline polyline;
+        polyline.flags = 8;
+        polyline.vertexcount = 2;
+        polyline.addVertex(DRW_Vertex{13.0, 14.0, 15.0, 0.0});
+        polyline.addVertex(DRW_Vertex{16.0, 17.0, 18.0, 0.0});
+        for (const auto& vertex : polyline.vertlist)
+            vertex->flags = 32;
+        wrote = dxfWriter_->writePolyline(&polyline) && wrote;
+
+        DRW_Polyline polyface;
+        polyface.layer = "probe_pface";
+        polyface.flags = 64;
+        polyface.vertexcount = 4;
+        polyface.facecount = 1;
+        polyface.addVertex(DRW_Vertex{1.0, 2.0, 3.0, 0.0});
+        polyface.addVertex(DRW_Vertex{4.0, 5.0, 6.0, 0.0});
+        polyface.addVertex(DRW_Vertex{7.0, 8.0, 9.0, 0.0});
+        polyface.addVertex(DRW_Vertex{10.0, 11.0, 12.0, 0.0});
+        for (std::size_t i = 0; i < 4; ++i)
+            polyface.vertlist[i]->flags = 192;
+        DRW_Vertex faceRecord;
+        faceRecord.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+        faceRecord.vindex1 = 1;
+        faceRecord.vindex2 = -2;
+        faceRecord.vindex3 = 3;
+        faceRecord.vindex4 = -4;
+        polyface.addVertex(faceRecord);
+        wrote = dxfWriter_->writePolyline(&polyface) && wrote;
+
+        DRW_Mesh mesh;
+        mesh.vertices = {DRW_Coord{20.0, 21.0, 22.0},
+                         DRW_Coord{23.0, 24.0, 25.0},
+                         DRW_Coord{26.0, 27.0, 28.0}};
+        mesh.faces = {{0, 1, 2}};
+        mesh.edges = {{0, 1}, {1, 2}};
+        mesh.creases = {0.25, 0.75};
+        wrote = dxfWriter_->writeMesh(&mesh) && wrote;
+
+        DRW_Insert insert;
+        insert.name = "PROBE_BLOCK";
+        insert.basePoint = DRW_Coord{30.0, 31.0, 32.0};
+        insert.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        insert.xscale = -2.0;
+        insert.yscale = 3.0;
+        insert.zscale = 4.0;
+        insert.angle = 0.5;
+        insert.colcount = 2;
+        insert.rowcount = 3;
+        insert.colspace = 7.0;
+        insert.rowspace = 8.0;
+        wrote = dxfWriter_->writeInsert(&insert) && wrote;
+
+        DRW_Spline spline;
+        spline.degree = 2;
+        spline.ncontrol = 3;
+        spline.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        spline.normalVec = DRW_Coord{0.0, 0.0, 1.0};
+        spline.controllist = {
+            std::make_shared<DRW_Coord>(40.0, 41.0, 42.0),
+            std::make_shared<DRW_Coord>(43.0, 44.0, 45.0),
+            std::make_shared<DRW_Coord>(46.0, 47.0, 48.0)};
+        wrote = dxfWriter_->writeSpline(&spline) && wrote;
+
+        DRW_LWPolyline ocsPolyline;
+        ocsPolyline.elevation = 5.0;
+        ocsPolyline.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+        ocsPolyline.addVertex(DRW_Vertex2D{2.0, 3.0, 0.25});
+        ocsPolyline.addVertex(DRW_Vertex2D{4.0, 5.0, 0.0});
+        wrote = dxfWriter_->writeLWPolyline(&ocsPolyline) && wrote;
+
+        DRW_LoftedSurface lofted;
+        lofted.modelerFormatVersion = 1;
+        lofted.uIsolines = 10;
+        lofted.vIsolines = 11;
+        lofted.dxfReferenceData.emplace_back(90, std::int32_t{2});
+        lofted.dxfReferenceData.emplace_back(310,
+            std::vector<std::uint8_t>{0x12u, 0x34u, 0x56u});
+        wrote = dxfWriter_->writeSurface(&lofted) && wrote;
+        writeRecipeSucceeded_ = wrote && writeRecipeSucceeded_;
+        return;
+    }
+#endif
+    DRW_Line line;
+    line.layer = "0";
+    line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+    line.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+    line.extPoint = DRW_Coord{0.0, 0.0, 1.0};
+    line.thickness = 0.25;
+    if (dxfWriter_ != nullptr)
+        writeRecipeSucceeded_ = dxfWriter_->writeLine(&line) && writeRecipeSucceeded_;
+    else if (dwgWriter_ != nullptr)
+        writeRecipeSucceeded_ = dwgWriter_->writeLine(&line) && writeRecipeSucceeded_;
+    else
+        writeRecipeSucceeded_ = false;
+}
 
 struct Options {
     std::string input;
@@ -1888,6 +2458,7 @@ struct Options {
     bool applyExtrusion = false;
     std::string compatibilityProfile = "default";
     bool selfTest = false;
+    bool printCapabilityProfile = false;
 };
 
 std::string nextArgument(int& index, int argc, char** argv, const std::string& name) {
@@ -1927,6 +2498,7 @@ Options parseOptions(int argc, char** argv) {
         else if (arg == "--compatibility-profile") options.compatibilityProfile = nextArgument(i, argc, argv, arg);
         else if (arg == "--json") {}
         else if (arg == "--self-test") options.selfTest = true;
+        else if (arg == "--capability-profile") options.printCapabilityProfile = true;
         else throw std::runtime_error("unknown argument: " + arg);
     }
     return options;
@@ -2191,9 +2763,201 @@ void writeFields(std::ostream& out, const std::vector<Field>& fields) {
     });
 }
 
+template <typename Prefix>
+void writeBytePrefix(std::ostream& out, const Prefix& prefix) {
+    if (prefix.length > prefix.bytes.size())
+        throw std::runtime_error("DWG observation prefix exceeds its storage");
+    out << "{\"bytesHex\":\"" << std::hex << std::nouppercase
+        << std::setfill('0');
+    for (std::size_t i = 0; i < prefix.length; ++i)
+        out << std::setw(2) << static_cast<unsigned>(prefix.bytes[i]);
+    out << std::dec << "\",\"prefixLength\":" << prefix.length
+        << ",\"sourceLength\":" << prefix.sourceBytes
+        << ",\"truncated\":"
+        << (prefix.truncated() ? "true" : "false") << '}';
+}
+
+template <typename Summary>
+void writeNamedSummary(std::ostream& out, const Summary& summary) {
+    if (summary.retained > summary.rows.size())
+        throw std::runtime_error("DWG named observation count exceeds its bound");
+    out << "{\"rows\":[";
+    for (std::size_t i = 0; i < summary.retained; ++i) {
+        if (i != 0) out << ',';
+        out << '{';
+        writeBytePrefix(out, summary.rows[i].name);
+        out << ",\"instances\":" << summary.rows[i].instances << '}';
+    }
+    out << "],\"retainedRowCount\":" << summary.retained
+        << ",\"sourceNameCount\":" << summary.sourceNames
+        << ",\"totalInstanceCount\":" << summary.instances
+        << ",\"omittedNameCount\":" << summary.omittedNames
+        << ",\"omittedInstanceCount\":" << summary.omittedInstances
+        << ",\"truncatedRetainedNameCount\":"
+        << summary.truncatedRetainedNames
+        << ",\"omittedNameBytes\":" << summary.omittedNameBytes
+        << ",\"aggregateSaturated\":"
+        << (summary.aggregateSaturated ? "true" : "false") << '}';
+}
+
+template <typename Integrity>
+void writeIntegrity(std::ostream& out, const Integrity& integrity) {
+    if (integrity.retained > integrity.rows.size())
+        throw std::runtime_error("DWG integrity observation count exceeds its bound");
+    out << "{\"rows\":[";
+    for (std::size_t i = 0; i < integrity.retained; ++i) {
+        if (i != 0) out << ',';
+        const auto& row = integrity.rows[i];
+        out << "{\"versionCode\":" << static_cast<unsigned>(row.version)
+            << ",\"severityCode\":" << static_cast<unsigned>(row.severity)
+            << ",\"offsetSpaceCode\":" << static_cast<unsigned>(row.offsetSpace)
+            << ",\"phaseCode\":" << static_cast<unsigned>(row.phase)
+            << ",\"kindCode\":" << static_cast<unsigned>(row.kind)
+            << ",\"logicalSectionId\":" << row.logicalSectionId
+            << ",\"sectionDescriptorId\":" << row.sectionDescriptorId
+            << ",\"sectionName\":";
+        writeBytePrefix(out, row.sectionName);
+        out << ",\"pageId\":" << row.pageId
+            << ",\"fileOffset\":" << row.fileOffset
+            << ",\"logicalHandle\":" << row.logicalHandle
+            << ",\"expected\":" << row.expected
+            << ",\"observed\":" << row.observed
+            << ",\"hasPageId\":" << (row.hasPageId ? "true" : "false")
+            << ",\"hasFileOffset\":" << (row.hasFileOffset ? "true" : "false")
+            << ",\"hasLogicalHandle\":"
+            << (row.hasLogicalHandle ? "true" : "false")
+            << ",\"hasExpected\":" << (row.hasExpected ? "true" : "false")
+            << ",\"hasObserved\":" << (row.hasObserved ? "true" : "false")
+            << '}';
+    }
+    out << "],\"retainedRowCount\":" << integrity.retained
+        << ",\"sourceRecordedCount\":" << integrity.sourceRecorded
+        << ",\"extractionOmittedCount\":" << integrity.extractionOmitted
+        << ",\"reportedUpstreamDroppedLowerBound\":"
+        << integrity.reportedUpstreamDropped
+        << ",\"truncatedRetainedNameCount\":"
+        << integrity.truncatedRetainedNames
+        << ",\"omittedNameBytes\":" << integrity.omittedNameBytes
+        << ",\"aggregateSaturated\":"
+        << (integrity.aggregateSaturated ? "true" : "false") << '}';
+}
+
+template <typename Frames>
+void writeFrameObservations(std::ostream& out, const Frames& frames) {
+    const int status = static_cast<int>(frames.status);
+    const char* statusName = nullptr;
+    switch (status) {
+    case 1: statusName = "inProgress"; break;
+    case 2: statusName = "finalizedComplete"; break;
+    case 3: statusName = "finalizedPartial"; break;
+    default: statusName = "notAvailable"; break;
+    }
+    out << "{\"status\":" << jsonString(statusName);
+    if (status <= 0 || status > 3) {
+        out << ",\"reason\":\"coverageNotPublished\",\"sourceFrameCount\":null"
+            << ",\"dispositions\":{\"pending\":null,\"deferred\":null"
+            << ",\"staged\":null,\"published\":null,\"quarantined\":null"
+            << ",\"failed\":null,\"unresolved\":null}"
+            << ",\"unrecognizedDispositionCount\":null}";
+        return;
+    }
+    out << ",\"reason\":null,\"sourceFrameCount\":" << frames.sourceFrames
+        << ",\"dispositions\":{\"pending\":" << frames.dispositions[0]
+        << ",\"deferred\":" << frames.dispositions[1]
+        << ",\"staged\":" << frames.dispositions[2]
+        << ",\"published\":" << frames.dispositions[3]
+        << ",\"quarantined\":" << frames.dispositions[4]
+        << ",\"failed\":" << frames.dispositions[5]
+        << ",\"unresolved\":" << frames.dispositions[6] << '}'
+        << ",\"unrecognizedDispositionCount\":"
+        << frames.unrecognizedDispositions << '}';
+}
+
+template <typename Observations>
+std::string serializeAvailableObservations(const Observations& observations,
+                                           const std::string& phase,
+                                           const std::string& sourceVersion) {
+    std::ostringstream out;
+    out.imbue(std::locale::classic());
+    out << "{\"phase\":" << jsonString(phase)
+        << ",\"availability\":\"available\",\"reason\":null"
+        << ",\"sourceVersion\":"
+        << jsonString(sourceVersion.empty() ? "unknown" : sourceVersion)
+        << ",\"scalarCounters\":{\"entityParseFailures\":"
+        << observations.entityParseFailures
+        << ",\"objectParseFailures\":" << observations.objectParseFailures
+        << ",\"classesCrcMismatch\":" << observations.classesCrcMismatch
+        << ",\"reader21CrcMismatch\":" << observations.reader21CrcMismatch
+        << ",\"reader18HeaderCrcMismatch\":"
+        << observations.reader18HeaderCrcMismatch
+        << ",\"dataStorageLinkFailures\":"
+        << observations.dataStorageLinkFailures
+        << ",\"dataStorageOrphanRecords\":"
+        << observations.dataStorageOrphanRecords
+        << ",\"decodedProxyPrimitives\":"
+        << observations.decodedProxyPrimitives << '}'
+        << ",\"namedSummaries\":{\"skippedCustomClasses\":";
+    writeNamedSummary(out, observations.skippedCustomClasses);
+    out << ",\"skippedUnsupportedObjects\":";
+    writeNamedSummary(out, observations.skippedUnsupportedObjects);
+    out << "},\"integrity\":";
+    writeIntegrity(out, observations.integrity);
+    out << ",\"frames\":";
+    writeFrameObservations(out, observations.frames);
+    out << '}';
+    return out.str();
+}
+
+std::string unavailableObservationEnvelope(const std::string& phase,
+                                          const std::string& availability,
+                                          const std::string& reason,
+                                          const std::string& sourceVersion = "") {
+    std::ostringstream out;
+    out.imbue(std::locale::classic());
+    out << "{\"phase\":" << jsonString(phase)
+        << ",\"availability\":" << jsonString(availability)
+        << ",\"reason\":" << jsonString(reason)
+        << ",\"sourceVersion\":" << jsonNullable(sourceVersion)
+        << ",\"scalarCounters\":null,\"namedSummaries\":null"
+        << ",\"integrity\":null,\"frames\":null}";
+    return out.str();
+}
+
+template <typename Reader>
+std::string serializeDwgObservationEnvelope(const Reader& reader,
+                                           const std::string& phase,
+                                           const std::string& sourceVersion) {
+    if constexpr (HasDwgReadObservations<Reader>::value) {
+        const auto observations = reader.getReadObservations();
+        return serializeAvailableObservations(observations, phase, sourceVersion);
+    }
+    return unavailableObservationEnvelope(
+        phase, "unavailable", "readerApiNotPresent", sourceVersion);
+}
+
+std::string graphEdgeDisposition(const SemanticSink& sink,
+                                const EdgeRow& edge) {
+    if (edge.kind != "historyReference" && edge.kind != "owner")
+        return edge.disposition;
+    for (const NodeRow& node : sink.nodes) {
+        const bool validTargetKind = edge.kind == "owner"
+            ? (node.kind == "handle" || node.kind == "block")
+            : node.kind == "handle";
+        if (node.id != edge.to || !validTargetKind || node.handle.empty())
+            continue;
+        for (const RecordRow& record : sink.records) {
+            if (record.sourceHandle == node.handle)
+                return "resolved";
+        }
+        return "unresolved";
+    }
+    return "unresolved";
+}
+
 void emitResult(std::ostream& out, const Options& options, const InputInfo& input,
                 const SemanticSink& sink, bool succeeded, int error,
-                const std::string& stage) {
+                const std::string& stage, const std::string& inputReadObservations,
+                const std::string& outputReadbackObservations) {
     const std::string optionsCanonical =
         std::string("{\"applyExtrusion\":") +
         (options.applyExtrusion ? "true" : "false") +
@@ -2224,7 +2988,7 @@ void emitResult(std::ostream& out, const Options& options, const InputInfo& inpu
         }
     }
     out.imbue(std::locale::classic());
-    out << "{\"schema\":2,\"kind\":\"libdxfrw-semantic-adapter-result\"";
+    out << "{\"schema\":3,\"kind\":\"libdxfrw-semantic-adapter-result\"";
     out << ",\"input\":{\"id\":" << jsonString(options.inputId)
         << ",\"pathHint\":" << jsonString(options.inputPathHint)
         << ",\"originKind\":" << jsonString(options.originKind)
@@ -2292,12 +3056,13 @@ void emitResult(std::ostream& out, const Options& options, const InputInfo& inpu
                << ",\"handle\":" << jsonNullable(row.handle) << '}';
     });
     out << ",\"graphEdges\":";
-    writeArray(out, sink.edges, [](std::ostream& stream, const EdgeRow& row) {
+    writeArray(out, sink.edges, [&sink](std::ostream& stream, const EdgeRow& row) {
         stream << "{\"id\":" << jsonString(row.id)
                << ",\"kind\":" << jsonString(row.kind)
                << ",\"from\":" << jsonString(row.from)
                << ",\"to\":" << jsonString(row.to)
-               << ",\"disposition\":" << jsonString(row.disposition) << '}';
+               << ",\"disposition\":"
+               << jsonString(graphEdgeDisposition(sink, row)) << '}';
     });
     out << ",\"opaqueCarriers\":";
     writeArray(out, sink.carriers, [](std::ostream& stream, const CarrierRow& row) {
@@ -2337,10 +3102,12 @@ void emitResult(std::ostream& out, const Options& options, const InputInfo& inpu
         << ",\"graphEdgeCount\":" << sink.edges.size()
         << ",\"opaqueCarrierCount\":" << sink.carriers.size()
         << ",\"unsupportedContentCount\":" << sink.unsupported.size()
-        << ",\"diagnosticCount\":" << sink.diagnostics.size() << "}}\n";
+        << ",\"diagnosticCount\":" << sink.diagnostics.size() << '}';
+    out << ",\"observations\":{\"inputRead\":"
+        << inputReadObservations
+        << ",\"outputReadback\":" << outputReadbackObservations << "}}\n";
 }
 
-#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
 const Field* findEntityField(const SemanticSink& sink, const std::string& entity,
                              const std::string& name) {
     for (const RecordRow& record : sink.records) {
@@ -2354,6 +3121,22 @@ const Field* findEntityField(const SemanticSink& sink, const std::string& entity
     return nullptr;
 }
 
+bool fieldEquals(const SemanticSink& sink, const std::string& entity,
+                 const std::string& name, const std::string& expected) {
+    const Field* field = findEntityField(sink, entity, name);
+    return field != nullptr && field->value == expected;
+}
+
+bool hasExcludedField(const SemanticSink& sink, const std::string& source) {
+    return std::any_of(sink.unsupported.begin(), sink.unsupported.end(),
+        [&source](const UnsupportedRow& row) {
+            return row.disposition == "excluded"
+                && row.reason == "adapterFieldCoverageExcluded"
+                && row.source.find(source) != std::string::npos;
+        });
+}
+
+#ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
 const RecordRow* findEntityRecordByLayer(const SemanticSink& sink,
                                          const std::string& entity,
                                          const std::string& layer) {
@@ -2401,12 +3184,6 @@ bool doubleFieldEqualsForLayer(const SemanticSink& sink,
     } catch (const std::exception&) {
         return false;
     }
-}
-
-bool fieldEquals(const SemanticSink& sink, const std::string& entity,
-                 const std::string& name, const std::string& expected) {
-    const Field* field = findEntityField(sink, entity, name);
-    return field != nullptr && field->value == expected;
 }
 
 bool run3DConsumerProbe(bool binary) {
@@ -2690,30 +3467,423 @@ bool run3DConsumerProbe(bool binary) {
 }
 #endif
 
+template <typename Reader>
+bool verifyCleanReadbackObservation(const Reader& reader,
+                                    std::string& envelope) {
+    envelope = serializeDwgObservationEnvelope(
+        reader, "outputReadback", "AC1027");
+    if constexpr (HasDwgReadObservations<Reader>::value) {
+        const auto observations = reader.getReadObservations();
+        return observations.entityParseFailures == 0
+            && observations.objectParseFailures == 0
+            && static_cast<int>(observations.frames.status) == 2
+            && observations.frames.sourceFrames != 0
+            && envelope.find("\"availability\":\"available\"")
+                != std::string::npos
+            && envelope.find("\"phase\":\"outputReadback\"")
+                != std::string::npos
+            && envelope.find("\"sourceVersion\":\"AC1027\"")
+                != std::string::npos
+            && envelope.find("\"entityParseFailures\":0")
+                != std::string::npos;
+    }
+    return envelope.find("\"availability\":\"unavailable\"")
+            != std::string::npos
+        && envelope.find("\"reason\":\"readerApiNotPresent\"")
+            != std::string::npos
+        && envelope.find("\"sourceVersion\":\"AC1027\"")
+            != std::string::npos;
+}
+
+bool runCleanDwgReadbackControl() {
+    std::error_code error;
+    const std::filesystem::path temporaryRoot =
+        std::filesystem::temp_directory_path(error);
+    if (error)
+        return false;
+    std::filesystem::path directory;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned attempt = 0; attempt < 32; ++attempt) {
+        directory = temporaryRoot / ("libdxfrw-semantic-clean-readback-"
+            + std::to_string(stamp) + "-" + std::to_string(attempt));
+        error.clear();
+        if (std::filesystem::create_directory(directory, error))
+            break;
+        if (error && error != std::errc::file_exists)
+            return false;
+        directory.clear();
+    }
+    if (directory.empty())
+        return false;
+
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code cleanupError;
+            std::filesystem::remove_all(path, cleanupError);
+        }
+    } cleanup{directory};
+
+    const std::filesystem::path output = directory / "clean-readback.dwg";
+    const std::string outputName = output.string();
+    SemanticSink producer("dwgRW", "write");
+    dwgRW writer(outputName.c_str());
+    producer.configureWrite(&writer);
+    if (!writer.write(&producer, DRW::AC1027, true)
+        || !producer.writeRecipeSucceeded()) {
+        std::cerr << "clean DWG readback control generation failed; error="
+                  << static_cast<int>(writer.getError()) << '\n';
+        return false;
+    }
+
+    SemanticSink consumer("dwgRW", "read");
+    dwgRW reader(outputName.c_str());
+    if (!reader.read(&consumer, false) || reader.getError() != DRW::BAD_NONE
+        || !consumer.diagnostics.empty()) {
+        std::cerr << "clean DWG readback failed; error="
+                  << static_cast<int>(reader.getError())
+                  << ", diagnostics=" << consumer.diagnostics.size() << '\n';
+        return false;
+    }
+    const auto lineCount = static_cast<std::size_t>(std::count_if(
+        consumer.records.begin(), consumer.records.end(),
+        [](const RecordRow& row) { return row.entity == "LINE"; }));
+    std::string observations;
+    const bool observationsMatch =
+        verifyCleanReadbackObservation(reader, observations);
+    if (lineCount != 1
+        || !fieldEquals(consumer, "LINE", "start", "{\"x\":1,\"y\":2,\"z\":3}")
+        || !fieldEquals(consumer, "LINE", "end", "{\"x\":4,\"y\":5,\"z\":6}")
+        || !observationsMatch) {
+        std::cerr << "clean DWG readback mismatch; lines=" << lineCount
+                  << ", observationsMatch=" << observationsMatch
+                  << ", observations=" << observations << '\n';
+        return false;
+    }
+    return true;
+}
+
+template <typename Reader>
+bool verifyPartialReadbackObservation(const Reader& reader,
+                                      std::string& envelope) {
+    envelope = serializeDwgObservationEnvelope(
+        reader, "outputReadback", "AC1027");
+    if constexpr (HasDwgReadObservations<Reader>::value) {
+        const auto observations = reader.getReadObservations();
+        return observations.entityParseFailures == 1
+            && observations.objectParseFailures == 0
+            && static_cast<int>(observations.frames.status) == 3
+            && observations.frames.sourceFrames != 0
+            && observations.frames.dispositions[5] == 1
+            && envelope.find("\"entityParseFailures\":1") != std::string::npos
+            && envelope.find("\"status\":\"finalizedPartial\"")
+                != std::string::npos;
+    }
+    return envelope.find("\"availability\":\"unavailable\"")
+            != std::string::npos
+        && envelope.find("\"reason\":\"readerApiNotPresent\"")
+            != std::string::npos
+        && envelope.find("\"sourceVersion\":\"AC1027\"")
+            != std::string::npos;
+}
+
+template <typename Summary>
+bool namedObservationIsOne(const Summary& summary,
+                           const std::string& expectedName) {
+    if (summary.instances != 1 || summary.sourceNames != 1
+        || summary.retained != 1 || summary.rows[0].instances != 1
+        || summary.rows[0].name.length != expectedName.size()
+        || summary.rows[0].name.sourceBytes != expectedName.size())
+        return false;
+    for (std::size_t i = 0; i < expectedName.size(); ++i) {
+        if (summary.rows[0].name.bytes[i]
+            != static_cast<std::uint8_t>(expectedName[i]))
+            return false;
+    }
+    return true;
+}
+
+template <typename Reader>
+bool verifyOpaqueReadbackObservation(const Reader& reader,
+                                     std::string& envelope) {
+    envelope = serializeDwgObservationEnvelope(
+        reader, "outputReadback", "AC1027");
+    if constexpr (HasDwgReadObservations<Reader>::value) {
+        const auto observations = reader.getReadObservations();
+        return observations.entityParseFailures == 0
+            && observations.objectParseFailures == 0
+            && namedObservationIsOne(observations.skippedCustomClasses,
+                                     "AcDbSemanticOpaqueTest")
+            && namedObservationIsOne(observations.skippedUnsupportedObjects,
+                                     "SEMANTIC_OPAQUE_TEST")
+            && static_cast<int>(observations.frames.status) == 2
+            && observations.frames.sourceFrames != 0
+            && observations.frames.dispositions[3]
+                == observations.frames.sourceFrames;
+    }
+    return envelope.find("\"availability\":\"unavailable\"")
+            != std::string::npos
+        && envelope.find("\"reason\":\"readerApiNotPresent\"")
+            != std::string::npos
+        && envelope.find("\"sourceVersion\":\"AC1027\"")
+            != std::string::npos;
+}
+
+bool runPartialDwgReadbackControl() {
+    std::error_code error;
+    const std::filesystem::path temporaryRoot =
+        std::filesystem::temp_directory_path(error);
+    if (error)
+        return false;
+    std::filesystem::path directory;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned attempt = 0; attempt < 32; ++attempt) {
+        directory = temporaryRoot / ("libdxfrw-semantic-partial-readback-"
+            + std::to_string(stamp) + "-" + std::to_string(attempt));
+        error.clear();
+        if (std::filesystem::create_directory(directory, error))
+            break;
+        if (error && error != std::errc::file_exists)
+            return false;
+        directory.clear();
+    }
+    if (directory.empty())
+        return false;
+
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code cleanupError;
+            std::filesystem::remove_all(path, cleanupError);
+        }
+    } cleanup{directory};
+
+    const std::filesystem::path output = directory / "partial-readback.dwg";
+    const std::string outputName = output.string();
+    SemanticSink producer("dwgRW", "write");
+    producer.enablePartialDwgReadbackControl();
+    dwgRW writer(outputName.c_str());
+    producer.configureWrite(&writer);
+    if (!writer.write(&producer, DRW::AC1027, true)
+        || !producer.writeRecipeSucceeded()) {
+        std::cerr << "partial DWG readback control generation failed; error="
+                  << static_cast<int>(writer.getError()) << '\n';
+        return false;
+    }
+    SemanticSink consumer("dwgRW", "read");
+    dwgRW reader(outputName.c_str());
+    const bool operationSucceeded = reader.read(&consumer, false);
+    std::string observations;
+    if constexpr (HasDwgReadObservations<dwgRW>::value) {
+        if (!operationSucceeded || !consumer.diagnostics.empty()) {
+            std::cerr << "standalone partial DWG readback failed; error="
+                      << static_cast<int>(reader.getError())
+                      << ", diagnostics=" << consumer.diagnostics.size() << '\n';
+            return false;
+        }
+        const std::size_t lines = static_cast<std::size_t>(std::count_if(
+            consumer.records.begin(), consumer.records.end(),
+            [](const RecordRow& row) { return row.entity == "LINE"; }));
+        const std::size_t hatches = static_cast<std::size_t>(std::count_if(
+            consumer.records.begin(), consumer.records.end(),
+            [](const RecordRow& row) { return row.entity == "HATCH"; }));
+        const bool observationsMatch =
+            verifyPartialReadbackObservation(reader, observations);
+        if (lines != 1 || hatches != 0 || !observationsMatch) {
+            std::cerr << "standalone partial DWG readback mismatch; lines="
+                      << lines << ", hatches=" << hatches
+                      << ", observationsMatch=" << observationsMatch
+                      << ", observations=" << observations << '\n';
+            return false;
+        }
+        return true;
+    }
+
+    // The locked LibreCAD reader predates getReadObservations() and rejects
+    // this generated malformed-HATCH sentinel in its BLOCKS stage. Preserve
+    // that exact result as a non-promoting compatibility control rather than
+    // inventing partial counters for the target.
+    if (operationSucceeded || reader.getError() != DRW::BAD_READ_BLOCKS
+        || !consumer.diagnostics.empty()
+        || !verifyPartialReadbackObservation(reader, observations)) {
+        std::cerr << "locked-target partial DWG readback disposition changed; "
+                  << "operationSucceeded=" << operationSucceeded
+                  << ", error=" << static_cast<int>(reader.getError())
+                  << ", diagnostics=" << consumer.diagnostics.size()
+                  << ", observations=" << observations << '\n';
+        return false;
+    }
+    return true;
+}
+
+bool runOpaqueDwgReadbackControl() {
+    std::error_code error;
+    const std::filesystem::path temporaryRoot =
+        std::filesystem::temp_directory_path(error);
+    if (error)
+        return false;
+    std::filesystem::path directory;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned attempt = 0; attempt < 32; ++attempt) {
+        directory = temporaryRoot / ("libdxfrw-semantic-opaque-readback-"
+            + std::to_string(stamp) + "-" + std::to_string(attempt));
+        error.clear();
+        if (std::filesystem::create_directory(directory, error))
+            break;
+        if (error && error != std::errc::file_exists)
+            return false;
+        directory.clear();
+    }
+    if (directory.empty())
+        return false;
+
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code cleanupError;
+            std::filesystem::remove_all(path, cleanupError);
+        }
+    } cleanup{directory};
+
+    const std::filesystem::path output = directory / "opaque-readback.dwg";
+    const std::string outputName = output.string();
+    SemanticSink producer("dwgRW", "write");
+    producer.enableOpaqueDwgReadbackControl();
+    dwgRW writer(outputName.c_str());
+    producer.configureWrite(&writer);
+    if (!writer.write(&producer, DRW::AC1027, true)
+        || !producer.writeRecipeSucceeded()) {
+        std::cerr << "opaque DWG readback control generation failed; error="
+                  << static_cast<int>(writer.getError()) << '\n';
+        return false;
+    }
+
+    SemanticSink consumer("dwgRW", "read");
+    dwgRW reader(outputName.c_str());
+    const bool operationSucceeded = reader.read(&consumer, false);
+    std::string observations;
+    if (!operationSucceeded || reader.getError() != DRW::BAD_NONE
+        || !consumer.diagnostics.empty()) {
+        std::cerr << "opaque DWG readback failed; operationSucceeded="
+                  << operationSucceeded << ", error="
+                  << static_cast<int>(reader.getError())
+                  << ", diagnostics=" << consumer.diagnostics.size() << '\n';
+        return false;
+    }
+
+    const auto lineCount = static_cast<std::size_t>(std::count_if(
+        consumer.records.begin(), consumer.records.end(),
+        [](const RecordRow& row) { return row.entity == "LINE"; }));
+    const RecordRow* opaqueRecord = nullptr;
+    std::size_t opaqueRecordCount = 0;
+    for (const RecordRow& row : consumer.records) {
+        if (row.kind == "unsupported"
+            && row.entity == "SEMANTIC_OPAQUE_TEST") {
+            opaqueRecord = &row;
+            ++opaqueRecordCount;
+        }
+    }
+    const auto hasField = [](const RecordRow* record,
+                             const std::string& name,
+                             const std::string& expected) {
+        if (record == nullptr)
+            return false;
+        for (const Field& field : record->fields) {
+            if (field.name == name)
+                return field.value == expected;
+        }
+        return false;
+    };
+    std::size_t matchingCarriers = 0;
+    const auto hasSourceSuffix = [](const std::string& source,
+                                    const std::string& suffix) {
+        return source.size() >= suffix.size()
+            && source.compare(source.size() - suffix.size(),
+                              suffix.size(), suffix) == 0;
+    };
+    for (const CarrierRow& carrier : consumer.carriers) {
+        if (hasSourceSuffix(carrier.source, "/dwgUnsupportedObject")
+            && opaqueRecord != nullptr
+            && carrier.recordId == opaqueRecord->id && carrier.size != 0)
+            ++matchingCarriers;
+    }
+    std::size_t matchingUnsupportedRows = 0;
+    for (const UnsupportedRow& row : consumer.unsupported) {
+        if (row.kind == "opaqueObject"
+            && hasSourceSuffix(row.source, "/dwg")
+            && opaqueRecord != nullptr && row.recordId == opaqueRecord->id
+            && row.disposition == "preserved" && !row.carrierId.empty())
+            ++matchingUnsupportedRows;
+    }
+    const bool callbackContract = lineCount == 1
+        && fieldEquals(consumer, "LINE", "start", "{\"x\":11,\"y\":12,\"z\":13}")
+        && fieldEquals(consumer, "LINE", "end", "{\"x\":21,\"y\":22,\"z\":23}")
+        && opaqueRecordCount == 1
+        && hasField(opaqueRecord, "handle", jsonString("700"))
+        && hasField(opaqueRecord, "isEntity", "false");
+    const bool carrierContract = matchingCarriers == 1
+        && matchingUnsupportedRows == 1;
+    const bool observationsMatch =
+        verifyOpaqueReadbackObservation(reader, observations);
+    if (!callbackContract || !carrierContract || !observationsMatch) {
+        std::cerr << "opaque DWG readback mismatch; lines=" << lineCount
+                  << ", opaqueRecords=" << opaqueRecordCount
+                  << ", carriers=" << matchingCarriers
+                  << ", unsupportedRows=" << matchingUnsupportedRows
+                  << ", observationsMatch=" << observationsMatch
+                  << ", observations=" << observations << '\n';
+        return false;
+    }
+    return true;
+}
+
 int selfTest() {
+    const auto fail = [](int line) {
+        std::cerr << "semantic adapter self-test failed at line " << line
+                  << '\n';
+        return 1;
+    };
+    if (!runCleanDwgReadbackControl())
+        return fail(__LINE__);
+    if (!runPartialDwgReadbackControl())
+        return fail(__LINE__);
+    if (!runOpaqueDwgReadbackControl())
+        return fail(__LINE__);
+    SemanticSink dimensionSink("dxfRW", "read");
+    DRW_DimAligned dimension;
+    dimension.setDefPoint({-3, -4, 8});
+    dimension.setTextPoint({2, 3, 4});
+    dimension.setClonePoint({1, -2, 4});
+    dimension.setExtrusion({0, 1, 0});
+    dimensionSink.addDimAlign(&dimension);
+    if (!fieldEquals(dimensionSink, "DIMALIGNED", "definitionPointWcs", "{\"x\":-3,\"y\":-4,\"z\":8}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "textPointOcs", "{\"x\":2,\"y\":3,\"z\":4}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "clonePointOcs", "{\"x\":1,\"y\":-2,\"z\":4}")
+        || !fieldEquals(dimensionSink, "DIMALIGNED", "extrusion", "{\"x\":0,\"y\":1,\"z\":0}"))
+        return fail(__LINE__);
     if (sha256("abc") != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
-        return 1;
+        return fail(__LINE__);
     if (jsonString("a\n\"b") != "\"a\\n\\\"b\"")
-        return 1;
+        return fail(__LINE__);
     std::string oneRecord;
     appendLengthFramed(oneRecord, "1:0:a\n2:0:b");
     std::string twoRecords;
     appendLengthFramed(twoRecords, "1:0:a");
     appendLengthFramed(twoRecords, "2:0:b");
     if (oneRecord == twoRecords)
-        return 1;
+        return fail(__LINE__);
     try {
         (void)number(std::numeric_limits<double>::infinity());
-        return 1;
+        return fail(__LINE__);
     } catch (const std::domain_error&) {
     }
     const DrawingIdentity dwgIdentity = classifyDrawingPrefix("AC1024payload");
     if (dwgIdentity.format != "dwg" || dwgIdentity.version != "AC1024")
-        return 1;
+        return fail(__LINE__);
     const DrawingIdentity asciiIdentity = classifyDrawingPrefix(
         "  0\nSECTION\n  2\nHEADER\n  9\n$ACADVER\n  1\nAC1021\n  0\nENDSEC\n");
     if (asciiIdentity.format != "dxf-ascii" || asciiIdentity.version != "AC1021")
-        return 1;
+        return fail(__LINE__);
     std::string binary("AutoCAD Binary DXF\r\n");
     binary.push_back(static_cast<char>(0x1a));
     binary.push_back('\0');
@@ -2727,18 +3897,18 @@ int selfTest() {
     binary.push_back('\0');
     const DrawingIdentity binaryIdentity = classifyDrawingPrefix(binary);
     if (binaryIdentity.format != "dxf-binary" || binaryIdentity.version != "AC1027")
-        return 1;
+        return fail(__LINE__);
     if (classifyDrawingPrefix("{\"version\":\"AC1024\"}\n").format != "unknown")
-        return 1;
+        return fail(__LINE__);
     if (classifyDrawingPrefix("AutoCAD Binary DXFAC1024").format != "unknown")
-        return 1;
+        return fail(__LINE__);
     if (failureStage(static_cast<int>(DRW::BAD_READ_SECTION)) != "section" ||
         failureStage(static_cast<int>(DRW::BAD_CODE_PARSED)) != "parseCode")
-        return 1;
+        return fail(__LINE__);
 
 #ifdef LIBDXFRW_SEMANTIC_3D_CONSUMER_PROBE
     if (!run3DConsumerProbe(false) || !run3DConsumerProbe(true))
-        return 1;
+        return fail(__LINE__);
 #endif
 
     const auto fieldValue = [](const SemanticSink& sink, const std::string& name) {
@@ -2764,7 +3934,7 @@ int selfTest() {
             == fieldValue(changedMeshSink, "vertex.0")
         || fieldValue(firstMeshSink, "face.0.vertex.2")
             != "0")
-        return 1;
+        return fail(__LINE__);
 
     DRW_Insert insert;
     insert.name = "block";
@@ -2788,27 +3958,58 @@ int selfTest() {
             != "{\"x\":0,\"y\":0,\"z\":1}"
         || fieldValue(insertSink, "attribute.0.flags") != "4"
         || fieldValue(insertSink, "attribute.0.fieldLength") != "12")
-        return 1;
+        return fail(__LINE__);
 
     DRW_LoftedSurface lofted;
+    lofted.rawAcisData = {0x11, 0x22, 0x33};
+    const bool hasSurfaceDxfPayloadChunks = setSurfaceDxfPayloadChunk(lofted);
     lofted.dxfReferenceData.emplace_back(90, std::int32_t{3});
     lofted.dxfReferenceData.emplace_back(310,
         std::vector<std::uint8_t>{0x41, 0x42, 0x43});
     SemanticSink loftedSink("dxfRW", "read");
     loftedSink.addSurface(&lofted);
+    bool foundLoftedBinaryReference = false;
+    for (const CarrierRow& carrier : loftedSink.carriers) {
+        if (carrier.source.find("loftDxfReference.1.group310")
+                != std::string::npos
+            && carrier.size == 3
+            && carrier.digest == sha256(lofted.dxfReferenceData[1].binary()->data(), 3))
+            foundLoftedBinaryReference = true;
+    }
     if (fieldValue(loftedSink, "dxfReferenceData.0.value") != "3"
         || fieldValue(loftedSink, "dxfReferenceData.1.byteCount") != "3"
-        || loftedSink.carriers.size() != 1
-        || loftedSink.carriers.front().source.find("loftDxfReference.1.group310")
-            == std::string::npos
-        || loftedSink.carriers.front().digest
-            != sha256(lofted.dxfReferenceData[1].binary()->data(), 3))
-        return 1;
+        || loftedSink.carriers.size() != 2
+        || !foundLoftedBinaryReference)
+        return fail(__LINE__);
+    if ((hasSurfaceDxfPayloadChunks
+            && (!fieldEquals(loftedSink, "LOFTEDSURFACE", "dxfAcisChunk.count", "1")
+                || !fieldEquals(loftedSink, "LOFTEDSURFACE",
+                                "dxfAcisChunk.0.groupCode", "310")
+                || !fieldEquals(loftedSink, "LOFTEDSURFACE",
+                                "dxfAcisChunk.0.inBounds", "true")))
+        || (!hasSurfaceDxfPayloadChunks
+            && !hasExcludedField(loftedSink, "dxfAcisChunks")))
+        return fail(__LINE__);
 
     DRW_ModelerGeometry modeler(DRW::E3DSOLID);
+    modeler.handle = 0x101u;
+    modeler.m_historyHandle = 0x202u;
     modeler.m_rawBytes = {0x41, 0x42, 0x43};
-    modeler.m_dwgAcisPayload = {0x46, 0x47, 0x48};
+    const std::vector<std::uint8_t> inlineAcisPayload{0x46, 0x47, 0x48};
+    const bool hasDwgSourceVersion =
+        setModelerDwgSourceVersion(modeler, DRW::AC1024);
+    const bool hasDwgAcisPayload =
+        setModelerDwgAcisPayload(modeler, inlineAcisPayload);
+    const bool hasModelerDxfPayloadChunks =
+        setModelerDxfPayloadChunk(modeler);
+    DRW_ModelerPayloadRange payloadRange;
+    payloadRange.m_offset = 1;
+    payloadRange.m_length = 2;
+    const bool hasPayloadRangeBitOffset =
+        setPayloadRangeBitOffset(payloadRange, 13);
+    modeler.m_payloadRanges.push_back(payloadRange);
     modeler.hasDataStorageRecord = true;
+    modeler.setHasDataStorageBinaryData(true);
     modeler.dataStorageHandle = 0x123456789u;
     modeler.dataStorageHandleKey = "123456789";
     modeler.dataStorageData = {0x44, 0x45};
@@ -2817,6 +4018,15 @@ int selfTest() {
     bool foundFrameCarrier = false;
     bool foundInlineAcisCarrier = false;
     bool foundDataStorageCarrier = false;
+    bool foundHistoryReference = false;
+    for (const EdgeRow& edge : modelerSink.edges) {
+        if (edge.kind == "historyReference"
+            && edge.from == "node:" + modelerSink.records.front().id
+            && edge.to == "node:handle:202"
+            && graphEdgeDisposition(modelerSink, edge) == "unresolved") {
+            foundHistoryReference = true;
+        }
+    }
     for (const CarrierRow& carrier : modelerSink.carriers) {
         if (carrier.source.find("dwgModelerObjectFrameBody-unclassified-payload")
             != std::string::npos) {
@@ -2825,9 +4035,9 @@ int selfTest() {
                                              modeler.m_rawBytes.size());
         } else if (carrier.source.find("dwgModelerInlineAcisPayload")
                    != std::string::npos) {
-            foundInlineAcisCarrier = carrier.size == modeler.m_dwgAcisPayload.size()
-                && carrier.digest == sha256(modeler.m_dwgAcisPayload.data(),
-                                             modeler.m_dwgAcisPayload.size());
+            foundInlineAcisCarrier = carrier.size == inlineAcisPayload.size()
+                && carrier.digest == sha256(inlineAcisPayload.data(),
+                                             inlineAcisPayload.size());
         } else if (carrier.source.find("dwgLinkedDataStoragePayload")
                    != std::string::npos) {
             foundDataStorageCarrier = carrier.size == modeler.dataStorageData.size()
@@ -2837,20 +4047,204 @@ int selfTest() {
     }
     if (fieldValue(modelerSink, "rawByteCarrierKind")
             != jsonString("dwgObjectFrameBody-unclassified-payload")
-        || fieldValue(modelerSink, "dwgInlineAcisByteCount") != "3"
+        || fieldValue(modelerSink, "hasRawBytes") != "true"
+        || fieldValue(modelerSink, "rawByteCount") != "3"
+        || fieldValue(modelerSink, "hasDataStorageBinaryData") != "true"
+        || fieldValue(modelerSink, "hasDataStorageRecord") != "true"
+        || fieldValue(modelerSink, "historyHandle") != jsonString("202")
         || fieldValue(modelerSink, "dataStorageByteCount") != "2"
         || fieldValue(modelerSink, "dataStorageHandle") != "4886718345"
-        || modelerSink.carriers.size() != 3
-        || !foundFrameCarrier || !foundInlineAcisCarrier
-        || !foundDataStorageCarrier)
-        return 1;
+        || modelerSink.carriers.size() != (hasDwgAcisPayload ? 3u : 2u)
+        || !foundFrameCarrier || foundInlineAcisCarrier != hasDwgAcisPayload
+        || !foundDataStorageCarrier || !foundHistoryReference) {
+        std::cerr << "modeler semantic self-test mismatch; rawCarrier="
+                  << fieldValue(modelerSink, "rawByteCarrierKind")
+                  << ", hasRawBytes="
+                  << fieldValue(modelerSink, "hasRawBytes")
+                  << ", rawByteCount="
+                  << fieldValue(modelerSink, "rawByteCount")
+                  << ", hasDataStorageRecord="
+                  << fieldValue(modelerSink, "hasDataStorageRecord")
+                  << ", dataStorageByteCount="
+                  << fieldValue(modelerSink, "dataStorageByteCount")
+                  << ", dataStorageHandle="
+                  << fieldValue(modelerSink, "dataStorageHandle")
+                  << ", carriers=" << modelerSink.carriers.size()
+                  << ", foundFrame=" << foundFrameCarrier
+                  << ", foundInlineAcis=" << foundInlineAcisCarrier
+                  << ", expectsInlineAcis=" << hasDwgAcisPayload
+                  << ", foundDataStorage=" << foundDataStorageCarrier
+                  << ", foundHistoryReference=" << foundHistoryReference << '\n';
+        return fail(__LINE__);
+    }
+    if ((hasDwgSourceVersion
+            && !fieldEquals(modelerSink, "MODELER_GEOMETRY", "dwgSourceVersion",
+                            std::to_string(static_cast<int>(DRW::AC1024))))
+        || (!hasDwgSourceVersion
+            && !hasExcludedField(modelerSink, "dwgSourceVersion"))
+        || (hasDwgAcisPayload
+            && (fieldValue(modelerSink, "hasDwgInlineAcisPayload") != "true"
+                || !fieldEquals(modelerSink, "MODELER_GEOMETRY",
+                                "dwgInlineAcisByteCount", "3")))
+        || (!hasDwgAcisPayload
+            && !hasExcludedField(modelerSink, "dwgInlineAcisPayload"))
+        || (hasModelerDxfPayloadChunks
+            && (!fieldEquals(modelerSink, "MODELER_GEOMETRY",
+                             "dxfPayloadChunk.count", "1")
+                || !fieldEquals(modelerSink, "MODELER_GEOMETRY",
+                                "dxfPayloadChunk.0.groupCode", "310")
+                || !fieldEquals(modelerSink, "MODELER_GEOMETRY",
+                                "dxfPayloadChunk.0.inBounds", "true")))
+        || (!hasModelerDxfPayloadChunks
+            && !hasExcludedField(modelerSink, "dxfPayloadChunks"))
+        || (hasPayloadRangeBitOffset
+            && !fieldEquals(modelerSink, "MODELER_GEOMETRY",
+                            "payloadRange.0.bitOffset", "13"))
+        || (!hasPayloadRangeBitOffset
+            && !hasExcludedField(modelerSink, "payloadRange.0.bitOffset")))
+        return fail(__LINE__);
+    if ((HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && fieldValue(modelerSink, "modelerPayloadStatus")
+                != jsonString("carrier-bytes-present"))
+        || (!HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && !hasExcludedField(modelerSink, "modelerPayloadStatus")))
+        return fail(__LINE__);
+
+    // Keep a supported-but-empty optional payload distinct from a capability
+    // that this adapter build cannot observe. In particular, empty data must
+    // not create a carrier or imply that an ACIS body was present.
+    DRW_ModelerGeometry emptyModeler(DRW::E3DSOLID);
+    emptyModeler.m_isEmpty = true;
+    SemanticSink emptyModelerSink("dwgRW", "read");
+    emptyModelerSink.addModelerGeometry(emptyModeler);
+    if (fieldValue(emptyModelerSink, "hasRawBytes") != "false"
+        || fieldValue(emptyModelerSink, "rawByteCount") != "0"
+        || fieldValue(emptyModelerSink, "hasDataStorageBinaryData") != "false"
+        || fieldValue(emptyModelerSink, "hasDataStorageRecord") != "false"
+        || fieldValue(emptyModelerSink, "dataStorageByteCount") != "0"
+        || fieldValue(emptyModelerSink, "payloadRangeCount") != "0"
+        || !emptyModelerSink.carriers.empty())
+        return fail(__LINE__);
+
+    DRW_ModelerGeometry resolvedModeler(DRW::E3DSOLID);
+    resolvedModeler.handle = 0x303u;
+    resolvedModeler.m_historyHandle = 0x404u;
+    SemanticSink resolvedHistorySink("dxfRW", "read");
+    resolvedHistorySink.addModelerGeometry(resolvedModeler);
+    DRW_Line capturedHistoryRecord;
+    capturedHistoryRecord.handle = 0x404u;
+    resolvedHistorySink.addLine(capturedHistoryRecord);
+    bool historyTargetResolved = false;
+    for (const EdgeRow& edge : resolvedHistorySink.edges) {
+        if (edge.kind == "historyReference"
+            && edge.to == "node:handle:404"
+            && graphEdgeDisposition(resolvedHistorySink, edge) == "resolved") {
+            historyTargetResolved = true;
+        }
+    }
+    if (!historyTargetResolved)
+        return fail(__LINE__);
+
+    // A zero parent handle is the adapter's null-owner representation: it
+    // emits neither ownerHandle nor an owner edge. Nonzero owner edges are
+    // resolved only against the complete captured record set, independent of
+    // callback order.
+    DRW_Line nullOwnerLine;
+    nullOwnerLine.handle = 0x505u;
+    SemanticSink nullOwnerSink("dxfRW", "read");
+    nullOwnerSink.addLine(nullOwnerLine);
+    if (!nullOwnerSink.records.front().ownerHandle.empty()
+        || std::any_of(nullOwnerSink.edges.begin(), nullOwnerSink.edges.end(),
+                       [](const EdgeRow& edge) { return edge.kind == "owner"; }))
+        return fail(__LINE__);
+
+    DRW_Line unresolvedOwnerLine;
+    unresolvedOwnerLine.handle = 0x606u;
+    unresolvedOwnerLine.parentHandle = 0x707u;
+    SemanticSink unresolvedOwnerSink("dxfRW", "read");
+    unresolvedOwnerSink.addLine(unresolvedOwnerLine);
+    bool ownerTargetUnresolved = false;
+    for (const EdgeRow& edge : unresolvedOwnerSink.edges) {
+        if (edge.kind == "owner" && edge.to == "node:handle:707"
+            && graphEdgeDisposition(unresolvedOwnerSink, edge) == "unresolved") {
+            ownerTargetUnresolved = true;
+        }
+    }
+    if (!ownerTargetUnresolved)
+        return fail(__LINE__);
+
+    DRW_Line resolvedOwnerLine;
+    resolvedOwnerLine.handle = 0x808u;
+    resolvedOwnerLine.parentHandle = 0x909u;
+    SemanticSink resolvedOwnerSink("dxfRW", "read");
+    resolvedOwnerSink.addLine(resolvedOwnerLine);
+    DRW_Line capturedOwnerRecord;
+    capturedOwnerRecord.handle = 0x909u;
+    resolvedOwnerSink.addLine(capturedOwnerRecord);
+    bool ownerTargetResolved = false;
+    for (const EdgeRow& edge : resolvedOwnerSink.edges) {
+        if (edge.kind == "owner" && edge.to == "node:handle:909"
+            && graphEdgeDisposition(resolvedOwnerSink, edge) == "resolved") {
+            ownerTargetResolved = true;
+        }
+    }
+    if (!ownerTargetResolved)
+        return fail(__LINE__);
+
+    SemanticSink blockOwnerSink = resolvedOwnerSink;
+    for (NodeRow& node : blockOwnerSink.nodes) {
+        if (node.id == "node:handle:909")
+            node.kind = "block";
+    }
+    bool blockOwnerTargetResolved = false;
+    for (const EdgeRow& edge : blockOwnerSink.edges) {
+        if (edge.kind == "owner" && edge.to == "node:handle:909"
+            && graphEdgeDisposition(blockOwnerSink, edge) == "resolved") {
+            blockOwnerTargetResolved = true;
+        }
+    }
+    if (!blockOwnerTargetResolved)
+        return fail(__LINE__);
+
+    if ((hasDwgAcisPayload
+            && (fieldValue(emptyModelerSink, "hasDwgInlineAcisPayload") != "false"
+                || fieldValue(emptyModelerSink, "dwgInlineAcisByteCount") != "0"))
+        || (!hasDwgAcisPayload
+            && !hasExcludedField(emptyModelerSink, "dwgInlineAcisPayload"))
+        || (hasModelerDxfPayloadChunks
+            && !fieldEquals(emptyModelerSink, "MODELER_GEOMETRY",
+                            "dxfPayloadChunk.count", "0"))
+        || (!hasModelerDxfPayloadChunks
+            && !hasExcludedField(emptyModelerSink, "dxfPayloadChunks")))
+        return fail(__LINE__);
+    if ((HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && fieldValue(emptyModelerSink, "modelerPayloadStatus")
+                != jsonString("explicitly-empty"))
+        || (!HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && !hasExcludedField(emptyModelerSink, "modelerPayloadStatus")))
+        return fail(__LINE__);
+
+    DRW_ModelerGeometry missingPayloadModeler(DRW::E3DSOLID);
+    missingPayloadModeler.m_isEmpty = false;
+    missingPayloadModeler.m_hasModelerData = true;
+    missingPayloadModeler.m_bodyBitSize = 24;
+    missingPayloadModeler.m_objectSize = 3;
+    missingPayloadModeler.m_rawBytes = {0x44, 0x57, 0x47};
+    SemanticSink missingPayloadSink("dwgRW", "read");
+    missingPayloadSink.addModelerGeometry(missingPayloadModeler);
+    if ((HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && fieldValue(missingPayloadSink, "modelerPayloadStatus")
+                != jsonString("expected-but-unavailable"))
+        || (!HasModelerPayloadStatusName<DRW_ModelerGeometry>::value
+            && !hasExcludedField(missingPayloadSink, "modelerPayloadStatus")))
+        return fail(__LINE__);
 
     SemanticSink failureSink;
     failureSink.addOperationFailure(2, "write", "/output", "write");
     if (failureSink.diagnostics.size() != 1 ||
         failureSink.diagnostics[0].code != "write-error-2" ||
         failureSink.diagnostics[0].path != "/output")
-        return 1;
+        return fail(__LINE__);
     return 0;
 }
 
@@ -2859,6 +4253,14 @@ int selfTest() {
 int main(int argc, char** argv) {
     try {
         Options options = parseOptions(argc, argv);
+        if (options.printCapabilityProfile) {
+            if (argc != 2 || std::string(argv[1]) != "--capability-profile")
+                throw std::runtime_error(
+                    "--capability-profile must be used alone");
+            emitCapabilityProfile(std::cout);
+            std::cout << '\n';
+            return 0;
+        }
         if (options.selfTest)
             return selfTest();
         if (options.input.empty() && options.recipe.empty())
@@ -2912,6 +4314,18 @@ int main(int argc, char** argv) {
             input = inspectInput(options.input);
         }
         SemanticSink sink(options.facade, options.direction);
+        const bool dwgFacade = options.facade == "dwgRW";
+        std::string inputReadObservations = unavailableObservationEnvelope(
+            "inputRead", dwgFacade && !writeMode ? "unavailable" : "notApplicable",
+            dwgFacade && !writeMode ? "readerApiNotPresent" :
+                (writeMode ? "writeRecipeNotDwg" : "facadeIsDxf"),
+            dwgFacade && !writeMode ? input.version : "");
+        std::string outputReadbackObservations = unavailableObservationEnvelope(
+            "outputReadback",
+            dwgFacade && writeMode ? "notRun" : "notApplicable",
+            dwgFacade && writeMode ? "writeFailedBeforeReadback" :
+                (writeMode ? "facadeIsDxf" : "readOnlyNoOutputReadback"),
+            "");
         bool succeeded = false;
         int error = 1;
         std::string stage = "invocation";
@@ -2951,6 +4365,8 @@ int main(int argc, char** argv) {
                     dwgRW reader(options.output.c_str());
                     succeeded = reader.read(&sink, options.applyExtrusion);
                     error = static_cast<int>(reader.getError());
+                    outputReadbackObservations = serializeDwgObservationEnvelope(
+                        reader, "outputReadback", generated.version);
                     stage = succeeded ? "none" : "readback";
                     if (!succeeded)
                         sink.addOperationFailure(error, stage, "/output", "readback");
@@ -2977,8 +4393,11 @@ int main(int argc, char** argv) {
                 reader.getIntegrityDiagnostics();
             for (const DwgIntegrityDiagnostic& diagnostic : diagnostics)
                 sink.addIntegrityDiagnostic(diagnostic);
+            inputReadObservations = serializeDwgObservationEnvelope(
+                reader, "inputRead", input.version);
         }
-        emitResult(std::cout, options, input, sink, succeeded, error, stage);
+        emitResult(std::cout, options, input, sink, succeeded, error, stage,
+                   inputReadObservations, outputReadbackObservations);
         return succeeded ? 0 : 1;
     } catch (const std::exception& error) {
         std::cerr << "semantic adapter: " << error.what() << '\n';

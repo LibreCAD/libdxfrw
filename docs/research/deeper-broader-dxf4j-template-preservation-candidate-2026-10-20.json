@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader dxf4j AC1032 template-preservation candidate screen",
+  "mode": "primary-source web research and read-only local plan/source reconciliation",
+  "scope": [
+    "Refresh the previously inventoried open-source DXF-only template-preservation candidate against its current repository and build metadata",
+    "Classify its version, operation, preservation, source-identity, and test-corpus evidence limits",
+    "Crosswalk recent ACadSharp parser-hardening, EED-size, and classic-VERTEX reports against existing local tests"
+  ],
+  "sources": [
+    {
+      "project": "cancemi/dxf4j",
+      "references": [
+        "https://github.com/cancemi/dxf4j",
+        "https://github.com/cancemi/dxf4j/releases/tag/v0.1.0",
+        "https://api.github.com/repos/cancemi/dxf4j/releases",
+        "https://github.com/cancemi/dxf4j/commit/5467c2a62ee83df31f206d3e7cec392039852042",
+        "https://github.com/cancemi/dxf4j/releases/download/v0.1.0/dxf4j-0.1.0.jar",
+        "https://github.com/cancemi/dxf4j/blob/5467c2a62ee83df31f206d3e7cec392039852042/pom.xml",
+        "https://github.com/cancemi/dxf4j/blob/5467c2a62ee83df31f206d3e7cec392039852042/src/main/java/io/github/dxf4j/DxfReader.java",
+        "https://github.com/cancemi/dxf4j/blob/5467c2a62ee83df31f206d3e7cec392039852042/src/main/java/io/github/dxf4j/DxfWriter.java",
+        "https://github.com/cancemi/dxf4j/blob/5467c2a62ee83df31f206d3e7cec392039852042/src/test/java/io/github/dxf4j/DxfDocumentTest.java",
+        "https://github.com/cancemi/dxf4j/blob/5467c2a62ee83df31f206d3e7cec392039852042/src/test/resources/minimal.dxf"
+      ],
+      "status": "v0.1.0_release_and_source_reviewed_2026-10-20",
+      "observation": "GitHub release metadata identifies v0.1.0 source commit 5467c2a62ee83df31f206d3e7cec392039852042 and release JAR SHA-256 1435f09ddf6d264d0bdeb40ebcf238f36dc137e88b824dd9144b4948383173dd. The changelog reports 14 tests. The test tree contains one 750-byte AC1032 ASCII fixture with three entities and empty CLASSES/TABLES/BLOCKS; the roundtrip test checks version, handseed, and entity count, not non-empty raw-section byte preservation. The source parses DXF text, stores selected sections as raw groups, and has no DWG path in the inspected files.",
+      "limits": "The source commit is unsigned and the Git release/tag metadata is mutable, although both commit and asset digest are pinned here. No Binary DXF route, externally sourced corpus, independent verification of the preservation claim, or broad entity semantics are established. The checked-in fixture text was inspected via GitHub's API but not saved to the workspace or used in a test. The project was not cloned, built, or run."
+    },
+    {
+      "project": "ACadSharp recent peer issue reports",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1279"
+      ],
+      "status": "issue_pages_reviewed_2026-10-20",
+      "observation": "The reports describe recursive stack growth for repeated DXF records, a peer DWG writer narrowing an APPID EED byte count to signed 16-bit, and an AC1014 2D VERTEX without AcDb2dVertex. Existing local tests already exercise 20,000 repeated records and suffix sentinels, EED sizes through 65,536 bytes, and the exact base-only AC1014 subclass-marker case in ASCII/Binary.",
+      "limits": "Peer reports are not libdxfrw reproductions or format authority. Their stack thresholds and signed-size limit are not transferred as format limits; local source/test reconciliation did not execute tests."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Pin dxf4j v0.1.0 to source commit 5467c2a62ee83df31f206d3e7cec392039852042 and JAR SHA-256 1435f09ddf6d264d0bdeb40ebcf238f36dc137e88b824dd9144b4948383173dd. Keep it an unqualified text-DXF preservation design lead: its 14 tests use one minimal AC1032 fixture with empty raw sections and do not substantiate non-empty section preservation. Admit no run unless a concrete local gap remains at an existing composed checkpoint and independent expectations are prepared. Reuse existing local hardening, EED, and classic-VERTEX tests without duplication.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 1,
+    "externalFixtureFilesSavedLocally": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf4j-template-preservation-candidate-2026-10-20.json"
+    ],
+    "limitations": "This pass reviewed public GitHub release/REST/source pages and reconciled them to local tests by source inspection only. dxf4j source and release-asset identities were resolved but neither was executed; no external/native support claim is established."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check for the plan; new receipt is jq-valid)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the worktree has extensive pre-existing user changes and Git metadata is read-only in this session."
+  }
+}

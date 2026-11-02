@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "CADCraft save-loss report, LAYER visibility dimensions, and REGION carrier crosswalk",
+  "mode": "Primary-source peer documentation and issue-index review, Autodesk DXF contract review, and local source/test crosswalk",
+  "scope": [
+    "Classify CADCraft issue #1674's title-level REGION/layer-visibility report without over-attributing its route or failure cause.",
+    "Separate application-level REGION objects from DXF/DWG ACIS-bearing REGION/3DSOLID carriers.",
+    "Crosswalk layer-wide off/frozen/default-freeze/locked states against per-viewport frozen-layer references.",
+    "Add only a fast, implementation-ready group-70 test task to existing 7AN if local coverage is absent."
+  ],
+  "method": {
+    "peer_repository_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_issue_body_retrieved": false,
+    "local_tests_run": false,
+    "code_changed": false,
+    "test_sources_changed": false,
+    "persistent_fixture_added": false,
+    "limitations": "CADCraft issue #1674 search results exposed only the issue title and opened date; its body, drawing, exact build, output version, and route were unavailable. Repository README/gap inventory are mutable project statements. No peer behavior was independently reproduced. Autodesk documentation establishes DXF field meanings, not producer acceptance of a libdxfrw output."
+  },
+  "sources": [
+    {
+      "name": "CADCraft issue #1674",
+      "url": "https://github.com/storytold/cadcraft/issues/1674",
+      "observed": "The indexed title reports REGION objects not saved and layer visibility settings lost during DWG save; issue is shown as opened 2026-10-19. The body and sample were not retrieved.",
+      "evidence_ceiling": "Peer report title only; no route attribution, local reproduction, or format-rule evidence."
+    },
+    {
+      "name": "CADCraft repository README and file-format gap inventory",
+      "urls": [
+        "https://github.com/storytold/cadcraft",
+        "https://github.com/storytold/cadcraft/blob/main/docs/gaps.md"
+      ],
+      "observed": "README identifies ACadRust as the DWG read/write route and lists DWG writing to R2000. The gap inventory says CADCraft's own REGION application objects are saved as closed polylines without ACIS data.",
+      "evidence_ceiling": "Mutable project self-report, not an executed implementation result or an independent DWG codec."
+    },
+    {
+      "name": "Autodesk LAYER DXF and ObjectARX layer-record contract",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbLayerTableRecord.html"
+      ],
+      "observed": "Group 62 sign expresses layer on/off; group 70 distinguishes frozen, default-frozen-in-new-viewports, locked and other flags; group 290 controls plotting. Entity group 60 is a separate object visibility field.",
+      "evidence_ceiling": "Normative/documented DXF semantics, not native acceptance of a generated libdxfrw file."
+    },
+    {
+      "name": "Autodesk VIEWPORT and VPLAYER documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-LT-MAC/files/GUID-EB4DA3DA-5466-4D48-9AEC-6828B82BDEF9.htm"
+      ],
+      "observed": "A VIEWPORT can list multiple frozen-layer object handles in repeated group 331 values; viewport-specific visibility is distinct from the layer-wide flags.",
+      "evidence_ceiling": "DXF field/command contract; no additional local issue established."
+    },
+    {
+      "name": "Local libdxfrw source, generated tests, and plan",
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "LAYER group 70 is handled through DRW_TableEntry flags; writeLayer emits it. DRW_Viewport retains frozenLayerHandles, writeViewport remaps/emits group 331, and existing generated layout controls check viewport layer targets and graph closure. Existing PAR-66 controls exercise signed layer off-state on a generated DWG CMC-to-DXF path. A focused generated LAYER group-70 1/2/4 flag vector was not located in the inspected owners.",
+      "evidence_ceiling": "Source and test-coverage audit only; no runtime mismatch or production defect reproduced."
+    },
+    {
+      "name": "FreeCAD Draft DXF and DWG workflow documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "Stock DWG import is converter-to-DXF followed by a selected DXF importer; stock DXF import does not consume embedded ACIS/SAT solids.",
+      "evidence_ceiling": "Consumer-route boundary only; cannot classify CADCraft #1674 or validate modeler semantics."
+    }
+  ],
+  "plan_impact": {
+    "CADCraft_1674": "Keep PEER_REPORT_ONLY / NOT_REPRODUCED until its body, sample, exact build, and route are available. Count its DWG path under ACadRust lineage.",
+    "REGION_terminology": "Keep CADCraft application REGION/polyline abstraction separate from DXF inline modeler groups 1/3, legacy DWG SAT carriers, and R2013+ AcDs key/owner/SAB association under PAR-07/S3.7.",
+    "LAYER_visibility": "Add a generated group-70 1/2/4/7 preservation vector under existing 7AN, paired independently with positive/negative group 62 and an entity sentinel. Reuse existing viewport group-331 graph tests; keep group 290 and entity group 60 distinct.",
+    "validation": "Use existing DXF fixture executable/selector and owning CTest only after implementation; no full-suite, peer, FreeCAD, or native CAD run is needed for this bounded vector.",
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "implementation_order_changed": false,
+    "support_claims_promoted": 0
+  },
+  "plan_ledger": {
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "repository_state": "Plan and research receipt updated in a broadly dirty shared worktree; no code, test source, persistent fixture, or support metadata was changed. Nothing staged or committed."
+}

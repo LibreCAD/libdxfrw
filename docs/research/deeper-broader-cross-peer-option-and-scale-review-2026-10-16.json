@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw-deeper-broader-cross-peer-option-and-scale-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Refresh open-source DWG/DXF peer comparison at the effective-option, route, and scale boundary; tighten existing composed peer gates without creating new findings or per-slice external validation.",
+  "method": {
+    "sourceTypes": [
+      "Current GDAL DXF and DWG driver documentation",
+      "ACadSharp signed release history and release notes",
+      "ezdxf 1.4.5 stable documentation"
+    ],
+    "sourcesOpened": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+      "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+    ],
+    "peersInstalledBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "sourceFreshness": "The documentation and release list are current public sources; mutable stable/master pages are discovery evidence. A future runtime comparison must pin the exact peer release/commit, binary/package hash, platform, operation, and effective options.",
+    "evidenceBoundary": "Documentation establishes peer route and default behavior only. It does not prove libdxfrw semantics, peer runtime outcome for a specific artifact, complete object-graph preservation, or support parity. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL DXF driver effective defaults and projection limits",
+      "source": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observed": [
+        "The documented DXF_FEATURE_LIMIT_PER_BLOCK default is 10000.",
+        "Block geometry is inlined by default and block geometry merging is enabled by default.",
+        "Raw unhandled group-code capture is disabled by default.",
+        "3D extensible mode can expose raw ASM bytes and a 12-value transform for AC1027+ DXF, but does not construct solid geometry.",
+        "The writer emits AutoCAD 2004 DXF; several curves and style/coordinate properties are projected or approximated."
+      ],
+      "doesNotEstablish": [
+        "Complete CAD object/owner graph preservation",
+        "Exact curve, annotation, or style semantics after OGR projection",
+        "A general 3D solid or ACIS reader",
+        "Version-preserving DXF write across all AutoCAD release targets"
+      ],
+      "planUse": "At the existing composed GDAL gate, pin driver version and effective options, preserve block references, record the feature cap and expected/observed counts, enable raw fields only for relevant lanes, and treat capped/inlined/merged/tessellated outcomes as incomplete for graph or exact-geometry comparisons. Use -1 only with bounded locally generated controls when deliberately exceeding the normal cap."
+    },
+    {
+      "topic": "GDAL DWG route is a distinct read-only libopencad projection",
+      "source": "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "observed": [
+        "The CAD driver is based on libopencad.",
+        "The documented supported elements are POINT, LINE, CIRCLE/ARC, and 3DFACE.",
+        "The driver is read-only and represents entities as OGR features rather than a complete DWG object model."
+      ],
+      "doesNotEstablish": [
+        "DWG writing or conversion parity",
+        "Complete entity, table, object, handle, or owner preservation",
+        "3DSOLID, REGION, BODY, ACIS, or AcDs semantics"
+      ],
+      "planUse": "Use only as one optional explicit-geometry projection route. Do not count the DWG and DXF GDAL drivers as equivalent routes or as object-graph/solid oracles."
+    },
+    {
+      "topic": "ACadSharp release freshness versus feature evidence",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": [
+        "The release page identifies v3.8.0 at signed commit 3a1c66b and lists InternalsVisibleTo as its change.",
+        "Its predecessor v3.7.16 at 3feabba lists DXF decimal precision, support for tables over 32767 entries, indexing inserts by block, and other writer changes."
+      ],
+      "doesNotEstablish": [
+        "Runtime fidelity for every advertised route, entity, or field",
+        "That the newest release adds a specific serializer capability",
+        "Any libdxfrw defect or independent native-application acceptance"
+      ],
+      "planUse": "Keep ACadSharp as an optional exact-release comparator; reuse existing precision and large-table test owners and avoid per-slice peer runs or release-number-based feature inference."
+    },
+    {
+      "topic": "ezdxf strict versus recovery operation boundary",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "observed": [
+        "The current docs describe ezdxf as a DXF interface, not a CAD format converter or CAD kernel.",
+        "Recovery is a distinct repair/audit path; decoding errors may be logged as unrecoverable audit errors without raising a structure exception.",
+        "The docs warn that writing a recovered document with decode errors may create invalid DXF or lose data."
+      ],
+      "doesNotEstablish": [
+        "Strict semantic equivalence or lossless writeback after recovery",
+        "DWG support or ACIS solid-kernel behavior"
+      ],
+      "planUse": "Keep normal strict reads, recovery/audit, writing, opaque retention, and geometry projection as separate peer operation rows. Recovered outcomes remain diagnostic and non-promoting."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "refinesExistingOwners": [
+      "PAR-07",
+      "S8 composed peer comparison",
+      "7AG peer admission",
+      "existing numeric precision and large-table test owners"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSlicePeerRunsAdded": false,
+    "newValidationJobs": 0,
+    "requiredGDALReceiptFields": [
+      "exact GDAL version/build and effective driver options",
+      "INLINE_BLOCKS and MERGE_BLOCK_GEOMETRIES state",
+      "DXF_FEATURE_LIMIT_PER_BLOCK value",
+      "expected and observed per-block feature counts",
+      "source handles and block-name/reference disposition",
+      "raw-code and ASM/transform fields when applicable",
+      "approximation, omission, and diagnostic records"
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "peerRuntime": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_MATERIAL root-cardinality controls",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Test a duplicate canonical ACAD_MATERIAL NOD entry in generated ASCII and Binary DXF.",
+    "Test a differently named NOD alias to the same MATERIAL dictionary.",
+    "Require atomic refusal, preservation of the destination, and successful corrected retry."
+  ],
+  "sourceChange": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "change": "Extended the existing --material-object-order selector with duplicate-root and same-target alias controls.",
+    "reason": "Production validation already enforces exact MATERIAL root cardinality and rejects aliases, while the existing selector covered a missing root and duplicate child targets but did not directly guard these two conditions.",
+    "productionBehaviorChanged": false,
+    "ctestInventoryChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-object-order",
+      "result": "PASS (ASCII and Binary; duplicate canonical edge and dictionary alias refuse atomically and corrected retries pass)"
+    },
+    "owningCTest": "NOT_AVAILABLE (no focused CTest registration owns this selector; no broad fixture CTest was run)",
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

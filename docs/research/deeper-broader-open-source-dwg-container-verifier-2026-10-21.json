@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source DWG container verifier admission and evidence ceiling",
+  "mode": "Deeper/broader primary-source research and plan-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This research pass edited only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and created this receipt; no prior or unrelated work was staged or committed.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-dwg-container-verifier-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "realDragonium/dwg-verifier",
+      "references": [
+        "https://github.com/realDragonium/dwg-verifier",
+        "https://raw.githubusercontent.com/realDragonium/dwg-verifier/main/pyproject.toml"
+      ],
+      "observation": "The project describes a detect-only 0.1.0 checker for AC1024, AC1027, and AC1032. Tier 1 performs ODA-spec-chapter-4-derived container checks, but does not parse objects or verify per-object CRCs, handle-map CRCs, or Header/Classes CRCs. Tier 2 converts through ODA File Converter and then uses ezdxf.recover, reporting its recovery errors/fixes separately. Its reported fixture set comes from LibreDWG's test corpus and its metrics were not independently reproduced here.",
+      "limitations": "The repository page showed no release and no exact source SHA was resolved. The README reports that ODA 27.9 Tier 2 was verified on macOS ARM64; Linux and Windows paths are untested. It documents misses for Preview/RevHistory/FileDepList damage and trailing bytes, and no ODA audit fix count. These statements remain project-reported.",
+      "planDisposition": "Candidate structural detector only at the existing composed checkpoint, conditional on exact source/environment pinning. Do not treat its status as entity semantics, support, or native acceptance. AC1018 is explicitly unsupported by this checker and must stay outside its denominator."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+      ],
+      "observation": "The current NEWS and fuzzing guidance describe separate DWG/DXF decode/encode and malformed-input failure classes, which corroborate the need to keep container checks separate from parser, writer, object-graph, and semantic evidence.",
+      "planDisposition": "Reuse existing local hardening owners and planned composed fuzz/sanitizer checkpoint; no duplicate tests or peer-derived limits."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observation": "The current issue index still lists previously researched codepage, VERTEX, recursive-input, EED-size, nested-block-copy, and ACIS writer failure shapes.",
+      "planDisposition": "All are already mapped to existing owners. No new local reproduction, finding, or duplicate test was added."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-06/PAR-14/PAR-26: preserve route-specific container, parser, writer, and hardening evidence",
+      "PAR-07/S8 and composed output checkpoint: optional exact-pinned structural detector with recovery separated",
+      "Existing ACadSharp issue-to-owner map: no duplicate peer-title tests"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "Continue dependency-ready local implementation; no code path waits for this peer tool.",
+      "At the composed checkpoint only, require exact checker source SHA, Python/lockfile, ODA binary version, and scratch input/output hashes before an optional run.",
+      "Limit any structural run to locally generated AC1024/AC1027/AC1032 files; record AC1018 as unsupported by this tool.",
+      "Report container checks, ODA conversion, and ezdxf recovery errors/fixes separately; never equate T1/T2 status with entity semantics or native acceptance.",
+      "Use only locally generated scratch mutations for the peer's corruption classes; do not import/commit its LibreDWG fixtures or copy reported rates as acceptance criteria.",
+      "After each implementation item, update plan/receipt, run the owning fast selector, report progress after commit, and self-unblock to the next ready local item."
+    ],
+    "supportBoundary": "No checker status, ODA conversion, recovery-parser pass, peer issue, or container check promotes DWG/DXF entity, graph, ACIS, B-rep, FreeCAD, platform, or J-item support."
+  },
+  "limitations": "Primary-source pages and repository documentation were reviewed via web search. No exact dwg-verifier commit was resolved or executed; no peer source, ODA File Converter, native CAD application, or external drawing was run or downloaded. No local code/test/fixture/dependency changed. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+  "validation": {
+    "jsonValidation": "PASS",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 DetailViewStyle and SectionViewStyle DWG CMC retention with scalar-only DXF projection guard",
+  "mode": "generated AC1024/AC1032 DWG object-vector and focused ASCII/Binary DXF fast slice",
+  "scope": [
+    "Retain generic DWG CMC method, flags, reserved index, RGB, and optional color/book names for each DetailViewStyle and SectionViewStyle color slot",
+    "Preserve metadata through copy, assignment, reset, and parse lifecycle",
+    "Refuse lossy typed DXF projection for CMC states not representable by the existing scalar-only class output"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor", "20.1 Common Object Data"],
+      "finding": "The generated parser vectors exercise the generic R2004+ CMC envelope: reserved index, packed method/value, flags, and optional color/book strings. They do not establish class-specific ViewStyle color payload semantics beyond those common fields."
+    },
+    "autodeskDxfSchema": {
+      "finding": "The reviewed Autodesk API material identifies DetailViewStyle and SectionViewStyle color properties but did not establish class-specific DXF truecolor, color-name, or book-name groups. The existing typed adapter projection is therefore kept scalar-only and richer states fail closed."
+    },
+    "localCode": {
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "CMakeLists.txt"
+      ],
+      "finding": "The two DWG parsers normalized CMC color values but discarded method, reserved index, flags, and separate optional strings. The typed DXF overlays serialized scalar fields without a source-metadata loss check."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append six DetailViewStyle and seven SectionViewStyle CMC metadata slots and preserve them through reset, copy, assignment, and R2004+ bounded parsing.",
+      "Clear stale DWG-only metadata when a DXF scalar color group is parsed.",
+      "Preflight all style colors before DXF output; allow only faithful scalar ByLayer, ByBlock, and ACI projections and reject richer, inconsistent, or unsupported CMC state atomically."
+    ],
+    "testFiles": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "focusedSelectors": [
+      "--modeldoc-view-style-cmc",
+      "retainModelDocViewStyleCallbacks ASCII/Binary coverage"
+    ],
+    "focusedCtests": [
+      "libdxfrw_modeldoc_view_style_cmc",
+      "dwg2dxf_modeldoc_view_style_callbacks"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireAndParser": "Runtime-generated in-memory AC1024 and AC1032 object frames exercise C0-C3, named RGB, color/book strings, parser field alignment, and retention across both view-style color-slot sets.",
+    "lifecycle": "Copy construction, assignment, and reset preserve or clear every retained metadata slot as expected.",
+    "dxfProjection": "ASCII and Binary controls reject richer CMC metadata before modifying a sentinel destination; scalar-faithful ByLayer, ByBlock, and ACI fields remain accepted and read back."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "strictBuildResult": "PASS",
+    "focusedCommands": [
+      "ctest --test-dir build-gcc -R '^(libdxfrw_modeldoc_view_style_cmc|dwg2dxf_modeldoc_view_style_callbacks)$' --output-on-failure",
+      "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp dwg2dxf/dx_iface.cpp tests/dwg_object_vectors_tests.cpp tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "focusedResults": [
+      "PASS (2/2; 0.26 sec)",
+      "PASS"
+    ]
+  },
+  "evidenceLimits": [
+    "Generated vectors establish local generic CMC parse/lifecycle behavior only; no independent DWG producer or native application was used.",
+    "No class-specific DXF truecolor/name/book mapping is claimed; richer typed projection remains fail-closed.",
+    "Appended public fields increase DRW_DetailViewStyle and DRW_SectionViewStyle sizes; downstream consumers must rebuild.",
+    "No persistent fixture, full suite, platform qualification, or support promotion was used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Implement PAR-140/7N.4 HATCH and MPOLYGON per-boundary handle retention and symmetric DWG writing using ODA-defined handle roles, then resume the remaining PAR-134 caller audit and exact-source PAR-03/PAR-04 classification."
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Pinned 3D application route, parser lineage, and FreeCAD scope refresh",
+  "mode": "primary-source open-source implementation and consumer-route research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck an exact packaged open-source 3D DWG/DXF consumer route",
+    "Resolve codec/parser lineage and distinguish it from geometry-kernel lineage",
+    "Clarify stock FreeCAD DWG-to-DXF-to-importer 3D limitations",
+    "Screen another declared DXF implementation for legacy scope and writer caveats",
+    "Preserve the reduced per-slice validation cadence and no-external-fixture rule"
+  ],
+  "method": {
+    "kind": "Read project-maintained README, tagged manifest, release metadata, source, documentation, and issue body",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "OpenCADStudio v2026.41 and its manifest are tag-pinned; FreeCAD and current IxMilia documentation are mutable source pages. No runtime behavior or output was independently reproduced. GitHub issue #1411 remains a version-specific public report, not a current-master run."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+        "https://github.com/HakanSeven12/OpenCADStudio/commit/cff240e",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "Release v2026.41; app commit cff240e; tagged Cargo.toml pins opencadcodec revision 8189f83 and opencadkernel revision 71770e1 with feature acis",
+      "observed": "The release identifies a cross-platform downstream CAD consumer with DWG/DXF read-write and ACIS tessellation claims. The codec repository identifies opencadcodec as forked from hakanaktt/acadrust. The kernel is a separately implemented, early B-rep/tessellation route. App-level same-codec save/reopen and rendering are useful consumer observations but do not independently qualify the parser or solid semantics."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable current documentation and source reviewed 2026-10-18",
+      "observed": "The documented stock DWG route is external converter to DXF, followed by a selected DXF importer. Documentation describes stock DXF interoperability as 2D because the embedded ACIS modeler representation is proprietary/unreadable to that route; the DWG guide does not claim stock ACIS-solid import. Converter, intermediate DXF, backend, and resulting FreeCAD objects must therefore remain separate evidence stages."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "revision": "Mutable main README/changelog reviewed 2026-10-18; exact commit not captured",
+      "observed": "README declares DXF read/write from R10 through R2014 except MESH, MLEADER, SURFACE, TABLE, and VIEWPORT. It warns that AutoCAD may not open output for several typed entities including 3DSOLID and notes an R13 compatibility caveat. Build instructions require .NET 8.0. Candidate only for a named legacy DXF comparison; not DWG or 3D-solid writer qualification."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Issue #1411 remains open as observed 2026-10-18; reporter pins LibreDWG 0.14.8593 at 8a1ae764",
+      "observed": "Public issue body gives a locally generated ezdxf AC1032 DXF REGION with a 5,489-byte mesh-derived SAB and reports loss of ACDSDATA through DXF-to-DWG-to-DXF while the entity shell survives. The report is not reproduced in this pass and does not establish current-master behavior or a local defect. Project documentation describes fuzzing routes; fuzz execution is robustness evidence, not semantic proof."
+    },
+    {
+      "project": "netDxf",
+      "urls": [
+        "https://github.com/haplokuon/netDxf"
+      ],
+      "revision": "Repository status and README reviewed 2026-10-18; repository archived 2023-10-11",
+      "observed": "Historical ASCII/Binary DXF comparator for its declared R2000-R2018 scope; README explicitly excludes REGION, SURFACE, and 3DSOLID."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds an exact optional OpenCADStudio v2026.41 application candidate with codec/kernel revisions separated; counts ACadRust and opencadcodec as one parser lineage; scopes stock FreeCAD to the documented converter/DXF/2D consumer route; admits IxMilia only as a trigger-based legacy DXF comparator; preserves LibreDWG #1411 as an exact-build carrier-loss warning. No new independent open-source end-to-end DWG AcDs-to-valid-B-rep semantic oracle was established.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep the slice loop to the touched strict target, focused selector, and owning CTest; do not install peers or run the full suite for each slice.",
+    "Only use OpenCADStudio if the exact release is already available; record app, codec, kernel, platform, input/output hashes, loss report, and fallback separately.",
+    "Treat OpenCADStudio's save_verified or same-codec reopen as internal consistency, not independent reader or native acceptance evidence.",
+    "Keep FreeCAD converter identity, intermediate DXF, selected backend, and resulting objects as distinct stages; stock FreeCAD is not an ACIS/AcDs semantic oracle.",
+    "Use IxMilia only for an exact R10-R2014 DXF question and record its unsupported families and writer caveats.",
+    "Do not download or commit issue/customer drawings; scratch-generated material requires producer/profile identity and an independent expected geometry manifest.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "filesChangedByThisResearchPass": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-pinned-3d-app-parser-lineage-freecad-scope-2026-10-18.json"
+    ],
+    "reason": "The shared worktree contains extensive pre-existing user changes. Only the parity plan and this receipt were changed for the research pass."
+  }
+}

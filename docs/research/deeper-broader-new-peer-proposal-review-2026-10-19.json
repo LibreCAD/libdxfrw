@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-19",
+  "type": "research-only plan update",
+  "scope": "Newly opened LibreDWG and ACadSharp proposals on bounds, tagged dispatch, repeated counts, AcDs record framing, and annotative TEXT context.",
+  "sources": [
+    "https://github.com/LibreDWG/libredwg/pull/1453",
+    "https://github.com/LibreDWG/libredwg/pull/1454",
+    "https://github.com/LibreDWG/libredwg/pull/1456",
+    "https://github.com/LibreDWG/libredwg/pull/1457",
+    "https://github.com/LibreDWG/libredwg/pull/1458",
+    "https://github.com/LibreDWG/libredwg/pull/1459",
+    "https://github.com/LibreDWG/libredwg/pull/1460",
+    "https://github.com/LibreDWG/libredwg/pull/1461",
+    "https://github.com/LibreDWG/libredwg/pull/1462",
+    "https://github.com/ACadSharp/ACadSharp/pull/1302",
+    "https://github.com/ACadSharp/ACadSharp/pull/1308",
+    "https://github.com/ACadSharp/ACadSharp/pull/1311",
+    "https://github.com/ACadSharp/ACadSharp/pull/1312",
+    "https://github.com/ACadSharp/ACadSharp/pull/1316"
+  ],
+  "local_crosschecks": [
+    "src/drw_datastorage.cpp: findAcisBinaryFileMarker uses payload-size-bounded scanning and checked byte access.",
+    "src/drw_datastorage.cpp: per-segment record offsets are sorted/uniqued and record extents use the next greater offset or segment end.",
+    "src/drw_entities.cpp: DRW_Image bounds clipping allocation, checks declared count against retained point count, and requires exactly two rectangle corners.",
+    "tests/dxf_fixture_tests.cpp and tests/hardening_tests.cpp contain existing generated IMAGE/WIPEOUT parser and rollback controls; remaining relevant count-mismatch coverage should be checked before adding tests.",
+    "Local DWG custom-class dispatch uses class definitions and resolved types; no new mismatch defect was established by this review."
+  ],
+  "plan_changes": [
+    "Add a single scheduled source census for residual reachable unchecked count-times-width and offset-span arithmetic, using existing checked helpers.",
+    "Ensure owning repeated-DXF record tests cover late/repeated count changes and transactional no-publication where coverage is missing.",
+    "Track annotative TEXT object-context data as a distinct discovery-only route under existing context-family work; do not conflate it with ATTRIB/ATTDEF or MLEADER contexts.",
+    "Preserve the local IMAGE clipping contract absent an authoritative alternative; keep POINTCLOUD a separate unproven route.",
+    "Use peer proposals as adversarial shapes only, not support evidence, release capability, or proof of local defects."
+  ],
+  "non_changes": {
+    "finding_count": 134,
+    "top_level_subplan_count": 76,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "new_fixture": false,
+    "new_dependency": false,
+    "tests_run": false,
+    "peer_execution": false,
+    "support_claim_promotion": false,
+    "implementation_order_or_validation_cadence_changed": false
+  }
+}

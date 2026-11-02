@@ -1,0 +1,40 @@
+{
+  "id": "par134-field-child-object-id-handle-role-refusal",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "5d7c4b8137b39e00bb2bcf3d0b77f21fff659275c81286a71f6142b186ba99c3",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "child type-64 object-ID handle-stream reference role",
+    "expectedRole": "soft pointer"
+  },
+  "evidence": {
+    "localGap": "Valid child type-64 soft-pointer resolution was positively covered, but there was no byte-exact negative proving that the child value's handle slot rejects a different reference role.",
+    "change": "The generated frame records its handle-stream start bit. A test-local handle walker verifies the parent followed by the child A722 soft-pointer entry, mutates only that decoded entry to hard-pointer, and verifies the parser fails without publishing a complete FIELD or child-value model.",
+    "evidenceCeiling": "Generated local structural/refusal coverage only; it does not qualify producer-authored semantics or a downstream consumer."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_child_object_id_invalid_handle_role$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_field_(oversized_child_value_count|cadvalue_.*|child_cadvalue_types|unsupported_child_cadvalue_buffers|unknown_child_cadvalue_versions|child_object_id_invalid_handle_role)|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (14/14)",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "remaining": [
+    "Keep FIELD format flag 0x02 semantics unqualified absent authoritative or independently traced evidence.",
+    "Continue the next source-backed implementation gap without waiting for external qualification."
+  ],
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 TABLESTYLE duplicate-root refusal and retry",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Add a generated duplicate canonical ACAD_TABLESTYLE NOD-edge negative to the existing typed/raw TABLESTYLE writer route.",
+    "Verify destination preservation and corrected same-adapter retry with strict TABLE-to-TABLESTYLE reference readback."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "The existing ASCII/Binary selector starts from a complete TABLE/TABLESTYLE graph, duplicates the canonical ACAD_TABLESTYLE NOD entry, requires export refusal and exact preservation of a seeded destination, repairs the root graph, retries on the same adapter, then verifies one root and the TABLE-to-style identity after strict readback. Existing production validation rejects the duplicate."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+    "selector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks (ASCII and Binary)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGE reference graph, pixel-size wire ambiguity, and ACIS peer readiness",
+  "mode": "deeper/broader documentation and source research; plan update only",
+  "scope": [
+    "Cross-check PAR-59 IMAGE/IMAGEDEF/IMAGEDEF_REACTOR relationships against current Autodesk DXF tables",
+    "Compare IMAGEDEF pixel-size group-code projections in current independent DXF implementation source",
+    "Refresh image dictionary, clipping-boundary, and U/V consumer risks from current peer reports",
+    "Refresh the ACIS writer and semantic-evidence boundary without promoting peer claims"
+  ],
+  "evidence": [
+    {
+      "source": "Autodesk AutoCAD DXF IMAGE, IMAGEDEF, IMAGEDEF_REACTOR, and common object group-code references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EFE5319F-A71A-4612-9431-42B6C7C3941F.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-46C12333-1EDA-4619-B2C9-D7D2607110C8.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm"
+      ],
+      "observations": [
+        "IMAGE group 340 references IMAGEDEF and 360 references IMAGEDEF_REACTOR.",
+        "IMAGEDEF persistent reactors include the ACAD_IMAGE_DICT pointer and a reactor pointer per image instance; IMAGEDEF_REACTOR group 330 identifies the associated IMAGE.",
+        "The IMAGE reference documents the full-image rectangular clip boundary as two opposite pixel-space corners when unclipped.",
+        "The IMAGEDEF table documents pixel-size values with groups 11 and 12."
+      ],
+      "limits": "The documentation does not by itself validate this repository's emitted graph or resolve the conflict with the independent ezdxf 2D-point model."
+    },
+    {
+      "source": "ezdxf IMAGE/IMAGEDEF documentation and current image.py source",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/image.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfobjects/imagedef.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/image.py"
+      ],
+      "observations": [
+        "Multiple IMAGE entities can share one IMAGEDEF and the referenced image file remains external to DXF.",
+        "The source creates one IMAGEDEF_REACTOR per IMAGE and models pixel_size as a 2D point based at code 11 (11/21 projection).",
+        "The source defines a default full-image boundary and maps boundary coordinates through each IMAGE's U/V vectors for WCS bounds."
+      ],
+      "limits": "Current master is mutable and belongs to one DXF implementation lineage; it is not normative specification evidence or an independent native acceptance result."
+    },
+    {
+      "source": "Local libdxfrw IMAGEDEF parser and writer audit",
+      "paths": [
+        "src/drw_objects.cpp::DRW_ImageDef::parseCode",
+        "src/libdxfrw.cpp::dxfRW::writeObjects"
+      ],
+      "observations": [
+        "parseCode maps group 12 and group 21 to the same vp member; if both appear, later input wins.",
+        "writeObjects currently emits vp as group 21.",
+        "This local path is ambiguous relative to the Autodesk 11/12 table and ezdxf's point-code 11/21 model."
+      ],
+      "limits": "Static source comparison only; no local writer output, peer parser, or native application was executed during this research."
+    },
+    {
+      "source": "ACadSharp image issues/PRs #1124/#1125, #1219, and #1249",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1125",
+        "https://github.com/DomCR/ACadSharp/pull/1219",
+        "https://github.com/DomCR/ACadSharp/pull/1249"
+      ],
+      "observations": [
+        "#1125 is merged and its stated fix changes early return to continue while skipping an ACAD_MATERIAL dictionary.",
+        "#1219 is open and reports empty IMAGE clip boundaries being written as count zero; its contributor reports AutoCAD's whole-image rectangle and an AutoCAD 2027 check.",
+        "#1249 is open and reports that image bounds require the image's U/V vectors and pixel-space boundary rather than adding raw pixel coordinates to insertion."
+      ],
+      "limits": "The two open PRs are not merged/deployed, and their consumer results were not independently reproduced. They are test-design leads only."
+    },
+    {
+      "source": "ACadSharp #1195/#1240, ezdxf ACIS tools guide, and LibreDWG #1411",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observations": [
+        "ACadSharp #1195 reports silent omission of ACIS-bearing entities on its DXF write route; #1240 is open and not a released writer result.",
+        "ezdxf describes its ACIS tools as limited to simple known structures without an ACIS kernel.",
+        "LibreDWG #1411 remains an AcDs/modern SAB preservation lead."
+      ],
+      "limits": "These are distinct source/project routes and do not establish libdxfrw defects or independent arbitrary-solid semantics."
+    }
+  ],
+  "planImpact": {
+    "existingOwner": "PAR-59 / 7P.5b",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "readinessChanges": [
+      "Add an isolated absent/12-only/21-only/both IMAGEDEF pixel-size wire discriminator with ASCII/Binary following-field sentinels before changing emitted tags.",
+      "Expand generated PAR-59 graph assertions to root NOD -> ACAD_IMAGE_DICT -> IMAGEDEF, IMAGE 340/360 edges, IMAGEDEF reactor-list links, and reactor-to-IMAGE back-links.",
+      "Add dictionary sibling-order cases to catch early termination and assert parsed handles instead of literal string presence.",
+      "Use the Autodesk-defined full-image rectangle for an unclipped IMAGE positive control; keep U/V transformed bounds in the optional composed consumer gate.",
+      "Keep open ACadSharp branches and simple ezdxf ACIS authoring explicitly non-promoting."
+    ],
+    "nextAction": "Continue 7P.5b identity planning and transactional graph output; resolve the IMAGEDEF 12-versus-21 wire projection as a separate fast subtask without blocking graph work."
+  },
+  "execution": {
+    "localCodeChanged": false,
+    "testsRun": false,
+    "externalPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadRun": false,
+    "drawingsDownloaded": false,
+    "fixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "repositoryState": {
+    "worktreeWasBroadlyDirty": true,
+    "unrelatedChangesPreserved": true,
+    "receiptAndPlanAreUncommitted": true
+  }
+}

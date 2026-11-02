@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5af",
+  "date": "2026-10-22",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.101.4",
+  "finding": "No-data styles still contain their override-kind BL; initial zero placeholders were not a qualified complete native profile",
+  "implementation": {
+    "field": "m_overrideStyleType",
+    "models": ["DRW_TableCell", "DRW_TableRow", "DRW_TableColumn", "DRW_TableContent"],
+    "defaults": {"cell": 1, "row": 2, "column": 3, "content": 4},
+    "knownKinds": [1, 2, 3, 4, 5],
+    "unknownKindDisposition": "Retained bounded scalar; semantic completeness false; native typed write refused",
+    "nativeEmission": "Retained kind, including known non-default kinds",
+    "dxfEmission": "Default kinds only; non-default kinds refuse to prevent loss",
+    "historicalZeroTagGeneratedProfileSuperseded": true,
+    "publicStructLayoutGrows": true,
+    "downstreamRebuildRequired": true
+  },
+  "validation": {
+    "kindVectors": 28,
+    "knownKindNativeEncodeReadCases": 20,
+    "unknownKindRefusalCases": 8,
+    "asciiBinaryDxfDestinationRefusalCases": 14,
+    "existingPositive2dTableMatrix": "libdxfrw_table_callback_owner_order PASS",
+    "wholeFileNativeObject": "libdxfrw_table_content_dwg_object_roundtrip PASS",
+    "strictBuildAndCompatibility": "PASS; lc3_compat_check rebuilt",
+    "focusedCohort": {
+      "passed": 9,
+      "failed": 0,
+      "seconds": 1.38,
+      "names": [
+        "libdxfrw_table_content_dwg_object_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_table_content_dwg_payload_encoder",
+        "libdxfrw_table_content_cell_style_border_alignment",
+        "libdxfrw_table_content_override_style_types",
+        "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+        "libdxfrw_table_callback_owner_order",
+        "dwg2dxf_table_content_style_reference_census",
+        "dwg2dxf_table_base_style_id_dxf_refusal"
+      ]
+    },
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeOrIndependentConsumersRun": false
+  },
+  "externalDrawingsCopiedOrCommitted": 0,
+  "persistentGeneratedFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "worktree": "uncommitted and unstaged; pre-existing overlapping edits preserved"
+}

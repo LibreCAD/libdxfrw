@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-140 HATCH/MPOLYGON boundary-reference version matrix",
+  "mode": "local generated fast implementation slice",
+  "planOwner": "PAR-140 / 7N.4",
+  "scope": [
+    "Extend existing associative boundary-reference controls across DWG version boundaries",
+    "Retain generated-only validation and the evidence boundary between reference transport and associative semantics"
+  ],
+  "versions": ["AC1018", "AC1021", "AC1024", "AC1027"],
+  "entities": ["HATCH", "MPOLYGON"],
+  "generatedControl": {
+    "perPathReferenceCounts": [2, 0, 1],
+    "paths": "Each nonempty path points to an actual generated LINE handle; the final LINE sentinel verifies following-record continuity.",
+    "routes": [
+      "DWG write and public DWG readback",
+      "DWG to ASCII DXF and public DXF readback",
+      "DWG to Binary DXF and public DXF readback",
+      "ASCII/Binary DXF import to version-matched DWG write and DWG readback"
+    ],
+    "identity": "Re-encoded references are compared with newly assigned target handles, not assumed equal to source numbers."
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-boundary-references",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_hatch_dwg_boundary_references$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp",
+      "result": "PASS"
+    }
+  },
+  "evidenceCeiling": "The generated vectors establish local ordered per-path reference transport, target-handle remapping, and cursor/sentinel behavior for the listed versions and entity types. They do not establish geometric boundary agreement, arbitrary-source target existence, native associative edit/recompute, or general HATCH/MPOLYGON support.",
+  "externalFindings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repositoryState": "Shared worktree remains broadly dirty and Git metadata is read-only; this slice is uncommitted."
+}

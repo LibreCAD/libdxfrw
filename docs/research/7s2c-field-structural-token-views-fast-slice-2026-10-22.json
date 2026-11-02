@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c FIELD structural-token views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Compare fixed FIELD grammar sentinels through the current raw string-token view instead of materializing temporary UTF-8 strings.",
+    "routes": [
+      "dxfRW::processField group 7 ACFD_FIELD_VALUE",
+      "dxfRW::processField group 304 ACVALUE_END"
+    ],
+    "lifetime": "Each string_view is consumed synchronously before the next readRec() call invalidates the current token.",
+    "behavior": "ASCII and Binary valid FIELD markers remain accepted; 32-KiB unexpected markers are refused before typed FIELD publication.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "compatibility_build": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "compatibility_build_result": "PASS",
+    "coverage": "The generated FIELD parser control covers the valid ASCII/Binary object and rejects 32-KiB unknown replacements at each structural marker in both encodings before typed publication.",
+    "diff_check": "PASS (src/libdxfrw.cpp, tests/dwg2dxf_adapter_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the fixed structural-token audit. Validate the version-gated legacy GEODATA group-4 CIVIC3D_DATA_END raw/decoded contract, add generated positive/negative coverage, and proceed without waiting on external qualification."
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source renderer and CAD-app route screen",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen open-source CAD application and rendering routes beyond codec libraries",
+    "Trace each route to its underlying DWG/DXF codec lineage",
+    "Separate 2D projection and ACIS tessellation claims from document and solid semantics",
+    "Reconcile peer consumer claims with existing PAR-49 paper-space and PAR-07/S8 gates"
+  ],
+  "sources": [
+    {
+      "project": "dwg2png",
+      "references": [
+        "https://github.com/diskd-ai/dwg2png"
+      ],
+      "observation": "The README identifies an ACadRust parse adapter followed by a separate renderer/indexer. It reports 11 real AC1032 drawings and 23 pages, but does not bind the corpus or outputs to hashes. It lists multiple unrendered families, including ACIS solids, and uses fit points/control polygon rather than De Boor evaluation for splines.",
+      "planDisposition": "Optional AC1032 2D projection diagnostic only, deduplicated under ACadRust parser lineage. Any future use must pin source/build/input and report per-layout/page, per-entity rendered/unsupported/failed/unmatched disposition. No writer, spline-semantic, or ACIS claim follows."
+    },
+    {
+      "project": "ProCad",
+      "references": [
+        "https://github.com/wieslawsoltes/ProCad"
+      ],
+      "observation": "The README describes .NET 10, an ACadSharp-backed IO layer, a distinct render-scene pipeline, Trace CLI, and test projects; it advertises ACIS SAT/SAB rendering but supplies no exact release/source-to-binary binding or per-body validity evidence in the reviewed overview.",
+      "planDisposition": "Possible application-level projection observer under ACadSharp lineage, not an extra codec vote or ACIS semantic oracle. Require exact build/input profile, parse and render dispositions, and independent geometry expectations before use."
+    },
+    {
+      "project": "OpenCADStudio",
+      "references": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases"
+      ],
+      "observation": "The current README advertises native DWG/DXF read/write targets from R14 through 2018, ACIS entity tessellation, and desktop releases for Windows, Linux, and Apple Silicon macOS. Release notes mention codec/kernel updates, but this pass did not bind an exact binary to source/lock revisions or per-entity results. The already-reviewed file-codec lineage is ACadRust.",
+      "planDisposition": "Refresh application route declaration only. Deduplicate codec evidence under ACadRust; keep rendering/kernel observations distinct and optional. Exact artifact, embedded codec/kernel revisions, platform, source/output identity, and loss diagnostics are prerequisites."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 distinguishes app rendering/tessellation from typed parsing, carrier preservation, and ACIS solid validity",
+      "PAR-07/S8 groups application observations under the actual underlying codec lineage",
+      "PAR-49 retains the generated AC1015 legacy chain as the fast owner while marking full table/LAYOUT decode and producer interoperability unqualified"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Repository READMEs and release notes are mutable project-authored claims. No package, source archive, drawing, renderer, desktop application, or geometry kernel was downloaded or executed. The dwg2png corpus identities and ProCad per-body acceptance are not established by the reviewed pages. No new local implementation behavior is inferred."
+}

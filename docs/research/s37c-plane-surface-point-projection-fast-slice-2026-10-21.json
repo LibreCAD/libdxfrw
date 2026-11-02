@@ -1,0 +1,55 @@
+{
+  "title": "S3.7c ACIS plane-surface point projection",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "Decoded plane surface fields; parser-fed SAB 21800 rooted projection also exercised",
+    "public_api": "drw_projectPointToAcisPlaneSurface orthogonally projects a finite point to the infinite plane defined by the decoded origin and normal.",
+    "normal_policy": "The stored normal is unchanged; a temporary unit normal is used for the geometric operation.",
+    "arithmetic_policy": "Scaled-coordinate and product/quotient arithmetic avoid avoidable intermediate overflow while refusing unrepresentable final coordinates.",
+    "refusal_policy": "Unsupported/missing plane, zero/non-finite normal, non-finite point, or unrepresentable projected coordinate returns false without changing projectedPoint.",
+    "non_claims": [
+      "face UV domain or trim clipping",
+      "body transform or source-unit application",
+      "general analytic or NURBS surface evaluation",
+      "B-rep validity or native consumer qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_sab21800_plane_projection": "PASS",
+    "oblique_plane_projection": "PASS",
+    "overflowing_correction_with_representable_projection": "PASS",
+    "unrepresentable_output_refuses_atomically": "PASS",
+    "wrong_surface_and_non_finite_point_refuse_atomically": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.24 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

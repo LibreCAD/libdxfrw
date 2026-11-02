@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "New open-source 2D DWG route and viewer-claim screen",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expand the open-source DWG/DXF peer screen to newly surfaced direct-DWG rendering and CAD-viewer routes",
+    "Separate current product claims from historical status and roadmap documents",
+    "Audit declared codec and comparison-tool lineage before admitting any route as independent evidence",
+    "Check whether the new routes add an actionable local issue or an ACIS/B-rep semantic oracle"
+  ],
+  "sources": [
+    {
+      "project": "hhcme/ft_model",
+      "references": [
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/hhcme/ft_model/blob/main/PROJECT_STATUS.md",
+        "https://github.com/hhcme/ft_model/blob/main/docs/V1.0.0-PLAN.md"
+      ],
+      "observation": "The README describes a C++20/MIT direct DWG parser and 2D renderer with an R2000-R2018 version-family list. PROJECT_STATUS identifies itself as historical and superseded by V1.0.0-PLAN; it reports old metrics, names LibreDWG DWG-to-DXF and ezdxf entity extraction as differential references, and cites LibreDWG implementation details in parser decisions. The reviewed scope does not document ACIS 3DSOLID/REGION/BODY semantics, DWG AcDs owner association, or B-rep validation."
+    },
+    {
+      "project": "kjarada/OpenCAD",
+      "references": [
+        "https://github.com/kjarada/OpenCAD"
+      ],
+      "observation": "The current README labels DWG experimental but says its current DWG route is guidance to export to DXF. The documented converter uses the npm dxf parser and lists an explicit DXF subset including 3DFACE and SOLID; it does not document a native DWG parser or ACIS 3DSOLID semantic route."
+    },
+    {
+      "project": "Existing peer-lineage reconciliation",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 existing peer and consumer evidence ledger",
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/kernalix7/CADKernel",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observation": "Existing entries already bound dwg-rs as an optional pre-alpha container/entity candidate, CADKernel as not implementing SAT/SAB in its detailed table, and Open CAD Studio to the ACadRust codec lineage. The newly surfaced applications do not provide an independent ACIS/B-rep oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: admit ft_model only as an optional 2D projection candidate after source/build/input identity and comparison lineage are bound",
+      "PAR-07/S8: exclude OpenCAD VS Code's current export-to-DXF guidance route from native-DWG and ACIS semantic evidence",
+      "3D evidence classification: preserve the distinction between DXF SOLID and modeler 3DSOLID/REGION/BODY carriers"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "validation": {
+      "json": "PASS: jq empty",
+      "plan_diff_check": "PASS: git diff --check scoped to the plan and this receipt",
+      "code_validation": "NOT_RUN: research-only change"
+    }
+  }
+}

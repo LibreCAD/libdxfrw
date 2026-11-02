@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-deeper-broader-dimstyle-subclass-producer-evidence-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Reassess 7BQ.5 DIMSTYLE table-header group71/group340 evidence and implementation readiness without promoting DXF compatibility claims.",
+  "method": {
+    "kind": "Read-only Autodesk documentation, open-source peer report/schema review, and local source/test inspection",
+    "testsRun": false,
+    "implementationChanged": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://images.autodesk.com/adsk/files/autocad_2012_pdf_dxf-reference_enu.pdf",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDimStyleTable.html",
+      "https://github.com/DomCR/ACadSharp/issues/1253",
+      "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7BQ.5 and prior DIMSTYLE census/research sections",
+      "src/libdxfrw.cpp: dxfRW::writeTables and dxfRW::writeDimstyle",
+      "tests/dxf_fixture_tests.cpp: generated DIMSTYLE subclass wire census",
+      "docs/research/dimstyle-subclass-wire-census-fast-slice-2026-10-17.json"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk published DXF contract",
+      "observed": "The reviewed Autodesk DXF reference specifies common symbol-table group70 capacity, DIMSTYLE record group105 identity, and record-level group71/group340 meanings; its TABLES/DIMSTYLE descriptions do not specify an AcDbDimStyleTable subclass group71/group340 sequence. Autodesk lists group340 as a hard pointer.",
+      "doesNotEstablish": [
+        "requiredness or exact serialization order of table-level DIMSTYLE subclass fields",
+        "that the reported sequence applies to releases other than the observed AC1024 profile"
+      ]
+    },
+    {
+      "topic": "Reported AutoCAD producer output in ACadSharp issue #1253",
+      "observed": "The issue author reports AutoCAD DXFOUT 2010/AC1024 output containing AcDbDimStyleTable followed by group71=4 and four group340 handles, and reports three post-fix files opened in AutoCAD 2027.",
+      "doesNotEstablish": [
+        "raw source/output bytes, file hash, or independent local reproduction",
+        "a normative format rule or behavior in other DXF target versions",
+        "acceptance of current libdxfrw output"
+      ]
+    },
+    {
+      "topic": "Local writer implementation boundary",
+      "observed": "writeTables currently emits literal table-subclass group71=1 before calling the DIMSTYLE callback; writeDimstyle allocates group105 record handles while emitting rows. The generated local census records this writer behavior and separates it from record-level fields.",
+      "doesNotEstablish": [
+        "producer validity of current or candidate output",
+        "that staging can be introduced without verifying writer-sink and rollback behavior"
+      ]
+    },
+    {
+      "topic": "Implementation readiness",
+      "observed": "A bounded AC1024 candidate can stage DIMSTYLE rows once, capture emitted group105 handles, then emit the reported group71/group340 sequence before replaying rows in original order.",
+      "doesNotEstablish": [
+        "strict AutoCAD/ODA acceptance pending a composed external check",
+        "promotion of DXF support claims"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "implementationReadinessChanged": true,
+    "readiness": "AC1024_CANDIDATE_READY_EXTERNAL_ACCEPTANCE_PENDING",
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-schema3-notapplicable-source-version-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Close a schema-3 observation-envelope invariant gap: notApplicable observations must not claim a DWG source version.",
+  "change": {
+    "file": "tools/run_qualified_differential_v2.py",
+    "invariant": "An observation envelope with availability=notApplicable has a reason, null totals, and null sourceVersion.",
+    "behavior": "_validate_observation_envelope now rejects any non-null sourceVersion under notApplicable. Existing unavailable observations may still carry a known version; notRun observations remain required to have null sourceVersion.",
+    "selfTest": "The schema-3 DXF result self-test mutates both inputRead and outputReadback notApplicable envelopes to claim AC1024; both mutations are rejected."
+  },
+  "validation": {
+    "pythonCompile": {
+      "command": "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+      "result": "PASS"
+    },
+    "focusedRunnerSelfTest": {
+      "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullTestSuite": "NOT_RUN",
+    "externalPeersOrNativeCad": "NOT_RUN"
+  },
+  "impact": {
+    "parserOrWriterBehaviorChanged": false,
+    "adapterSchemaVersionChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "qualificationOrSupportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingBroadChanges": true,
+    "gitMetadataReadOnly": true,
+    "stagedOrCommitted": false
+  }
+}

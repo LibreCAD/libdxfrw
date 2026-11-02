@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADER annotation-context CMC RGB and block-content DWG output",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain the embedded text, background-fill, and block-content CMC RGB values",
+    "Encode the ODA-defined text and block branches of the embedded annotation context",
+    "Verify exact CMC positions, block transform alignment, and handle roles with generated controls"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.48 MLEADER", "20.4.86 MLeaderAnnotContext"],
+      "finding": "§20.4.86 places CMC fields for text color, background fill color, and block color in conditional context branches. The block branch contains three 3BD vectors, rotation, CMC color, then 16 transformation doubles; its AcDbBlockTableRecord handle is a soft pointer. §2.11 defines the R2004+ CMC reserved BS, method-packed BL, and RC optional-name flags."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "finding": "The parser previously retained only scalar context colors, and the DWG context encoder rejected block content. The model now retains RGB companions; the encoder emits the text and block alternatives, including the block transform, and writes the block-table record reference as a soft pointer. The parser now rejects a block-context reference with a non-soft-pointer handle code.",
+      "compatibility": "Three appended DRW_MLeaderAnnotContext members change the public context and containing MLEADER class sizes; downstream consumers must rebuild. No virtual method or DRW_Interface callback changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Text, background, and block color positions cover C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB (including RGB zero). Independent wire walks verify CMC ordering and the block transform boundary; parser checks verify colors, text/style or block/soft-pointer handles, transform values, and following-handle alignment. Negative controls cover out-of-range RGB, scalar/RGB mismatch, invalid absent sentinel, inactive-branch RGB, and simultaneous DWG text/block branch flags. Copy, assignment, and reset controls cover the new companions.",
+      "limit": "Locally generated vectors are not producer-authored samples. This slice does not qualify native block rendering, DXF flag legality or truecolor mapping, optional CMC names/books, standalone context-data objects, or arbitrary MLEADER semantics."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append textColorRgb, bgFillColorRgb, and blockColorRgb with -1 absent sentinels.",
+      "Capture C2 RGB during bounded annotation-context text, background-fill, and block-color reads.",
+      "Emit C2 when RGB is present while retaining C0/C1/C3 indexed output.",
+      "Encode the ODA conditional text or block context branch, including the 16-value block transform.",
+      "Write and require the block-table-record context reference as a soft pointer.",
+      "Refuse invalid CMC state, RGB in inactive branches, and simultaneous DWG context branches before output."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestReused": "libdxfrw_mleader_line_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (7/7)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "DXF truecolor and optional CMC color/book name semantics remain unaudited for these context fields.",
+    "The separate DXF inactive-branch payload/loss guard remains open under PAR-20; DWG branch constraints do not define DXF legality.",
+    "Standalone context-data object serialization and complete owner-graph replay remain separate work.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

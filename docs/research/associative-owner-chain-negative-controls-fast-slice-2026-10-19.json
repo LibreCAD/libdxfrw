@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Associative owner-chain unrooted negative controls",
+  "mode": "Generated local ASCII/Binary DXF fast slice",
+  "scope": [
+    "Add negative reachability controls for missing dictionary membership",
+    "Add a negative control for an unrecognized intermediate owner type",
+    "Add an owner-cycle negative control",
+    "Verify complete capture/scans, zero root/qualification, and following-record delivery"
+  ],
+  "controls": [
+    {
+      "case": "missing-dictionary-membership",
+      "encodings": ["ASCII DXF", "Binary DXF"],
+      "expected": "Capture and owner-chain scan complete; no root chain or qualified associative record; following DICTIONARYVAR callback retained."
+    },
+    {
+      "case": "unknown-intermediate-owner",
+      "encodings": ["ASCII DXF", "Binary DXF"],
+      "expected": "Capture and owner-chain scan complete; associative action owner resolves to an unrecognized intermediate typed object and does not reach NOD; following DICTIONARYVAR callback retained."
+    },
+    {
+      "case": "owner-cycle",
+      "encodings": ["ASCII DXF", "Binary DXF"],
+      "expected": "Capture and owner-chain scan complete; cyclic ownership does not root or qualify the record; following DICTIONARYVAR callback retained."
+    }
+  ],
+  "assessment": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testRegistrationsChanged": false,
+    "persistentFixturesAdded": 0,
+    "externalFilesDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes local negative controls for bounded owner-chain root reachability only. Class-specific association grammar, opaque reference closure, source-to-output handle remapping, semantic completeness, and same-profile replay remain open."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "elapsedSeconds": 0.35
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitLimitation": ".git is read-only in the active workspace and the worktree contains overlapping user changes; no staging or commit was attempted.",
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "292d82c9afa880a43fca71bf24ddebd577ded2c32abdf1ff230b02ed3da6ed18",
+      "tests/dwg2dxf_adapter_tests.cpp": "9dad74146b421de9e9ee130e87368faa9107e56018d52ab1b13dc8502d89838a"
+    },
+    "planSha256": "292d82c9afa880a43fca71bf24ddebd577ded2c32abdf1ff230b02ed3da6ed18",
+    "limitations": "The controls exercise the current bounded typed owner inventory with generated ASCII/Binary input. They do not validate associative record semantics, undocumented class-specific references, or output replay. Scratch controls are deleted by the test and no fixture is persisted."
+  }
+}

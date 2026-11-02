@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-dxf-spline-component-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source DXF ordering review and generated ASCII/Binary regression",
+  "scope": [
+    "DXF SPLINE control-point and fit-point component order",
+    "Count/cap preservation and following-entity framing",
+    "Focused fast-test and LibreCAD_3 compatibility validation"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2023 SPLINE entity and 2024 entity-code guidance",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "pointGroups": "Control points use repeated 10/20/30 components; fit points use repeated 11/21/31 components.",
+        "ordering": "General entity-code guidance says not to rely on the displayed code order; same-code occurrence order still defines point sequence."
+      },
+      "limitation": "The schema/order review is not evidence of curve rendering or complete 3D semantic support."
+    }
+  ],
+  "localAudit": {
+    "entity": "SPLINE",
+    "path": "src/drw_entities.cpp: DRW_Spline::parseCode",
+    "reproducedFailure": "The old parser opened a control or fit point only when its X group arrived, so earlier Y/Z components were lost or could not be associated.",
+    "correction": "Independent per-axis occurrence cursors assign 10/20/30 and 11/21/31 components by ordinal; existing declared-count and item-cap checks remain in place, and absent Y/Z retain zero defaults.",
+    "privateStorage": "Reuse two pre-existing parser-private pointer slots for cursors with compile-time size/alignment checks; no public member, callback, or virtual was added.",
+    "generatedCoverage": [
+      "Generated ASCII and Binary DXF; no persistent fixture",
+      "Control-point and fit-point-only SPLINE records with distinct asymmetric values",
+      "Permute coordinate component groups while preserving same-code occurrence order",
+      "Assert exact point components and following LINE sentinel"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_hardening_tests --dxf-spline-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    }
+  ],
+  "planDelta": {
+    "existingOwnerOnly": true,
+    "newFindingOrSubplan": false,
+    "nextLocalProbe": "MESH component order (now implemented in the companion receipt); then LWPOLYLINE, HATCH/LEADER, and nested MLEADER only after schema-checked generated probes.",
+    "selfUnblock": "Do not wait for optional peers or native consumers; record bounded negative probes and continue through locally testable candidates."
+  },
+  "limits": {
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredStatus": "All six remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

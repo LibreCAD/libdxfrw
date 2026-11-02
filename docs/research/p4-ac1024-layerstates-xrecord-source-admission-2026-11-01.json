@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-01",
+  "scope": "Evidence for one physical AC1024 LayerStates XRECORD and its source-bounded dictionary/control/dependency graph. A narrowly selected producer-compatibility route emits its group-370 Int16 field. The selected source-projected graph now passes production ASCII and Binary DXF output plus fresh libdxfrw readback, including its nested SCALE dependency and the complete ACAD_SCALELIST closure. This does not qualify native LayerStates semantics or whole-source conversion.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "version": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixture_committed": false,
+    "xrecord": {
+      "handle": "0x249",
+      "owner": "0x1B8",
+      "dictionary_key": "ACAD_VIEWS_RenderView",
+      "observed_group_370": -3,
+      "typed_as": "Int16"
+    }
+  },
+  "independent_producer_evidence": {
+    "tool": "LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executable_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O DXF -o /private/tmp/libdxfrw-layerstates-libre-dxf.dxf tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "0 SUCCESS",
+    "output_sha256": "006331812c41b01f6f93361fc709f2f2a303f91e576efa27474a137cf76d7de4",
+    "observed": "LibreDWG emits XRECORD 0x249, owner 0x1B8, with group 370 value -3.",
+    "scope_limit": "This corroborates a producer output profile only. It does not establish Autodesk-standard XRECORD semantics or native LayerStates restoration. A subsequent LibreDWG JSON reread attempt returned ERROR 0x800 and is not claimed as reader acceptance."
+  },
+  "format_references": {
+    "autodesk_xrecord": {
+      "title": "Autodesk AutoCAD DXF Reference, XRECORD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "rule": "XRECORD application values use group codes 1-369 except 5 and 105; group 370 is outside this documented application domain."
+    },
+    "autodesk_xrecord_group_table": {
+      "title": "Autodesk ObjectARX Developer Guide, DXF Group Codes for Xrecords",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+      "rule": "The XRECORD-specific table ends at 360-369 and does not define group 370 application data."
+    },
+    "autodesk_general_group_table": {
+      "title": "Autodesk DXF Group Codes in Numerical Order Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "rule": "Groups 370-379 are signed 16-bit lineweight enum values; custom non-entity objects may use the full range. This general table does not override the narrower XRECORD-specific rule."
+    }
+  },
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "dfa8d1508e28b849eccd75a5cb650645328d2936f17d7072702224ad0bb10dbf",
+      "dwg2dxf/dx_iface.h": "c7035066cb3291a67e063cbb6db57f8db74f98602650df05a5f125a340d3b067",
+      "dwg2dxf/dx_standard_output.h": "4557ca99557f8c899691ac07de82288c240d0465de569a24a966df20e4426061",
+      "src/drw_objects.cpp": "72bdff8b98b8225e928dbae78517dfa4ad3e54b2403eecea9207df67b37d039f",
+      "src/intern/dxfcode.h": "8f22438002322e4e0cb2335043682cb4f9d3fe7534934dffeef84ce59fdb0510",
+      "src/libdxfrw.cpp": "b373576ad301cb1edca08c47becc0e6c10f445609b094f7d65616a68a9dbc04c",
+      "src/libdxfrw.h": "a8517e0ba929999b1b9edadd1381d42ee4fc8f7ccee740d85dc5ea9c6377c59d",
+      "tests/dwg2dxf_adapter_tests.cpp": "d4d820d7791dc550b93d9e5fce3f8fea49006531addcd25f6f526469181f7ea3"
+    },
+    "rules": [
+      "The dedicated group-370 predicate is separate from the standard XRECORD application-code predicate and from the existing DWG 1070/1071 compatibility route.",
+      "The adapter admits this field only for the source-bound selected LayerStates XRECORD from an AC1024 DWG, with target AC1024, unchanged captured source identity, INTEGER type, and signed Int16 range.",
+      "Ordinary XRECORD writing remains fail-closed for group 370. The explicit compatibility writer is not a general XRECORD API path; the adapter invokes it only for the selected source-qualified record.",
+      "DWG parsing sign-normalizes group 370 from raw 16-bit storage so source 0xFFFD is represented as -3, matching the independent LibreDWG producer output."
+    ]
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+        "result": "PASS",
+        "executable_sha256": "dc6393471e0bc17c179c4ec9f55e5c9608e729f94b05018b8a67e45c7cba6fed"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j4",
+        "result": "PASS",
+        "executable_sha256": "85e349d019ea0087dbffe276927b6072cf76deda89c1d1ab2a7ec9289e2141e4"
+      }
+    ],
+    "focused_case": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS. Confirms the physical AC1024 source identity and group-370 producer profile; ordinary ASCII/Binary XRECORD writes refuse group 370 and preserve destination and caller fields; compatibility output rejects an AC1021 target and an out-of-Int16 value; corrected retry and fresh readback preserve exact fields, ordering and handle references. Production fileExport then emits the selected source-projected LayerStates graph in ASCII and Binary, and fresh fileImport confirms the LAYER_CONTROL edge, three LayerStates roots, companion dictionaries, XRECORD extension dictionary, nested XRECORD, exact LAYER/LTYPE references, unique ACAD_SCALELIST root/owner, and all 32 SCALE records and fields. A nested SCALE reference mutation to 0xDEADBEEF is rejected with an existing destination sentinel and caller-owned mutation preserved; restoring the reference and retrying through the same writer succeeds.",
+      "coverage_limit": "The production graph check uses a test-only projection of this physical DWG source. It retains the selected LayerStates graph, required LAYER/LTYPE tables and the complete ACAD_SCALELIST dependency while excluding unrelated named-object roots, including the known invalid SUN owner outlier. This is not whole-source conversion or native LayerStates restoration/evaluation evidence."
+    },
+    "diff_check": "PASS after code, plan and receipt edits; JSON parse PASS."
+  },
+  "qualification_delta": {
+    "source_evidence": "Physical source identity, owner, dictionary key and typed Int16 value are captured.",
+    "producer_profile": "LibreDWG independently emits this same AC1024 group-370 value in DXF.",
+    "record_output": "Narrow source-qualified record-only compatibility route; ASCII and Binary output/readback passed.",
+    "full_graph_output_and_readback": "PASS for the selected physical AC1024 source-projected graph through production fileExport in ASCII and Binary and fresh libdxfrw fileImport readback. This proves the listed typed identities, ownership, references and SCALE fields only within that projection; it does not qualify whole-source conversion.",
+    "consumer_semantics": "OPEN; no native LayerStates restoration/evaluation evidence. Local libdxfrw roundtrip is transport/readback evidence only.",
+    "support_claim": "Not promoted."
+  },
+  "limitations": [
+    "The physical DWG is an existing local investigation input and was not added to the repository.",
+    "The producer-specific group-370 exception does not widen the generic XRECORD domain and cannot be generalized to other sources or codes.",
+    "The production LayerStates graph result is a test-only source projection; unrelated named-object roots, including the invalid SUN owner outlier, remain excluded and fail-closed.",
+    "Fresh libdxfrw readback does not establish native LayerStates restoration/evaluation semantics or promote a support claim.",
+    "No whole-source conversion or independent native LayerStates acceptance is claimed."
+  ]
+}

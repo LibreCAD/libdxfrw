@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-implementation-slice-receipt-v1",
+  "slice": "f.3b.1 visual-style import provenance",
+  "date": "2026-10-15",
+  "baseline_commit": "298c303",
+  "source_sha256": {
+    "dwg2dxf/dx_data.h": "9bc0819457fce8bb06a1a222cc1739bb8bd9ca1c05638f08d2579e02a7a0fbf7",
+    "dwg2dxf/dx_iface.cpp": "5da255926b9f9202a7d5b449d0a8e98f9d007578cf9556bef07f26a4220a0a9a",
+    "tests/dwg2dxf_adapter_tests.cpp": "cb848dbd1503e18b582e7e72c85c0a54bc3c6505bf5a7d4396d649bce8c3c59f",
+    "tests/CMakeLists.txt": "b968b75690b6eb0d5f4dfc1eed5b0f8db2b9604672a5436033f81a23ec7e7184",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1bf518f9950537628f793f312044d37567af5fe5343b0ddbeaae3bab8a568bb4",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "b3746e9aa2581a29cc6f83754a1e46a797671c38077b0e8b26a6ea1db24fc871"
+  },
+  "contract": {
+    "bound_record_ranges": [
+      "typed VISUALSTYLE collection",
+      "raw DXF VISUALSTYLE companion collection"
+    ],
+    "receipt_fields": [
+      "per-container import generation",
+      "source format",
+      "accepted source version",
+      "read outcome",
+      "typed/raw begin and end indices"
+    ],
+    "admission_refusals": [
+      "authored or unknown provenance",
+      "reused or mixed generation",
+      "failed import or unknown source version",
+      "missing DXF raw companion",
+      "DWG source context containing DXF raw carriers"
+    ],
+    "does_not_claim": [
+      "decoded VISUALSTYLE property-body completeness",
+      "source-profile serializer admission",
+      "typed VISUALSTYLE output qualification",
+      "full named-object graph closure",
+      "consumer interoperability or support promotion"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^(libdxfrw_visual_style_import_evidence|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "result": "PASS",
+      "tests_passed": 2,
+      "tests_total": 2,
+      "elapsed_seconds": 0.44
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "fixture_policy": {
+    "new_committed_dwg_dxf_or_sab_fixtures": false,
+    "generated_controls": "Created at runtime under the build test directory from locally authored data."
+  },
+  "scope_boundary": "f.3b.1 closes only VisualStyle import-origin/range provenance. Other named-resource origin ranges and f.3c source-profile payload/serializer admission remain open before f.4b output dispatch."
+}

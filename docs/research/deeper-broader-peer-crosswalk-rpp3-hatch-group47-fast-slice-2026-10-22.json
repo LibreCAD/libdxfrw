@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "date": "2026-10-22",
+  "title": "RPP-3 HATCH derived-path group-47 writer correction",
+  "mode": "Generated local implementation fast slice following primary-source research",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "0ff516ed05b0a9f2a76c0e598eab0d8ed5f8f5d6f378f87f61b7e6297e8f37d5",
+  "relatedResearchReceipt": "docs/research/deeper-broader-peer-crosswalk-implementation-readiness-2026-10-22.json",
+  "method": {
+    "localSourceAndTestsChanged": [
+      "src/libdxfrw.cpp: emit HATCH group 47 for non-null derived boundary paths, including pixelSize zero",
+      "tests/hatch_reference_tests.cpp: generated ASCII/Binary zero-pixel matrix and patterned associative wire-order expectation",
+      "tests/CMakeLists.txt: focused generated dxf_hatch_derived_pixel_size_presence CTest"
+    ],
+    "externalSourceSignal": "ACadSharp issue #1253 follow-up identifies group 47 for derived HATCH paths, including zero pixel size; used as regression lead, not sole normative evidence.",
+    "externalSources": [
+      "https://github.com/DomCR/ACadSharp/issues/1253"
+    ],
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": true,
+    "localBuildRun": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "limitations": "Local generated ASCII/Binary writer and parser controls do not constitute native AutoCAD/FreeCAD qualification or promote broad HATCH/DXF support claims."
+  },
+  "implementation": {
+    "subplan": "RPP-3",
+    "status": "IMPLEMENTED_AND_FOCUSED_TESTED",
+    "wireRule": "Write group 47 before group 98 when pixelSize is nonzero or any non-null HATCH path has derived-boundary bit 4 set; preserve absent group 47 for zero-size non-derived paths.",
+    "regressionCoverage": [
+      "ASCII and Binary: type-3, zero pixel size omits group 47",
+      "ASCII and Binary: type-7, zero pixel size emits group 47 with value zero",
+      "ASCII and Binary: nonzero pixel size emits group 47 for derived and non-derived paths",
+      "patterned associative multi-path HATCH checks group-47/group-98 order, references, weighted spline values, and following LINE alignment"
+    ],
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 2",
+    "tests": "PASS: ctest --test-dir build-gcc -R '^(dxf_hatch_derived_pixel_size_presence|dwg_hatch_reference_graph)$' --output-on-failure (2/2)",
+    "diffCheck": "PASS: git diff --check on changed implementation, test, CMake, and plan files",
+    "fullSuite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "nativeFreeCADLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsSemantics": "NOT_RUN",
+    "planUpdated": true
+  },
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "disposition": "RPP-3_IMPLEMENTED; focused generated ASCII/Binary regressions pass; no persistent fixture or support claim changed; worktree remains uncommitted and unstaged."
+}

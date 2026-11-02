@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-geodata-definition-view-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.39",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / GEODATA_DEFINITION_COPY_SCOPED",
+  "objective": "Avoid materializing and chunk-copying an unchanged GEODATA coordinate-system definition while preserving existing newline normalization and text policies.",
+  "implementation": {
+    "changed_files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/geodata-definition-view-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "GEODATA uses a view of the source coordinate-system definition when no LF normalization is needed.",
+      "A temporary normalized string is created only when LF must be replaced with the existing caret-J spelling.",
+      "The internal UTF-8 writer accepts string_view, and 255-byte GEODATA continuation slices are passed synchronously without substring allocations.",
+      "Strict-lossless encoding, legacy codepage conversion, record-safety rejection, and wire chunk order remain unchanged."
+    ],
+    "compatibility": "Internal writer implementation only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight-view",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated AC1021/AC1032 ASCII/Binary GEODATA v2 controls assert exact 255/255/10 group-303/group-301 chunks and a following-record sentinel.",
+    "Both compatible and strict-lossless policies are covered; LF input confirms the existing caret-J normalization and source immutability."
+  ],
+  "limits": [
+    "Copy avoidance is established by the source path and exact generated wire controls; allocator counts, peak RSS, and throughput were not measured.",
+    "Legacy codepage conversion and strict-lossless encoded storage remain materialized by design.",
+    "No full suite, peer runtime, native CAD application, external drawing, or sanitizer/fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue source-auditing one bounded writer/projection or carrier materialization; keep external qualification at the composed checkpoint.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "kind": "local-implementation-fast-slice",
+  "planSection": "common DIMENSION cross-format flag controls",
+  "repositoryHead": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "change": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "sha256": "43289f2cfd8d806cdb502d62a06dffef29868a23e107c85a576aba62b3303597",
+    "details": [
+      "Generated ASCII and binary DIMENSION frames independently toggle group-70 bit 128 while retaining subtype and bit 32.",
+      "Low-level wire checks assert group-70 values before parseback for standard linear, aligned, angular, and ordinate dimensions.",
+      "Typed parseback retains the expected flags and group-11 OCS midpoint; a following LINE sentinel checks record continuity.",
+      "Generated output DXFs receive the same wire checks before their readback assertions.",
+      "A source-generated common DWG dimension-base control independently reads the emitted Flags 1 RC for AC1018, AC1021, and AC1024, checking DXF bit-128 inversion and bit-32 preservation across linear, aligned, and ordinate subtype values."
+    ]
+  },
+  "planFile": {
+    "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "bdcf1504c35a1674dad105f5911c4bf6165f1d6b0738a07dea7907601e2f125a"
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dimension_frames_(ascii|binary)_cli$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "notEstablished": [
+    "The DWG control reads and asserts the emitted common-base Flags 1 field; it is not a complete DWG reader round-trip or native CAD qualification.",
+    "No production parser/writer behavior or broad DWG/DXF support claim changed.",
+    "No external drawing fixture, dependency, or CTest registration was added."
+  ],
+  "externalOnlyItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

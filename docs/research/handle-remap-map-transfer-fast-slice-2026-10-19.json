@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Handle-remap and material-root vector ownership transfers",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid copying the completed source-to-emitted handle map at the dwg2dxf-to-dxfRW setup boundary.",
+    "Avoid copying the no-longer-needed material-root entry vector when seeding the final root dictionary list.",
+    "Preserve existing const-reference caller behavior and root dictionary handle resolution."
+  ],
+  "sourceChange": {
+    "files": [
+      "src/libdxfrw.h",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "before": "fileExport built a local std::map for fixed-collision remaps, copied it into dxfRW with setHandleRemap(const map&), then used the local map for later root-dictionary formatting. It also copied materialRootEntries into rootEntries even though the source vector was not used afterward.",
+    "after": "An rvalue-reference overload moves the completed map into dxfRW. The four later root-dictionary lookups call the existing dxfRW::remapHandle resolver; the const-reference overload is unchanged. materialRootEntries is moved into rootEntries before final remapping and augmentation.",
+    "effect": "Eliminates one deep copy of the completed mapping and one copy of the material-root string pairs while retaining the same collision allocation, mapping entries, root ordering, and output values."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_dxf_writer_matrix|dwg2dxf_modeler_dxf_move_dispatch|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_block_owners|dwg2dxf_block_owners_ascii_cli|dwg2dxf_block_owners_binary_cli|libdxfrw_ltype_mirror_authority|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_dxf_class_typed_capture_limits|libdxfrw_image_definition_plan_failure_retry)$' --output-on-failure",
+        "result": "passed",
+        "count": "11/11",
+        "elapsedSeconds": 1.78
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage",
+        "result": "passed",
+        "coverage": "Generated AC1027 multi-record AcDs projection in ASCII and Binary DXF."
+      }
+    ],
+    "diffCheck": "scoped git diff --check passed for src/libdxfrw.h, dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Avoids redundant copies of the handle map and material-root vector while keeping caller-facing copy semantics and using the codec's existing mapping resolver for the remaining pre-write consumers."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict dwg2dxf, DXF fixture-test, adapter-test, and local-roundtrip target builds",
+      "Focused BLOCK_RECORD owner, dictionary, linetype, class, raw-section, modeler, and IMAGEDEF regressions",
+      "Generated AC1027 multi-record AcDs projection in ASCII/Binary DXF"
+    ],
+    "limitations": "No RSS or allocator instrumentation was run. The map and root entries remain necessary as codec-owned write state. The change does not qualify all handle-reference roles or semantic graph closure."
+  }
+}

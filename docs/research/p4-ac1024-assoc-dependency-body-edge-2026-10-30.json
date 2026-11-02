@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 associative dependency body edge retention",
+  "mode": "P4 source-bound reader field slice",
+  "baselineCommit": "dca48436",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Retain the explicit dep_body handle already consumed by the ACDBASSOCDEPENDENCY DWG parser.",
+    "Keep dep_body distinct from the owning handle and the legacy read/write dependency/node fields.",
+    "Preserve the new field across reset, copy construction, and assignment."
+  ],
+  "evidence": {
+    "source": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation input; untracked and not committed.",
+      "peerDecode": {
+        "path": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "reader": "LibreDWG 0.14",
+        "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "projection": "17 ACDBASSOCDEPENDENCY records expose dep_body handles; all 17 match a distinct ASSOCDIMDEPENDENCYBODY handle whose ownerhandle names that dependency.",
+        "query": "jq over .OBJECTS selecting ASSOCDEPENDENCY and ASSOCDIMDEPENDENCYBODY; compare dep_body[-1] to body.handle[2] and body.ownerhandle[-1] to dependency.handle[2].",
+        "result": {
+          "dependencies": 17,
+          "dimensionDependencyBodies": 17,
+          "matchedExplicitEdges": 17
+        }
+      },
+      "peerDxf": {
+        "path": "/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+        "sha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+        "use": "Corroborates transport/reference roles only; does not qualify this library's output."
+      }
+    },
+    "parserSource": {
+      "path": "src/drw_objects.cpp",
+      "method": "DRW_AssociativeObject::parseDwg / readDependencyFields",
+      "observation": "The parser already decoded dependencyBodyHandle as the fourth handle reference but discarded it. The new field is assigned from that decoded value without changing the wire cursor or reinterpreting the existing node mapping."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added DRW_AssociativeObject::m_dependencyBodyHandle and wired reset, copy, assignment, and ACDBASSOCDEPENDENCY parsing to preserve dep_body explicitly.",
+    "behaviorChanges": [
+      "Consumers of the typed associative callback can distinguish the dependency's dep_body target from parentHandle, dep_on, readdep, and node.",
+      "The previous m_writeDependencyHandle mapping to nodeHandle is unchanged."
+    ],
+    "outputRouteAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg_object_vectors_tests -j 4",
+      "jq explicit dep_body/body-owner join projection over the LibreDWG JSON",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS; rebuilt the touched library and focused executable with configured -Werror flags.",
+      "peerGraphProjection": "PASS: all 17 explicit dep_body targets matched body handles and reciprocal common owners.",
+      "runtimeReaderExecution": "NOT_RUN in this slice; the build does not verify the decoded runtime values.",
+      "focusedTests": "NOT_RUN.",
+      "fullSuite": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The adapter still declines to retain DWG-origin associative shells.",
+    "No body/dependency/group/network graph closure check or DXF writer route was added.",
+    "The local DWG sample is not a committed fixture and no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "The ACDBASSOCDEPENDENCY dep_body handle is now preserved as a distinct typed field.",
+    "remainingP4Scope": "Retain and index required DWG associative callbacks, validate exact body/dependency/group/network targets and ownership, then implement complete DXF output or preserve strict refusal.",
+    "nextImplementationPacket": "Add bounded DWG associative callback retention and source-bound graph validation that consumes dep_body, common owner handles, and the action's owning-network reference without enabling output.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "6befc3a15321351fc99e060663dcd5a476185dea47cd35426203249e768314a7",
+    "src/drw_objects.h": "acbb092cd23a99972b5ae4b2f5f9afbef831779f684cde0e7e80914f68b6428c",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e09c4188be1a30efe095a4b10244863edb63cae5b45ee7a84d611a4316b915dc",
+    "build/libdxfrw_dwg_object_vectors_tests": "ee20cf278a99097585e87b4d6e46374d0505b46ad39a01762239c4023f692b96"
+  },
+  "commitCreated": true,
+  "worktree": "Commit only the listed implementation, plan, and receipt paths; unrelated untracked inputs/build outputs are excluded."
+}

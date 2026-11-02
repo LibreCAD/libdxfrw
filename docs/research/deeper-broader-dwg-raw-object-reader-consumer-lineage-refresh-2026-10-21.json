@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "DWG raw-object reader and consumer-lineage refresh",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Research-only source review; no peer checkout, executable, sample, dependency, or test was run.",
+  "sources": [
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "url": "https://github.com/DrunkOnJava/dwg-rs",
+      "sourcePin": "Mutable main README as viewed 2026-10-21; no exact commit SHA resolved, so not execution-admitted.",
+      "licenseClaim": "README/Cargo.toml declare Apache-2.0; source provenance is project-author-declared, not independently audited here.",
+      "sourceClaims": [
+        "Object-stream walker is marked shipped across eight releases and all_objects() returns raw objects with type codes, handles, and raw payload bytes.",
+        "Per-entity field decoders remain alpha; the README reports six real-corpus VIEWPORT records failing exact data-stream boundary checks (266 of 1125 bits decoded).",
+        "Entity graph resolution is partial; DXF parser is not implemented; external CAD acceptance for its DWG writer is not automated."
+      ],
+      "disposition": "Potential independent raw-structure cross-check only, after exact commit pin and an API admission probe confirms that relevant output versions and handle-tail data are exposed. Do not use typed VIEWPORT decode as acceptance, and do not infer semantic or writer support."
+    },
+    {
+      "project": "iyulab/uncad and undxf",
+      "url": "https://github.com/iyulab/uncad",
+      "sourcePin": "Mutable main README as viewed 2026-10-21; no exact crate/source checksums resolved.",
+      "sourceClaims": [
+        "Read-only project; DWG route uses LibreDWG through Rust FFI.",
+        "DXF route uses the pure-Rust undxf crate for ASCII and binary DXF, including R2007 and later."
+      ],
+      "disposition": "DWG evidence is correlated with LibreDWG. undxf remains a possible separately pinned DXF-only comparator, not a writer, DWG, or 3D/ACIS witness."
+    },
+    {
+      "project": "HakanSeven12/OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio",
+      "sourcePin": "Mutable main README as viewed 2026-10-21; app release and acadrust source must both be pinned before execution.",
+      "sourceClaims": [
+        "README advertises native DWG/DXF read/write with versioned targets R14 through 2018, a desktop app for Windows/Linux/Apple Silicon macOS, and audit/save_verified automation that reopens output and compares a semantic manifest.",
+        "Application source imports acadrust for document/entity types; it is therefore not an independent parser lineage from ACadRust."
+      ],
+      "disposition": "Optional application-level consumer smoke test only. Record exact app release and codec commit and keep the result separate from independent parser, semantic, and FreeCAD qualification."
+    },
+    {
+      "project": "mlightcad/cad-viewer",
+      "url": "https://github.com/mlightcad/cad-viewer",
+      "sourcePin": "Mutable main README as viewed 2026-10-21; no runtime used.",
+      "sourceClaims": [
+        "DXF loading uses its built-in MIT parser.",
+        "Open-source DWG loading is opt-in through a LibreDWG converter; a separate proprietary parser is also offered."
+      ],
+      "disposition": "DXF-only projection candidate when pinned; the LibreDWG route is correlated, and the proprietary route requires license/API admission before use. Neither establishes DWG or ACIS semantic support by default."
+    }
+  ],
+  "planChanges": [
+    "Refine PAR-144's composed checkpoint with a one-time dwg-rs raw-object admission gate and explicit non-use of its currently failing typed VIEWPORT decoder.",
+    "Keep app-level OpenCADStudio results separate from ACadRust-independent parser evidence.",
+    "Preserve undxf as a version-pinned DXF-only optional comparator; deduplicate uncad's DWG route under LibreDWG."
+  ],
+  "status": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": false
+  },
+  "nextAction": "Continue dependency-ready local implementation. At the existing composed checkpoint only, pin dwg-rs and probe raw object-walker capability against generated AC1015/AC1024 outputs; if the raw handle-tail cannot be inspected, mark that route NOT_QUALIFIED and continue with a local bounded structural walk."
+}

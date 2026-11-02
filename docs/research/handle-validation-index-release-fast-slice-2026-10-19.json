@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Handle-validation index release fast slice",
+  "mode": "Implementation slice; focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Identify temporary handle-validation indexes whose final use occurs before serialization.",
+    "Release only adapter-owned indexes after the corresponding handle reservation phase.",
+    "Keep codec handle reservations and remap state intact."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      {
+        "index": "proxyHandles",
+        "lastUse": "Completeness/uniqueness checks and reservation of raw proxy, evaluation graph, and AcDs handles",
+        "releasePoint": "After the final AcDs-material handle reservation and before handle-remap construction"
+      },
+      {
+        "index": "typedEntityHandles",
+        "lastUse": "Reject raw-entity handle collisions with typed entities",
+        "releasePoint": "After raw entities in model space and all blocks have been validated and reserved"
+      },
+      {
+        "index": "rawEntityHandles",
+        "lastUse": "Reject duplicate raw-entity handles while reserving them",
+        "releasePoint": "After raw entities in model space and all blocks have been validated and reserved"
+      }
+    ],
+    "mechanism": "Swap each no-longer-read unordered_set with an empty set to release its bucket storage before remaining writer setup/serialization.",
+    "unchanged": [
+      "Source entity/object validation and diagnostics",
+      "Handle reservation set retained by dxfRW",
+      "Completed source-to-output handle remap",
+      "Serialized DXF records and output ordering"
+    ],
+    "performanceClaim": "No measured RSS or throughput gain is claimed; only the lifetime boundary and explicit bucket release are established."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|libdxfrw_block_owners|dwg2dxf_raw_dxf_entity_capture_limits|dwg2dxf_proxy_object_capture_limits|libdxfrw_image_definition_plan_failure_retry)$' --output-on-failure",
+      "passed": 5,
+      "failed": 0,
+      "totalTimeSeconds": 4.59
+    },
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "jsonValidation": "jq empty passed"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

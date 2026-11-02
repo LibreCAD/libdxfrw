@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "7S.2c raw entity handle membership fast slice",
+  "mode": "generated local fast slice",
+  "scope": [
+    "Continue the 7S.2c writer-preflight scratch census at dx_iface::planLeaderAnnotationHandles",
+    "Replace raw-entity handle occurrence counts with membership-only storage where downstream logic only tests presence",
+    "Add a generated negative control for a LEADER annotation handle colliding with duplicate raw-entity records"
+  ],
+  "method": {
+    "kind": "Local source audit and generated ASCII/Binary regression through the existing focused selector",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "persistentTestDataAdded": false,
+    "limitations": "The change removes a redundant occurrence-count payload; it does not establish a general allocator/RSS bound or qualify external LEADER interoperability. Git metadata is read-only in this workspace, so the implementation and plan update remain uncommitted."
+  },
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Changed rawEntityHandles from unordered_map<handle,count> to unordered_set<handle>; every valid raw handle is inserted once, and the only consumer remains a collision-presence query.",
+      "Extended --leader-annotation-reference with a generated case containing one typed MTEXT target and two raw LINE events sharing that handle; export must refuse while preserving the existing destination in ASCII and Binary modes."
+    ],
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2"
+    ],
+    "focusedSelector": "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "owningCtestResult": "1/1 passed in 3.92 seconds",
+    "scopedDiffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/raw-entity-handle-membership-fast-slice-2026-10-19.json",
+    "receiptJsonCheck": "jq empty docs/research/raw-entity-handle-membership-fast-slice-2026-10-19.json",
+    "scopedDiffCheckPassed": true,
+    "receiptJsonPassed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  }
+}

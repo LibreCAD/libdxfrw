@@ -14,6 +14,20 @@
 #ifndef DRW_BASE_H
 #define DRW_BASE_H
 
+// X11's object-like None macro must not alter public enum definitions.
+// Save it locally; callers retain their exact macro after this header.
+// With that macro active, use NoOperation/NoPhase/NoCause/Disabled instead of
+// the legacy None enumerators. The aliases preserve their types and values.
+#if defined(None)
+# if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
+#  pragma push_macro("None")
+#  undef None
+#  define LIBDXFRW_DRW_BASE_RESTORE_NONE
+# else
+#  error "libdxfrw requires push_macro/pop_macro support with a caller None macro"
+# endif
+#endif
+
 #define DRW_VERSION "2.0.0"
 
 #include <array>
@@ -22,6 +36,7 @@
 #include <string>
 #include <cmath>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -65,6 +80,7 @@ typedef long double ddouble80;
 /// include the implementation-only DWG utility header.
 enum class DwgDataStorageWriterOperation : std::uint8_t {
     None,
+    NoOperation = None, //!< Macro-safe spelling when X11 defines None.
     WriteMLeaderStyle,
     WriteTableStyle,
     WriteMaterial,
@@ -120,6 +136,23 @@ enum class DwgDataStorageWriterOperation : std::uint8_t {
 #define ARAD 57.29577951308232
 
 namespace DRW {
+
+/// Input interpretation only; never changes DXF export encoding. Recovery is
+/// an explicit choice for known pre-R2007 default/ANSI_1252 files mislabeled
+/// with UTF-8 text, not automatic detection or mixed-encoding repair.
+enum class DxfTextEncoding {
+    Declared,
+    LegacyLibreCadUtf8
+};
+
+// Output policy only. Compatible retains historical writer byte behavior;
+// RequireLossless validates semantic UTF8, target scalar transport and quoting.
+enum class DxfTextWritePolicy { Compatible, RequireLossless };
+
+// Input declaration selection only. Compatible preserves historical aliases;
+// ExactNamed uses an available exact mapping, never a similar byte codepage.
+// It is independent of UTF8 recovery, output policy and DXF profile admission.
+enum class DxfCodePagePolicy { Compatible, ExactNamed };
 
 //! Version numbers for the DXF Format.
 enum Version {
@@ -199,6 +232,7 @@ BAD_CODE_PARSED,      /*!< error in any parseCodes() method. */
 //! Which public operation produced an operation diagnostic.
 enum class OperationKind : std::uint8_t {
     None,
+    NoOperation = None,
     Read,
     Write
 };
@@ -208,6 +242,7 @@ enum class OperationKind : std::uint8_t {
 //! where its first failure occurred.
 enum class OperationPhase : std::uint8_t {
     None,
+    NoPhase = None,
     Argument,
     Open,
     Metadata,
@@ -234,6 +269,7 @@ enum class OperationPhase : std::uint8_t {
 //! Structured cause for the first failure in one public operation.
 enum class OperationCause : std::uint8_t {
     None,
+    NoCause = None,
     InvalidArgument,
     UnsupportedVersion,
     CallbackException,
@@ -250,7 +286,7 @@ enum class OperationCause : std::uint8_t {
     InternalFailure
 };
 
-//! One bounded secondary failure recorded while cleaning up an operation.
+//! One bounded secondary advisory or failure (including cleanup failures).
 struct OperationDiagnosticEntry {
     OperationPhase phase {OperationPhase::None};
     OperationCause cause {OperationCause::None};
@@ -282,8 +318,120 @@ struct OperationDiagnostic {
     bool failed() const noexcept { return cause != OperationCause::None; }
 };
 
+// Observed source-text events, not an exhaustive mapping/support certificate.
+// Counters below count completed semantic decode calls (not unique records or
+// characters). Several issues can describe the same call.
+enum class DxfTextIssue : std::uint8_t {
+    UnspecifiedCodePage,
+    CompatibilityCodePage,
+    UnavailableCodePage,
+    UnknownCodePage,
+    ReappliedCodePage,
+    InvalidUtf8,
+    UndefinedByteSequence,
+    ReplacedSource,
+    DiscardedSource,
+    MalformedEscape,
+    UnrepresentedEscape,
+    InvalidUnicodeOutput,
+    MalformedUtf16,
+    // DXF field interpretation had no accepted source revision at decode time.
+    UnspecifiedSourceVersion,
+    // Unsupported legacy Unicode interpretation; modern metadata stays inert.
+    UnsupportedEncodingProfile,
+    Count
+};
+
+constexpr std::uint32_t dxfTextIssueMask(DxfTextIssue issue) noexcept {
+    return issue < DxfTextIssue::Count
+        ? std::uint32_t{1} << static_cast<unsigned>(issue) : 0u;
+}
+
+// Effective primary DXF input transport/decoder, not the last HEADER label or
+// a producer/support certificate. ASCII includes represented CIF/MIF; decoder
+// issues still report malformed/unrepresented escapes independently.
+enum class DxfTextSourceProfile : std::uint8_t {
+    NoProfile,
+    AsciiOrEscapes,
+    ModernUtf8,
+    RecoveredLegacyUtf8,
+    Windows874, Windows932, Windows936, Windows949, Windows950,
+    Windows1250, Windows1251, Windows1252, Windows1253, Windows1254,
+    Windows1255, Windows1256, Windows1257, Windows1258,
+    Iso8859_4,
+    NonModernUtf8,
+    LegacyUtf16,
+    UnavailableNamed,
+    Unidentified,
+    // Append new public profile identities to keep existing numeric values stable.
+    Iso8859_1,
+    MacRoman,
+    Iso8859_2,
+    Iso8859_3,
+    Iso8859_5,
+    Iso8859_6,
+    Iso8859_7,
+    Iso8859_8,
+    Iso8859_9,
+    Iso8859_10,
+    Iso8859_11,
+    Iso8859_13,
+    Iso8859_14,
+    Iso8859_15,
+    Count
+};
+
+constexpr std::uint64_t dxfTextSourceProfileMask(DxfTextSourceProfile profile) noexcept {
+    return profile < DxfTextSourceProfile::Count
+        ? std::uint64_t{1} << static_cast<unsigned>(profile) : 0u;
+}
+static_assert(static_cast<unsigned>(DxfTextSourceProfile::Count) < 64u,
+              "DXF source profiles must fit the fixed mask");
+
+struct DxfTextReadObservations {
+    static constexpr std::size_t IssueCount =
+        static_cast<std::size_t>(DxfTextIssue::Count);
+    std::uint64_t semanticDecodeCalls {0};
+    std::uint64_t nonAsciiDecodeCalls {0};
+    std::uint64_t legacyByteDecodeCalls {0};
+    std::uint64_t recoveryDecodeCalls {0};
+    std::uint64_t issueDecodeCalls {0};
+    std::array<std::uint64_t, IssueCount> issueCalls {};
+    std::uint32_t issueMask {0};
+    std::uint32_t firstIssueMask {0};
+    int firstGroupCode {0}; // zero when original field context is unavailable
+    std::uint64_t firstRecord {0}; // one-based physical record, when known
+    // Bytes consumed through that physical value/delimiter, not the offending
+    // code-unit's offset or the beginning of its record. Binary includes sentinel.
+    std::uint64_t firstValueEndOffset {0};
+    bool hasFirstRecord {false};
+    bool hasFirstValueEndOffset {false};
+    bool counterSaturated {false};
+    // Appended so older aggregate-initialization prefixes keep their order.
+    DxfCodePagePolicy codePagePolicy {DxfCodePagePolicy::Compatible};
+    std::uint64_t exactNamedDecodeCalls {0};
+    std::uint64_t unavailableNamedDecodeCalls {0};
+    // One profile per completed semantic call; these counters partition calls,
+    // not unique records/characters. Other observation counters still overlap.
+    static constexpr std::size_t SourceProfileCount =
+        static_cast<std::size_t>(DxfTextSourceProfile::Count);
+    std::array<std::uint64_t, SourceProfileCount> sourceProfileCalls {};
+    std::uint64_t sourceProfileMask {0};
+
+    bool hasIssues() const noexcept { return issueMask != 0u; }
+    std::uint64_t issueCount(DxfTextIssue issue) const noexcept {
+        const auto index = static_cast<std::size_t>(issue);
+        return index < issueCalls.size() ? issueCalls[index] : 0u;
+    }
+    std::uint64_t profileCount(DxfTextSourceProfile profile) const noexcept {
+        const auto index = static_cast<std::size_t>(profile);
+        return index < sourceProfileCalls.size() ? sourceProfileCalls[index] : 0u;
+    }
+};
+
 enum class DebugLevel {
     None,
+    Disabled = None,
     Debug
 };
 
@@ -291,6 +439,11 @@ enum class DebugLevel {
  * Interface for debug printers.
  *
  * The base class is silent and ignores all debugging.
+ * Debug settings are process-global, not per reader/writer. Custom printers
+ * can receive overlapping calls and must synchronize their own mutable state.
+ * Calls run without the debug service's state lock and may reenter its setters;
+ * callback exceptions propagate to the caller as before. This narrow debug
+ * contract does not make reader/writer instances generally thread-safe.
  */
 class DebugPrinter {
 public:
@@ -309,7 +462,13 @@ public:
 /**
  * Sets a custom debug printer to use when outputting debug messages.
  *
- * Ownership of `printer` is transferred.
+ * Ownership of `printer` is transferred; nullptr restores the built-in printer.
+ * Replacement is synchronized. An active call retains the old printer until
+ * it returns, so destruction may occur on that calling thread and may reenter
+ * the service. The built-in printer writes individually serialized fragments
+ * using classic-locale formatting without changing std::cerr formatting state;
+ * a multi-call trace is not one atomic message. Concurrent external std::cerr
+ * reconfiguration and shared active codec/interface use are not covered.
  */
 void setCustomDebugPrinter( DebugPrinter* printer );
 
@@ -445,8 +604,9 @@ struct DwgCompoundEntityFrameReceipt {
     DwgObjectFrameReceipt frame;
 };
 
-/// Ordered evidence for one successfully emitted POLYLINE/VERTEX/SEQEND
-/// compound. It is published only after every frame exists.
+/// Ordered evidence for one successfully emitted compound entity frame
+/// sequence (for example POLYLINE/VERTEX/SEQEND or
+/// INSERT/ATTRIB/SEQEND). It is published only after every frame exists.
 struct DwgCompoundEntityWriteReceipt {
     bool valid {false};
     std::uint32_t parentHandle {0};
@@ -525,6 +685,8 @@ using DRW_OperationPhase = DRW::OperationPhase;
 using DRW_OperationCause = DRW::OperationCause;
 using DRW_OperationDiagnosticEntry = DRW::OperationDiagnosticEntry;
 using DRW_OperationDiagnostic = DRW::OperationDiagnostic;
+using DRW_DxfTextIssue = DRW::DxfTextIssue;
+using DRW_DxfTextReadObservations = DRW::DxfTextReadObservations;
 
 //! Class to handle 3D coordinate point
 /*!
@@ -561,6 +723,19 @@ public:
     virtual bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) = 0;
 };
 
+//! DWG CMC source metadata retained beside an integer-valued header variable.
+//! This does not imply a corresponding DXF HEADER color-group mapping.
+struct DRW_DwgCmColor {
+    std::uint8_t method {0};
+    std::uint8_t flags {0};
+    std::uint16_t index {0};
+    std::int32_t rgb24 {-1};
+    bool hasRgbColor {false};
+    std::string colorName;
+    std::string bookName;
+    DRW::Version sourceVersion {DRW::UNKNOWNV};
+};
+
 //! Class to handle vertex
 /*!
 *  Class to handle vertex for lwpolyline entity
@@ -586,6 +761,8 @@ double x;                 /*!< x coordinate, code 10 */
 *  Class to handle header vars
 *  @author Rallaz
 */
+namespace dxfEntitiesAuth { class VariantAccess; }
+
 class DRW_Variant {
 public:
     enum TYPE {
@@ -609,15 +786,15 @@ public:
 
     DRW_Variant(int c, double d): sdata(std::string()), vdata(), bdata(), content(d), vType(DOUBLE), vCode(c) {}
 
-    DRW_Variant(int c, UTF8STRING s): sdata(s), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c) {}
+    DRW_Variant(int c, UTF8STRING s): sdata(std::move(s)), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c) {}
 
-    DRW_Variant(int c, UTF8STRING s, bool isLayerRef): sdata(s), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c), sIsLayerRef(isLayerRef) {}
+    DRW_Variant(int c, UTF8STRING s, bool isLayerRef): sdata(std::move(s)), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c), sIsLayerRef(isLayerRef) {}
 
     DRW_Variant(int c, DRW_Coord crd): sdata(std::string()), vdata(crd), bdata(), content(&vdata), vType(COORD), vCode(c) {}
 
     DRW_Variant(int c, std::vector<std::uint8_t> b): sdata(std::string()), vdata(), bdata(std::move(b)), content(&bdata), vType(BINARY), vCode(c) {}
 
-    DRW_Variant(const DRW_Variant& d): sdata(d.sdata), vdata(d.vdata), bdata(d.bdata), content(d.content), vType(d.vType), vCode(d.vCode), sIsLayerRef(d.sIsLayerRef), hasDwgRawLayerReference(d.hasDwgRawLayerReference), dwgRawLayerReference(d.dwgRawLayerReference), dwgRawLayerReferenceText(d.dwgRawLayerReferenceText), dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion) {
+    DRW_Variant(const DRW_Variant& d): sdata(d.sdata), vdata(d.vdata), bdata(d.bdata), content(d.content), vType(d.vType), vCode(d.vCode), sIsLayerRef(d.sIsLayerRef), hasDwgRawLayerReference(d.hasDwgRawLayerReference), dwgRawLayerReference(d.dwgRawLayerReference), dwgRawLayerReferenceText(d.dwgRawLayerReferenceText), dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion), dwgCmColor(d.dwgCmColor) {
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -640,6 +817,7 @@ public:
         dwgRawLayerReference = d.dwgRawLayerReference;
         dwgRawLayerReferenceText = d.dwgRawLayerReferenceText;
         dwgRawLayerReferenceVersion = d.dwgRawLayerReferenceVersion;
+        dwgCmColor = d.dwgCmColor;
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -660,7 +838,8 @@ public:
         , hasDwgRawLayerReference(d.hasDwgRawLayerReference)
         , dwgRawLayerReference(d.dwgRawLayerReference)
         , dwgRawLayerReferenceText(std::move(d.dwgRawLayerReferenceText))
-        , dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion) {
+        , dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion)
+        , dwgCmColor(std::move(d.dwgCmColor)) {
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -683,6 +862,7 @@ public:
         dwgRawLayerReference = d.dwgRawLayerReference;
         dwgRawLayerReferenceText = std::move(d.dwgRawLayerReferenceText);
         dwgRawLayerReferenceVersion = d.dwgRawLayerReferenceVersion;
+        dwgCmColor = std::move(d.dwgCmColor);
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -695,12 +875,25 @@ public:
     ~DRW_Variant() {
     }
 
-    void addString(int c, UTF8STRING s) {clearDwgRawLayerReference(); vType = STRING; sdata = s; content.s = &sdata; vCode=c; sIsLayerRef=false;}
-    void addInt(int c, int i) {clearDwgRawLayerReference(); vType = INTEGER; content.i = i; vCode=c;}
-    void addInt64(int c, std::int64_t i) {clearDwgRawLayerReference(); vType = INTEGER64; content.i64 = i; vCode=c;}
-    void addDouble(int c, double d) {clearDwgRawLayerReference(); vType = DOUBLE; content.d = d; vCode=c;}
-    void addCoord(int c, DRW_Coord v) {clearDwgRawLayerReference(); vType = COORD; vdata = v; content.v = &vdata; vCode=c;}
-    void addBinary(int c, std::vector<std::uint8_t> b) {clearDwgRawLayerReference(); vType = BINARY; bdata = std::move(b); content.b = &bdata; vCode=c;}
+    void addString(int c, UTF8STRING s) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = STRING; sdata = std::move(s); content.s = &sdata; vCode=c; sIsLayerRef=false;}
+    void appendString(int c, UTF8STRING s) {
+        if (vType == STRING && vCode == c) {
+            // Appending keeps accumulated text in one owner instead of
+            // rebuilding/copying the whole value for each source chunk.
+            sdata.append(s);
+            clearDwgRawLayerReference();
+            clearDwgCmColor();
+            content.s = &sdata;
+            sIsLayerRef = false;
+            return;
+        }
+        addString(c, std::move(s));
+    }
+    void addInt(int c, int i) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = INTEGER; content.i = i; vCode=c;}
+    void addInt64(int c, std::int64_t i) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = INTEGER64; content.i64 = i; vCode=c;}
+    void addDouble(int c, double d) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = DOUBLE; content.d = d; vCode=c;}
+    void addCoord(int c, DRW_Coord v) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = COORD; vdata = v; content.v = &vdata; vCode=c;}
+    void addBinary(int c, std::vector<std::uint8_t> b) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = BINARY; bdata = std::move(b); content.b = &bdata; vCode=c;}
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
@@ -722,6 +915,53 @@ public:
     std::uint64_t rawDwgLayerReference() const noexcept {
         return dwgRawLayerReference;
     }
+    struct ActiveDwgLayerReference {
+        std::uint64_t reference;
+        DRW::Version sourceVersion;
+    };
+    /// Return source provenance only while the original layer spelling and
+    /// variant identity are intact. Edited XDATA must not replay an unresolved
+    /// handle from the source drawing.
+    std::optional<ActiveDwgLayerReference>
+    activeDwgLayerReference() const noexcept {
+        if (!hasDwgRawLayerReference || vType != STRING || vCode != 1003 ||
+            content.s != &sdata || sdata != dwgRawLayerReferenceText)
+            return std::nullopt;
+        return ActiveDwgLayerReference{dwgRawLayerReference,
+                                       dwgRawLayerReferenceVersion};
+    }
+    void setDwgCmColor(DRW_DwgCmColor color) {
+        dwgCmColor = std::make_shared<const DRW_DwgCmColor>(std::move(color));
+    }
+    const DRW_DwgCmColor* dwgCmColorValue() const noexcept {
+        return dwgCmColor.get();
+    }
+    void clearDwgCmColor() noexcept { dwgCmColor.reset(); }
+    // Visible payload copied by this variant, including dormant string/binary
+    // owners and private source spelling. Not allocator-capacity accounting.
+    // Shared immutable CMC payload is conservatively charged per owner.
+    bool estimateRetainedPayloadBytes(std::size_t limit,
+                                      std::size_t& bytes) const noexcept {
+        std::size_t total = 0u;
+        const auto add = [&total, limit](std::size_t count) {
+            if (count > limit - total)
+                return false;
+            total += count;
+            return true;
+        };
+        const auto text = [&add](const std::string& value) {
+            return add(value.size()) && add(1u);
+        };
+        if (!text(sdata) || !text(dwgRawLayerReferenceText)
+            || !add(bdata.size()))
+            return false;
+        if (dwgCmColor
+            && (!add(sizeof(DRW_DwgCmColor) + 2u * sizeof(void*))
+                || !text(dwgCmColor->colorName) || !text(dwgCmColor->bookName)))
+            return false;
+        bytes = total;
+        return true;
+    }
     enum TYPE type() const { return vType;}
     int code() const { return vCode;}       /*!< returns dxf code of this value*/
     bool isLayerRef() const { return sIsLayerRef && vType == STRING; }
@@ -733,6 +973,7 @@ public:
     const std::vector<std::uint8_t>* binary() const { return &bdata; }
 
 private:
+    friend class dxfEntitiesAuth::VariantAccess;
     std::string sdata;
     DRW_Coord vdata;
     std::vector<std::uint8_t> bdata;
@@ -763,6 +1004,7 @@ private:
     std::uint64_t dwgRawLayerReference{0};
     UTF8STRING dwgRawLayerReferenceText;
     DRW::Version dwgRawLayerReferenceVersion{DRW::UNKNOWNV};
+    std::shared_ptr<const DRW_DwgCmColor> dwgCmColor;
 
     void clearDwgRawLayerReference() noexcept {
         hasDwgRawLayerReference = false;
@@ -965,5 +1207,10 @@ public:
         return widthDefault;
     }
 };
+
+#ifdef LIBDXFRW_DRW_BASE_RESTORE_NONE
+# pragma pop_macro("None")
+# undef LIBDXFRW_DRW_BASE_RESTORE_NONE
+#endif
 
 #endif

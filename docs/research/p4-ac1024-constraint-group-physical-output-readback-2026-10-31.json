@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-constraint-group-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical constraint-group output and 399-node readback",
+  "status": "PHYSICAL_GROUP_AND_399_INLINE_NODES_OUTPUT_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "fc9389ffcc7e7648695fddc702f4f48588e1bb52",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "groupHandle": "0x42B",
+    "sourceGroupVersion": 0,
+    "actionCount": 88,
+    "nodeCount": 399,
+    "outputGroupBodyVersion": 2
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_standard_output.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Extended strict DXF constraint-group parsing across every node DataKind admitted by the existing writer. The physical-source snapshot now retains the complete group and all inline nodes, checks for late source mutation, binds the staged group record and mapped handle roles, and compares each admitted node envelope and body field in source wire order. DXF emits the established fixed group-body version 2 from the AC1024 source model's version-0 value; the staged/readback proof records this normalization explicitly.",
+    "readbackFields": "All 399 nodes are freshly reimported in ASCII and binary output. Group header, action handles, node count/seed, node class and DataKind, IDs/connections, scalar and coordinate fields, optional-field presence, dependency handle codes/roles, rigid-set transform and geometry IDs are compared field by field. Physical group/action/dimension roles are also checked.",
+    "failureBehavior": "For both encodings the selector verifies late dependency-body name mutation and late constraint-node ID mutation after OBJECTS writing. Each refusal preserves a preexisting destination sentinel. Restoring the source and retrying on the same adapter succeeds, then fresh readback passes.",
+    "fixturePolicy": "Reused the existing local mechanical AC1024 DWG. Temporary output files are removed by the selector. No DWG or DXF fixture was added to the repository."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "d5c3b5ca65140deba843e6ae19fb36fe0245f9a2ca99e89c9d701100eb4abf85",
+      "adapterTestSha256": "ea699924f948be04e844184150fc12071e17462da85a16653529d295f5dbd71f"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocdependency-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "exitCode": 0,
+      "result": "PASS for ASCII and binary: 17 dependency/body pairs and all 399 physical group nodes; group, action, dimension, owner and reactor roles; body-name and node-ID atomic refusal; same-adapter correction/retry; exact fresh typed readback. Expected refusal diagnostics are printed for the deliberate rollback attempts."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN; focused validation only.",
+    "addressSanitizer": "NOT RUN."
+  },
+  "limitations": [
+    "The proof covers the physical AC1024 group and node forms admitted by the existing writer; unsupported node classes/tails remain fail-closed.",
+    "The physical mechanical input still has 228 opaque callback views and zero retained correlation frames. Strict complete-export admission remains closed.",
+    "The receipt has no independent CAD consumer semantics, native-platform qualification, 3D-kernel qualification or general support-claim effect."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind physical AC1024 ACDBASSOC2DCONSTRAINTGROUP 0x42B and its 399 parsed inline nodes to source identities, action/owner/handle roles, staged output, exact ASCII/Binary fresh readback, mutation refusal, sentinel preservation and corrected same-adapter retry.",
+    "remainingP4Scope": "Continue physical callback/output-coverage closure, required descendant closure and strict complete-export admission. Do not weaken the completeness predicate.",
+    "nextAction": "Bind the 54 physical AC1024 ACDBASSOCGEOMDEPENDENCY identities (type 524) and their source-bound node, owner/action, dependent-entity and reactor roles to staged output and fresh readback. Reuse the current mechanical source and qualified graph providers; preserve raw unsupported fields and verify atomic refusal/retry.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "c1348732b98ea10b070263ac5b4a54c89b91e2016e6120d6884fa3e2c55df72a",
+    "dwg2dxf/dx_iface.h": "9cac2ce5f24713723e715ed873d3c0bc353709709607e59fcbc64c512f51f4e7",
+    "dwg2dxf/dx_standard_output.h": "0b6a38e35453c6baa750168f90dd06ea16ed296f0727cd70771bcf165467c686",
+    "src/drw_objects.cpp": "75a240990916006a130ebc22164bdfd14fce90fce5da6e144b2e77202a377b30",
+    "src/drw_objects.h": "85adb3eaf2335d4afec5cb4d8407a26321ba5a7139905eb93ad58cd6dad0befa",
+    "tests/dwg2dxf_adapter_tests.cpp": "4926e245dbbda3b05dae188c815a040f08354b50fa8bed5f74086d8b6ccea319"
+  }
+}

@@ -1,0 +1,96 @@
+name: libdxfrw fast parity regressions
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Disposable PR regressions are separate from immutable qualification runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-release:
+    # Keep the full package build at merge/manual checkpoints, not every PR.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CC: gcc-13
+      CXX: g++-13
+      # Makefile.am supplies strict warnings, including the per-file GCC policy.
+      CXXFLAGS: -O0
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check inventories and bootstrap source release
+        run: |
+          python3 -B tools/generate_build_inventory.py --check
+          ./autogen.sh
+          ./configure --disable-static
+      - name: Check extracted source, install, uninstall and regeneration
+        run: COPYFILE_DISABLE=1 make -j2 distcheck
+
+  fast-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Configure byte-stable checkout
+        run: >-
+          git config --global core.autocrlf false
+          && git config --global core.eol lf
+
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check fast runner and fixture policy
+        run: >-
+          python3 -B tools/run_fast_focus.py --self-test
+          && python3 -B tools/check_fixture_admission.py --self-test
+          && python3 -B tools/check_external_fixture_hook.py
+          && python3 -B tools/check_staged_package.py --self-test
+          --build-options-self-test --cxx g++-13
+
+      - name: Check build and source-release inventories
+        run: >-
+          python3 -B tools/generate_build_inventory.py --check
+          && python3 -B tools/generate_build_inventory.py --self-test
+
+      - name: Configure ordinary regression profile
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+          -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON
+          -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_QUALIFICATION=OFF
+          -DLIBDXFRW_BUILD_LONG_FUZZ=OFF
+          -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF
+
+      - name: Build bounded fast targets and source compatibility check
+        run: >-
+          cmake --build build --config Release --parallel 2 --target
+          libdxfrw_wave1_tests libdxfrw_hardening_tests
+          libdxfrw_graph_preservation_tests libdxfrw_writer_primitives_tests
+          libdxfrw_dwg_object_vectors_tests libdxfrw_writer_version_matrix_tests
+          libdxfrw_diagnostic_tests libdxfrw_dxf_fixture_tests
+          libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe
+          lc3_compat_check libdxfrw_dwg2dxf_adapter_tests
+          libdxfrw_dimstyle_optional_handle_tests libdxfrw_block_owner_tests
+          libdxfrw_numeric_locale_tests
+          libdxfrw_debug_state_tests
+          libdxfrw_dwg2dxf_version_tests dwg2dxf
+
+      - name: Run fast vectors and required CLI regressions
+        run: >-
+          python3 -B tools/run_fast_focus.py --build-dir build
+          --configuration Release --ctest-regressions

@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c DATALINK decoded-text owner transfers",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move decoded DATALINK semantic text from local values into the by-value retained-owner helper rather than copying each value into that parameter.",
+    "routes": [
+      "DRW_DataLink::parseCode group 1 adapter text",
+      "DRW_DataLink::parseCode groups 300–302 description, tooltip, connection string",
+      "DRW_DataLink::parseCode group 304 custom-data and update-status text"
+    ],
+    "behavior": "Semantic decoding, marker-view state routing, retained-byte reservation, replacement rollback, duplicate-adapter discard, and final field ownership are unchanged.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no parser meaning or DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_datalink_text_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Generated ASCII/Binary controls verify all retained DATALINK fields, custom-data targets, marker paths, exact owner accounting, one-byte-under refusal, rollback, copy/reset lifetime, and long marker lookalikes.",
+    "diff_check": "PASS (src/drw_objects.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Keep auditing source-backed retained-string call sites where a decoded local is passed as an lvalue to a by-value owner helper. Preserve decoder behavior, transactional field replacement, and exact byte accounting; continue local work independently of external gates."
+}

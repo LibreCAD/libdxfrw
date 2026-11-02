@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-acds-four-record-anchor-fast-slice-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Extend the existing PAR-07/S8.3 generated DataStorage coverage with the four-record explicit-anchor edge identified by the 2026-10-18 peer review.",
+  "implementation": {
+    "productionFileChanged": false,
+    "testFile": "tests/graph_preservation_tests.cpp",
+    "existingOwner": "PAR-07 / S8.3 / libdxfrw_graph_preservation_tests",
+    "changes": [
+      "Add a source-authored in-memory AC1027 DataStorage section containing four indexed records with unique handles and payloads.",
+      "Permute the data-index row order independently of physical record-header and payload order.",
+      "Set objectDataAlignmentOffset to 12 sixteen-byte units (192 bytes from the segment start); four record headers end at 128 bytes after 16-byte alignment, leaving 64 bytes of explicit padding.",
+      "Fill the padding with 0xE7 and verify structural/replay validity plus exact handle-to-payload associations, including a distinct NEXT_RECORD_SENTINEL record."
+    ],
+    "expectedOutcome": "The parser must use the explicit segment header anchor, not a header-size/count-derived guess, while preserving all four handle/payload associations.",
+    "observedOutcome": "The generated vector parses structurally with replay allowed; all four handle lookups return their exact payloads, including the following sentinel.",
+    "fixturePolicy": "The test constructs bytes in memory from scratch. No external sample or binary DWG/DXF fixture is downloaded, created as a file, or added to the repository.",
+    "testRegistrationOrDependencyAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict graph-preservation target rebuilt and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.70 seconds.",
+    "diffCheck": "PASS for tests/graph_preservation_tests.cpp.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "nativeCadOrPeer": "NOT RUN."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3 only.",
+    "findingStatus": "FOUR_RECORD_EXPLICIT_ANCHOR_CONTROL_IMPLEMENTED; no local defect reproduced.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktreeNote": "Shared worktree was already broadly dirty; only the new test hunk and corresponding plan/receipt updates were added, with no files staged."
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "HATCH group-47 presence characterization fast slice",
+  "mode": "Generated local implementation and focused regression validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Characterize absent, nonzero, and explicit-zero HATCH group-47 records without choosing a conformance predicate",
+    "Exercise derived and non-derived outer loop flags in ASCII and Binary DXF",
+    "Verify raw group order, numeric import, and following-entity alignment using the existing HATCH test owner"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "tests/hatch_reference_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/hatch-group47-presence-characterization-fast-slice-2026-10-18.json"
+    ],
+    "productionCodeChanged": false,
+    "publicApiChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "generatedInScratchOnly": true,
+    "focusedSelector": "--hatch-pixel-presence",
+    "behavior": "The existing writer still emits group 47 only for nonzero pixelSize. The parser stores the numeric value but does not retain absent-versus-explicit-zero presence. This slice tests and records that boundary; it does not treat current output as a normative rule."
+  },
+  "testMatrix": {
+    "entity": "HATCH only; MPOLYGON intentionally not generalized",
+    "associative": true,
+    "fillProfiles": ["solid", "patterned"],
+    "outerLoopFlags": [3, 7],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "pixelSizeCases": [
+      "absent with model value zero",
+      "present with nonzero value 0.125",
+      "present explicit zero, made by zeroing the value in a locally generated nonzero file"
+    ],
+    "controlCount": 24,
+    "assertions": [
+      "expected first outer path flag is present",
+      "group-47 count and numeric value match the input case",
+      "group 47, when present, follows pattern dash group 49 and precedes group 98",
+      "typed import retains numeric pixel-size and generated pattern-line values",
+      "following LINE retains distinct expected endpoint coordinates"
+    ]
+  },
+  "validation": {
+    "targetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-pixel-presence",
+      "result": "passed",
+      "output": "HATCH group-47 presence characterization: PASS (controls=24, generated ASCII/Binary; no external fixtures)"
+    },
+    "neighboringControls": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-publication",
+        "result": "passed",
+        "output": "HATCH publication controls: PASS (rejected=20, fresh-data retries=20, alias publications=2)"
+      }
+    ],
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "7AH/7Z HATCH pixel-size presence and writer interoperability question",
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingCount": 133,
+    "topLevelSubplanCount": 76,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "sourceHashes": {
+    "tests/hatch_reference_tests.cpp": "08399b1f4c37b85995cc9c1e01a4e0bf5e7adfaa0f2792f82f2bb6d3f8911be4",
+    "tests/dwg_local_roundtrip_tests.cpp": "5208c79bab01f01d2ac687da96756edadfe64e8c7431e3c87f6f0d37b673dbce",
+    "build-gcc/libdxfrw_dwg_local_roundtrip": "cd0eb192646685cc9fbe3515e702cf3833fd3d6bd581400a87e9c7400247c771"
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reasonUncommitted": "The shared worktree is broadly dirty, including pre-existing changes in the touched HATCH test file. This focused slice was left unstaged rather than committing unrelated user work."
+  },
+  "limitations": [
+    "No pinned producer artifact or independent strict/native consumer was run; the correct presence predicate remains unresolved.",
+    "No explicit-zero presence field was added because the evidence does not establish that the distinction is required by the public model.",
+    "Pattern-fill coverage uses one generated line definition and does not establish full HATCH rendering or pattern-generation semantics.",
+    "This HATCH-only characterization does not establish MPOLYGON behavior, DWG parity, or general CAD support."
+  ]
+}

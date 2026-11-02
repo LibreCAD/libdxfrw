@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-acds-block-owner-nested-shared-orphan-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "scope": "Extend the existing AC1027 DXF ACDSDATA block-owner regression with nested/shared INSERT closure and transactional refusal of an orphaned modeler record.",
+  "implementation": {
+    "testTargetChanged": "tests/dwg_local_roundtrip_tests.cpp",
+    "productionCodeChanged": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "usesGeneratedControls": true,
+    "payloadNature": "Locally generated marker bytes used only for association and transport; not a valid ACIS/SAB semantic body."
+  },
+  "generatedGraphControl": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "graph": [
+      "One modeler entity in a solid-only inner block.",
+      "One mixed outer block containing a nested INSERT to the inner block and an adjacent LINE.",
+      "Two differently transformed modelspace INSERTs share the outer block definition.",
+      "One adjacent modelspace LINE remains present."
+    ],
+    "assertions": [
+      "Unique inner/outer block and BLOCK_RECORD definitions with resolved owner handles and retained base points.",
+      "Modeler entity handle is owned by the inner BLOCK_RECORD and has its history owner.",
+      "Raw ACDSDATA ASM_Data key resolves to the modeler handle and exact generated payload bytes.",
+      "Nested INSERT target and transform are retained.",
+      "Both differently transformed shared-definition INSERTs are retained.",
+      "Mixed-block LINE and adjacent modelspace LINE are retained.",
+      "The same closure remains after a second export/import replay."
+    ]
+  },
+  "orphanControl": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "mutation": "Change the ACDSDATA record handle/key from the modeler's FC20 owner to FC99 while leaving the block-contained modeler at FC20.",
+    "expected": "Export rejects the orphan owner association and leaves pre-existing destination bytes unchanged.",
+    "observed": "Passed for both encodings."
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4",
+      "result": "passed"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 3.02
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false
+  },
+  "planDisposition": {
+    "existingS23S8GateRefined": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimPromoted": false,
+    "semanticAcisEvidence": false,
+    "fixturePolicyPreserved": true,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredEvidenceCannotPromoteSupportClaims": true,
+    "worktreeState": "Local and uncommitted in the broadly dirty shared worktree."
+  }
+}

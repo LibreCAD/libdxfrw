@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer failure modes and semantic checkpoints",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Review current ACadSharp reports for silent record disappearance, field-default, and transform-semantic failure modes",
+    "Reconcile current LibreDWG, ezdxf, and FreeCAD ACIS/AcDs route limitations",
+    "Convert peer reports into an implementation-ready, stage-specific semantic checklist without promoting them to local defects"
+  ],
+  "method": {
+    "kind": "Read current primary project documentation and issue reports; reconcile with the local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-project-capability-route-crosswalk-2026-10-18.json"
+    ],
+    "limitations": "GitHub project sources are mutable; issue reports are peer-specific maintainer/user reports rather than normative format evidence or local reproductions. The ACadSharp INSERT report has no public source sample and includes a possible base-type/count confound. No peer behavior was executed."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp INSERT/record-disposition report and capability matrix",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable issue/index reviewed 2026-10-18; issue #1172 opened 2026-07-31 and still open at review",
+      "observed": "Issue #1172 reports silent loss of some INSERT-derived records in an AC1032 read/write/read route. The source drawings are private and the maintainer requested a minimal sample. A later comment notes TableEntity inherits Insert and may confound the reported type count; the reported root cause remains unresolved. The README matrix identifies reader/writer/version routes but does not establish per-record preservation."
+    },
+    {
+      "project": "ACadSharp LEADER field-value report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1180"
+      ],
+      "revision": "Issue opened 2026-08-09; reviewed 2026-10-18",
+      "observed": "The report states that one AutoCAD-authored drawing yields zero LEADER TextWidth/TextHeight in ACadSharp 3.6.51 and group 41 zero in DXF, with downstream hook geometry omitted. The drawing is not attached; this is not an independently validated format rule or libdxfrw result."
+    },
+    {
+      "project": "ACadSharp ARC/ELLIPSE transform report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1250"
+      ],
+      "revision": "Issue opened 2026-09-07; reviewed 2026-10-18",
+      "observed": "The author reports a sign/orientation error for rotated ARC start/end angles and stale ELLIPSE rotation in ApplyTransform, despite a correctly moved ARC center, on the named ACadSharp source/release. It is a peer geometry-operation report, not evidence of a DWG byte-layout defect."
+    },
+    {
+      "project": "LibreDWG ACIS/AcDs loss report and project notes",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Issue opened 2026-09-02 and mutable NEWS reviewed 2026-10-18",
+      "observed": "Issue #1411 reports one LibreDWG 0.14.8593 route losing AcDs/SAB data for an ezdxf-generated AC1032 REGION while the entity survives. NEWS describes incomplete AcDsPrototype_1b handling. This is a peer-specific negative report, not a positive semantic oracle or universal current-release result."
+    },
+    {
+      "project": "ezdxf ACIS scope and FreeCAD consumer scope",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "ezdxf stable docs and archived FreeCAD documentation repository reviewed 2026-10-18",
+      "observed": "ezdxf documents limited ACIS structure support and unsupported-node handling rather than a general solid kernel. FreeCAD documentation distinguishes its incomplete native and optional legacy DXF import routes, states stock FreeCAD cannot read ACIS solids, and describes DWG conversion as external; the stock consumer route does not establish ACIS solid support."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a touched-family/composed-checkpoint semantic checklist: distinguish record identity and owner membership, discriminating scalar/geometry fields, writer closure, diagnostics, and independent reopen/consumer results. Keeps peer issue reports as advisory failure-mode leads; does not create local findings or require new external runs. ACIS opaque carrier, AcDs association, parse, topology, and native acceptance remain separate evidence rows."
+  },
+  "implementationReadyChecks": [
+    "Treat peer issues without an eligible reproducible artifact as LEAD_ONLY; do not infer local defects or format rules from the report.",
+    "For record survival, distinguish concrete runtime types from base-class counts and compare handles, owners, layout/block membership, linked children, and diagnostics.",
+    "For fields that affect drawing, compare source value, parsed value, emitted DXF/DWG value, and an independent geometry/consumer result where applicable.",
+    "For geometry transforms, test asymmetric generated ARC/ELLIPSE cases and orientation/frame values; correct centers/extents alone are insufficient.",
+    "For ACIS, report raw SAT/SAB, AcDs association, parsed representation, topology/analytic validity, and native application behavior independently.",
+    "Add no peer, native, sanitizer, broad corpus, full-suite, persistent external fixture, or dependency work to leaf slices; retain existing focused selector and owning CTest cadence.",
+    "Keep plan totals 130 findings / 73 top-level subplans and J256, J260, J268, J284, J293, J295 DEFERRED_EXTERNAL."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "This research pass edited the plan and added this receipt only. The shared worktree already contains extensive local changes, so unrelated files and edits were left untouched."
+  }
+}

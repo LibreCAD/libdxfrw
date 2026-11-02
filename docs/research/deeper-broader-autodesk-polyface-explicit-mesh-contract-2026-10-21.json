@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Autodesk POLYFACE ordering and explicit-mesh contract",
+  "mode": "Deeper/broader primary-source research, local source audit, and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Cross-check explicit-facet DXF schemas against Autodesk references and a maintained open-source DXF data model",
+    "Resolve the read-versus-write ordering contract for POLYFACE and map it to current local code and tests",
+    "Refine existing PAR-06/PAR-07/S5/S8 family-specific evidence criteria without changing support claims or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF POLYLINE reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "observation": "The POLYLINE table defines subtype flags and per-family fields, including polygon-mesh counts, smooth-surface parameters, WCS/OCS distinctions, and obsolete group-66 handling."
+    },
+    {
+      "project": "Autodesk Polyface Meshes guidance",
+      "reference": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "observation": "Header groups 71/72 may be incorrect; applications should generate coordinate VERTEX records before face records; readers should tolerate odd vertex/face ordering; face records are limited to four vertex references by AutoCAD's entity structure."
+    },
+    {
+      "project": "Autodesk 3DFACE references",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm"
+      ],
+      "observation": "3DFACE is a WCS corner entity; a triangle may repeat its third corner as the fourth, and group 70 contains four independent invisible-edge flags."
+    },
+    {
+      "project": "Autodesk and ezdxf MESH documentation",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mesh.html",
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/polyface.html"
+      ],
+      "observation": "MESH has distinct counted vertex/face/edge/crease/override fields and supports n-gons; ezdxf's public model uses zero-based indices into its vertex array. The ezdxf 1.4.5 entity page says R2000 minimum, while older internal documentation has an inconsistent introduction-era statement, so this source set does not resolve historical target-version acceptance."
+    },
+    {
+      "project": "Autodesk DXF object/entity processing guidance",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "observation": "Readers must not assume the displayed group-code order. Entity group-0 boundaries and entity-specific child/count semantics remain meaningful."
+    },
+    {
+      "project": "Local libdxfrw source and generated fast test",
+      "references": [
+        "src/drw_entities.cpp: DRW_Polyline::validatePolyfaceDxf",
+        "src/libdxfrw.cpp: dxfRW::processPolyline, dxfRW::processVertex, dxfRW::writePolyline",
+        "tests/dwg_local_roundtrip_tests.cpp: runDxfPolyfaceCompletedPool",
+        "tests/CMakeLists.txt: dxf_polyface_completed_pool"
+      ],
+      "observation": "The reader validates signed indices against the completed actual coordinate pool before callback publication, tolerates advisory counts and noncanonical/forward face order, and permits one-/two-index wireframe records. The writer validates and emits stable coordinate and face pools without mutating caller vector order. The generated ASCII/Binary test also checks invalid-index transactional refusal and a following entity."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06: map hostile polyface indices to the existing completed-pool guard and fast test",
+      "PAR-07/S5: keep 3DFACE, classic POLYLINE/PFACE and MESH wire/topology contracts separate",
+      "S8: score explicit-geometry consumers per family and exact version, not as a generic mesh result"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "focusedTestsRun": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^dxf_polyface_completed_pool$' --output-on-failure",
+        "result": "PASS (1/1)"
+      }
+    ],
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadOrGeometryKernelRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add an authoritative POLYFACE read/write ordering note and record the verified local guard; retain distinct 3DFACE, PFACE, and MESH evidence lanes; keep pre-AC1024 MESH output unqualified pending authoritative/version-specific evidence."
+  },
+  "method": {
+    "primarySourceWebResearch": true,
+    "localSourceAudit": true,
+    "focusedExistingTestRun": true,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadOrGeometryKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-autodesk-polyface-explicit-mesh-contract-2026-10-21.json"
+    ],
+    "limitations": "The Autodesk POLYFACE ordering reference is historical (2016); current references were also checked for POLYLINE, MESH, and 3DFACE. MESH historical minimum/version naming remains unresolved. The local generated regression establishes parser/writer behavior only, not independent CAD acceptance, manifoldness, solid validity, or general 3D semantic support."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check for plan files; receipt checked for trailing whitespace)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

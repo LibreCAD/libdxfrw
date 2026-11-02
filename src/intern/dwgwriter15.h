@@ -16,7 +16,9 @@
 
 #include <initializer_list>
 #include <set>
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -25,7 +27,10 @@
 #include "drw_textcodec.h"
 
 class DRW_Entity;
+class DRW_ModelerGeometry;
+struct DRW_DataStorageSection;
 class dwgRW;
+class DwgBlockRecordXrefWireTestAccess;
 
 /// Section record indices used in m_sectionOffsets / m_sectionSizes.
 namespace recno {
@@ -36,6 +41,17 @@ namespace recno {
     constexpr std::uint8_t TEMPLATE  = 4;
     constexpr std::uint8_t AUXHEADER = 5;
 }
+
+struct DwgBlockRecordWriteMetadata {
+    int flags {0};
+    bool xrefUnloaded {false};
+    std::int32_t xrefIndex {-1};
+    std::string xrefPath;
+    std::string description;
+    std::vector<std::uint8_t> previewData;
+    bool canExplode {true};
+    std::uint8_t blockScaling {0};
+};
 
 /// R2000 (AC1015) concrete DWG writer.  Structural mirror of
 /// [dwgReader15](dwgreader15.h).
@@ -71,13 +87,24 @@ public:
     bool writeDwgHeader() override;
     bool writeDwgClasses() override;
     bool writeDwgObjects() override;
+    bool completeDeferredDwgObjects() override;
     bool writeDwgHandles() override;
     bool writeSecondHeader() override;
     bool finalize() override;
+    std::size_t compactDeferredPlotSettingsEntryCount() const override {
+        return m_deferredPlotSettingsEntries.size();
+    }
+    void rollbackCompactDeferredPlotSettingsEntries(
+        std::size_t entryCount) override {
+        if (entryCount <= m_deferredPlotSettingsEntries.size())
+            m_deferredPlotSettingsEntries.resize(entryCount);
+    }
 
     /// Encode a single entity into the object stream.  See
     /// dwgWriter::encodeEntity for the contract.
     bool encodeEntity(DRW_Entity *ent) override;
+    bool supportsLastEntityWriteRollback() const override { return true; }
+    bool rollbackLastEntityWrite() override;
     bool hasEntityEedWriteFailure() const override {
         return m_entityEedWriteFailure;
     }
@@ -94,6 +121,7 @@ public:
     std::uint32_t defineBlock(const std::string& name,
                         const DRW_Coord& basePoint,
                         int insUnits = 0) override;
+    std::uint32_t defineBlock(const DRW_Block_Record& record) override;
     bool beginBlockContent(std::uint32_t blockRecordHandle) override;
     bool endBlockContent() override;
     bool hasActiveBlockContent() const override {
@@ -135,6 +163,8 @@ public:
     bool addViewportEntityHeader(DRW_ViewportEntityHeader& header);
     std::uint32_t addDimstyle(const DRW_Dimstyle& ds);
     std::uint32_t addAppId(const DRW_AppId& ai);
+    //! Resolve a pre-collected APPID name to its output-drawing handle.
+    std::uint32_t findAppIdHandle(const std::string& name) const;
 
     bool getEmittedDwgTableRecordHandles(
         std::vector<std::uint32_t>& handles) const override;
@@ -142,6 +172,10 @@ public:
         std::vector<std::uint32_t>& handles) const override;
     bool registerDwgNamedObjectDictionaryEntry(
         const std::string& name, std::uint32_t childHandle) override;
+    bool registerPlotSettingsObjectClass(
+        std::uint32_t handle = 0) override;
+    bool registerDwgGroupDictionaryEntry(
+        const std::string& name, std::uint32_t groupHandle) override;
     bool getEmittedDwgNamedObjectDictionaryEntries(
         std::vector<DRW::DwgNamedObjectDictionaryEntry>& entries) const override;
     bool validateDwgNamedObjectDictionaryEntries() const override;
@@ -152,7 +186,8 @@ public:
     bool getLastDwgObjectFrame(
         DRW::DwgObjectFrameReceipt& frame) const override;
 
-    bool replayRawObject(const DRW_UnsupportedObject& object);
+    bool replayRawObject(const DRW_UnsupportedObject& object,
+                         const DRW_ModelerGeometry* typedModeler = nullptr);
     bool writeAcDbPlaceholder(const DRW_AcDbPlaceholder& placeholder);
     bool writeVbaProject(const DRW_VbaProject& project);
     bool writeDbColor(const DRW_DbColor& color);
@@ -163,6 +198,8 @@ public:
     bool writeSun(const DRW_Sun& sun);
     bool writeMLeaderStyle(const DRW_MLeaderStyle& style);
     bool writeTableStyle(const DRW_TableStyle& style);
+    bool writeCellStyleMap(const DRW_CellStyleMap& styleMap);
+    bool writeTableContent(const DRW_TableContentObject& content);
     bool writeMaterial(const DRW_Material& material);
     bool writeLightList(const DRW_LightList& lightList);
     bool writeBackground(const DRW_Background& background);
@@ -209,6 +246,42 @@ public:
     bool writeSection(const DRW_Section& section);
 
 protected:
+    friend class DwgBlockRecordXrefWireTestAccess;
+
+    /// Minimal state touched by one entity frame.  CompoundWriteCheckpoint
+    /// remains the complete transaction snapshot for blocks, objects, and
+    /// public writes; using it for every entity would copy growing document
+    /// ledgers once per entity.
+    struct EntityFrameCheckpoint {
+        std::size_t bufferSize {0};
+        std::uint64_t lastDwgObjectFrameGeneration {0};
+        std::size_t objectMapSize {0};
+        std::size_t emittedLayoutAssociationCount {0};
+        std::size_t emittedLayoutDictionaryCount {0};
+        std::uint32_t currentHandle {0};
+        bool frameWriteError {false};
+        bool entityEedWriteFailure {false};
+        bool objectEedWriteFailure {false};
+        DRW::DwgObjectFrameProvenance pendingFrameProvenance;
+        DRW::DwgObjectFrameProvenance currentFrameProvenance;
+        std::uint32_t entityHandle {0};
+        std::uint32_t blockOwnerHandle {DRW::NoHandle};
+        std::uint32_t insertOwnerHandle {DRW::NoHandle};
+        bool blockOwnedEntityRecorded {false};
+        bool blockInsertReferenceRecorded {false};
+    };
+
+    EntityFrameCheckpoint checkpointEntityFrame() const;
+    void rollbackEntityFrame(const EntityFrameCheckpoint& checkpoint,
+                             bool frameStarted);
+    /// Roll back a contiguous compound entity frame batch. Every frame must
+    /// be successfully published and owned by the same BLOCK_RECORD. A single
+    /// INSERT parent may record one reverse block-reference edge in the first
+    /// frame; validation is completed before any state is changed.
+    bool rollbackEntityFrameBatch(
+        const std::vector<EntityFrameCheckpoint>& checkpoints);
+    void clearLastEntityWriteCheckpoint() noexcept;
+
     /// Begin a new object in the object stream (the unsentinel'd byte
     /// region between CLASSES and HANDLES).  Records the offset of
     /// `m_buf` at frame start, captures `handle` for the eventual
@@ -247,7 +320,8 @@ protected:
     /// Phase 4d helper: emit a full Block_Record at `handle` with the
     /// `block`/`endBlock` handles pointing at DRW_Block entities the
     /// caller has already emitted.  The owned entity and INSERT lists are
-    /// supplied separately; layout remains null for freshly written blocks.
+    /// supplied separately; layoutHandle is the associated LAYOUT object's
+    /// output handle, or zero when the caller did not provide that link.
     /// Needed so `readDwgBlocks` can resolve
     /// the BLOCK_CONTROL `+2` phantom handles (0x17, 0x18) without
     /// failing the block walk.
@@ -256,7 +330,9 @@ protected:
                          std::uint32_t blockHandle, std::uint32_t endBlockHandle,
                          const std::vector<std::uint32_t>& entityHandles,
                          const std::vector<std::uint32_t>& insertHandles = {},
-                         int insUnits = 0);
+                         int insUnits = 0,
+                         const DwgBlockRecordWriteMetadata* metadata = nullptr,
+                         std::uint32_t layoutHandle = 0);
 
     /// Phase 4d helper: emit a Block entity at `handle`.  `isEnd=true`
     /// suppresses the name field and emits an ENDBLK (oType=5) rather
@@ -329,6 +405,14 @@ protected:
         const std::vector<DRW_Entity::PendingHandleRef>& layerRefs);
     bool emitTableStyleObject(
         std::uint32_t handle, const DRW_TableStyle& style,
+        const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
+        const std::vector<DRW_Entity::PendingHandleRef>& layerRefs);
+    bool emitCellStyleMapObject(
+        std::uint32_t handle, const DRW_CellStyleMap& styleMap,
+        const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
+        const std::vector<DRW_Entity::PendingHandleRef>& layerRefs);
+    bool emitTableContentObject(
+        std::uint32_t handle, const DRW_TableContentObject& content,
         const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
         const std::vector<DRW_Entity::PendingHandleRef>& layerRefs);
     bool emitMaterialObject(
@@ -428,12 +512,17 @@ protected:
 
     /// Record a successfully encoded entity in the active BLOCK content scope.
     bool canRecordBlockOwnedEntity(const DRW_Entity& entity) const;
-    bool recordBlockOwnedEntity(const DRW_Entity& entity);
+    bool recordBlockOwnedEntity(const DRW_Entity& entity,
+                                std::uint32_t *ownerHandle = nullptr);
+    bool ensureDwgGroupMemberTargetIndex();
 
     /// Record a successfully encoded INSERT in the BLOCK_RECORD it targets.
     /// R2000+ stores this reverse reference in the target record's handle
     /// stream; unresolved targets remain unlisted for compatibility.
     bool recordBlockInsertReference(const DRW_Entity& entity);
+    bool validateDwgLayoutBlockAssociations(
+        std::uint32_t& modelLayoutHandle,
+        std::uint32_t& paperLayoutHandle) const;
 
     /// Publish the final frame layout and handle tokens after the corresponding
     /// object-map entry has been committed. The merge offsets are measured in
@@ -460,6 +549,33 @@ protected:
     std::uint16_t fileCodePageId() const;
 
 protected:
+    struct PendingModelerDataStorageReplay {
+        std::uint32_t modelerHandle {0};
+        std::uint64_t recordHandle {0};
+        std::string recordHandleKey;
+        std::uint32_t ownerHandle {DRW::NoHandle};
+        std::uint32_t segmentIndex {0};
+        std::uint32_t schemaIndex {0};
+        // Owned until finalization because write callbacks may supply a
+        // short-lived typed modeler object.
+        std::vector<std::uint8_t> payload;
+        bool hasPayloadMarker {false};
+        std::uint32_t payloadMarkerOffset {0};
+        std::uint32_t payloadMarkerLength {0};
+        std::string payloadMarkerSection;
+    };
+
+    /// Close pending AC1027+ modeler/DataStorage joins against the raw AcDs
+    /// section before a derived writer emits the final file container.
+    bool validatePendingModelerDataStorageReplay(
+        const DRW_DataStorageSection* section,
+        const std::uint8_t* sectionBytes,
+        std::size_t sectionByteLength) const;
+
+    bool hasEmittedDwgObjectHandle(std::uint32_t handle) const;
+    bool publishDwgObjectMapEntry(std::uint32_t handle,
+                                  std::uint32_t frameOffset);
+
     bool blockControlEmitted() const { return m_blockControlEmitted; }
 
     /// Populate m_header's ctrl-handle fields with canonical reserved values
@@ -512,6 +628,16 @@ protected:
     /// the object's MS prefix in m_buf)`.  Sorted by handle in
     /// `writeDwgHandles` before page emission for monotonic deltas.
     std::vector<std::pair<std::uint32_t, std::uint32_t>> m_objectMap;
+    // Mirrors emitted handles for average-constant duplicate/membership
+    // checks while m_objectMap remains in wire-offset append order.
+    std::unordered_set<std::uint32_t> m_emittedDwgObjectHandles;
+
+    /// Modeler entities admitted with an external AcDs/SAB record. These
+    /// copied, bounded identities are closed against the exact raw section
+    /// before AC1027+ finalize; they never authorize geometry re-encoding.
+    std::vector<PendingModelerDataStorageReplay>
+        m_pendingModelerDataStorageReplay;
+    std::size_t m_pendingModelerDataStoragePayloadBytes {0};
 
     /// Writing context: maps normalised (upper-case) table record names
     /// to their allocated DWG handles.  Pre-seeded with standard entries;
@@ -534,6 +660,12 @@ protected:
     std::vector<std::pair<std::uint32_t, DRW_Vport>>     m_pendingVports;
     std::vector<std::pair<std::uint32_t, DRW_ViewportEntityHeader>>
         m_pendingViewportEntityHeaders;
+    // Derived membership view for duplicate viewport-header admission.
+    // The vector remains authoritative for emission order and is restored by
+    // public-write rollback; rollback invalidates this cache.
+    mutable bool m_pendingViewportEntityHeaderIndexReady {false};
+    mutable std::unordered_set<std::uint32_t>
+        m_pendingViewportEntityHeaderHandles;
     std::vector<std::pair<std::uint32_t, DRW_Dimstyle>>  m_pendingDimstyles;
     std::vector<std::pair<std::uint32_t, DRW_AppId>>     m_pendingAppIds;
 
@@ -548,6 +680,33 @@ protected:
     std::vector<DRW::DwgNamedObjectDictionaryEntry>
         m_emittedDwgNamedObjectDictionaryEntries;
     bool m_dwgNamedObjectDictionaryComplete {false};
+    std::uint32_t m_plotSettingsDictionaryHandle {0};
+    bool m_deferredPlotSettingsDictionary {false};
+    bool m_deferredPlotSettingsDictionaryEmitted {false};
+    std::vector<DRW_Dictionary::Entry> m_deferredPlotSettingsEntries;
+    std::vector<DRW::DwgNamedObjectDictionaryEntry>
+        m_pendingDwgGroupDictionaryEntries;
+    std::vector<DRW::DwgNamedObjectDictionaryEntry>
+        m_emittedDwgGroupDictionaryEntries;
+    std::vector<DRW::DwgNamedObjectDictionaryEntry>
+        m_emittedDwgGroupFrames;
+    bool m_dwgGroupDictionaryComplete {false};
+    // Derived admission and emission indexes avoid rescanning the dictionary
+    // vectors for every registered/emitted GROUP. Rollback restores the
+    // authoritative vectors and invalidates these disposable views.
+    mutable bool m_pendingDwgDictionaryIndexesReady {false};
+    mutable std::unordered_set<std::string>
+        m_pendingDwgNamedObjectDictionaryNames;
+    mutable std::unordered_set<std::uint32_t>
+        m_pendingDwgNamedObjectDictionaryChildHandles;
+    mutable std::unordered_set<std::string> m_pendingDwgGroupNames;
+    mutable std::unordered_set<std::uint32_t> m_pendingDwgGroupHandles;
+    mutable bool m_emittedDwgGroupEntryIndexReady {false};
+    mutable std::unordered_map<std::uint32_t, std::size_t>
+        m_emittedDwgGroupEntryIndexes;
+    mutable bool m_emittedDwgGroupFrameIndexReady {false};
+    mutable std::unordered_set<std::uint32_t>
+        m_emittedDwgGroupFrameHandles;
 
     /// Published only after the deferred BLOCK_CONTROL transaction completes.
     std::vector<DRW::DwgBlockWriteRecord> m_emittedDwgBlockRecords;
@@ -564,6 +723,14 @@ protected:
 
     bool m_entityEedWriteFailure {false};
     bool m_objectEedWriteFailure {false};
+
+    // Only the current public single-entity write can be rolled back by the
+    // facade. Normal entity checkpoints are bounded; class-associated frames
+    // retain the full compound checkpoint as a rare compatibility fallback.
+    EntityFrameCheckpoint m_lastEntityFrameCheckpoint;
+    CompoundWriteCheckpoint m_lastEntityCompoundCheckpoint;
+    bool m_lastEntityWriteCheckpointValid {false};
+    bool m_lastEntityWriteUsesCompoundCheckpoint {false};
 
     DRW_LType m_ltypeByBlock;
     DRW_LType m_ltypeByLayer;
@@ -608,22 +775,70 @@ private:
     /// AuxHeader records.
     std::uint8_t m_numSections {6};
 
+    enum class BlockOwnerKind : std::uint8_t {
+        OrdinaryBlock,
+        PaperLayout
+    };
+
     struct PendingUserBlock {
         std::uint32_t blockRecordHandle {0};
+        std::uint32_t layoutHandle {0};
+        BlockOwnerKind ownerKind {BlockOwnerKind::OrdinaryBlock};
         std::uint32_t blockHandle {0};
         std::uint32_t endBlockHandle {0};
         std::string name;
         DRW_Coord basePoint;
         int insUnits {0};
+        bool hasWriteMetadata {false};
+        DwgBlockRecordWriteMetadata writeMetadata;
         std::vector<std::uint32_t> entityHandles;
         std::vector<std::uint32_t> insertHandles;
     };
+
+    struct EmittedLayoutAssociation {
+        std::uint32_t layoutHandle {0};
+        std::uint32_t paperSpaceBlockRecordHandle {0};
+        std::uint32_t parentDictionaryHandle {0};
+        std::string name;
+    };
+
+    struct EmittedLayoutDictionary {
+        std::uint32_t handle {0};
+        std::uint32_t parentHandle {0};
+        std::vector<DRW::DwgNamedObjectDictionaryEntry> entries;
+    };
+
+    bool ensureUserBlockIndex() const;
+    PendingUserBlock* findUserBlock(std::uint32_t blockRecordHandle);
+    const PendingUserBlock* findUserBlock(
+        std::uint32_t blockRecordHandle) const;
+    void invalidateUserBlockIndex() noexcept;
+    bool ensurePendingDwgDictionaryIndexes() const;
+    void invalidatePendingDwgDictionaryIndexes() noexcept;
+    bool ensurePendingViewportEntityHeaderIndex() const;
+    void invalidatePendingViewportEntityHeaderIndex() noexcept;
+    bool ensureEmittedDwgGroupEntryIndex() const;
+    void invalidateEmittedDwgGroupEntryIndex() noexcept;
+    bool ensureEmittedDwgGroupFrameIndex() const;
+    void invalidateEmittedDwgGroupFrameIndex() noexcept;
+
+    std::uint32_t defineBlockImpl(const std::string& name,
+                                  const DRW_Coord& basePoint, int insUnits,
+                                  DwgBlockRecordWriteMetadata* metadata,
+                                  std::uint32_t layoutHandle = 0);
 
     /// User-defined blocks from defineBlock(). The Block/ENDBLK entities are
     /// emitted immediately, while the Block_Record is deferred until after
     /// the balanced block-content scopes have recorded block-owned entities.
     std::vector<PendingUserBlock> m_userBlocks;
+    std::vector<EmittedLayoutAssociation> m_emittedLayoutAssociations;
+    std::vector<EmittedLayoutDictionary> m_emittedLayoutDictionaries;
     std::unordered_map<std::string, std::uint32_t> m_userBlockHandles;
+    // Lazily sorted handle-to-vector-index view for repeated owner lookups.
+    // It is derived state and invalidated whenever the block vector changes.
+    mutable std::vector<std::pair<std::uint32_t, std::size_t>>
+        m_userBlockIndex;
+    mutable bool m_userBlockIndexReady {false};
     std::uint32_t m_activeUserBlockRecordHandle {0};
     // Once BLOCK_CONTROL and all BLOCK_RECORD lists are emitted, adding an
     // entity or block would leave it unreachable from the ownership graph.
@@ -635,6 +850,19 @@ private:
     std::vector<std::uint32_t> m_paperSpaceEntityHandles;
     std::vector<std::uint32_t> m_modelSpaceInsertHandles;
     std::vector<std::uint32_t> m_paperSpaceInsertHandles;
+    // Mirrors entity ownership lists for insertion-time duplicate checks.
+    // Keeping the owner in the key preserves the historical per-list
+    // semantics while avoiding repeated linear scans of large blocks.
+    std::set<std::pair<std::uint32_t, std::uint32_t>>
+        m_blockOwnedEntityHandles;
+    // Reverse INSERT references are indexed by target BLOCK_RECORD and
+    // INSERT handle so list admission and rollback remain bounded.
+    std::unordered_set<std::uint64_t> m_blockInsertReferenceHandles;
+    // Lazily derived from the owner+handle index once entity callbacks finish.
+    // GROUP validation uses this sorted handle view to avoid rescanning every
+    // owner vector for each group member.
+    std::vector<std::uint32_t> m_dwgGroupMemberTargetHandles;
+    bool m_dwgGroupMemberTargetIndexReady {false};
 };
 
 #endif // DWGWRITER15_H

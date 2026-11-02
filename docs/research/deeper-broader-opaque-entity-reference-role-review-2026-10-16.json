@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-deeper-broader-opaque-entity-reference-role-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden open-source implementation research to the safety boundary for opaque DXF entity capture/replay, proxy payloads, owner roles, and XDATA handle relocation; refine existing plan owners without inferring a local defect or promoting support claims.",
+  "method": {
+    "kind": "Primary Autodesk DXF references, official ezdxf documentation, current ACadSharp issue and maintainer discussion, and local plan cross-check",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRunThisResearchPass": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Autodesk docs are versioned public references; ezdxf stable docs and ACadSharp issue pages are mutable. No peer commit, executable hash, or runtime was established.",
+    "evidenceRule": "Opaque retention, raw replay, handle remapping, graph closure, cross-document copy, proxy visibility, and typed semantics are distinct capabilities. Peer proposals are failure-mode leads, not shipped behavior or local defects."
+  },
+  "evidence": [
+    {
+      "topic": "Proxy entity payload and context-sensitive object IDs",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+        "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf"
+      ],
+      "observed": "The proxy-entity contract defines class identifiers, separate graphics/entity-data lengths, ordered group-310 payload chunks, optional object-ID groups 330/340/350/360, and a group-94 terminator. Common entity data also uses group 330 for ownership, so interpretation depends on record grammar/context.",
+      "doesNotEstablish": [
+        "semantics of an arbitrary application-defined custom entity",
+        "that a target application has the required object enabler",
+        "that copied proxy references remain valid after handle reassignment",
+        "that a generic raw-group writer has correctly separated owner from proxy object IDs"
+      ],
+      "planUse": "Keep owner resolution distinct from proxy object-ID sequence parsing. Preserve chunk/order data and validate lengths/terminator only for the recognized proxy grammar; resolve each edge to one emitted target or fail closed. Proxy-carrier preservation is not semantic custom-object support."
+    },
+    {
+      "topic": "Ordered XDATA and translated code-1005 references",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm"
+      ],
+      "observed": "XDATA permits repeated group codes and order-sensitive application groups. Group 1005 carries database handles that are translated with corresponding entities during INSERT, XREF bind, and partial-open operations.",
+      "doesNotEstablish": [
+        "that every code-1005-looking value outside XDATA is a relocatable handle",
+        "that arbitrary application values can be interpreted or rewritten",
+        "that raw XDATA is semantically understood by libdxfrw"
+      ],
+      "planUse": "Preserve XDATA occurrence order and delimiters; remap code 1005 only in its XDATA context through a verified source-to-emitted map. Keep ordinary values literal and reject unresolved reference targets before publication."
+    },
+    {
+      "topic": "Same-document opaque export versus graph-aware copy",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/concepts/entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "observed": "ezdxf documents tag-storage retention/export for unsupported entities, while its xref/copy module excludes unknown stored entities and ACAD_TABLE. Retention and transfer are separate supported paths.",
+      "doesNotEstablish": [
+        "equivalent behavior in libdxfrw",
+        "safe identity or owner changes during raw replay",
+        "typed editing, application-level interpretation, or universal lossless copy"
+      ],
+      "planUse": "Separate callback capture, same-document raw replay, handle/owner remapping, cross-document copy, and typed semantics in capability outcomes. Use only a pinned eligible reader for composed strict parse comparison."
+    },
+    {
+      "topic": "Unknown DWG object replay and reference invalidation risk",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1134"
+      ],
+      "observed": "The open feature proposal says unknown-class wrappers do not retain replayable object payloads and explains that references can become invalid if referenced records are removed or reassigned. It concerns DWG object frames and is not an implemented peer feature.",
+      "doesNotEstablish": [
+        "a defect in libdxfrw",
+        "a DXF raw-group grammar",
+        "that same-version byte replay is safe after graph mutation",
+        "that an open proposal is shipped behavior"
+      ],
+      "planUse": "Keep opaque DWG frame replay distinct from DXF group-record replay. Require reference closure for either; version equality alone is insufficient. Refuse unsupported graph rewrites before replacing destination output."
+    }
+  ],
+  "implementationReadiness": {
+    "reuseExistingTargets": [
+      "tests/wave1_tests.cpp",
+      "tests/block_owner_tests.cpp"
+    ],
+    "suggestedGeneratedControls": [
+      "unknown raw entity interleaved with typed model-space and named-block sentinels in ASCII and binary",
+      "recognized ACAD_PROXY_ENTITY chunk lengths, group-94 reference-list boundary, owner, and following-record sentinel",
+      "ordered XDATA with code-1005 references plus literal non-handle values",
+      "missing reference and duplicate identity negatives with pre-publication destination preservation",
+      "separate raw OBJECTS and permitted unknown-section coverage from raw ENTITIES coverage"
+    ],
+    "fastValidation": "Touched strict build, one focused existing CTest, lc3_compat_check for adapter/API changes, and git diff --check. Defer independent-reader, native CAD, fuzz, and full-family validation to named composed checkpoints.",
+    "failClosedConditions": [
+      "ambiguous or unresolved logical owner",
+      "duplicate or missing source identity",
+      "unclassified reference-bearing raw-group context",
+      "missing or ambiguous emitted handle target",
+      "invalid recognized proxy length/list framing"
+    ]
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-20",
+      "PAR-36",
+      "7F",
+      "7G"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

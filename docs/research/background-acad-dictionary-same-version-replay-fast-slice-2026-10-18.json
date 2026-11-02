@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 rooted Background same-version raw replay",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Emit rooted Background DXF carriers only through one validated ACAD_BACKGROUND NOD-owned DICTIONARY",
+    "Require exact typed/raw identity, owner, class-version presence, record kind, and captured source profile",
+    "Replay raw Background tags only at the identical AC1021-AC1032 DXF revision with handle remapping",
+    "Keep viewport references, cross-linked Background types, SUN ownership, external evidence, and support claims closed"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "ACAD_BACKGROUND must be a unique NOD entry pointing to one complete DICTIONARY owned by the NOD.",
+      "Every Background dictionary child must map once to a typed Background and one raw DXF carrier with matching handle, parent, record-kind name, and source revision.",
+      "IBL/SkyLight cross-links, common extension dictionaries/reactors, non-DXF sources, unknown/out-of-range source revisions, and cross-revision raw replay reject before publication.",
+      "Validated dictionary and raw Background records are emitted with the existing writer handle-remap path.",
+      "VIEW/VPORT/VIEWPORT references remain fail-closed; SUN remains fail-closed."
+    ],
+    "generatedControls": [
+      "Generated AC1027 ASCII/Binary controls verify rooted round-trip of all six link-free Background kinds, handle-remapped export, and readback ownership.",
+      "Missing ACAD_BACKGROUND root and cross-revision target controls preserve a pre-existing valid output.",
+      "Paired SUN still rejects at its independent owner-graph gate; clearing unsupported carriers permits retry."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false,
+    "dxDataFieldsAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-visual-style-reference",
+      "git diff --check"
+    ],
+    "focusedResults": [
+      "Background/SUN typed/raw capture, rooted Background raw replay, and fail-closed SUN controls: PASS",
+      "VIEW Background/SUN fail-closed export: PASS",
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VPORT shade-plot retention and fail-closed output: PASS; negative controls print expected diagnostics",
+      "HEADER VisualStyle hard-reference closure: PASS",
+      "VPORT code-348 rooted VisualStyle reference closure: PASS",
+      "Whitespace check: PASS"
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "closedScope": "All six link-free Background kinds can round-trip through ACAD_BACKGROUND at the identical AC1021-AC1032 source/output revision with owner/handle remapping and destination-preserving graph rejection.",
+    "remaining": "VIEW/VPORT/VIEWPORT consumer references and non-sharing, Background common reactor/extension-dictionary links, SUN exact owner closure, semantic rendering, and independent/native qualification remain open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

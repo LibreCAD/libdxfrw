@@ -1,0 +1,80 @@
+{
+  "id": "RPP-5wt",
+  "title": "MLINE LTYPE XDATA code-1005 LWPOLYLINE targets in ENTITIES and named BLOCKS",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "8989417569ffda1084274576ece8e5f5de5f45d6",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII/binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected LWPOLYLINE profile was exercised for all four ASCII/binary source and output combinations in each of two source sections.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID, one group-1000 payload, then one ordered group-1005 soft pointer.",
+    "target_profile": {
+      "type": "LWPOLYLINE",
+      "source_handle": "0xA900",
+      "block_record_handles": {
+        "model_space": "0x201",
+        "AuthorityBlock": "0x203"
+      },
+      "flags": 1,
+      "elevation": 4.0,
+      "vertices": [
+        {"xy": [1.0, 2.0], "start_width": 0.5, "end_width": 0.75, "bulge": 0.25, "identifier": 3},
+        {"xy": [5.0, 2.0], "start_width": 0.25, "end_width": 0.5, "bulge": -0.375, "identifier": 5},
+        {"xy": [3.0, 7.0], "start_width": 0.75, "end_width": 0.25, "bulge": 0.5, "identifier": 7}
+      ]
+    },
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    }
+  },
+  "proof": {
+    "source": "The physical LTYPE XDATA sequence is bound to its APPID. Each target is uniquely identified by source handle, source section, block-record owner, parsed callback and exact DRW_LWPolyline dynamic type. The authored geometry distinguishes a closed three-vertex polyline with non-default elevation, per-vertex widths, positive and negative bulges, and identifiers.",
+    "output": "For both source sections and all four encoding pairs, emitted physical XDATA is checked against the remapped target handle. The model-space target is emitted in ENTITIES under *Model_Space; the named target remains in BLOCKS under AuthorityBlock. Physical output and fresh typed readback verify owner, flags, elevation, ordered XY coordinates, widths, bulges and identifiers.",
+    "failure_retry": "For each section and encoding pair, removing the LWPOLYLINE target refuses export and preserves the prior destination; restoring it permits same-adapter retry. Separate late-mutation probes change the target handle after APPID emission in ENTITIES and BLOCKS; finalization refuses without replacing the destination, and restoring the original handle permits same-adapter retry with physical output and typed readback.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 268,
+      "whole_focused_test_readbacks": 600,
+      "whole_focused_test_refusals": 332,
+      "whole_focused_test_retries": 332
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 15.90 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded entity target routing and generated proof, with no ownership-transfer change. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_commit": "8989417569ffda1084274576ece8e5f5de5f45d6",
+      "dx_iface_cpp_sha256": "7061be84894b168628ce49e6c0df4518d84ce313bb202c897521464638a6f78f",
+      "test_source_sha256": "96efd956ff602658a3cfc40fefa5186249ce8968a7bf7d32f56bf3934503f161",
+      "normal_executable_sha256": "d400c1afc0b885c4eac5a842052c41fa8c8639cd0ec1a767f552fcdf3fc46e07",
+      "dwg2dxf_executable_sha256": "dc6e5711439b53a950ed0ff3db73a63b1a8020e55c56487e721987d447e6dda5",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 LWPOLYLINE target in model-space ENTITIES and one in named AuthorityBlock BLOCKS, each with one ordered code-1005 XDATA reference. It does not qualify other LWPOLYLINE sections, target entity types, larger reference counts, versions, provider schemas or application meanings.",
+    "This is selected transport, source identity, output, typed readback and transaction evidence only; it does not establish native consumer acceptance, recursive document closure, all LWPOLYLINE semantics or format support claims."
+  ],
+  "next": "Select one distinct current P2 witness from the remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations. Preserve exact source/output identity, fresh readback and rollback/retry controls without expanding reference-count matrices absent a distinguishing need."
+}

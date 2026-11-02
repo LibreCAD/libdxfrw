@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "RPP-5zd",
+  "date": "2026-10-30",
+  "title": "Multi-cell TABLECONTENT block references",
+  "baselineCommit": "a3bc86cf",
+  "mode": "Peer-source witness plus runtime-generated ASCII/Binary writer controls",
+  "sourceWitness": {
+    "profile": "Retained AC1027 peer-produced ASCII DXF TABLECONTENT, handle 12F2.",
+    "sha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+    "physicalEvidence": [
+      "The object contains 18 CONTENT records; three are type 4, with group 340 = A0B and group 91 = 0.",
+      "The first matching spans are at physical lines 58131-58140, 58263-58272, and 58309-58318.",
+      "No TABLECONTENT attribute definitions are attached to those block cells in this source profile."
+    ],
+    "retainedPath": "build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+    "fixtureCommitted": false
+  },
+  "externalCorroboration": [
+    {
+      "source": "Autodesk TABLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "supports": "Block-backed table cell content and its BLOCK_RECORD handle/attribute-definition fields."
+    },
+    {
+      "source": "GNU LibreDWG OBJECTS manual",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "supports": "TABLECONTENT block-content type, block handle, attribute count, and attribute payload model."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "summary": "Admitted bounded block-content cells in the existing rectangular TABLECONTENT writer path, including cells with zero attached attributes. The adapter verifies unique BLOCK_RECORD identity and its uniquely owned block; the low-level writer verifies that the referenced BLOCK_RECORD has a planned output identity. Ordered scalar content before one block content remains supported, with attributes bound to the block content index.",
+    "runtimeProfile": "A generated AC1027 2x2 grid with two block-backed cells and two scalar cells. ASCII and Binary outputs check physical type-4/group-340/group-91 fields, exact BLOCK_RECORD targets, typed ownership and row/column readback.",
+    "failureAndRetry": "A missing block target and a block owned by the wrong BLOCK_RECORD each refuse without replacing a sentinel destination. Repairing the same source allows the ASCII and Binary exports and readback to succeed.",
+    "persistentDrawingFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "cmake --build build --target dwg2dxf -j4",
+      "ctest --test-dir build -R 'libdxfrw_tablecontent_multicell_(block|field)_reference' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "fixtureTargetBuild": "PASS",
+      "dwg2dxfBuild": "PASS",
+      "focusedCtest": "PASS 2/2; 0.61 seconds",
+      "fullSuite": "NOT_RUN per fast-validation plan",
+      "persistentDrawingFixtures": "NONE"
+    }
+  },
+  "limitations": [
+    "This generated profile covers two block-backed cells with zero attached attributes; the peer source also contains three zero-attribute block cells.",
+    "The combined multi-cell-with-attributes profile, multiple block CONTENT records in one cell, and TABLE block geometry remain open.",
+    "Typed readback and peer wire agreement do not prove native rendering or independent block-geometry semantics."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Zero-attribute block-backed cells in rectangular TABLECONTENT grids, with emitted BLOCK_RECORD identity/ownership, ASCII/Binary wire output, rollback, corrected retry, and typed readback.",
+    "remainingP5BlockCellScope": "Multi-cell block cells with attached attributes, multiple block CONTENT records in one cell, and source- or consumer-qualified block geometry.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a2aa78643103c951e82675588ca9c7d6cac32e4ed56f2afef8e7b27143031680",
+    "dwg2dxf/dx_iface.cpp": "ad04f04a9b132ab922c65c711a28572fe3aa41bbef76d9457dabaa4ab84a1f26",
+    "src/libdxfrw.cpp": "375daa30052ecebe82fba3b4088fe6e89900ca7a4d8dc6ac1fb312e69859c882",
+    "tests/CMakeLists.txt": "d9d83133eb7024d1a7c135eb87f1855700c8a7629e5ee000e0aea5a1ecaa66d0",
+    "tests/dxf_fixture_tests.cpp": "96ed194a05af09b00f8748d6ee71dd1f7a0470315ff16d75208c11b70c6c9e55"
+  },
+  "commitCreated": true
+}

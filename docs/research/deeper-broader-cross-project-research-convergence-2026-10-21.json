@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Cross-project research convergence and no-duplicate-work audit",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Recheck current open-source DWG/DXF issue and release indexes against the existing plan owners",
+    "Resolve the stale R2013+ SPLINE flag-width concern against ODA v5.4.1",
+    "Reconcile the ACadSharp GeoData report against the ODA target-version/object-version distinction",
+    "Refresh QCAD/dxflib and FreeCAD consumer evidence ceilings",
+    "Improve the next-slice applicability audit and self-unblocking instructions without duplicating covered work"
+  ],
+  "sources": [
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local review: sections 20.4.40 SPLINE and 20.4.78 GEODATA"
+      ],
+      "observation": "Section 20.4.40 specifies the R2013+ SPLINE splFlag1 and knotParam fields as BL while retaining individual scenario flags as bits. Section 20.4.78 distinguishes GeoData objectVersion layouts (1/2/3) from the DWG-release condition for the CIVIL tail, including the AutoCAD 2010 exception."
+    },
+    {
+      "project": "LibreDWG current issue index and 0.14.1 NEWS",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observation": "Current issue-index reports span multiple operations and representation layers. The 0.14.1 release notes document specific reader, writer, and security fixes; issue state and mutable master are not interchangeable with a pinned release artifact. Existing plan entries already map the relevant reports to local owners."
+    },
+    {
+      "project": "ACadSharp current issue/release indexes and GeoData report",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1261"
+      ],
+      "observation": "The public release list, direction/version matrix, NuGet versions, and report-specific source revisions must remain separate evidence identities. Issue #1261 reports a GeoData tail omission and unit-field mix-up on private drawings; the report is a peer lead and does not supersede ODA's wire description."
+    },
+    {
+      "project": "QCAD/dxflib declared capability and FreeCAD consumer route",
+      "references": [
+        "https://www.qcad.org/en/90-dxflib",
+        "https://github.com/qcad/qcad/tree/master/src/3rdparty/dxflib",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observation": "dxflib is a selected-entity callback route with an AC1015 writer declaration, not evidence for Binary DXF, DWG, full object-graph retention, SubDMesh evaluation, or ACIS semantics. FreeCAD's documented DWG path is converter-to-DXF followed by a selected importer; stock DXF import does not interpret embedded ACIS solids."
+    },
+    {
+      "project": "Local plan/source/test owner audit",
+      "references": [
+        "DWG_DXF_3D_SUPPORT_PLAN.md S6.2 and PAR-07/S3.6 SPLINE owners",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-119/7BP GEODATA owner",
+        "src/drw_entities.cpp DRW_Spline::parseDwg",
+        "src/drw_objects.cpp hasGeoDataCivilTail",
+        "tests/dwg_object_vectors_tests.cpp GeoData target/object-version matrix"
+      ],
+      "observation": "The existing source and generated controls cover the ODA-consistent SPLINE width boundary and GeoData target-version × object-version seam. No duplicate local test is justified by the refreshed peer issue horizon."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S6.1-S6.2: explicitly retain the ODA-consistent R2013+ SPLINE BL width and generated boundary controls",
+      "PAR-119/7BP: distinguish GeoData objectVersion layout from target-DWG CIVIL-tail gate; keep existing generated cross-product",
+      "PAR-07/S8: require route/artifact-specific peer and consumer evidence and self-unblock when a route is covered or inapplicable"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The latest breadth check found no unowned local defect. The plan now makes the SPLINE stale-note correction prominent, restates the ODA GeoData version axes, and gives a concise applicability/self-unblock rule to avoid duplicating peer-inspired tests or waiting on optional evidence."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "localOdaPdfReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cross-project-research-convergence-2026-10-21.json"
+    ],
+    "limitations": "Peer issue reports and mutable project indexes are not independent reproductions. No peer runtime, native CAD application, geometry kernel, external file, or new local test was used. The audit reconciles sources already admitted in the plan and does not qualify the six DEFERRED_EXTERNAL items."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plans and this receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

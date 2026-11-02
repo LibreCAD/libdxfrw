@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader DXF text-route and writer-integrity cross-check",
+  "mode": "primary-source and peer-report research only",
+  "scope": [
+    "Target DXF string transport versus source DWG TV/TU storage path",
+    "Peer writer failures in text framing, block enumeration, INSERT attribute sequences, and numeric precision",
+    "Readiness crosswalk to existing PAR-05/PAR-74/PAR-85/7AR, PAR-43/7Y, block-owner, and 7AS.2/PAR-78 tests"
+  ],
+  "method": {
+    "kind": "Read-only web review of Autodesk's DXF string contract, LibreDWG issue/source documentation, ACadSharp issue/PR, and local plan/source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "LibreDWG #1414 is an open reporter analysis, not an independently reproduced or normative result. ACadSharp #1179 is linked to a closed PR, but the selected current formal release artifact was not inspected for the fix. Peer block/sequence/text reports are not evidence of matching libdxfrw defects. No external source files were downloaded."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF documentation",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "revision": "published DXF group-code/string-storage reference reviewed 2026-10-17",
+      "observed": "R2007+ DXF strings use UTF-8; R2004 and earlier use ASCII plus CIF/MIF forms. The selected output DXF version is the target transport axis."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "The reporter identifies different VALUE_TV and VALUE_TU DXF output behavior for escape expansion and asks whether target-version or source-storage behavior is intended. The report notes lone-surrogate risk; no independent reproduction was performed."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "mutable master string-model documentation reviewed 2026-10-17",
+      "observed": "The documentation distinguishes pre-R2007 code-page TV/T strings from R2007+ UCS-2 TU/T strings and describes conversion through UTF-8/CIF/MIF, but does not independently settle the reported output-path inconsistency."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1408",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "A reporter describes raw CR inside text causing malformed physical DXF group framing and a dropped adjacent character."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "A reporter attributes skipped BLOCK_HEADER records and empty block bodies to mutation of an outer loop index during per-block writing."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1351",
+      "revision": "issue body and reported master status reviewed 2026-10-17",
+      "observed": "A reporter found INSERT group 66=1 with no ATTRIB/SEQEND output in a malformed source ownership case and later reported a peer master fix. This remains historical peer evidence, not a current peer defect or local reproduction."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1179",
+      "revision": "issue body and linked #1186 reviewed 2026-10-17",
+      "observed": "A peer DXF writer issue reports 15-significant-digit ASCII double output and loss of exact binary64 readback. Its linked closed fix was not verified in a selected release artifact."
+    }
+  ],
+  "assessment": {
+    "targetTransportRule": "Test encoding as a function of output DXF target version; source DWG TV/TU storage is an independent input-path axis.",
+    "semanticRule": "Compare decoded semantic strings separately from raw target bytes and preserve field-specific meaning for ordinary strings, MTEXT controls, and XRECORD payloads.",
+    "peerEvidenceRule": "Peer issue bodies generate test shapes but do not establish local defects or normative file-format rules.",
+    "existingLocalCrosswalk": "Local plan already covers PAR-43 exact numeric formatting, 7M control-character policy, per-identity/per-owner output disposition, and 7AS.2/PAR-78 INSERT/ATTRIB/SEQEND framing. The missing explicit source-storage × target-version matrix should be audited within the existing text owners before adding tests."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-dxf-text-route-writer-integrity-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-dxf-text-route-writer-integrity-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

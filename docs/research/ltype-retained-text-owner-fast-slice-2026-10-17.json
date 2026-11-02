@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-ltype-retained-text-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Charge locally parsed LTYPE description and complex-segment text on the existing table-entry retained-byte lease, without asserting a DXF group-9 length rule or promoting external support claims.",
+  "method": {
+    "kind": "Generated ASCII/Binary DXF record and full TABLES reader controls",
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-ltype-retained-owner-budget",
+        "result": "passed"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --ltype-mirror-authority",
+        "result": "passed"
+      }
+    ],
+    "localFilesChanged": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/ltype-retained-text-owner-fast-slice-2026-10-17.json"
+    ],
+    "temporaryOutput": "The generated Binary DXF TABLES source is written to a unique path under the system temporary directory and removed by RAII cleanup."
+  },
+  "controls": [
+    {
+      "encoding": "ASCII and Binary DXF records",
+      "assertions": [
+        "Group-3 description replacement charges the final live value rather than retaining historical values.",
+        "Every group-9 string across two valid complex segments is charged to the shared table-entry lease.",
+        "The minimum successful aggregate cap accepts the full stream; one byte under rejects the final long replacement before assignment and preserves the prior dash text.",
+        "After reader-record teardown, the lease equals the name, current description, and all current segment text lengths.",
+        "A repeated group-73 size record releases the superseded segment-text charges before parsing the replacement segment array.",
+        "Copy and move preserve the shared lease; resetting the source does not release the last owner, and final reset releases all retained bytes."
+      ]
+    },
+    {
+      "encoding": "Generated ASCII and Binary DXF TABLES drawings",
+      "assertions": [
+        "At the one-byte-under facade cap, the LTYPE table fails with the retained-byte ResourceLimit diagnostic before any LTYPE callback.",
+        "Raising the budget on the same dxfRW facade succeeds and publishes the complex LTYPE plus the following SENTINEL_LTYPE row.",
+        "The complex row preserves its description and both segment text values; the following row proves table cursor alignment.",
+        "A separate generated ASCII/Binary drawing with code 9 but no `74` text flag is rejected as BAD_CODE_PARSED before publishing either row."
+      ]
+    }
+  ],
+  "doesNotEstablish": [
+    "the normative DXF group-9 field length for any target version or code page",
+    "a 255-character or 2049-byte global string limit",
+    "independent producer or native CAD acceptance of complex LTYPE text",
+    "DWG fixed-area LTYPE text capacity or cross-format equivalence",
+    "process RSS, vector/string capacity, post-parse public mutation, or caller-copy memory accounting",
+    "resolution of LibreDWG #1450–#1452 or ACadSharp #1282–#1283 as matching local defects",
+    "broader DWG/DXF feature completeness or support parity"
+  ],
+  "compatibility": {
+    "publicClassLayoutChanged": "DRW_LType gains private retained-byte counters; downstream consumers must rebuild.",
+    "binaryAbiClaim": false,
+    "publicCallbackSetChanged": false
+  },
+  "planImpact": {
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextGate": "Keep the DXF group-9 field profile pending until a pinned, versioned producer/native witness distinguishes character and encoded-byte limits; continue other local implementation-ready work without waiting on that external gate."
+  }
+}

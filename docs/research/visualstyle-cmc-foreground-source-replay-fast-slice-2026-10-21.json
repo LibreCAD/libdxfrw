@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 VISUALSTYLE C5 source-method replay",
+  "mode": "class-level generated AC1024/AC1027/AC1032 fast test slice",
+  "scope": [
+    "Extend the CMC consumer audit to a consumer that retains raw source method/value metadata",
+    "Verify C5 Foreground normalizes to scalar ACI 7 without losing raw identity on unchanged same-version replay",
+    "Verify a scalar edit replaces stale raw C5 metadata with canonical indexed ACI output"
+  ],
+  "evidence": {
+    "localSource": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/drw_objects.h",
+        "src/intern/dwgbuffer.cpp"
+      ],
+      "finding": "DRW_VisualStyle::parseDwg stores the raw packed CMC word, flags, and names in DRW_VisualStyleEncoding while exposing a normalized integer view; its encoder replays those source bytes only while the source representation remains applicable to the unchanged scalar. The generic getCmColor path maps C5 to scalar 7 while preserving the optional raw method output.",
+      "limit": "This class-level result does not characterize every getCmColor consumer or establish a real producer's C5 payload/name encoding."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1027", "AC1032"],
+      "finding": "The generated VISUALSTYLE edgeColor uses packed C5 word 0xC5000007. Tests assert normalized scalar 7, retained raw C5 word, exact same-version body re-encoding, and scalar edit to 8 producing canonical C3 word 0xC3000008.",
+      "limit": "The C5 packed word is generated test data, not an eligible producer sample or a C5 payload grammar claim."
+    },
+    "officialSemantics": {
+      "colorMethodUrl": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ColorMethod.html",
+      "aciForegroundUrl": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ACIcolorMethod.html",
+      "predicateUrl": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html",
+      "finding": "The documented API identifies C5 as Foreground, ACI foreground as 7, and both representations as foreground-equivalent.",
+      "limit": "API semantics do not establish DWG producer payload bytes."
+    }
+  },
+  "changes": {
+    "productionChanged": false,
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Changed one generated VISUALSTYLE color method to C5 and asserted its ACI-7 scalar view plus raw method identity.",
+      "Added an edited-scalar control to ensure canonical C3 output replaces stale C5 source data.",
+      "Added the focused --visualstyle-cmc-source-replay selector and CTest registration."
+    ],
+    "focusedCtestAdded": "libdxfrw_visualstyle_cmc_source_replay",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_visualstyle_cmc_source_replay|libdxfrw_cmcolor_foreground_projection|libdxfrw_dbcolor_unsupported_method_refusal|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (4/4, 0.30 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "For the generated AC1024/AC1027/AC1032 VISUALSTYLE vectors, the C5 source method is retained for unchanged same-version replay, scalar projection is 7, and an explicit scalar edit does not replay stale C5 bytes.",
+    "unresolved": [
+      "The broader class-by-class CMC consumer audit remains open, especially for scalar-only fields that cannot retain method or RGB metadata.",
+      "Real producer C5 payload and optional-name behavior remain unqualified.",
+      "C4 and C6-C8 remain unsupported for third-party semantic projection; their generic fallback policy is not promoted as correct.",
+      "HATCH-gradient C5 read/write remains gated on eligible producer evidence.",
+      "Native and independent semantic qualification remain separate gates."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the CMC consumer inventory and identify the first scalar-only consumer with a locally defensible preservation or refusal correction before changing shared fallback behavior."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Research-kernel candidate admission boundary",
+  "mode": "Primary-source web research and plan-only route reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the open-source independent-kernel screen beyond the previously reviewed NVIDIA SMLib candidate.",
+    "Determine whether quantitativepratik/brep-kernel offers a direct ACIS/DWG/DXF semantic route or only a narrower topology/projection role.",
+    "Refine the existing PAR-07/S8 optional candidate admission gate without adding implementation dependencies or per-slice validation."
+  ],
+  "sources": [
+    {
+      "project": "quantitativepratik/brep-kernel README",
+      "revision": "Mutable main branch; public README reviewed 2026-10-20, no immutable commit resolved",
+      "urls": [
+        "https://github.com/quantitativepratik/brep-kernel/blob/main/README.md"
+      ],
+      "observed": "The project describes itself as a Rust research/portfolio B-rep prototype and explicitly says it is not ready to replace production kernels. It documents closed-manifold triangle B-reps, NURBS operations, analytic primitives, regression models, and a scoped feature set.",
+      "evidenceCeiling": "Project documentation is not an executed capability result, immutable artifact, production-consumer qualification, or ACIS semantic witness."
+    },
+    {
+      "project": "quantitativepratik/brep-kernel exchange implementation",
+      "revision": "Mutable main branch; public source reviewed 2026-10-20, no immutable commit resolved",
+      "urls": [
+        "https://raw.githubusercontent.com/quantitativepratik/brep-kernel/main/src/exchange.rs"
+      ],
+      "observed": "The module explicitly implements a faceted STEP subset using FACETED_BREP, CLOSED_SHELL, FACE, FACE_OUTER_BOUND, POLY_LOOP, and CARTESIAN_POINT, plus a compact faceted IGES subset. STEP import reconstructs a Solid through Solid::from_triangle_mesh.",
+      "evidenceCeiling": "The reviewed exchange code is a faceted projection route and does not preserve analytic ACIS surfaces, trims, or exact ACIS record/body identity. The screen found no documented DWG, DXF, SAT/SAB, ACIS, or AcDs reader."
+    },
+    {
+      "project": "Existing local PAR-07/S8 route register",
+      "revision": "Shared worktree inspected 2026-10-20",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The plan already separates carrier parse, typed-record closure, AcDs source-owner association, topology transfer, independent analytic expectations, and native consumer qualification; NVIDIA SMLib is already recorded as a conditional kernel-only candidate.",
+      "evidenceCeiling": "This reconciliation is a candidate admission decision only. It does not provide new peer results or alter the deferred external qualification gates."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: reject optional peer candidates before build/adapter work when immutable provenance, exact input profile, or required analytic/topological representation is missing"
+    ],
+    "newIndependentKernelCandidatesScreened": 1,
+    "newCandidatesAdmittedToAcisSemanticRoute": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Record brep-kernel as SCREENED_NOT_ADMITTED for the ACIS semantic route: its reviewed STEP/IGES exchange is faceted, no immutable revision was pinned, and no ACIS/DWG/DXF reader was documented. Do not clone/build, add a dependency, or write an adapter for this task. Keep the candidate available only for a future separately specified triangulated-topology question."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation and source review; local plan-only update",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-research-kernel-candidate-admission-boundary-2026-10-20.json"
+    ],
+    "limitations": "The candidate repository pages and source are mutable main-branch content, and this pass did not resolve an immutable commit, download an artifact, run tests, or build the project. Absence of a documented ACIS/DWG/DXF reader in the reviewed surface is a route-admission observation, not proof about unpublished or future functionality."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq schema, candidate-admission, and six-item deferred-state assertions)",
+    "planDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

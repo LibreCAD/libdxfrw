@@ -1,0 +1,56 @@
+{
+  "title": "S3.7c zero-radius sphere-locus projection and distance",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Mathematical projection and signed radial distance for the sphere locus, including radius zero as the singleton center point",
+    "parser_profile": "Generated parser-fed ACIS BinaryFile 21800 sphere surface",
+    "projection_policy": "For a zero-radius locus, every finite query has the unique closest point at the center; nonzero-radius center projection remains ambiguous and is refused.",
+    "distance_policy": "Signed radial distance is distance-to-center minus magnitude(radius); for radius zero it is distance to the center point.",
+    "model_validity_policy": "Rooted ACIS projection coverage continues to classify zero radius as a known model-validity gap; utility support is not promoted to valid ACIS surface or B-rep support.",
+    "non_claims": [
+      "validity of a zero-radius ACIS surface or solid",
+      "sphere parameterization or trim evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_zero_radius_projection_to_center": "PASS",
+    "parser_fed_exact_zero_radius_distance_tolerance": "PASS",
+    "parser_fed_just_outside_tolerance_atomic_refusal": "PASS",
+    "nonzero_sphere_center_projection_refusal_preserved": "PASS",
+    "rooted_coverage_still_marks_zero_radius_as_gap": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.31 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_existing_symbol_behavior_change": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

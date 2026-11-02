@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Release-pinned peer reports and semantic-census controls",
+  "mode": "Primary-source project/release/issue review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden current open-source peer comparison across DWG read, DWG write, DXF conversion, OBJECTS, and ACIS interpretation.",
+    "Separate released capability statements from issue reports and identify a low-cost differential protocol that avoids false semantic pass signals.",
+    "Refine existing plan gates without adding local findings, tests, fixtures, peer dependencies, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp v3.7.1 released capability statement",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.1",
+        "https://github.com/DomCR/ACadSharp/blob/v3.7.1/README.md"
+      ],
+      "revision": "Release v3.7.1, tag commit d7dc111; release page reviewed 2026-10-20.",
+      "observed": "The tagged README presents separate DXF reader/writer and DWG reader/writer columns by AC code.",
+      "limits": "A version/direction table does not establish per-entity completeness, loss behavior, ACIS geometry semantics, or universal interoperability. Later master/issue reports are not automatically attributable to this release."
+    },
+    {
+      "project": "ACadSharp issue #1172",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172"
+      ],
+      "revision": "Open issue page reviewed 2026-10-20; report names ACadSharp 3.6.35.",
+      "observed": "Reporter describes silent loss of some AC1032 INSERT-family records across a read-to-DXF route using private AutoCAD inputs. A later commenter notes a possible count confound because TableEntity derives from Insert, while also distinguishing notification behavior in that commenter's own TABLE reproduction.",
+      "limits": "No public input or independently reproduced root cause is available in the issue. The inheritance observation is a test-method caveat, not a diagnosis of the original report."
+    },
+    {
+      "project": "ACadSharp issue #1180",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1180"
+      ],
+      "revision": "Open issue page reviewed 2026-10-20; report names ACadSharp 3.6.51.",
+      "observed": "Reporter claims annotated LEADER TextWidth/TextHeight are zero immediately after DWG read and describes downstream DXF/render consequences with handle-matched comparison.",
+      "limits": "No public drawing or independent reproduction; report is an adversarial semantic-field probe only."
+    },
+    {
+      "project": "ACadSharp issue #1184 and Autodesk field contract",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1184",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_ShadePlotCustomDpi.html"
+      ],
+      "revision": "Open issue page and Autodesk API reference reviewed 2026-10-20; report names ACadSharp 3.6.35 and 3.6.51.",
+      "observed": "Report describes a stored ShadePlotDPI/group-78 value passing through a validating setter, with zero meaningful only when shade resolution is not Custom; alleged read failures differ between DWG and DXF failsafe behavior.",
+      "limits": "Peer report is not a libdxfrw defect. Local generated tests already cover inactive zero versus active Custom and graph survival, so it does not justify duplicate tests."
+    },
+    {
+      "project": "ACadSharp issue #1161",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1161"
+      ],
+      "revision": "Open issue page reviewed 2026-10-20; report names source commit 82f89217494e62ce0b02e9208572b4a708dd8c40 / ACadSharp 3.6.50.",
+      "observed": "Reporter describes an inverted optional LTYPE hard-pointer condition in the AC1014 DWG writer and claims independent ODA File Converter rejection.",
+      "limits": "This is a version- and writer-branch-specific peer report, not independent local execution or a claim about other AC versions."
+    },
+    {
+      "project": "ezdxf ACIS tools",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Current project documentation accessed 2026-10-20.",
+      "observed": "Documentation limits ACIS goals to simple/known structures and polyhedral extraction, states arbitrary existing ACIS editing is not a goal, and states that ezdxf has no ACIS kernel; its browser can expose/export raw SAT/SAB data.",
+      "limits": "Raw inspection, simple body generation, or mesh extraction is not general ACIS B-rep validation, a geometry kernel result, or DWG AcDs association evidence."
+    },
+    {
+      "project": "LibreDWG AcDs/ACIS boundary",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Current issue and NEWS sources reviewed 2026-10-20.",
+      "observed": "The issue reports a named modern AcDs-carried SAB loss route; NEWS describes incomplete/heuristic handling of AcDsPrototype_1b extraction.",
+      "limits": "Project and issue sources are advisory and do not qualify all LibreDWG versions or establish libdxfrw behavior."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: use exact release/commit, AC version, direction, source identity, typed inventory, and diagnostic capture for optional peer comparisons.",
+      "PAR-07/S8 and output gates: compare exact handles and concrete entity types by processing stage; do not use broad inheritance-family counts or same-codec reread alone as semantic evidence.",
+      "PlotSettings: reuse existing inactive-zero/active-Custom generated controls; no duplicate test lane.",
+      "ACIS: keep raw-carrier inspection, DWG/DataStorage association, neutral B-rep transfer, geometry-kernel validity, and native consumer acceptance separate."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a release-pinned peer-report crosswalk spanning ACadSharp read/write and ezdxf/LibreDWG ACIS boundaries.",
+    "Specified exact-type/handle semantic inventories to avoid INSERT/TABLE subclass count confounds.",
+    "Specified stage-by-stage loss labels and preservation of diagnostics across parse, typed model, output, and independent reopen.",
+    "Retained fast local testing and milestone-only external reopens; peer unavailability is NOT_RUN and self-unblocks by continuing local items."
+  ],
+  "limitations": [
+    "Issue reports are author-provided and not independently reproduced here; some inputs are private or absent.",
+    "No peer executable, third-party sample, native CAD application, or geometry kernel was used.",
+    "The research refines existing subplans only and does not resolve external/platform qualification or any J item.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; receipt parsed and has no trailing whitespace)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty; no commit requested."
+  }
+}

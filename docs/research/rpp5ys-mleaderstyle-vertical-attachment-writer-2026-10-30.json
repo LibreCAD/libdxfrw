@@ -1,0 +1,46 @@
+{
+  "id": "RPP-5ys",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE vertical attachment direct-writer encoding",
+  "scope": {
+    "operation": "Represent the unset top/bottom attachment defaults without emitting undocumented enum values, preserve documented values, and refuse invalid direct-writer inputs.",
+    "target_version": "AC1027",
+    "fields": [
+      { "group_code": 272, "name": "bottomAttachment", "wire_values": { "9": "center", "10": "underline and center" } },
+      { "group_code": 273, "name": "topAttachment", "wire_values": { "9": "center", "10": "overline and center" } }
+    ],
+    "authority": "Autodesk AutoCAD DXF Reference documents groups 272/273 with wire values 9 and 10; ObjectARX TextAttachmentType defines 9 and 10 among the attachment enum values. The ODA MLEADERSTYLE schema maps groups 272/273 to bottom/top attachment.",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbMLeaderStyle__TextAttachmentType.html"
+    ],
+    "zero_policy": "Inference from the local typed-model default (0) and Autodesk's documented 9/10 DXF wire values: treat 0 as unset, omit the group, and recover the typed default on read. This is a direct-writer encoding decision, not a claim of native rendering acceptance.",
+    "claim_boundary": "Direct DXF writer encoding, domain refusal, rollback and retry only; native vertical text layout remains open."
+  },
+  "implementation": [
+    "Accept 0 as the unset model default and omit groups 272/273 from direct DXF output.",
+    "Write values 9 and 10 exactly; refuse all other values before output."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "invalid_values_per_field": [8, 11, 65535],
+    "valid_output": "Corrected retries emit exact group 272/273 values 9 and 10; correcting 65535 to the model default 0 omits the corresponding group.",
+    "refusal": "Each invalid value refuses before publication; destination sentinel and caller model value remain unchanged.",
+    "retry": "The same dx_iface retries each invalid value and writes the exact valid field or omitted default.",
+    "matrix": "Two fields × three invalid values × two encodings; 12 destination-safe refusals and 12 successful retries, integrated with the other selected enum-domain cases.",
+    "readback_boundary": "The selected direct-writer check scans exact output tags. The existing source-bound AC1027 adapter transaction receipt RPP-5lx separately proves typed readback for explicit 9→10 edits."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.53 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Native vertical text layout, cross-version output, and independent producer acceptance remain open."
+  ]
+}

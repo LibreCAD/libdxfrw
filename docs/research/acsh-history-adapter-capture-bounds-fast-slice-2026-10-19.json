@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AcSh history adapter capture bounds fast slice",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound the concrete dwg2dxf adapter's typed AcSh history callback copies before retention.",
+    "Fail closed on record/byte budget refusal or allocation failure.",
+    "Verify generated callback retention, over-budget refusal, and no-output export failure."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": true,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "dx_iface estimates fixed object size, retained strings, common table-entry/XDATA values, prefix-status strings, and dynamic vector payloads before copying. Capture admits at most 100,000 records and DRW::kMaxDxfBinaryPayloadBytes logical retained bytes. Rejection or allocation failure sets a sticky dx_data flag; fileExport checks it before writing and refuses output.",
+    "limits": "The estimate covers logical retained content and container slots, not allocator capacity, implementation-specific list-node overhead, or process RSS.",
+    "generatedTest": "The adapter selector retains a generated typed AcSh object with blob, shape parameters, edges, and prefix status; it then seeds the aggregate retained-byte counter at the cap, verifies the next callback is rejected without append, and verifies export refusal publishes no DXF. No drawing fixture is used."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "libdxfrw_dwg2dxf_adapter_tests --acsh-history-capture-limits (via owning CTest)",
+      "result": "passed"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_acsh_history_capture_limits$' --output-on-failure",
+      "result": "passed 1/1"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fb657d5ad135dfe4e17f744b61c367d35fbae0259f5efac89321c3aba8349e46",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "This bounds adapter-side typed capture only; it does not establish allocator-capacity or RSS bounds.",
+    "No AcSh/ACIS semantic or writer support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No external drawings or repository fixtures were added.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

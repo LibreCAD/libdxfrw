@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 bounded unused MLINESTYLE unique-subsequence removal",
+  "date": "2026-10-28",
+  "codeCommit": "c631dd42bad439b0ce0dd7a02c6345f03a7b57b3",
+  "scope": "Same-version modern DXF core with 2 to 255 contiguous 49/62/6 tuples, a nonempty unchanged ordered survivor sequence with a unique original embedding, exact original raw tuple values and ASCII spellings, rooted dictionary, all original and survivor LTYPE providers, and complete original/live/output ordinary MLINE consumer census.",
+  "contract": {
+    "operation": "Remove any nonempty subset while retaining a nonempty uniquely matched subsequence in original order; set group 71 to survivor count.",
+    "identity": "Linear earliest/latest full-element matching establishes unique survivor content only, not editing history.",
+    "atomicity": "Forward in-place compaction keeps owning fields and ASCII spellings aligned without an additional retained snapshot; failure preserves destination and caller model, with corrected same-facade retry.",
+    "unqualified": "Empty result, ambiguous embeddings, reordered or modified survivor tuples, simultaneous retained-element edits, consumed geometry, unqualified source profiles, extra core suffixes and missing evidence remain refused.",
+    "formatCoverage": "Selected AC1027 source and target, ASCII and binary input/output; independent boundary source is locally authored ASCII."
+  },
+  "sourceBindings": {
+    "adapterCppSha256": "0f1bed9f2cb46ed18a25839c7ce6a7e6d038ed6b691f706e66a90fdbacb4d6a0",
+    "adapterHeaderSha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca",
+    "testSourceSha256": "a5f0814577f4755e49c1d0fd0fde94aefd20eb304ce3a5471a086bbac2a1ae0e",
+    "normalAdapterObjectSha256": "4288785914421715ee9c8a8faf4d953cad65507c047e1614db24c2ea5112bcd5",
+    "normalLibrarySha256": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a",
+    "normalTestExecutableSha256": "6863f1053b9b311edfa68730445faba33fd8195daab087e1685e3e47bca32c88",
+    "asanAdapterObjectSha256": "8a58ece5f93483f1d3942569399bcb5dbe029fadfa644b19d5329a2d276dccbe",
+    "asanLibrarySha256": "36f234851004983a1aaee44c2beb6c6487c60a4e172f81ee1321779aee5f26e7",
+    "asanTestExecutableSha256": "e693a6872f160fe77a7aab7a69ec53474b1541fda928b6a58b7433cbaf55c835"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "subsequenceCounters": {
+      "profiles": 56,
+      "refusals": 22,
+      "late": 8,
+      "ambiguous": 2,
+      "boundary": 8,
+      "retries": 32
+    },
+    "regressionResolution": "An intermediate vector-rebuild version refused the previously qualified 255-element boundary at preflight after adding snapshot precharges. The final code removes those allocations by forward in-place compaction while preserving the established precharges; all previous and new boundary controls pass. This records the observed failure and correction without asserting an independently measured root cause.",
+    "logNote": "Results were observed directly; concurrent CTest runs may overwrite LastTest.log."
+  },
+  "independentPeer": {
+    "version": "1.4.5",
+    "reportPath": "build/rpp5ic-evidence/independent.json",
+    "reportSha256": "6540e9e9ebee971adc420856a1efd045d3028eb32ebfd63824484d1a8a2db2ce",
+    "reportScriptSha256": "232d78fa395a1c542188304de075db053e4273848bb16224ad20d5558f5af72a",
+    "probeSourceSha256": "2c632c29dbecf9ab2a346c89498bd504f0373b52960a767334279e90aa173f3a",
+    "probeExecutableSha256": "7b03207a26dc322a5bad62e7f5bc6dbb4e6706f5fee4033fd103836aef9a6b7c",
+    "projectionToolSha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+    "inputs": [
+      {
+        "format": "asc",
+        "sha256": "e94e825e5a05c9465ad19c43279161c49c2f5c040d6f70e0281af73d39f9d140"
+      },
+      {
+        "format": "bin",
+        "sha256": "3a032f89332b296fc103093844c838e6d798c2d49381e81374f805b5fbca0dc3"
+      }
+    ],
+    "outputs": [
+      {
+        "sourceFormat": "asc",
+        "format": "asc",
+        "sha256": "9a1734ef26cd3afcd1844daf7a82b6ffe4d9b82bf371f9ba68b3250726a53fc8"
+      },
+      {
+        "sourceFormat": "asc",
+        "format": "bin",
+        "sha256": "8b380dd4535a0c50d4a2c1be6f735fe9e2e15a2b324ac9710504485787a95d39"
+      },
+      {
+        "sourceFormat": "bin",
+        "format": "asc",
+        "sha256": "0e4b991de94e10ac7fe009dc7c9b64460d5e85de2e7189287e82befa260b9c17"
+      },
+      {
+        "sourceFormat": "bin",
+        "format": "bin",
+        "sha256": "8b380dd4535a0c50d4a2c1be6f735fe9e2e15a2b324ac9710504485787a95d39"
+      }
+    ],
+    "originalTuples": [
+      [
+        1.25,
+        6,
+        "CONTINUOUS"
+      ],
+      [
+        -0.75,
+        2,
+        "BYLAYER"
+      ],
+      [
+        1.75,
+        4,
+        "CONTINUOUS"
+      ],
+      [
+        -1.25,
+        3,
+        "BYLAYER"
+      ]
+    ],
+    "outputTuples": [
+      [
+        1.25,
+        6,
+        "CONTINUOUS"
+      ],
+      [
+        1.75,
+        4,
+        "CONTINUOUS"
+      ]
+    ],
+    "observations": "Independent physical inspection before document setup and ordinary ezdxf readback matched selected tuple order/count, rooted dictionary owner/key, LTYPE targets and both unrelated MLINE consumer geometries in every source/output encoding combination.",
+    "boundary": {
+      "reportPath": "build/rpp5ic-evidence/boundary-independent.json",
+      "reportSha256": "4debd8c551a651c015cabc9a9f18c08478d87294e32fe5511d8fcfbd0d4c3f37",
+      "reportScriptSha256": "ce18f2e8f420f3d7b8116b0ba7772c2b5a382497045748272fd091e8dbc1af19",
+      "probeSourceSha256": "098354b10aefb676d1bfc149d778ac7b01e940ca8b4b085b9522b5ea05a7a316",
+      "probeExecutableSha256": "8c49e8e822ae34a08dacd11fa318775632c0cc80ca60247b160b4368f3b51aa1",
+      "inputSha256": "b785c591291071cbac34ed00af279323dbf5d77667677f3e2856a5d8faee2212",
+      "input": "Locally authored ASCII from the prior generated peer source, 255 tuples.",
+      "operation": "Remove original index 127 and retain 254 tuples in order.",
+      "outputs": [
+        {
+          "format": "asc",
+          "sha256": "55deb9e1cb1d7fd644b19e10f0834490093f6b9772450a24ab9efd521f69f865"
+        },
+        {
+          "format": "bin",
+          "sha256": "8a16c3aa3ccb27fc4d91bbc7de6c787a569b58205f1b1a73bb0d608f5a8eae6b"
+        }
+      ],
+      "observations": "Independent physical source/output and ordinary readback verified all 254 output tuples and unrelated owner, provider and consumer relationships for ASCII and binary output."
+    }
+  },
+  "limitations": [
+    "Both peer inputs are generated; the boundary input was authored locally from a prior generated output, not by an independent native CAD application.",
+    "Native rendering, native consumer behavior, complete document fidelity, unknown/proxy dependencies and untested versions remain unqualified.",
+    "No drawing fixture is committed by this receipt."
+  ]
+}

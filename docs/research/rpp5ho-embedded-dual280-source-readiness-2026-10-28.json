@@ -1,0 +1,362 @@
+{
+  "schema": "embedded-dual280-source-readiness-v1",
+  "date": "2026-10-28",
+  "status": "BASELINE_REPRODUCED_IMPLEMENTATION_READINESS_NOT_YET_QUALIFIED",
+  "supportClaimsPromoted": false,
+  "baselineCommit": "01c2f0bd3c6326151394b407aff096730cef24b2",
+  "source": {
+    "path": "build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+    "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1032_ascii.dxf",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "gitBlob": "e4401ec6d62d940c11c9346a39a84887344797c9",
+    "lineageReceipt": "docs/research/deeper-broader-acadsharp-hatch-witness-lineage-and-profile-2026-10-19.json",
+    "custody": "Independent repository sample, retained unmodified. Prior research described the sample as AutoCAD-saved; this experiment does not independently certify its authoring provenance."
+  },
+  "references": {
+    "autodeskAttdef": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm",
+    "autodeskAttrib": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm",
+    "ezdxfImplementation": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/attrib.py",
+    "roles": "Autodesk lists version 280=0 after the attribute subclass, followed by a separate 280 lock-position flag. Current ezdxf code notes the dual use, retains the last 280 as lock and does not emit the version tag; this is implementation evidence, not a native semantic oracle.",
+    "loadedPeerModule": {
+      "path": "build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/attrib.py",
+      "sha256": "5b6f6ba3776e8ec4b4418782f9207f567c76b8e3f19c1f7292347793e437b843"
+    }
+  },
+  "records": [
+    {"kind": "ATTDEF","handle": "796","owner": "77F","byteRange": [75957,76505],"rawGroupCount": 37,"version": {"index": 14,"value": 0,"byteRange": [76178,76189]},"lock": {"index": 19,"value": 1,"byteRange": [76263,76274]},"attributeType": 4,"embeddedMarker": {"index": 25,"code": 101,"byteRange": [76348,76368]},"baselineAudit": {"complete": false,"reason": "AmbiguousVersion","reasonNumber": 13,"rejectedGroup": 25},"model": {"pair": true,"replay": true,"lockPosition": true,"attVersion": 1}},
+    {"kind": "ATTRIB","handle": "79D","owner": "79C","byteRange": [210468,211002],"rawGroupCount": 36,"version": {"index": 14,"value": 0,"byteRange": [210677,210688]},"lock": {"index": 18,"value": 1,"byteRange": [210729,210740]},"attributeType": 2,"embeddedMarker": {"index": 24,"code": 101,"byteRange": [210813,210833]},"baselineAudit": {"complete": false,"reason": "AmbiguousVersion","reasonNumber": 13,"rejectedGroup": 24},"compound": {"modeled": true,"profiles": false,"space": false,"state": 13},"model": {"lockPosition": true,"attVersion": 1}}
+  ],
+  "probeResults": [
+    {"stage": "original-import","definitionHandle": 1942,"definitionOwner": 1919,"definitionAlign": [954.807,6.39442,0],"definitionEmbeddedInsertion": [954.807,6.39442,0],"definitionLock": 1,"definitionType": 4,"definitionVersion": 1,"parentHandle": 1948,"childHandle": 1949,"childOwner": 1948,"childAlign": [977.281,28.7508,0],"childEmbeddedInsertion": [977.281,28.7508,0],"childLock": 1,"childType": 2,"childVersion": 1,"footerHandle": 1950,"footerOwner": 1948},
+    {"stage": "original-proof","definitionPair": 1,"definitionReplay": 1,"definitionProfileReason": 13,"definitionRejectedGroup": 25,"selectedCompounds": 1,"compoundModeled": 1,"compoundProfiles": 0,"compoundSpace": 0,"compoundState": 13,"childProfileReason": 13,"childRejectedGroup": 24},
+    {"stage": "source-model-after-both-exports","definitionHandle": 1942,"definitionOwner": 1919,"definitionAlign": [954.807,6.39442,0],"definitionEmbeddedInsertion": [954.807,6.39442,0],"definitionLock": 1,"definitionType": 4,"definitionVersion": 1,"parentHandle": 1948,"childHandle": 1949,"childOwner": 1948,"childAlign": [977.281,28.7508,0],"childEmbeddedInsertion": [977.281,28.7508,0],"childLock": 1,"childType": 2,"childVersion": 1,"footerHandle": 1950,"footerOwner": 1948}
+  ],
+  "baselineBindings": {
+    "adapterObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "19376a87f571a26ab054423954c5ac1907848d9c0a9a89fb29332439ab485b77"
+    },
+    "library": {
+      "path": "build/libdxfrw.a",
+      "sha256": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198"
+    },
+    "profileHeaderAtProbeSha256": "77fe67255af84ed14e1fdcb01ad9572484ca524056c763b5775af61ea6a30b2f",
+    "auditSource": {
+      "path": "build/agent-attribute-profile/audit.cpp",
+      "sha256": "b56981cd064a2bf49c09fe8596bd5bc2bbedd32ff5e98d7c818de5736ace967a"
+    },
+    "auditBinary": {
+      "path": "build/agent-attribute-profile/current-dual/audit",
+      "sha256": "4685160c9b80f6b65263a30e2544b16404603fa044d1dd6aaef78d39f7a18dc9"
+    },
+    "auditLog": {
+      "path": "build/agent-attribute-profile/current-dual/audit.log",
+      "sha256": "80d2f5c24d32544dcd12f7220f890a0ec13ee9900c149056b1ce0650aaf49e4c"
+    },
+    "probeSource": {
+      "path": "build/agent-attribute-profile/current-dual/probe.cpp",
+      "sha256": "9186378f430e4db561e0242f95bc80def614bf229046565ac124505c95cabb53"
+    },
+    "probeBinary": {
+      "path": "build/agent-attribute-profile/current-dual/probe",
+      "sha256": "1efb4ad108ac12f348a7e1f0a19825a8bc843ae10fa0170384542924c0b223fc"
+    },
+    "probeLog": {
+      "path": "build/agent-attribute-profile/current-dual/write.stdout",
+      "sha256": "fe14d0ed90acec39f656b80f2579a81f8330c5b302ddc5194a506179aee97f6d"
+    },
+    "peerScript": {
+      "path": "build/agent-attribute-profile/current-dual/peer.py",
+      "sha256": "27b2e1a1e67f222c086a11890e2409a77a4e4eb83f91c8161eed48a9dd338aa7"
+    },
+    "peerPython": {
+      "path": "build/rpp5gh-evidence/peer/bin/python",
+      "sha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb"
+    },
+    "peerReport": {
+      "path": "build/agent-attribute-profile/current-dual/peer-report.json",
+      "sha256": "857ae6951a94ec0c16497ecbcb2a84b1c494bb801ae1b6523cdfc2e0f9d26bee"
+    }
+  },
+  "projection": {
+    "meaning": "Scratch-only altered copy of the profile header removes both explicit embedded dual exclusions while leaving the original physical records unchanged. Both record audits then complete; this diagnostic does not validate safe guards, constitute an implementation, or promote support claims.",
+    "header": {
+      "path": "build/agent-attribute-profile/current-dual/profile-projection.h",
+      "sha256": "2c50b0e0341707d4b42eeb5abfe93a01dcbced5c5c78dabe892d81ac3bd37da2"
+    },
+    "probeSource": {
+      "path": "build/agent-attribute-profile/current-dual/audit-projection.cpp",
+      "sha256": "36c6969f12e26b44d7727f1267669b33d7468da969f6aad1bade12a9931dbc20"
+    },
+    "probeBinary": {
+      "path": "build/agent-attribute-profile/current-dual/audit-projection",
+      "sha256": "584c0f72089da27f62acf1d54112a879e5c6b6b3f22a7889a1e931f18d66f81c"
+    },
+    "log": {
+      "path": "build/agent-attribute-profile/current-dual/audit-projection.log",
+      "sha256": "461edbecf52cef3f49a020a870ac9d22ae45abdbe217df3019c6a443cdda3b02"
+    },
+    "results": [
+      "ATTDEF 796: Complete, 37 groups",
+      "ATTRIB 79D: Complete, 36 groups"
+    ]
+  },
+  "selectedOutput": {
+    "method": "From imported selected typed models, copy ATTDEF and INSERT, filter INSERT to the selected ATTRIB, and write these via the compatible lower-level writer in ASCII and binary. This is a selected-model diagnostic, not a whole-document export. Source model observations were unchanged.",
+    "wholeDocumentAttempt": "A prior full adapter export refused because standalone TABLECONTENT lacked a qualified replay path.",
+    "observations": [
+      {
+        "path": "build/agent-attribute-profile/current-dual/output-asc.dxf",
+        "sha256": "6740ae099a98e85daee1770c9228d91dfdc5a7cddec764924a65e86a302f92b4",
+        "physical": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock280": [
+              1
+            ],
+            "coordinates": [
+              {
+                "scope": "AcDbText",
+                "startCode": 11,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "startCode": 11,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "startCode": 10,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock280": [
+              1
+            ],
+            "coordinates": [
+              {
+                "scope": "AcDbText",
+                "startCode": 11,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "startCode": 11,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "startCode": 10,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ],
+        "ordinary": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock": 1,
+            "type": 4,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock": 1,
+            "type": 2,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "unchanged": true
+      },
+      {
+        "path": "build/agent-attribute-profile/current-dual/output-bin.dxf",
+        "sha256": "c4bb5040e9722935b4de809e4c6f650359aacb246ffe8b1d3e3c44aa944395ee",
+        "physical": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock280": [
+              1
+            ],
+            "coordinates": [
+              {
+                "scope": "AcDbText",
+                "startCode": 11,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              },
+              {
+                "scope": "AcDbAttributeDefinition",
+                "startCode": 11,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "startCode": 10,
+                "triple": [
+                  954.8074779573491,
+                  6.394418742730506,
+                  0.0
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock280": [
+              1
+            ],
+            "coordinates": [
+              {
+                "scope": "AcDbText",
+                "startCode": 11,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              },
+              {
+                "scope": "AcDbAttribute",
+                "startCode": 11,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              },
+              {
+                "scope": "Embedded Object",
+                "startCode": 10,
+                "triple": [
+                  977.2814835151885,
+                  28.7508142234822,
+                  0.0
+                ]
+              }
+            ]
+          }
+        ],
+        "ordinary": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock": 1,
+            "type": 4,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock": 1,
+            "type": 2,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "unchanged": true
+      }
+    ],
+    "result": "Both outputs preserve lock=1, multiline types, selected equal host and embedded coordinates; each normalizes the dual source to one lock-position 280=1."
+  },
+  "implementationScope": "A prospective narrow admission can combine the already validated classic 280 role ordering with the selected AC1032 Embedded Object 101, type 4/2 and equal finite host alignment profile. Keep the exact first version0 position, required host tag/flags and lock Boolean checks; reject malformed/reversed/third values, early or misordered flags, unmodeled secondary forms, ambiguous legacy markers, nonfinite/unequal/partial component duplicates, and maintain classic and singleton controls. No broad native semantic claim follows.",
+  "limitations": [
+    "The real selected records have equal host alignment and embedded insertion; distinguishing embedded insertion was separately independently authored in docs/research/rpp5hn-embedded-equal-alignment-qualified-2026-10-28.json without the dual prefix.",
+    "The ezdxf ordinary loader uses fast_load_dxfattribs(recover=True). No explicit audit/recover was invoked; native CAD rendering and semantics are not verified.",
+    "The selected output is a filtered model copy, does not prove complete graph, source-byte preservation, strict application replay or rollback/retry behavior, and its output block reference is not a qualified complete document graph.",
+    "The new focused generated tests are implementation work in progress; no passing result is asserted here. No drawing fixtures were added or committed."
+  ]
+}

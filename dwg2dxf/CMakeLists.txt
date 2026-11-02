@@ -1,9 +1,14 @@
 include(GNUInstallDirs)
 
-add_executable(dwg2dxf dx_iface.cpp main.cpp dx_iface.h dx_data.h)
+include(${CMAKE_CURRENT_SOURCE_DIR}/source-files.cmake)
+add_executable(dwg2dxf ${LIBDXFRW_CLI_SOURCES} ${LIBDXFRW_CLI_HEADERS})
 target_compile_options(dwg2dxf PRIVATE ${LIBDXFRW_WARNING_FLAGS})
 target_include_directories(dwg2dxf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(dwg2dxf dxfrw)
+target_link_libraries(dwg2dxf PRIVATE dxfrw)
+if(APPLE)
+    find_library(LIBDXFRW_COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
+    target_link_libraries(dwg2dxf PRIVATE ${LIBDXFRW_COREFOUNDATION_FRAMEWORK})
+endif()
 
 # A shared libdxfrw build installs its library under libdir while the
 # standalone converter is installed under bindir. Keep the installed CLI

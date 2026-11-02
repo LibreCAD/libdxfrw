@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-title-block-dynamic-graph-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Physical AC1024 Title_Block-ARCH dynamic graph output and readback",
+  "status": "PHYSICAL_SOURCE_GRAPH_OUTPUT_READBACK_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local input was read in place. No DWG/DXF input or output fixture was added to Git; output files were temporary and removed by the selector."
+  },
+  "profile": {
+    "blockRecord": "0x127 / Title_Block-ARCH",
+    "ownerDictionary": "0x1116",
+    "evaluationGraph": "0x1117",
+    "sortentsTable": "0x111C",
+    "dynamicObjects": ["0x1118", "0x1119", "0x111A", "0x111B", "0x1122"],
+    "graph": "Four nodes and three edges; exact typed fields and fresh wire group order compared between output readback and staged EvaluationGraph output.",
+    "ownerRoles": "The owner DICTIONARY preserves its three ordered keys and BLOCK_RECORD owner. EvaluationGraph and SORTENTSTABLE point back to the dictionary; dynamic node objects bind to graph nodes; PurgePreventer reactor and owner handles are checked against the raw emitted DXF record.",
+    "visibility": "The source and output visibility parameter each contain 117 unique handles covering their block definition. Four ordered visibility states contain 29 targets apiece; every source state target is remapped to the corresponding fresh-readback output handle.",
+    "sortents": "The source SORTENTSTABLE has 25 explicit pairs; the independently source-backed output profile expands to 117 pairs. The selector verifies both table owner/target roles and that all 25 mapped source targets remain in the emitted table. Exact table projection is covered by p4-ac1024-sortents-multitable-output-proof-2026-10-31.json.",
+    "versionMapping": "AC1024 EvalExpr source versions 29/2 are compared with the DXF schema identifiers 33/29; GripLocationComponent fields and visibility/grip bodies are checked by kind.",
+    "boundary": "Serializer and fresh DXF readback evidence only. This does not establish native dynamic-block behavior, CAD application acceptance, full document completeness, or a format-wide support claim."
+  },
+  "qualification": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "callbackIdentities": {
+      "qualified": ["0xA", "0xF", "0x52", "0x1117", "0x1118", "0x1119", "0x111A", "0x111B", "0x111C", "0x1122"],
+      "count": "109/109",
+      "remaining": []
+    },
+    "result": "PASS for the exact physical graph and all captured source callback identities in both encodings, including the exact VIEWPORT 0x52 profile. This receipt does not establish format-wide completeness or native dynamic-block semantics."
+  },
+  "failureAndRetry": {
+    "negativeControls": [
+      "An invalid physical LAYOUT BLOCK_RECORD target refuses output and preserves the destination sentinel and prior callback qualifications.",
+      "Removing one required visibility block target refuses output, preserves the destination sentinel, and publishes no callback qualification."
+    ],
+    "retry": "Restore each source field and retry using the same adapter. The complete graph then exports and freshly imports in ASCII and Binary.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "physicalTitleBlock": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/title_block-arch.dwg",
+      "result": "PASS in ASCII and Binary for LAYOUT fields/edges, dynamic owner/object graph, visibility remap, staged EvaluationGraph wire, purge wire owner/reactors, all 109/109 captured source callback identities including VIEWPORT 0x52, rollback and same-adapter retry."
+    },
+    "physicalMechanicalControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS in ASCII and Binary for the Model/Layout1 source profile and retry control."
+    },
+    "generatedDynamicGraph": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_visibility_composed_graph$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/title-arch-current-next.dxf",
+      "result": "PASS, exit 0; DXF output freshly inspected by the physical ASCII/Binary readback selector. This exact source profile does not qualify other AC1024 drawings or native dynamic-block semantics."
+    },
+    "fullSuites": "NOT RUN; touched warning-as-error targets and focused physical/generated selectors were used."
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b9efeaf188435a11aacea17664742dee827584427bc2bbece5a3a295586fbdc1",
+    "dwg2dxf/dx_iface.cpp": "748f4357732cc41b4834f6125f7902db5ab83f42fc32e7c3ab11e2e2cb595ad7",
+    "dwg2dxf/dx_iface.h": "f27550c60e659e0530979eca74834f6d1534371b5b43e6c79a7f71642847520c",
+    "src/libdxfrw.cpp": "a02e285ad61bcf64c785ecb5b8de459f01e8e0c8f4f4d6ce6db149b756566901",
+    "tests/dwg2dxf_adapter_tests.cpp": "f4b7c552f7afcbf2aaf3ba7e5e109e705c96740b551756cedfd22acaf31a6f2d"
+  },
+  "fixturesAdded": 0,
+  "externalItemsPromoted": 0
+}

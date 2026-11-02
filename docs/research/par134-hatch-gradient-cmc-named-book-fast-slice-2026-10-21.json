@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 HATCH gradient CMC optional color/book names",
+  "mode": "ODA-backed local implementation with generated fast tests",
+  "scope": [
+    "Read optional CMC color-name and book-name TV strings for R2004+ HATCH and MPOLYGON gradient stops",
+    "Write the corresponding CMC RC presence flags and optional strings for supported C2 RGB and C3 ACI methods",
+    "Keep invalid flags, methods, ACI values, truncation, and aggregate string-budget overflow fail-closed"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1, local copy /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "2.11 Common Color (CMC)",
+      "finding": "R2004+ CMC stores a reserved BS (zero), method-packed BL, and RC flags; bit 0 selects an optional color-name TV and bit 1 selects an optional book-name TV."
+    },
+    "decision": "Retain optional names/books only for the independently implemented C2/C3 methods. Do not infer support for other CMC methods or broader gradient behavior."
+  },
+  "changes": {
+    "reader": "src/drw_entities.cpp accepts only known CMC flag bits, decodes supported C2/C3 colors, and consumes optional name/book TV payloads within version-specific stream bounds.",
+    "writer": "src/intern/dwgbufferw.h and src/intern/dwgbufferw.cpp add explicit C2/C3 CMC encoding with the matching name/book flags and payloads; src/drw_entities.cpp applies it to gradient stops.",
+    "limits": "The cumulative gradient name and per-stop color/book names are checked against the existing 16 MiB string budget.",
+    "generatedTests": "tests/dwg_local_roundtrip_tests.cpp verifies independent emitted method/flag bytes, optional string order, AC1018 same-stream parsing, AC1024 detached-stream parsing and file roundtrip, sentinel alignment, unsupported flags, malformed input rollback, and writer refusal/retry.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp src/intern/dwgbufferw.cpp src/intern/dwgbufferw.h tests/dwg_local_roundtrip_tests.cpp",
+        "result": "PASS"
+      }
+    ]
+  },
+  "limits": [
+    "The vectors are generated locally and are not independent producer-authored samples.",
+    "Only C2 RGB and C3 ACI methods are implemented by this slice; other CMC methods remain unsupported.",
+    "This does not establish complete HATCH or MPOLYGON gradient semantics or consumer acceptance.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No persistent DWG/DXF fixture was added; the broadly dirty shared worktree remains uncommitted and unstaged."
+  ],
+  "next": "Continue PAR-03 associative-action dwgResbufValueKind context research only with the exact ODA consumer field layout; keep PAR-134 partial pending other CMC methods, broader semantics, and independent external qualification."
+}

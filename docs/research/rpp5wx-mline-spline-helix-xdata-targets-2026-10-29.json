@@ -1,0 +1,142 @@
+{
+  "id": "RPP-5wx",
+  "title": "AC1027 MLINE LTYPE XDATA references to SPLINE and HELIX targets",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILES",
+  "implementation_commit": "1017b622db0608d09f2c5435d38622078778f253",
+  "implementation_commits": [
+    "9cf65806ef830ea2a448688545b28d443977adef",
+    "1017b622db0608d09f2c5435d38622078778f253"
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records authored by the focused regression helper; no repository DWG/DXF fixture was added.",
+    "route": "One source-bound group-1005 soft pointer in the EditDash LTYPE XDATA, with targets in model-space ENTITIES or the named AuthorityBlock BLOCKS section.",
+    "target_profiles": [
+      {
+        "type": "SPLINE",
+        "source_handle": "0xA900",
+        "owner_handles": {
+          "model_space": "0x201",
+          "named_block": "0x203"
+        },
+        "spline_profile": {
+          "flags": 0,
+          "degree": 3,
+          "knots": [0, 0, 0, 0, 1, 1, 1, 1],
+          "control_points": [[0, 0, 0], [1, 2, 3], [3, 2, 1], [4, 0, 0]],
+          "fit_points": []
+        }
+      },
+      {
+        "type": "HELIX",
+        "source_handle": "0xA900",
+        "owner_handles": {
+          "model_space": "0x201",
+          "named_block": "0x203"
+        },
+        "spline_profile": {
+          "flags": 0,
+          "degree": 3,
+          "knots": [0, 0, 0, 0, 1, 1, 1, 1],
+          "control_points": [[0, 0, 0], [1, 2, 3], [3, 2, 1], [4, 0, 0]],
+          "fit_points": [],
+          "tolerances": [0.000001, 0.000001, 0.000001]
+        },
+        "acdb_helix_trailer": {
+          "major_version": 1,
+          "maintenance_version": 0,
+          "axis_base_point": [0, 0, 0],
+          "start_point": [1, 0, 0],
+          "axis_vector": [0, 0, 1],
+          "radius": 1,
+          "turns": 2,
+          "turn_height": 1.5,
+          "right_handed": true,
+          "constraint_type": 1
+        }
+      }
+    ],
+    "section_profiles": [
+      {
+        "source_section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "owner_handle": "0x201"
+      },
+      {
+        "source_section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "owner_handle": "0x203"
+      }
+    ],
+    "encoding_matrix": "Each target type and section is checked for all four ASCII/binary source and output combinations.",
+    "runtime_fixture": "The test creates source groups from scratch in a temporary directory and removes them after success. No testing drawing was added to the repository."
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "SPLINE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "relevant_rule": "Defines SPLINE flags, degree, knot/control/fit counts, tolerances, knots, control points and fit points."
+      },
+      {
+        "title": "HELIX (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-76DB3ABF-3C8C-47D1-8AFB-72942D9AE1FF.htm",
+        "relevant_rule": "Defines HELIX as spline data plus the AcDbHelix trailer: versions, axis base/start/vector, radius, turns, turn height, handedness and constraint type."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles are soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The source collector binds each authored target to its physical record, expected parser callback and exact DRW type, unique live model, owner handle and ENTITIES/BLOCKS source role. Named-block membership is checked against the captured block record and delivered child record.",
+    "output": "For every selected target type, section and ASCII/binary input/output pair, the test checks the remapped group-1005 output, target entity record, owner, selected spline geometry and HELIX trailer fields, and fresh typed readback. The MLINE LTYPE and APPID source bindings are also checked.",
+    "failure_retry": "For each target type, section and encoding pair, removing the required target refuses export without replacing the prior destination; restoring it allows same-adapter output and readback. Separate late-mutation controls for each target type and section change the target handle after provider emission, verify atomic refusal and destination preservation, then restore the handle and retry successfully on the same adapter.",
+    "counts": {
+      "selected_positive_profiles": 16,
+      "selected_successful_readbacks_including_retries": 36,
+      "selected_refusals_with_destination_preservation": 20,
+      "selected_same_adapter_retries": 20,
+      "whole_focused_test_profiles": 292,
+      "whole_focused_test_readbacks": 654,
+      "whole_focused_test_refusals": 362,
+      "whole_focused_test_retries": 362
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding": "Adds SPLINE and HELIX record names, entity/block callback mappings, exact dynamic-type checks, raw-record type recognition and delivery callback admission to collectDxfMLineXdataEntitySources.",
+    "consumer_compatibility": "Uses the existing DRW_Interface callbacks and entity writer dispatch; no pure virtual API or public data layout changed.",
+    "claim_boundary": "These are selected local transport, source identity, output, typed readback and transaction profiles. They do not establish full SPLINE/HELIX semantic validity, native application meaning, recursive document closure or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 17.85 seconds); selector asserted the complete focused-test counts above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded dispatch coverage without new parser ownership or persistent state. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_source_sha256": "9770f6c524b5e85c1e14c9c772fb3f999582ec10f2cc07d80c452704e605ac27",
+      "test_source_sha256": "a4d791c0c8e03a45539a54df0db4aef9cc76914d5ca9018408c04aa3eeb246aa",
+      "plan_sha256": "acf1fb5f198028b774203adc4e8462db5173d3b4dbf428cc490f23f31065909e",
+      "normal_executable_sha256": "ddc6f48fe6687ed7fdf0027ce60189e5c435b833ffa6dfd1e38820e56c2a3274",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "focused_ctest_log_sha256": "71df32ecb821c97e2944892551bb06559ae2e036a77859401f7f678c5c9d0094"
+    }
+  },
+  "limits": [
+    "The witness covers only one AC1027 cubic control-point SPLINE profile and one AC1027 HELIX profile with the exact recorded trailer values, each in model-space ENTITIES and one named BLOCK. Other spline degrees, fit-point/weighted/rational/periodic/planar profiles, HELIX variants, versions, entity target types and mixed target sets remain open.",
+    "This does not prove geometric evaluation, placement/transform meaning, native consumer acceptance, complete document dependency closure or support-claim eligibility."
+  ],
+  "next": "Implement an AC1027 code-1005 target profile for an INSERT. Bind the source INSERT, its owner and referenced block definition; prove exact emitted handle/section/owner, fresh typed readback and destination-safe missing-target and same-adapter retry controls across ASCII/binary input/output."
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 CMC Foreground-to-ACI-7 scalar projection",
+  "mode": "official API contract review plus generated AC1024 fast implementation slice",
+  "scope": [
+    "Map CMC method C5 Foreground to the existing scalar ACI foreground value 7",
+    "Retain C5 as the decoded method for consumers that request the method side channel",
+    "Verify the C5 projection independently from C3 indexed ACI 7 and retain following-field alignment"
+  ],
+  "evidence": {
+    "autodeskColorMethod": {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ColorMethod.html",
+      "checked": "2026-10-21",
+      "finding": "The documented AcCmEntityColor::ColorMethod enum assigns kForeground method byte 0xC5 and distinguishes it from kByACI at 0xC3."
+    },
+    "autodeskForegroundAci": {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ACIcolorMethod.html",
+      "checked": "2026-10-21",
+      "finding": "ACI foreground has value 7."
+    },
+    "autodeskForegroundPredicate": {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html",
+      "checked": "2026-10-21",
+      "finding": "The AcCmColor isForeground contract returns true for kForeground or for kByACI with kACIForeground. This supports their foreground projection equivalence.",
+      "limit": "API semantic evidence does not establish the C5 packed low-24-bit payload or optional-name encoding used by a DWG producer."
+    },
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "2.11 CmColor",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "finding": "R2004+ CMC uses a reserved BS index, method-packed BL, and RC flags for optional TV color/book names.",
+      "limit": "This generic field definition does not provide producer-specific C5 payload semantics."
+    },
+    "localSource": {
+      "files": [
+        "src/intern/dwgbuffer.cpp",
+        "src/intern/dwgbuffer.h",
+        "src/intern/dwgutil.h"
+      ],
+      "finding": "getCmColor already exposes an optional method out-parameter; the scalar return can project Foreground to 7 without rewriting the captured method byte. The specialized HATCH-gradient reader is separate."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "finding": "Generated AC1024 C3/ACI-7 and C5/Foreground CMC fields project to scalar 7 while preserving distinct method bytes, non-RGB state, reserved index, RC flags, and a following 3-bit sentinel.",
+      "limit": "The C5 packed low byte is test data only; this does not qualify real producer output or HATCH-gradient C5 handling."
+    }
+  },
+  "changes": {
+    "production": true,
+    "productionSummary": "dwgBuffer::getCmColor returns scalar 7 for C5 Foreground while retaining the parsed method through outMethod and leaving RGB absent.",
+    "generatedTests": [
+      "Added a focused CMC foreground projection selector to tests/dwg_object_vectors_tests.cpp.",
+      "Compared C5 Foreground with C3 indexed ACI 7 while asserting that their raw method values remain distinct and the next field stays aligned."
+    ],
+    "focusedCtestAdded": "libdxfrw_cmcolor_foreground_projection",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "hatchGradientParserChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_cmcolor_foreground_projection|libdxfrw_dbcolor_unsupported_method_refusal|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (3/3, 0.22 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgbuffer.cpp src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "C5 no longer collapses to the generic ByLayer-shaped scalar fallback in getCmColor; method-aware callers still observe C5 and the public scalar representation becomes ACI foreground 7.",
+    "unresolved": [
+      "Real DWG producer payload and optional-name behavior for C5 remain unverified.",
+      "The specialized HATCH-gradient C5 parse/write route remains gated on producer evidence.",
+      "Shared CMC consumers that cannot retain method metadata need class-specific audit; C4 and C6-C8 remain internal-only/unsupported for third-party projection.",
+      "External/native CAD qualification and independent semantic evidence remain separate gates."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue a class-by-class CMC caller audit, adding local consumer tests where a scalar projection currently loses a documented method; retain HATCH-gradient producer gating and external qualification."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "slice": "f.4b.1c MLEADERSTYLE CLASS conflict/count controls and MLEADER fail-closed boundary",
+  "status": "LOCAL_PARTIAL_COMPLETE",
+  "base_commit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "changes": [
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "a655d1da0afad9151af44b5dec8d88be67ca4d291729dedf19acbe5153460e34",
+      "summary": "Removed the unqualified MLEADER adapter dispatch. The existing preflight continues to refuse MLEADER entity output until the planned content/context and producer-backed semantic gates are satisfied."
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "2346813c9000698b64497bfcb50ec598d5e77ee90787ef6dd21652309fa6d44e",
+      "summary": "Generated ASCII/Binary tests verify stale MLEADERSTYLE CLASS group91=73 is recomputed to exact output cardinality 2; duplicate CLASS rows and conflicting record/class identity refuse atomically; duplicate repair retries on the same adapter and reads back a rooted graph. Removing a root edge while typed/raw records remain refuses without replacing a sentinel; restoring the edge permits same-adapter retry and exact graph/count readback. The valid MLEADER entity graph verifies the intended fail-closed diagnostic and sentinel preservation."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "626de3f5e897ae8dc509ed2eb7ff4fe898a422a515a7e3ca026aca9fd0f9f5a3",
+      "summary": "Records the completed CLASS conflict/stale-count and unrooted-record refusal/retry controls, preserves MLEADER entity output as gated pending content/context completeness and producer-backed semantic evidence, and appends a peer-source recency/artifact reconciliation without changing support claims."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_mleader_fail_closed$' --output-on-failure",
+      "result": "PASS (1/1, 0.03 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1, 0.10 s)"
+    }
+  ],
+  "evidence_limits": [
+    "These are generated ASCII/Binary DXF structural and serializer-path controls only; no native producer, external reader, or CAD application was used.",
+    "The synthetic typed MLEADERSTYLE route still uses a fabricated in-memory receipt and is not a real DWG-origin witness.",
+    "The intentional target-version filtering policy, the MLEADER content-type/source-field-presence matrix, producer-backed semantic qualification, and native acceptance remain open.",
+    "No full suite, fixture, CTest registration, dependency, or support promotion was added."
+  ],
+  "commit": {
+    "status": "NOT_COMMITTED",
+    "reason": "The task filesystem grant is read-only for .git metadata."
+  },
+  "plan_totals": {
+    "findings": 134,
+    "top_level_subplans": 76
+  },
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

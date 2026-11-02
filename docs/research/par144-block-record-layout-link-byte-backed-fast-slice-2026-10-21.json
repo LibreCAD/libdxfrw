@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 BLOCK_RECORD-to-LAYOUT byte-backed link fast slice",
+  "mode": "Generated test-only serialized-frame validation",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "Broadly modified and uncommitted; no files staged.",
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-block-record-layout-link-byte-backed-fast-slice-2026-10-21.json"
+    ],
+    "change": "The six-version selector captures actual emitted LINE and VIEWPORT frames, BLOCK_RECORD/LAYOUT frames, and following sentinels. Child owner/self-handle receipts are decoded against serialized child frames; AC1015 first/last references and AC1018+ hard-owned references/count resolve to actual captured child handles. The expanded generated probe emits two distinct LAYOUT/BLOCK_RECORD groups, each owning two actual VIEWPORT frames, in one writer stream. For both groups it resolves the BLOCK_RECORD→LAYOUT hard pointer and LAYOUT last-active/list references to actual frames, verifies exact owner references, rejects cross-layout handle references, and checks per-group frame CRCs/adjacency through sentinels. AC1015 validates last-active references and the no-list profile. Its common entity header confirms nolinks=1; the writer profile has no previous/next chain to traverse.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --block-record-layout-association",
+        "result": "PASS: DWG BLOCK_RECORD LAYOUT association controls"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+        "result": "PASS: 2/2, 0.32 seconds total"
+      }
+    ],
+    "fixturesAdded": 0,
+    "productionCodeChanged": false,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidenceCeiling": "Generated writer bytes plus test-local bounded frame/token decoders and writer receipts. The selector resolves two generated LAYOUT/BLOCK_RECORD/VIEWPORT groups to actual captured frames and rejects cross-layout handle references. AC1015 checks endpoint references and nolinks=1; it does not claim a linked-chain traversal. This is not an independent DWG reader, native CAD acceptance, or general multi-layout qualification.",
+  "implementationReadiness": {
+    "existingOwner": "PAR-144 under the existing 7G.3 layout graph/DWG writer owner ledger",
+    "nextLocalSlice": "Byte-walk the ACAD_LAYOUT dictionary emitted for the same two-layout case and resolve each exact dictionary key/child handle to its captured LAYOUT frame. Reuse the existing test target/CTest; keep the exact-pinned independent reader at the composed checkpoint.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

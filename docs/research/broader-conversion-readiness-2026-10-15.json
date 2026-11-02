@@ -1,0 +1,1508 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "scope": "Plan-only broad research with authored ASCII-DXF actual-CLI and optional ezdxf geometry-oracle calibration. No production/test integration or support qualification.",
+  "committed_baseline": "704832b852eab3271dbfcf1dcb019d4ea97f8fed",
+  "local_origin_master": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "existing_wip": {
+    "state": "UNCOMMITTED / NOT_INTEGRATED; left unchanged by this research",
+    "sha256": {
+      "src/drw_header.h": "5817629549ddc1eb82be9e6431978cb698f6612285a3d97a72509fb8075ab70e",
+      "src/drw_header.cpp": "78a704d0dfbb6788e3866611b332be140fe0b2a5dacbb1e2780643e5bad45e61",
+      "tests/gbk_codepage_tests.cpp": "1f4b05255d14773fdf068dac92d84b7eea30124dfd4977e9446e9f0c95e6053f"
+    }
+  },
+  "source_sha256": {
+    "src/intern/drw_textcodec.cpp": "ba3a82657b7010195ed45b49462586f3505c89b122cd2bfbc8b93dc6bcdc6428",
+    "src/intern/drw_textcodec.h": "d56b72a979c3fa6e5a4d839d082f00108a1d4110416d1404bbd9a6da9f9aee49",
+    "dwg2dxf/dx_iface.cpp": "fb5b80aaa6580a32b7a3c57ae96b63d91dbf14e54676f5d4b8d99b91aab19604",
+    "dwg2dxf/dx_iface.h": "fe6195b711dbd42b17bc4d4339920c244222f5b0e81b338f1d6862094faa3573",
+    "dwg2dxf/dx_data.h": "f6882af8d209b833c3b28b0b06ee1736460b501e68db644dacbeae2281c72b72",
+    "dwg2dxf/main.cpp": "ccce15e1c22af156db84f3ff5c2bc4e47a6900ee300ebcf268f0f5910b193cfe",
+    "src/drw_objects.cpp": "8d34b5859d9007b037d1d537ddfbc53d87e34c82930958111cbe953e35fd3fc8",
+    "src/drw_objects.h": "18886e2290d1ca47c0ae033f5cd5cbb607ce219b8ca172036a05475ba09d58c0",
+    "tests/hardening_tests.cpp": "2dc653242bcea53f46d67d4ef05f93eb42302d7b307473a2265f327586443ed3",
+    "tests/dwg2dxf_cli_contract_tests.py": "0d8c878c20cf5968772f1800b27b2e8c8d4419941a32b96c9a99fcdb5722de93",
+    "tools/run_independent_dxf.py": "56f062a3f5d4f245be3480bbcd4b975ed92f6eb8d278e9e7f3fe3cccfe1bfce1"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw.a": "f2693814116755bb6814709327e770f1bc89b586cc674cc505fa9fe426f0227f",
+    "build/dwg2dxf/dwg2dxf": "113c92d2e4ef5bb8beff7e1cf248a1e6ed57c9a44baef758988c15ada575766b",
+    "build/libdxfrw_gbk_codepage_tests": "65c32daefe77a004be15c3bd5d34d1bb4016e3bb0b24ee5f20a6b3bdcff3184e"
+  },
+  "prior_pending_integration_gate": {
+    "source": "/private/tmp/libdxfrw-codepage-provenance-ctest.xml",
+    "sha256": "9e5cc935071a8e5ec99f1d31b72b5704cf3ca8ff64ed0e430e3ef9108ca7043a",
+    "scope": "Recovered earlier focused WIP integration run; not rerun or relabeled as fresh research acceptance",
+    "tests": 5,
+    "passed": 4,
+    "failed": 1,
+    "skipped": 0,
+    "failure": {
+      "test": "libdxfrw_hardening",
+      "assertion": "GEODATA parser state source setup",
+      "source_premise": "Unmodified hardening fixture sets objectVersion 1 but authors modern mesh count93/source13/23/target14/24. Current committed v1 grammar uses92/source12/22/target13/23.",
+      "disposition": "SOURCE_CONFIRMED_STALE_FIXTURE_PREMISE; fix fixture to a valid intended grammar, retain all copy/reset assertions, rerun only affected hardening target before integrating WIP. No clean-HEAD binary run was performed."
+    },
+    "passing": [
+      "libdxfrw_public_header_hygiene",
+      "libdxfrw_gbk_codepage",
+      "libdxfrw_diagnostic",
+      "libdxfrw_dxf_fixtures"
+    ]
+  },
+  "reproduction": {
+    "scratch_directory": "/private/tmp/libdxfrw-wide-research.u4ntwW",
+    "command": "env EZDXF_DISABLE_C_EXT=1 XDG_CONFIG_HOME=DIRECTORY/config /private/tmp/libdxfrw-parity-work.k7hiK2/oracle/bin/python -I DIRECTORY/probe.py /Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+    "generator_sha256": "ac1427ce53a8ebf95c4c3486b3be5f5281804208159ced05f4c475f5e41d107e",
+    "generator_python": "\"\"\"Authored research calibration, not a format qualification or repo fixture.\"\"\"\nimport hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport re\nimport subprocess\nimport sys\n\nimport ezdxf\nfrom ezdxf import transform\nfrom ezdxf.math import Matrix44\n\n\nROOT = Path(__file__).resolve().parent\nCLI = Path(sys.argv[1]).resolve()\n\n\ndef digest(path):\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\n\ndef authored_drawing(version, declaration, payload):\n    records = [(0, b\"SECTION\"), (2, b\"HEADER\"), (9, b\"$ACADVER\"),\n               (1, version.encode(\"ascii\")), (9, b\"$DWGCODEPAGE\"),\n               (3, declaration.encode(\"ascii\")), (0, b\"ENDSEC\"),\n               (0, b\"SECTION\"), (2, b\"ENTITIES\"),\n               (0, b\"TEXT\"), (5, b\"A\"), (100, b\"AcDbEntity\"),\n               (8, b\"0\"), (100, b\"AcDbText\"), (10, b\"1\"),\n               (20, b\"2\"), (30, b\"3\"), (40, b\"2.5\"),\n               (1, payload), (7, b\"Standard\"),\n               (0, b\"LINE\"), (5, b\"B\"), (100, b\"AcDbEntity\"),\n               (8, b\"0\"), (100, b\"AcDbLine\"), (10, b\"34\"),\n               (20, b\"35\"), (30, b\"36\"), (11, b\"37\"),\n               (21, b\"38\"), (31, b\"39\"), (0, b\"ENDSEC\"), (0, b\"EOF\")]\n    return b\"\".join(str(code).encode(\"ascii\") + b\"\\n\" + value + b\"\\n\"\n                    for code, value in records)\n\n\ndef physical_text(path):\n    lines = path.read_bytes().splitlines()\n    assert len(lines) % 2 == 0\n    entity = None\n    values = []\n    for i in range(0, len(lines), 2):\n        code, value = int(lines[i]), lines[i + 1]\n        if code == 0:\n            entity = value\n        elif code == 1 and entity == b\"TEXT\":\n            values.append(value.hex())\n    return values\n\n\ncases = [\n    (\"legacy-canonical\", \"AC1018\", \"ANSI_1252\", b\"left\\xe9right\", \"left\\u00e9right\"),\n    (\"legacy-iso-loss\", \"AC1018\", \"ISO8859-4\", b\"left\\xa1right\", \"left\\u0104right\"),\n    (\"legacy-dos-misdecode\", \"AC1018\", \"CP866\", b\"left\\x80right\", \"left\\u0410right\"),\n    (\"legacy-iso-wrong\", \"AC1018\", \"ISO8859-5\", b\"left\\xb0right\", \"left\\u0410right\"),\n    (\"legacy-unknown-ascii\", \"AC1018\", \"local-unknown\", b\"plain\", \"plain\"),\n    (\"legacy-unknown-cif\", \"AC1018\", \"local-unknown\", b\"left\\\\U+0410right\", \"left\\u0410right\"),\n    (\"legacy-undefined-byte\", \"AC1018\", \"ANSI_1252\", b\"left\\x81right\", None),\n    (\"legacy-truncated-dbcs\", \"AC1018\", \"ANSI_932\", b\"left\\x82\", None),\n    (\"modern-canonical\", \"AC1024\", \"ANSI_1252\", \"left\\u20acright\".encode(), \"left\\u20acright\"),\n    (\"modern-supplementary\", \"AC1024\", \"ANSI_1252\", \"left\\U0001f600right\".encode(), \"left\\U0001f600right\"),\n    (\"modern-unknown-inert\", \"AC1024\", \"local-unknown\", \"left\\u0410right\".encode(), \"left\\u0410right\"),\n    (\"modern-overlong\", \"AC1024\", \"ANSI_1252\", b\"left\\xc0\\x80right\", None),\n    (\"modern-surrogate\", \"AC1024\", \"ANSI_1252\", b\"left\\xed\\xa0\\x80right\", None),\n    (\"modern-out-of-range\", \"AC1024\", \"ANSI_1252\", b\"left\\xf4\\x90\\x80\\x80right\", None),\n    (\"modern-isolated-continuation\", \"AC1024\", \"ANSI_1252\", b\"left\\x80right\", None),\n    (\"modern-truncated-sequence\", \"AC1024\", \"ANSI_1252\", b\"left\\xe2\", None),\n]\nrows = []\nfor name, version, declaration, payload, expected in cases:\n    source = ROOT / (name + \".dxf\")\n    source.write_bytes(authored_drawing(version, declaration, payload))\n    for target in (\"-v2004\", \"-v2007\"):\n        output = ROOT / (name + target + \".dxf\")\n        again = ROOT / (name + target + \"-again.dxf\")\n        command = [str(CLI), str(source), \"-y\", target, str(output)]\n        first = subprocess.run(command, capture_output=True, timeout=15)\n        row = dict(case=name, source_version=version, declaration=declaration,\n                   source_payload_hex=payload.hex(), expected_text=expected,\n                   target=target, exit_code=first.returncode,\n                   output_exists=output.exists(), command=command,\n                   stdout=first.stdout.decode(\"utf8\", \"replace\"),\n                   stderr=first.stderr.decode(\"utf8\", \"replace\"))\n        if output.exists():\n            row[\"output_sha256\"] = digest(output)\n            row[\"physical_text_hex\"] = physical_text(output)\n            try:\n                document = ezdxf.readfile(output, errors=\"strict\")\n                row[\"strict_reopen\"] = True\n                row[\"reopened_text\"] = [e.dxf.text for e in document.modelspace().query(\"TEXT\")]\n                row[\"line_sentinel\"] = [(tuple(e.dxf.start), tuple(e.dxf.end))\n                                        for e in document.modelspace().query(\"LINE\")]\n                row[\"peer_literal_matches_expected\"] = (expected is not None and\n                                                         row[\"reopened_text\"] == [expected])\n                # This authored set has genuine BMP CIF transport, never a\n                # semantic literal that merely looks like an escape. Retain\n                # the unmodified peer projection above; this is NOT a general\n                # repeated decoder or a policy for arbitrary user strings.\n                anchored = [re.sub(r\"\\\\U\\+([0-9A-Fa-f]{4})\",\n                                   lambda m: chr(int(m[1], 16)), value)\n                            for value in row[\"reopened_text\"]]\n                row[\"authored_scalar_transport_matches\"] = (expected is not None and\n                                                             anchored == [expected])\n            except Exception as error:\n                row[\"strict_reopen\"] = False\n                row[\"reopen_error\"] = type(error).__name__ + \": \" + str(error)\n            second = subprocess.run([str(CLI), str(output), \"-y\", target, str(again)],\n                                    capture_output=True, timeout=15)\n            row[\"second_exit_code\"] = second.returncode\n            row[\"second_output_exists\"] = again.exists()\n            if again.exists():\n                row[\"second_physical_text_hex\"] = physical_text(again)\n                row[\"text_bytes_stable\"] = row[\"physical_text_hex\"] == row[\"second_physical_text_hex\"]\n        rows.append(row)\n\ngeometry = []\nfor method in (\"inplace\", \"copies\"):\n    doc = ezdxf.new(\"R2010\")\n    circle = doc.modelspace().add_circle((1, 2, 3), radius=4).copy()\n    if method == \"inplace\":\n        log = transform.inplace([circle], Matrix44.scale(2, 1, 1))\n        result = [circle]\n    else:\n        log, result = transform.copies([circle], Matrix44.scale(2, 1, 1))\n    geometry.append(dict(case=\"virtual-circle-\" + method,\n                         source_count=1, output_count=len(result),\n                         result_types=[e.dxftype() for e in result],\n                         errors=[entry.error.name for entry in log]))\n\ndoc = ezdxf.new(\"R2010\")\ndoc.blocks.new(\"B\").add_line((1, 2, 3), (4, 5, 6))\nreference = doc.modelspace().add_blockref(\"B\", (0, 0, 0))\nshear = Matrix44((1, .5, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))\nlog, result = transform.copies([reference], shear)\ngeometry.append(dict(case=\"sheared-insert-copies\", source_count=1,\n                     output_count=len(result), result_types=[e.dxftype() for e in result],\n                     errors=[entry.error.name for entry in log]))\n\ncircle = doc.modelspace().add_circle((1, 2, 3), radius=4).copy()\nlog = transform.scale_uniform([circle], 0.0)\ngeometry.append(dict(case=\"zero-scale-ignored\", source_count=1,\n                     output_count=1, errors=[entry.error.name for entry in log],\n                     radius=circle.dxf.radius, center=tuple(circle.dxf.center)))\n\nreport = dict(scope=\"authored ASCII-DXF actual CLI + optional ezdxf transform calibration\",\n              python=sys.version, ezdxf_version=ezdxf.__version__,\n              ezdxf_module=ezdxf.__file__, c_extensions=ezdxf.options.use_c_ext,\n              cli_sha256=digest(CLI), generator_sha256=digest(Path(__file__)),\n              cases=rows, transform_calibration=geometry,\n              limits=[\"No DWG, binary DXF, native CAD, platform or ACIS qualification\",\n                      \"Explicitly malformed inputs are robustness/policy probes\",\n                      \"Two passes test semantic drift, not whole-file identity\",\n                      \"Peer projection is not a kernel/native semantic oracle\"])\n(ROOT / \"result.json\").write_text(json.dumps(report, indent=2), encoding=\"utf8\")\nprint(json.dumps(dict(routes=len(rows),\n                      exit_zero=sum(r[\"exit_code\"] == 0 for r in rows),\n                      strict_reopen=sum(r.get(\"strict_reopen\", False) for r in rows),\n                      scalar_expectation_routes=sum(r[\"expected_text\"] is not None for r in rows),\n                      peer_literal_matches=sum(r.get(\"peer_literal_matches_expected\", False) for r in rows),\n                      authored_scalar_transport_matches=sum(r.get(\"authored_scalar_transport_matches\", False) for r in rows),\n                      stable_text=sum(r.get(\"text_bytes_stable\", False) for r in rows),\n                      transforms=geometry), indent=2))\n",
+    "final_result_sha256": "074e37f80b4645933d1a7fd8345d32d2a82392ada9f36312796056bcdfe7268f",
+    "final_exit_code": 0,
+    "note": "The script generates scratch drawings/reports as runtime artifacts. No generated or external DWG/DXF is committed. Existing CLI/library are source/artifact-bound WIP binaries, not a clean committed-baseline qualification."
+  },
+  "runtime": {
+    "python": "3.12.15 (main, Sep 30 2026, 22:04:19) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "ezdxf_version": "1.4.4",
+    "ezdxf_module": "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/__init__.py",
+    "c_extensions": false,
+    "transform_module_sha256": "28e5c04dbe9a1ecca20b26392116183e10bf8f871037165f2a6c157d5a84d6e0",
+    "isolation": "python -I; task-private XDG_CONFIG_HOME; EZDXF_DISABLE_C_EXT=1; no user config edits; ordinary readfile(errors='strict'), no audit/recover"
+  },
+  "results": {
+    "authored_sources": 16,
+    "ascii_output_routes": 32,
+    "actual_cli_processes_in_final_run": 64,
+    "first_and_second_exit_zero": 64,
+    "strict_output_reopens": 27,
+    "strict_utf8_failures": 5,
+    "named_scalar_expectation_routes": 18,
+    "scalar_transport_matches": 11,
+    "named_mapping_or_target_loss_routes": 7,
+    "malformed_or_undefined_source_routes": 14,
+    "second_pass_text_bytes_stable_routes": 32,
+    "cli_stderr_empty_routes": 32,
+    "raw_peer_literal_matches": 9,
+    "valid_cif_carrier_adjudications": 2,
+    "adjudication": "Two peer literal mismatches are genuine authored BMP CIF transport, not text loss. The report retains peer output before a restricted BMP escape check; this is not a general semantic quoting decoder or a change to the production oracle.",
+    "limits": "Selected discriminating probes, not defect prevalence or valid-source parity scores. ISO/DOS extra aliases and undefined/malformed inputs are policy/robustness cases; named-codec meaning is not proof that aliases are normative DXF declarations.",
+    "cases": [
+      {
+        "case": "legacy-canonical",
+        "source_version": "AC1018",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e97269676874",
+        "expected_text": "leftéright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "f5476fb3110d7b44704e5fbaf1f1efe0ee3bccd4aa405f9290241cc8bf5a2cb7",
+        "physical_text_hex": [
+          "6c656674e97269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftéright"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674e97269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-canonical",
+        "source_version": "AC1018",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e97269676874",
+        "expected_text": "leftéright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "efb1531766cdcefc094b5a79f36ba43d6969d4d66e1d9388e608ae5c4b9a7fcc",
+        "physical_text_hex": [
+          "6c656674c3a97269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftéright"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674c3a97269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-iso-loss",
+        "source_version": "AC1018",
+        "declaration": "ISO8859-4",
+        "source_payload_hex": "6c656674a17269676874",
+        "expected_text": "leftĄright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "0d4051797a498d363e5a4e68f6da8b8a75f46b0b1503310c398de236336969ee",
+        "physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftright"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-iso-loss",
+        "source_version": "AC1018",
+        "declaration": "ISO8859-4",
+        "source_payload_hex": "6c656674a17269676874",
+        "expected_text": "leftĄright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "67c7fb66663c85ddb5e7d2ebba0609841e44bc062376ad09d9d33d777ad40ed9",
+        "physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftright"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-dos-misdecode",
+        "source_version": "AC1018",
+        "declaration": "CP866",
+        "source_payload_hex": "6c656674807269676874",
+        "expected_text": "leftАright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "673d07862fad5b24dbb4cd23e450624052ff1fbcffac31591e9275002c93e640",
+        "physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left€right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-dos-misdecode",
+        "source_version": "AC1018",
+        "declaration": "CP866",
+        "source_payload_hex": "6c656674807269676874",
+        "expected_text": "leftАright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "1cb1ea615f0ced2ec3455485ed92b0e9d4e40370e84e73eff52a56810269f075",
+        "physical_text_hex": [
+          "6c656674e282ac7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left€right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674e282ac7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-iso-wrong",
+        "source_version": "AC1018",
+        "declaration": "ISO8859-5",
+        "source_payload_hex": "6c656674b07269676874",
+        "expected_text": "leftАright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "398d3cae874b237bb93234b61d11619f3e8def2310b599a3016d3b453a80e60f",
+        "physical_text_hex": [
+          "6c656674b07269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left°right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674b07269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-iso-wrong",
+        "source_version": "AC1018",
+        "declaration": "ISO8859-5",
+        "source_payload_hex": "6c656674b07269676874",
+        "expected_text": "leftАright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "f833ca110baa6652b4abec22138e1b96932922fb5556d1dc49a4440d41231788",
+        "physical_text_hex": [
+          "6c656674c2b07269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left°right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674c2b07269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-unknown-ascii",
+        "source_version": "AC1018",
+        "declaration": "local-unknown",
+        "source_payload_hex": "706c61696e",
+        "expected_text": "plain",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "23a8e167788279150990cbd3ee0d5d535520af76f9041d42a1282941ce89c9a6",
+        "physical_text_hex": [
+          "706c61696e"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "plain"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "706c61696e"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-unknown-ascii",
+        "source_version": "AC1018",
+        "declaration": "local-unknown",
+        "source_payload_hex": "706c61696e",
+        "expected_text": "plain",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "43b2a56e3342191e2ab5afcfcb02699a3b0415073fbba69619338aa867de4382",
+        "physical_text_hex": [
+          "706c61696e"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "plain"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "706c61696e"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-unknown-cif",
+        "source_version": "AC1018",
+        "declaration": "local-unknown",
+        "source_payload_hex": "6c6566745c552b303431307269676874",
+        "expected_text": "leftАright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "e96d558288901048f0bc3d2abef1d5e23ae4d1bf77f063cf072f0da95216f78f",
+        "physical_text_hex": [
+          "6c6566745c552b303431307269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left\\U+0410right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566745c552b303431307269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-unknown-cif",
+        "source_version": "AC1018",
+        "declaration": "local-unknown",
+        "source_payload_hex": "6c6566745c552b303431307269676874",
+        "expected_text": "leftАright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "4db3567d145b610f660c9c0a3dab27d696e1cd5361fe711b2fe7b235544e743e",
+        "physical_text_hex": [
+          "6c656674d0907269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftАright"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674d0907269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-undefined-byte",
+        "source_version": "AC1018",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674817269676874",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "8c1d6ada655bb4c86c57ba92197c2167d259553710870d3621cd6adef688aee9",
+        "physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftright"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-undefined-byte",
+        "source_version": "AC1018",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674817269676874",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "01049898651f024349198bbaff481fa6ae51dda1b3495625acbf3634dd9ee553",
+        "physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftright"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566747269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-truncated-dbcs",
+        "source_version": "AC1018",
+        "declaration": "ANSI_932",
+        "source_payload_hex": "6c65667482",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "419a1e911e8c5d321262f343754386502715eee19c64419bb6c975f3e89dcaf0",
+        "physical_text_hex": [
+          "6c6566748145"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left・"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566748145"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "legacy-truncated-dbcs",
+        "source_version": "AC1018",
+        "declaration": "ANSI_932",
+        "source_payload_hex": "6c65667482",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "de521ad28f28e38c6504af8c6420086b9e9d5bc59779484bb0b26fa573111235",
+        "physical_text_hex": [
+          "6c656674e383bb"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left・"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674e383bb"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-canonical",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e282ac7269676874",
+        "expected_text": "left€right",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "673d07862fad5b24dbb4cd23e450624052ff1fbcffac31591e9275002c93e640",
+        "physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left€right"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-canonical",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e282ac7269676874",
+        "expected_text": "left€right",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "1cb1ea615f0ced2ec3455485ed92b0e9d4e40370e84e73eff52a56810269f075",
+        "physical_text_hex": [
+          "6c656674e282ac7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left€right"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674e282ac7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-supplementary",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674f09f98807269676874",
+        "expected_text": "left😀right",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "7f81fc078e579011706e536b2407618e28f60eaed4a99169d2a6fa64ff84b9ae",
+        "physical_text_hex": [
+          "6c6566743f7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left?right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-supplementary",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674f09f98807269676874",
+        "expected_text": "left😀right",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "712179e6ca12fc932e597b146f2c5c386cadee513a2a1007def4703fc48e2e71",
+        "physical_text_hex": [
+          "6c656674f09f98807269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left😀right"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674f09f98807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-unknown-inert",
+        "source_version": "AC1024",
+        "declaration": "local-unknown",
+        "source_payload_hex": "6c656674d0907269676874",
+        "expected_text": "leftАright",
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "e96d558288901048f0bc3d2abef1d5e23ae4d1bf77f063cf072f0da95216f78f",
+        "physical_text_hex": [
+          "6c6566745c552b303431307269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left\\U+0410right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566745c552b303431307269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-unknown-inert",
+        "source_version": "AC1024",
+        "declaration": "local-unknown",
+        "source_payload_hex": "6c656674d0907269676874",
+        "expected_text": "leftАright",
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "4db3567d145b610f660c9c0a3dab27d696e1cd5361fe711b2fe7b235544e743e",
+        "physical_text_hex": [
+          "6c656674d0907269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "leftАright"
+        ],
+        "peer_literal_matches_expected": true,
+        "authored_scalar_transport_matches": true,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674d0907269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-overlong",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674c0807269676874",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "abf7399ca88c75251bf20f4c35a8d3b56af7aee28089699a5c1b61e02da77594",
+        "physical_text_hex": [
+          "6c6566743f3f7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left??right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f3f7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-overlong",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674c0807269676874",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "27caa82fd66f4194289fb74ffece83e01b860535f788c02523ec7e00411f858d",
+        "physical_text_hex": [
+          "6c656674c0807269676874"
+        ],
+        "strict_reopen": false,
+        "reopened_text": null,
+        "peer_literal_matches_expected": null,
+        "authored_scalar_transport_matches": null,
+        "reopen_error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc0 in position 1619: invalid start byte",
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674c0807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": null
+      },
+      {
+        "case": "modern-surrogate",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674eda0807269676874",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "4366f0eb88f86b598ede0ed6ef80b965bf960a0c5f292bfb9255ef4043e21a14",
+        "physical_text_hex": [
+          "6c6566743f3f3f7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left???right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f3f3f7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-surrogate",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674eda0807269676874",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "330ec68c8adc3f1fd7faf6544c3feb664f831940ef60051acff94ae5de1d5543",
+        "physical_text_hex": [
+          "6c656674eda0807269676874"
+        ],
+        "strict_reopen": false,
+        "reopened_text": null,
+        "peer_literal_matches_expected": null,
+        "authored_scalar_transport_matches": null,
+        "reopen_error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xed in position 1619: invalid continuation byte",
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674eda0807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": null
+      },
+      {
+        "case": "modern-out-of-range",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674f49080807269676874",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "03eed2cc2496216a0b3f2ca6a61bde4fd2e725bc5613caaba2cbb21862fe2734",
+        "physical_text_hex": [
+          "6c6566743f3f3f3f7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left????right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f3f3f3f7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-out-of-range",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674f49080807269676874",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "e185cea6997ef73a97133a5fe9f6c024c07e748afe93b79ffc7744c7c3290786",
+        "physical_text_hex": [
+          "6c656674f49080807269676874"
+        ],
+        "strict_reopen": false,
+        "reopened_text": null,
+        "peer_literal_matches_expected": null,
+        "authored_scalar_transport_matches": null,
+        "reopen_error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf4 in position 1619: invalid continuation byte",
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674f49080807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": null
+      },
+      {
+        "case": "modern-isolated-continuation",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674807269676874",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "7f81fc078e579011706e536b2407618e28f60eaed4a99169d2a6fa64ff84b9ae",
+        "physical_text_hex": [
+          "6c6566743f7269676874"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left?right"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f7269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-isolated-continuation",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674807269676874",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "09d2ca523414f121c8bb867168cb7047b1b23cdac6a19041af97edc2b826d0d8",
+        "physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "strict_reopen": false,
+        "reopened_text": null,
+        "peer_literal_matches_expected": null,
+        "authored_scalar_transport_matches": null,
+        "reopen_error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0x80 in position 1619: invalid start byte",
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674807269676874"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": null
+      },
+      {
+        "case": "modern-truncated-sequence",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e2",
+        "expected_text": null,
+        "target": "-v2004",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "8ff8729a79dff3c6b313423bf4e82cd473b9be9405965a6be65175ac75294086",
+        "physical_text_hex": [
+          "6c6566743f"
+        ],
+        "strict_reopen": true,
+        "reopened_text": [
+          "left?"
+        ],
+        "peer_literal_matches_expected": false,
+        "authored_scalar_transport_matches": false,
+        "reopen_error": null,
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c6566743f"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": [
+          [
+            [
+              34,
+              35,
+              36
+            ],
+            [
+              37,
+              38,
+              39
+            ]
+          ]
+        ]
+      },
+      {
+        "case": "modern-truncated-sequence",
+        "source_version": "AC1024",
+        "declaration": "ANSI_1252",
+        "source_payload_hex": "6c656674e2",
+        "expected_text": null,
+        "target": "-v2007",
+        "exit_code": 0,
+        "output_exists": true,
+        "output_sha256": "75de8ac886c44858e32dc0c226f57f69cb5258fba3fa99744ce58792037d5e58",
+        "physical_text_hex": [
+          "6c656674e2"
+        ],
+        "strict_reopen": false,
+        "reopened_text": null,
+        "peer_literal_matches_expected": null,
+        "authored_scalar_transport_matches": null,
+        "reopen_error": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe2 in position 1619: invalid continuation byte",
+        "second_exit_code": 0,
+        "second_output_exists": true,
+        "second_physical_text_hex": [
+          "6c656674e2"
+        ],
+        "text_bytes_stable": true,
+        "line_sentinel": null
+      }
+    ],
+    "geometry_oracle_calibration": [
+      {
+        "case": "virtual-circle-inplace",
+        "source_count": 1,
+        "output_count": 1,
+        "result_types": [
+          "CIRCLE"
+        ],
+        "errors": [
+          "VIRTUAL_ENTITY_NOT_SUPPORTED"
+        ]
+      },
+      {
+        "case": "virtual-circle-copies",
+        "source_count": 1,
+        "output_count": 1,
+        "result_types": [
+          "ELLIPSE"
+        ],
+        "errors": []
+      },
+      {
+        "case": "sheared-insert-copies",
+        "source_count": 1,
+        "output_count": 0,
+        "result_types": [],
+        "errors": [
+          "INSERT_TRANSFORMATION_ERROR"
+        ]
+      },
+      {
+        "case": "zero-scale-ignored",
+        "source_count": 1,
+        "output_count": 1,
+        "errors": [],
+        "radius": 4,
+        "center": [
+          1,
+          2,
+          3
+        ]
+      }
+    ]
+  },
+  "primary_sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "decision": "Distinguish documented pre-2007 ASCII/CIF writer profile from commonly accepted raw legacy-codepage compatibility. Do not globally change writer bytes in this plan-only pass."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc3629",
+      "decision": "Separate malformed UTF8 status from legacy metadata classification and target unrepresentability."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "decision": "No surrogateescape/recover or repaired output as semantic acceptance."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/transform.html",
+      "decision": "Require transform logs, source/output coverage, conversion class and transform validity; no-exception is insufficient."
+    },
+    {
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "decision": "ASMData/ASMTransform are an optional R2013+ raw-carrier projection, not B-rep geometry."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "decision": "Unsupported ACIS nodes and curved faces prevent flat-face/vertex projections from serving as complete semantic evidence."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "decision": "Keep DIMASSOC owner/body330 and typed reference/path/subentity roles distinct."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "decision": "Proxy class/order, bit versus byte lengths, source format and object IDs are distinct envelope prerequisites."
+    },
+    {
+      "url": "https://learn.microsoft.com/dotnet/api/system.text.encoding.getencoding",
+      "decision": "Default .NET codepage best-fit/replacement fallback is not strict independent scalar evidence."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dotnet/api/system.text.encoding.utf8?view=net-10.0",
+      "decision": "Encoding.UTF8 default replacement fallback needs explicit calibration in a netDxf comparator."
+    }
+  ],
+  "peer_source_pins": {
+    "LibreDWG": {
+      "commit": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "kind": "default-branch source read, no runtime",
+      "prs": [
+        {
+          "number": 1440,
+          "head": "db756757d4b141d4d2f3e093df48ad7a01223205",
+          "state": "open",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1440"
+        },
+        {
+          "number": 1447,
+          "head": "b8c21e0761a579f9c222014dae338bef9b7a7ce6",
+          "state": "open",
+          "url": "https://github.com/LibreDWG/libredwg/pull/1447"
+        }
+      ]
+    },
+    "ACadSharp": {
+      "commit": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+      "kind": "source/PR bodies, no runtime",
+      "prs": [
+        {
+          "number": 1292,
+          "head": "56956446fb70dfddecfa3d683ac16c71caa287f4",
+          "state": "open",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1292"
+        },
+        {
+          "number": 1296,
+          "head": "06fabcd6f1b2a0e46dda1884917b854694f058cc",
+          "state": "open",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1296"
+        },
+        {
+          "number": 1275,
+          "head": "3bf957d462d4f17055a81405fc5bfc15ef70c323",
+          "state": "open",
+          "url": "https://github.com/DomCR/ACadSharp/pull/1275"
+        }
+      ]
+    },
+    "ezdxf": {
+      "remote_commit": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+      "transform_blob": "c5e7757cafec1ebdac4f86ad3c17c998b851cde9",
+      "executed_version": "1.4.4; not relabeled as remote1.4.5b2"
+    },
+    "netDxf": {
+      "commit": "3d24d7c23418bd3a077d0e32a639f2ffe95bff51",
+      "reader_blob": "de9dd25bfac7ec40398a4896353acc79b19a911d",
+      "writer_blob": "bd116da0dda0606cf4ca2508bbc7395b1f452eb6",
+      "kind": "source-only; no .NET install/run; dynamic blocks and ACIS are excluded by project; TABLE import becomes INSERT"
+    },
+    "FreeCAD": {
+      "commit": "95702a2656d0aafbce524a4fb6e3df1d7e84b43a",
+      "importer_blob": "8ceba7eaf31234c891621652cca414f102b495a0",
+      "kind": "source-only; unchanged reviewed importer blob still checks file existence, not returncode; no native application run"
+    }
+  },
+  "plan_owners": [
+    "PAR-05/Slice3.2b.1/3.2b.2",
+    "7F/7AG conversion outcome handoff",
+    "Slice6 target-loss policy",
+    "7AR malformed UTF8/CIF",
+    "7AH/7AQ geometry-oracle calibration",
+    "7AA.1 DIMASSOC detail guard",
+    "7AP proxy envelope",
+    "Slice8/S3.7 ACIS semantics",
+    "7BR hardening fixture prerequisite"
+  ],
+  "non_claims": {
+    "findings": 122,
+    "top_level_subplans": 70,
+    "three_d_ledger_unchanged": "149 items:128 committed,6 blocked,3 in progress,12 other,0 ready parents",
+    "external_j": {
+      "status": "DEFERRED_EXTERNAL",
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ],
+      "promoting": false
+    },
+    "production_or_test_edits_this_pass": false,
+    "fixture_additions": false,
+    "dependency_additions": false,
+    "ctest_registrations": false,
+    "new_native_or_platform_evidence": false,
+    "remote_writes": false
+  }
+}
+

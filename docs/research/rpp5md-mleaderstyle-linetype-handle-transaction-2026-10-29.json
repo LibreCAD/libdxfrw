@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5md selected MLEADERSTYLE leaderLineTypeHandle retarget",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "60cbaba1826ef37b692d15f444a4c55c707a30f4",
+  "scope": "Adds one source-bound AC1027 MLEADERSTYLE group-340 leaderLineTypeHandle edit to a unique LTYPE provider. It qualifies typed-field projection, output remapping and readback for this exact field/profile only; it does not qualify other MLEADERSTYLE handles, native annotation semantics, other versions or whole-document support.",
+  "contract": {
+    "admission": "The runtime-generated AC1027 DXF source has one STANDARD MLEADERSTYLE whose existing group 340 names source LTYPE handle 0x30, plus a unique alternate LTYPE MLEADER_ALT_LINE at source handle 0x32. The caller retargets only leaderLineTypeHandle to that existing LTYPE. The writer's existing resource-graph validation requires each MLEADERSTYLE reference to resolve to exactly one target of its expected kind.",
+    "output": "The transaction authenticates the original raw group-340 value against the captured typed handle, admits exactly one changed field, projects the new handle, emits the remapped reference and inspects the emitted typed value against the writer's source-to-output handle maps. Fresh import verifies that exactly one raw group-340 field names the emitted alternate LTYPE and that the typed leaderLineTypeHandle resolves to its emitted handle.",
+    "failureAndRetry": "A dangling target 0x55 and wrong-kind BLOCK_RECORD target 0x1F each refuse before publication for ASCII and binary output. Both preserve a pre-existing destination and the caller's invalid reference. Correcting the same caller object to source LTYPE 0x32 and retrying with the same dx_iface succeeds and passes fresh output inspection/readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Source and output are authored at runtime and removed by the focused test; no DWG/DXF fixture files are committed.",
+    "limits": "This is one AC1027 DXF MLEADERSTYLE group-340 edit profile. It does not qualify group 341/342/343 handles, repeated or missing group 340, multiple edits, other source/target versions, producer variation, native line-type or annotation rendering, complete document closure, external semantic evidence or 3D support. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "referenceProof": "Source group 340 begins at 0x30; the unique alternate LTYPE is 0x32. Exact raw group-340 output and typed readback both resolve to the emitted alternate LTYPE handle after writer remapping.",
+    "failureAndRetry": "Dangling and wrong-kind targets each refuse for both output encodings; destination bytes and caller references are preserved, and corrected retries on the same adapter succeed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "1/1 MLEADERSTYLE writer-closure selector passed, including the new group-340 transaction, four source/output encoding combinations, exact raw/typed output proof, dangling and wrong-kind refusal, rollback and same-adapter corrected retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "mleaderStyleLeaderLineTypeHandleTransaction in tests/dwg2dxf_adapter_tests.cpp extends generateRootMLeaderStyleControl to author a second LTYPE and exercises the new reference edit. Runtime-generated inputs and outputs are removed after the focused test.",
+    "implementationCommit": "60cbaba1826ef37b692d15f444a4c55c707a30f4",
+    "dwg2dxf/dx_iface.cpp": "036a11c1f0417bd15807f6866acd15a17321a2d808439004ec276f1e23c1dbe0",
+    "tests/dwg2dxf_adapter_tests.cpp": "7fc70514e37549f44f1bf627267b878d995f9a9d505458e205a50a8e5a051c17",
+    "testExecutableSha256": "971d708d00afdf5178fcc65183cbd8a895673f180203ae24f8c2cfebf45474e9"
+  },
+  "next": "Select a current source-backed MLINE geometry/schema/provider witness or another MLEADERSTYLE field/schema layer. Keep MLEADERSTYLE contexts/defaults/repeated values, other integer/handle/string fields, version grammars, extensions and dependency edits separate; retain native and document-closure gates."
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader R24 TABLE merge projection and suppression-field contract",
+  "mode": "Primary-source web review plus local source/test audit; plan and receipt update only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile ODA's R24 TABLECONTENT merged-range and TABLESTYLE layouts with Autodesk's DXF TABLE group-code context.",
+    "Audit whether the current AC1024+ DWG parser projects canonical merged ranges into the cell fields required by the DXF writer.",
+    "Reassess ACadRust issue #130 and avoid treating same-codec reports or related CADCraft code as independent format evidence.",
+    "Add an implementation-ready bounded fast slice under existing PAR-126/7G.3d without promoting R24 TABLESTYLE suppression semantics."
+  ],
+  "method": {
+    "kind": "Read-only primary-source review and local source/test audit; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The ACadRust issue's reproducer uses the same codec for its DWG write/read path and remains an open peer report asking for retest. ODA documents R24 TABLESTYLE prefix values as unknown; no producer-authored toggle sample was used. Local generated vectors establish only the tested local parser/writer behavior, not producer interoperability, native table rendering, or editable semantics. The shared worktree is broadly dirty; only the plan and this receipt were edited, with no staging or commit."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "sections": [
+        "20.4.97 TABLECONTENT",
+        "20.4.101.1 TABLESTYLE format until R21",
+        "20.4.101.2 R24 TABLESTYLE format"
+      ],
+      "observed": "TABLECONTENT carries a count followed by top-row, left-column, bottom-row, right-column merged-range coordinates. R24 DWG embeds TABLECONTENT in the TABLE entity, while DXF including R24 uses a separate TABLECONTENT object. The pre-R24 TABLESTYLE section lists title/header suppression fields separately; the R24 TABLESTYLE prefix instead labels its leading RC, BL, BL and hard-owner handle fields unknown.",
+      "evidenceCeiling": "Authoritative format reference for documented field order; the unknown R24 TABLESTYLE values do not identify suppression semantics."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm"
+      ],
+      "observed": "The ACAD_TABLE entity uses per-cell groups 173, 175 and 176 for merge state and dimensions; groups 280 and 281 are described as title/header suppression overrides at the TABLE entity level.",
+      "evidenceCeiling": "DXF entity group-code reference; identical group numbers in a different object/version context do not map unknown R24 DWG TABLESTYLE fields."
+    },
+    {
+      "project": "ACadRust issue #130 and related CADCraft/OpenCADStudio route",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/130",
+        "https://github.com/hakanaktt/acadrust/commit/bc91fbe8f9f9494988220f5462513ab6cc0b260a",
+        "https://github.com/HakanSeven12/opencadcodec/commit/3ff1cf17a1a032ba00f564f61c4fafc4cb176e78",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs"
+      ],
+      "observed": "The issue reports that its AC1024+ DWG reader retains canonical merged ranges but leaves per-cell spans at defaults, while its DXF writer serializes from per-cell fields. It separately proposes syncing style flags and DXF suppression booleans. The issue remains open and asks for a retest of candidate commits. CADCraft/OpenCADStudio depend on the ACadRust lineage.",
+      "evidenceCeiling": "Peer test-design lead only: the published reproducer writes and reads through the same codec, candidate commits are not independent producer/consumer validation, and related downstream code is not an independent parser vote."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "PAR-126 / 7G.3d.3e",
+      "files": [
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "parseTableContent() retains m_mergedRanges. The AC1024+ DRW_Table::parseDwg() path commits the typed content but does not set cell m_isMerged/m_mergedWidth/m_mergedHeight from those ranges. dxfRW::writeTable() requires merged-cell count/range agreement and serializes per-cell values as 173/175/176, so the typed table is refused at writer preflight. Existing tests separately cover an AC1024 no-merge vector and manually populated ASCII/Binary merge spans; they do not cover parser-to-writer projection.",
+      "disposition": "Add a bounded range projector before semantic publication. Reuse the existing AC1024 object-vector and ASCII/Binary adapter owners, assert emitted group codes before readback, and preserve raw/fallback behavior for invalid ranges. Do not weaken strict writer preflight."
+    },
+    {
+      "owner": "R24 TABLESTYLE suppression semantics",
+      "files": [
+        "src/drw_objects.cpp",
+        "src/intern/dwgreader.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The AC1024+ DRW_TableStyle parser consumes the prefix class byte, name, two bit-long values and a handle into ignored locals; it does not map these values to suppression booleans. Normal reader dispatch has a raw-object retention route, but that is not a typed DXF semantic projection.",
+      "disposition": "Keep R24 suppression values raw/unresolved. Do not map unknown values to m_flags or title/header booleans without an authoritative field map or producer-authored one-property-at-a-time toggle evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalGapsWithinExistingFinding": 1,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-126",
+      "7G.3d.3e"
+    ],
+    "planEffect": "Confirms a local AC1024+ canonical-range-to-cell-span projection gap and assigns a small independent fast slice. Corrects the active #130 crosswalk: retain merge projection as a peer lead, remove unsupported R24 TABLESTYLE suppression-bit mapping from the implementation checklist, and keep unknown R24 style values unresolved.",
+    "implementationOrderChanged": true,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": true,
+    "receiptAdded": true,
+    "commitAttempted": false
+  }
+}

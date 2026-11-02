@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c typed-XDATA token ownership transfer",
+  "scope": "Transfer current DXF token storage into final entity and table-entry typed-XDATA owners without changing semantic text decoding or retained-byte accounting.",
+  "files": {
+    "CMakeLists.txt": "6b148402af12d205c4439f4cda94d70f59766dad3135000c0aae4a1e62dd26a1",
+    "src/intern/dxfreader.h": "cb3fb8f169a7845a6f077f803a17febf1a6b5715bc2bb117e68daf122e756c6d",
+    "src/drw_entities.cpp": "65819e1c361c09868d2ed3226f7dc3227a48529547295f71f32de34cc10fe2d3",
+    "src/drw_objects.cpp": "5bd18d9fb1e4dbbfeb8a8f36ea0c41e286ac8280daaa9ea6089be426c246f12b",
+    "tests/hardening_tests.cpp": "ae8d02a370cdb67e0933158551761088adc78b4198f35b4287bb71ecaec9887f"
+  },
+  "evidence": {
+    "sourceAudit": "dxfReader::getString() returned a value copy of the current token; entity and table-entry XDATA then moved that temporary into the final DRW_Variant. The new internal takeString() moves raw token storage and invokes the same decodeSemanticText path for codes 1000/1001/1003.",
+    "generatedControls": "ASCII and Binary parser controls cover XDATA codes 1000-1005 for DRW_Entity and DRW_TableEntry, verify the current token is consumed, retained values survive reader teardown, byte-budget use is exact, copy/reset leases remain balanced, and one-byte-under caps refuse without publishing the next value. Binary 1004 is emitted through dxfWriterBinary and read as canonical hex text.",
+    "dwgFailureTriage": "Current traces reproduce the existing AC1024 ShLoft/ShRevolve parse failures. The local ODA v5.4.1 specification copy has generic object framing but no named class-specific field layout, so no proprietary parser-width change is justified by current evidence.",
+    "odaSpecSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; LibreCAD compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-xdata-string-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_xdata_string_owner_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- src/intern/dxfreader.h src/drw_entities.cpp src/drw_objects.cpp tests/hardening_tests.cpp CMakeLists.txt",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue the exact-source 7S.2c retained text/value and staging audit. Keep the AC1024 ShLoft/ShRevolve bodies fail-closed until authoritative layout or traceable producer frames justify a change; continue local PAR-03/PAR-04, HATCH, or DWG semantic work independently of external gates."
+}

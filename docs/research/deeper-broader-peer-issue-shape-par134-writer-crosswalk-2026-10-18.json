@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer issue shapes and HATCH CMC read/write symmetry",
+  "mode": "primary-source issue review plus local source/test crosswalk; plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Re-read selected LibreDWG issues #1408, #1409, #1410, and #1415 and ACadSharp issues #1259, #1261, and #1277",
+    "Compare reported DXF text framing, block-body, HATCH/embedded-MTEXT, codepage, GeoData, and MLEADER-context shapes with existing local owners",
+    "Trace local R2004+ HATCH gradient CMC read and write paths against ODA §2.11 and the existing CMC writer helper",
+    "Refine PAR-134 implementation readiness without adding a duplicate finding or broadening support claims"
+  ],
+  "method": {
+    "kind": "Read primary project issue bodies and official format/API references; inspect local source and current plan/test coverage",
+    "repositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "limitations": "Peer issues are reports for the named peer versions/routes, not format authority or local reproductions. The HATCH reader/writer finding is source-confirmed but its generated end-to-end vectors have not yet been executed. No peer or native runtime comparison was performed."
+  },
+  "sources": [
+    {
+      "project": "ODA Open Design Specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "v5.4.1, §2.11 and §20.4.75, local authoritative copy",
+      "observed": "R2004+ CMC has a reserved BS index that is always zero, a packed BL carrying color/method, and an RC flags byte. HATCH gradient stops use this CMC-shaped sequence."
+    },
+    {
+      "project": "Autodesk AcCmColor API",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcCmColor.html"
+      ],
+      "revision": "Current public API page retrieved 2026-10-18",
+      "observed": "The packed color high byte identifies the method; low color bytes carry components. This distinguishes C2 true color from C3 indexed color."
+    },
+    {
+      "project": "LibreDWG issue #1415",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "revision": "Open issue page retrieved 2026-10-18; affected peer artifacts described in issue body",
+      "observed": "The report distinguishes C3 ACI palette collisions from C2 true-color fallback errors and corrects an initially proposed fix that would have guarded the reserved BS instead of preserving method semantics. Used only to choose generated adversarial values."
+    },
+    {
+      "project": "LibreDWG issues #1408, #1409, #1410",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410"
+      ],
+      "revision": "Open issue bodies retrieved 2026-10-18; issue #1409 report names LibreDWG 0.14 and source revision 8a1ae7646",
+      "observed": "Reports cover literal-CR DXF framing, skipped BLOCK bodies from loop-index mutation, and three distinct DXF→DWG cases: zero-valued HATCH coordinates, unusual attribute tags, and embedded-MTEXT fields. The embedded-field skip is described by its reporter as a stopgap."
+    },
+    {
+      "project": "ACadSharp issues #1259, #1261, #1277",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/issues/1261",
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "Issue bodies retrieved 2026-10-18; reported versions differ by issue",
+      "observed": "The reports separate codepage declaration/byte mismatch, an R2009 GeoData tail and unit-field assignment, and standalone annotative MLEADER context-object corruption. They remain peer-specific implementation leads."
+    },
+    {
+      "project": "Local libdxfrw source and plan",
+      "urls": [
+        "src/drw_entities.cpp",
+        "src/intern/dwgbufferw.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Working tree inspected at HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "DRW_Hatch::readBoundedHatchGradient assigns the R2004+ BS to aciColor and the packed BL to rgb; encodeDwgGradientData writes those fields untagged. dwgBufferW::putCmColor already implements BS=0 with packed C2/C3 methods. Existing neighboring route owners cover LAYER CMC, block census, text framing, HATCH zero-Y, embedded attributes, CP949, GeoData, and standalone MLEADER context boundaries."
+    }
+  ],
+  "disposition": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingFindingRefined": "PAR-134 under 7Q; expanded from reader-only projection to read/write CMC symmetry",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

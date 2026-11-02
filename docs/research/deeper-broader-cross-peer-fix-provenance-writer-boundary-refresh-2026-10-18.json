@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-peer fix provenance and writer-boundary refresh",
+  "mode": "primary-source issue/commit research and scoped local source audit",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current LibreDWG DXF-writer issue reports with linked commits and mutable master source",
+    "Check whether LibreDWG's quoted-string buffer defect has an equivalent in the local DXF text sink",
+    "Reconcile recent ACadSharp reader/writer reports with existing local plan owners and evidence grades",
+    "Refine implementation readiness without changing the local implementation queue or validation cadence"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project issues, commits, current source, and existing local plan/source/test ownership",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dxfwriter.cpp",
+      "src/intern/dxfwriter.h",
+      "src/intern/drw_textcodec.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Issue bodies and mutable default-branch source describe their cited state, not every release artifact. ACadSharp issue #1282 was visible only as an issue-index title in this pass. Local writer review was scoped to the direct text sinks and nearby encoding/chunk helpers; it was not a sanitizer run or exhaustive memory-safety proof. No peer drawing or issue attachment was acquired."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1412",
+      "revision": "issue body and activity reviewed 2026-10-18; issue page showed Open",
+      "observed": "The report describes a C DXF string quoting buffer whose actual written end was not NUL-terminated before strlen, allowing unwritten heap bytes into output. It also describes a latent zero-length transformed-value case that could omit the entire group. The issue page lists two commits referencing the report."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+      "revision": "commit 5abbe5d",
+      "observed": "Adds termination at the last byte written by cquote, clamped within the buffer; it is a commit-level fix, not by itself a tagged-release qualification."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474",
+      "revision": "commit aafb376",
+      "observed": "Adds explicit empty group output in dxf_write_chunked when the transformed string length is zero. The commit describes this as hardening for a state not reproduced in its master tests."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/out_dxf.c",
+      "revision": "mutable master source reviewed 2026-10-18",
+      "observed": "Current source contains both the cquote written-end terminator and the dxf_write_chunked zero-length group guard. This does not prove a particular formal release contains either change."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1413",
+      "revision": "issue report reviewed 2026-10-18",
+      "observed": "The report identifies NOD physical ordering as distinct from handle order and is already mapped to the local root-ordering plan/test owner."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "revision": "issue reports reviewed 2026-10-18",
+      "observed": "#1414 leaves the source TV/TU versus target-DXF Unicode escape policy unresolved; #1415 reports method/index confusion in CMC handling. Both are already mapped to local text-route and method-discriminated color evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "current issue reports/index reviewed 2026-10-18",
+      "observed": "#1281, #1279, #1280, and #1297 provide detailed failure-mode reports; #1282 was visible only by index title; #1299 depends on an attached drawing not reviewed here. Their reports map to existing local robustness, text, graph, and spline evidence owners but do not establish local defects. #1297 specifically reports whole-file rejection despite a reportedly identical MTEXT body, while its proposed cause remains unproven."
+    }
+  ],
+  "localAudit": {
+    "directSinkReview": "dxfWriterAscii::writeString writes the supplied string_view data for exactly its size. dxfWriterBinary::writeStringImpl writes the supplied view length for ordinary strings; binary payload chunks are separately length-checked. Nearby UTF-8 conversion retains owned std::string storage and chunk emission uses explicit offsets/sizes.",
+    "equivalentPeerDefectFound": false,
+    "auditLimit": "Scoped static inspection only; not an exhaustive audit of every conversion/helper path and not dynamic memory-safety validation.",
+    "testOwnerDisposition": "Reuse existing writer/text owners if a future local change adds a mutable, length-changing buffer. Existing generated encoding and chunk tests remain in place; no test added in this research pass."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds a conditional invariant for future mutable-buffer text transforms, clarifies that issue status/current master/released artifacts are separate evidence, and reinforces whole-file acceptance after entity-level body checks. Existing local owners and implementation order are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Continue the dependency-ready local implementation queue; do not wait on a peer issue or branch state.",
+    "For a future mutable-buffer string transform, track the initialized output length, terminate at that boundary where required, preserve explicit empty group records, and assert a following typed sentinel in the existing writer test owner.",
+    "Keep per-slice validation to the touched strict target, focused generated selector, compatibility check, and owning CTest; run sanitizers/allocator-noise/fuzzing only at the existing scheduled or composed security checkpoint.",
+    "Pin the exact peer source commit and release/package separately; do not transfer current-master fixes to a release without ancestry or artifact evidence.",
+    "Retain file-level inventory, object/reference closure, strict independent readback, and native acceptance after entity-body checks; keep unavailable gates non-blocking for local implementation."
+  ],
+  "validation": {
+    "receiptJsonValidation": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

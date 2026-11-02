@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "7S.2c LEADER raw-entity collision index fast slice",
+  "mode": "generated local fast slice",
+  "scope": [
+    "Continue the 7S.2c LEADER preflight scratch census after cross-family collision indexing was narrowed",
+    "Avoid retaining every raw entity handle when only collisions with annotation targets affect the result",
+    "Preserve cross-block ordering by collecting all typed annotation targets before scanning raw events"
+  ],
+  "method": {
+    "kind": "Local source audit and existing generated ASCII/Binary LEADER selector",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "persistentTestDataAdded": false,
+    "limitations": "The generated selector verifies duplicate raw records colliding with a typed target and destination preservation, but does not measure process memory or qualify producer interoperability. Git metadata is read-only in this workspace; the slice remains uncommitted."
+  },
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Collect typed entity identities and all LEADER annotation handles first, then scan raw entity events and retain only valid raw handles present in the annotation target set.",
+      "Skip raw-handle collision scanning if there are no annotation targets; keep nonzero/non-sentinel filtering and raw-collision rejection unchanged."
+    ],
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2"
+    ],
+    "focusedSelector": "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "owningCtestResult": "1/1 passed in 3.88 seconds",
+    "scopedDiffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/leader-raw-entity-collision-index-fast-slice-2026-10-19.json",
+    "receiptJsonCheck": "jq empty docs/research/leader-raw-entity-collision-index-fast-slice-2026-10-19.json",
+    "scopedDiffCheckPassed": true,
+    "receiptJsonPassed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "p5-ac1027-field-coordinate-transport-v1",
+  "status": "implemented-generated-transport-only",
+  "baseCommit": "8ab507e0",
+  "sourceProfile": {
+    "kind": "locally-authored-generated-model",
+    "dxfVersion": "AC1027",
+    "fixtureCommitted": false,
+    "sourceDwgsUsed": false,
+    "values": [
+      {
+        "location": "main cache",
+        "type": 16,
+        "dataSize": 16,
+        "coordinates": [2.5, -4.25]
+      },
+      {
+        "location": "main cache",
+        "type": 32,
+        "dataSize": 24,
+        "coordinates": [0.125, -2.75, 5.5]
+      },
+      {
+        "location": "keyed child cache",
+        "type": 32,
+        "dataSize": 24,
+        "coordinates": [-1.25, 2.5, 7.75]
+      }
+    ]
+  },
+  "implementation": {
+    "admission": "The FIELD output profile admits types 16 and 32 only with coordinate variants, group-code base 11, finite components, no flags/units/handle/raw/string metadata, and data size absent or exact (16/24 bytes). A 2D value with a nonzero Z component is refused.",
+    "serialization": "The shared DXF CadValue writer emits type and size, then group 11 X, group 21 Y, and group 31 Z only for type 32. The typed FIELD decoder requires ordered coordinate components and publishes readback values.",
+    "scope": "Generated AC1027 ASCII and Binary DXF FIELD transport, including main and child cache values. This does not prove physical DWG producer profiles, native FIELD evaluation, or consumer rendering semantics."
+  },
+  "independentImplementationCrossCheck": {
+    "repository": "DomCR/ACadSharp",
+    "commit": "25b534813c1e5beb19ce78dd8f671781fd4d052f",
+    "sources": [
+      {
+        "path": "src/ACadSharp/CadValueType.cs",
+        "blob": "083a39944634f3c1470dd90a4cfea980d635946b",
+        "finding": "Defines Point2D = 0x10 and Point3D = 0x20."
+      },
+      {
+        "path": "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfSectionWriterBase.cs",
+        "blob": "077d20168380a5177ecfdfa6239770be793c7ac3",
+        "finding": "writeCadValue emits group 11 for both point types."
+      },
+      {
+        "path": "src/ACadSharp/IO/DXF/DxfStreamReader/DxfSectionReaderBase.cs",
+        "blob": "48be98ef52ed480282fc122ddcda992aee38d66f",
+        "finding": "readCadValue consumes groups 11, 21, and 31 into coordinate values."
+      }
+    ],
+    "qualification": "Source-level independent implementation evidence only; ACadSharp was not executed against generated output, and it is not a native FIELD evaluator."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "fastTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_fieldlist_membership_output$' --output-on-failure",
+      "result": "passed",
+      "coverage": "ASCII and Binary generated FIELDLIST export/import; exact typed coordinate values in main and child records; invalid non-finite coordinate refusal; destination sentinel preservation; successful retry using the same adapter."
+    },
+    "diffCheck": "git diff --check passed",
+    "noExternalFixtureAdded": true
+  },
+  "refusalAndRetry": {
+    "invalidMutation": "main-cache 3D Z changed to positive infinity",
+    "result": "export refused and preserved the existing destination bytes",
+    "retry": "restored finite Z and re-exported successfully using the same adapter"
+  },
+  "localHashes": {
+    "dwg2dxf/dx_iface.cpp": "9f9131c24a46421be3a412c6cfa05bc64ab5c65092a2fb60fd5dec4b3c41734e",
+    "tests/dwg2dxf_adapter_tests.cpp": "25bf78989d2a5a58fdf64a6743cebd58b0e6fe2834d5ed8af062eaec2343be94",
+    "tests/CMakeLists.txt": "4cb2fef5f89b2d888e093616a97659fc4372dee2605633252f8ec71090fea285",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7279dcc8869a45cd3a4264f6ac529df7be50c3651066514291657b921e0ed2a2",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "2a36117dcc31d04d67e1f64c92e724ddba850286810762fa728dc21c5ae431fb"
+  }
+}

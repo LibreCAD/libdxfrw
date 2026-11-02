@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORTENTSTABLE projection scratch seed-copy elimination",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid transiently copying source SORTENTSTABLE handle vectors that are immediately cleared before projected vectors are generated.",
+    "Preserve typed-table metadata, source immutability, output mapping, and existing pair-count limits."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::validateSortEntsGraph",
+    "before": "Copy DRW_SortEntsTable including m_entityHandles and m_sortHandles, clear those arrays, reserve and fill projection arrays.",
+    "after": "Default-construct output, copy the DRW_TableEntry base, copy m_blockOwnerHandle, then reserve and fill only projected arrays.",
+    "effect": "Removes one avoidable transient copy of both source-sized handle vectors from the projection peak. Existing output arrays and writer-side remapping scratch remain bounded by their current limits and are not otherwise changed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 0.32
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one avoidable typed SORTENTSTABLE projection copy without changing limits, output semantics, public APIs, peer cadence, or support claims. Broader 7S.2c scratch and retained-owner accounting remains open."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter-test target build",
+      "Focused existing SORTENTSTABLE adapter round-trip CTest"
+    ],
+    "limitations": "The change removes the immediate source pair-vector deep copy but does not measure allocator overhead or process RSS and does not account every writer-side scratch structure. It preserves the existing bounded pair admission and is not a whole-process memory-bound claim."
+  }
+}

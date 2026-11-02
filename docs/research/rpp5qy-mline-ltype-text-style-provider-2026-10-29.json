@@ -1,0 +1,50 @@
+{
+  "id": "RPP-5qy",
+  "title": "MLINE referenced complex-text LTYPE and STYLE provider",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "authority": [
+    {
+      "title": "Autodesk LTYPE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "used_for": "Group 74 text flag; groups 75, 340, 46, 50, 44, 45 and 9 meanings."
+    },
+    {
+      "title": "Autodesk STYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+      "used_for": "STYLE provider table-record fields and identity."
+    }
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated MLINE authority recipe with a text-bearing complex LTYPE and a complete STYLE table record; no external fixture is used.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, one dash of 1.5, flags 2, shape number 0, text DXF, scale 0.75, rotation 0.25 radians on the wire, offsets 0.125/-0.25.",
+    "style_provider": "ComplexText at source handle 1F3; the LTYPE group-340 points to this source provider.",
+    "consumer": "The MLINESTYLE references EditDash; source MLINE consumers remain unchanged."
+  },
+  "proof": {
+    "source": "Physical source projection verifies every selected LTYPE field and the STYLE provider handle before import; the model binds the segment style handle to the parsed STYLE provider.",
+    "output": "Physical output verifies that group 340 equals the emitted STYLE record handle; a fresh read confirms the remapped handle and text-segment values, while the MLINESTYLE consumers remain valid.",
+    "failure_retry": "Removing the required STYLE provider from the caller model causes export refusal and preserves the destination sentinel. Restoring the provider allows a successful same-adapter retry.",
+    "counts": {
+      "profiles": 4,
+      "successful_readbacks": 8,
+      "missing_provider_refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    }
+  },
+  "validation": {
+    "selector": "libdxfrw_mline_ltype_text_style_provider",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_text_style_provider$' --output-on-failure",
+    "result": "PASS",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeTextStyleControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies transport and source/output identity for one AC1027 text-bearing LTYPE profile only; it does not prove the font is installed or that text renders correctly.",
+    "Shape-bearing segments, other complex flags, multiple segments, optional-field placements, other providers, versions, native rendering, and composed document closure remain open."
+  ]
+}

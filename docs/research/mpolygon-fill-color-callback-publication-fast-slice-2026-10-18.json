@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "MPOLYGON fill-color callback publication fast slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "objective": "Extend the existing DXF MPOLYGON group-430 retained-string owner control through full-read callback suppression and same-facade retry for ASCII and Binary DXF.",
+  "implementation": {
+    "changedFiles": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/mpolygon-fill-color-callback-publication-fast-slice-2026-10-18.json"
+    ],
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "selectorAdded": "--dxf-mpolygon-fill-color-callback-budget",
+    "generatedInput": "Locally authored AC1027 ASCII and Binary DXF in an isolated temporary directory; each has a closed three-vertex MPOLYGON boundary, a 512-byte group-430 fill-color name, a LINE sentinel with distinct coordinates, and EOF.",
+    "assertions": [
+      "Discover the minimum successful full-read retained-byte budget by binary search.",
+      "At exact cap, capture addMPolygon then addLine with the exact fill-color string and expected LINE handle/coordinates.",
+      "At cap minus one, require ResourceLimit/dxf-retained-byte-budget before either entity callback.",
+      "Raise the same facade to the measured exact cap and require a successful same-facade retry with ordered callbacks."
+    ],
+    "scopeLimits": [
+      "Does not change production parsing or retained-byte ownership.",
+      "Does not establish HATCH semantics, writer/projection-copy memory, public post-callback caller mutation bounds, DWG storage, native acceptance, or format support.",
+      "No persistent external drawing or new CTest was added."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-mpolygon-fill-color-callback-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-hatch-text-owner-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS: 1/1, 0.32 seconds"
+      },
+      {
+        "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/hardening_tests.cpp",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/mpolygon-fill-color-callback-publication-fast-slice-2026-10-18.json",
+        "result": "PASS"
+      }
+    ],
+    "fullProjectSuite": false,
+    "peerOrNativeRuns": 0
+  },
+  "planEffect": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout already contains broad user changes. This slice remains local and uncommitted; unrelated changes were not staged or altered."
+  }
+}

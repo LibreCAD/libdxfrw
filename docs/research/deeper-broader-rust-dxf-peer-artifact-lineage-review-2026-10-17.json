@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the DXF reader/writer peer screen, inspect declared source and corpus lineage, resolve current undxf artifact-version ambiguity, and refine optional comparator readiness without expanding per-slice validation.",
+  "method": {
+    "primarySourcesReviewed": [
+      "https://docs.rs/crate/cadkit-dxf/latest",
+      "https://docs.rs/cadkit-dxf/latest/cadkit_dxf/index.html",
+      "https://github.com/TNYCL/cadkit",
+      "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md",
+      "https://docs.rs/undxf/latest/undxf/",
+      "https://docs.rs/undxf/latest/undxf/enum.ReadError.html",
+      "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md"
+    ],
+    "peerRepositoriesCloned": 0,
+    "peerPackagesInstalled": 0,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "localBuildsRun": 0,
+    "productionCodeChanged": false,
+    "localTestCodeChanged": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ]
+  },
+  "findings": [
+    {
+      "candidate": "TNYCL/cadkit-dxf 0.3.3",
+      "evidence": "The docs.rs package page identifies v0.3.3, published 2026-10-16, and documents ASCII/Binary DXF read claims from R12/AC1009 through 2018/AC1032 plus an ASCII writer. The repository says entity coverage is still growing. The API documentation describes a format-neutral model and planar geometry normalized to world coordinates.",
+      "license": "Dual MIT/Apache-2.0 according to the package and repository pages.",
+      "lineage": "The project describes itself as clean-room and excludes GPL-family sources, but its PROVENANCE ledger lists ACadSharp and ezdxf as DXF cross-checks and its public corpus notes include ACadSharp samples. A separate implementation is plausible; reference and test evidence is correlated. No code-level source overlap audit was performed.",
+      "artifactIdentity": "The package page reports 0.3.3, but the generated API page returned in this review labels itself 0.3.0. Checksum, .cargo_vcs_info source commit, matching API/source version, lockfile and feature profile are not resolved.",
+      "dwgAnd3dScope": "No independent DWG, AcDs, ACIS/SAB, B-rep, or native-consumer route established by this DXF package review.",
+      "classification": "SEPARATE_DXF_IMPLEMENTATION / CORRELATED_REFERENCE_AND_CORPUS / OPTIONAL / NOT_RUN",
+      "planUse": "Use only at the existing composed DXF checkpoint if a named local gap remains. Pin exact artifact/source/dependencies, use scratch-authored inputs and an independent expected manifest, and report typed/normalized/unknown/omitted/refused dispositions. Do not add a Rust toolchain or peer run to ordinary implementation slices."
+    },
+    {
+      "candidate": "iyulab/undxf version resolution",
+      "evidence": "The docs.rs landing page returned in this review identifies undxf 0.1.1, while the docs.rs latest ReadError API page identifies 0.8.0 and documents a Binary error with byte offset. The pinned 0.2.0 CAVEATS file remains available. The current registry artifact and matching source revision are unresolved by these conflicting page snapshots.",
+      "historicalEvidenceBoundary": "The 0.2.0 corpus, entity, binary-DXF and ACIS-wireframe figures apply only to that pinned version and must not be repeated as facts about an unresolved later/current artifact.",
+      "classification": "VERSION_UNRESOLVED / OPTIONAL / NOT_RUN",
+      "planUse": "Before any future run, resolve registry metadata, checksum, .cargo_vcs_info source revision and uncad lockfile dependency. If unavailable or inconsistent, record NOT_RUN and continue."
+    }
+  ],
+  "decision": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "queueReordered": false,
+    "newDependency": false,
+    "newFixture": false,
+    "testRegistrationChanged": false,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": false,
+    "externalJStatusesChanged": false,
+    "externalJStatuses": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "findings": 129,
+    "topLevelImplementationSubplans": 72
+  },
+  "readiness": {
+    "entryConditions": [
+      "A named unresolved DXF gap remains after existing local generated controls.",
+      "Resolve exact crate checksum, source commit, matching API snapshot and lockfile before toolchain setup.",
+      "Use a scratch-authored control and expected manifest independent of peer output and peer-derived corpus counts.",
+      "Record DXF mode/version and per-source typed, normalized, unknown, omitted or refused disposition.",
+      "Keep the peer at the composed checkpoint; do not add it to per-slice validation."
+    ],
+    "excludedClaims": [
+      "independent DWG parser parity",
+      "ACIS or AcDs semantic support",
+      "closed B-rep validity",
+      "native application acceptance",
+      "general 3D support",
+      "current undxf version inferred from a mutable latest URL"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "planSection": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-rust-dxf-peer-artifact-lineage-and-version-resolution-review-2026-10-17-research-only"
+}

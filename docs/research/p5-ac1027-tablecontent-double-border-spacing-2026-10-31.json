@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT double border and spacing override",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "specFields": {
+      "borderTypeOverride": "property bit 0x01; Double=2",
+      "doubleLineSpacingOverride": "property bit 0x20; BD in DXF group 40",
+      "wireOrder": "edge flags, property override flags, border type, color, lineweight, linetype handle, invisibility, double-line spacing"
+    },
+    "consumerReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-MAC-Core/files/GUID-FFA80DE7-A343-43D3-9084-3EE5EF7F2C50.htm",
+      "supports": "AutoCAD exposes double-line spacing as a border property and documents a default of 0.1800; it does not document a complete numeric validity range. This slice therefore qualifies only the tested finite positive profile."
+    }
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored 2x2 TABLECONTENT based on tableContentScalarGrid; no drawing fixture files were added.",
+    "coverage": [
+      "Double border type 2 with the explicit spacing override bit",
+      "Spacing 0.5 carried in group 40 and combined with indexed color and visibility",
+      "One-hot and grouped disjoint edge masks",
+      "ASCII and binary physical wire checks and fresh typed readback"
+    ],
+    "admittedPropertyBits": ["0x01", "0x02", "0x08", "0x10", "0x20"],
+    "unsupportedCompanions": "Linetype handles, extended CMC/name/book colors, overlapping edge declarations, and unqualified type/spacing combinations remain refused."
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/table_content_dxf_tests.cpp"],
+    "behavior": "The bounded TABLECONTENT cell-border writer admits Double=2 only when the spacing override bit is set and spacing is finite and positive. Single=1 remains limited to no spacing override and zero spacing; unselected type/spacing fields must retain model defaults.",
+    "physicalWire": "The scalar wire walk checks ordered edge masks, property masks, group-91 Double type, indexed color, lineweight, null linetype, visibility, group-40 spacing, and closing markers.",
+    "typedReadback": "Fresh ASCII and binary imports preserve edge masks, property masks, Double type, indexed color, lineweight, visibility and exact spacing.",
+    "failureRetry": "Negative spacing and unsupported property masks refuse without replacing the destination sentinel or changing the caller value. After restoring the model, the same adapter successfully retries; fresh readback compares every border field, including spacing.",
+    "fixturePolicy": "All inputs are generated at runtime; no external drawing fixtures were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.55 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "3a23111eaf682934363e00be5b579aac9477267cc591dbbbcdf68e16ec68d892",
+      "tests/table_content_dxf_tests.cpp": "22cea95c14b7900a685f481455028ff8c5f2b35c59cc19cea3196ea4e5ae8972",
+      "focusedExecutable": "eb9e380cd5a4017e3ea991dc8a77131891d809ebaa67705cfb56d08b967307db"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer/readback profile is covered; this is not DWG TABLECONTENT output or other DXF version qualification.",
+    "The receipt does not establish the full numeric validity domain for spacing or native CAD rendering.",
+    "Wire and typed readback do not establish producer completeness, whole-document closure, or public support claims."
+  ],
+  "next": "Continue with source- or consumer-backed linetype, extended-color, and non-overlapping edge profiles; keep unsupported combinations refused."
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5na consumed MLINE style removal matrices for source counts six through eight",
+  "date": "2026-10-29",
+  "status": "SELECTED_SURVIVOR_MATRICES_QUALIFIED",
+  "codeCommit": "3a37427e",
+  "scope": "Qualifies ordered survivor removal for each nonzero target size from source counts 6, 7, and 8. Every survivor subset is exercised for each source/target pair under the selected generated AC1027 recipes.",
+  "contract": {
+    "sourceCounts": [6, 7, 8],
+    "targetsBySource": {
+      "6": "1..5",
+      "7": "1..6",
+      "8": "1..7"
+    },
+    "survivorCoverage": "Every C(sourceCount,targetCount) ordered subset is exercised, with source order preserved.",
+    "sourceRecipe": "Generated ordered offsets, ACI colors and alternating ByLayer/Continuous linetypes for each source count.",
+    "encodingMatrix": [
+      "ASCII source to ASCII AC1027 output",
+      "ASCII source to binary AC1027 output",
+      "binary source to ASCII AC1027 output",
+      "binary source to binary AC1027 output"
+    ],
+    "consumers": "Two source-bound open, uncut, unfilled MLINE consumers: one in model space and one in a named block, with the existing admitted justifications.",
+    "outputAndReadback": "For every subset, verify ordered groups 49/62/6, MLINESTYLE group 71, consumer group 73, group 340 identity, group 74/group 41/group 75 arrays, target-minimum reprojection, and fresh style/consumer readback.",
+    "failureAndRetry": "For each target count, unsupported flags refuse ASCII and binary output with sentinel destination and caller state preserved; corrected flags retry successfully. A late live-consumer mutation also refuses without replacing output; restoring the caller snapshot permits retry on the same adapter."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_removal_matrix_(six|seven|eight)$' -j3 --output-on-failure",
+      "ranges": [
+        {"sourceCount": 6, "targets": "1..5", "survivorSubsets": 62, "elapsedSeconds": 4.25, "result": "PASS"},
+        {"sourceCount": 7, "targets": "1..6", "survivorSubsets": 126, "elapsedSeconds": 8.04, "result": "PASS"},
+        {"sourceCount": 8, "targets": "1..7", "survivorSubsets": 254, "elapsedSeconds": 15.66, "result": "PASS"}
+      ],
+      "summary": "All subset/encoding output and readback cases passed. Transaction refusal, rollback and retry controls passed for every target count. Combined wall time was 15.67 seconds."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "3a37427e",
+    "tests/CMakeLists.txt": "8e19a7922023aa8058b8c3c9a44d2b5163c4d046",
+    "tests/dxf_fixture_tests.cpp": "25a519f1c63a0a0b3f4f7f653c7358246267099d",
+    "testExecutableSha256": "1b839a4fda8379ce64a5bfec70723aff96d53c05a969b1a5649c94f2d62b41be",
+    "fixturePolicy": "DXF files are generated at runtime and removed after success. No testing DWG/DXF fixtures were committed."
+  },
+  "limits": [
+    "Only the selected generated AC1027 source recipes, source counts 6..8, nonzero targets and admitted consumers are qualified.",
+    "Source counts beyond eight, zero-element handling, unused style definitions, alternate source tuples, other versions/carriers, native semantics and complete-document closure remain open.",
+    "No DWG, independent-kernel, platform or 3D support claim is promoted."
+  ],
+  "next": "Select the next source-count removal witness or zero-element refusal boundary, or proceed to a distinct count-71/angle/offset/schema profile with exact source, output, rollback and retry proof."
+}

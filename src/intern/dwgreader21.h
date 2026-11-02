@@ -28,6 +28,7 @@ public:
     bool readMetaData() override;
     bool readFileHeader() override;
     bool readDwgHeader(DRW_Header& hdr) override;
+    bool readDwgTemplate(DRW_Header& hdr) override;
     bool readDwgClasses() override;
     bool readDwgHandles() override;
     bool readDwgTables(DRW_Header& hdr) override;

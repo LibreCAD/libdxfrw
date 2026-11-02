@@ -1,7 +1,10 @@
 #include <cstdint>
 #include <iostream>
+#include <limits>
+#include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "drw_base.h"
@@ -14,7 +17,9 @@
 #include "intern/dwgwriter24.h"
 #include "intern/dwgwriter27.h"
 #include "intern/dwgwriter32.h"
+#include "intern/dwgtemplate.h"
 #include "libdwgr.h"
+#include "dx_dwg_class_section_wire.h"
 
 namespace {
 
@@ -188,6 +193,146 @@ void testCapabilityInventory(TestContext& t) {
     }
 }
 
+std::unique_ptr<dwgWriter> templateWriter(DRW::Version version,
+                                         DRW_Header& header) {
+    switch (version) {
+    case DRW::AC1015: return std::make_unique<dwgWriter15>(nullptr, &header);
+    case DRW::AC1018: return std::make_unique<dwgWriter18>(nullptr, &header);
+    case DRW::AC1021: return std::make_unique<dwgWriter21>(nullptr, &header);
+    case DRW::AC1024: return std::make_unique<dwgWriter24>(nullptr, &header);
+    case DRW::AC1027: return std::make_unique<dwgWriter27>(nullptr, &header);
+    case DRW::AC1032: return std::make_unique<dwgWriter32>(nullptr, &header);
+    default: return nullptr;
+    }
+}
+
+void testTemplateMeasurementAdmission(TestContext& t) {
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                               DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (int value : {0, 1}) {
+            DRW_Header header;
+            header.addInt("$MEASUREMENT", value, 70);
+            header.addInt("$INSUNITS", value == 0 ? 4 : 1, 70);
+            std::uint16_t measurement = 99;
+            const auto count = header.vars.size();
+            t.expect(dwgTemplate::headerMeasurement(&header, measurement)
+                         && measurement == value && header.vars.size() == count,
+                     "explicit Template measurement is independent of INSUNITS");
+            t.expect(dwgTemplate::emptyDescription(measurement)
+                         == std::array<std::uint8_t, 4>{{0, 0,
+                                static_cast<std::uint8_t>(value), 0}},
+                     "Template canonical empty-description field bytes");
+            auto writer = templateWriter(version, header);
+            t.expect(writer && writer->writeFileHeaderStub(),
+                     "all six writer targets admit explicit0/1 measurement");
+        }
+        for (int value : {-1, 2, (std::numeric_limits<int>::max)()}) {
+            DRW_Header header;
+            header.addInt("MEASUREMENT", value, 70);
+            auto writer = templateWriter(version, header);
+            const auto before = writer->buffer();
+            t.expect(writer && !writer->writeFileHeaderStub()
+                         && writer->buffer() == before,
+                     "invalid explicit measurement rejects before writer bytes");
+            header.addInt("MEASUREMENT", 1, 70);
+            t.expect(writer->writeFileHeaderStub(),
+                     "corrected measurement retries on the same untouched writer");
+        }
+    }
+    DRW_Header absent;
+    absent.addInt("INSUNITS", 4, 70);
+    std::uint16_t measurement = 99;
+    t.expect(dwgTemplate::headerMeasurement(&absent, measurement)
+                 && measurement == 0,
+             "absent measurement retains the existing DWG fallback");
+    absent.addStr("MEASUREMENT", "1", 1);
+    t.expect(!dwgTemplate::headerMeasurement(&absent, measurement),
+             "explicit noninteger measurement is not treated as absent");
+    DRW_Header aliases;
+    aliases.addInt("MEASUREMENT", 0, 70);
+    aliases.addInt("$MEASUREMENT", 1, 70);
+    t.expect(!dwgTemplate::headerMeasurement(&aliases, measurement),
+             "conflicting measurement aliases reject deterministically");
+}
+
+// Section authoring seam only. Actual six-container imports are checked by
+// the adapter raster test; the byte observer here has no production dependency.
+class ClassSectionWriter final : public dwgWriter24 {
+public:
+    ClassSectionWriter(DRW::Version version, unsigned count, unsigned length)
+        : dwgWriter24(nullptr, nullptr) {
+        m_version = version; configureTextCodec(); m_dwgClassDefinitions.clear();
+        for (unsigned n = 0; n < count; ++n) {
+            DwgClassDefinition row;
+            row.m_classNum = static_cast<std::uint16_t>(500u + n); row.m_proxyFlag = 7u;
+            row.m_appName.assign(length, 'A'); row.m_className.assign(length, 'C'); row.m_recordName.assign(length, 'R');
+            row.m_wasProxy = true; row.m_entityFlagRaw = 0x1F3u; row.m_instanceCount = 1;
+            row.m_dwgVersion = 257; row.m_maintenanceVersion = 329; row.m_unknown1 = 41; row.m_unknown2 = 73;
+            m_dwgClassDefinitions.push_back(std::move(row));
+        }
+    }
+};
+void testClassTextBitLengths(TestContext& t) {
+    namespace wire = dx_class_wire;
+    unsigned cases = 0u, shortFooters = 0u, extendedFooters = 0u, alignments = 0u;
+    for (const auto version : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
+    for (unsigned count = 0; count < 8u; ++count)
+    for (const unsigned length : {1u, 254u, 255u, 700u}) {
+        ClassSectionWriter writer(version, count, length);
+        const auto label = "CLASSES exact text bits " + std::to_string(version) + "/" + std::to_string(count) + "/" + std::to_string(length);
+        t.expect(writer.prepareDwgClassManifest() && writer.writeDwgClasses(), label + " authoring");
+        wire::SectionProfile profile;
+        profile.revision = version == DRW::AC1021 ? 2007u : version == DRW::AC1024 ? 2010u
+            : version == DRW::AC1027 ? 2013u : 2018u;
+        profile.maintenance = version == DRW::AC1027 ? 6u : 0u;
+        profile.highSizeRule = wire::ClassHighSizeRule::R2018Always;
+        profile.trailer = wire::Trailer::ProducerBitLong;
+        profile.tail = wire::ClassTail::BeforeEight;
+        profile.requireTrueHeaderFlag = false; profile.scalarByteAlignment = true;
+        const auto& bytes = writer.buffer();
+        const auto proof = wire::observeSection(bytes.data(), bytes.size(), profile);
+        t.expect(proof.status == wire::Status::Observed && proof.records == count && proof.crcMatches,
+                 label + " independently framed with complete text consumption");
+        if (proof.status != wire::Status::Observed) continue;
+        // TU includes one terminal NUL. BS256 uses only its two tag bits.
+        const auto units = length + 1u;
+        const auto prefix = units == 256u ? 2u : units < 256u ? 10u : 18u;
+        const auto expectedBits = count * 3u * (prefix + units * 16u);
+        const auto footerBits = count == 0u ? 1u : expectedBits > 0x7FFFu ? 33u : 17u;
+        t.expect(proof.strings.end - proof.strings.begin == expectedBits
+                     && proof.stringFooter.end - proof.stringFooter.begin == footerBits
+                     && proof.extendedFooter == (expectedBits > 0x7FFFu), label + " exact footer bounds");
+        if (count != 0u) {
+            alignments |= 1u << (proof.stringFooter.begin % 8u);
+            if (proof.extendedFooter) ++extendedFooters; else ++shortFooters;
+        }
+        auto data = proof.data, strings = proof.strings;
+        for (unsigned n = 0; n < count; ++n) {
+            const auto record = wire::scan(data, strings, profile.revision, profile.trailer);
+            bool names = record.status == wire::Status::Observed;
+            for (unsigned name = 0; name < 3u; ++name) {
+                const std::string expected(length, name == 0u ? 'A' : name == 1u ? 'C' : 'R');
+                names = names && wire::equalsTerminatedUtf8(strings, record.text[name], true, expected.data(), expected.size());
+            }
+            t.expect(names && record.number == 500u + n && record.proxy == 7u && record.zombie
+                         && record.dwgVersion == 257 && record.maintenance == 329
+                         && record.unknown1 == 41 && record.unknown2 == 73,
+                     label + " independent row and nondefault metadata");
+            data.begin = record.dataEnd; strings.begin = record.stringEnd;
+        }
+        t.expect(data.begin == data.end && strings.begin == strings.end, label + " no text-padding waiver");
+        auto corrupt = bytes;
+        corrupt.at(proof.crcByte) ^= 1u;
+        t.expect(wire::observeSection(corrupt.data(), corrupt.size(), profile).reason == wire::SectionReason::Crc,
+                 label + " independent CRC still required");
+        ++cases;
+    }
+    t.expect(cases == 128u && shortFooters && extendedFooters && alignments == 0x55u,
+             "CLASSES matrix covers empty/partial/aligned, short/extended and all four text-footer bit alignments");
+    std::cout << "CLASSES writer exact-bit cases=" << cases << " short=" << shortFooters
+              << " extended=" << extendedFooters << " alignment-mask=" << alignments << '\n';
+}
+
 } // namespace
 
 int main() {
@@ -197,6 +342,8 @@ int main() {
     testOverflowIsFailClosed(context);
     testWriterInheritanceMatrix(context);
     testCapabilityInventory(context);
+    testTemplateMeasurementAdmission(context);
+    testClassTextBitLengths(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " writer version assertion(s) failed\n";
         return 1;

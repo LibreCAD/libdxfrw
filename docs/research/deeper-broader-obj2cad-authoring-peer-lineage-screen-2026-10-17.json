@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw-obj2cad-authoring-peer-lineage-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Screen a newly surfaced open-source 3D authoring project for route-specific DXF/ACIS comparison value, DWG codec lineage, and evidence independence; refine the existing peer-admission checkpoint only.",
+  "method": {
+    "kind": "Public repository README, repository metadata, published package documentation, and local plan review",
+    "sources": [
+      "https://github.com/cbassuarez/obj2cad",
+      "https://github.com/hakanaktt/acadrust",
+      "https://docs.rs/crate/acadrust/latest"
+    ],
+    "sourceCodeAudited": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "The new project's claims are from its mutable README and public repository page. No immutable source revision, dependency lock, vendored ACadRust patch, output, release artifact, source-generated sample, or native AutoCAD acceptance result was independently inspected or exercised. Repository metadata and README status are time-sensitive."
+  },
+  "routes": [
+    {
+      "name": "obj2cad DXF authoring",
+      "observed": "The README advertises a Rust ASCII/binary R2018 DXF writer and calls DXF verified. It describes a parity harness that reads output through ezdxf and compares geometry and layer/color values with a source OBJ interpretation. The public page identifies the repository as pre-release and shows a small history, zero stars, and no listed GitHub release.",
+      "planUse": "Discovery-only, trigger-based writer differential candidate. Before any use, pin an immutable source/dependency set, inspect the actual writer route and license, build it, and compare output against independently declared expected values and a separate reader.",
+      "doesNotEstablish": [
+        "native AutoCAD or other CAD-engine acceptance",
+        "DWG codec independence",
+        "DXF conformance beyond the exact route and profile exercised",
+        "producer-authored CAD semantics from a project-generated OBJ-to-DXF control"
+      ]
+    },
+    {
+      "name": "obj2cad SAT/SAB authoring",
+      "observed": "The README advertises an ACIS SAT/SAB writer, generated examples for common analytic shapes, and readback through ezdxf and ACadRust. No writer source or test harness was audited and neither reader was run in this review.",
+      "planUse": "Candidate only for a pinned, exact-profile generated-carrier experiment. Separate owner/payload identity, raw carrier preservation, parsed records/topology, analytic expected geometry, and native application acceptance.",
+      "doesNotEstablish": [
+        "complete ACIS grammar or arbitrary producer compatibility",
+        "independent semantic truth from a same-project authoring/readback pipeline",
+        "DWG AcDs extraction and source-entity-to-payload association",
+        "valid B-rep semantics from payload presence, entity count, or tessellation alone"
+      ]
+    },
+    {
+      "name": "obj2cad DWG authoring",
+      "observed": "The README says the DWG crate vendors a patched ACadRust writer and marks DWG/curved-surface output beta until AutoCAD acceptance.",
+      "planUse": "Count only as the existing ACadRust DWG codec lineage. Do not treat the application as another independent DWG implementation or as evidence of AutoCAD acceptance.",
+      "doesNotEstablish": [
+        "a second independent DWG reader/writer lineage",
+        "DWG support parity from the README's advertised version span",
+        "native CAD acceptance before the documented acceptance gate"
+      ]
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 128,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Admit obj2cad only at the existing composed checkpoint and only for a concrete uncovered question; exact-pin its source, dependencies, and license before building.",
+      "Audit its vendored ACadRust revision and local patches; count its DWG route in the existing ACadRust lineage, not as an independent peer.",
+      "Evaluate DXF authoring and SAT/SAB authoring as separate routes. Use independent expectations/readers and distinguish carriers, graph association, semantics, and native acceptance.",
+      "If the route cannot be pinned or audited, record NOT_AVAILABLE and continue the local implementation queue; do not add routine tests, dependencies, or committed peer fixtures."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

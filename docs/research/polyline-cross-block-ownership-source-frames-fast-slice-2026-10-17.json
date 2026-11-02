@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-polyline-cross-block-ownership-source-frames-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add generated AC1021 source-frame coverage for valid unique-owner and malformed cross-block shared-child POLYLINE ownership preflight.",
+  "method": {
+    "kind": "Focused in-memory source-frame regression using production entity encoders",
+    "productionFilesChanged": [],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "localBinaryFixturesWritten": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "commitAttempted": false,
+    "commitLimitation": "Repository .git metadata is read-only in this environment; no stage or commit was attempted."
+  },
+  "implementation": {
+    "version": "AC1021",
+    "generatedFrameTypes": [
+      "POLYLINE_3D",
+      "VERTEX_3D",
+      "SEQEND"
+    ],
+    "positiveControl": "A single block owner claims one generated 3D POLYLINE with one VERTEX and one SEQEND; preflight accepts it and retains all three source frames without recording a failure.",
+    "negativeControl": "Two distinct block records claim different 3D POLYLINE parents that reference the same VERTEX handle and have distinct SEQENDs.",
+    "negativeAssertions": [
+      "Preflight rejects the cross-block shared-child graph.",
+      "Both parent handles are recorded as invalid.",
+      "Both parent frames, the shared VERTEX frame, and both SEQEND frames are removed from ObjectMap.",
+      "Two Aggregate diagnostics identify POLYLINE_3D and the matching block-record owner for each parent."
+    ],
+    "frameConstruction": "The test invokes existing production encoders, emits the AC1021 inline object-data and separate handle streams, patches the object-data bit boundary, and wraps the bytes in a CRC-valid in-memory object frame.",
+    "limitations": [
+      "Exercises the mapped ownership-preflight function, not a complete DWG container or production block traversal.",
+      "Only the AC1021 frame profile is exercised by this new regression.",
+      "Does not test geometry semantics, cross-version behavior, or 3D support."
+    ]
+  },
+  "validation": {
+    "strictTargets": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests lc3_compat_check -j 2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure (1/1)",
+    "scopedDiffCheck": true,
+    "receiptJsonParsed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    }
+  }
+}

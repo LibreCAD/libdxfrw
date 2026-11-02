@@ -1,0 +1,109 @@
+{
+  "id": "RPP-5xa",
+  "title": "AC1027 MLINE LTYPE XDATA references to RAY and XLINE entities",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "261ca06a2bbaa8ccd1f9a575b981f2838d6e5c14",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One code-1005 XDATA soft pointer in the source-bound EditDash LTYPE to a RAY or XLINE in model-space ENTITIES or named AuthorityBlock BLOCKS.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handle": "0xA900"
+    },
+    "targets": [
+      {
+        "type": "RAY",
+        "subclass": "AcDbRay",
+        "source_owners": {
+          "model_space": "0x201",
+          "AuthorityBlock": "0x203"
+        },
+        "base_point_wcs": [100.5, 2.0, 3.75],
+        "unit_direction_wcs": [0.6, 0.0, 0.8]
+      },
+      {
+        "type": "XLINE",
+        "subclass": "AcDbXline",
+        "source_owners": {
+          "model_space": "0x201",
+          "AuthorityBlock": "0x203"
+        },
+        "base_point_wcs": [100.5, 2.0, 3.75],
+        "unit_direction_wcs": [0.6, 0.0, 0.8]
+      }
+    ],
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output, for both target types in both source sections.",
+    "runtime_fixture": "The focused test writes source drawings under a temporary directory and removes them; no test fixture file was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "RAY (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-638B9F01-5D86-408E-A2DE-FA5D6ADBD415.htm",
+        "relevant_rule": "Group 10 is the WCS start point; group 11 is a WCS unit direction vector."
+      },
+      {
+        "title": "XLINE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-55080553-34B6-40AA-9EE2-3F3A3A2A5C0A.htm",
+        "relevant_rule": "Group 10 is the WCS first point; group 11 is a WCS unit direction vector."
+      },
+      {
+        "title": "About 1005 Group Codes (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8243079C-B44F-493A-BAF7-1D11A6E6C78C.htm",
+        "relevant_rule": "An XDATA group-1005 handle has soft-pointer behavior and is translated when its host object is merged into another drawing."
+      }
+    ]
+  },
+  "proof": {
+    "source": "For both entity types, the collector binds physical entity type, typed dynamic type, source handle 0xA900, source owner (model-space block record 0x201 or AuthorityBlock record 0x203), source section, callback and unique live entity. The source-authored WCS point and unit vector are checked in the typed model.",
+    "output": "All 16 target/type/section/encoding combinations verify the remapped code-1005 value against the unique emitted target identity and owner, exact entity/subclass and point fields, near-equal unit-direction fields after writer normalization, LTYPE XDATA order, and fresh typed readback. RAY and XLINE are admitted by exact dynamic type in both ENTITIES and BLOCKS source-delivery paths.",
+    "failure_retry": "Removing the target refuses output with destination preservation for all 16 combinations; restoring the same target permits same-adapter retry. Four additional controls mutate the target handle after APPID emission (one ASCII case per entity type and source section), require atomic refusal and destination preservation, restore the source handle, and successfully retry with full output/readback proof.",
+    "counts": {
+      "selected_positive_profiles": 16,
+      "selected_successful_readbacks_including_retries": 36,
+      "selected_refusals_with_destination_preservation": 20,
+      "selected_same_adapter_retries": 20,
+      "whole_focused_test_profiles": 316,
+      "whole_focused_test_readbacks": 708,
+      "whole_focused_test_refusals": 392,
+      "whole_focused_test_retries": 392
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "261ca06a2bbaa8ccd1f9a575b981f2838d6e5c14",
+    "changes": "Adds RAY/XLINE record names, exact model checks and callback mappings to the existing code-1005 source collector and finalizer for ENTITIES and BLOCKS. No public API or consumer callback changed; existing RAY/XLINE reader, adapter and writer paths are reused.",
+    "claim_boundary": "This qualifies only the selected AC1027 LTYPE XDATA transport and source/output identity profile. It does not establish general code-1005 support, recursive document closure, native rendering/meaning, other versions or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 17.42 seconds); aggregate assertions include all selected profiles and refusal/retry controls."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "adapter_source_sha256": "9da53a9ef4ddae25d17785f43b16a476d2a317f3ed97c4ac5becb9494336b35b",
+      "test_source_sha256": "8e7533e8db61ccb4b479eed54e6ebe51ffda21e6b84282ef8ca7ac8951c2786f",
+      "normal_executable_sha256": "a451c41f1221d63b9bcec8b2dc0b7d809a0d80341321c272ab2f8bc74a93d098",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "focused_ctest_log_sha256": "dcd8ed45c685e747c33c43c1be5804896fa7d8af5495e7d12c5f77772e11541c",
+      "plan_sha256_before_receipt_update": "1de9e45972acb8b880b886313b1ef7932e9364bc466b62e1025a0598c1a87b91"
+    }
+  },
+  "limits": [
+    "Only the selected AC1027 RAY/XLINE point-and-direction profile and the two named source sections are qualified. Other entity types, mixed-target sets, XDATA compositions, source profiles and versions remain open.",
+    "Numeric direction output is compared within the focused test tolerance because the writer normalizes the WCS vector; no broader geometry or native CAD meaning is inferred.",
+    "Successful source/output transport does not prove complete document dependency closure or support-claim eligibility."
+  ],
+  "next": "Select another distinct code-1005 target type or mixed-target profile from a current source witness; preserve exact source binding, emitted identity, readback, refusal, rollback and retry gates."
+}

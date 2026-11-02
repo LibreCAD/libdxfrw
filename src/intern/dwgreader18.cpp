@@ -24,6 +24,7 @@
 #include "drw_dbg.h"
 #include "drw_reserve.h"
 #include "dwgreader18.h"
+#include "dwgtemplate.h"
 #include "dwgutil.h"
 #include "dwgsafety.h"
 #include "drw_textcodec.h"
@@ -677,6 +678,7 @@ bool dwgReader18::readFileHeader() {
     m_rawDwgSections.clear();
     m_dataStorageSections.clear();
     m_dataStorageLinkedRecords.clear();
+    m_dataStorageLinkedPayloadBytes = 0;
     objData.reset();
     uncompSize = 0;
     if (!fileBuf->setPosition(0x80)) {
@@ -983,6 +985,7 @@ bool dwgReader18::readFileHeader() {
     dwgBuffer buff3(tmpDecompSec.data(), decompSize, &decoder);
     std::unordered_map<int, dwgSectionInfo> parsedSections;
     std::vector<dwgSectionInfo> parsedUnknownSections;
+    dwgSafety::ExactNameIndex<> parsedUnknownSectionNames;
     constexpr std::uint64_t sectionDescriptionHeaderSize = 96;
     constexpr std::uint64_t sectionPageEntrySize = 16;
     std::unordered_set<std::uint32_t> claimedSectionPages;
@@ -1075,16 +1078,7 @@ bool dwgReader18::readFileHeader() {
                           secEnum::getEnum(secInfo.name), secInfo.Id);
             return false;
         }
-        std::vector<std::pair<std::uint64_t, std::uint64_t>> pageRanges;
-        if (secInfo.pageCount
-                > static_cast<std::uint64_t>(std::numeric_limits<int>::max())
-            || !DRW::reserve(pageRanges,
-                              static_cast<int>(secInfo.pageCount))) {
-            recordFailure(DwgIntegrityCheckKind::PageGeometry,
-                          DwgIntegrityPhase::SectionMap,
-                          secEnum::getEnum(secInfo.name), secInfo.Id);
-            return false;
-        }
+        dwgSafety::DisjointRangeIndex<> pageRanges;
         for (unsigned int i = 0; i < secInfo.pageCount; i++){
             std::uint32_t pn = buff3.getRawLong32();
             auto pageIt = sectionPageMapTmp.find(pn);
@@ -1118,24 +1112,18 @@ bool dwgReader18::readFileHeader() {
                               pn, true, pi.address, true);
                 return false;
             }
-            std::uint64_t pageEnd = 0;
-            if (!dwgSafety::add(pi.startOffset, pageWindow, pageEnd)) {
-                recordFailure(DwgIntegrityCheckKind::PageRange,
-                              DwgIntegrityPhase::SectionMap,
+            const auto admitted = dwgSafety::tryInsertSectionPageRange(
+                pageRanges, pi.startOffset, pageWindow);
+            if (admitted != dwgSafety::SectionPageRangeResult::Inserted) {
+                const auto kind = admitted
+                        == dwgSafety::SectionPageRangeResult::ResourceFailure
+                    ? DwgIntegrityCheckKind::PageGeometry
+                    : DwgIntegrityCheckKind::PageRange;
+                recordFailure(kind, DwgIntegrityPhase::SectionMap,
                               secEnum::getEnum(secInfo.name), secInfo.Id,
                               pn, true, pi.startOffset, true);
                 return false;
             }
-            for (const auto& range : pageRanges) {
-                if (pi.startOffset < range.second && range.first < pageEnd) {
-                    recordFailure(DwgIntegrityCheckKind::PageRange,
-                                  DwgIntegrityPhase::SectionMap,
-                                  secEnum::getEnum(secInfo.name), secInfo.Id,
-                                  pn, true, pi.startOffset, true);
-                    return false;
-                }
-            }
-            pageRanges.emplace_back(pi.startOffset, pageEnd);
             DRW_DBG("\n    Page number= "); DRW_DBGH(secInfo.pages[pn].Id);
             DRW_DBG("\n    size in file= "); DRW_DBGH(secInfo.pages[pn].size);
             DRW_DBG("\n    address in file= "); DRW_DBGH(secInfo.pages[pn].address);
@@ -1147,14 +1135,18 @@ bool dwgReader18::readFileHeader() {
             DRW_DBG("Saved section Name= "); DRW_DBG( secInfo.name.c_str() ); DRW_DBG("\n");
             const int sectionId = secEnum::getEnum(secInfo.name);
             if (sectionId == secEnum::UNKNOWNS) {
-                const auto duplicate = std::find_if(
-                    parsedUnknownSections.cbegin(), parsedUnknownSections.cend(),
-                    [&secInfo](const dwgSectionInfo& existing) {
-                        return existing.name == secInfo.name;
-                    });
-                if (duplicate != parsedUnknownSections.cend()) {
+                const auto inserted = dwgSafety::tryInsertExactName(
+                    parsedUnknownSectionNames, secInfo.name);
+                if (inserted == dwgSafety::ExactNameInsertResult::Duplicate) {
                     recordFailure(DwgIntegrityCheckKind::SectionPageReference,
                                   DwgIntegrityPhase::SectionMap);
+                    return false;
+                }
+                if (inserted
+                    == dwgSafety::ExactNameInsertResult::ResourceFailure) {
+                    recordFailure(DwgIntegrityCheckKind::PageGeometry,
+                                  DwgIntegrityPhase::SectionMap,
+                                  sectionId, secInfo.Id);
                     return false;
                 }
             } else if (parsedSections.find(sectionId) != parsedSections.end()) {
@@ -1170,10 +1162,19 @@ bool dwgReader18::readFileHeader() {
                     return false;
                 }
             }
-            if (sectionId == secEnum::UNKNOWNS)
-                parsedUnknownSections.push_back(std::move(secInfo));
-            else
+            if (sectionId == secEnum::UNKNOWNS) {
+                const std::int32_t descriptorId = secInfo.Id;
+                try {
+                    parsedUnknownSections.push_back(std::move(secInfo));
+                } catch (...) {
+                    recordFailure(DwgIntegrityCheckKind::PageGeometry,
+                                  DwgIntegrityPhase::SectionMap,
+                                  sectionId, descriptorId);
+                    return false;
+                }
+            } else {
                 parsedSections.emplace(sectionId, std::move(secInfo));
+            }
         }
     }
 
@@ -1228,16 +1229,20 @@ bool dwgReader18::readDwgHeader(DRW_Header& hdr){
     if (ret) {
         dwgBuffer dataBuf(objData.get(), si.size, &decoder);
         DRW_DBG("Header section sentinel= ");
-        if (!checkSentinel(&dataBuf, secEnum::HEADER, true)) {
-            ret = false;
-        } else if (version == DRW::AC1018){
-            ret = dwgReader::readDwgHeader(hdr, &dataBuf, &dataBuf);
+        // Shared HEADER admission owns exact logical length, sentinel and CRC
+        // checks. Consume the beginning sentinel here for the parser cursor,
+        // but let that admission publish the specific failure diagnostic.
+        (void)checkSentinel(&dataBuf, secEnum::HEADER, true);
+        if (version == DRW::AC1018) {
+            ret = dwgReader::readDwgHeader(
+                hdr, &dataBuf, &dataBuf, DwgIntegrityAddressSpace::DecodedBuffer,
+                si.Id, 0u);
         } else {
             dwgBuffer handleBuf(objData.get(), si.size, &decoder);
-            ret = dwgReader::readDwgHeader(hdr, &dataBuf, &handleBuf);
+            ret = dwgReader::readDwgHeader(
+                hdr, &dataBuf, &handleBuf, DwgIntegrityAddressSpace::DecodedBuffer,
+                si.Id, 0u);
         }
-        if (!ret)
-            recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
     }
     // Cleanup: global store for uncompressed data of all pages.
     objData.reset();
@@ -1245,6 +1250,21 @@ bool dwgReader18::readDwgHeader(DRW_Header& hdr){
     return ret;
 }
 
+
+bool dwgReader18::readDwgTemplate(DRW_Header& hdr) {
+    const auto found = sections.find(secEnum::TEMPLATE);
+    if (found == sections.end() || found->second.Id < 0)
+        return missingDwgTemplate();
+    const auto& section = found->second;
+    if (section.size > dwgTemplate::MaxSectionSize)
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    std::unique_ptr<std::uint8_t[]> data;
+    std::uint64_t capacity = 0;
+    if (!parseDataPage(section, data, capacity) || section.size > capacity)
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    return decodeDwgTemplate(hdr, data.get(),
+                             static_cast<std::size_t>(section.size), section.Id);
+}
 
 bool dwgReader18::readDwgClasses(){
     DRW_DBG("\ndwgReader18::readDwgClasses\n");
@@ -1280,6 +1300,7 @@ bool dwgReader18::readDwgClasses(){
     // The CLASSES string stream can occupy the unused tail of its final fixed
     // size data page. parseDataPage has already bounded and zero-filled this
     // decoded envelope, so use that capacity for the reader's physical bound.
+    captureDwgClassSource(objData.get(), uncompSize, si.Id, si.size);
     dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
 
     DRW_DBG("classes section sentinel= ");
@@ -1292,8 +1313,10 @@ bool dwgReader18::readDwgClasses(){
 
     std::uint32_t size = dataBuf.getRawLong32();
     DRW_DBG("\ndata size in bytes "); DRW_DBG(size);
-    if ((DRW::AC1024 <= version && 3 < appMaintenanceVersion)
-        || DRW::AC1032 <= version) { //2010+ MV>3
+    const bool hasExtendedClassSize =
+        (DRW::AC1024 <= version && 3 < appMaintenanceVersion)
+        || DRW::AC1032 <= version;
+    if (hasExtendedClassSize) { // 2010+ MV>3 (or R2018+)
         std::uint32_t hSize = dataBuf.getRawLong32();
         DRW_DBG("\n2010+ & MV> 3, height 32b: "); DRW_DBG(hSize);
     }
@@ -1321,7 +1344,14 @@ bool dwgReader18::readDwgClasses(){
     std::uint64_t crcPosition = 0;
     std::uint64_t classDataEndBit = 0;
     std::uint64_t sectionEndBit = 0;
-    if (!dwgSafety::add(size, 20, crcPosition)
+    // The size word is followed by an optional high-size RL before the
+    // remaining class header. ODA 10.2 places the RS after the declared class
+    // data area; include that RL in the absolute offset when the extended
+    // header is present. The string-footer end-bit calculation uses the same
+    // 20/24-byte prefix and independently rounds to this CRC byte.
+    const std::uint64_t classSectionPrefixBytes =
+        hasExtendedClassSize ? 24u : 20u;
+    if (!dwgSafety::add(size, classSectionPrefixBytes, crcPosition)
         || !dwgSafety::range(crcPosition, 2, dataBuf.size())
         || crcPosition > static_cast<std::uint64_t>(
                std::numeric_limits<std::int32_t>::max() - 1)
@@ -1329,6 +1359,60 @@ bool dwgReader18::readDwgClasses(){
         || !dwgSafety::multiply(uncompSize, 8, sectionEndBit)) {
         recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
         return false;
+    }
+    if (version == DRW::AC1027 && hasExtendedClassSize) {
+        const auto hasBoundedClassTrailer = [&dataBuf, &si](
+                std::uint64_t candidate) {
+            std::uint64_t crcEnd = 0;
+            if (!dwgSafety::add(candidate, 2u, crcEnd)
+                || candidate > si.size || crcEnd > si.size
+                || candidate > static_cast<std::uint64_t>(
+                       std::numeric_limits<std::int32_t>::max() - 1))
+                return false;
+
+            auto probe = dataBuf.forkIndependent();
+            if (!probe.setPosition(candidate))
+                return false;
+            const std::uint16_t stored = probe.getRawShort16();
+            const std::uint16_t calculated = probe.crc8(
+                0xc0c1, 16, static_cast<std::int32_t>(candidate));
+            if (!probe.isGood() || stored == 0u || calculated != stored)
+                return false;
+
+            constexpr std::array<std::uint64_t, 4> tailSizes = {8u, 2u, 1u, 0u};
+            for (const std::uint64_t tailSize : tailSizes) {
+                std::uint64_t sentinelStart = 0;
+                std::uint64_t sectionEnd = 0;
+                if (!dwgSafety::add(crcEnd, tailSize, sentinelStart)
+                    || !dwgSafety::add(sentinelStart, 16u, sectionEnd)
+                    || sectionEnd != si.size
+                    || !probe.setPosition(sentinelStart))
+                    continue;
+                bool sentinelMatches = true;
+                for (const std::uint8_t expected
+                     : dwgSentinels::CLASSES_END) {
+                    if (probe.getRawChar8() != expected) {
+                        sentinelMatches = false;
+                        break;
+                    }
+                }
+                if (sentinelMatches && probe.isGood())
+                    return true;
+            }
+            return false;
+        };
+
+        if (!hasBoundedClassTrailer(crcPosition)) {
+            std::uint64_t alternateCrcPosition = 0;
+            if (dwgSafety::add(size, 20u, alternateCrcPosition)
+                && alternateCrcPosition != crcPosition
+                && hasBoundedClassTrailer(alternateCrcPosition)) {
+                crcPosition = alternateCrcPosition;
+                DRW_DBG("Using bounded AC1027 CLASSES CRC profile with ");
+                DRW_DBG("the optional high-size word excluded from the ");
+                DRW_DBG("declared data-area size\n");
+            }
+        }
     }
     if (version > DRW::AC1018)
         classDataEndBit = bitSize;
@@ -1737,7 +1821,44 @@ bool dwgReader18::captureRawDwgDataSections() {
             // to modeler callbacks that would expose dangling presence bits.
             if (typed.parseFailed || !typed.structurallyValid
                 || !typed.replayAllowed) {
+                DRW_DBG("DataStorage section rejected: ");
+                DRW_DBG(section.m_name);
+                DRW_DBG(" parseFailed=");
+                DRW_DBG(static_cast<int>(typed.parseFailed));
+                DRW_DBG(" structurallyValid=");
+                DRW_DBG(static_cast<int>(typed.structurallyValid));
+                DRW_DBG(" replayAllowed=");
+                DRW_DBG(static_cast<int>(typed.replayAllowed));
+                DRW_DBG(" diagnostics=");
+                DRW_DBG(static_cast<unsigned long>(typed.diagnostics.size()));
+                const std::size_t diagnosticCount = std::min<std::size_t>(
+                    typed.diagnostics.size(), 4u);
+                for (std::size_t i = 0; i < diagnosticCount; ++i) {
+                    const DRW_DataStorageDiagnostic& diagnostic =
+                        typed.diagnostics[i];
+                    DRW_DBG(" ");
+                    DRW_DBG(diagnostic.code);
+                    if (diagnostic.hasOffset) {
+                        DRW_DBG("@");
+                        DRW_DBG(static_cast<unsigned long long>(
+                            diagnostic.offset));
+                    }
+                }
+                DRW_DBG("\n");
                 return false;
+            }
+            for (const DRW_DataStorageDiagnostic& diagnostic
+                 : typed.diagnostics) {
+                if (diagnostic.code
+                    != "datastorage-ac1027-schema-table-role-compatibility")
+                    continue;
+                DRW_DBG("DataStorage alternate AC1027 schema-table profile accepted: schemas=");
+                DRW_DBG(static_cast<unsigned long>(typed.schemas.size()));
+                DRW_DBG(" unknown-properties=");
+                DRW_DBG(static_cast<unsigned long>(
+                    typed.schemaUnknownProperties.size()));
+                DRW_DBG("\n");
+                break;
             }
             stagedDataStorageSections.push_back(std::move(typed));
         }

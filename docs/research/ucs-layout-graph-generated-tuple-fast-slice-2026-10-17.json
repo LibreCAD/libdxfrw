@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Repair the generated ASCII/Binary DXF layout-graph control after the current UCS parser correctly rejected an orthographic origin without its selector.",
+  "worktreeWasDirtyAtEntry": true,
+  "implementation": {
+    "changedFiles": [
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "change": "The in-memory UCS table-record generator now emits a valid group-71 selector before its complete group-13/23/33 orthographic-origin tuple; assertions verify the captured type and coordinates.",
+    "productionCodeChanged": false,
+    "fixtureFilesAddedOrChanged": 0,
+    "testRegistrationChanged": false,
+    "dependencyChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "diagnosis": {
+    "before": "The focused libdxfrw_dxf_fixtures CTest failed in ASCII and Binary at the first group 13, before any UCS or OBJECTS callback. The generated control emitted 13/23/33 without a preceding group 71.",
+    "cause": "The UCS parser requires each orthographic-origin tuple to have a preceding selector and exactly one value for each of 13, 23, and 33. This is a test-input defect, not a production parser defect.",
+    "after": "The owning CTest passes after the generator was corrected."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tests/dxf_fixture_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullTestSuiteRun": false,
+    "nativeCadOrPeerRun": false
+  },
+  "evidenceLimit": "This is generated DXF parser regression coverage and a repair to a test control only. It is not a new producer witness, independent semantic result, geometry qualification, DWG result, or support promotion.",
+  "gitCommitAttempted": false,
+  "gitCommitNote": "Repository Git metadata is read-only in the current environment; the shared worktree remains uncommitted and other user changes were preserved."
+}

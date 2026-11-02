@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-style-font-name-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Implement the next bounded 7S.2c derived typed-text owner: retain parsed DXF STYLE font and bigfont logical strings under the existing per-read byte budget.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fields": [
+      {
+        "field": "DRW_Textstyle::font",
+        "dxfCode": 3,
+        "accounting": "Per-field live-byte counter on shared DRW_TableEntry retained-string lease; reserve before replacement and keep old value/charge on refusal."
+      },
+      {
+        "field": "DRW_Textstyle::bigFont",
+        "dxfCode": 4,
+        "accounting": "Per-field live-byte counter on shared DRW_TableEntry retained-string lease; reserve before replacement and keep old value/charge on refusal."
+      }
+    ],
+    "reset": "Clears both per-field counters before base lease release and preserves existing defaults font=txt and bigFont empty.",
+    "copyMove": "Implicit copy/assignment preserve counters and share the existing lease; no custom move behavior was added.",
+    "contractLimits": [
+      "Logical parsed DXF string lengths only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner.",
+      "DRW_Textstyle public layout changed; downstream consumers must rebuild and no binary ABI claim is made."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-textstyle-font-owner-budget",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated direct parser vectors in ASCII and Binary DXF.",
+      "Replacement of both font fields and a 256-byte bigfont at the discovered exact cap.",
+      "One-byte-under replacement preserves old value and charge.",
+      "Copy construction and assignment keep the lease after source reset; final reset releases it and restores defaults.",
+      "Generated full ASCII and Binary STYLE TABLES read refuses under-cap before style callbacks, reports retained-byte ResourceLimit, and succeeds after same-facade exact-cap retry through a following STYLE sentinel.",
+      "Binary test input is generated in temporary storage and removed; no persistent fixture is added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

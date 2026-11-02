@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader downstream DWG claim boundary and cross-peer loss-mode review",
+  "mode": "primary project-documentation and public issue-body review; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Separate LibreCAD 3 downstream DWG product direction from library-level implementation capability",
+    "Cross-check recent peer reader/writer failure reports for transferable regression-method lessons",
+    "Map reported failure modes to existing PAR owners without treating peer reports as local defects",
+    "Preserve the fast local validation cadence and external evidence boundary"
+  ],
+  "method": {
+    "kind": "Read current public project policy and exact peer issue reports; reconcile against the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-downstream-dwg-claim-boundary-cross-peer-loss-review-2026-10-18.json"
+    ],
+    "limitations": "LibreCAD_3 master documentation and peer issue pages are mutable. Reports are author-provided and were not reproduced; the linked pinned vendored ledger, issue attachments, exact peer binaries, and source branches were not independently acquired or run. No report establishes a local libdxfrw defect or normative format rule."
+  },
+  "sources": [
+    {
+      "project": "LibreCAD_3",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "revision": "Mutable master policy document reviewed 2026-10-18",
+      "observed": "The app document states optional, off-by-default DWG import through libdxfrw; DWG writing is not implemented/exposed/planned absent explicit gates. It describes 15 pinned reader claims (11 EXPERIMENTAL, 4 PENDING_NATIVE), no PROMOTED claims, common integrity/target-debt blockers, and no write-direction claims. This is product-policy documentation, not an inspection of the vendored ledger bytes or an enduring policy guarantee."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Open issue reports reviewed 2026-10-18; reported versions differ by issue",
+      "observed": "Reports describe recursive repeated-DXF paths causing stack exhaustion, a VERTEX subtype placeholder causing an AC1014 document-build failure, an AC1032/AutoCAD 2025 MTEXT-flag file rejection whose cause remained unproven after entity bytes matched, and silent 3DSOLID/REGION omission from an ACadSharp DWG-to-DXF writer. These are peer-specific reports, not normative behavior or libdxfrw failures."
+    },
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1351"
+      ],
+      "revision": "Issue pages reviewed 2026-10-18; mutable master is not treated as a release",
+      "observed": "Reports describe an unresolved entity reference terminating a DXF layout, an outer loop index mutation skipping later block bodies, and an INSERT attribute-follow flag without required child/SEQEND records. The #1351 issue notes a later master fix for its exact reproducer. None demonstrates a matching libdxfrw defect."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Clarifies LibreCAD_3's current read-only product contract separately from library capability; reinforces local progress/bounds, per-source disposition, per-owner graph closure, whole-file native acceptance, and exact-version attribution under existing PAR-14/PAR-26, PAR-22/7H, PAR-49/7G, PAR-59, and transaction/output-closure owners.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep library capability separate from LibreCAD_3's optional read-only DWG product path and do not infer an app-side write claim.",
+    "For changed parser loops, use bounded generated repeated-record cases, explicit progress/resource assertions, and a following-record sentinel; peer crash thresholds are not format limits.",
+    "For changed writer traversal, reconcile every source identity to one emitted or explicit refusal disposition and close block/INSERT/ATTRIB/SEQEND ownership.",
+    "For PAR-59 ACIS output, preserve full inline payload sequence and entity/block/INSERT reachability before semantic-consumer testing.",
+    "Treat unresolved peer reports and native failures as exact-version hypotheses; do not adopt an unverified recovery rule or infer causes from object-byte equality alone.",
+    "Keep each implementation slice on touched-target strict build, focused selector, compatibility compile when public/shared contracts change, and owning CTest; composed peer/native qualification stays one-time and optional.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL unless their required independent evidence is actually obtained."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

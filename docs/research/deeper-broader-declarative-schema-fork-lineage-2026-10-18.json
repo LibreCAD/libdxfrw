@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Declarative DWG schema and open-source fork-lineage reconciliation",
+  "mode": "deeper/broader primary-source research and plan-only refinement",
+  "scope": [
+    "Screen the LibreDWG project family for structural DWG/DXF evidence not already represented as a runtime parser",
+    "Resolve source ancestry for LibreDWG organization repositories that fork existing peer implementations",
+    "Update comparator admission and implementation-readiness rules without adding runtime dependencies or routine validation"
+  ],
+  "method": {
+    "kind": "Read project-owned GitHub repository metadata, README, and schema inventory",
+    "repositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The evidence is repository metadata/documentation, not a source-diff audit or runtime test. Kaitai schemas are treated only as hypotheses; ODA v5.4.1 and local sample traces remain authoritative for DWG byte layout. Fork status establishes ancestry, not identical behavior or a usable fork-specific result."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG kaitai-cad",
+      "urls": [
+        "https://github.com/LibreDWG/kaitai-cad",
+        "https://github.com/LibreDWG/kaitai-cad/blob/master/README"
+      ],
+      "revision": "Mutable master repository page accessed 2026-10-18",
+      "observed": "The README says the Kaitai format files were written for the author's CAD::Format::DWG Perl modules and points to local Kaitai Web IDE use for DWG reverse engineering. The repository exposes per-version .ksy schemas; the reviewed page did not establish a released general-purpose DWG reader or semantic qualification."
+    },
+    {
+      "project": "LibreDWG dxf-rs fork",
+      "urls": [
+        "https://github.com/LibreDWG/dxf-rs",
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "revision": "GitHub repository metadata accessed 2026-10-18",
+      "observed": "GitHub explicitly identifies LibreDWG/dxf-rs as forked from ixmilia/dxf-rs. The current source-level delta was not audited."
+    },
+    {
+      "project": "LibreDWG ACadSharp fork",
+      "urls": [
+        "https://github.com/LibreDWG/ACadSharp",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "GitHub repository metadata accessed 2026-10-18",
+      "observed": "GitHub explicitly identifies LibreDWG/ACadSharp as forked from DomCR/ACadSharp. The fork's repeated version matrix is not independent implementation evidence."
+    },
+    {
+      "project": "LibreDWG organization Assimp fork",
+      "urls": [
+        "https://github.com/orgs/LibreDWG/repositories",
+        "https://github.com/assimp/assimp/tree/master/code/AssetLib/DXF"
+      ],
+      "revision": "Organization repository inventory accessed 2026-10-18",
+      "observed": "The LibreDWG organization describes its Assimp repository as a fork of Assimp with DXF patches, so it belongs to the existing Assimp importer lineage rather than adding an independent reader family."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "DWG parser layout investigations may consult pinned Kaitai schemas as hypothesis-only structural aids, subject to ODA and local trace confirmation",
+      "Peer comparator admission collapses repositories by confirmed upstream ancestry and requires a pinned source delta for fork-specific claims"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an advisory declarative-schema route for version-scoped structural hypotheses and resolves fork ancestry for the LibreDWG dxf-rs, ACadSharp, and Assimp repositories. No new peer runtime, test, dependency, implementation subplan, or support claim is added."
+  },
+  "implementationReadyChecks": [
+    "For a specific unresolved DWG layout, pin the exact Kaitai schema revision and version file; compare against ODA v5.4.1 and a local real-file trace before modifying parser code.",
+    "Keep a generated parser regression local to the owning code and assert decoded value, consumed bit/byte boundary, and following-record sentinel; a schema parsing its own grammar is not an independent oracle.",
+    "Record upstream family, immutable source revision, and source-level fork delta before assigning a peer result; count common inherited behavior once."
+  ],
+  "workingTree": {
+    "preexistingUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-declarative-schema-fork-lineage-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true
+  }
+}

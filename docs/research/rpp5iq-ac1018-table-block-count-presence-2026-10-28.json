@@ -1,0 +1,68 @@
+{
+  "schema": "ac1018-table-block-count-presence-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "supportClaimsPromoted": false,
+  "scope": "Bounded source-authenticated AC1018 block-cell 179=0 presence, alone or with explicit 177=0/178=0. Absence, nonzero count, nested application fields, and pre-existing incomplete INSERT projection retain their separately tested paths.",
+  "priorEvidence": [
+    "docs/research/rpp5in-ac1018-table-zero-presence-2026-10-28.json",
+    "docs/research/rpp5ip-ac1018-table-block-alignment-2026-10-28.json"
+  ],
+  "implementation": "New distinctly named nonvirtual method takes mask bit 0 for 177=0/178=0 and bit 1 for block 179=0; pre-existing zero-override method retains its 0/1 contract and rejects above 200000 entries before scanning. Source-bound adapter selects scoped fields only, requires count uniqueness, position and empty decoded attributes, authenticated raw replay and unchanged source/live identity and model. Additional reconciliation at dispatch prevents late model changes; existing source/version, block-owner, work and byte limits remain in force.",
+  "bindings": {
+    "src/libdxfrw.h": "77acf79af7a3cf8c2c3d6b749d2f2a8dfb181fe7fb4904f96b28e48a201497ef",
+    "src/libdxfrw.cpp": "b4acfb7103aac8482cea4f939c858cb59b0cbe7c0750e1b2832295467f7872e2",
+    "dwg2dxf/dx_iface.cpp": "066871f717eb48d91c42114df48d7cad1e20949aab109ff29bbefe97c33ef41d",
+    "tests/table_legacy_height_controls.h": "94aeae372b4cdd60ff40aa179f7a3a9244e515cc1bbcbd8e66c6fd6f95bad709",
+    "tests/table_legacy_merge_controls.h": "1b39c877df77c6068d9b6f549302331a528735c3776e84cb1c2ce094a146a19f",
+    "codeCommit": "465cbe0150b0bdf2a69127f120d2df7709f25e36"
+  },
+  "originalAndIndependentOutput": {
+    "source": "Existing ACadSharp AC1018 TABLE A35 cell 8, ascii and binary; source hashes and role details in prior block-alignment receipt.",
+    "report": "build/table-merge-writer-review/block-count-independent.json",
+    "reportSha256": "dc7c0b92e8a5c7579712ec3740ec803ab84e596afe6deab752faea63a39c390e",
+    "observer": "ezdxf 1.4.5 raw ACAD_TABLE tags, not native interpretation",
+    "observerSourceSha256": "817b8d1761983b8b2886e7fca9f7c94d03e59f910a26ae0de38c04e51237d8cc",
+    "authoredSourceSha256": "edc1666f0401c9f28d5478814dc7852ec2248a077f3d8d92ca5984396b47ca66",
+    "producerSourceSha256": "5e2f27728039cd1be712aad75f2dd3c2527cb59f4427b13027057e04ef523b92",
+    "producerExecutableSha256": "31ef495fca58ab645f8bc6afb74cb072572b232ef5167989a7b92cd807129f2d",
+    "result": "Original A35 cell and independently observed authored ASCII/binary outputs include 179=0, 177=1,178=0,170=1 and independently resolved 340 BLOCK_RECORD roles; the source and output block contents differ. Original ASCII/binary scale differs in low precision."
+  },
+  "lateMutationProbe": {
+    "sourceSha256": "d5e0efd7b9b10aeae7ce119f558126f7ac9d345eac6cda3488c214e22606ec33",
+    "executableSha256": "a96dde0c23bf66efb378ad83817cc58eb28dc5cebc2911d6b699987cdd68b944",
+    "logSha256": "d4f5a45bdf6b7301c6775cdf1ad80995ca4fe32e46a5a7efe14ac9be317a5048",
+    "result": "late-refused=1 sentinel=1 corrected-retry=1"
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)|identity_source_namespace|structural_source_origins)$' --output-on-failure",
+    "result": "7/7 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "5009fff32a8394cb05a1c2209f86ba0df260643ed00bb952d281d9057f68c450",
+    "librarySha256": "c947e27046e85ccb02ced434b186ddf6d30a9be8ddc256b5f76bfd4f1131b5bc",
+    "adapterObjectSha256": "616dd8ba03fe54c97ad0d9cd1baa037d680cbef01570fa7b69c6338896328a77",
+    "controls": "40 input/output encoding and strict/compatible forms: explicit and absent 179, 177 compositions and nonzero count with ATTDEF, owner/reference readback, 64 late failures and corrected retries, duplicate/scope failures, source-incomplete fallback and direct mask failures; old zero-override one-over budget and retry."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)|identity_source_namespace|structural_source_origins)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "7/7 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "eb3badf9e9d12e29f56a3a923d65413d19013d2d2e48cb084da56f29ba3c1974",
+    "librarySha256": "e286c58798d7d2b466d5b162162f780b1387b77aa4ecb0d95c57b0ea9bdba0bd",
+    "adapterObjectSha256": "33747bc46ffc9da1d37d0341915818f89433205ef8202ded8e49413a1152f4a0"
+  },
+  "simultaneousWork": {
+    "description": "Identity source and test changes were frozen during final normal and ASan builds, then committed separately as f7ee8791 after the TABLE code commit.",
+    "src/drw_interface.h": "9582285bfe0d3edd4930270bc24e75644cc073f7ad18d45244965771cfcc21b0",
+    "src/intern/dxfidentitysource.h": "3913e7186d5bc7517354b4709fde96ab8e415dfc977f54142e526f2dc81eac32",
+    "tests/identity_source_controls.h": "ad8dcc35650702e2933227a3f958fdc9871c9343f9f4a2d4baea67fe52b921ce",
+    "tests/identity_xrecord_controls.h": "e3c2fcad83d231943e56e7d3083a07859b22b2494e20f0d8d9c0ec7366941616",
+    "tests/table_content_dxf_tests.cpp": "f816e07b2b41e1663fd8408ea063cf336cc2d06a2b8cd4a400d02cd8a4035d7c",
+    "subsequentCommit": "f7ee8791c9a326c7e95f63b2560a2d84a5cc1adf"
+  },
+  "limitations": [
+    "This proves a selected physical spelling, not semantic equivalence of absent and explicit zero, native rendering, complete A35/document conversion, LibreCAD/LibreCAD_3 or FreeCAD qualification.",
+    "Source and output block payloads are independently authored and are not claimed equivalent.",
+    "Public exported symbol added; consumer rebuild and formal ABI/API qualification remain open. Prior DRW_Table layout change also requires rebuild.",
+    "Original sample files were read-only; authored fixtures and outputs remain in ignored scratch and no new external fixture is committed."
+  ]
+}

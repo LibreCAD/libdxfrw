@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader native DXF reader loss-accounting and artifact match review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Inspect the optional MLightCAD native DXF converter at its source/API boundary",
+    "Separate its native MIT route from the GPL dxf-json fork and LibreDWG DWG adapter",
+    "Determine what unknown/loss accounting is available to a composed DXF comparison",
+    "Refresh route identity for browser CAD consumers and refine optional-run readiness"
+  ],
+  "method": {
+    "kind": "Primary-source review of repository source, API documentation, README/FAQ, and package metadata",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project source, API docs, package metadata, and viewer documentation establish implementation structure and advertised route boundaries only. No exact npm tarball/source commit pair was resolved, no parser lineage audit or ASCII/Binary runtime test was performed, and no drawing was parsed. The native database projection is not raw-byte retention evidence."
+  },
+  "sources": [
+    {
+      "project": "MLightCAD AcDbNativeDxfConverter source",
+      "urls": [
+        "https://raw.githubusercontent.com/mlightcad/realdwg-web/main/packages/data-model/src/dxf/AcDbNativeDxfConverter.ts",
+        "https://mlightcad.com/realdwg-web/classes/_mlightcad_data-model.AcDbNativeDxfConverter.html"
+      ],
+      "revision": "Mutable main/API docs reviewed 2026-10-18; no exact release tag bound",
+      "observed": "The documented MIT-native converter constructs AcDbDxfFiler and AcDbDxfDocumentReader, streams directly into AcDbDatabase instead of using the ParsedDxf JSON intermediate, and returns an aggregate unknownEntityCount. This establishes a distinct converter path, not per-record completeness, raw-byte retention, or full ASCII/Binary coverage."
+    },
+    {
+      "project": "MLightCAD AcDbDxfObjectsReader API",
+      "urls": [
+        "https://mlightcad.com/realdwg-web/classes/_mlightcad_data-model.AcDbDxfObjectsReader.html"
+      ],
+      "revision": "Current API documentation reviewed 2026-10-18; source commit not bound",
+      "observed": "The object reader documents an aggregate unknownObjectCount for OBJECTS types without a native reader. It does not expose a per-object disposition or raw payload through that counter alone."
+    },
+    {
+      "project": "MLightCAD data-model package/source identity",
+      "urls": [
+        "https://www.npmjs.com/package/%40mlightcad/data-model",
+        "https://raw.githubusercontent.com/mlightcad/realdwg-web/main/packages/data-model/package.json",
+        "https://github.com/mlightcad/realdwg-web/blob/main/README.md"
+      ],
+      "revision": "npm page snapshot listed 1.15.8; mutable source package manifest reported 1.15.10 on 2026-10-18",
+      "observed": "The reviewed release and mutable source snapshots do not establish a matching artifact/source pair. This may be unreleased main or metadata lag; exact tarball integrity and source commit must be reconciled before any optional run. The project documents the DWG adapter separately as LibreDWG compiled to WebAssembly."
+    },
+    {
+      "project": "MLightCAD dxf-json fork",
+      "urls": [
+        "https://github.com/mlightcad/dxf-json",
+        "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/CHANGELOG.md"
+      ],
+      "revision": "Current repository README and changelog reviewed 2026-10-18; mutable references",
+      "observed": "The public dxf-json repository declares itself a GPL-3.0 fork of dotoritos-kim/dxf-json and lists entity/object extensions. It is a separate converter path from AcDbNativeDxfConverter, but this does not establish independent authorship across all shared/project code or provide a complete coverage matrix."
+    },
+    {
+      "project": "MLightCAD and flyfish browser consumers",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer",
+        "https://github.com/flyfish-dev/cad-viewer"
+      ],
+      "revision": "Current README/FAQ snapshots reviewed 2026-10-18; mutable references",
+      "observed": "MLightCAD separates its native DXF path from opt-in LibreDWG DWG conversion and describes a 2D-focused viewer. Flyfish documents LibreDWG WASM for DWG and JavaScript parsing plus fallback for DXF into a 2D rendering model; its DWF 3D route is separate. These are consumer/projection paths, not additional independent DWG codecs or 3D semantic oracles."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Tightens the existing optional MLightCAD DXF candidate gate: distinguish direct typed database projection from raw preservation, require exact package/source reconciliation and explicit ASCII/Binary scope, independently account unknown wire content, and keep browser/DWG viewer routes deduplicated under their parser lineage. No implementation or validation cadence changed."
+  },
+  "implementationReadyChecks": [
+    "Keep AcDbNativeDxfConverter optional and select it only for a named DXF question not answered by the already-pinned comparator route.",
+    "Resolve the npm tarball version/integrity against an immutable source commit and license before running; record ARTIFACT_SOURCE_UNRESOLVED / NOT_RUN if this is not quick to prove.",
+    "Confirm ASCII and Binary DXF support from the exact source and tests; do not infer both from the ArrayBuffer converter API.",
+    "Compare the typed database to an independently authored local manifest keyed by source handle/type/owner/space and exact values; collect unknownEntityCount and unknownObjectCount as diagnostics only.",
+    "Independently inspect the raw DXF group stream to detect untyped, skipped, and unsupported input; a zero unknown count is not a preservation claim.",
+    "Classify viewer output as projection only; count DWG routes under LibreDWG lineage and keep DWF 3D separate from DWG/ACIS semantics.",
+    "Keep all inputs locally authored or in-memory, add no external fixture/dependency, and leave J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

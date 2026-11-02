@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Fixed DXF handle membership table",
+  "mode": "Local implementation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Continue the 7S.2c export-setup allocation audit for the fixed DXF handle membership set.",
+    "Remove per-export tree-node allocation while retaining logarithmic fixed-handle lookups.",
+    "Preserve reserved-handle collision and raw-entity refusal behavior."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "Replace fileExport's local std::set of 22 constant fixed handles with an immutable sorted std::array and binary_search.",
+      "Add a constexpr strict-order/uniqueness assertion so future table edits cannot silently invalidate binary_search.",
+      "Use the same membership helper for fixed-collision remapping and raw-entity reservation."
+    ],
+    "behaviorChange": false,
+    "publicApiOrAbiChange": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "test": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "result": "PASS",
+      "note": "Existing generated ASCII/Binary PLOTSETTINGS graph coverage includes a fixed-handle collision and fail-closed/retry behavior."
+    },
+    "integratedFixtureTest": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 4.16
+    },
+    "scopedDiffCheck": "PASS"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "implementationStatus": "UNCOMMITTED_SHARED_WORKTREE"
+  },
+  "method": {
+    "kind": "Source-level constant-set audit plus focused generated adapter test",
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This removes dynamic allocation for one fixed lookup table; it is not an end-to-end export benchmark or a closure of the wider 7S.2c census."
+  }
+}

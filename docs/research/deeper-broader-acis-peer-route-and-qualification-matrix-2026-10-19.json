@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader independent ACIS reader and current DWG/DXF peer routes",
+  "mode": "Primary project-source research and local plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Expand the open-source DWG/DXF/ACIS peer screen with currently published implementations and issue reports.",
+    "Separate parser lineage, geometry-kernel lineage, same-codec round-trip evidence, native-application acceptance, and semantic shape evidence.",
+    "Update existing PAR-07/S8 readiness and optional peer-route guidance without adding implementation blockers or promoting support claims."
+  ],
+  "sources": [
+    {
+      "project": "cq-acis",
+      "revision": "0.3.3 release published 2026-09-12; source commit 6e45d88c0467da3dd83ec1be4e60ca66f1ee7e13",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/6e45d88c0467da3dd83ec1be4e60ca66f1ee7e13/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/6e45d88c0467da3dd83ec1be4e60ca66f1ee7e13/docs/geometry-support.md",
+        "https://pypi.org/project/cq-acis/0.3.3/"
+      ],
+      "observed": "MIT-licensed and explicitly experimental SAT/SAB parser/converter. The release lists SAT profiles 105/400/600/700 and selected SAB/ASM profiles, a limited analytic geometry conversion subset, experimental NURBS, and explicit raw retention/error for unsupported geometry. The package uses CadQuery/OCCT for shape conversion. Its test corpus is excluded from distributions and has separate license notices; the PyPI publish attestation points to the pinned source commit.",
+      "evidenceCeiling": "A potential independent parser for only declared profiles, with shared OCCT geometry-kernel lineage. No package was installed or run, and no complete DWG/DXF/AcDs route was qualified."
+    },
+    {
+      "project": "ACadRust",
+      "revision": "Published docs.rs crate 0.5.5 dated 2026-09-10; mutable repository and issue index also reviewed 2026-10-19, including reports against 0.6.3/0.6.4",
+      "urls": [
+        "https://docs.rs/crate/acadrust/0.5.5",
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/130",
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "observed": "Published documentation claims versioned DWG/DXF read/write, 48 entity variants, SAT/SAB tools, and an entity compatibility atlas. Visible 3D tests include generated/fake payload cases and same-codec reopen assertions. Current issue reports allege malformed-input allocation exhaustion and panic behavior, owner relocation, custom-class/color-book/XDATA loss, merged-table loss, and a recent AC1032 regression. Release, source-head, and issue versions differ.",
+      "evidenceCeiling": "Potential pinned differential peer only. Claims and issue reports were not independently reproduced; same-codec tests do not prove semantic or target-CAD behavior. Do not run on untrusted data without isolation and exact revision binding."
+    },
+    {
+      "project": "Open CASCADE CAD Assistant / OCCT ACIS component",
+      "revision": "Official product documentation and OCCT 6.9.0/6.9.1 release notes reviewed 2026-10-19",
+      "urls": [
+        "https://www.opencascade.com/products/cad-assistant/",
+        "https://dev.opencascade.org/sites/default/files/pdf/Release_Notes_6.9.0.pdf",
+        "https://dev.opencascade.org/sites/default/files/pdf/Release_Notes_6.9.1.pdf"
+      ],
+      "observed": "The product page lists SAT/SAB import through commercial XDE components and says model export/conversion is disallowed for data imported by those components. The product page lists macOS Intel and ARM64 installers.",
+      "evidenceCeiling": "The previously selected official macOS ARM64 application can be a bounded external native-reader observation only after exact product/build capture. This is not an open-source OCCT SAT interface or an independent kernel vote; no application was installed or run."
+    },
+    {
+      "project": "ezdxf",
+      "revision": "Mutable project documentation and maintainer discussion reviewed 2026-10-19; discussion dated 2025-05-13",
+      "urls": [
+        "https://github.com/mozman/ezdxf/discussions/1295",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst"
+      ],
+      "observed": "Project documentation lists a bounded set of DXF read/write versions. The maintainer describes ACIS support as basic and cautions that solid authoring does not imply reliable general B-rep semantics. DWG access through ODA File Converter is a distinct converter chain.",
+      "evidenceCeiling": "Useful for selected DXF syntax and field checks; not a general DWG codec or ACIS semantic oracle. The older broad statement that no open-source ACIS importer exists is now qualified by the newer limited cq-acis release."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "Mutable project README reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observed": "The project publishes separate DXF reader/writer and DWG reader/writer version columns, with non-identical support by format and version.",
+      "evidenceCeiling": "Documentation-level reminder to bind operation/version; no peer build or runtime test was performed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds cq-acis as an optional profile-specific independent-parser semantic candidate with OCCT kernel lineage explicitly disclosed; upgrades ACadRust to an optional pinned differential candidate while documenting its same-codec evidence ceiling and current reported risks; preserves the selected CAD Assistant macOS ARM64 route as optional product-level evidence. No required gate, dependency, support claim, or local queue order changes."
+  },
+  "method": {
+    "kind": "Read-only primary project-source web review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-peer-route-and-qualification-matrix-2026-10-19.json"
+    ],
+    "limitations": "Project documentation and issue reports are mutable and mostly self-reported. No external tool behavior was reproduced. cq-acis covers only declared SAT/SAB/ASM profiles and shares OCCT kernel lineage; ACadRust issue reports are not findings against libdxfrw. The user-selected CAD Assistant build remains to be pinned and run."
+  },
+  "validation": {
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

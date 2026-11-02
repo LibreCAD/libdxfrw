@@ -1,0 +1,167 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-source-3d-route-and-spec-delta-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Widen open-source DWG/DXF 3D research from entity/version inventories to operation-route capability, parser/kernel lineage, exact ACIS/ASM carrier handling, and ODA specification-version delta admission.",
+  "method": {
+    "kind": "Primary project documentation/source, release pages, maintainer issue, and local plan reconciliation",
+    "sourcesOpened": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg-diff.pdf",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/jmplonka/InventorLoader",
+      "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://feed.nuget.org/packages/ACadSharp",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/issues/1195"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Project documentation, source, release notes, and maintainer reports establish published route/capability boundaries only. No source build or runtime comparison was made. GDAL raw carrier output is not solid geometry; ezdxf partial ACIS parsing is not arbitrary-body support; InventorLoader parser and FreeCAD Part kernel are distinct lineage layers; FreeCAD stock import is a different route. Mutable main-source observations are discovery leads and the peer-hosted ODA 5.4.2 delta is not byte-layout authority; repository instructions continue to make the local ODA 5.4.1 specification authoritative."
+  },
+  "evidence": [
+    {
+      "topic": "DWG specification version and peer delta",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg-diff.pdf"
+      ],
+      "observed": [
+        "Repository instructions designate ODA Open Design Specification v5.4.1 as the authoritative source for DWG byte layouts.",
+        "LibreDWG 0.14.1 NEWS refers to a peer-hosted fixed v5.4.2 specification diff.",
+        "The diff is useful to identify candidate spec-version discrepancies, but it is not the full official specification and was not compared clause-by-clause in this pass."
+      ],
+      "planUse": "For version-sensitive parser/writer work, name the local v5.4.1 clause and inspect any relevant v5.4.2 delta as a diagnostic checklist; do not change byte layout without authoritative-spec or real-sample support."
+    },
+    {
+      "topic": "GDAL AC1027+ raw ASM carrier route",
+      "source": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observed": [
+        "The DXF driver skips 3DSOLID, REGION, BODY, and SURFACE by default because it cannot translate ASM into OGR geometry.",
+        "DXF_3D_EXTENSIBLE_MODE can expose ASMData and a 12-value affine ASMTransform for AutoCAD 2013 (AC1027) and later DXF."
+      ],
+      "doesNotEstablish": [
+        "ACIS/ASM semantic decode or B-rep construction",
+        "DWG AcDs association or pre-AC1027 support",
+        "Acceptance of a particular libdxfrw output"
+      ],
+      "planUse": "Optional composed-check carrier/transform cross-check on a locally generated AC1027+ DXF only; keep it outside solid geometry and CAD support claims."
+    },
+    {
+      "topic": "ezdxf ACIS subset and projection boundary",
+      "source": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "observed": [
+        "The documentation states that only a limited set of ACIS entities is supported and unsupported entities may load as NONE_ENTITY with data loss.",
+        "mesh_from_body uses flat polygonal Face entities; curved ACIS surfaces need a modeler kernel not supplied by ezdxf."
+      ],
+      "planUse": "Use for targeted DXF/carrier and explicit unsupported-disposition checks; it is not a curved-surface geometry oracle or arbitrary ACIS preservation guarantee."
+    },
+    {
+      "topic": "InventorLoader parser versus FreeCAD kernel lineage",
+      "sources": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py"
+      ],
+      "observed": [
+        "The GPL-2 FreeCAD add-on publishes its own SAT/SAB parsing implementation and routes bodies into FreeCAD Part faces/wires or an optional STEP conversion path.",
+        "The project documents no SAT/SAB/DXF export and lists unsupported blending and helix cases.",
+        "The parser is a distinct route, but its geometry construction uses FreeCAD Part/kernel and therefore is not an independent kernel result or the stock DXF/DWG importer."
+      ],
+      "planUse": "Retain only exact, narrow SAT/SAB witnesses; bind add-on revision, FreeCAD build, import strategy, omissions, and independent shape metrics. Record parser lineage separately from kernel and consumer route."
+    },
+    {
+      "topic": "FreeCAD stock route",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": [
+        "FreeCAD documents a built-in C++ DXF route and optional legacy Python route; DWG processing uses an external converter.",
+        "A FreeCAD maintainer states in issue #18454 that the stock importer cannot read the proprietary ACIS blob."
+      ],
+      "doesNotEstablish": [
+        "Every release/platform/entity behavior from mutable source or docs alone",
+        "Any converter handoff as proof of ACIS geometry acceptance"
+      ],
+      "planUse": "Keep S8.9.5 as converter/importer handoff unless the exact final FreeCAD document contains independently expected geometry. Bind release, platform, converter, importer mode, preferences, and operation."
+    },
+    {
+      "topic": "ACadSharp released structural capability and freshness",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://feed.nuget.org/packages/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": [
+        "The signed v3.8.0 release is pinned at commit 3a1c66b and its release notes list an InternalsVisibleTo change only.",
+        "The v3.6.51 release notes include ACIS payload reading from DXF/DWG, AcDs payload-offset handling, and Prototype1b parsing.",
+        "The ACIS DXF writer PR #1240 and nested-solid loss issue #1195 are separate from what the released v3.8.0 artifact proves."
+      ],
+      "planUse": "Use an exact release/source pin as an optional structural reader only; run modelspace and nested block/INSERT coverage separately and keep open PR or issue behavior non-promoting."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "existingFindingsOrSubplansRefined": [
+      "PAR-07",
+      "S8.4",
+      "S8.5",
+      "S8.9.5"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerExecutablesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Keep parser, exact carrier, projection, B-rep interpretation, and named native consumer as independent evidence layers.",
+      "Use locally generated controls only; at one composed checkpoint optionally compare a pinned GDAL raw-carrier route, ezdxf structural route, ACadSharp release, and/or InventorLoader exact SAT/SAB route.",
+      "When using InventorLoader, report its parser lineage separately from its FreeCAD Part/kernel and selected SAT-versus-STEP strategy.",
+      "Use the local ODA v5.4.1 PDF as byte-layout authority and consult peer-reported newer diffs only to identify a discrepancy for authoritative review.",
+      "Keep per-slice validation fast; run external peers and broad/native suites only at planned composed checkpoints.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

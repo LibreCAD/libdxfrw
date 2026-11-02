@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated raw-modeler/AcDs writer preflight replay gate",
+  "mode": "local focused implementation slice",
+  "scope": [
+    "Expose the existing generated AcDs raw-replay contract as a standalone fast selector",
+    "Exercise metadata-only raw-section writer preflight followed by exact finalization/readback",
+    "Avoid adding fixture files, CTest registrations, or full-suite work"
+  ],
+  "method": {
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFilesAddedOrModified": 0,
+    "ctestRegistrationsAdded": 0,
+    "externalToolsRun": false,
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/datastorage-writer-preflight-replay-fast-slice-2026-10-18.json"
+    ],
+    "generatedDrawings": "Scratch DWG outputs are created only in the system temporary directory and removed by local RAII cleanup.",
+    "limitations": "The selector is a local generated structural/replay contract. It is not an external DWG consumer, FreeCAD platform qualification, or ACIS semantic result."
+  },
+  "results": {
+    "strictTargetBuild": "PASS",
+    "standaloneSelector": "PASS",
+    "focusedCtest": {
+      "name": "libdxfrw_graph_preservation",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "PASS",
+    "fullTestSuiteRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "assessment": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextLocalBoundary": "If retaining/finalization duplication is optimized, compare pending record bytes directly against parser-validated bounded source spans while preserving marker detection, duplicate-record rejection, and exact per-handle linkage; otherwise retain current exact-byte finalization behavior."
+  }
+}

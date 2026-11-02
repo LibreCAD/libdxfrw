@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cx owned rich DXF TABLECONTENT decoding",
+  "date": "2026-10-25",
+  "parentCommit": "742de35ba56512c799581e4408626b44d6f7286b",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ADMITTED_RICH_DXF_CONTENT_READ_IMPLEMENTED_WRAPPER_OUTPUT_AND_COMPLETE_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "previousGoalTurn": "PROGRESS: 742de35b added bounded DXF TABLEGEOMETRY and explicit table dependency loss refusal",
+  "scope": {
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "profile": "Plain self/owner header; exact marked LinkedData, LinkedTableData, FormattedTableData and TableContent body",
+    "callback": "Existing optional addTableContent",
+    "rawCompanionDelivered": true,
+    "unsupportedProfiles": "Existing unmodeled raw fallback, never partial typed publication",
+    "consumerRebuildRequired": true,
+    "publicObjectLayoutExtended": "DRW_TableContentObject appends shared immutable DXF metadata",
+    "publicCallbackSignaturesOrVtableChanged": false,
+    "binaryABICompatibility": "NOT_CLAIMED",
+    "nativeDwgByteLayoutChanged": false,
+    "outputAdmissionOpened": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "authoritative": "ODA DWG specification 5.4.1 sections 20.4.97-101, pages 237-246",
+    "cachedPdf": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "relevantLayoutTablesRenderedAndInspected": true,
+    "primaryPeerDeclarations": [
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/dwg2.spec",
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/dwg_spec_shared.h"
+    ],
+    "additionalPeerSource": "Cached ACadSharp DxfObjectsSectionReader labels LinkedTableData group 92 unknown",
+    "externalCodeCopied": false,
+    "findings": [
+      "Existing minimal core cannot retain custom collections, per-content formats, complete style/margin/border overrides and multiple embedded geometries",
+      "Both actual external TABLECONTENT records have full marked bodies and checksum values with flags=2; these payloads must not be suppressed",
+      "Follow ODA first-bit suppression, not pinned LibreDWG declaration's flags & 3 predicate",
+      "Observed LinkedTableData trailer group 92 is preserved as an unknown scalar, not invented as a field-reference count"
+    ]
+  },
+  "implementation": {
+    "metadata": "Owned column/row/cell custom collections and cell styles; per-content immutable formats; all embedded geometry; unknown trailer scalar",
+    "core": "Names, description, columns/rows/base IDs, cells, CAD values, content and attribute ordinals, DATALINK fields, geometry references, merged ranges and TABLESTYLE reference",
+    "text": "Source reader semantic decoding (modern UTF8 and encoding-specific caret behavior); private additional-copy lease. Precharge by-value input plus worst-case UTF8 scratch before decoding",
+    "cadValues": [
+      "Unknown/int32",
+      "Double",
+      "String",
+      "Eight-byte date payload in exact chunk order",
+      "2D/3D points with exact 16/24-byte size declarations",
+      "Object-ID soft reference",
+      "First-bit-suppressed payloads"
+    ],
+    "styleFields": "ACI/RGB, content data/unit/format/rotation/scale/alignment/style/height; cell properties/merges/layout; six margins; bounded nonzero-edge borders with linetype handles",
+    "limits": {
+      "columns": 1000,
+      "rows": 10000,
+      "cells": 200000,
+      "cumulativeCustomItems": 10000,
+      "cumulativeContents": 10000,
+      "cumulativeAttributes": 10000,
+      "cumulativeGeometry": 10000,
+      "mergedRanges": 10000,
+      "existingRawRecordGroups": 65536,
+      "perDecodedSourceStringBytes": 16777216,
+      "readerAggregateByteAndNodeBudgets": "Existing caller-configurable ceilings; no bypass",
+      "remainingGroupsCheckedBeforeReservations": true,
+      "finiteDoublesRequired": true,
+      "mergedRangesBoundedOrderedNonOverlapping": true
+    },
+    "ownership": "Core copies own values; copies share immutable companions; reset clears them; partial decoder owners release their private lease on destruction",
+    "completeness": "m_parseComplete means admitted wire profile fully consumed. m_semanticContentComplete remains false because minimal core alone is not lossless",
+    "nativeGuard": "validateDwgPayload explicitly refuses attached DXF metadata even if legacy semantic flag is forced true; exact seeded body/string/handle bytes and bit positions remain unchanged",
+    "converterGuard": "Both compatible and strict standalone table refusal remain enabled",
+    "targetExistenceAndClassClosureProvedByDecode": false,
+    "sourceGenerationAndOutputProofForNewMetadata": "NOT_IMPLEMENTED; required before replay"
+  },
+  "controls": {
+    "newCTest": "libdxfrw_table_content_dxf_projection",
+    "sourceAuthoring": "Primitive ASCII/little-endian binary object fragments authored from scratch; referenced target graph deliberately not qualified",
+    "richRoutes": 16,
+    "unsupportedProfileFallbacks": 288,
+    "correctedSameImporterReadbacks": 288,
+    "primitiveValueRoutes": 20,
+    "atomicOutputRefusals": 32,
+    "destinationSentinelsPreserved": 32,
+    "correctedSameExporterActualLineReadbacks": 32,
+    "coverage": [
+      "UTF8 strings",
+      "ASCII versus binary caret behavior",
+      "Marker-like payload strings",
+      "Style/linetype/field/block/ATTDEF/DATALINK reference slots",
+      "Distinct XYZ components and multiple geometry records",
+      "Metadata core copy/reset",
+      "Forced legacy native-encoder bypass",
+      "Retained-byte and typed-node failure/recovery",
+      "Direct post-capture node exhaustion releases partial metadata lease"
+    ],
+    "initialControlFailure": "A temporary Decoder remained alive during the if-condition lease assertion. Store the decode result first, then assert after destructor; no production ownership behavior changed",
+    "nativeEncoderBytesAndBitPositionsUnchanged": true,
+    "isolatedScratchDirectory": true,
+    "committedDrawingFixtures": false
+  },
+  "externalSources": {
+    "repository": "LibreDWG/libredwg",
+    "tag": "0.14",
+    "urls": [
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2013.dxf",
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2018.dxf"
+    ],
+    "localDirectory": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "cppLogs": [
+      "/tmp/rpp5cx-external-AC1027.log",
+      "/tmp/rpp5cx-external-AC1032.log"
+    ],
+    "cppObserved": "One matched TABLECONTENT per source: 9 columns, 20 rows, 180 cells, 180 custom items, 8 contents, 7 cell overrides and 8 per-content formats; minimal semantic core remains false",
+    "independentInventory": {
+      "qualificationEligible": false,
+      "tool": "ezdxf 1.4.4",
+      "scope": "Independent selected source inventory and flags=2 checksum payload presence; matches C++ summary counts, not every typed value or complete table semantics",
+      "observations": [
+        {
+          "version": "AC1027",
+          "handle": "E41",
+          "owner": "E44",
+          "columns": 9,
+          "rows": 20,
+          "cells": 180,
+          "custom-items": 180,
+          "contents": 8,
+          "cell-overrides": 7,
+          "content-formats": 8,
+          "checksumValuesSha256": "ada6ab0673d5904879263b66744b3af3465a25f61228854c85dd1d565dcbc138",
+          "sourceSha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3"
+        },
+        {
+          "version": "AC1032",
+          "handle": "9B5",
+          "owner": "9B8",
+          "columns": 9,
+          "rows": 20,
+          "cells": 180,
+          "custom-items": 180,
+          "contents": 8,
+          "cell-overrides": 7,
+          "content-formats": 8,
+          "checksumValuesSha256": "ada6ab0673d5904879263b66744b3af3465a25f61228854c85dd1d565dcbc138",
+          "sourceSha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997"
+        }
+      ]
+    },
+    "inventoryTool": "/private/tmp/libdxfrw-rpp5cx-tablecontent.ErZkei/independent_inventory.py",
+    "inventoryToolSha256": "9f5238cb7d62a40080b3ebb7eb105c7f38fee447dbfa4d8d76d74b86fea4edc4",
+    "inventoryLog": "/tmp/rpp5cx-independent-inventory.json",
+    "qualificationEligible": false,
+    "limits": "Independent selected source inventory and checksum-payload presence only; not every typed field, target class/owner graph, complete table semantics, native schema/kernel or platform qualification",
+    "sourceHashesUnchanged": true,
+    "cli": {
+      "log": "/tmp/rpp5cx-external-cli.log",
+      "exitCode": 1,
+      "diagnostic": "DXF export refused: standalone TABLECONTENT has no qualified replay path; output would be incomplete",
+      "outputPublished": false,
+      "fullDrawingConversionSucceeded": false
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is not native Linux/GCC",
+    "normal": {
+      "passed": 31,
+      "total": 31,
+      "elapsedSeconds": 13.22,
+      "log": "/tmp/rpp5cx-final-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 31,
+      "total": 31,
+      "elapsedSeconds": 33.34,
+      "log": "/tmp/rpp5cx-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "buildLogs": [
+      "/tmp/rpp5cx-normal-final-build.log",
+      "/tmp/rpp5cx-asan-build.log",
+      "/tmp/rpp5cx-build-gcc-lifetime-build.log",
+      "/tmp/rpp5cx-build-asan-custom-lifetime-build.log"
+    ],
+    "owningCohortsSequentialAcrossBuildTrees": true,
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS"
+    },
+    "cliOptionalRegistration": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 2.75,
+      "log": "/tmp/rpp5cx-cli-optional.log"
+    },
+    "tests": [
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "dwg2dxf_named_object_callback_storage",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_section_passthrough",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_tables_write_inspection",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_material_root_output_compatibility",
+      "dwg2dxf_acds_raw_dxf_source_baseline",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_table_content_dxf_projection"
+    ],
+    "testRegex": "^(libdxfrw_table_geometry_dxf_projection|libdxfrw_table_geometry_observer_selftest|dwg2dxf_named_object_callback_storage|libdxfrw_table_content_dwg_object_roundtrip|libdxfrw_table_content_dwg_payload_encoder|libdxfrw_table_content_style_id_domains|libdxfrw_table_callback_owner_order|libdxfrw_tablestyle_nested_raw_net|dwg2dxf_basic_table_typed_capture_limits|dwg2dxf_sort_table_style_raw_capture_limits|dwg2dxf_table_style_typed_capture_limits|dwg2dxf_table_content_style_reference_census|dwg2dxf_table_base_style_id_dxf_refusal|dwg2dxf_raw_dxf_object_list_node_accounting|dwg2dxf_raw_dxf_entity_capture_limits|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_proxy_object_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_3d_consumer_probe|libdxfrw_dimstyle_optional_handles|libdxfrw_dimstyle_compatible_resource_remap|dwg2dxf_acds_strict_material_closure|libdxfrw_material_raw_scalar_wire_controls|libdxfrw_dxf_source_table_identities|libdxfrw_dxf_tables_write_inspection|dwg2dxf_generated_root_common_closure|libdxfrw_material_root_output_compatibility|dwg2dxf_acds_raw_dxf_source_baseline|dwg2dxf_acds_history_reexport_faults|libdxfrw_dxf_proxy_object_id_terminator|libdxfrw_table_content_dxf_projection)$",
+    "gitDiffCheck": "PASS",
+    "werrorRetained": true,
+    "fullProjectSuiteRun": false,
+    "leakCheck": false,
+    "codeSha256": {
+      "src/drw_entities.h": "54214e6d3f7aa2010dd2ad31c0001d9c037957acc722b1667fd26a11da12e392",
+      "src/drw_objects.cpp": "ad60f0f1b3de8f45f1f6712209cbf6df6b23c99649415468dd2564622b7901c6",
+      "src/libdxfrw.cpp": "bd4160949149da49bd10b64e03216b7e55c0909797433f3c2cbb63b96f5474f1",
+      "src/intern/dxftablecontent.h": "002889b7a52ef83a4ce15342d7a1f1a0c0f3e38e5cfd241da3f0c60a41e0c784",
+      "src/Makefile.am": "e4b961fca22fa311b81a63ae0900213ed2501e55f94d3c813d459f34b624873f",
+      "tests/CMakeLists.txt": "de55ed6fc81e84cf1692744ca292250ae8a03dd15c1e91dad46e6bfcd14255c9",
+      "tests/table_content_dxf_tests.cpp": "d9ef659e2e5e5a08999e4c00008b71fb9b4ee3900fad833965dbe2bbab32ab73"
+    }
+  },
+  "limits": {
+    "qualificationLedger": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "externalEvidenceMayPromoteSupport": false,
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernel": "NOT_RUN",
+    "wrapperOutputAndWholeDrawingConversion": "OPEN",
+    "unsupportedProfiles": [
+      "Extended common metadata",
+      "Named-color companions",
+      "Zero-edge-border representation",
+      "General/buffer/result-buffer payloads",
+      "Unproved field-reference trailer forms",
+      "Other revisions or body shapes"
+    ],
+    "peerNativeGeometryDecimalDiscrepancy": "UNRESOLVED; prior RPP-5cw receipt unchanged",
+    "earlierReceiptsModified": false,
+    "untrackedDrawingsTouched": false,
+    "remoteWrites": false,
+    "goalStatus": "ACTIVE"
+  },
+  "next": [
+    "Correlate and preserve TABLE -> extension dictionary -> ACAD_XREC_ROUNDTRIP XRECORD -> ordered 360 content / 361 geometry graph, literal marker and complete wrapper fields",
+    "Bound converter-owned raw/typed/generation snapshots and retention, establish every reference-family dependency and actual authority when entity/wrapper views disagree",
+    "Implement whole-compound output with exact staged fields and unique emitted identities/owners, late mutation controls, rollback and same-facade retry before removing explicit refusal",
+    "Extend independent rich-field comparisons, broader profiles and native content/geometry writer proof without relaxing peer discrepancies",
+    "Continue full 2D/3D/DWG/DXF/IMAGE/SWEEP/EXTRUSION/dwg2dxf/FreeCAD objective; self-update, fast affected checks, commit and report every completed slice"
+  ]
+}

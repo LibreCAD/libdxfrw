@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PLACEHOLDER reactor grammar and consumer-route review",
+  "mode": "Deeper/broader primary-source research and implementation-plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve the group-330 scope ambiguity in the WDFLT default PLACEHOLDER route",
+    "Compare normative DXF documentation with an independent DXF parser/resource copier",
+    "Keep FreeCAD DXF importer and DWG converter qualification routes separate",
+    "Convert evidence into a bounded implementation sequence without promoting support"
+  ],
+  "method": {
+    "kind": "Read Autodesk DXF object/common-code tables, ezdxf source/docs, FreeCAD importer docs/source, and local writer/preflight code",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Autodesk tables establish published DXF structure but do not resolve the semantic target/cardinality ambiguity for the PLACEHOLDER scoped code-330 entry beyond their stated description. ezdxf and FreeCAD sources were not executed. No local DWG-origin PLACEHOLDER receipt or native semantic result was produced. ODA's version-specific DWG layout and a real repository/local trace remain prerequisites for broader admission."
+  },
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3BC75FF1-6139-49F4-AEBB-AE2AB4F437E4.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm"
+      ],
+      "revision": "Official published DXF tables accessed 2026-10-18",
+      "observed": "ACDBPLACEHOLDER documents a handle, persistent-reactor group scope with an in-scope code-330 soft pointer, and a required trailing code-330 owner. The common-object table says reactor groups are optional when persistent reactors are attached. Group code alone is insufficient to distinguish target from owner; group-102 context is required."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable current source and documentation read 2026-10-18; no commit or package artifact pinned",
+      "observed": "DXFEntity setup/export treats ACAD_REACTORS as a distinct appdata structure, writes reactors before owner, and maps reactor handles as soft pointers when copying. The xref documentation states unsupported proxy/raw objects and many OBJECTS features are ignored, constraining use as a semantic comparator."
+    },
+    {
+      "project": "FreeCAD DXF/DWG import route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable current main documentation and source read 2026-10-18; no native build or converter run",
+      "observed": "FreeCAD documents multiple DXF importers, current inability to read ACIS/SAT blobs, and a DWG route that first invokes an external converter before DXF import. Conversion success and native 3D acceptance are separate evidence stages."
+    }
+  ],
+  "localCodeCrosscheck": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "observed": [
+      "writeAcDbPlaceholder delegates reactor serialization to writeTableEntryAppData and separately writes the required owner.",
+      "The typed DWG-origin WDFLT preflight currently refuses PLACEHOLDER reactors.",
+      "The raw DXF-origin preflight counts code-330 tags flatly and requires exactly one, so any scoped reactor code-330 is refused.",
+      "The raw receipt validator accepts reactor marker tokens but does not validate their complete ordered scope structure.",
+      "The graph walker stages a default PLACEHOLDER handle but does not visit its reactor targets."
+    ]
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplanRefined": "WDFLT / ACDBPLACEHOLDER reactor closure and group-330 scope validation",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Makes PLACEHOLDER reactor admission context-sensitive and fail-closed, adds an explicit graph-closure requirement, limits the first implementation slice to already-admitted targets, and separates DXF converter success from FreeCAD ACIS/3D semantic qualification. No new local defect or support evidence is claimed."
+  },
+  "implementationReadyChecks": [
+    "Parse raw 102 scopes in order and distinguish in-scope reactor pointers from the required final owner pointer.",
+    "Do not infer the PLACEHOLDER reactor target or repeat cardinality from generic reactors alone; check the ODA versioned layout and an actual repository/local trace before broadening.",
+    "Require every admitted typed/raw reactor reference to resolve to exactly one object in the emitted closure and verify output remapping in ASCII and Binary generated controls.",
+    "Keep unsupported application data, XDATA, extension dictionaries, unknown targets, and malformed scopes rejected atomically.",
+    "Run the touched adapter build and focused WDFLT CTest only; keep native CAD, peer runtime, and full suites at the composed gate.",
+    "Do not import or commit external drawings."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-placeholder-reactor-and-consumer-route-review-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-placeholder-reactor-and-consumer-route-review-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

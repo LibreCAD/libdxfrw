@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-mlinestyle-nonfinite-angle-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_REGRESSION_PASS_UNCOMMITTED",
+  "scope": "Implement the research-derived PAR-14/MLINESTYLE fast regression for non-finite start/end angle handling without transferring peer-specific behavior into production.",
+  "implementation": {
+    "file": "tests/wave1_tests.cpp",
+    "behavior": [
+      "Adds generated NaN, positive-infinity, and negative-infinity cases independently for MLINESTYLE start and end angles.",
+      "Runs each invalid angle through both ASCII and binary low-level DXF writers and requires rejection with no record bytes published.",
+      "Uses a fresh writer after the sticky low-level failures to emit a finite MLINESTYLE and following WIRE_END record; verifies order in both wire formats.",
+      "Does not introduce a numeric range, normalization policy, production change, adapter behavior change, or external sample."
+    ],
+    "testRegistrationAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "publicApiChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+      "build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/wave1_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedSelector": "passed: MLINESTYLE validation",
+      "scopedDiffCheck": "passed",
+      "fullSuiteRun": false
+    }
+  },
+  "qualification": {
+    "peerExecutableRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing modifications and mixed implementation work"
+  },
+  "nextReadinessSlice": "Resume the next ready local implementation item in the plan ledger; preserve the existing full-suite and optional peer/native composed checkpoints."
+}

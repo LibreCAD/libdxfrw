@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-dxf-tag-stream-differential-audit-cadence-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Research a low-cost, optional DXF structural differential and distinguish it from byte-level tests, recovery, and document audit costs.",
+  "method": {
+    "kind": "Read-only review of current ezdxf official documentation and existing local plan/test policy",
+    "peerRepositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "sources": [
+      "https://ezdxf.readthedocs.io/en/stable/drawing/management.html",
+      "https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html",
+      "https://ezdxf.readthedocs.io/en/stable/usage_for_beginners.html"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing strict-vs-recovery policy, byte/sentinel tests, optional DXF peer checkpoint, and fast per-slice validation rules",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing fixture and external-J evidence boundaries"
+    ],
+    "limitations": "Documentation establishes the advertised API and intended behavior, not runtime correctness or performance on this checkout. No exact ezdxf package artifact was pinned or executed; JSON tags were assessed as decoded tag-sequence output, not exact wire bytes."
+  },
+  "routeFindings": [
+    {
+      "route": "ezdxf verbose JSON tag export",
+      "observed": "The documented compact=false representation is an ordered list of group-code/value pairs with string values and one pair per DXF tag.",
+      "evidenceCeiling": "Optional decoded-tag-sequence comparator only; it does not preserve original text spellings, binary widths, exact record bytes, DWG structure, or ACIS semantics.",
+      "planUse": "At an existing composed DXF peer checkpoint, strict-read a scratch-generated output and export verbose tags only to diagnose a specific tag ordering/value mismatch. Keep literal byte, binary-width, raw-payload, and following-record checks local."
+    },
+    {
+      "route": "ezdxf audit, validate, and recovery",
+      "observed": "The API documents repair of fixable errors, reporting of unresolved errors, and audit as potentially long-running. Ordinary strict read and recovery are separate paths.",
+      "evidenceCeiling": "Diagnostic/repair observation; recovery or a zero-error audit does not prove unchanged round-trip semantics or complete support.",
+      "planUse": "Keep audit/recovery out of per-slice validation. If useful at the composed checkpoint, record strict result, recovery result, repairs/errors, changed identities/fields, and post-save reopen separately."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "optional ezdxf decoded-tag differential for a specific DXF ordering/value ambiguity",
+      "separation of strict parse, recovery, audit repair, and unchanged semantic output",
+      "preservation of local byte/sentinel tests as the fast implementation gate"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newRequiredPeerGates": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planUpdated": true,
+    "scopedDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

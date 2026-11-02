@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-dxf-dimension-picture-placement-fail-closed-v1",
+  "slice": "PAR-71 / 7O.3 DXF refusal for unrepresented DWG anonymous-block placement",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "researchBasis": {
+    "receipt": "docs/research/deeper-broader-dimension-placement-dxf-projection-review-2026-10-16.json",
+    "rule": "Autodesk's current common DIMENSION grammar assigns 41 to line-spacing factor, 42 to actual measurement, and 53 to text rotation; it does not document the DWG anonymous-picture scale/placement rotation as DIMENSION fields. INSERT codes are not interchangeable with DIMENSION fields.",
+    "boundary": "Do not infer that no application-specific extension exists. Until an interoperable representation is demonstrated, reject nondefault placement instead of silently losing or mis-mapping it."
+  },
+  "change": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Shared dxfRW entity preflight rejects nonfinite anonymous-block scale/rotation and rejects any finite scale other than (1,1,1) or placement rotation other than zero before writing the DIMENSION record.",
+      "Default-valued placement remains accepted.",
+      "The diagnostic for finite nondefault placement is dimension-picture-placement-unrepresented.",
+      "The generated scratch control calls the direct dxfRW DIMENSION writer through the dx_iface callback, verifies failed fileExport preserves an existing destination, then retries through the same dx_iface; each fileExport creates a fresh dxfRW instance.",
+      "Controls cover default aligned DIMENSION, NaN scale rejection, nondefault XYZ scale on aligned DIMENSION, nonzero rotation on ARC_DIMENSION, and nondefault scale on large radial DIMENSION; each negative control asserts the direct writer call returns false."
+    ],
+    "fixturePolicy": "All output files are generated under the temporary test directory and cleaned by RAII. No DWG/DXF fixture was added or committed.",
+    "registration": "No CTest registration or dependency was added; the control is part of the existing libdxfrw_dwg_local_roundtrip test executable."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "result": "PASS 1/1",
+    "durationSeconds": 3.33,
+    "consumerCompileCommand": "cmake --build build-gcc --target lc3_compat_check -j2",
+    "consumerCompileResult": "PASS; compile-level compatibility check only",
+    "warningsAsErrors": true,
+    "targetedDiffCheck": "PASS",
+    "fullSuiteRun": false
+  },
+  "evidenceBoundary": {
+    "proves": [
+      "Local DXF writer rejects the tested nondefault anonymous-block placement routes before emitting the DIMENSION record.",
+      "The direct dxfRW DIMENSION writer call returns false on each tested nondefault route.",
+      "The tested failed whole-file export leaves the pre-existing destination bytes unchanged.",
+      "A retry using the same dx_iface with default placement succeeds after each rejection."
+    ],
+    "doesNotProve": [
+      "independent producer agreement on the DWG scale/rotation fields",
+      "a valid DXF group-code mapping or transform-baking implementation",
+      "native CAD acceptance, dimension rendering, editability, or association behavior",
+      "full DIMENSION interoperability or general DWG/DXF support"
+    ],
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "supportClaimPromoted": false,
+    "findingCountChanged": false,
+    "topLevelSubplanCountChanged": false,
+    "externalOnlyDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "commitReason": "The shared worktree contains broad unrelated changes in the same source, test, and plan files; staging or committing whole files would include user work outside this slice."
+  }
+}

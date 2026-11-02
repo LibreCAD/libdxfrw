@@ -1,0 +1,62 @@
+{
+  "schema": "sortents-identity-scope-v1",
+  "date": "2026-10-28",
+  "codeCommit": "c0a1726673c6d165b927c01852cb66588c4b24ce",
+  "supportClaimsPromoted": false,
+  "scope": "The identity observer distinguishes a SORTENTSTABLE object's outer self handle from group-5 sort keys after the host AcDbSortentsTable subclass marker. Application, XDATA and embedded boundaries retain priority. SortOrder is an appended public scope value and remains unknown to the existing namespace audit.",
+  "authority": {
+    "title": "Autodesk SORTENTSTABLE DXF group codes",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "role": "Distinguishes object handle group 5 from repeated subclass sort-handle group 5 associated with entity references."
+  },
+  "originalObservation": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample; native authoring history not independently certified.",
+    "census": "Complete; 995 records, 1003 candidates, zero unmatched admissions. Original object 355 outer group 5 at byte 379916 remains Outer/Accepted, with one repeated same-scalar registration. Eight keys 35A, 354, 36E, 36D, 371, 370, 376 and 375 at bytes 380002 through 380114 are SortOrder/Unobserved; adjacent object identities 79B and A0D remain Outer/Accepted.",
+    "before": "All eight sort keys were classified Outer/Unobserved, producing a false multiple-self identity record.",
+    "probeSource": "build/identity-review/census-final.cpp",
+    "probeSourceSha256": "a7fbe98b9a4ee6b31b974b2f727d564554efabaa7edf515cdad9ff18b10261d6",
+    "probeBinarySha256": "cb76ff2c3b49d3591493c1079a908809ca168cdd95f937ec549296792f1c1069",
+    "probeStdoutSha256": "f83956a42d0e9d04c013dcd48ee83b7199a1e803fadbcd365f328c9bbdc7b5be",
+    "adapterObjectSha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9",
+    "librarySha256": "1fccb243821ae93c09677e0bfd8170cb0145b12e92953a96c026f56115d14245"
+  },
+  "bindings": {
+    "publicHeaderSha256": "11618ddbed648534a7847a1539193a35646388df1a521e3eac38a70028a9ccad",
+    "observerSha256": "f84ad22e816cbc428536b78c8c145ba2f9201691f340af6d410978f9d79034a5",
+    "controlsSha256": "1c15176ebc67582f5dd92ad416a4798616e95d4b12a5cde792ce1ff1694f6fcc",
+    "controlRegistrationSha256": "066a5962be9cf029f170599796e3dac38aa920610badb3233f5f601dfeb91ff7",
+    "normalTestBinarySha256": "3fe364cc70e471f9c4f5a4dbe717edfc70774b108725b4b62172a7c8f4f3044c",
+    "chronology": "Final normal and ASan cohort included simultaneous legacy TABLE source-context changes committed as 1120c831, before SORTENTSTABLE commit c0a17266."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_legacy_override_177",
+      "libdxfrw_table_legacy_text_height",
+      "libdxfrw_table_legacy_merge",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_spine_source_proof"
+    ],
+    "normal": {"result": "PASS 8/8", "logSha256": "d942883c692a7f8a94fda8b79753d20ad60529ed1f00aa89f36944d61ccc92ab"},
+    "asan": {
+      "result": "PASS 8/8",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "testBinarySha256": "c38dbf309d5b4c2b88fa5ceb36ca1f0cf06283eb7765e7ff345445faf0a9ca07",
+      "librarySha256": "f99aba7b6ececf69eae315c5a7da31196b9d9f84d370612b69e6ab7369a0d38a",
+      "logSha256": "4ffe6566f315303b998682327ba141b96422fcdbf1ad7ba3d3a42f2dd1314e33"
+    },
+    "controls": "Four locally authored AC1018/AC1032 ASCII/binary import routes verify typed sort pairs, payload values equal to the object's own handle and to a later entity identity, app/XDATA boundaries, true duplicate outer identity, missing/duplicate subclass rejection, corrected same-facade retries, and conservative namespace status. Direct observation separately tests nested subtype and trailing XDATA scope precedence."
+  },
+  "limitations": [
+    "The previously existing typed and raw SORTENTSTABLE readers already avoid registering subclass sort keys as self identities; this change only refines physical observation.",
+    "SortOrder remains unqualified by the namespace audit. AC1018 adapter namespace capture remains gated; this evidence does not establish ownership, target resolution, document output or native semantic support.",
+    "The append-only public enum preserves existing numeric values and representation; downstream exhaustive switches must handle the new scope conservatively. Rebuild consumers of the changed header.",
+    "No drawing fixture was committed."
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "INSERT block-name full-read callback publication fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend the INSERT group-2 retained-byte owner through full ENTITIES parsing",
+    "Cover generated ASCII and Binary DXF with an INSERT and following LINE",
+    "Verify exact-budget admission, pre-callback refusal, and same-facade retry"
+  ],
+  "method": {
+    "kind": "Generate temporary AC1027 drawings in the existing hardening test and exercise the public file-backed DXF reader",
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "productionCodeChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "filesChanged": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/insert-name-callback-publication-fast-slice-2026-10-18.json"
+    ],
+    "limitations": "The test proves retained-byte admission and callback publication for one generated INSERT plus LINE. It does not validate INSERT block-definition resolution, ATTRIB graph semantics, writer output, native CAD behavior, or general memory/RSS limits."
+  },
+  "implementation": {
+    "productionChange": "None. Added a generated-wire helper and full-read test for the existing DRW_Insert::name group-2 retained-byte owner.",
+    "testSelector": "--dxf-insert-block-name-owner-budget",
+    "encodings": [
+      "ASCII DXF AC1027",
+      "Binary DXF AC1027"
+    ],
+    "generatedCase": {
+      "insertNameBytes": 525,
+      "followingEntity": "LINE",
+      "expectedCallbacks": [
+        "INSERT",
+        "LINE"
+      ]
+    },
+    "testCoverage": [
+      "Measure the minimum full-read retained-byte budget by binary search over actual file-backed reads",
+      "Verify exact-peak read publishes the expected INSERT name and insertion point followed by the expected LINE handle",
+      "One-byte-under read returns false with the retained-byte ResourceLimit diagnostic before either entity callback",
+      "Raise the budget on the same dxfRW facade and retry successfully with ordered callbacks and unchanged expected values",
+      "Generate drawings in a unique temporary directory and remove them with scoped cleanup"
+    ],
+    "publicApiOrLayoutChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-insert-block-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/insert-name-callback-publication-fast-slice-2026-10-18.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "focusedSelector": "PASS (ASCII and Binary generated cases)",
+      "owningCTest": "PASS (1/1)",
+      "diffCheck": "PASS"
+    }
+  },
+  "assessment": {
+    "confirmedCoverageGapClosed": 1,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "workingTree": {
+      "commitCreated": false,
+      "stagingAttempted": false,
+      "reason": "The shared checkout has extensive pre-existing changes. This fast slice remains uncommitted and unstaged; unrelated files were preserved."
+    }
+  }
+}

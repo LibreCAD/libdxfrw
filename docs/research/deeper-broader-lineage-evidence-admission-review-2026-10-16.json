@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-deeper-broader-lineage-evidence-admission-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refine peer independence, route admissibility, and implementation-ready evidence collection from primary open-source project sources without inferring a local defect or promoting support claims.",
+  "method": {
+    "kind": "Primary project manual, API guide, source repository, and published package documentation review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableSourcePolicy": "Current default-branch documentation is a research snapshot, not a reproducible runtime result. Pin exact release/commit, toolchain, build features, artifact digest, platform, input profile, and options before any composed comparison.",
+    "evidenceRule": "Separate historical ancestry, parser implementation, geometry-kernel lineage, consumer route, source-file provenance, and semantic oracle. Agreement, a project score, a successful open, or a same-project round trip does not fill other evidence layers."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG and QCAD/dxflib historical lineage",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/en/what-is-dxflib"
+      ],
+      "observed": "LibreDWG's project manual says the project came out of code from the QCAD Community Edition product. dxflib's own guide describes a callback parser that passes only supported records to user code and does not store entities or other drawing information.",
+      "doesNotEstablish": [
+        "that current LibreDWG and current dxflib contain identical parser code",
+        "that every current DXF route retains the historical common implementation",
+        "whole-document graph, unknown-record, or opaque-payload preservation in dxflib"
+      ],
+      "planUse": "Key these implementations as historically related pending a file/path-level lineage audit. Use dxflib/QCAD only for explicit common-entity callback comparisons and separately scoped application acceptance; do not count them as independent whole-document or 3D semantic votes."
+    },
+    {
+      "topic": "cadmpeg direct SAT/SAB profile and artifact boundary",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/README.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+        "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/"
+      ],
+      "observed": "The project identifies Apache-2.0 code, clean-room restrictions, and Rust 1.88+ for source builds. The overall bare SAT/SAB format headline is L1; the profile documents connected B-rep transfer as an extra for ACIS save-format majors 217 and 218, with other bands unverified. Its own support rubric requires real-file, byte-disposition, explicit-loss, determinism, geometry/topology, and fuzz evidence for declared profile scoring. The inspected workspace main manifest says 0.6.0 while a separately published 0.6.1 crate exists.",
+      "doesNotEstablish": [
+        "that mutable main and published 0.6.1 are equivalent artifacts",
+        "DWG or AcDs container/index/owner support",
+        "general ACIS profile coverage or native CAD acceptance",
+        "local semantic qualification from the peer's documentation or score"
+      ],
+      "planUse": "Retain as an optional direct-stream comparator after local AcDs extraction and entity/body closure. Record exact crate or commit, compiler, feature set, lockfile, artifact digest, observed ACIS profile, input provenance/hash, decoded/unknown carriers, losses, topology and independent measures. Do not add Rust as a libdxfrw dependency or install it during a leaf slice."
+    },
+    {
+      "topic": "GDAL DXF reader/writer route asymmetry",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "Current docs describe binary-DXF reading from GDAL 3.12, DXF writing to AutoCAD 2004-compatible output, and an AC1027+ read option that exposes raw ASM bytes plus a transform without decoding solid geometry.",
+      "doesNotEstablish": [
+        "a modern AC1027+ SAB/ACDSDATA writer route",
+        "DWG or AcDs parsing",
+        "exact document-graph preservation or ACIS/B-rep semantics"
+      ],
+      "planUse": "Use only as an optional reader, projection, or raw-carrier/transform comparator. Do not use GDAL-produced AC2004 DXF as a producer oracle for modern SAB carrier emission."
+    },
+    {
+      "topic": "FreeCAD consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "A FreeCAD maintainer distinguishes explicit DXF entities from unsupported proprietary ACIS blobs. Its DWG workflow uses an external converter and then a selected DXF importer; importer preferences distinguish the C++ and legacy Python routes.",
+      "doesNotEstablish": [
+        "direct libdxfrw callback behavior",
+        "stock FreeCAD ACIS/AcDs solid interpretation",
+        "native semantic acceptance from file-open success alone"
+      ],
+      "planUse": "Keep FreeCAD as a pinned converter-to-DXF-to-selected-importer consumer check for the scoped 2D/explicit-geometry route, with converter/importer identity and resulting object inventory captured."
+    }
+  ],
+  "implementationReadiness": {
+    "peerIdentityFields": [
+      "historical source ancestry",
+      "exact parser module and revision",
+      "geometry-kernel implementation and lineage",
+      "consumer/application route and selected options",
+      "producer provenance and input hash",
+      "toolchain/build/package identity"
+    ],
+    "directSabGate": [
+      "feed only the exact locally resolved SAT/SAB payload span, not a DWG or AcDs container",
+      "record source sample versus generated-control provenance and exact inner profile",
+      "assert against independent dimensions, units, transforms, topology and analytic measures",
+      "keep parsed, unknown, recovered, unsupported and fallback carrier outcomes visible",
+      "separate parser, topology, kernel, and native-application conclusions"
+    ],
+    "validationCadence": "No new per-slice work. Keep touched strict builds, focused generated tests, compatibility compile checks, and diff checks local; run optional exact-pinned comparators once at their existing composed checkpoint.",
+    "planImpact": {
+      "existingOwnersOnly": true,
+      "newFindings": 0,
+      "newSubplans": 0,
+      "supportClaimsPromoted": 0,
+      "externalJDispositionChanged": false,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader PAR-139 matrix semantics and clip-state reconciliation",
+  "mode": "Primary-source documentation and open-source source/issue review plus local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile group-71 semantics across the ODA DWG specification, Autodesk DXF/API documentation, and ezdxf source/docs.",
+    "Review independent open-source SPATIAL_FILTER support and reported matrix/XCLIP failure modes in ACadSharp, LibreDWG, ezdxf, and IxMilia.Dxf.",
+    "Tighten PAR-139 acceptance so exact field persistence is distinguished from affine transform and native clipping semantics."
+  ],
+  "sources": [
+    {
+      "name": "ODA Open Design Specification v5.4.1, §20.4.94 SPATIAL_FILTER",
+      "urls": [],
+      "localReference": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observed": "The DWG body calls group 71 Dispbound/display boundary and defines the first and second 12-value matrices as inverse block transformation and clip-boundary transformation, each a 4x3 column-major array. This is authoritative for DWG byte layout, not evidence of application rendering semantics."
+    },
+    {
+      "name": "Autodesk SPATIAL_FILTER DXF table, managed Enabled property, and Clip Blocks and Xrefs guide",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-34F179D8-2030-47E4-8D49-F87B6538A05A.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Filters_SpatialFilterDefinition_Enabled.html",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-NET/files/GUID-72029044-0840-4187-9A58-F2A4518E3A23.htm"
+      ],
+      "observed": "The DXF table describes group 71 as clip-boundary display-enabled. The managed Enabled property describes making the clip volume effective or making it all of 3D space; the .NET clipping guide says the property shows or hides the boundary. These official descriptions conflict or are not sufficiently precise to collapse presentation and clipping-effect semantics."
+    },
+    {
+      "name": "ezdxf 1.4.5 XClip docs and current source",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tools/xclip.html",
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/spatial_filter.py",
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/xclip.py",
+        "https://github.com/mozman/ezdxf/issues/1305"
+      ],
+      "observed": "Source maps group 71 to is_clipping_enabled, treats matrices as Matrix44 values, and uses the final 24 group-40 values. Documentation limits XClip to 2D paths and says inverted structure is not fully understood; current issue #1305 reports WCS clipping-path coordinates differing from a CAD application's display. The issue is an unresolved report, not a local reproduction."
+    },
+    {
+      "name": "ACadSharp open pull requests #1230 and #1226",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1230",
+        "https://github.com/DomCR/ACadSharp/pull/1226"
+      ],
+      "observed": "Open, unmerged PR #1230's author reports a DXF matrix-selection defect and DWG/DXF matrix convention mismatch, and says identity matrices masked the test gap. Open PR #1226 reports a downstream XCLIP bounding-box defect and translation lost when applying file-order matrices as that project's Matrix4 convention. These are undeployed author reports and test-design warnings, not verified current ACadSharp behavior or proof of a libdxfrw defect."
+    },
+    {
+      "name": "LibreDWG typed SPATIAL_FILTER declaration and object manual",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html"
+      ],
+      "observed": "LibreDWG declares SPATIAL_FILTER stable and documents typed boundary points, normal/origin, group 71-73 fields, and both matrix arrays. This makes it a candidate pinned structural DWG comparator, not a rendering oracle or universal support guarantee."
+    },
+    {
+      "name": "IxMilia.Dxf open issue listing and release history",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs/issues/100",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "observed": "The issue listing shows #100, 'SpatialFilter for xref doesnt work', as open, but the issue body could not be fetched in this pass. The changelog separately records a front-clipping-plane handling fix. The issue title is only a low-confidence risk signal."
+    },
+    {
+      "name": "Local libdxfrw code and PAR-139.5 test audit",
+      "urls": [],
+      "localReferences": [
+        "src/drw_objects.cpp:16295-16362 (DWG SPATIAL_FILTER encoder writes two 12-value matrices in stored order)",
+        "src/drw_objects.cpp:19198-19354 (DXF group-code parsing and typed field validation)",
+        "src/drw_objects.cpp:19375-19520 (DWG parser reads and stores both matrices in wire order)",
+        "src/libdxfrw.cpp:23217-23307 (DXF writer emits stored matrix arrays in order)",
+        "tests/dwg2dxf_adapter_tests.cpp:7480-8000 (generated SPATIAL_FILTER graph roundtrip controls; matrix values are distinct sequential sentinels)"
+      ],
+      "observed": "The current codec preserves vectors and does not apply them as matrices. PAR-139.5 checks exact array retention/order using sequential sentinel values; those tests establish field persistence, not a valid affine mapping, matrix-role interpretation, or rendered clip behavior."
+    }
+  ],
+  "assessment": {
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingFindingAcceptanceCriteriaRefined": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "PAR-139 now treats group 71's semantic label as provisional because official documentation and peer terminology conflict; it requires separate observation of clipping effect, frame display, and plotting. PAR-139.5 is limited to exact field persistence because its matrices are sequential sentinels. PAR-139.6 now requires affine non-identity matrices, independently derived point mappings, and a cross-format check when an independently generated DWG witness exists. ACadSharp PR reports are used only as test-design warnings; LibreDWG and ezdxf remain pinned, profile-specific secondary comparators."
+  },
+  "method": {
+    "kind": "Primary-source documentation/source review, current open-source issue/PR review, local source/test inspection, and plan editing",
+    "localOdaPdfSectionRead": "20.4.94 SPATIAL_FILTER",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-par139-matrix-semantics-clip-state-2026-10-19.json"
+    ],
+    "limitations": "ACadSharp PRs are open and unmerged; their descriptions are author reports. ezdxf #1305 is unresolved. IxMilia issue #100's body could not be fetched. Mutable peer master sources were not pinned or executed. Autodesk's documentation does not resolve the group-71 semantic conflict. No claim about actual clip rendering, inversion, or native acceptance is made."
+  }
+}

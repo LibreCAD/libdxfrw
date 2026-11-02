@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw-cross-kernel-render-state-current-acds-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden source comparison across open-source ACIS readers, OCCT distribution boundaries, current LibreDWG AcDs source, and native rendering state; refine existing implementation gates without making a local support claim.",
+  "method": {
+    "kind": "Primary project documentation, source, issue, and merged-fix review",
+    "repositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableReferences": [
+      "LibreDWG master",
+      "ACadRust main",
+      "OCCT Components main"
+    ],
+    "evidenceRule": "Mutable documentation and source can identify routes and test design but cannot establish current runtime behavior. Self-round-trip and marker presence are not independent geometry semantics."
+  },
+  "evidence": [
+    {
+      "topic": "OCCT ACIS availability and independence",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/Open-Cascade-SAS/OCCT-Samples"
+      ],
+      "observed": "Official OCCT project materials list ACIS SAT/SAB exchange among commercial data-exchange extensions, distinct from the open-source core format set.",
+      "doesNotEstablish": [
+        "that stock OCCT or a standard FreeCAD build reads ACIS",
+        "the availability or entitlement of any commercial component in the local environment",
+        "correct interpretation of the project's DWG AcDs section"
+      ],
+      "planUse": "Do not treat stock OCCT/FreeCAD as an ACIS oracle. If a commercial ACIS component is used, record product, build, platform, component entitlement, and exact route separately. Keep cadmpeg an optional open-source direct-SAB candidate pending pinned runtime and semantic checks."
+    },
+    {
+      "topic": "Current LibreDWG AcDs implementation versus issue 1411",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Issue 1411 reports loss on LibreDWG 0.14.8593 at commit prefix 8a1ae764. Current mutable source has an AcDs section reader and parses selected indexes/segments; `_data_` and `blob01` are explicitly warned as unhandled, and a later decoder scans the section for ACIS BinaryFile/terminator markers and pairs found payloads with queued 3DSOLID handles in sequence.",
+      "doesNotEstablish": [
+        "that the issue report describes current master",
+        "full DataIndex-driven payload decoding or order-independent entity association",
+        "writer support or complete AcDs preservation",
+        "valid ACIS geometry or current runtime success"
+      ],
+      "planUse": "Keep the issue as a version-scoped loss report. Pin before runtime comparison. Separate section inventory, index semantics, marker-scan recovery, exact handle association, raw payload hashes, writer disposition, and independent shape results."
+    },
+    {
+      "topic": "ACadRust advertised profile versus visible AcDs tests",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "The mutable project README advertises version 0.6.4 and ACIS/SAT/SAB/B-rep functionality. Its visible AcDs test helper fabricates a marker-bearing SAB payload and checks the same library's DWG writer/reader path.",
+      "doesNotEstablish": [
+        "that fabricated marker bytes describe valid ACIS geometry",
+        "independent reader agreement",
+        "a pinned supported ACIS profile",
+        "native CAD acceptance"
+      ],
+      "planUse": "Retain ACadRust only as a candidate structural differential after pinning. Require independently authored analytic expectations and an independent geometry implementation for semantic checks."
+    },
+    {
+      "topic": "ACadSharp TrueView render-state issue root cause",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1074",
+        "https://github.com/DomCR/ACadSharp/pull/1077"
+      ],
+      "observed": "Issue 1074 initially attributed a TrueView Realistic/Conceptual crash to absent VisualStyle and Material objects. Merged PR 1077 reports a reproduced fix: the active VPORT AmbientColor default encoded as ByBlock and was changed to explicit Black; patched output switched render style without crashing.",
+      "doesNotEstablish": [
+        "that libdxfrw output has the same defect",
+        "that all VisualStyle or Material graph data is unnecessary",
+        "support for all render modes or CAD applications"
+      ],
+      "planUse": "Avoid speculative object-emission requirements based on the issue's original diagnosis. Add active viewport/default-state checks and a supported non-wireframe transition to the existing composed native-render gate."
+    }
+  ],
+  "implementationReadiness": {
+    "existingGateRefinements": [
+      "Separate DWG section, AcDs index/segment, entity/owner association, exact SAB, ACIS topology, units/analytic measures, and native rendering outcomes.",
+      "Use an exact pinned direct-SAB executable and only the bounded extracted bytes for an optional independent geometry comparison.",
+      "Generate AcDs controls that assert specification-defined non-positional handle association and bounded rejection of invalid offsets, duplicate/overlap, truncation, and unresolved handles.",
+      "Treat marker scan/recovery as diagnostic only; it cannot satisfy exact payload association.",
+      "At the composed native gate, inspect active viewport defaults and perform one supported shaded/realistic transition in addition to checking geometry and importer diagnostics."
+    ],
+    "consumerCompatibility": "Keep the existing LibreCAD and LibreCAD_3 2D compatibility checks unchanged.",
+    "fixturePolicy": "No external DWG/DXF/SAT/SAB files added; use permitted existing repository material or locally authored source controls only."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

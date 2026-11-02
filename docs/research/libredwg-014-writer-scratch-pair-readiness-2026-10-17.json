@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-libredwg-014-writer-scratch-pair-readiness-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh open-source DWG writer availability and identify a reproducible, optional scratch-pair route that can shorten structural reader checks without misclassifying experimental DWG versions or promoting 3D semantics.",
+  "method": {
+    "kind": "Pinned release/source research and local test-owner audit",
+    "peerRevisionPinnedForCapabilityReview": "LibreDWG 0.14 tag d9468ae",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/releases/tag/0.14",
+      "https://github.com/LibreDWG/libredwg/blob/0.14/programs/dxf2dwg.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp: writeModelerGeometry and SAT carrier chunk output",
+      "tests/dwg_local_roundtrip_tests.cpp: runModelerDxfWriterMatrix, runDxfMixedModelerCarrierChunks, and AC1018/AC1027 modeler route tests",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-06, PAR-07/S8 peer and external evidence gates"
+    ],
+    "sourceLimitations": "LibreDWG 0.14 is a signed beta release, not a native-CAD acceptance result. Its release page calls R2010/R2013/R2018 encoding experimental and reports CRC errors on import; its tagged dxf2dwg help lists R12/R14/R2000/R2004 as valid, calls R2007 unsupported, and lists R2010+ as planned. Current master/NEWS is mutable and includes 0.14.1 development notes, not a replacement pinned release."
+  },
+  "evidence": [
+    {
+      "topic": "Pinned LibreDWG writer maturity",
+      "observed": "The signed 0.14 release tag resolves to commit d9468ae and publishes the source tarball with SHA-256 62ebb73b984f865960f20ed26619ea5f8789d5e3fd088fa40a2598384da81275. The release announces R2004 DWG encoding support. It separately labels R2010/R2013/R2018 encoding experimental and says those files produce CRC errors on import. The tagged dxf2dwg help says R2007 encoding does not work and lists R12/R14/R2000/R2004 as valid targets.",
+      "doesNotEstablish": [
+        "successful output for any concrete drawing or entity combination",
+        "correct output for 3DSOLID, REGION, BODY, ACDS, or arbitrary DWG objects",
+        "native AutoCAD, FreeCAD, LibreCAD, or independent-kernel acceptance",
+        "a valid AC1024/AC1027/AC1032 source corpus"
+      ],
+      "planUse": "Admit only the pinned R2004 writer as an optional scratch-generation candidate after a narrow smoke run. Reject CRC-bearing R2010+ output and unsupported R2007 output as qualification inputs, even if a six-byte magic string exists."
+    },
+    {
+      "topic": "Lower-cost source-paired structural control",
+      "observed": "LibreDWG 0.14 accepts ASCII and binary DXF as dxf2dwg input and can write R2004 DWG. A locally authored DXF and predeclared entity/geometry manifest can therefore serve as a known-input source for a temporary AC1018 DWG, then be read by libdxfrw. The test compares against authored expectations rather than treating LibreDWG's own readback as the oracle.",
+      "doesNotEstablish": [
+        "AutoCAD/ODA producer compatibility",
+        "native FreeCAD acceptance",
+        "modern R2013+ SAB/ACDSDATA behavior",
+        "independent ACIS B-rep validity or DWG AcDs linkage"
+      ],
+      "planUse": "Use this as an optional composed-check alternative for a small, from-scratch AC1018 structural sample when ODA is unavailable; keep the authored manifest as the expectation and all generated files in a temporary directory."
+    },
+    {
+      "topic": "Implementation boundary and existing coverage",
+      "observed": "Local modeler tests already include generated SAT group-1/group-3 continuation, repeated ACDSDATA group-310 chunk replay, and ASCII/binary carrier controls. The tests establish transport and chunk ordering only, not that a peer-generated carrier is a valid B-rep. FreeCAD's DWG path remains converter-to-DXF followed by its selected DXF importer, so this old-version writer candidate cannot replace native FreeCAD or ACIS/ACDS gates.",
+      "planUse": "Do not add a per-slice peer build or duplicate the existing chunk tests. Keep peer generation at the composed checkpoint, pin its artifact, and keep 2D/explicit geometry, opaque carrier preservation, geometric semantics, and native consumer acceptance as separate result lanes."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "optional pinned AC1018 scratch-pair route can reduce dependence on a native DWG producer for narrow structural reader checks",
+      "keep R2007 output unsupported and R2010+ output with CRC errors out of qualification",
+      "do not run peer generators per slice; retain fast local tests as the implementation loop",
+      "keep modern ACIS/ACDS and native Linux/Windows FreeCAD gates external and independent"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

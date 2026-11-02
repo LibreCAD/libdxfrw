@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Generated DetailViewStyle and SectionViewStyle flag/raw-group preservation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Generated DXF parser/callback and same-version raw-replay preservation only",
+  "changes": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "generatedAsciiAndBinaryControls": true,
+    "detailViewStyle": {
+      "primaryFlags": "0x40000009",
+      "secondaryFlags": "0x20000005"
+    },
+    "sectionViewStyle": {
+      "flags": "0x4000000D",
+      "unknownGroup290Values": [true, false]
+    },
+    "assertions": [
+      "Typed import values match generated flag and boolean values.",
+      "Same-version output/readback retains those typed values.",
+      "Ordered raw group streams preserve exact source group/value data except normalized identity/reference handles.",
+      "Malformed typed style-owner mutation is rejected at the earlier source-generation receipt gate without publication."
+    ],
+    "productionCodeChanged": false,
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "Synthetic values establish storage and replay only. They do not establish the semantic meaning of DetailViewStyle flags, either SectionViewStyle group-290 boolean, DWG byte layout, a typed serializer, or native rendering.",
+  "planEffect": {
+    "newConfirmedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "nextGate": "Map each semantic switch from ODA-backed evidence or a bound native producer toggle witness; continue unblocked implementation work meanwhile.",
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

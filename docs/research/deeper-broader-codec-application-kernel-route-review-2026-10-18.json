@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader open-source codec, application, and geometry-route research",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh open-source DWG/DXF codec coverage and distinguish parser, writer, application, carrier, and kernel evidence",
+    "Evaluate the ACadRust/opencadcodec, OpenCADStudio, and OpenCADKernel lineage and its independence limits",
+    "Refine implementation-ready optional peer routing without increasing fast-loop validation cost"
+  ],
+  "method": {
+    "kind": "Read current primary project documentation, source manifests/tests, and issue reports; reconcile with the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-implementation-evidence-review-2026-10-18.json",
+      "docs/research/deeper-broader-modeler-flag-carrier-emission-invariant-2026-10-18.json",
+      "docs/research/open-source-route-capability-screen-2026-10-18.json"
+    ],
+    "limitations": "Mutable upstream pages were read on 2026-10-18 and were not independently executed. Project feature matrices, generated self-roundtrip tests, issue narratives, and release notes are discovery evidence only. No external files were downloaded, no peer/native route was run, and no semantic support claim is asserted. Existing unrelated worktree changes were preserved."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-18",
+      "observed": "The separately implemented C DWG/DXF codec remains a broad structural comparison route; the documented fuzz and sanitizer workflows describe assurance methods but do not establish semantic correctness."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Mutable master and issue pages reviewed 2026-10-18",
+      "observed": "The project documents separate DWG/DXF reader and writer paths, version-dependent capabilities, and reader notification callbacks. Active issue reports are useful for identifying edge-case families but do not establish the same behavior in libdxfrw."
+    },
+    {
+      "project": "ACadRust / opencadcodec",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/249"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18; manifest declares ACadRust 0.6.5",
+      "observed": "The crate declares ASCII/binary DXF and binary DWG reading/writing. Tests include generated ACIS-carrier envelopes and same-codec readback, which establish local route invariants but not independent producer validity or shape semantics. OpenCADStudio issue #249 reported structured XDATA loss and was later closed as fixed; it highlights version-dependent XDATA encoding but is not an active peer defect. The surrounding ecosystem imports package acadrust from the opencadcodec repository."
+    },
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/249"
+      ],
+      "revision": "Mutable main/release and issue pages reviewed 2026-10-18",
+      "observed": "The current manifest pins package acadrust from the opencadcodec repository at revision 5d4f11a and opencadkernel at revision a60f18f. The application documents native DWG/DXF workflows across desktop platforms and headless audit/save_verified operations that reopen output, compare semantic manifests, report losses, and hash output. It is an optional application route, not another independent codec vote. Issue #1078 is a maintainer-reported incident and resolution, not a libdxfrw result; issue #249 is a peer-reported XDATA loss later marked fixed."
+    },
+    {
+      "project": "OpenCADKernel",
+      "urls": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadkernel/blob/main/Cargo.toml"
+      ],
+      "revision": "Mutable main/manifest reviewed 2026-10-18; package declares version 0.1.0",
+      "observed": "The project describes an early independent geometry kernel and an optional ACIS bridge that depends on opencadcodec. It is a watchlist candidate for a future non-OCCT kernel observation, but the public description does not establish a mature supported SAT/SAB profile or qualified complete-body semantics."
+    },
+    {
+      "project": "InventorLoader",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-18",
+      "observed": "The FreeCAD add-on contains a distinct SAT parser/shape-construction route, but its documentation lists unsupported geometric cases and it does not decode DWG/AcDs ownership. FreeCAD and the importer route share the OCCT geometry kernel."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18",
+      "observed": "The project labels itself experimental, supports selected SAT/SAB profiles and geometry, preserves some unknown records, and converts supported bodies into CadQuery/OpenCascade. It is a bare-stream parser/converter route, not a DWG/AcDs reader or independent kernel from OCCT-based FreeCAD."
+    },
+    {
+      "project": "Narrow DXF/application routes",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md"
+      ],
+      "revision": "Stable/current primary docs reviewed 2026-10-18",
+      "observed": "ezdxf, GDAL, and FreeCAD answer distinct DXF syntax, projected-geometry, raw-carrier, conversion, and native-consumer questions; they are not interchangeable whole-file fidelity oracles."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds evidence-lineage and route-selection detail only. ACadRust/opencadcodec, OpenCADStudio, and OpenCADKernel are one correlated ecosystem for codec evidence; OpenCADStudio is an optional application route, and OpenCADKernel is only a future watchlist candidate. ACadSharp and LibreDWG remain optional question-specific codec comparators. ACIS alternatives remain profile-limited and separated from DWG/AcDs linkage and native acceptance. No required gate or per-slice work was added.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Select one peer for one named operation only after matching input/output format, version, direction, feature family, and independently justified expected values.",
+    "At a composed checkpoint, capture input/output hashes; exact source/package/build/features; operating system, converter, codec and kernel; diagnostics/recovery; stable handle/type/owner inventory; raw payload hashes; and per-record loss disposition.",
+    "Treat same-codec reopen and application save_verified manifests as loss-detection/self-consistency evidence, not independent semantic evidence. Pair them with literal/source-derived expectations or a distinct implementation.",
+    "For ACIS, independently gate carrier bytes, owner/key association, parser/profile acceptance, complete-body geometry/validity/measures, and native application acceptance.",
+    "Keep ordinary slices on strict touched-target builds, focused generated/in-memory selectors, compatibility checks where applicable, and the owning CTest; external peer/native/sanitizer routes remain composed milestone checks.",
+    "If a peer or native route is absent or profile-incompatible, record NOT_RUN or NOT_APPLICABLE and proceed to the next local slice; do not create an external blocker or add downloaded/committed DWG/DXF fixtures."
+  ]
+}

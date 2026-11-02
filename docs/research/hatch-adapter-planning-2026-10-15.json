@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-15",
+  "scope": "7R.2b adapter early identity planning and reference composition; publication and same-data successful-export retry remain 7R.2c/d",
+  "repositoryBase": "daf6a0f",
+  "supportClaimsPromoted": false,
+  "externalJDispositionsChanged": false,
+  "hashes": {
+    "src/libdxfrw.cpp": "c9c7441851daac02a3207bfb1bae753168750db6787173efd780f58941edd7e6",
+    "dwg2dxf/dx_iface.cpp": "fcfc8872b127ee28d876701aa1d8001a55aaad36a3379891933134ea8cb8f3e9",
+    "dwg2dxf/dx_iface.h": "ec71dd80147280fa3e77b3804b3e61701c08fa7eb0b54da592ff0c1c86cab292",
+    "tests/hatch_reference_tests.cpp": "2b5ad43bee47f711574b5636db7063c5c8ef76abca7768d26de23337bf50d058",
+    "tests/dwg_local_roundtrip_tests.cpp": "370cfe91812c2649784ab8d58a4ae1efe0871ebae85fc0e87982a279c3aaeed4",
+    "build/dwg2dxf/dwg2dxf": "d0f5560b40f5370e389813d1e680873fa49ae1e4bc728c0b09b99ccd906b3e66",
+    "build/libdxfrw_dwg_local_roundtrip": "6f2d28ee04d09b38706cc1022dbbe138ab9f8497d98da556b5a5c75146c65b10"
+  },
+  "focused": {
+    "command": "build/libdxfrw_dwg_local_roundtrip --hatch-adapter",
+    "exitStatus": 0,
+    "successfulExports": 18,
+    "rejectedPlanningAttempts": 2,
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "controls": [
+      "HATCH before/after its boundaries",
+      "two read/write passes",
+      "typed and known-102 reciprocal reactors",
+      "incoming layer-table HATCH reactor before entity callbacks",
+      "unrelated linetype extension dictionary and owner preserved",
+      "preallocation rejection preserves destination; corrected fresh-data retry on same adapter",
+      "direct mapped fallback also retains reciprocal typed reactors without a resolver"
+    ]
+  },
+  "integration": {
+    "ctestPattern": "^(libdxfrw_graph_preservation|libdxfrw_dxf_fixtures|libdxfrw_dwg_local_roundtrip)$",
+    "passed": 3,
+    "failed": 0,
+    "seconds": 5.61,
+    "strictTestAndAdapterTUs": true,
+    "lc3SourceCheckBuilt": true
+  },
+  "cliCases": [
+    {
+      "encoding": "ASCII",
+      "input": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-ascii.dxf",
+      "inputSha256": "95e3ba8c05a803dda24bbc2192ac0d3a2c6cfe9e6836f97db2802662dcde8d4b",
+      "output": "/private/tmp/libdxfrw-hatch-planning-cli.nYmM9H/ascii.dxf",
+      "outputSha256": "d55bc02adfe4298f48602ebdad55276ace58ccbeb88dfcd531e68cc7eaae136c",
+      "converterExitStatus": 0,
+      "outputVerifierExitStatus": 0
+    },
+    {
+      "encoding": "binary",
+      "input": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-binary.dxf",
+      "inputSha256": "8d4637418feefe5c2ee2a5652049f1cb11b0fae99c82321f764cec83c927d810",
+      "output": "/private/tmp/libdxfrw-hatch-planning-cli.nYmM9H/binary.dxf",
+      "outputSha256": "33f197a4220a450b5ae97710c4547dbd11ac5a92435c28ece977ed56fbdb7b94",
+      "converterExitStatus": 0,
+      "outputVerifierExitStatus": 0
+    }
+  ],
+  "before": {
+    "adapterSourceCommit": "daf6a0f",
+    "outputsDirectory": "/private/tmp/libdxfrw-hatch-admission-cli.tN5rFX",
+    "converterExitStatuses": [
+      0,
+      0
+    ],
+    "outputVerifierExitStatuses": [
+      1,
+      1
+    ],
+    "firstMismatch": "tag23 expected330/3A observed330/32"
+  },
+  "fixturePolicy": "All drawing inputs generated locally from scratch; outputs remain temporary. No fixture added.",
+  "remaining": [
+    "7R.2c: prove every planned target actually emitted once with planned identity/type/owner before publication",
+    "7R.2d: same-data repeated successful export and late-failure corrected retry without borrowed-pointer lifetime leaks"
+  ],
+  "qualificationScope": "Generated field/graph retention only. No native boundary-update/fill/render or DWG/support qualification."
+}

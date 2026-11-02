@@ -1,0 +1,60 @@
+{
+  "id": "RPP-5yn",
+  "date": "2026-10-30",
+  "title": "Bounded multi-cell TABLECONTENT scalar grid writer",
+  "base_commit": "50e17e24",
+  "scope": {
+    "operation": "Write a bounded rectangular standalone TABLECONTENT grid with plain scalar cells.",
+    "limits": {
+      "columns": 1000,
+      "rows": 10000,
+      "cells": 10000,
+      "scalar_content_items": 10000,
+      "aggregate_text_bytes": "Existing 64 MiB DXF payload budget"
+    },
+    "profile": "Generated 2x2 string-value grid, including an empty first cell; ASCII and binary DXF.",
+    "preserved_refusals": [
+      "Multi-cell linked-data cells",
+      "Multi-cell block references and ATTDEF attributes",
+      "Multi-cell FIELD references",
+      "Unmodeled geometry and metadata profiles"
+    ],
+    "claim_boundary": "Serializer and typed DXF readback evidence only; no native table rendering or DWG encoding claim."
+  },
+  "implementation": [
+    "Removed the unconditional 1x1 column/row/cell writer gate for bounded rectangular scalar grids.",
+    "Emit each column, row, cell, custom scope, content list, and supported cell format transactionally using existing scalar codecs.",
+    "Validate rectangular dimensions, per-grid limits, metadata shape, and scalar cell properties before output.",
+    "Preserve the existing single-cell source-bound linked, block, and FIELD writer path."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "independent_wire_checks": [
+      "One TABLECONTENT record",
+      "Two column markers",
+      "Two row markers",
+      "Four cell begin/end markers"
+    ],
+    "typed_readback": "Exact 2x2 dimensions and three populated string values; the empty first cell remains empty.",
+    "failure_control": "A non-finite scalar in the second row is refused; destination sentinel and caller model remain unchanged.",
+    "retry_control": "The same writer succeeds after restoring the corrected cell and the result reads back."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-grid-write",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "src/libdxfrw.h",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Multi-cell source-bound reference profiles and broader TABLE semantics require separate reproduced witnesses and receipts."
+  ]
+}

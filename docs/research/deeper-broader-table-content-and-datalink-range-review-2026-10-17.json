@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-deeper-broader-table-content-and-datalink-range-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden PAR-126 semantic review to ordered multi-content cells, content-indexed block attributes, and linked cell-range behavior; refine implementation readiness without enabling unsupported output.",
+  "method": {
+    "kind": "Read-only Autodesk managed API research plus local first-party source and existing test-vector review",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "implementationChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LinkedTableData.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Cell_Contents.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_CreateContent_int_int_int.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_GetBlockAttributeValue_int_int_int_ObjectId.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Methods_Autodesk_AutoCAD_DatabaseServices_CellContent.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Cell_GetDataLinkRange.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_CellRange_SetDataLink_ObjectId__MarshalAsUnmanagedType_U1__bool.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DataLink.html",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "localInspection": [
+      "DRW_TableCell stores ordered m_contents and cell-level m_attributes; DRW_TableCellAttribute has ATTDEF handle/index/text but no owning content ordinal.",
+      "parseTableCell appends ATTDEF tuples inside each content loop and marks such content semantically incomplete.",
+      "dxfRW::writeTable currently requires exactly one content matching the coarse cell type; its output admission remains narrower than the in-memory content vector.",
+      "Existing generated parser and adapter cases cover a one-block-content attribute profile and a separate multi-content FIELD/value profile, but not attributes associated with a later block content in the same cell.",
+      "Prior PAR-126 work remains uncommitted in the pre-existing dirty checkout; no source files were changed in this research pass."
+    ],
+    "evidenceRule": "ODA v5.4.1 controls serialized DWG/DXF field order. Autodesk managed API docs are semantic cross-checks only and do not establish byte layout, object ownership, producer validity, native refresh success, or libdxfrw support."
+  },
+  "evidence": [
+    {
+      "topic": "Ordered multi-content cells",
+      "observed": "Autodesk LinkedTableData says a cell can contain multiple ordered contents with value, field, or block data; Cell.Contents provides access to all contents, and Table.CreateContent adds content beyond the one created by default.",
+      "doesNotEstablish": [
+        "DWG/DXF serialization order or exact content type values",
+        "that every possible content combination is supported by libdxfrw or AutoCAD consumers"
+      ],
+      "planUse": "Preserve ordered DRW_TableCell::m_contents; keep one-content DXF writer admission explicit until expanded and tested."
+    },
+    {
+      "topic": "Block attribute values are content-indexed",
+      "observed": "Autodesk's Table.GetBlockAttributeValue(row,column,contentIndex,attDefId) explicitly takes the content ordinal; CellContent exposes block-attribute methods. Local parsing consumes ATTDEF tuples inside the per-content loop, but the local model stores them in a flat cell-level vector without that ordinal.",
+      "doesNotEstablish": [
+        "whether the ODA tuple index is the ATTDEF ordinal or a content ordinal",
+        "a producer-valid multi-content binary layout"
+      ],
+      "planUse": "Add explicit owning-content association while retaining the ATTDEF index independently. Create generated controls with a non-block content before an attribute-bearing block content. Verify exact ODA semantics and producer bytes before claiming support."
+    },
+    {
+      "topic": "DATALINK range semantics and refresh boundary",
+      "observed": "Autodesk Cell.GetDataLinkRange reports the linked range containing a cell; range-based SetDataLink binds a DataLink object to cells and can reject an overlapping range. The DataLink class manages connection information to an external source, and update is a distinct operation.",
+      "doesNotEstablish": [
+        "ODA BL93/BL94 per-cell consistency rules or link-range encoding",
+        "TABLECONTENT/DATALINK owner, NOD, extension-dictionary, or DXF root edges",
+        "external spreadsheet path resolution or refresh behavior after conversion"
+      ],
+      "planUse": "Require producer-backed wire and owner/range census before enabling linked export. Track stored metadata/object graph preservation separately from live source resolution/update."
+    },
+    {
+      "topic": "Current local model and output boundary",
+      "observed": "The model captures ordered cell contents but flat ATTDEF tuples do not record their source content slot. The parser already marks attribute-bearing content incomplete. The DXF writer admits exactly one matching cell content, so the identified association issue is a latent model-completeness gap rather than current false-success or silent writer loss.",
+      "doesNotEstablish": [
+        "current producer compatibility or complete AC1021/AC1024+ TABLE support",
+        "that generic API success proves linked or multi-content semantics"
+      ],
+      "planUse": "Refine PAR-126/7G.3d.3b-c; no new finding is needed. Keep attribute-bearing and linked profiles incomplete until data model, graph closure, serializer, and independent evidence are complete."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

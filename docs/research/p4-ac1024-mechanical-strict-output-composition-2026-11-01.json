@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mechanical-strict-output-composition-2026-11-01",
+  "date": "2026-11-01",
+  "title": "AC1024 mechanical strict opaque output qualification and fresh readback",
+  "status": "ONE_SOURCE_STRICT_OUTPUT_COMPOSITION_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local investigation input; no DWG or DXF fixture was added to Git."
+  },
+  "binding": {
+    "commit": "a6deab0520e887587883754e199d56768fa952a5",
+    "executable": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea"
+    },
+    "adapterObject": {
+      "path": "build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o",
+      "sha256": "bb970d7c948350e9a75b4390bcb6332ee3430f042b5e676f2964eb542726998e"
+    },
+    "library": {
+      "path": "build-gcc/libdxfrw.a",
+      "sha256": "58105b52ff77a5008344928e68657548e117bc932d42dd16ef1810ca426b3e73"
+    }
+  },
+  "probe": {
+    "source": {
+      "path": "/private/tmp/current_mechanical_qualification.cpp",
+      "sha256": "cdfa042245f5475b3d4fb18b3b3bbcfaac1491d5c4677ede67bc6ce9709b2dc8"
+    },
+    "compileCommand": "/usr/bin/g++ -std=c++17 -Wall -Wextra -Werror -Idwg2dxf -Isrc /private/tmp/current_mechanical_qualification.cpp build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -framework CoreFoundation -o /private/tmp/current_mechanical_qualification",
+    "executable": {
+      "path": "/private/tmp/current_mechanical_qualification",
+      "sha256": "86ce98a989526761389fce8df27b6476225600e9f43c6bfe63e700bd1ec01eea"
+    },
+    "log": {
+      "path": "/private/tmp/current-mechanical-qualification.log",
+      "sha256": "0e41678b333769ff8cf2e6e17e991e3d8f8cbd86a4faaa0fd7703b75fac683a7",
+      "observations": [
+        "DWG import succeeded; 228 opaque callbacks were captured.",
+        "Strict AC1024 ASCII DXF export with RequireComplete succeeded; output qualification count became 228 and the completeness predicate returned true.",
+        "Fresh DXF import of the exact emitted file succeeded."
+      ]
+    }
+  },
+  "output": {
+    "path": "/private/tmp/current-mechanical-qualification.dxf",
+    "bytes": 449879,
+    "sha256": "bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819",
+    "format": "AC1024/2010 ASCII DXF"
+  },
+  "readback": {
+    "sourceFormat": "DXF",
+    "associativeObjects": 138,
+    "typedDwgAssociativeObjects": 0,
+    "rawAssociativeObjects": 138,
+    "visualStyles": 19,
+    "scales": 17,
+    "dictionaryVars": 8,
+    "mLeaderStyles": 2,
+    "tableStyles": 1,
+    "materials": 3,
+    "dictionaries": 23,
+    "layouts": 2
+  },
+  "limitations": [
+    "This is one exact source-profile output composition checkpoint, not complete P4 source-family or whole-format qualification.",
+    "The LayerStates output profile was skipped because the LAYER_CONTROL extension dictionary was outside its versioned LayerStates root profile; no LayerStates output or native semantic claim is made.",
+    "Associative objects read back through the raw path; this receipt does not establish their typed/native semantics.",
+    "No independent CAD application acceptance, native rendering, 3D semantic correctness, or semantic equality of every record is established.",
+    "The scratch probe, executable, and DXF output are not committed."
+  ]
+}

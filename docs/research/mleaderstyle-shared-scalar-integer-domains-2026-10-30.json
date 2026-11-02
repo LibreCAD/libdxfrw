@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE count and lineweight domains share parser/writer validation",
+  "mode": "P2 local scalar-domain correctness slice with generated ASCII/Binary controls",
+  "baselineCommit": "11927910",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "53d1aa497710689ffc74ac4d3caf1fd2330aab8eed9826970aa348afd2f2d78e",
+  "scope": [
+    "Apply the existing MLEADERSTYLE max-segment-point and leader-lineweight domains to DXF source parsing as well as typed writing.",
+    "Preserve the writer's established max-point values -1, 0 and values at least 2; preserve the exact documented lineweight enum set.",
+    "Test every currently admitted lineweight value and the max-point boundary values, plus representative invalid values in ASCII and Binary DXF, with same-adapter recovery."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLEADERSTYLE DXF group-code reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+        "supports": "Maps group 90 to maximum leader segment points and group 92 to leader lineweight."
+      },
+      {
+        "title": "Autodesk ObjectARX AcDb::LineWeight enumeration",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb__LineWeight.html",
+        "supports": "Defines the exact 27 supported lineweight enum values from -3 through 211, including the three symbolic negative values and the discrete plotted widths. Value -4 is marked internal-use-only."
+      },
+      {
+        "title": "Autodesk ObjectARX AcDbMLeaderStyle methods",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbMLeaderStyle.html",
+        "supports": "Documents -1 as unlimited max leader segment points. The remaining admitted values retain the existing local writer contract; this receipt does not claim broader producer qualification."
+      }
+    ],
+    "sourceCreation": "Generated a rooted AC1027 MLEADERSTYLE source locally, set group 92 when testing lineweight, and transcoded the authored source to Binary DXF for binary controls. Temporary inputs are deleted after the test."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Generalized DRW_MLeaderStyle::isValidDxfIntegerValue to include group 90 and group 92. The DXF parser validates signed values before assignment; the typed writer uses the same helper. The lineweight table was moved from libdxfrw.cpp into the shared validator.",
+    "domains": {
+      "90": "-1, 0, or any int32 value >= 2",
+      "92": [
+        -3,
+        -2,
+        -1,
+        0,
+        5,
+        9,
+        13,
+        15,
+        18,
+        20,
+        25,
+        30,
+        35,
+        40,
+        50,
+        53,
+        60,
+        70,
+        80,
+        90,
+        100,
+        106,
+        120,
+        140,
+        158,
+        200,
+        211
+      ]
+    },
+    "behaviorChanges": [
+      "Malformed source max-point and lineweight values are refused before they enter the typed model.",
+      "Existing direct-writer acceptance/refusal rules remain unchanged and now share the validator with source parsing.",
+      "Corrected valid sources import through the same reader after invalid attempts."
+    ],
+    "publicApiOrLayoutChanged": "Renamed and broadened the additive static validation method; object layout and virtual interface are unchanged.",
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_mleader_writer_version|libdxfrw_mleaderstyle_writer_closure|libdxfrw_mleaderstyle_boolean_source_domain|libdxfrw_mleaderstyle_integer_source_domains|libdxfrw_mline_style_authority|libdxfrw_mlinestyle_duplicate_singleton_fields)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror build.",
+      "focusedCTest": "PASS 6/6 in 5.08 seconds.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The remaining MLEADERSTYLE scalar fields, groups 174 and 178, presence/repetition/default behavior, references and version rules remain open.",
+    "No native annotation/rendering, whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, or producer qualification is established."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Shared parser/writer validation for max-segment-point group 90 and lineweight group 92.",
+    "remainingP2Scope": "Other MLEADERSTYLE source semantics and handle/default/version cases, remaining MLINESTYLE edits, and LTYPE/XDATA dependency behavior remain open.",
+    "nextImplementationPacket": "Select a current, witnessed MLEADERSTYLE duplicate/presence/reference issue or LTYPE/XDATA dependency loss and implement its shared parser/planner/writer rule.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.h": "f2de4b6fb723b076d07d023a283c57363ca0db2cc72d502c79b7f83420309c8e",
+    "src/drw_objects.cpp": "99601107d4ce3542315909a557706b9dfa43273da68d8740f59c8ed675c7c337",
+    "src/libdxfrw.cpp": "1d85d71e95b4fe77f259d3c9e62d39bdddcbbcca8ac4386c6fe2c67389968c72",
+    "tests/dwg2dxf_adapter_tests.cpp": "d0a2f89eceba9978d298c34ddb845c3eb971db42781d2baa081efb49f0cbf501",
+    "tests/CMakeLists.txt": "5a0c2372ccbd176722f0568e26dce259c2c4e70717b5c4f17f9e27b12e54cac9"
+  },
+  "commitCreated": true,
+  "worktree": "Only the listed implementation/test files, this receipt, and the plan update are part of this slice; unrelated untracked files were not staged."
+}

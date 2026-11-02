@@ -10,8 +10,62 @@
 #define DX_CLI_H
 
 #include "drw_base.h"
+#include <string>
 
 namespace dwg2dxfCli {
+
+struct Options {
+    DRW::Version version = DRW::UNKNOWNV;
+    bool haveVersion = false;
+    bool binary = false;
+    bool overwrite = false;
+    bool batch = false;
+    bool debug = false;
+    bool allowPartialDwgRead = false;
+    DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible;
+    bool haveCodePagePolicy = false;
+};
+
+inline DRW::Version versionOption(const std::string& token) {
+    if (token == "-R12") return DRW::AC1009;
+    if (token == "-v2000") return DRW::AC1015;
+    if (token == "-v2004") return DRW::AC1018;
+    if (token == "-v2007") return DRW::AC1021;
+    if (token == "-v2010") return DRW::AC1024;
+    if (token == "-v2013") return DRW::AC1027;
+    if (token == "-v2018") return DRW::AC1032;
+    return DRW::UNKNOWNV;
+}
+
+// Parse complete tokens before any conversion/file operation. In particular,
+// a prefix such as -yUnexpected must never grant overwrite authorization.
+inline bool applyOption(const std::string& token, Options& options,
+                        bool allowBatch) {
+    if (token == "-b") {
+        options.binary = true;
+    } else if (token == "-y" || token == "-Y") {
+        options.overwrite = true;
+    } else if (token == "-d" || token == "-D") {
+        options.debug = true;
+    } else if (token == "-B" && allowBatch) {
+        options.batch = true;
+    } else if (token == "--allow-partial-dwg-read") {
+        options.allowPartialDwgRead = true;
+    } else if (token == "--dxf-codepage-policy=compatible"
+               || token == "--dxf-codepage-policy=exact-named") {
+        if (options.haveCodePagePolicy) return false;
+        options.codePagePolicy = token == "--dxf-codepage-policy=exact-named"
+            ? DRW::DxfCodePagePolicy::ExactNamed : DRW::DxfCodePagePolicy::Compatible;
+        options.haveCodePagePolicy = true;
+    } else {
+        const DRW::Version version = versionOption(token);
+        if (version == DRW::UNKNOWNV || options.haveVersion)
+            return false;
+        options.version = version;
+        options.haveVersion = true;
+    }
+    return true;
+}
 
 inline DRW::Version defaultOutputVersion(DRW::Version sourceVersion){
     if (sourceVersion == DRW::AC1012)

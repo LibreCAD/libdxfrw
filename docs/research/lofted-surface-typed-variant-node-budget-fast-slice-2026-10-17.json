@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF LOFTEDSURFACE reference-data variant-node admission",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Charge typed LOFTEDSURFACE group-90 reference tokens before DRW_Variant materialization",
+    "Charge typed LOFTEDSURFACE group-310 binary reference chunks before DRW_Variant materialization",
+    "Verify the aggregate quota across HEADER and multiple surfaces in ASCII and Binary DXF"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.8",
+    "files": [
+      "src/drw_entities.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "DRW_LoftedSurface::parseCode charges one typed variant node before constructing each group-90 integer or group-310 decoded-binary entry in the AcDbLoftedSurface subclass. Existing count and byte limits remain in force. The quota does not count decoded bytes, vector capacity, other surface/object fields, caller copies, or uninstrumented allocations.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "privateHeaderMethodSignatureChanged": false,
+    "downstreamRebuildRequiredByThisSlice": false,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "temporaryGeneratedBinaryInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-lofted-surface-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/lofted-surface-typed-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_entities.cpp src/intern/dxfreader.h src/libdxfrw.h tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/lofted-surface-typed-variant-node-budget-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedLoftedSurfaceSelector": "PASS: ASCII/Binary exact cap, group-90 and group-310 materialization, one-under callback refusal, ResourceLimit diagnostic, and same-facade retry",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.29 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "This counts selected LOFTEDSURFACE reference-data variants only; it is not whole-surface, whole-parser, allocator-capacity, or RSS accounting.",
+    "Decoded binary payload bytes remain under their existing byte cap and are not charged as variant nodes.",
+    "Generated exact caps use locally created ASCII/Binary controls; no external drawing was downloaded or committed.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this verified slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

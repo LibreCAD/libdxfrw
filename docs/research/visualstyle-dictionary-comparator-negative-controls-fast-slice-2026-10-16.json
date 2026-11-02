@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw-visualstyle-dictionary-comparator-negative-controls-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Extend the existing isolated 7AH/7AQ report-only checker with VisualStyle and dictionary comparator-loss controls already identified in source/runtime research.",
+  "implementation": {
+    "changedFiles": [
+      "tools/run_independent_dxf.py",
+      "tests/independent_dxf_runtime_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "report": {
+      "schema": 2,
+      "qualificationEligible": false,
+      "reportOnlyNegativeControls": 13,
+      "newRuntimeControls": [
+        {
+          "id": "wrong-declared-property-count",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "declaredPropertyCount": 3,
+          "authoredPropertyCount": 2,
+          "group176CompanionCount": 1,
+          "observed": "opaque tail re-emits unchanged without validating the count grammar"
+        },
+        {
+          "id": "missing-final-property-companion",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "declaredPropertyCount": 2,
+          "authoredPropertyCount": 2,
+          "group176CompanionCount": 1,
+          "observed": "opaque tail re-emits unchanged despite the missing final companion"
+        },
+        {
+          "id": "mixed-soft-then-hard-edge-codes",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "normalizedEdgeCode": 360,
+          "observedEdges": [[360, "C1"], [360, "C2"]],
+          "interpretation": "malformed-input robustness only; not a valid mixed-edge policy"
+        },
+        {
+          "id": "mixed-hard-then-soft-edge-codes",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "normalizedEdgeCode": 350,
+          "observedEdges": [[350, "C1"], [350, "C2"]],
+          "interpretation": "malformed-input robustness only; not a valid mixed-edge policy"
+        },
+        {
+          "id": "duplicate-dictionary-key",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "normalizedEdgeCode": 350,
+          "observedEdges": [[350, "C2"]],
+          "interpretation": "later duplicate overwrites earlier value in this comparator"
+        },
+        {
+          "id": "audit-prunes-dangling-dictionary-target",
+          "profile": "pinned ezdxf 1.4.4; in-memory generated DXF",
+          "entriesBeforeAudit": ["MISSING"],
+          "entriesAfterAudit": [],
+          "auditErrors": 0,
+          "auditFixes": "positive",
+          "interpretation": "zero remaining errors after repair is not lossless graph closure"
+        }
+      ],
+      "newSourceReviewOnlyControls": [
+        {
+          "id": "acadrust-visualstyle-defaults-are-not-source-fidelity",
+          "executed": false,
+          "modelBlob": "ac987d3",
+          "writerRevision": "a1a216d642d09c7548cc26ac6d3db6f79bd5a667",
+          "observedLimitation": "model-synthesizes-missing-properties-and-normalizes-legacy-magnitudes"
+        },
+        {
+          "id": "acadsharp-visualstyle-writer-family-omission",
+          "executed": false,
+          "peer": "ACadSharp",
+          "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+          "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+          "family": "VISUALSTYLE",
+          "observedDisposition": "explicitly-skipped-as-unsupported"
+        },
+        {
+          "id": "acadsharp-material-writer-family-omission",
+          "executed": false,
+          "peer": "ACadSharp",
+          "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+          "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+          "family": "MATERIAL",
+          "observedDisposition": "explicitly-skipped-as-unsupported"
+        },
+        {
+          "id": "acadsharp-dimension-association-writer-family-omission",
+          "executed": false,
+          "peer": "ACadSharp",
+          "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+          "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+          "family": "DIMENSIONASSOCIATION",
+          "observedDisposition": "explicitly-skipped-as-unsupported"
+        }
+      ],
+      "allRowsClaimEligible": false,
+      "allRowsQualificationEligible": false
+    },
+    "generatedData": "All DXF tags/documents were authored in memory and removed with the isolated process; no fixture file was created.",
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "python3 -I -B tools/run_independent_dxf.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_independent_dxf_(selftest|runtime)$' --output-on-failure",
+        "result": "PASS (2/2; runtime 3.95 seconds)"
+      },
+      {
+        "command": "python3 -m json.tool docs/research/visualstyle-dictionary-comparator-negative-controls-fast-slice-2026-10-16.json",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tools/run_independent_dxf.py tests/independent_dxf_runtime_tests.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "cppBuild": "NOT_RUN",
+    "fullSuite": "NOT_RUN",
+    "peerExecutable": "NOT_RUN",
+    "nativeCad": "NOT_RUN"
+  },
+  "evidenceBoundary": {
+    "externalFixturesAdded": 0,
+    "localFixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "newCTestRegistrations": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": "Broad shared worktree remains uncommitted; this slice did not stage unrelated paths."
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK trailing XDATA ASCII/Binary round-trip fast slice",
+  "mode": "Local source review plus generated focused regression control",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close the BLOCK-specific writer omission for trailing XDATA",
+    "Verify ordered XDATA values/types and next-record alignment in ASCII and Binary AC1021 DXF",
+    "Retain local-only fixture policy and fast per-slice validation cadence"
+  ],
+  "sources": [
+    {
+      "path": "src/drw_entities.cpp",
+      "identity": "Local DRW_Entity::parseCode and DRW_Block::parseCode source review",
+      "observation": "Common entity parsing already stores supported XDATA groups in extData; DRW_Block delegates unhandled group codes to DRW_Point/common parsing.",
+      "boundary": "Source review; runtime behavior is asserted by the generated local control."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeBlock and shared writeExtData source review",
+      "observation": "Before this slice, the specialized BLOCK writer emitted appData and BLOCK fields but did not emit bk->extData. The existing shared writeExtData path validates the complete XDATA vector and APPID references before emitting XDATA groups.",
+      "boundary": "Local implementation evidence; no cross-version XDATA text policy is established."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "identity": "Generated XREF/BLOCK control derived from tracked block_record_preview_r2007.dxf",
+      "observation": "A scratch-authored APPID and BLOCK XDATA vector is exported as ASCII and Binary AC1021; raw groups and ENDBLK boundary plus semantic re-import are asserted.",
+      "boundary": "Generated same-version profile only; temporary inputs/outputs are deleted."
+    }
+  ],
+  "implementation": {
+    "productionChange": "dxfRW::writeBlock emits non-empty bk->extData through writeExtData after normal BLOCK fields and the optional group-4 description. Failure restores writingBlock and currHandle state.",
+    "generatedXdata": [
+      {"code": 1001, "type": "APPID name", "value": "BLOCK_XDATA_TEST"},
+      {"code": 1000, "type": "string", "value": "block xdata text"},
+      {"code": 1002, "type": "brace control", "value": "{"},
+      {"code": 1070, "type": "int16", "value": 42},
+      {"code": 1002, "type": "brace control", "value": "}"}
+    ],
+    "coverage": [
+      "ASCII and Binary AC1021 write and re-import",
+      "Raw ordered tag/value check, including typed group-1070 access in Binary DXF",
+      "Immediate ENDBLK sentinel after BLOCK XDATA",
+      "DRW_Block copy retains XDATA and reset clears it",
+      "Previously added group-1 path and present/empty group-4 description controls remain passing"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "AppData, reactors, extension dictionaries, and explicit layer/common-field retention",
+      "Cross-version XDATA text policy and downgrade behavior",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

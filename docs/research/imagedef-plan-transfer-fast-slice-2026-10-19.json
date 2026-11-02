@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "IMAGEDEF plan transfer into codec-owned handle map",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove the second deep copy of locally prepared IMAGEDEF payloads when installing the adapter's source-definition plan.",
+    "Preserve the existing const-reference API, validity rules, all-or-nothing plan publication, and retry behavior."
+  ],
+  "sourceChange": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "before": "The adapter copied each DRW_ImageDef from its source-keyed inventory map into a local plan vector, then the const-reference setter copied every payload again into a temporary ordered map before atomically installing it.",
+    "after": "The adapter moves each definition into the local plan vector and then into the rvalue overload. Shared validation is applied, and each definition moves into the temporary ordered map before the same atomic swap. The const-reference overload remains unchanged.",
+    "effect": "Avoids two intermediate copies of each nested IMAGEDEF string/vector payload after the initial source-isolation copy. Duplicate identity, source-handle consistency, version/range checks, failure handling, and destination transaction behavior remain unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_image_path_cli|libdxfrw_image_definition_plan_failure_retry)$' --output-on-failure",
+        "result": "passed",
+        "count": "2/2",
+        "elapsedSeconds": 0.91
+      }
+    ],
+    "diffCheck": "scoped git diff --check passed for implementation, API, test, CMake, plan, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newFocusedTestSelector": 1,
+    "newCtestRegistration": 1,
+    "fixtureAdded": 0,
+    "externalSampleAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Removes redundant IMAGEDEF payload copies at the adapter map-to-vector and vector-to-codec-map boundaries without changing API behavior for lvalue callers, validation, identity closure, or transactional output semantics. Adds one isolated fast regression entry for the existing generated failure/retry case."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict dwg2dxf, DXF fixture-test, and adapter-test target build",
+      "Focused generated image CLI round-trip CTest",
+      "Focused generated IMAGEDEF plan failure/rollback/retry CTest"
+    ],
+    "limitations": "The initial source-isolation copy and codec-owned map payload remain necessary. No process RSS or allocator metadata was measured, and the tests do not qualify every IMAGEDEF field or external consumer."
+  }
+}

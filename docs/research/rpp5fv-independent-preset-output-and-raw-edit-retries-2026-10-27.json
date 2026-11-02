@@ -1,0 +1,257 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5fv",
+  "date": "2026-10-27",
+  "dateTimezone": "America/Toronto",
+  "state": "VERIFIED_SELECTED_AC1027_PRESET_EMITTED_BODIES_AND_RAW_EDIT_RETRIES",
+  "parentCommit": "22703eea815448224571fe527ffc476d50ef672d",
+  "scope": "Independent actual byte comparison for selected AC1027 common/derived preset bodies and self/owner identities in raw/typed ASCII/binary output; raw-carrier edit refusal and corrected retry. Full object/dictionary/emitted graph and native/semantic acceptance remain open.",
+  "fileSha256": {
+    "tests/CMakeLists.txt": "763f82f5cd68688670c70eec92c61f0b563a30763309df256f34ec88175c8910",
+    "tests/render_preset_output_controls.h": "fb97c340fe64c48a06383168dc7a3611e0f955e2dbd08f84e55b467d00ace50c",
+    "tests/render_preset_source_controls.h": "2720eb88b773bd9878fdc360fa26687cccf883a33c445e15744491a55a7bad58",
+    "tests/table_content_dxf_tests.cpp": "c7f9bf3f498d20d8db916990dcf85eeb4dd97d805f188efd48d8cdc46e65d459"
+  },
+  "productionUnchangedFrom": "22703eea",
+  "previous430InputsUnchangedExcept": [
+    "tests/CMakeLists.txt",
+    "tests/render_preset_source_controls.h",
+    "tests/table_content_dxf_tests.cpp"
+  ],
+  "controls": {
+    "profiles": 40,
+    "forms": 10,
+    "declaredOutputVersion": "AC1027",
+    "encodings": [
+      "ASCII LF",
+      "binary"
+    ],
+    "routes": [
+      "converter raw replay",
+      "library typed writer"
+    ],
+    "independentBodyFields": 1396,
+    "selfOwnerChecks": 80,
+    "observedCodeValueMutationRefusals": 2792,
+    "rawCarrierEditRefusalsAndDestinationRollbacks": 40,
+    "correctedSameAdapterRetries": 40,
+    "oracle": "Existing independent byte walker, authored literal bodies and canonical common-body flag rule; no production decoder, profile selector or positional table used as the oracle. Scalar/code mutations alter observed fields; they are comparison controls, not malformed-parser acceptance cases."
+  },
+  "development": {
+    "initialFailure": "All individual comparisons completed. Final aggregate constants were arithmetically wrong; independent form lengths total349, yielding1396 fields/2792 mutations across four routes. Correct only these constants and rebuild both configurations. Preserve the failed normal5-test cohort.",
+    "counts": {
+      "bodyFieldCountsByForm": [
+        10,
+        11,
+        19,
+        20,
+        20,
+        51,
+        53,
+        54,
+        55,
+        56
+      ],
+      "encodings": 2,
+      "routes": 2,
+      "fieldChecks": 1396,
+      "codeAndValueRefusals": 2792,
+      "initialFailure": "Only final aggregate constants were wrong: expected1796/3592 instead of1396/2792. All per-field/identity/rollback checks completed successfully."
+    },
+    "initialEvidence": {
+      "asan-build.log": "bff041dc75971ace4a6267014351bd71705e9026e6d1c15ea50d5aa57c156249",
+      "sources-before.sha256": "eb307d9be49f199ebebe01b0f7eb440bcc0920ab55ba04400e3a75f0ebf851e2",
+      "normal-build.log": "6590e45c525f4fc13ac5e60ddc95372e46a4953f05476ff2ebd1fe8e13331395",
+      "build-status.json": "ea15abde7f15a56e2ae90a882099203e470be4c3c3e4b4e488655992875346a1",
+      "normal-tests.log": "2e01ffcae0a4547d3afe2d2cc05778b1c8dd684477940a9c17b1541a54918c19",
+      "normal-tests.json": "4a7b0dd7d58f40a98a93a1b4c67aa0366d5eb90e24245c58e19e1d7d1de31391",
+      "normal-final-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "qualification-driver.log": "bb5c6552b1abea444c8c376adb0dab8a7a79826223f890ed8847cc209f548b7b"
+    },
+    "portability": "Close destination verification streams before retrying replacement; this is not a native Windows qualification."
+  },
+  "validation": {
+    "scope": "Five focused affected tests per configuration. Production unchanged; prior104-test qualification retained at22703eea. No new broad/full suite run claimed.",
+    "selection": [
+      "libdxfrw_render_preset_output",
+      "libdxfrw_render_preset_sources",
+      "libdxfrw_rendering_dxf_projections",
+      "libdxfrw_render_settings_owner_order",
+      "libdxfrw_rendering_original_sources"
+    ],
+    "registrationsMatch": true,
+    "normal": {
+      "start": "2026-10-27T21:12:25.712317+00:00",
+      "end": "2026-10-27T21:12:30.938246+00:00",
+      "seconds": 5.2257859999954235,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_render_preset_output",
+          "status": "Passed    0.54 sec"
+        },
+        {
+          "name": "libdxfrw_rendering_original_sources",
+          "status": "Passed    1.29 sec"
+        },
+        {
+          "name": "libdxfrw_rendering_dxf_projections",
+          "status": "Passed    2.05 sec"
+        },
+        {
+          "name": "libdxfrw_render_settings_owner_order",
+          "status": "Passed    0.30 sec"
+        },
+        {
+          "name": "libdxfrw_render_preset_sources",
+          "status": "Passed    5.21 sec"
+        }
+      ],
+      "passed": 5
+    },
+    "asan": {
+      "start": "2026-10-27T21:12:30.966393+00:00",
+      "end": "2026-10-27T21:12:33.785742+00:00",
+      "seconds": 2.8193140829971526,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_rendering_dxf_projections",
+          "status": "Passed    1.15 sec"
+        },
+        {
+          "name": "libdxfrw_rendering_original_sources",
+          "status": "Passed    0.73 sec"
+        },
+        {
+          "name": "libdxfrw_render_settings_owner_order",
+          "status": "Passed    0.17 sec"
+        },
+        {
+          "name": "libdxfrw_render_preset_output",
+          "status": "Passed    0.12 sec"
+        },
+        {
+          "name": "libdxfrw_render_preset_sources",
+          "status": "Passed    2.80 sec"
+        }
+      ],
+      "passed": 5
+    },
+    "counterLines": [
+      "Render preset emitted profiles=40; independent body fields=1396; handle/owner checks=80; field/code refusals=2792; raw edit rollbacks=40; corrected retries=40",
+      "Render preset source profiles=240; independent fields=12456; handle/name roles=1680; scalar binder refusals=7944; LAYOUT target uses=480; commented profiles=120; immutable queries=240; schema/root refusals=36; raw export/readbacks=20; typed write/readbacks=20; destination rollbacks=100; exact/one-under source limits=6; reached finalizer failures=230; unreached offsets=4; corrected finalizations=234; corrected retries=142",
+      "Rendering projection profiles=504; exact raw fields=15840; scope controls=6; exact/one-under ownership controls=6; corrected retries=3; public lifetimes=504; typed writer/readback/refusal controls=306",
+      "Rendering source profiles=48; independent physical fields=2496; dictionary key/target fields=192; reference roles=336; rooted target uses=240; primary binder refusals=1632; source/owner/dependency refusals=36; corrected retries=69; exact/one-under limits=6; context refusals=9; prerequisite refusals=6; literal text controls=3; commented source matches=9; immutable queries=50; reached allocations=72; unreached offsets=4; corrected finalizations=76"
+    ],
+    "allThreePreviousSelectedCounterLinesUnchanged": true,
+    "bothBuildsCompletedBeforeRuntimes": true,
+    "normalCompletedBeforeAsan": true,
+    "sourceManifestFiles": 431,
+    "sourceManifestSha256": "9df79a1a555860e72e1a9fcf232b74eea7ca6c26d734cf7c93253282e30a0d29",
+    "sourceManifestUnchangedThroughBothRuntimes": true,
+    "builds": {
+      "normal": {
+        "command": [
+          "cmake",
+          "--build",
+          "build",
+          "--target",
+          "libdxfrw_table_content_dxf_tests",
+          "-j",
+          "2"
+        ],
+        "exitCode": 0,
+        "observedCompletedBy": "2026-10-27T21:12:25.561676+00:00",
+        "log": "normal-final-build.log",
+        "logSha256": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b"
+      },
+      "asan": {
+        "command": [
+          "cmake",
+          "--build",
+          "build/rpp5fa-evidence.4xKADX/asan-build",
+          "--target",
+          "libdxfrw_table_content_dxf_tests",
+          "-j",
+          "2"
+        ],
+        "exitCode": 0,
+        "observedCompletedBy": "2026-10-27T21:12:25.561865+00:00",
+        "log": "asan-build.log",
+        "logSha256": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b"
+      }
+    },
+    "asanEnvironment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "asanConfiguration": "Existing qualified Debug/-O1/ASan tree; original Debug/O0 tree unchanged.",
+    "warnings": "-Werror preserved on the owning test target.",
+    "fullSuiteRun": false,
+    "packagingRerun": false,
+    "reasonNoPackagingRerun": "Test coverage only; no production/build-distribution source changes. Existing omitted CMake/test source-release inventory remains open, including the new helper.",
+    "evidenceDirectory": "build/rpp5fv-evidence",
+    "artifacts": {
+      "asan-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "normal-build.log": "6590e45c525f4fc13ac5e60ddc95372e46a4953f05476ff2ebd1fe8e13331395",
+      "qualification.json": "7ea0200e12cafd9945517150c35c8283980407c344ba3f1d35356fef3a8b350c",
+      "build-status.json": "cc44f08e6cfea26419e160f5d7b51185a4d9a43d724662673988602397729ec3",
+      "asan-tests.log": "f95adeea9c21fb4dd848961ccaa7ff1fe75c6266c9df4ca46b1d6f279dba4aed",
+      "source-check-before-runtime.json": "75f49f7723608bf3e26c32a52cee3edac6060767c1e725d4d23e004c6e4d2ec5",
+      "make_receipt.py": "cd2f415d85aaa5cace6a5264e8c9a752c27153ba5b850f56c039f6c85564f76b",
+      "run_qualification.py": "6bd9987487eca0d8cd7f6f0fdde2b78ae359feca42af18e8c70f9ff2aeb2ee19",
+      "normal-tests.log": "aceadabcd28c801acdddedd75640d2e6bc0818447805a4881ebfab5ac36c8188",
+      "normal-tests.json": "0f6968d16b3356dd6d09437558a982b7691db67adfe2d04137bbec60820c717c",
+      "registration.json": "88a246d7cc1ffa87253eaa429f12ecc64b69e7efd52d360f77e3e7fef8cb3e65",
+      "source-check-after-asan.json": "75f49f7723608bf3e26c32a52cee3edac6060767c1e725d4d23e004c6e4d2ec5",
+      "normal-final-build.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "source-check-after-normal.json": "75f49f7723608bf3e26c32a52cee3edac6060767c1e725d4d23e004c6e4d2ec5",
+      "asan-tests.json": "e6eef7cf71ee900ca9d76907e83a2e89f75bd6bc3200b278696c194f8dd5cb38",
+      "qualification-driver.log": "8311f1863d3e53f10fb699fddd186cb8c66e96419c360967d0c6b5adaed0b214",
+      "authored-schema-counts.json": "7c1b3b296b001e22a79d11489dcfe1aba742c51a252b2bfbd946617773794f42"
+    }
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalLayoutReferenceDispositionsCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "selectedOriginalViewUcsTargetsCanMatch": true,
+    "selectedOriginalViewportTargetsCanMatch": true,
+    "selectedCanonicalPrimaryVisualStyleSourcesCanMatch": true,
+    "selectedRootedOriginalVisualStyleTargetsCanMatch": true,
+    "observedCommentedCanonicalVisualStyleSourcesCanMatch": true,
+    "selectedCanonicalRenderPresetSourcesCanMatch": true,
+    "selectedRootedOriginalLayoutPresetTargetsCanMatch": true,
+    "viewportShadeSourceQualified": false,
+    "editedRenderSettingsTypedRewritingQualified": false,
+    "selectedAc1027PresetEmittedBodiesMatchAuthoredLiterals": true,
+    "completeEmittedObjectDictionaryGraphQualified": false
+  },
+  "limits": [
+    "Selected authored AC1027 common/derived body and self/owner comparison only; no complete dictionary emission, remapping, edited typed rewriting, native acceptance, independent rendering semantics or arbitrary producer/version qualification.",
+    "External evidence cannot promote support. All full owner/recursive/output gates remain false; nine resource families, ATTDEF rawTypedMatched=false and ledger CLOSED.",
+    "Full native B2b/B3/C, TABLE semantics, release/source inventories/builds, consumer/native/memory/performance and independent ACIS/ACDS obligations remain."
+  ],
+  "next": [
+    "Complete independent optional/absent/alias/extension rendering variants and active/global/environment/background/live-section/sun. Obtain actual wire evidence before VIEWPORT shade4/5 qualification; complete clipping/overrides.",
+    "Complete remaining owner/name/application/XDATA/HEADER dependencies and recursive/coupled/whole-document ownership; validate edits/remapping/emitted bytes and raw-carrier refusal/retry.",
+    "Finish TABLE Values/multiple-content/linked-data/format semantics and full native B2b/B3/C bit/schema/owner/version/corpus obligations.",
+    "Resolve recorded42-file release inventory gap and omitted helpers; qualify extracted-source build, consumers, controlled memory/performance, native FreeCAD and independent ACIS/ACDS evidence.",
+    "Continue fast owning checks and incremental targets, freeze compiled inputs before final builds/package/normal/ASan qualification, self-update/commit/report without importing external drawing derivatives."
+  ],
+  "documentationSha256": {
+    "docs/3D_CONSUMER_CONTRACT.md": "91ac073657bb048a429f78471919195bfd22a14296640c5355dbd476c88d9c49"
+  }
+}

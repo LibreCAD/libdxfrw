@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-geom-dependency-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical geometry-dependency output profile and typed readback",
+  "status": "PHYSICAL_PROFILE_OUTPUT_AND_TYPED_READBACK_PASS_IDENTITY_BINDING_OPEN",
+  "supportClaimEffect": "none",
+  "supersededBy": "p4-ac1024-geom-dependency-physical-identity-binding-2026-10-31.json",
+  "supersessionNote": "This receipt records the earlier output/readback checkpoint, when identity binding remained open. The successor receipt closes the 54 source identity and target-role bindings; use the successor for current status.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "existingSourceProfileReceipt": "p4-ac1024-assoc-geom-dependency-dxf-writer-2026-10-30.json",
+    "recordCount": 54,
+    "profile": {
+      "record": "ACDBASSOCGEOMDEPENDENCY",
+      "dependencyOrder": -10000,
+      "geomClassVersion": 0,
+      "enabled": true,
+      "persistentSubentityClassName": "AcDbAssocSingleEdgePersSubentId",
+      "dependentOnCompoundObject": false
+    }
+  },
+  "physicalOutput": {
+    "route": "libdxfrw dwg2dxf explicit-partial AC1024 -> ASCII DXF",
+    "path": "/private/tmp/mechanical-material-xdict-fix.dxf",
+    "sha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
+    "bytes": 161368,
+    "result": "Conversion published the DXF. The output contains 54 ACDBASSOCGEOMDEPENDENCY records. A same-input LibreDWG 0.14 output also contains 54 such records.",
+    "sameInputIndependentOutput": {
+      "implementation": "LibreDWG 0.14 at commit 6d6a33987a1a97095b069c799c3d8a793320f812",
+      "path": "/private/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+      "sha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+      "matchingRecordCount": 54
+    }
+  },
+  "freshTypedReadback": {
+    "method": "dx_iface::fileImport on the exact physical partial DXF",
+    "probeSource": "/private/tmp/geom_dependency_readback_probe.cpp",
+    "probeSourceSha256": "4146a06658a48dced4b0d40e16e7733a746f5e1d2e9908514463052fd0eef69a",
+    "probeBinary": "/private/tmp/geom_dependency_readback_probe",
+    "probeBinarySha256": "4d55829e3afd213a58f84a7857bedaa8b5fb51704d05f1316db98edd4f4b18c0",
+    "result": "PASS: 138 associative records read; all 54 ACDBASSOCGEOMDEPENDENCY records have unique output handles and match the source-bound dependency/SingleEdge typed profile."
+  },
+  "completedEvidence": [
+    "The physical partial serializer publishes the geometry-dependency family.",
+    "The emitted physical output contains the source-profile family count.",
+    "Fresh local DXF parsing recovers all 54 records and the typed SingleEdge field profile.",
+    "The same-input independent output contains the same family count."
+  ],
+  "remaining": "Bind each of the 54 source geometry-dependency identities and reference roles to its unique planned/staged output identity. Matching counts and typed profile readback do not establish that one-to-one source/output mapping. Then continue with the remaining callback profiles and required descendants; the strict-complete gate is unchanged.",
+  "limitations": [
+    "This is a physical partial conversion and does not establish complete document closure.",
+    "The independent output count is corroboration only; it does not establish application-level subentity meaning or exact source/output identity mapping.",
+    "No output support claim, LibreCAD/LibreCAD_3 or FreeCAD qualification, native platform, ABI/package, or 3D semantic qualification is promoted.",
+    "No investigation DWG or DXF was added to the repository."
+  ],
+  "artifactsSha256": {
+    "dwg2dxf/dwg2dxf": "731672ad19689d635fa0a217a9ba1112c922e514f0b988ef17b7f6fe9a504581",
+    "libdxfrw.a": "d7dee00aa892634828a0134645d6e361441328f11a503ba208fda7edf074e5ea",
+    "dwg2dxf/dx_iface.cpp": "36631fbabe05d47480aa7752613f20cccd26106969f232223c38285593181722",
+    "src/drw_objects.cpp": "0f78dadddb02f5872e2fd0a366ac71ec78082779f25124964defdd3cc79e5ba5"
+  }
+}

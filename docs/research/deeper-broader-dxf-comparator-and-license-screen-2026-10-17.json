@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-dxf-comparator-license-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Broaden the optional independent DXF comparator inventory and screen a newly surfaced project for license eligibility; refine only the existing composed comparator gate.",
+  "method": {
+    "kind": "Primary-source project, release, license, and Autodesk DXF-reference review with local plan reconciliation",
+    "peerRevisionsPinned": [
+      "netDxf v3.0.1, commit 3d24d7c"
+    ],
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/haplokuon/netDxf/releases/tag/v3.0.1",
+      "https://github.com/haplokuon/netDxf",
+      "https://github.com/seaflower205/Sea-DXF-Core",
+      "https://github.com/seaflower205/Sea-DXF-Core/blob/main/LICENSE",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing optional peer comparator checkpoint and latest implementation/research status",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: findings/subplans totals and deferred external J items"
+    ],
+    "limitations": "Repository and release statements are not runtime conformance evidence. netDxf is archived and its declared feature matrix is not independently executed. Sea-DXF Core's project statements are not evaluated as implementation behavior; its own license declaration excludes it from the open-source comparator set. No geometry or consumer result was produced."
+  },
+  "evidence": [
+    {
+      "topic": "netDxf independent DXF structural route",
+      "observed": "The signed/tagged v3.0.1 release at commit 3d24d7c describes ASCII and binary DXF read/write for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. The README documents ordinary 2D/mesh entities, says ACAD_TABLE is imported as INSERT, excludes REGION/SURFACE/3DSOLID, and GitHub marks the repository archived/read-only since 2023-10-11.",
+      "doesNotEstablish": [
+        "runtime conformance for any entity, version, or mode",
+        "complete handle, owner, table, XDATA, or unknown-tag preservation",
+        "ACIS, 3DSOLID, REGION, or SURFACE interpretation",
+        "DWG support or native CAD acceptance"
+      ],
+      "planUse": "Keep it as a pinned historical optional structural DXF comparator at the composed gate only, if already available. Stratify ACAD_TABLE separately from INSERT and count peer skips/diagnostics; do not add a dependency or per-slice runtime."
+    },
+    {
+      "topic": "Sea-DXF Core license eligibility",
+      "observed": "The project README calls Sea-DXF Core pre-1.0 and states that its currently visible source is under a proprietary license, with no permission to use, copy, modify, or redistribute implied by visibility.",
+      "doesNotEstablish": [
+        "the project's advertised parser behavior",
+        "independent conformance or release maturity",
+        "eligibility as an open-source peer"
+      ],
+      "planUse": "Exclude it from open-source evidence and implementation comparisons; do not copy code, schemas, samples, or tests. Revisit only after an explicit license/release change."
+    },
+    {
+      "topic": "OCS-safe DXF comparator interpretation",
+      "observed": "Autodesk's current group-code reference and OCS explanation show that coordinates with the same numeric groups can have entity-specific coordinate systems; planar entities may use OCS and 3D/non-planar entities may use WCS, with extrusion/elevation relevant to conversion.",
+      "doesNotEstablish": [
+        "that peer readers expose normalized WCS values",
+        "that matching raw coordinates prove matching geometry",
+        "the result of any local or peer OCS implementation"
+      ],
+      "planUse": "At the composed comparator gate, compare WCS geometry only for vectors with an independent expected normal/elevation and exercised OCS conversion. Otherwise compare raw typed coordinates and extrusion/elevation separately and mark geometry unscored."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Treat netDxf v3.0.1 as an archived historical ASCII/binary DXF baseline, not a maintained peer or mandatory runtime.",
+      "Use the optional netDxf route only at the composed gate and only when already available; keep it outside the fast per-slice loop.",
+      "Separate ordinary INSERT from ACAD_TABLE and keep modeler/ACIS carrier semantics outside netDxf's documented capability.",
+      "Exclude Sea-DXF Core while its project declares a proprietary license; source visibility alone is not open-source eligibility.",
+      "Do not equate raw OCS tuple equality with WCS geometry equality; compare transformed geometry only against independent expected values."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

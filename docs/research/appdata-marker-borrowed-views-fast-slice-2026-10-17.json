@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Application-data marker borrowed views fast slice",
+  "mode": "source-demonstrated copy avoidance with generated local controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Borrow 102 application-data group opener strings during known-group inspection",
+    "Preserve braced/unbraced marker matching and reference-remap behavior",
+    "Verify ASCII/Binary output and record framing with existing generated controls"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "summary": "Three writer/preflight marker scans now use std::string_view over the DRW_Variant-owned opener string and a view slice when removing the optional leading brace, instead of copying a std::string and substr result for every inspection. The source group remains alive and unchanged during each synchronous scan. Added a focused selector for the existing generated common-appdata base-scope matrix.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --reference-resolver-appdata",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "buildAndCompatibility": "passed",
+      "focusedCommonAppdataBaseScope": "passed",
+      "wave1CTest": "passed (1/1; 0.46 s)",
+      "focusedReferenceResolverAppdata": "passed",
+      "dxfFixtureCTest": "passed (1/1; 3.75 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "Source-level temporary string materialization was removed from the selected 102 group-name inspections. This does not measure allocations, peak RSS, or throughput.",
+    "coverage": "Generated tests cover braced and unbraced known groups, entity and table records, four target versions, ASCII and Binary DXF, exact once-only group emission, reference remapping, and following-record framing.",
+    "limitations": "No full suite, peer parser, CAD application, external DWG/DXF, or persistent fixture was used. The test addition only exposes an existing generated matrix through a focused selector."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

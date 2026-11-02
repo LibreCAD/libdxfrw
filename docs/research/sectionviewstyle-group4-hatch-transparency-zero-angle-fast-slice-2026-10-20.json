@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-4 hatch transparency zero-angle insertion",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-138",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "The same-version raw-DXF overlay inserts changed group-4 hatch transparency when no group-4 code-90 occurrences exist and the typed hatch-angle vector is empty.",
+  "behavior": {
+    "supportedProfile": "Missing group-4 transparency/count occurrences with an empty typed hatch-angle vector; insert the changed transparency before the first group-290 Boolean or following style group.",
+    "asciiRawLexemes": "Preserve raw-value/group alignment and write the inserted decimal lexeme.",
+    "binaryRawValues": "Preserve raw-value/group alignment with an empty lexeme slot.",
+    "failClosed": [
+      "Non-empty hatch angles when transparency is absent",
+      "Duplicate group-4 marker",
+      "Malformed style-group marker",
+      "Raw-value/group cardinality mismatch",
+      "Group-pair capacity overflow"
+    ],
+    "unknownGroup290Semantics": "Unchanged; code-290 meanings are not inferred."
+  },
+  "tests": {
+    "selector": "--modeldoc-view-style-callbacks",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "coverage": [
+      "Generated source with group-4 code-90 fields and angle records removed",
+      "Default zero transparency and empty hatch-angle import",
+      "Edited transparency value 13 is inserted in canonical raw order",
+      "Typed transparency re-import",
+      "Exact ordered SectionViewStyle raw-carrier comparison",
+      "Unchanged DetailViewStyle raw carrier",
+      "Resource-reference closure",
+      "Following POINT continuity"
+    ],
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "baselineTestBeforeProductionChange": "Expected failure: changed transparency was not representable in ASCII DXF.",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1 passed)",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for code, tests, and plan; git diff --no-index --check emitted no whitespace diagnostics for the new receipt (status 1 is expected because --no-index reports the added-file difference)",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFiles": ["dwg2dxf/dx_iface.cpp"],
+    "testFiles": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "planFiles": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "dependenciesAdded": 0,
+    "externalRuns": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

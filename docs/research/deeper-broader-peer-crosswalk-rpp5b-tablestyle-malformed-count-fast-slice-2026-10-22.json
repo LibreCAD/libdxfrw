@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5b TABLESTYLE malformed-count refusal and following-object fast slice",
+  "mode": "Generated local AC1032 object-frame dispatch validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "0dd8531271e6471c48f75d364d3c585ccc388b7b2e6da228d6e6d3ecc37bd6c8",
+  "implementation": {
+    "changes": [
+      "Added from-scratch AC1032 TABLESTYLE object-frame builders to the DWG reader matrix test; the malformed frame declares one repeated cell style but provides no repeated entry.",
+      "Added a valid TABLESTYLE frame at the next byte range as an explicit sentinel and assigned source ordinals so the malformed frame is dispatched first.",
+      "The test asserts one record-level parse failure, no typed callback for the malformed frame, publication of the sentinel callback, and success of the OBJECTS pass.",
+      "Registered a focused fast CTest selector; no production code or fixture files changed."
+    ],
+    "touchedFiles": [
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5b-tablestyle-malformed-count-fast-slice-2026-10-22.json",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dwg_tablestyle_malformed_count_dispatch (1/1; 0.34 s)",
+    "diffCheck": "PASS: git diff --check -- CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "nestedDxfTableStyleTyped": false,
+    "dwgVersionUpconvertClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-5c: inspect exact ASCII/Binary DXF raw-net preservation and writer refusal for unsupported nested TABLESTYLE row/cell groups; add only uncovered generated controls",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

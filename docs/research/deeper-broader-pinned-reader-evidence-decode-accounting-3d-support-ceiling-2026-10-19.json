@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Pinned reader evidence, decode accounting, and the 3D support ceiling",
+  "mode": "Read-only primary-source research and local plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Pin and reconcile the spec-led dwg-rs reader snapshot, its decode accounting, and its test/semantic limits",
+    "Refresh the documented FreeCAD DWG-to-DXF consumer route",
+    "Cross-check DWG reader safety and 3D writer omission leads against existing local plan owners",
+    "Refine existing peer admission and composed validation gates without adding routine peer/native work"
+  ],
+  "sources": [
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "revision": "main at d0ce39be6a679697554db0ee1f84f0d0671bf081 (2026-09-07); no GitHub release",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs/commit/d0ce39be6a679697554db0ee1f84f0d0671bf081",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/d0ce39be6a679697554db0ee1f84f0d0671bf081/README.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/d0ce39be6a679697554db0ee1f84f0d0671bf081/STATUS.md"
+      ],
+      "observed": "The project declares an ODA v5.4.1-based pre-alpha DWG reader. Its dated status reports 19 files with per-version decoded/skipped/errored outcomes, per-entity stream-boundary checks, handle-map closure and object-stream tiling for its own corpus. Its record parser recognizes ACIS entity envelopes, but its 3DSOLID geometry adapter is a bounding-box placeholder and the README disclaims external CAD acceptance. The same README contains conflicting coverage and test-count figures: its table says 88.0% aggregate and 92.2% AC1032, while nearby stale text says 95.6% aggregate and 90.3%/85.9%, and an old paragraph lists 649 tests versus 774 in STATUS.md.",
+      "evidenceCeiling": "Pinned, self-reported project documentation and corpus claims; useful for optional structural comparison and denominator design only. No peer behavior was executed or reproduced. Not a semantic ACIS/B-rep oracle, DXF parser/writer qualification, or native acceptance result."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "revision": "Mutable documentation main branch reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observed": "Current docs describe DWG as an external-converter-to-DXF route followed by a selectable DXF importer; C++ and legacy Python importer coverage differs, and stock FreeCAD cannot read embedded ACIS solids.",
+      "evidenceCeiling": "Route and configuration declarations only; no native Linux/Windows FreeCAD qualification was run."
+    },
+    {
+      "project": "LibreDWG",
+      "revision": "0.14.1 release notes viewed 2026-10-19 (mutable master URL)",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The release notes document R2004 decompression and section-map security fixes, including a decompressed logical-size versus live-allocation-capacity mismatch and unchecked page-map offsets.",
+      "evidenceCeiling": "Peer security fix history only; it does not establish a corresponding libdxfrw defect. Relevant hazards are already mapped to existing local safety owners."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "Issue #1195 reviewed 2026-10-19; issue body identifies ACadSharp 3.4.9, but no source commit or drawing is public",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "The reporter claims that 3DSOLID/REGION parsed from two private DWGs were omitted during DWG-to-DXF output, leaving solid-only blocks empty; the issue proposes notifications or opaque carrier output as possible remedies.",
+      "evidenceCeiling": "Unreproduced issue report tied to an author-declared version and private inputs; not proof of a current peer defect or a libdxfrw failure."
+    }
+  ],
+  "localEvidence": [
+    "Existing PAR-07/S8 separates record parsing, modeler carrier capture/linkage, DXF carrier output, strict reopen, semantic interpretation, and downstream/native acceptance.",
+    "Existing peer-admission rules already require immutable revision, exact input and corpus provenance, per-version/per-family dispositions, and explicit skipped/error denominators.",
+    "Existing local safety and boundary controls map the LibreDWG hazards to PAR-14, 7BE, 7S.3, and S3.7; no matching defect was confirmed in this research pass.",
+    "The current implementation's local generated tests and reduced validation cadence remain the ordinary per-slice path; peers/native applications stay at composed checkpoints."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newImplementationSlices": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrCtestRegistrationsAdded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing peer-admission and PAR-07/S8 evidence gates: pin the peer revision and corpus, report raw/typed/skipped/error/refused/not-attempted outcomes separately, include handle-map and record-stream closure where applicable, and keep 3D carrier and semantic/native stages distinct. No peer dependency, external sample, routine peer execution, new finding, or support claim is added."
+  },
+  "method": {
+    "kind": "Read-only web/GitHub source inspection and local plan/source crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-pinned-reader-evidence-decode-accounting-3d-support-ceiling-2026-10-19.json"
+    ],
+    "limitations": "Peer reports are self-authored and corpus-bound; FreeCAD pages and LibreDWG master are mutable; ACadSharp #1195 has no public reproducer. No result establishes local behavior, normative format truth, or external semantic acceptance."
+  },
+  "validation": {
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "468430cbe13401b0750e52f1731b19633029602d3a6628b3bc5ec1821d311f46"
+}

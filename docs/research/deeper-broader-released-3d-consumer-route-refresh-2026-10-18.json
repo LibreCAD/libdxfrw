@@ -1,0 +1,141 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Released 3D consumer route refresh: OpenCADStudio 2026.42 and ACIS evidence ceilings",
+  "mode": "Deeper/broader primary-source review; research-only plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the newly released OpenCADStudio SAT/ACIS import and distinguish it from the project's DWG/DXF read/render route and same-codec save verification.",
+    "Cross-check the candidate's codec lineage and evidence ceiling against the existing cq-acis, FreeCAD, OCCT, LibreDWG, and ACadSharp lanes.",
+    "Refine the optional composed semantic/application gate without adding per-slice validation, dependencies, fixtures, or external-only status changes."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project release notes, documentation, issues, and existing local plan entries",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "peerCorpusFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Release notes and README claims identify candidate routes, not runtime behavior or complete entity/profile support. No OpenCADStudio SAT import, embedded DXF solid import, DWG AcDs conversion, FreeCAD run, or cq-acis parser/conversion was executed. Geometry semantics, native acceptance, and exact outer DWG entity-to-AcDs association remain unqualified by this review."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/releases.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/plugin-architecture.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "revision": "Release v2026.42 at b6fbac3, dated 2026-10-18; mutable README and docs reviewed the same date",
+      "observed": "Release notes add an IMPORT workflow for SAT/ACIS. The project separately advertises native DWG/DXF read/write and ACIS-entity tessellation. Public release notes do not define the exact embedded-solid/profile matrix or a stable per-body semantic measurement API. Automation save_verified reopens output with the application codec; plugin metadata fingerprints acadrust_source, so this route must be tied to the exact codec build and not counted as an independent sibling-codec vote.",
+      "evidenceClass": "primary release documentation and application contract; no binary or runtime tested"
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/README.md",
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "revision": "Existing plan-pinned PyPI 0.3.12 source/artifact entry; mutable project documentation refreshed 2026-10-18",
+      "observed": "The project documents an experimental separately implemented SAT/SAB parser and bounded conversion subset, including ACIS BinaryFile 21800 and selected ASM versions. It distinguishes limited native SAB coverage from synthetic BinaryFile8 framing, retains unknown records, and uses CadQuery/OpenCascade for shape conversion. This is source-distinct parsing with a kernel family shared by FreeCAD, not a complete DWG/AcDs reader or independent-kernel result. Its corpus has separate provenance/license records and is not an admitted libdxfrw fixture source by default.",
+      "evidenceClass": "primary project/API documentation and existing artifact pin; no package installed or executed"
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Issue #1195 reports ACadSharp 3.4.9; PR #1240 remains a separate linked branch",
+      "observed": "The issue reports 3DSOLID/REGION entities read from DWG but silently omitted by DxfWriter, including solids inside blocks. The customer files are confidential and were not obtained. The report reinforces separate per-record disposition and carrier-preservation checks; it does not reproduce a libdxfrw defect or show that the open PR is released.",
+      "evidenceClass": "primary peer issue and PR status; no attachment, branch, or runtime used"
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "The documented stock DXF importer cannot read embedded ACIS/SAT solids; issue #18454 was closed as not planned for ACIS solid import. FreeCAD remains an appropriate platform-qualified 2D/explicit-face consumer, not a stock ACIS semantic oracle.",
+      "evidenceClass": "current project documentation and issue disposition; no FreeCAD runtime run"
+    },
+    {
+      "project": "Open CASCADE",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components"
+      ],
+      "observed": "Official project material separates the open-source OCCT core from commercial ACIS SAT/SAB exchange components; a stock OCCT/FreeCAD install cannot be assumed to contain this reader.",
+      "evidenceClass": "official component licensing/scope documentation; no commercial component accessed"
+    }
+  ],
+  "planCrosswalk": [
+    {
+      "route": "OpenCADStudio v2026.42 standalone SAT/ACIS import",
+      "classification": "OPTIONAL_APPLICATION_CONSUMER_CANDIDATE / NOT_RUN",
+      "planUse": "At most one composed-gate visual/application observation on locally generated bytes after pinning release binary, codec fingerprint, platform, exact import operation, warnings, and body disposition. Do not infer DXF embedded-solid or DWG AcDs support from standalone SAT import."
+    },
+    {
+      "route": "cq-acis 0.3.12 profile-bounded SAT/SAB parser and shape conversion",
+      "classification": "OPTIONAL_INDEPENDENT_PARSER_WITH_SHARED_OCCT_KERNEL / NOT_RUN",
+      "planUse": "Verify the payload signature/version first; parse only an admitted profile; expose every raw/unsupported record and all-body disposition; compare with an independently written analytic manifest. No DWG AcDs owner/key parsing and no independent-kernel or FreeCAD-native claim."
+    },
+    {
+      "route": "FreeCAD stock DXF importer",
+      "classification": "UNSUPPORTED_CONSUMER_FOR_ACIS / PLATFORM_QUALIFICATION_SEPARATE",
+      "planUse": "Continue required native Linux/Windows qualification for common 2D and explicit 3DFACE routes. Do not make unsupported stock ACIS import a converter blocker or semantic gate."
+    }
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerOrNativeExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Added a release-pinned optional OpenCADStudio SAT/ACIS application-consumer candidate with a strict visual-versus-semantic evidence ceiling. Kept cq-acis as the optional exact-profile parser/analytic check and FreeCAD as a separate 2D/explicit-face platform gate. Added no routine peer runs, installs, fixtures, dependencies, local findings, or implementation blockers."
+  },
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptJsonSyntaxChecked": true,
+    "markdownDiffCheck": true,
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "nativeQualification": "NOT_RUN",
+    "peerQualification": "NOT_RUN"
+  }
+}

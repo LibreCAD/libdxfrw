@@ -1,0 +1,337 @@
+{
+  "schema": 1,
+  "date": "2026-10-15",
+  "planSlice": "Slice3.2b.2d",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parentState": "IN_PROGRESS",
+  "parentCommit": "5886b4842bd4b15a1fcd8f3de869e423615bddd1",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Explicit required semantic DXF target scalar transport for library opt-in and both CLI source routes. Not exact charset mapping, caret/native rendering, full raw102 migration or whole-conversion qualification.",
+  "consumerRebuildRequired": true,
+  "binaryAbiQualified": false,
+  "sourceHashes": {
+    "CMakeLists.txt": "eb2d6701a57796cf2516e4191f5aab56bcce01b1e9e03dce8a916548704a9b4c",
+    "src/drw_base.h": "cf7387f68048cd2e1641696779364a6ea5cdb52e25c9b0b6b58f2130f010d171",
+    "src/libdxfrw.h": "ed91aae9001bf6e1d51e2c78e2f09c9ea992c9beb5f7e7f83ec9783e79d70eb4",
+    "src/libdxfrw.cpp": "d0df1ccb5b81db28bc4d49cc7dd322327b914da413f5c68fb7711f18653045af",
+    "src/intern/dxfwriter.h": "0f77d9ccf48b73753f506ad8a174df475830a89bf10843b27c5e6ddec646f6d5",
+    "src/intern/dxfwriter.cpp": "29cd439a24b14bc2c1d42cb03d39e3b5431989a80506feabd2918178a1f7546c",
+    "dwg2dxf/dx_iface.h": "e50f40236e8a5873dd9b8dd6c204c47d02a659e5645f865e4753c8c426cdef70",
+    "dwg2dxf/dx_iface.cpp": "3f6ebb80de34f3ca5b1355be3ce0eabeb6683a7155883e4b32e022915cb60323",
+    "dwg2dxf/main.cpp": "41fed5e133441da4f7cfae0cbc9c094aef081488cceb9eb3e9ea188785ac292e",
+    "tests/gbk_codepage_tests.cpp": "797272476f0dffe4b35c50348b87de788f5a98ac07703c7f6c34256b6a24bb03",
+    "tests/wave1_tests.cpp": "50d7a13744b29ffe4198ed5e1ea0aa0d277bfc12dc1bc2f72d66c19af99520cb",
+    "tests/dwg2dxf_cli_contract_tests.py": "ad2fb4473e43b63159bce209716963621229aca64ced8c1ae0d08fa72ade2f72",
+    "README.md": "55091d66a1f2a919803a23c558d489377adcfd2ad8f48907c74985653db996ca",
+    "docs/3D_CONSUMER_CONTRACT.md": "cb6ac385f4150f6c2f9d80fab41f5e5164427d734b2f09ec580e4f2f5ec62920",
+    "dwg2dxf/dwg2dxf.1": "b69e15888202d4bcf9a152c372b4b7bc31f414dbb6c60d9e1e0bf2ec241e9f1d"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "42256dda5db2983d0fac04b1730330ccb6a2bf94c85e028db3975e42820119a3",
+    "build/libdxfrw_gbk_codepage_tests": "8d3eb5157305c5d0e54c2e42e518cf7123c9933bc415272088a31eb9438c7679",
+    "build/dwg2dxf/dwg2dxf": "ca6c632bd51df1b6d118406c69e8d7b0781d037f814ea3ef653241308326e514",
+    "build/libdxfrw_wave1_tests": "b777ebc9b1ffb82a8925a922b4278b33f05fbc4ce579adab4eef520ce2b31a06",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "7abab6f0d13a7afc2606602a1bf68faf569cfc72b27dc20a39d2e56f70021bbe",
+    "/private/tmp/libdxfrw-target-transport.GsJ7UV/accepted-shared-writer-ctest.xml": "0965e7b79053cda5b5b661ee92a215b5b3dbe13f50f65505708c90477aefa689",
+    "/private/tmp/libdxfrw-target-transport.GsJ7UV/final-shared-writer-ctest.xml": "794f8ed49df5c5819349aa71fb5b5886f859253b19d5a5e8206c0cb9421a481a",
+    "/private/tmp/libdxfrw-target-transport.GsJ7UV/shared-writer-ctest.xml": "f4821e5923162f4ff6dbea5112cd45b729dc07eb8bcf8400691e995b3b91affc",
+    "/private/tmp/libdxfrw-target-transport.GsJ7UV/probe_dwg_cli.py": "24e9ddf090c15a9c454bd948cefe127b3ad2ab27679b0ab0661da0c574aac291"
+  },
+  "policy": {
+    "api": "DRW::DxfTextWritePolicy::{Compatible,RequireLossless}; setDxfTextWritePolicy and dxfTextWritePolicy; no new pure virtual",
+    "defaults": "Ordinary facade and adapter writes remain Compatible with historical byte behavior; existing typed-XDATA constraints remain independently binding",
+    "snapshot": "Admitted write sets internal writer policy before callbacks; callback setting changes next write only; source/input-recovery/owner policies are separate",
+    "cli": "main explicitly supplies RequireLossless and RequireValidSource independently of requireResolvedOwners for both DXF and DWG; no new production CLI switch",
+    "scalar": "Reject malformed UTF8 before semantic pair emission; legacy supplementary '?' loss refused; modern supplementary UTF8 retained; literal '?' and U+FFFD remain valid",
+    "profile": "Accepted target versions AC1009..AC1032; legacy UTF8/UTF16 selection rejected using original declared selection, not normalized header name",
+    "framing": "NUL refused; ASCII CR/LF refused; low-level binary newline retained where field-specific validation allows; no new caret/control syntax",
+    "quoting": "Quote only a semantic backslash followed by U+ or M+ as wire CIF U+005C; ordinary paths and MTEXT paragraph/font/stack/braces stay unchanged; raw bytes never quoted",
+    "chunks": "Preflight complete text before writing chunk pairs; stage whole scalar/CIF quote atoms with MTEXT250/modern GEODATA255 byte ceilings; empty final field retained",
+    "lossGuard": "Per-atom same-codec re-decode is a local loss guard, not independent mapping truth; literal wire/scalar anchors separately constrain named transport cases",
+    "opaque": "High-byte unknown-provenance102/raw strings refused; source/target modern source-bound raw UTF8 can be validated unchanged; handles/binary excluded",
+    "known102": "1000/1001/1003 already decoded by getString in102 scope encode once; no blanket STRING decode/transcode; full role/provenance migration stays open",
+    "failures": "Sticky TextFailure survives record abort/error restoration; fixed dxf-text-* Validation diagnostics recorded before writer teardown, without overwriting an earlier primary failure",
+    "publication": "Whole-write transactional staging prevents absent/existing destination publication on refusal; corrected same-model/same-facade retry clears operation failure",
+    "limits": "No exact ISO mapping, DWG TU/TV/EED decode change, raw-carrier migration completion, producer/normative wire-profile or native glyph/B-rep claim"
+  },
+  "semanticInventory": [
+    {
+      "roles": "TEXT/MTEXT/ATTRIB/ATTDEF; symbol/table/block names; HEADER/CLASS/typed OBJECT/XRECORD strings",
+      "path": "shared semantic writeUtf8String/writeUtf8Caps and strict chunk helper",
+      "limit": "Field-specific existing admission and formatting grammar remain"
+    },
+    {
+      "roles": "typed XDATA1000/1001/1003",
+      "path": "existing encoded-byte length and scalar checks plus shared target encoder",
+      "limit": "XDATA validator remains distinct; limits not copied to arbitrary102 scope"
+    },
+    {
+      "roles": "102 markers and unclassified strings",
+      "path": "opaque preflight; known already-decoded roles encode once",
+      "limit": "NonASCII source-unbound strings refused, including same-version routes; no provenance invented"
+    },
+    {
+      "roles": "raw DXF objects/sections/groups",
+      "path": "existing source-version admission plus modern UTF8 validation without quote/decode",
+      "limit": "Legacy/unknown high-byte source provenance remains unqualified"
+    },
+    {
+      "roles": "SAT/ACIS/binary hex/handles/structural metadata",
+      "path": "existing byte/numeric/handle roles retained",
+      "limit": "Not globally treated as Unicode or replayed comments"
+    }
+  ],
+  "tests": {
+    "entryPoint": "build/libdxfrw_gbk_codepage_tests --target-text-transport",
+    "units": {
+      "wireAnchors": 40,
+      "rejectionAndModernControls": 14,
+      "chunks": 40,
+      "framing": 4,
+      "profileCapsRaw": 4,
+      "scope": "10 wire cases x2target revisions x2output framings; malformed5x2 ASCII and supplementary2x2; chunk boundary prefix248; raw emission is not semantic quoting"
+    },
+    "facade": {
+      "refusalsAndSameModelRetries": 32,
+      "repeatedLiteralRoutes": 8,
+      "geodataControls": 2,
+      "policySnapshotControls": 1,
+      "mixedRoleControls": 4,
+      "owners": [
+        "TEXT",
+        "MTEXT",
+        "LAYER",
+        "HEADER DIMPOST",
+        "BLOCK name",
+        "INSERT attachedATTRIB",
+        "typed XDATA",
+        "opaque102"
+      ],
+      "scope": "8owners x2targets x2framings with existing-destination/handle preservation and corrected same owned model/facade; two-pass exact callback TEXT/MTEXT and distinct suffix; GEODATA254-byte prefix+Unicode/CIF"
+    },
+    "freshFocusedMode": {
+      "chunk_id": "c75b72",
+      "wall_time_seconds": 0.018308208,
+      "exit_code": 0,
+      "original_token_count": 62,
+      "output": "Target text units: wire=40, rejection/modern controls=14, chunks=40, framing=4, profile/caps/raw=4\nTarget text facade: owner refusals/same-model retries=32, repeated literal routes=8, GEODATA controls=2, snapshot control=1, mixed-role controls=4\n"
+    },
+    "freshSanitizedMode": {
+      "chunk_id": "5e8163",
+      "wall_time_seconds": 0.054104667,
+      "exit_code": 0,
+      "original_token_count": 62,
+      "output": "Target text units: wire=40, rejection/modern controls=14, chunks=40, framing=4, profile/caps/raw=4\nTarget text facade: owner refusals/same-model retries=32, repeated literal routes=8, GEODATA controls=2, snapshot control=1, mixed-role controls=4\n"
+    },
+    "sanitizerScope": "macOS ARM64 focused ASan/UBSan; -fsanitize=address,undefined -fno-omit-frame-pointer -O1; ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1; not full-suite/leak/native qualification",
+    "actualDxfCli": {
+      "refusals": 24,
+      "correctedRetries": 12,
+      "modernSupplementaryPositives": 12,
+      "twoPassLiteralRoutes": 16,
+      "processControls": 80,
+      "dimensions": "TEXT/MTEXT/common-layer x ASCII/binary source x positional/FreeCAD argv x absent/existing destination; literal routes cover both target/output framings",
+      "freshCommand": "python3 tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --target-text-only",
+      "freshResult": {
+        "chunk_id": "aa84fe",
+        "wall_time_seconds": 0.000007458,
+        "exit_code": 0,
+        "original_token_count": 25,
+        "output": "CLI target transport: PASS (24 refusals/12 retries/12 modern positives/16 two-pass literal routes)\n"
+      },
+      "priorSourceControls": 421,
+      "composedTotalControls": 501,
+      "childLimits": "5seconds/65536bytes; original full source matrix retained in normal CLI mode"
+    },
+    "actualDwgCli": {
+      "sourceSha256": "224d4707aa5b78034ec586d0a6fa256a07640b13bcf4128ebab0e2802c381a46",
+      "sourceVersion": "AC1027",
+      "refusals": 8,
+      "modernTwoPassRoutes": 4,
+      "callbackVerifiers": 8,
+      "rows": [
+        {
+          "route": "legacy-refusal",
+          "freecad": false,
+          "binary": false,
+          "existing": false,
+          "exit": 1
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": false,
+          "binary": false,
+          "existing": true,
+          "exit": 1
+        },
+        {
+          "route": "modern-two-pass",
+          "freecad": false,
+          "binary": false,
+          "exit": 0,
+          "secondExit": 0,
+          "checks": [
+            0,
+            0
+          ],
+          "outputSha256": "e0bb8cac63952007e8296e15d960eccaf87a068cf038521827f6a61df0b3afb2",
+          "secondSha256": "1dd193b61cd413bacb2f127448a5b17b88559878efe2ec7a9340f06e93a56f43"
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": false,
+          "binary": true,
+          "existing": false,
+          "exit": 1
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": false,
+          "binary": true,
+          "existing": true,
+          "exit": 1
+        },
+        {
+          "route": "modern-two-pass",
+          "freecad": false,
+          "binary": true,
+          "exit": 0,
+          "secondExit": 0,
+          "checks": [
+            0,
+            0
+          ],
+          "outputSha256": "da5d8320c70980347fcac1213dd261f548f773fd3c57213caa92a8fd96ab0988",
+          "secondSha256": "755bc72ca146db61fa7ddf14cc9dbe26aff49aa9067f1a0d435f3e12ac5ca7a2"
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": true,
+          "binary": false,
+          "existing": false,
+          "exit": 1
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": true,
+          "binary": false,
+          "existing": true,
+          "exit": 1
+        },
+        {
+          "route": "modern-two-pass",
+          "freecad": true,
+          "binary": false,
+          "exit": 0,
+          "secondExit": 0,
+          "checks": [
+            0,
+            0
+          ],
+          "outputSha256": "e0bb8cac63952007e8296e15d960eccaf87a068cf038521827f6a61df0b3afb2",
+          "secondSha256": "1dd193b61cd413bacb2f127448a5b17b88559878efe2ec7a9340f06e93a56f43"
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": true,
+          "binary": true,
+          "existing": false,
+          "exit": 1
+        },
+        {
+          "route": "legacy-refusal",
+          "freecad": true,
+          "binary": true,
+          "existing": true,
+          "exit": 1
+        },
+        {
+          "route": "modern-two-pass",
+          "freecad": true,
+          "binary": true,
+          "exit": 0,
+          "secondExit": 0,
+          "checks": [
+            0,
+            0
+          ],
+          "outputSha256": "da5d8320c70980347fcac1213dd261f548f773fd3c57213caa92a8fd96ab0988",
+          "secondSha256": "755bc72ca146db61fa7ddf14cc9dbe26aff49aa9067f1a0d435f3e12ac5ca7a2"
+        }
+      ],
+      "scope": "locally authored writer/reader control; no independent producer/native support qualification",
+      "freshExitCode": 0,
+      "command": "python3 /private/tmp/libdxfrw-target-transport.GsJ7UV/probe_dwg_cli.py",
+      "authoredSourceRecipe": "build/libdxfrw_gbk_codepage_tests --target-dwg-control PATH; locally authored AC1027 TEXT 'DWG 😀 literal\\U+0041' at(1,2,3), LINE(34,35,36)..(37,38,39); generation public re-read checks intended model",
+      "verifier": "build/libdxfrw_gbk_codepage_tests --verify-target-dxf-control PATH; exact public callback text and LINE placement",
+      "probeSource": "import hashlib\nimport json\nfrom pathlib import Path\nimport sys\nsys.path.insert(0, '/Users/dli/dev/libdxfrw/tools')\nfrom bounded_process import run_bounded\n\nroot = Path('/private/tmp/libdxfrw-target-transport.GsJ7UV')\nsource = root / 'authored-unicode.dwg'\nconverter = Path('/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf')\nverifier = Path('/Users/dli/dev/libdxfrw/build/libdxfrw_gbk_codepage_tests')\nsource_hash = hashlib.sha256(source.read_bytes()).hexdigest()\nassert source.read_bytes()[:6] == b'AC1027'\nrows = []\nfor freecad in (False, True):\n    for binary in (False, True):\n        output = root / f'dwg-target-{freecad}-{binary}.dxf'\n        def command(path, version, input_path=source):\n            args = [str(converter), str(input_path)]\n            args += ['-o', str(path), version, '-y'] if freecad else [version, '-y', str(path)]\n            if binary: args.insert(len(args) if freecad else len(args) - 1, '-b')\n            return args\n        for existing in (False, True):\n            output.unlink(missing_ok=True)\n            if existing: output.write_bytes(b'DWG target sentinel\\n')\n            result = run_bounded(command(output, '-v2004'), 5, 65536, cwd=root)\n            assert result.returncode == 1 and b'dxf-text-target-loss' in result.stderr\n            assert (output.read_bytes() if output.exists() else None) == (b'DWG target sentinel\\n' if existing else None)\n            rows.append({'route':'legacy-refusal', 'freecad':freecad, 'binary':binary, 'existing':existing, 'exit':result.returncode})\n        result = run_bounded(command(output, '-v2007'), 5, 65536, cwd=root)\n        assert result.returncode == 0\n        check = run_bounded([str(verifier), '--verify-target-dxf-control', str(output)], 5, 65536, cwd=root)\n        assert check.returncode == 0\n        second = root / f'dwg-second-{freecad}-{binary}.dxf'\n        result2 = run_bounded(command(second, '-v2007', output), 5, 65536, cwd=root)\n        assert result2.returncode == 0\n        check2 = run_bounded([str(verifier), '--verify-target-dxf-control', str(second)], 5, 65536, cwd=root)\n        assert check2.returncode == 0\n        rows.append({'route':'modern-two-pass', 'freecad':freecad, 'binary':binary, 'exit':result.returncode,\n                     'secondExit':result2.returncode, 'checks':[check.returncode, check2.returncode],\n                     'outputSha256':hashlib.sha256(output.read_bytes()).hexdigest(),\n                     'secondSha256':hashlib.sha256(second.read_bytes()).hexdigest()})\nassert hashlib.sha256(source.read_bytes()).hexdigest() == source_hash\nprint(json.dumps({'sourceSha256':source_hash, 'sourceVersion':'AC1027', 'refusals':8,\n                  'modernTwoPassRoutes':4, 'callbackVerifiers':8, 'rows':rows,\n                  'scope':'locally authored writer/reader control; no independent producer/native support qualification'}, indent=2))\n",
+      "limits": "Own writer/reader witness, not an independent producer/native/DWG-wide semantic qualifier. First/second whole-file hashes differ because of metadata/handles; no whole-file byte-stability claim"
+    },
+    "build": {
+      "command": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests libdxfrw_diagnostic_tests libdxfrw_hardening_tests libdxfrw_wave1_tests libdxfrw_dwg_local_roundtrip libdxfrw_writer_primitives_tests libdxfrw_writer_version_matrix_tests dwg2dxf lc3_compat_check --parallel 2",
+      "freshExitCode": 0,
+      "freshOutput": "ninja: no work to do.",
+      "meaning": "Affected build/dependency graph is up to date; not a fresh native consumer build"
+    },
+    "strict": {
+      "command": "for source in src/intern/dxfwriter.cpp src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/main.cpp tests/gbk_codepage_tests.cpp; do c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -fsyntax-only \"$source\" || exit; done",
+      "freshExitCode": 0,
+      "translationUnits": 5
+    },
+    "selectedSharedWriterCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_public_header_hygiene|dwg2dxf_cli_contract|libdxfrw_wave1|libdxfrw_gbk_codepage|libdxfrw_dwg_local_roundtrip|libdxfrw_writer_primitives|libdxfrw_hardening|libdxfrw_writer_version_matrix|libdxfrw_diagnostic|libdxfrw_dxf_fixtures)$' --output-on-failure --output-junit /private/tmp/libdxfrw-target-transport.GsJ7UV/accepted-shared-writer-ctest.xml",
+      "tests": 10,
+      "failures": 0,
+      "skipped": 0,
+      "wallSeconds": 25.68,
+      "repeatedAtFinalization": false,
+      "binding": "Retained final candidate gate; all12 production/test/CMake hashes unchanged at finalization and no-work build verified. Fresh focused/CLI/DWG/sanitizer/strict checks above, not another full selected suite.",
+      "names": [
+        "libdxfrw_public_header_hygiene",
+        "dwg2dxf_cli_contract",
+        "libdxfrw_wave1",
+        "libdxfrw_gbk_codepage",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_writer_primitives",
+        "libdxfrw_hardening",
+        "libdxfrw_writer_version_matrix",
+        "libdxfrw_diagnostic",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "limits": "Configured160 inventory not run in full; labels are not native-platform evidence. Header hygiene10entrypoints/10identical enums/mixedTU; actual X11 unavailable"
+    }
+  },
+  "reviewCorrections": [
+    "New legacy UTF8-profile control exposed normalized getCodePage ANSI1252 masking the original pass-through selection. Fixed original-declaration profile guard; retained test. Failed final-shared-writer-ctest.xml remains9/10, superseded only by accepted packet.",
+    "Wave1 pre-existing target linked a read-only writeEntity shim, but inherited finalizeDxfWrite/recordHatchBlockPublication and actual write/short-append probes require production dx_iface.cpp. Added that TU to existing target and removed obsolete shim; no assertion removed or CTest added. Earlier shared-writer-ctest.xml records9passes/Wave1 not-run.",
+    "First optional authored-DWG helper crashed because test-only dx_iface base cData was uninitialized. Initialized own dx_data and no-op View/UCS callbacks; corrected generation/re-read and actual DWG CLI checks pass. No production DWG parser/layout changed."
+  ],
+  "authority": {
+    "primary": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html"
+    ],
+    "decision": "Existing legacy raw-codepage/CIF behavior is locally constrained, not globally converted to a normative CIF-only producer profile. Valid modern scalar transport, source validity and exact named mappings remain separate.",
+    "frozenResearch": "Prior140 codec/32route receipts and deeper2560mapping/28carrier research retain their original candidate states/hashes; none is relabeled integration/native acceptance."
+  },
+  "fixturePolicy": "No external or generated DWG/DXF payload committed; all new runtime inputs locally authored; no new dependency/CTest registration.",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12,
+    "readyParents": 0
+  },
+  "next": "Slice3.3a explicit exact-named mapping identity/policy, then3.3b ISO8859-4 offline table and3.3c actual source/HEADER/CLI handoff;3.4 version witnesses,7AR caret/default/native and7AU full raw/semantic migration stay separate."
+}

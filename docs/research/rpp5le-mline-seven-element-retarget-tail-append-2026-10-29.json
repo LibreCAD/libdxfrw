@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5le selected AC1027 seven-element MLINE retarget tail append",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "acdf319813ccff250bb78561b87cec2d9fcd4ee1",
+  "evidenceCommit": "acdf319813ccff250bb78561b87cec2d9fcd4ee1",
+  "scope": "Qualifies a source-bound AC1027 retarget from a seven-element MLINE style to another source-bound style after appending one eighth tail element. The focused adapter test checks emitted field roles, ownership, fresh readback, source-edit refusal, late-mutation refusal, rollback and same-adapter retry.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Groups 71 and 49 encode element count and offsets, repeated 49/62/6 tuples encode each element, and group 70 contains flags. This defines field layout, not consumer regeneration semantics."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 is the MLINESTYLE object pointer, group 2 is the redundant style name, group 73 stores the element count, groups 74/41 and 75/42 describe per-element segment/fill parameters, and groups 13/23/33 store vertex miter vectors."
+    }
+  ],
+  "contract": {
+    "admission": "Runtime-authored AC1027 source with old and target styles using flags 2 and angles 90/90. The seven source offsets are [1.25,-0.75,-1.25,-2.0,-2.75,-3.5,-4.25]. Source tuple colors are [1,3,4,5,6,7,8], target source tuple colors are [5,7,4,5,6,7,8], and both use alternating ByLayer/Continuous linetypes from the existing recipe. Two source-bound MLINE consumers have three vertices and belong to model space and a named block. The target appends offset -5.25, ACI 4, ByLayer; retargeting changes group-340 identity while preserving redundant group-2 names.",
+    "projection": "Require the exact 7-to-8 target tail append, preserving the seven source offsets as an ordered prefix, flags 2 and angles 90/90. Recompute first group-41 parameters against target minimum -5.25; preserve source positions, directions, miters and the zero second parameter. Bottom-justified consumers use target-minimum rebasing (+5.25). This is not a general MLINE regeneration algorithm.",
+    "outputAndReadback": "For ASCII/binary source and output, verify style tuple order and owner dictionary keys; group 340 and unchanged group 2; group 73=8; exact groups 74/75/41 and miter groups 13/23/33; model-space/block ownership; and fresh readback of both styles and both consumers with the expected target and parameters.",
+    "failureAndRetry": "The seven-element source profile has four initial source/output encoding combinations. For each output encoding, a changed existing target offset refuses while destination and caller snapshots remain unchanged; restoring the correct state allows same-adapter retry. A late consumer parameter mutation also refuses atomically and then passes after restoring caller state. Across source counts 2 through 7, the selector reports profiles=24, readbacks=48, refusals=12, late=12 and retries=24.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Source and output drawings are authored at runtime and removed after a successful selector run; no DWG/DXF fixture files are committed.",
+    "limits": "This qualifies only the AC1027 seven-to-eight tail append under the listed flags, angles, offsets, tuples, two-consumer layout and uncut/unfilled geometry profile. A separate runtime-authored 254-to-255 retarget probe was refused by existing aggregate retained-byte admission; no maximum-count retarget support claim is made and no resource cap was weakened. Other counts, append batches, angles, offsets, flags, schemas, versions, native CAD meaning, full document closure and broad support claims remain open."
+  },
+  "controls": {
+    "profiles": [
+      "ASCII AC1027 source -> ASCII output",
+      "ASCII AC1027 source -> binary output",
+      "binary AC1027 source -> ASCII output",
+      "binary AC1027 source -> binary output"
+    ],
+    "observed": "The source-count-seven profile provides four initial successful output/readbacks, two source-edit rollbacks, two late-mutation rollbacks and four same-adapter retries. Aggregate selector totals for source counts 2 through 7 are profiles=24, readbacks=48, refusals=12, late=12 and retries=24.",
+    "runtimeFixturePolicy": "The focused selector authors all inputs and outputs under a temporary directory. Failed exploratory max-count runs were removed; no test drawings are committed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-retarget-append-projection",
+      "summary": "Source counts 2 through 7 passed with profiles=24, readbacks=48, refusals=12, late=12 and retries=24."
+    },
+    "focusedSuite": {
+      "result": "PASS",
+      "summary": "All four focused MLINE retarget/append CTests passed (4/4).",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(retarget_(angle|offset|append)_projection|consumed_style_append)$' --output-on-failure"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "codeCommit": "acdf319813ccff250bb78561b87cec2d9fcd4ee1",
+    "tests/dxf_fixture_tests.cpp": "1697b964c551d16d45cce29b0737b78e9dd3add3f974054a34509bf0f1a8317e",
+    "normalLibdxfrwDxfFixtureTests": "5d3e3e1f05c10b3d23dc5dc394e05caf897ee03efb0bbe509f48600dd07d8009"
+  },
+  "next": "Select one source-backed P2 witness with a distinct geometry operation or schema/provider delta. Keep the aggregate retained-byte gate intact and do not repeat a maximum-count retarget probe as though structural count admission implied output eligibility."
+}

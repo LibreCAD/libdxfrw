@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACIS semantic-reader admission and NIST corpus path",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This research pass edited only the parity plan and this receipt; it did not modify codec or test source.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-semantic-reader-admission-nist-corpus-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "cq-acis pinned release and local exact-artifact observation",
+      "references": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "docs/research/deeper-broader-acis-peer-local-0_3_12-observation-2026-10-21.json"
+      ],
+      "observation": "The existing pinned 0.3.12 receipt records one generated SAB 21800 box converted to a valid closed OCCT solid with bounded geometry metrics and complete classified raw-record disposition. It explicitly marks qualification ineligible because the source was ezdxf-authored, runtime attestation is version-strings-only, the vector is one generated polyhedron, the shape kernel is OCCT, and no outer DWG/AcDs association was exercised.",
+      "planDisposition": "Reuse this baseline; do not rerun or widen its support claim. Keep bare-payload semantics separate from file carrier, DWG owner/key association, native FreeCAD behavior, and kernel independence."
+    },
+    {
+      "project": "cq-acis mutable current documentation and pinned corpus",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/manifest.jsonl",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/sources.lock.json"
+      ],
+      "observation": "Current docs distinguish SAT save versions 105/400/600/700, SAB 21800, and selected ASM 22000-23200 profiles, with geometry/profile limitations, raw retention, and explicit conversion failures. Some geometry details are marked unreleased. The corpus uses pinned upstream commit/blob/hash/license metadata and includes NIST SAT variants plus ezdxf-produced fixtures.",
+      "planDisposition": "Do not apply mutable current-main or unreleased capabilities retroactively to cq-acis 0.3.12. Use at most one hash- and license-checked NIST artifact in scratch after exact pinned-package profile admission; do not commit that artifact."
+    },
+    {
+      "project": "NIST Engineering Design Model Repository",
+      "references": [
+        "https://github.com/usnistgov/engineering-design-models",
+        "https://github.com/usnistgov/engineering-design-models/blob/master/LICENSE.md"
+      ],
+      "observation": "NIST describes the model repository as a public-domain-in-the-US-oriented collection intended in part for CAD compatibility and translation research, supplied as-is, and warns that third-party assignments or foreign rights may apply.",
+      "planDisposition": "Treat a sample as a provenance-rich candidate, not as an automatically trusted geometry oracle. Review the exact per-sample notice and determine independent expected geometry before claiming semantic parity."
+    },
+    {
+      "project": "Open CASCADE commercial exchange components",
+      "references": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://www.occt3d.com/components/acis-exchange/"
+      ],
+      "observation": "The public OCCT component catalog identifies ACIS SAT/SAB and DXF exchange translators as commercial extensions, separate from the open-source OCCT core.",
+      "planDisposition": "Do not infer built-in ACIS support from an OCCT-based consumer and do not add a purchased component as a dependency. An already-authorized component is optional same-kernel-family evidence only."
+    },
+    {
+      "project": "FreeCAD stock DXF route",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observation": "FreeCAD documentation and issue discussion say its stock DXF import path does not read embedded ACIS/SAT solids; its DWG route converts to DXF before that importer.",
+      "planDisposition": "Keep explicit entity/mesh acceptance and stock FreeCAD ACIS behavior separate. Classify unsupported stock import as UNSUPPORTED_CONSUMER, not as codec loss or semantic success."
+    }
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 versioned ACIS carriers, association, semantics, and consumer evidence",
+      "PAR-59 staged modeler-loss attribution and peer admission"
+    ],
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "implementationReadinessRefined": true,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sampleDownloaded": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Reuse the existing exact cq-acis 0.3.12 local observation, then consider one pinned NIST SAT corpus artifact only if its exact source profile is admitted; do not install a peer or add a default dependency.",
+    "sequence": [
+      "Verify the exact corpus source commit/blob ID, SHA-256, file size, and per-sample license notice before using a NIST SAT candidate.",
+      "Select the smallest compatible sample whose entire body-reachable geometry can be classified by the pinned cq-acis artifact; otherwise record NOT_QUALIFIED and continue with generated scratch controls.",
+      "Keep original NIST bytes and all derived DXF/DWG artifacts in a unique temporary directory; never commit external fixtures.",
+      "For a supported inline-SAT roundtrip, compare carrier bytes/order and entity/block ownership before attempting semantic conversion.",
+      "Require independent expected geometry, complete record disposition, valid closed topology where expected, and explicit units/tolerances before calling the result semantic parity; otherwise report only carrier preservation or shape construction.",
+      "Do not use this bare-payload route to claim ACDSDATA key/owner closure, native FreeCAD support, arbitrary ACIS coverage, or resolution of any deferred J item.",
+      "Keep implementation checks fast: owning local selector per code slice; optional semantic-peer execution only at the composed checkpoint; update the plan and self-unblock after each item."
+    ],
+    "fixturePolicy": "No downloaded NIST or peer artifacts are committed; scratch-only use requires source pin, hash verification, and license review.",
+    "progressPolicy": "Research only; no implementation slice was performed in this receipt. Continue the active implementation goal separately and report progress after each committed slice."
+  },
+  "limitations": "No NIST sample was downloaded or executed. Current cq-acis main documentation is mutable and contains unreleased capability notes; 0.3.12 is the latest PyPI release identified in this research and the only candidate with an exact local run receipt. OCCT kernel family is shared with CadQuery/FreeCAD Part; stock FreeCAD DXF import is not an ACIS semantic reader. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+}

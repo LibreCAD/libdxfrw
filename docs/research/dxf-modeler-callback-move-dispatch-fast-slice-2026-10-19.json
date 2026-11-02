@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DXF modeler callback move dispatch fast slice",
+  "mode": "Local generated DXF parser/adapter integration control",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Avoid copying completed DXF modeler geometry into an adapter that supports the existing rvalue callback.",
+    "Verify move dispatch and legacy const-reference callback fallback."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": true,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "dxfRW::processModelerGeometry now calls addModelerGeometry(std::move(geom)). The in-tree dx_iface rvalue overload moves into the block; the DRW_Interface default rvalue overload remains compatible with legacy const-reference implementations.",
+    "generatedTest": "A generated ASCII DXF containing a minimal 3DSOLID modeler carrier is parsed by a probe overriding both callback overloads. It asserts the rvalue overload, not the const-reference overload, is invoked and the adapter retains the entity. The existing direct move/fallback selector tests legacy forwarding."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelectors": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_(modeler_geometry_move_callback|modeler_dxf_move_dispatch|datastorage_move_callback)$' --output-on-failure",
+      "result": "passed 3/3"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fb657d5ad135dfe4e17f744b61c367d35fbae0259f5efac89321c3aba8349e46",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "This removes one DXF adapter copy; it does not change parser semantics or DWG behavior.",
+    "No ACIS/SAB semantic, native CAD, or consumer support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No external drawings or repository fixtures were added.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

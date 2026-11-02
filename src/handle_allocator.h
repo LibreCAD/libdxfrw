@@ -91,6 +91,15 @@ public:
         }
     }
 
+    /// Reserve a known output destination for the current write only. Unlike
+    /// caller-owned reserve(), this planning fact expires at resetGenerated()
+    /// and must never be treated as proof that a record was emitted.
+    void reserveForWrite(std::uint32_t h) {
+        if (h >= m_next && h == (std::numeric_limits<std::uint32_t>::max)())
+            throw std::overflow_error("DWG/DXF handle allocator exhausted");
+        m_allocated.insert(h);
+    }
+
     /// Allocate the next unused handle ≥ `m_next`, skipping reserved.
     /// Marks the returned handle as reserved so subsequent calls don't
     /// return the same value.
@@ -107,7 +116,7 @@ public:
         return h;
     }
 
-    /// Reset handles minted by the previous write while retaining explicit
+    /// Reset minted/planned handles from the previous write while retaining explicit
     /// source/raw reservations.  Failed allocations are not retained as
     /// reservations across writes; within one write, callers never receive a
     /// handle twice because `next()` is monotonic.
@@ -124,7 +133,19 @@ public:
     }
 
     /// High-water mark.  Used to populate the HANDSEED header variable.
-    std::uint32_t current() const { return m_next; }
+    std::uint32_t current() const {
+        // A future remap destination must raise HANDSEED, not force all new
+        // records above that destination. In particular FFFFFFFE leaves many
+        // usable low handles even though its high-water mark is FFFFFFFF.
+        const std::uint32_t plannedNext = m_allocated.empty()
+            ? 0u : *m_allocated.rbegin() + 1u;
+        return m_next < plannedNext ? plannedNext : m_next;
+    }
+
+    /// Explicit reserve() calls only; handles minted by next() are excluded.
+    bool isExplicitlyReserved(std::uint32_t h) const {
+        return m_explicitReserved.count(h) != 0;
+    }
 
 private:
     /// First candidate for user-allocated handles.  All canonical

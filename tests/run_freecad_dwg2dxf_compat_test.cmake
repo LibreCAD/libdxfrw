@@ -1,19 +1,70 @@
-if(NOT DEFINED DWG2DXF OR NOT DEFINED SAMPLE OR NOT DEFINED OUTPUT_DIR)
-    message(FATAL_ERROR "DWG2DXF, SAMPLE, and OUTPUT_DIR are required")
+if(NOT DEFINED DWG2DXF OR NOT DEFINED OUTPUT_DIR)
+    message(FATAL_ERROR "DWG2DXF and OUTPUT_DIR are required")
+endif()
+if(NOT DEFINED SAMPLE AND NOT DEFINED DWG_SOURCE_GENERATOR)
+    message(FATAL_ERROR "SAMPLE or DWG_SOURCE_GENERATOR is required")
+endif()
+if(DEFINED DWG_SOURCE_GENERATOR AND NOT EXISTS "${DWG_SOURCE_GENERATOR}")
+    message(FATAL_ERROR "DWG source generator does not exist: ${DWG_SOURCE_GENERATOR}")
+endif()
+if(DEFINED SAMPLE AND NOT EXISTS "${SAMPLE}")
+    message(FATAL_ERROR "DWG sample does not exist: ${SAMPLE}")
 endif()
 if(NOT DEFINED RTEXT_SAMPLE OR NOT DEFINED MPOLYGON_SAMPLE)
     message(FATAL_ERROR "RTEXT_SAMPLE and MPOLYGON_SAMPLE are required")
 endif()
 
-set(_test_dir "${OUTPUT_DIR}/freecad dwg2dxf cli test")
+# The registered fast test supplies Python for the macro's actual pure
+# predicates. The installed clean-loader wrapper intentionally remains a
+# converter-only gate and does not add Python to that environment.
+if(DEFINED PYTHON)
+    if(NOT IS_ABSOLUTE "${PYTHON}" OR NOT EXISTS "${PYTHON}")
+        message(FATAL_ERROR "PYTHON must be an existing absolute path for LINE predicate controls")
+    endif()
+    execute_process(
+        COMMAND "${PYTHON}" -I -B
+            "${CMAKE_CURRENT_LIST_DIR}/freecad_dwg2dxf_import_check.FCMacro" --self-test
+        RESULT_VARIABLE _predicate_result
+        OUTPUT_VARIABLE _predicate_stdout
+        ERROR_VARIABLE _predicate_stderr
+        TIMEOUT 15
+    )
+    if(NOT "${_predicate_result}" STREQUAL "0"
+            OR NOT _predicate_stdout MATCHES "FreeCAD LINE predicate controls: PASS")
+        message(FATAL_ERROR
+            "Dependency-free LINE predicate controls failed (${_predicate_result}).\n"
+            "${_predicate_stdout}\n${_predicate_stderr}")
+    endif()
+endif()
+
+string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _nonce)
+set(_test_dir "${OUTPUT_DIR}/freecad dwg2dxf cli test-${_nonce}")
+if(EXISTS "${_test_dir}")
+    message(FATAL_ERROR "Refusing to reuse existing test directory '${_test_dir}'")
+endif()
 file(MAKE_DIRECTORY "${_test_dir}")
 set(_input "${_test_dir}/source drawing AC1027.dwg")
-execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_input}"
-    RESULT_VARIABLE _copy_result
-)
-if(NOT "${_copy_result}" STREQUAL "0")
-    message(FATAL_ERROR "Could not prepare the test-local DWG input (${_copy_result})")
+if(DEFINED SAMPLE)
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_input}"
+        RESULT_VARIABLE _copy_result
+    )
+    if(NOT "${_copy_result}" STREQUAL "0")
+        message(FATAL_ERROR "Could not prepare the test-local DWG input (${_copy_result})")
+    endif()
+else()
+    execute_process(
+        COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source "${_input}" AC1027
+        RESULT_VARIABLE _generate_result
+        OUTPUT_VARIABLE _generate_stdout
+        ERROR_VARIABLE _generate_stderr
+        TIMEOUT 30
+    )
+    if(NOT "${_generate_result}" STREQUAL "0" OR NOT EXISTS "${_input}")
+        message(FATAL_ERROR
+            "Could not generate the test-local AC1027 DWG (${_generate_result})\n"
+            "${_generate_stdout}\n${_generate_stderr}")
+    endif()
 endif()
 set(_output "${_test_dir}/ordinary encoding AC1027.dxf")
 file(REMOVE "${_output}")
@@ -66,10 +117,7 @@ if(_readback_version_pos EQUAL -1)
         "FreeCAD-form DXF readback downgraded the source revision from AC1027")
 endif()
 
-# Exercise special records through the exact converter argv FreeCAD uses, not
-# only through an in-process adapter test. The source files are tracked DWG
-# fixtures; outputs stay in this build-tree test directory.
-function(assert_freecad_entity_records sample stem)
+function(assert_freecad_entity_refusal sample stem diagnostic)
     set(_special_input "${_test_dir}/${stem} source.dwg")
     set(_special_output "${_test_dir}/${stem} result.dxf")
     execute_process(
@@ -87,24 +135,30 @@ function(assert_freecad_entity_records sample stem)
         ERROR_VARIABLE _stderr
         TIMEOUT 60
     )
-    if(NOT "${_result}" STREQUAL "0" OR NOT EXISTS "${_special_output}")
+    string(FIND "${_stderr}" "${diagnostic}" _diagnostic_pos)
+    if("${_result}" STREQUAL "0" OR EXISTS "${_special_output}"
+            OR _diagnostic_pos EQUAL -1)
         message(FATAL_ERROR
-            "FreeCAD-form ${stem} conversion failed (${_result})\n${_stdout}\n${_stderr}")
+            "FreeCAD-form ${stem} refusal was not explicit and atomic (${_result})\n"
+            "${_stdout}\n${_stderr}")
     endif()
-    file(READ "${_special_output}" _special_dxf)
-    foreach(_entity IN LISTS ARGN)
-        string(FIND "${_special_dxf}" "0\n${_entity}\n" _entity_pos)
-        if(_entity_pos EQUAL -1)
-            message(FATAL_ERROR
-                "FreeCAD-form ${stem} conversion dropped the ${_entity} DXF record")
-        endif()
-    endforeach()
+    file(GLOB _temporaries "${_special_output}.libdxfrw-*")
+    if(_temporaries)
+        message(FATAL_ERROR
+            "FreeCAD-form ${stem} refusal left output temporaries: ${_temporaries}")
+    endif()
 endfunction()
 
-assert_freecad_entity_records("${RTEXT_SAMPLE}" "rtext arctext"
-    RTEXT ARCALIGNEDTEXT)
-assert_freecad_entity_records("${MPOLYGON_SAMPLE}" "mpolygon"
-    MPOLYGON)
+# These tracked special-record drawings currently report a source-header or
+# class CRC mismatch. The strict FreeCAD route must surface that first read
+# completeness gate and leave no DXF behind; the adapter's typed-proxy gate is
+# checked separately by the CLI contract tests.
+set(_strict_read_refusal
+    "strict-complete conversion requires successful, complete DWG read disposition")
+assert_freecad_entity_refusal("${RTEXT_SAMPLE}" "rtext arctext"
+    "${_strict_read_refusal}")
+assert_freecad_entity_refusal("${MPOLYGON_SAMPLE}" "mpolygon"
+    "${_strict_read_refusal}")
 
 # Unix command-line arguments are byte strings (UTF-8 on the supported host
 # environments exercised here). Keep Windows Unicode argv qualification
@@ -116,13 +170,28 @@ if(NOT CMAKE_HOST_WIN32)
     set(_unicode_input "${_unicode_dir}/drawing été.dwg")
     set(_unicode_output "${_unicode_dir}/résultat été.dxf")
     file(REMOVE "${_unicode_output}")
-    execute_process(
-        COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_unicode_input}"
-        RESULT_VARIABLE _copy_result
-    )
-    if(NOT "${_copy_result}" STREQUAL "0")
-        message(FATAL_ERROR
-            "Could not prepare Unicode-path DWG input (${_copy_result})")
+    if(DEFINED SAMPLE)
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_unicode_input}"
+            RESULT_VARIABLE _copy_result
+        )
+        if(NOT "${_copy_result}" STREQUAL "0")
+            message(FATAL_ERROR
+                "Could not prepare Unicode-path DWG input (${_copy_result})")
+        endif()
+    else()
+        execute_process(
+            COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source "${_unicode_input}" AC1027
+            RESULT_VARIABLE _generate_result
+            OUTPUT_VARIABLE _generate_stdout
+            ERROR_VARIABLE _generate_stderr
+            TIMEOUT 30
+        )
+        if(NOT "${_generate_result}" STREQUAL "0" OR NOT EXISTS "${_unicode_input}")
+            message(FATAL_ERROR
+                "Could not generate the Unicode-path AC1027 DWG (${_generate_result})\n"
+                "${_generate_stdout}\n${_generate_stderr}")
+        endif()
     endif()
     execute_process(
         COMMAND "${DWG2DXF}" "${_unicode_input}" -o "${_unicode_output}"
@@ -247,3 +316,4 @@ if(_failed_temporary_files)
     message(FATAL_ERROR
         "Failed conversion left output temporaries: ${_failed_temporary_files}")
 endif()
+file(REMOVE_RECURSE "${_test_dir}")

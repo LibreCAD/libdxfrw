@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-modeler-missing-carrier-refusal-atomicity-fast-slice-v1",
+  "date": "2026-10-16",
+  "scope": "Verify that three already-rejected modeler writer inputs do not replace a pre-existing DXF destination.",
+  "implementation": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "productionBehaviorChanged": false,
+    "existingTestHelpersExtended": [
+      "runDxfModelerRejectsUnassociatedSab",
+      "runDxfModelerRejectsDwgFramePayload"
+    ],
+    "cases": [
+      {
+        "name": "unassociated AC1027 SAB",
+        "input": "Generated 3DSOLID whose raw bytes contain SAB data but no qualifying ACDSDATA owner association",
+        "expected": "Export rejects and sentinel destination remains byte-identical"
+      },
+      {
+        "name": "retained DWG object frame",
+        "input": "Generated modeler entity carrying a frame/body-size marker without a supported DXF payload representation",
+        "expected": "Export rejects and sentinel destination remains byte-identical"
+      },
+      {
+        "name": "declared modeler data with missing payload",
+        "input": "Generated AC1027 entity has modeler-data flag/version but no linked data-storage record or payload bytes",
+        "expected": "Export rejects and sentinel destination remains byte-identical"
+      }
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure"
+    ],
+    "build": "PASS",
+    "focusedCTest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 3.07
+    },
+    "fullSuiteRun": false,
+    "externalPeerOrNativeRuntimeRun": false
+  },
+  "limitations": [
+    "Synthetic writer-refusal coverage only; no ACIS semantic, native application, or independent-reader claim.",
+    "Does not cover every DXF version, modeler entity type, block graph, or failure point.",
+    "No fixture, dependency, or test registration was added.",
+    "No support claim or external J-item status changed; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-deeper-acis-reader-and-current-occt-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Screen another open-source ACIS/SAB decoding path and refresh the current OCCT open-source-versus-commercial exchange boundary; refine existing external semantic and FreeCAD qualification gates without changing local implementation scope.",
+  "method": {
+    "kind": "Public package metadata, repository documentation, and official product documentation review",
+    "sourcesOpened": [
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/CONTRIBUTING.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+      "https://occt3d.com/components/acis-exchange/",
+      "https://occt3d.com/components/dxf-exchange/",
+      "https://occt3d.com/data-exchange-formats/",
+      "https://github.com/Open-Cascade-SAS/OCCT"
+    ],
+    "repositoriesCloned": false,
+    "peersInstalledBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "evidenceBoundary": "Public-source review only. Package claims, mutable-main documentation, and official commercial-component descriptions are not runtime qualification, source-lineage proof, independent corpus proof, or local implementation evidence. No support claim or J status is changed."
+  },
+  "evidence": [
+    {
+      "topic": "cadmpeg-codec-sat as a candidate bare-stream parser and IR projection",
+      "sources": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md"
+      ],
+      "observed": "The published 0.6.1 crate describes inspection and decode of bare ASM/ACIS SAT/SAB/SMT/SMB B-rep streams. The project format-support page scores the aggregate bare ASM/ACIS profile L1 while describing selected geometry transfer into its own CAD IR. The route is an inner-stream decoder, not a DWG/DXF document, AutoCAD AcDs index, or owner-association reader.",
+      "doesNotEstablish": [
+        "execution or output behavior of the exact 0.6.1 artifact",
+        "source/dependency lineage independence from cq-acis or other ACIS projects",
+        "independent producer corpus or expected geometry oracle",
+        "general ACIS coverage, closed-solid validity, or native CAD acceptance",
+        "DWG AcDs framing, page extraction, record indexing, handle mapping, or entity ownership"
+      ],
+      "planUse": "Keep as an optional parser/IR candidate. Before crediting independence, pin the artifact and audit source/dependency lineage and exact profile. Use only a narrow scratch-generated analytic case with expected values authored separately; reject semantic promotion when shape-relevant records are unknown or intersect unresolved profile questions. Do not treat its IR as a second kernel or native-application gate."
+    },
+    {
+      "topic": "cadmpeg open questions and provenance limits",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/CONTRIBUTING.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml"
+      ],
+      "observed": "The current mutable ASM open-items document records unresolved interpretation risks, including construction/cache ownership ambiguity, missing coedge-partner substitution, body-kind inference from edge-use counts, and pcurve interval tolerance. The project states clean-room/legal restrictions and separates ASM, codec, and IR crates in its workspace. These statements are useful admission leads, not proof of code-level independence or corpus provenance; the mutable-main document was not assumed to match the released 0.6.1 package.",
+      "doesNotEstablish": [
+        "that each listed open item is present in release 0.6.1",
+        "that every output has those defects",
+        "that all format knowledge or test data are independently reproducible",
+        "that the implementation is unrelated to every existing parser at code level"
+      ],
+      "planUse": "Check the exact release source and applicable open-item status before selecting a profile. Treat a result affected by an unresolved semantic choice as diagnostic only. If lineage or provenance remains unknown, label it SAME_LINEAGE_OR_UNVERIFIED."
+    },
+    {
+      "topic": "Current OCCT component boundary for ACIS and DXF",
+      "sources": [
+        "https://occt3d.com/components/acis-exchange/",
+        "https://occt3d.com/components/dxf-exchange/",
+        "https://occt3d.com/data-exchange-formats/",
+        "https://github.com/Open-Cascade-SAS/OCCT"
+      ],
+      "observed": "Current OCCT product pages identify SAT/SAB import/export and DXF import/export (including embedded ACIS bodies on the DXF route) as separately delivered commercial exchange components. The OCCT core repository identifies its LGPL-2.1 license with an exception. The component descriptions distinguish the inner ACIS reader from a reader for the containing application format and mention healing/approximation controls.",
+      "doesNotEstablish": [
+        "that an ordinary OCCT or FreeCAD installation contains or is entitled to the commercial component",
+        "availability on any specific host or app package",
+        "any specific SAT/SAB profile, import result, or geometric correctness",
+        "that historical release-note references imply current free/core availability"
+      ],
+      "planUse": "At an optional composed gate, preflight the exact application/runtime version, module/component presence and entitlement, inner save profile, and healing/approximation settings. Keep this outside build and fast-test requirements; preserve stock FreeCAD's separately documented importer/converter profile."
+    }
+  ],
+  "implementationReadiness": {
+    "existingExternalGateOnly": true,
+    "optionalCandidate": "cadmpeg-codec-sat 0.6.1; exact source/artifact identity and lineage check required",
+    "fastLaneChanged": false,
+    "newDependencies": false,
+    "newFixturesOrCTest": false,
+    "noExternalFilesCommitted": true,
+    "noNewFindingsOrSubplans": true,
+    "noSupportClaimsPromoted": true,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonValid": true,
+    "gitDiffCheckPassed": true
+  }
+}

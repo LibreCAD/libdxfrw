@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Validated unknown ASCII appData string raw-emission route",
+  "mode": "local fast implementation slice with generated in-memory controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile writeAppData validation of unknown ASCII string groups with its emitted-byte sink",
+    "Keep Binary unknown-code behavior fail-closed",
+    "Add a focused code-482 output/sentinel control without adding a persistent drawing fixture"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "writeAppData now routes only a validated unknown string code in ASCII (DxfValueKind::Unknown && !binFile) through writeRawString after the existing opaque-text preflight. Assigned strings, handles, binary chunks, and typed numeric/Boolean variants retain their existing sinks; Binary unknown string groups remain rejected during whole-group validation before output.",
+    "wireBehaviorChanged": true,
+    "wireBehaviorDetail": "This makes an already-admitted, prevalidated unknown ASCII appData string spelling emit successfully; it does not alter recognized code encodings or Binary behavior.",
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControls": {
+    "ascii": "An in-memory balanced appData group containing unknown group code 482 emits its exact source spelling and a following group-0 WIRE_END sentinel.",
+    "binary": "The same unknown string group is refused before any bytes are emitted.",
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "build-gcc/libdxfrw_wave1_tests --typed-appdata-wire-kinds",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "passed; configured flags include -Wall -Wextra -pedantic -Werror",
+      "focusedSelector": "passed",
+      "owningWave1CTest": "passed (1/1)",
+      "diffCheck": "passed"
+    },
+    "compiler": {
+      "path": "/usr/bin/g++",
+      "reportedVersion": "Apple clang version 21.0.0 (clang-2100.3.34.2)"
+    },
+    "fullSuiteRun": false,
+    "compatibilityCompileRun": false,
+    "reasonCompatibilityCompileOmitted": "No public header or callback contract changed.",
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "sanitizerOrFuzzRun": false,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "localMismatchFound": "The writeAppData complete-group validator accepted unknown string codes for ASCII, but the emission branch sent them to typed writeString, which rejects unknown codes.",
+    "claim": "The already-authorized ASCII appData unknown-string branch now emits through the explicit raw sink after prevalidation. The same value remains refused for Binary before output.",
+    "coverage": "Generated code-482 controls verify exact ASCII spelling, a following record sentinel, and Binary pre-emission refusal.",
+    "limitations": "This closes only the validated unknown-string appData emission branch. It does not complete the full dynamic writer-family inventory, support arbitrary unknown codes in other APIs, establish a producer/profile contract for other ranges, or qualify native/peer acceptance."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false,
+    "unrelatedChangesPreserved": true
+  }
+}

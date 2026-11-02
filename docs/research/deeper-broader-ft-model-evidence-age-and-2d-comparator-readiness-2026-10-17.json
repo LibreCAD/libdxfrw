@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader ft_model evidence-age and 2D comparator-readiness refresh",
+  "mode": "primary-source documentation and repository-tree research only",
+  "scope": [
+    "Revisit the existing ft_model candidate without creating a new peer lane",
+    "Distinguish self-reported DWG entity comparison results from independent semantic evidence",
+    "Check per-version fixture claims, test provenance, and public sample visibility",
+    "Keep optional peer work outside the fast local implementation loop"
+  ],
+  "method": {
+    "kind": "Read-only review of public README, repository tree, version matrix, historical project status, and prior local peer receipt",
+    "previouslyPinnedSourceRevision": "408e34e9993e4c5c365675976d77f8c90b04baaf",
+    "currentMainRevisionCaptured": false,
+    "peerRepositoryClonedOrBuilt": false,
+    "peerExecutableRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/hhcme/ft_model/blob/main/README.md",
+      "https://github.com/hhcme/ft_model/tree/main",
+      "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+      "https://github.com/hhcme/ft_model/blob/main/PROJECT_STATUS.md",
+      "https://github.com/hhcme/ft_model/blob/main/FINAL_REVIEW_REPORT.md",
+      "https://github.com/hhcme/ft_model/commit/408e34e9993e4c5c365675976d77f8c90b04baaf",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The new repository-page observations are from mutable main and are not attributed to the previous 408e34e pin. The project reports are self-authored and were not rerun; public source pages do not provide a hash-bound DWG corpus manifest or immutable run receipt in this pass."
+  },
+  "evidence": [
+    {
+      "topic": "ft_model remains a 2D parser-to-preview route, not a file writer or solid-semantic route",
+      "observed": "The README describes a C++20 DWG/DXF parser feeding a SceneGraph, JSON preview export, and 2D Canvas/WebGL rendering. It does not document DWG/DXF file writing. The current public root lists test_data/fixtures but not the README-referenced test_dwg directory, and the repository page presents no release entry.",
+      "doesNotEstablish": [
+        "DWG/DXF writer behavior or round-trip preservation",
+        "ACIS/AcDs or 3D B-rep semantics",
+        "public availability or provenance of the README-referenced DWG sentinel files",
+        "current-main observations for previously pinned source revision 408e34e"
+      ],
+      "planUse": "Keep the candidate discovery-only and, at most, eligible for a conditional optional 2D preview-consumer comparison after current source/build and input provenance are pinned."
+    },
+    {
+      "topic": "The project's own current version matrix limits the advertised multi-version scope",
+      "observed": "The project-authored dwg_version_deltas.md matrix lists AC1015 missing, AC1018 and AC1021 partial, AC1024 and AC1027 implemented, and AC1032 partial. This is a screening matrix, not a hash-bound test receipt.",
+      "doesNotEstablish": [
+        "semantic conformance for any version family",
+        "that completion labels bind to an immutable binary, inputs, diagnostics, or expected values",
+        "DWG file-layout authority for libdxfrw"
+      ],
+      "planUse": "Do not claim six-family validation; resolve any DWG byte-layout questions against ODA documentation and sample traces."
+    },
+    {
+      "topic": "Reported entity-match rates are historical, peer-baselined, and lossy",
+      "observed": "PROJECT_STATUS.md labels itself historical/superseded and reports metrics as of 2026-04-23. It describes comparison tooling that uses LibreDWG DWG-to-DXF and ezdxf, with entity type/coordinate/property matching and spatial tolerance. It reports 42619/42698 matches for an R2010 file, 25049/25051 for R2013, 358/369 for R2007, and 1480/3913 for R2004; the same report lists mismatches and a major R2004 object-map gap.",
+      "doesNotEstablish": [
+        "current-main or release behavior",
+        "independently authored expected semantics",
+        "complete per-record identity, owner, graph, or loss accounting",
+        "writer parity, parser support promotion, or 3D support"
+      ],
+      "planUse": "Retain the observations as possible test-shape leads only. Any optional comparison needs exact input/build hashes, full diagnostics, an independently authored expected manifest, and separate parser/JSON/renderer outcomes."
+    }
+  ],
+  "planImpact": {
+    "existingCandidateOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-ft-model-evidence-age-and-2d-comparator-readiness-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-ft-model-evidence-age-and-2d-comparator-readiness-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": false,
+    "scopedDiffCheck": false
+  }
+}

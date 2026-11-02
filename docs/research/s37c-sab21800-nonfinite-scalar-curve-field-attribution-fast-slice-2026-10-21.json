@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 non-finite scalar-curve node attribution",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified. This slice changes ACIS scalar-curve validation, generated graph-preservation tests, both plan files, and this receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab21800-nonfinite-scalar-curve-field-attribution-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "localFinding": "Strict SAB 21800 straight/ellipse readers previously admitted non-finite vector/scalar fields into the temporary projection and relied on a later whole-body finite scan. The operation was fail-closed but reported the owning body rather than the exact malformed curve node.",
+    "formatBasis": "No new wire-layout assumption was introduced. The change validates only fields already consumed by the admitted SAB 21800 straight-curve and ellipse-curve readers; ODA v5.4.1 remains authoritative for DWG layout.",
+    "scopeLimit": "Only finite-value validation and failure-node precision changed for the strict SAB 21800 straight/ellipse path. Legacy signatures/versions, non-degenerate frame rules, curve evaluation, edge trimming, topology, B-rep validity, and external/native qualification are unchanged."
+  },
+  "implementation": {
+    "productionChange": "Validate all coordinates of the two straight-curve vectors and the three ellipse-curve vectors, plus ellipse ratio, before setting hasCurve. Existing projection error plumbing now reports the exact curve node when this validation refuses.",
+    "generatedControls": [
+      "18 parser-fed straight-curve cases: NaN, +infinity, and -infinity in each x/y/z component of origin and direction.",
+      "30 parser-fed ellipse-curve cases: NaN, +infinity, and -infinity in each x/y/z component of center, normal, and major axis, plus ellipse ratio.",
+      "Every case parses and builds at the generic SAB/model layers, then refuses rooted projection, clears pre-seeded output, and identifies the exact curve node."
+    ],
+    "claimBoundary": "Finite-value refusal and diagnostic attribution only. No semantics for finite degenerate frames, curve evaluation, trimming, B-rep validity, producer conformance, or broad ACIS support are established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.21 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sab21800-nonfinite-scalar-curve-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sab21800-nonfinite-scalar-curve-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "persistentFixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "All strict scalar straight/ellipse parameter fields reject non-finite values at the curve node with transactional output clearing.",
+    "nextAction": "Continue with the next dependency-ready local S3.7c record-validation invariant; do not wait for external semantic or platform qualification.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

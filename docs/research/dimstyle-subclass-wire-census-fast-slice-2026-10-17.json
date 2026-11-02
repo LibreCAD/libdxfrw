@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-dimstyle-subclass-wire-census-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "FOCUSED_PASS_OWNING_TEST_FAIL_UNCOMMITTED",
+  "scope": "Capture current local DIMSTYLE table-header/subclass and record-level wire-tag scopes without changing writer behavior.",
+  "implementation": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "focusedMode": "--dimstyle-subclass-wire-census",
+    "profiles": [
+      "AC1018 ASCII",
+      "AC1018 binary",
+      "AC1021 ASCII",
+      "AC1021 binary"
+    ],
+    "callerRowCounts": [0, 1, 2],
+    "observations": [
+      "The emitted table contains the implicit Standard record when no caller row is named Standard.",
+      "The local AC1018/AC1021 header sequence is group 2 DIMSTYLE, group 5, group 330, AcDbSymbolTable, group 70, AcDbDimStyleTable, then literal group 71=1.",
+      "No table-header group 340 is emitted by this local writer path.",
+      "Record scopes preserve allocated handles, both record subclass markers, group 71 DIMTOL, and group 340 references from custom DIMSTYLE records to the emitted Standard STYLE handle."
+    ],
+    "productionWriterChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --dimstyle-subclass-wire-census",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedMode": "passed for 12 generated profile/cardinality cases",
+      "owningCTest": "failed; two SORTENTSTABLE raw-emission assertions report that nested group-102/later-group-100 payload roles are not narrowly bounded",
+      "scopedDiffCheck": "passed"
+    }
+  },
+  "limits": {
+    "establishesNormativeRequirednessOrOrder": false,
+    "producerOutputObserved": false,
+    "independentStrictReaderRun": false,
+    "nativeApplicationRun": false,
+    "supportsWriterChange": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

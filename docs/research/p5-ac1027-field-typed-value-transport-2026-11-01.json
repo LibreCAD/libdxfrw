@@ -1,0 +1,57 @@
+{
+  "receipt": "p5-ac1027-field-typed-value-transport-2026-11-01",
+  "recordedAt": "2026-11-01",
+  "scope": {
+    "target": "Generated AC1027 DXF FIELD/FIELDLIST/TABLECONTENT transport",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "fixturePolicy": "FIELD graph and LINE reference target are authored in memory; no DWG/DXF fixture files were added.",
+    "qualified": [
+      "Counted FIELD object handles use group 97 and repeated group 331 soft-pointer IDs.",
+      "Main and keyed child values cover the current integer (library types 0 and 1), real (type 2), string (type 4), binary (type 8), and ID (type 64) serializer branches.",
+      "Resolved target references follow the emitted entity handle when the writer remaps its source handle.",
+      "An unresolved ID is refused without replacing an existing destination; correcting it succeeds on the same adapter instance."
+    ],
+    "notQualified": [
+      "Autodesk documents the FIELD wire groups, but does not assign the library's numeric DRW_CadValue type constants; numeric values above identify the existing implementation branches exercised by this test.",
+      "Coordinate values (library types 16 and 32) and producer/version profiles beyond this generated AC1027 graph.",
+      "Native FIELD expression evaluation, computed values, or semantic acceptance by an independent CAD application.",
+      "A DWG source producer profile or source-to-output semantic association."
+    ]
+  },
+  "authority": [
+    {
+      "title": "Autodesk AutoCAD 2021 FIELD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "supports": [
+        "FIELD child data uses a group-93 dataset count and repeated group-6 key/value records.",
+        "Group 97 counts object IDs used by the field code; repeated group 331 values are soft-pointer IDs.",
+        "The documented value wire groups include group 91 for long values, group 140 for double values, group 330 for ID values, and groups 92/310 for binary values."
+      ]
+    }
+  ],
+  "implementation": {
+    "admission": "The FIELD output profile admits only the tested integer, real, string, binary, and resolved-ID forms for main and keyed child values. Coordinates and unknown forms remain refused.",
+    "serialization": "The existing FIELD serializer writes the documented group forms and applies the object-handle remapper to groups 331 and type-64 group 330 values.",
+    "files": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "35ff8d9bb6df4af4e0aa31c7d61c360738149c3d6c0f8475850ee74272af887d"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "9b4a7e6faa5480958de0ae69eb41bbf527bee24f6d9bb7de62aaa951cd01a303"
+      }
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedTest": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --fieldlist-membership-output",
+    "result": "PASS",
+    "observations": [
+      "The same generated FIELD graph roundtrips in ASCII and Binary DXF.",
+      "Main and child typed payloads retain their values, data types, group codes, keyed association, and binary bytes.",
+      "Object-ID values and group-331 references resolve to the remapped LINE handle on readback.",
+      "A deliberately unresolved main CadValue ID preserves the destination sentinel; correction permits same-adapter retry."
+    ]
+  }
+}

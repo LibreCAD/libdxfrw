@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw-deeper-broader-separate-dwg-reader-and-application-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh independent DWG reader maturity and application-level route claims; refine optional peer admission without treating mutable aggregate claims as support evidence.",
+  "method": {
+    "kind": "Public project READMEs, status and provenance documents, and GNU LibreDWG class documentation",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Public repository master/main pages were inspected as discovery evidence; exact peer commits, package checksums, compiler/toolchain and runtime outputs were not captured. Any future executable comparison must pin them before use.",
+    "evidenceRule": "Advertised version matrices, self-reported coverage, strict structural parsing, application opening, display tessellation, B-rep validity and native-CAD acceptance are distinct evidence layers."
+  },
+  "evidence": [
+    {
+      "topic": "dwg-rs independent reader maturity and coverage-report consistency",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs/blob/master/README.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/master/STATUS.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/master/CLEANROOM.md"
+      ],
+      "observed": "The project describes a spec-led Apache-2.0 Rust DWG implementation based on ODA v5.4.1 and labels itself pre-alpha. The README distinguishes a more mature container/object-stream walker from alpha entity decoders, partial graph resolution, no DXF parser, alpha DWG/DXF writers, and approximate glTF tessellation. It describes strict per-record endpoint checks and allocation caps. Its current README is internally inconsistent: the coverage table states 3,911 decoded, 525 skipped, 9 errored across 19 files (88.0%); a later verification paragraph states 90.3% aggregate and 85.9% for AC1032; and an earlier capability row still states 95.6%. The table gives the dated per-version denominators; the other figures appear to be stale snapshots.",
+      "doesNotEstablish": [
+        "production readiness or broad per-entity semantic completeness",
+        "a stable aggregate coverage value from the mutable README",
+        "comparability with this repository's corpus or denominator",
+        "complete owner/block/reactor graph resolution",
+        "DXF reader support or DWG writer acceptance",
+        "ACIS/B-rep semantics or native CAD acceptance"
+      ],
+      "planUse": "Keep as an optional separate-implementation DWG structural and record-boundary comparator. At a composed checkpoint, pin exact source, dependency graph, Rust toolchain and executable; run the coverage report on exact overlapping already-admitted local inputs; preserve raw report and corpus/input hashes; capture per-version/per-family decoded, skipped, errored and boundary-checked denominators. Do not use the conflicting README percentages as a parity score. Treat endpoint checking as a test-design lead, not as a reason to replace libdxfrw's record-level soft-error behavior."
+    },
+    {
+      "topic": "Open CAD Studio route identity and 3D claim boundary",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "Open CAD Studio currently advertises native DWG/DXF read/write through R14–2018, 3D modeling, kernel-backed operations, and ACIS-entity tessellation, while warning that the application remains under active development. ACadRust identifies Open CAD Studio as a user of its file engine. These pages establish a relevant consumer route and shared parser lineage, not independent runtime evidence.",
+      "doesNotEstablish": [
+        "independent DWG/DXF parser behavior",
+        "AutoCAD or other native-CAD acceptance of generated files",
+        "lossless handling of all supported entities or graph records",
+        "complete ACIS decoding, closed B-rep validity or exact shape semantics"
+      ],
+      "planUse": "Retain only the existing optional same-lineage consumer checkpoint. Pin app, codec and kernel revisions; record requested/actual version, hashes, warnings, repairs/synthesized records, per-object loss and tessellation fallback/incomplete status. App open/render does not qualify parser or B-rep semantics."
+    },
+    {
+      "topic": "uncad parser split and output scope",
+      "sources": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/undxf"
+      ],
+      "observed": "uncad describes itself as read-only. Its DWG path uses LibreDWG via FFI; its DXF path uses the separate undxf crate; outputs are model, JSON, SVG or PNG projections rather than CAD write/conversion. Its model exposes header unit presence.",
+      "doesNotEstablish": [
+        "an independent DWG parser vote",
+        "DWG/DXF writer parity",
+        "source graph or opaque-record preservation from rendered output",
+        "ACIS/B-rep semantics"
+      ],
+      "planUse": "Keep uncad classified as LibreDWG-lineage for DWG; consider undxf only in the existing optional DXF parser/projection lane at an exact pinned version. Add no new gate."
+    },
+    {
+      "topic": "class-level peer support dispositions",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html"
+      ],
+      "observed": "LibreDWG documents stable, unstable, debugging and unhandled class states, with caveats that unstable/unknown object content can be converted to placeholders or preserved only under narrow same-version/raw-blob conditions.",
+      "doesNotEstablish": [
+        "per-class parity from aggregate project coverage",
+        "typed support from placeholder or opaque preservation",
+        "cross-version semantic preservation"
+      ],
+      "planUse": "Keep comparator outcomes normalized by route, version, class/family and disposition; record typed, opaque-preserved, skipped, rejected, repaired and failed outcomes separately."
+    }
+  ],
+  "implementationReadiness": {
+    "immediateImplementationOrderChanged": false,
+    "optionalDwgRsReceiptFields": [
+      "exact source commit and dependency graph",
+      "Rust toolchain and executable/package hash",
+      "exact input hashes and per-version corpus manifest",
+      "raw coverage report output",
+      "per-version/per-family decoded, skipped, errored and boundary-checked counts",
+      "object-graph and unsupported disposition where exposed"
+    ],
+    "fixturePolicy": "Use only existing repository fixtures or locally generated scratch drawings; do not fetch or commit the peer's corpus.",
+    "cadence": "No per-slice run or mandatory Rust/application dependency. One optional composed checkpoint only after source and runtime pinning; fast implementation loop remains unchanged.",
+    "acadrustApplicationPolicy": "Open CAD Studio remains same-parser-lineage consumer evidence; pin codec/kernel and capture repairs, object loss and tessellation fallbacks independently."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

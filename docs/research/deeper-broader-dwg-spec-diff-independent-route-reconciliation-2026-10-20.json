@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DWG spec-diff and independent-route reconciliation",
+  "mode": "Primary-source specification and repository documentation review with local source/test inventory; no peer runtime",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare the official ODA DWG specification used by this repository with the LibreDWG-maintained ODA 5.4.2 diff without treating peer text as normative authority.",
+    "Cross-check concrete R2004 page-header offsets against local reader and generated test sources.",
+    "Refine AC1032 implementation readiness using the specification's explicit R2018 deltas and existing sample-trace rules.",
+    "Reconcile independent peer and consumer routes by direction, version, lineage, and evidence type."
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["§3.1", "§4.6", "§8"],
+      "observed": "The official PDF documents the R13 C2/C3 boundary, R2004 data-page checksum fields at offsets 0x18 and 0x1C with the unknown word at 0x14, and explicit R2018 header/AuxHeader/object deltas including three trailing zero int16 fields in the auxiliary file header.",
+      "limits": "Specification review is not an AC1032 sample trace or native interoperability run. The PDF remains the project's normative DWG byte-layout reference."
+    },
+    {
+      "project": "LibreDWG ODA 5.4.2 peer diff",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg.patch",
+      "revision": "Mutable master path reviewed 2026-10-20; the patch header identifies ODA 5.4.1 as its base.",
+      "observed": "The peer-maintained diff revises LibreDWG's copy of the ODA text and includes a page-header checksum ordering that agrees with official ODA v5.4.1 §4.6.",
+      "limits": "It is not an ODA-issued v5.4.2 specification and does not establish that ODA accepted every peer revision. No code, sample, or runtime result was derived from the diff."
+    },
+    {
+      "project": "Local R2004 reader and tests",
+      "url": "src/intern/dwgreader18.cpp; tests/dwg_reader_matrix_tests.cpp",
+      "revision": "Working tree source/test inventory reviewed 2026-10-20.",
+      "observed": "The R2004 page parser reads the unknown field at 0x14, header checksum at 0x18, and data checksum at 0x1C; generated reader-matrix helpers construct this page layout.",
+      "limits": "Static source/test inventory only; no test was run and no external DWG was used."
+    },
+    {
+      "project": "Local AC1032 reader",
+      "url": "src/intern/dwgreader32.cpp",
+      "revision": "Working tree source inventory reviewed 2026-10-20.",
+      "observed": "The current AC1032 class follows the documented thin pass-through/inheritance path; the explicit ODA R2018 delta list can make the existing sample-driven audit more concrete.",
+      "limits": "No AC1032 sample was traced in this research pass. The source-level pass-through is not evidence that AC1032 support is qualified."
+    },
+    {
+      "project": "Open-source peer and consumer route documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/cad.html; https://github.com/DomCR/ACadSharp; https://github.com/mozman/ezdxf; https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md; https://github.com/qcad/qcad",
+      "revision": "Mutable project documentation reviewed 2026-10-20.",
+      "observed": "The reviewed routes differ by parser lineage, format direction, projection, version matrix, and consumer/importer behavior. GDAL CAD is a narrow read-only libopencad projection; FreeCAD's DWG route composes an external converter and selected DXF importer; other peers remain subject to the exact version/direction and lineage controls already in the plan.",
+      "limits": "Documentation establishes candidate route scope, not execution, per-object completeness, or semantic correctness."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "AC1032/R2018 reader and writer sample-trace readiness: explicit HEADER, AuxHeader, and named object-family deltas remain separated.",
+      "R2004 page parser: preserve existing ODA-confirmed page-header/checksum offsets and generated controls.",
+      "Peer eligibility: bind immutable route, direction, target version, implementation lineage, diagnostics, and per-object disposition."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-backed distinction between official ODA v5.4.1 authority and the LibreDWG-maintained ODA 5.4.2 diff.",
+    "Cross-checked local R2004 page-header field offsets and retained the existing test owner without adding duplicate tests.",
+    "Made the existing AC1032 implementation item more ready by listing ODA-defined R2018 HEADER, AuxHeader, and object-family deltas separately.",
+    "Preserved local fixture restrictions, reduced per-slice validation, self-unblocking, and all six external-only deferred statuses."
+  ],
+  "limitations": [
+    "LibreDWG patch and repository documentation are mutable peer sources, not normative ODA material.",
+    "No AC1032 source drawing was traced and no test was executed.",
+    "No peer executable, native CAD application, geometry kernel, external sample, or full suite was used.",
+    "Existing plan route restrictions were cross-checked; this pass did not audit every peer source file or every local implementation path."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check; no diagnostics)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

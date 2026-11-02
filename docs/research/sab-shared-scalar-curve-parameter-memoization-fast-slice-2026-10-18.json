@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "SAB shared scalar-curve parameter memoization",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planOwners": [
+    "PAR-07/S8",
+    "7S.3/S3.7 bounded SAB graph projection"
+  ],
+  "changedFiles": [
+    "src/drw_acis.cpp",
+    "tests/graph_preservation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/sab-shared-scalar-curve-parameter-memoization-fast-slice-2026-10-18.json"
+  ],
+  "change": {
+    "summary": "Cache immutable scalar projection of shared straight-curve and ellipse-curve token records once per extraction; copy scalar result to each referencing edge.",
+    "preservedPaths": [
+      "intcurve vector-valued parsing remains per-edge with its existing ownership behavior",
+      "unknown curve types remain on the existing curveParams path",
+      "each edge still emits its own output row"
+    ],
+    "budgeting": "One maxOutputItems unit is charged before parsing/inserting each unique scalar-curve cache entry. This bounds cache item count, not map allocation bytes or RSS."
+  },
+  "generatedControl": {
+    "format": "in-memory SAB, ACIS version 21800",
+    "topology": "One straight-curve node referenced by one edge baseline and by an eight-edge fan-out control.",
+    "expectedValues": {
+      "curveType": "Straight",
+      "origin": [10.0, 20.0, 30.0],
+      "direction": [1.0, 0.0, 0.0]
+    },
+    "assertions": [
+      "all eight output edges retain their own row and exact expected curve fields",
+      "fan-out extraction work is greater than one-edge work but below eight times the one-edge baseline",
+      "exact extraction-work and output-item budgets admit the result",
+      "one-under extraction-work budget refuses and clears the output"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "targetExecutable": "passed",
+      "owningCTest": "passed, 1/1, 0.58 s",
+      "scopedDiffCheck": "passed"
+    },
+    "notRun": [
+      "full suite",
+      "peer parser or geometry kernel",
+      "native CAD application",
+      "wall-clock benchmark",
+      "external corpus"
+    ]
+  },
+  "nonPromotion": {
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextLocalAction": "Continue with the next dependency-ready local plan owner. Revisit intcurve repeated parsing only if a separate generated fan-out proves a material repeated scan and a cache can preserve per-edge vector ownership and budget accounting.",
+  "workingTree": {
+    "broadlyModified": true,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

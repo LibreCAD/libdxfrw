@@ -1,0 +1,99 @@
+{
+  "id": "RPP-5wm",
+  "title": "MLINE LTYPE XDATA ordered handles across model-space and named-block sections",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "c3c96c9cade34abb7f5e3601b3cd5eec89eeae8a",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII/binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected profile was exercised for all four ASCII/binary source and output combinations.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID, one group-1000 payload, then two ordered group-1005 soft pointers.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "targets": [
+      {
+        "type": "LINE",
+        "source_handle": "0xA900",
+        "source_section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "start": [1.25, 0, 0],
+        "end": [1.25, 1, 1]
+      },
+      {
+        "type": "LINE",
+        "source_handle": "0xA901",
+        "source_section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "start": [100.5, 2, 0],
+        "end": [101.5, 3, 0]
+      }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The physical LTYPE XDATA sequence is bound to the APPID. Each target is independently located by a unique geometric sentinel and bound to its physical section, unique BLOCK_RECORD identity, parsed owner handle, delivered source record and unique live typed LINE. The indexed source collector confirms the ordered source references resolve to model-space ENTITIES and named AuthorityBlock BLOCKS respectively.",
+    "output": "For each encoding pair, the emitted XDATA sequence is checked against the exact remapped physical LINE handles. The model-space target must be in ENTITIES under *Model_Space; the second target must be in BLOCKS under AuthorityBlock. Fresh typed readback verifies both ordered handles, both owners, both sections through their typed containers, and each target geometry.",
+    "failure_retry": "For each encoding pair, removing the model-space target and then the named-block target is tested independently. Each removal refuses export and preserves the prior destination; restoring the target allows same-adapter retry with exact output and typed readback. A separate ASCII-input/ASCII-output late mutation changes the named-block target handle after APPID emission; finalization refuses without replacing the destination, and restoring the handle permits a successful same-adapter retry.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 13,
+      "selected_refusals_with_destination_preservation": 9,
+      "selected_same_adapter_retries": 9,
+      "whole_focused_test_profiles": 220,
+      "whole_focused_test_readbacks": 492,
+      "whole_focused_test_refusals": 272,
+      "whole_focused_test_retries": 272
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 13.54 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice extends bounded test evidence and does not add production parser state or ownership transfer. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "test_source_sha256": "ffc9d300b7db8ac1524c7608c6fe7aacb1f8d1a59f05be1b46682bcb20960969",
+      "normal_executable_sha256": "bf348eb89bf2990bb71dee04610446625ba0f056a5b4a85a709a80e6c24be132",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This receipt qualifies one AC1027 ordered two-reference recipe with one model-space ENTITIES LINE and one named AuthorityBlock BLOCKS LINE. It does not qualify arbitrary mixed sections, other target types, handle counts, section combinations, versions or provider schemas.",
+    "This is selected transport, source identity, output, readback and transaction evidence only; it does not establish recursive document closure, native rendering or format support claims."
+  ],
+  "next": "Select a current source-backed P2 target role, XDATA composition or MLINE consumer operation that resolves another specific unsupported or incomplete behavior. Preserve exact owner/section, physical output, typed readback and rollback/retry checks."
+}

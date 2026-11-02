@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5i TABLESTYLE bounded DXF core-field edit merge",
+  "mode": "Generated ASCII/Binary core-edit, raw-preservation, and fail-closed validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "e709c80384c8c8bc49a5c873ddaad0e491c6acca7a02a427a5f9bf841d7854c4",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "domains": {
+      "flowDirectionGroup70": [0, 1],
+      "flagsGroup71": "unsigned 16-bit DXF integer; bounded by writer classifier",
+      "marginsGroups40And41": "finite nonnegative real values",
+      "titleSuppressionPostBodyGroup280": [0, 1],
+      "headerSuppressionGroup281": [0, 1],
+      "classVersionPreBodyGroup280": [0]
+    }
+  },
+  "implementation": {
+    "changes": [
+      "DXF-origin TABLESTYLE export overlays typed edits for existing groups 70, 71, 40, 41, post-body 280, and 281 on a temporary copy of the raw carrier.",
+      "Changed ASCII numeric values receive synchronized canonical raw lexemes; unchanged raw group order, nested row payload, and source spellings are preserved.",
+      "The pre-body group-280 class version and group-3 description are not edited; non-default typed values with absent raw slots refuse export.",
+      "Duplicate or malformed core slots remain raw-only and replay unchanged only when the typed core projection agrees with their effective raw values; divergent typed state refuses.",
+      "Generated ASCII/Binary tests cover all six edits, value re-import, unchanged nested groups, preserved ASCII lexemes, absent-slot destination preservation, and the existing row-divergence refusal."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5i-tablestyle-core-edit-merge-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelLayoutChanged": false,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; no binary-ABI claim is made",
+    "rawCarrierPreserved": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Typed TABLESTYLE cell-style authoring/writing remains unimplemented.",
+      "Group-3 TABLESTYLE description edits remain unsupported; preserving the source-encoding raw carrier is unchanged.",
+      "MATERIAL generic procedural-property semantics and the group-90/group-149 self-illumination mapping remain unresolved and untyped.",
+      "DWG TABLESTYLE cross-version/up-convert capability remains separate from this DXF-origin edit merge."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

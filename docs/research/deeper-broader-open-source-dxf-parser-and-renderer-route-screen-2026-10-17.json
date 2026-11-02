@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-source-dxf-parser-and-renderer-route-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Screen newly surfaced JavaScript and TypeScript DXF parsers/renderers for exact operation scope, parser lineage, and evidentiary value; update the parity plan without adding required dependencies or promoting 3D support.",
+  "method": {
+    "kind": "Read-only review of primary project READMEs, source manifest, and npm package metadata",
+    "peerSourceRevisionsPinned": false,
+    "packageTarballsDownloaded": 0,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "productionImplementationChanged": false,
+    "sources": [
+      "https://github.com/dxfjs/parser",
+      "https://github.com/dxfjs/parser/blob/main/package.json",
+      "https://www.npmjs.com/package/%40dxfjs/parser",
+      "https://github.com/linkiez/DXF-Renewed",
+      "https://github.com/linkiez/DXF-Renewed/blob/main/README.md",
+      "https://www.npmjs.com/package/%40linkiez/dxf-renew",
+      "https://www.npmjs.com/package/dxf-parser"
+    ],
+    "localInspection": [
+      "The existing peer-lineage sections classify wrappers and viewers by underlying parser rather than as independent codec votes.",
+      "The plan already separates 2D geometry projections, entity/carrier preservation, ACIS/ACDS semantic evidence, and native application qualification.",
+      "No local source or test path was changed or executed during this research pass."
+    ],
+    "evidenceRule": "Project feature lists establish only the scope claimed by that project. An entity parser label, typed JavaScript model, SVG rendering result, or wrapper does not establish DWG support, raw carrier fidelity, 3D solid semantics, independent parser lineage, or native acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "@dxfjs/parser package scope and maturity",
+      "sources": [
+        "https://github.com/dxfjs/parser",
+        "https://github.com/dxfjs/parser/blob/main/package.json",
+        "https://www.npmjs.com/package/%40dxfjs/parser"
+      ],
+      "observed": "The MIT-licensed package is version 0.3.2, last published three years before this review. Its README lists HEADER, CLASSES, TABLES, BLOCKS, and ENTITIES, marks HATCH as incomplete and OBJECTS as unimplemented, and lists a 3DSOLID entity handler. The published scope does not claim DWG, Binary DXF, DXF writing, ACIS/SAB decoding, or solid-kernel semantics.",
+      "doesNotEstablish": [
+        "what bytes or semantic fields the 3DSOLID handler preserves",
+        "independent geometry or B-rep validity",
+        "current behavior of an unpinned npm artifact or source revision",
+        "complete DXF section or entity support"
+      ],
+      "planUse": "At most an optional ASCII-DXF structure/model comparator after pinning the package checksum, source revision, runtime, and input. Do not add it to the default build or count its entity label as ACIS/ACDS semantic evidence."
+    },
+    {
+      "topic": "DXF-Renewed 2D projection route and lineage",
+      "sources": [
+        "https://github.com/linkiez/DXF-Renewed",
+        "https://github.com/linkiez/DXF-Renewed/blob/main/README.md",
+        "https://www.npmjs.com/package/%40linkiez/dxf-renew"
+      ],
+      "observed": "The npm page reports MIT-licensed version 9.0.1, published 21 days before this review. The project describes itself as a modernization/fork of skymakerolof/dxf, with a typed DXF model, INSERT/BLOCK denormalisation, SVG and polyline projections, and browser rendering tests. Its README distinguishes parsed-but-not-rendered records, identifies missing WIPEOUT masking, and documents spline interpolation and unapplied fonts.",
+      "doesNotEstablish": [
+        "an additional parser lineage relative to the named ancestor",
+        "DWG decoding or writing",
+        "lossless record, handle, owner, or carrier preservation from SVG output",
+        "3DSOLID/ACIS/ACDS body semantics or native CAD acceptance"
+      ],
+      "planUse": "An optional named 2D projection/INSERT-placement observation only. If used, compare to a scratch-authored coordinate manifest and keep parsed model, flattened projection, and rendered output separate. No routine dependency or test is justified."
+    },
+    {
+      "topic": "Existing dxf-parser artifact freshness and wrapper lineage",
+      "sources": [
+        "https://www.npmjs.com/package/dxf-parser"
+      ],
+      "observed": "The current npm page identifies dxf-parser 1.1.2, last published five years before this review. Existing plan research identifies downstream renderers that embed or wrap this parser; they remain attached to the same underlying parser lineage.",
+      "doesNotEstablish": [
+        "current release quality based on package downloads or wrapper activity",
+        "a new parser vote from a downstream renderer",
+        "semantic or native acceptance"
+      ],
+      "planUse": "Keep the previous lineage classification and pin the parser and wrapper artifacts separately if that optional route is ever exercised."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-deeper-broader-upstream-hardening-and-cross-project-matrix-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh current public DWG/DXF peer releases and issue states, identify transferable robustness and loss-accounting test classes, and map them to existing libdxfrw plan owners without inferring local defects.",
+  "method": {
+    "kind": "Read-only review of public release notes, issue/milestone histories, and primary DXF references reconciled against existing local test owners",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/milestone/23",
+      "https://github.com/LibreDWG/libredwg/issues/1357",
+      "https://github.com/LibreDWG/libredwg/issues/1412",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "src/libdxfrw.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/block_owner_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "evidenceRule": "Peer release notes and issues are failure-mode discovery, not local defect evidence or normative DWG layouts. ODA v5.4.1 remains authoritative for DWG bytes. Tests should be generated locally and added only when the exact invariant is absent from its existing fast-test owner."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG 0.14.1 adversarial length, progress, and lifetime failures",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/milestone/23"
+      ],
+      "observed": [
+        "The 0.14.1 beta notes report compressed-section capacity/logical-size divergence, multiplication overflow, an R2007 page-offset subtraction-underflow path, an oversized SAT block-size guard overflow, non-finite MLINESTYLE angles causing an unbounded writer normalization loop, stale object pointers across reallocating operations, signed counts bypassing bounds checks, and repeated pre-R13 progress/OOM hardening.",
+        "The milestone is still open and exposes follow-up object, EED, and DXF interoperability work; a release's fixed-issue list is not a complete coverage matrix."
+      ],
+      "doesNotEstablish": [
+        "that libdxfrw contains any of these peer-specific bugs",
+        "that every security fix has equivalent or missing local coverage",
+        "any DWG wire-layout rule"
+      ],
+      "planUse": "Map analogous changed boundaries to existing PAR-14/7BE and writer-hardening tests: checked arithmetic before allocation, logical-size/capacity agreement, subtraction bounds, signed conversion, finite numeric admission, guaranteed cursor progress, and pointer stability. Keep broad sanitizer/fuzz campaigns at scheduled family checkpoints rather than each implementation slice."
+    },
+    {
+      "topic": "Owned-entity traversal report status and completeness evidence",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1357"
+      ],
+      "observed": [
+        "Issue #1357 described a null/unresolvable owned-entity reference being treated as end-of-list, truncating later siblings.",
+        "The reporter later stated the fix was verified on master and reported model-space counts matching ODA for three AC1021 drawings; the issue page/milestone still showed it open at review time.",
+        "The reporter's totals are peer-reported and were not rerun here; counts alone do not prove unique handles, payload, or owner/block-path identity."
+      ],
+      "doesNotEstablish": [
+        "a current released LibreDWG defect",
+        "a matching libdxfrw defect",
+        "semantic parity from aggregate entity counts"
+      ],
+      "planUse": "Keep existing PAR-49/7G.3 generated owner-list coverage for unresolved first/middle/final entries with valid suffix records, declared-count bounds, exact per-owner source/output identity, and explicit complete-versus-partial status. Do not describe the peer report as currently unfixed."
+    },
+    {
+      "topic": "DXF quoted-string memory-tail and zero-length framing report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/milestone/23"
+      ],
+      "observed": [
+        "The open blocking issue reports a C output buffer terminated at capacity rather than at the end of written text, allowing strlen to consume allocator residue; it also identifies an empty-after-transformation path that could omit a group.",
+        "The report remains listed open in the current milestone; a proposed patch or discussion is not a released or executed peer result.",
+        "Local reviewed DXF output uses length-aware std::string on this route; no matching local defect was established."
+      ],
+      "doesNotEstablish": [
+        "a libdxfrw memory-safety issue",
+        "that allocator-perturbation testing is required for current local code",
+        "that a same-codec output parse proves exact string contents"
+      ],
+      "planUse": "Refine existing PAR-05/7AR checks for exact encoded length/content, controls and Unicode, explicit empty values, ASCII/binary framing, a following-field sentinel, and transactional destination behavior. Add raw-buffer/sanitizer testing only if a changed local path crosses capacity-based C-string code."
+    },
+    {
+      "topic": "Current peer backlog and primary DIMASSOC contract",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/milestone/23",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm"
+      ],
+      "observed": [
+        "The LibreDWG 0.14.1 milestone lists EED item-local length handling (#1426), XREF BLOCK flags/path (#1431), annotation-scale context import (#1432), DIMASSOC reference/order handling (#1434), and R2007+ material/plotstyle handle confusion (#1436).",
+        "Autodesk's DXF DIMASSOC reference specifies distinct dimension and geometry references, ordered osnap/reference fields and flags; issue titles do not establish DWG binary grammar.",
+        "ACadSharp currently lists v3.8.0 at commit 3a1c66b (2026-09-21); its release entry adds InternalsVisibleTo. v3.6.51 reported ACIS payload reading for 3DSOLID/REGION/BODY and AcDs offset reading; v3.8.0 does not report new ACIS writer support."
+      ],
+      "doesNotEstablish": [
+        "that the peer open reports are local libdxfrw defects",
+        "DWG field layouts from DXF issue descriptions",
+        "current ACadSharp behavior without execution of a pinned artifact"
+      ],
+      "planUse": "Map the leads to existing EED framing, PAR-65 XREF, PAR-06/7F.1 context-object inventory, PAR-45/7AA DIMASSOC, and PAR-33 material/plotstyle owners. Check local assertions and ODA/spec coverage first; at most add a missing generated fast assertion. Use ACadSharp only at the composed optional checkpoint with exact artifact identity."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSliceExternalRuns": false,
+    "locallyGeneratedControlsOnly": true,
+    "dwgLayoutAuthority": "ODA v5.4.1",
+    "exactPerSourceAndOwnerDispositionRequired": true,
+    "countOnlyCompletenessRejected": true,
+    "testReusePolicy": "Reuse existing fast targets; add only missing assertions at the touched boundary.",
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "For each changed parser/writer boundary, select only the relevant arithmetic, cursor-progress, finite-number, lifetime, or record-framing invariant and place its generated test in the current fast owner.",
+      "Keep complete conversion separate from recovery: unresolved references may not silently terminate sibling enumeration or produce a success-shaped partial result.",
+      "Keep strict string/binary framing and exact source-to-output identity separate from recovery/audit and aggregate counts.",
+      "At one composed optional peer checkpoint, bind exact artifact, route, options, hashes, diagnostics, and dispositions; record NOT_RUN and proceed if unavailable."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

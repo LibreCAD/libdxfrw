@@ -1,0 +1,48 @@
+{
+  "slice": "PAR-134 MLEADER annotation-context and entity-level CMC source-method retention",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "format": "DWG",
+    "versions": ["AC1024", "AC1032"],
+    "record": "MLEADER embedded annotation context and entity/style CMC colors",
+    "fields": [
+      "context text color",
+      "context background-fill color",
+      "context block color",
+      "entity leader color",
+      "entity style text color",
+      "entity style block color"
+    ],
+    "methods_preserved_for_write": ["C0", "C1", "C2", "C3"],
+    "unsupported_methods": "retained on read and refused before write"
+  },
+  "changes": [
+    "Append DWG CMC source-method companions to DRW_MLeaderAnnotContext and DRW_MLeader.",
+    "Retain methods at all six bounded parser callsites and preserve them through entity copy/assignment/reset.",
+    "Clear DWG-only source-method metadata when the corresponding DXF scalar color group updates the model.",
+    "Validate explicit methods against normalized scalar/RGB state before output and encode through the explicit-method CMC writer."
+  ],
+  "generated_controls": [
+    "AC1024 and AC1032 vectors cover C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB across context and entity/style color fields.",
+    "Independent wire walks verify CMC method, payload, flags, strings, and following fields.",
+    "Synthetic AC1024 C5 mutations for context text and entity leader colors verify scalar ACI-7 projection, method/name/book retention, following-handle alignment, copy/assignment/reset, and fail-before-output rewrite refusal."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_line_cmc_rgb$' --output-on-failure (1/1 passed)",
+    "owner_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure (1/1 passed)",
+    "cmc_lane": "ctest --test-dir build-gcc -L cmc --output-on-failure (12/12 passed)"
+  },
+  "evidence_limits": [
+    "C5 is a synthetic method-byte mutation, not producer-authored DWG or independent semantic evidence.",
+    "No class-specific DXF truecolor/name/book mapping is established by this slice.",
+    "No persistent fixture, full suite, native CAD qualification, support promotion, or external J-gate transition.",
+    "Public DRW_MLeader and DRW_MLeaderAnnotContext sizes changed; downstream consumers must rebuild."
+  ],
+  "plan_counts": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-transform-components-v1",
+  "observedAt": "2026-10-21",
+  "title": "Parser-fed non-finite 12/13-component transform-candidate matrix",
+  "evidenceKind": "generated local parser/model/projector fast test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "signature": "ACIS BinaryFile",
+    "version": 21800,
+    "carrier": "generated SAB bytes"
+  },
+  "matrix": {
+    "twelveValueCandidatePositionsOneBased": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "thirteenValueAlternatePositionOneBased": 13,
+    "nonFiniteValues": ["NaN", "+infinity", "-infinity"],
+    "caseCount": 39,
+    "eachCase": {
+      "parseAndBuild": "PASS",
+      "rootedProjection": "PASS (structural body only)",
+      "rawLiteralPreserved": true,
+      "rawLiteralSemanticTokenIndex": 3,
+      "candidateState": "Invalid",
+      "numericCandidatePublished": false,
+      "transformApplied": false,
+      "projectionFailure": "NoFailure"
+    }
+  },
+  "structuredUnsupportedVariant": {
+    "wireValues": {
+      "firstLocationVectorX": "NaN",
+      "scalar": "+infinity"
+    },
+    "parseAndBuild": "PASS",
+    "rootedProjection": "PASS (structural body only)",
+    "transformState": "UnsupportedVariant",
+    "rawVectorAndScalarPreserved": true,
+    "rawHintPreserved": true,
+    "numericCandidatePublished": false,
+    "transformApplied": false,
+    "projectionFailure": "NoFailure"
+  },
+  "overlongCandidateControl": {
+    "literalValueCount": 14,
+    "allValuesFinite": true,
+    "parseAndBuild": "PASS",
+    "rootedProjection": "PASS (structural body only)",
+    "rawLiteralPreserved": true,
+    "rawLiteralSemanticTokenIndex": 3,
+    "candidateState": "Invalid",
+    "numericCandidatePublished": false,
+    "transformApplied": false,
+    "projectionFailure": "NoFailure"
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "buildResult": "PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "focusedCTestResult": "PASS (1/1, 1.20 sec)",
+    "fullTestSuiteRun": false,
+    "gitDiffCheck": "PASS (git diff --check -- tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md)",
+    "jsonValidation": "PASS (jq empty)"
+  },
+  "planImpact": {
+    "productionCodeChanged": false,
+    "persistentFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": [
+    "This verifies finite-value disposition through the parser, model builder, and rooted projector for all 12 positions in the current literal candidate and the alternate profile's 13th value.",
+    "It does not identify transform matrix layout, placement convention, units, or applied geometry semantics.",
+    "It does not validate ACIS B-rep semantics, native CAD acceptance, DWG AcDs association, or general SAB profiles.",
+    "The numeric literal candidate cases intentionally preserve a structurally valid body and report the candidate as Invalid; they do not claim the entire body should be rejected.",
+    "The structured vector transform remains UnsupportedVariant even with non-finite raw values; those values are retained but not interpreted or applied.",
+    "A 14-value literal is rejected as Invalid through the wire parser, while retaining the original literal and leaving the body transform unapplied.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "RPP-5yu",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE group-179 version field domain",
+  "scope": {
+    "operation": "Refuse unsupported group-179 styleVersion values before output when targeting DXF versions that emit the field.",
+    "target_versions": ["AC1024", "AC1027"],
+    "field": {
+      "group_code": 179,
+      "name": "styleVersion",
+      "expected_value": 2
+    },
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.87 identifies group 179 as Version (expected to have value 2), R2010 only.",
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "claim_boundary": "Direct writer validation of group 179 for AC1024/AC1027 only; no general MLEADERSTYLE version support claim."
+  },
+  "implementation": [
+    "Require styleVersion == 2 for targets AC1024 or later, where group 179 is emitted.",
+    "Leave AC1021 behavior unchanged because group 179 is absent there."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "invalid_values": [1, 3, 65535],
+    "refusal": "For both AC1024 and AC1027, each invalid value refuses before publication; the destination sentinel and caller model value remain unchanged.",
+    "retry": "The same dx_iface retries each case with styleVersion=2; emitted group 179 is exactly 2.",
+    "matrix": "Three invalid values × two target versions × two encodings; 12 destination-safe refusals and 12 successful retries. Existing version matrix confirms group 179 is absent for AC1021."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.57 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Other MLEADERSTYLE version-specific fields, source-presence profiles and native semantics remain open."
+  ]
+}

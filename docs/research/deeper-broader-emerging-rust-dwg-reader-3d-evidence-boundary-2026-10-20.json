@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ezdwg release-artifact identity, comparator freshness, and 3D evidence boundary",
+  "mode": "Primary-source release/artifact reconciliation and consumer-route research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the already-tracked ezdwg DWG reader candidate and inspect its exact release tag, published artifact hashes, operation/version/entity limits, and mutable source/lock consistency.",
+    "Reconcile a potential raw ACIS payload semantic route with cq-acis profile restrictions and current FreeCAD importer behavior.",
+    "Update PAR-07/S8 comparator readiness without adding a dependency, fixture, routine peer execution, or support claim."
+  ],
+  "sources": [
+    {
+      "project": "ezdwg",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/releases/tag/v0.16.3",
+        "https://pypi.org/pypi/ezdwg/0.16.3/json",
+        "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/crates/ezdwg-core/Cargo.toml",
+        "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/Cargo.lock",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/convert.md"
+      ],
+      "revision": "GitHub release tag v0.16.3 points to abbreviated commit d5e4336. PyPI 0.16.3 artifact metadata was inspected on 2026-10-20; the MIT sdist SHA-256 is 77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c and the macOS universal2 wheel SHA-256 is 50414743576011389c2382c7a129da78cdd0b3bf17af05f3beef88597b7ff0c8. No artifact was downloaded or run. Mutable main still declares workspace 0.16.3 while its internal Cargo.lock entries are 0.16.0; older plan evidence recorded 0.12.12.",
+      "observed": "README declares DWG reading AC1012-AC1032 and lists a narrower high-level set of LINE, ARC, LWPOLYLINE, POINT, CIRCLE, ELLIPSE, TEXT, MTEXT, DIMENSION, INSERT/MINSERT, HATCH, and SPLINE. It documents AC1012/AC1014 as experimental, modern native decoders for a narrower common-entity set, best-effort color resolution for some later files, an AC1015-only native DWG writer, and ezdxf as the DXF writing backend. The high-level API distinguishes modelspace, paperspace, all entities, and placement. Core Cargo.toml depends on encoding_rs; the inspected mutable Cargo.lock has no LibreDWG/ACadSharp codec dependency. PyPI metadata separately pins a binary artifact, but does not prove that its bytes correspond to the Git tag or establish complete parser ancestry. PyPI reports upload without Trusted Publishing.",
+      "limits": "A hash-pinned wheel permits reproducible binary behavior observations, but not a source-lineage claim; source archive/tag correspondence and parser ancestry remain unverified. The dependency graph is not a source-provenance audit. No parser tests, package, or executable was run. No documented ACIS/3DSOLID/REGION/BODY semantic route was identified."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14.1"
+      ],
+      "revision": "Mutable NEWS and v0.14.1 release metadata inspected 2026-10-20; no binary or source checkout was run.",
+      "observed": "The v0.14.1 history records bounded 3DSOLID arithmetic and final inline-SAT-block DXF export fixes, along with HATCH path-local state and rational spline knot/weight fixes.",
+      "limits": "Release history is a change log, not a local defect report, normative source, or behavior result for a different exact binary. These shapes already map to existing local test owners."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "Open issue bodies inspected 2026-10-20; no issue attachment was downloaded and no peer implementation was run.",
+      "observed": "#1297 reports an AC1032 whole-file AutoCAD rejection with unresolved root cause. #1299 reports DWG-to-DXF spline output that fails later GDAL conversion but provides no field-level curve expectation in the public issue body.",
+      "limits": "Issue claims remain version/input-specific peer reports. They do not establish a libdxfrw defect or justify copying customer attachments; both map to existing strict-consumer and SPLINE evidence gates."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://github.com/mozman/ezdxf"
+      ],
+      "revision": "Stable documentation identifying release 1.4.5 inspected 2026-10-20; no package or executable was run.",
+      "observed": "The documented route reads/writes ASCII and Binary DXF across a stated R12–R2018 matrix; ezdwg's own conversion guide declares ezdxf as its DXF writer backend.",
+      "limits": "This can be a DXF parser/projection comparator only. Its use as ezdwg's backend means those DXF outputs are not independent writer evidence; neither route establishes DWG or ACIS/B-rep semantics."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "Mutable main documentation inspected 2026-10-20; existing exact-artifact/profile evidence remains in its prior plan receipt; no runtime was executed in this pass.",
+      "observed": "Documentation distinguishes parsing from successful CadQuery/OpenCascade shape conversion, lists a bounded analytic/NURBS subset, identifies ACIS BinaryFile 21800 and selected ASM BinaryFile4 save versions, and says BinaryFile8 has synthetic framing coverage only. Accepted record/save versions do not establish support for all layouts or successful complete-shape conversion.",
+      "limits": "This is a raw-payload parser/converter, not a DWG/DXF container or AcDs entity-association oracle. Existing exact-artifact/profile gate remains controlling."
+    },
+    {
+      "project": "FreeCAD current application source and DXF importer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable main source/documentation inspected 2026-10-20; no FreeCAD application, converter, or platform was run.",
+      "observed": "importDWG.py describes DWG processing as converter-to-DXF followed by importDXF. Current DXF documentation says ACIS/SAT solids cannot be read by the documented importer and describes 3D export as a flattened 2D view.",
+      "limits": "This documents the inspected importer path, not every optional workbench or third-party converter/consumer. It cannot serve as ACIS/B-rep semantic acceptance for this route."
+    },
+    {
+      "project": "Local parity plan",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan reconciled 2026-10-20.",
+      "observed": "Updated the existing ezdwg lane to distinguish hash-pinned binary behavior from source-lineage qualification; recorded GitHub v0.16.3 tag/commit and PyPI sdist/macOS-wheel hashes; corrected the stale no-GitHub-release statement. Reconciled current LibreDWG release notes, ACadSharp #1297/#1299, and ezdxf's DXF-only route against existing owners without adding findings. Separated ezdwg's DWG reader, native AC1015 DWG writer, and ezdxf-backed DXF writer roles. Refined cq-acis profile/association limits and FreeCAD 2D-consumer interpretation.",
+      "limits": "No peer implementation/runtime, package, converter, fixture, or external DWG/DXF was executed or imported. No tests or production code changed."
+    }
+  ],
+  "assessment": {
+    "newConditionalDwgReadCandidates": 0,
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: bind binary observations to a host-specific PyPI artifact hash; retain SOURCE_LINEAGE_AUDIT_PENDING until release-tag/source archive, lock/dependencies, and parser ancestry are checked.",
+      "PAR-07/S8: use only the exact modern native-read overlap, a complete owner/layout denominator, and locally generated or repository-approved inputs; do not use peer fixtures or score ezdxf-backed DXF/AC1015 writer output.",
+    "Cross-check current LibreDWG NEWS and ACadSharp issue reports against existing HATCH, SPLINE, 3DSOLID, and strict-consumer owners; no new local finding is justified.",
+      "PAR-07/S8: do not use ezdwg's AC1015-only native DWG writer or ezdxf-backed DXF output as an independent modern DWG/DXF writer oracle.",
+      "PAR-07/S8: keep cq-acis as a narrow profile-gated raw SAT/SAB parser and geometry converter after independently established carrier ownership and transforms.",
+      "3D consumer gate: documented native FreeCAD DWG-to-DXF-to-importDXF route qualifies explicit supported DXF/2D entities, not ACIS B-rep semantics."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-emerging-rust-dwg-reader-3d-evidence-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Refreshed the already-tracked ezdwg comparator: its mutable workspace manifest is 0.16.3 while the lockfile records 0.16.0, superseding an older 0.12.12 lock snapshot; require source/package/lock correspondence and immutable hashes before use.",
+    "Retained ezdwg's existing conditional role for matching DWG reader fields only; its AC1015-only native writer and ezdxf-backed DXF serializer are not independent modern writer oracles.",
+    "Reconfirmed, without changing the existing scope, that cq-acis is a profile-limited SAT/SAB payload-to-shape route requiring independent container/owner association and analytic checks.",
+    "Reconfirmed, without changing the existing scope, that the inspected FreeCAD DWG path converts to DXF and invokes its documented importer, which cannot read ACIS/SAT blobs; native FreeCAD qualification is not ACIS semantic qualification."
+  ],
+  "limitations": [
+    "The ezdwg v0.16.3 GitHub tag and PyPI artifacts were identified, but the full tag SHA, source-archive-to-tag correspondence, and source ancestry were not verified; no artifact was downloaded or run.",
+    "Cargo dependency inspection is not proof that ezdwg has no copied or historically shared parser code.",
+    "No independent native CAD or B-rep semantic evidence was generated; all external semantic/platform cells remain deferred.",
+    "No peer drawing was downloaded or committed; fixture provenance policy is unchanged.",
+    "ODA v5.4.1 and Autodesk references remain authoritative for DWG/DXF layout questions."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants; jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt trailing-whitespace scan clean)",
+    "upgradePlanCheck": "PASS (python3 tools/update_upgrade_plan.py --check; checks LIBRECAD_DXFRW_UPGRADE_PLAN.md only)",
+    "fullSuiteRun": false,
+    "ezdwgArtifactDownloadedOrRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains extensive pre-existing changes and Git metadata is read-only in this session."
+  }
+}

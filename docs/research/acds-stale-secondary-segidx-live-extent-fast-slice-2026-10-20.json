@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACdS stale-secondary segidx live-extent bound",
+  "mode": "ODA-guided parser fix with generated fast regression",
+  "scope": [
+    "Bound live DataStorage segment-index reads when row zero refers to a stale secondary segidx",
+    "Keep valid stale-secondary layouts readable and reject oversized counts without cross-segment reads",
+    "Update the open-source parity implementation plan"
+  ],
+  "method": {
+    "webResearchPerformed": false,
+    "localRepositoryInspected": true,
+    "externalSamplesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "testsRun": true,
+    "fullTestSuiteRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localCodeInspection": [
+      "src/drw_datastorage.cpp::readSegmentIndex previously bounded by the live segidx self-reference only when that reference was row zero; a stale row-zero reference therefore left the declared count bounded only by whole-section bytes",
+      "tests/dwg_reader_matrix_tests.cpp::testModelerAcDsDataIndexOrder already owned the generated reordered DataIndex/modeler association case and its existing CTest selector; the generated section now includes a valid unindexed trailing data segment"
+    ],
+    "limitations": "The regression is generated in memory and demonstrates parser bounds/association only. No native DWG, third-party reader, ACIS kernel, B-rep semantics, or consumer qualification was run."
+  },
+  "formatBasis": {
+    "source": "Open Design Specification v5.4.1, §24.2.1–§24.2.2.2",
+    "authority": "ODA section/index structure is the byte-layout reference; peer stale-index behavior was not used as an acceptance oracle",
+    "expectedDisposition": "The live segment-index directory is bounded by its own declared segment extent; a valid stale secondary entry remains parseable, while an oversized count is capped and marked structurally unsafe for replay."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_datastorage.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": [
+      "Use the live segidx segment-header size as the primary directory-read bound, independent of which directory row names the live segment.",
+      "Validate nonzero segment extents against the section and fail closed on an invalid extent.",
+      "Retain the existing self-reference fallback when older producer data leaves the header-size field unset.",
+      "Generate a valid stale-row-zero/live-row-three case with an unindexed trailing data segment, an oversized-count negative control, and an invalid-extent fail-closed control in the existing fast selector."
+    ],
+    "redControl": "Before the parser change, the malformed-count assertion failed because the section-wide bound admitted rows from adjacent segments.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2 — passed",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order — passed",
+    "owningCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_acds_dataindex_order$' --output-on-failure — 1/1 passed",
+    "diffCheck": "git diff --check -- src/drw_datastorage.cpp tests/dwg_reader_matrix_tests.cpp — passed",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no files were staged."
+  },
+  "decision": {
+    "localDefectFixed": true,
+    "newTopLevelSubplan": false,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "externalGatesChanged": false,
+    "fixturePolicyRespected": true,
+    "nextAction": "Self-unblock to the next dependency-ready local slice; do not wait for optional peer, platform, or native semantic qualification."
+  }
+}
