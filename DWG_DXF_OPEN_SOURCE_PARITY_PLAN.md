@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **133 completed implementation slices** and **35 remaining
+The plan records **134 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`133 / (133 + 35) = 79.2%`. This is a count-based progress measure, not an
+`134 / (134 + 35) = 79.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1655,6 +1655,18 @@ passes at 1,121 ASCII and 1,099 Binary offsets with destination rollback and
 same-writer retry; focused CTest passes in 8.26 seconds. This does not cover
 break pairs, multiple roots/lines, block content, style-reference closure or
 native consumer semantics. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 MULTILEADER style-reference transaction follow-up (2026-11-13):** the
+generated whole-operation profile now writes a named MLEADERSTYLE with a
+TEXTSTYLE dependency, includes the style in the custom dictionary, and links
+the MULTILEADER entity to it. Fresh typed readback checks dictionary
+membership, the remapped entity-to-style reference, and the style's remapped
+group-342 TEXTSTYLE target. All 1,138 ASCII and 1,115 Binary allocation
+failures preserve caller and destination state; same-writer retry reproduces
+clean output. Focused CTest passes in 8.14 seconds. This is generated
+transaction and reference-closure evidence only; physical producer profiles
+and native annotation semantics remain open. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the

@@ -124,6 +124,7 @@ constexpr std::uint32_t kDirectTextstyleHandle = 0xD979u;
 constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
 constexpr std::uint32_t kDirectWipeoutHandle = 0xD97Bu;
 constexpr std::uint32_t kDirectPlaceholderHandle = 0xD97Cu;
+constexpr std::uint32_t kDirectMLeaderStyleHandle = 0xD97Du;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -170,6 +171,9 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
         {"TARGET_BETA", kTargetBetaHandle, DictionaryEdge::SoftOwner});
     custom.m_entries.push_back(
         {"WHOLE_OPERATION_TYPED_XRECORD", kTypedXRecordHandle,
+         DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"WHOLE_OPERATION_MLEADERSTYLE", kDirectMLeaderStyleHandle,
          DictionaryEdge::SoftOwner});
     writer.setNamedDictObjects({custom});
     return true;
@@ -1193,12 +1197,22 @@ public:
         dimstyle.dimdec = 3;
         dimstyle.dimazin = 2;
         storage.dimStyles.push_back(dimstyle);
+        multiLeaderStyle.handle = kDirectMLeaderStyleHandle;
+        multiLeaderStyle.parentHandle = kCustomDictionaryHandle;
+        multiLeaderStyle.contentType = 2;
+        multiLeaderStyle.description = "whole-operation MLEADERSTYLE";
+        multiLeaderStyle.textDefault = "callout";
+        multiLeaderStyle.textStyleHandle.ref = kDirectTextstyleHandle;
+        multiLeaderStyle.textHeight = 2.25;
+        multiLeaderStyle.arrowHeadSize = 1.75;
+        multiLeaderStyle.maxLeaderPoints = 5;
         typedXRecord.handle = kTypedXRecordHandle;
         typedXRecord.parentHandle = kCustomDictionaryHandle;
         typedXRecord.m_values.emplace_back(
             1, UTF8STRING("whole-operation typed XRECORD"));
         typedXRecord.m_values.emplace_back(90, std::int32_t{42});
         multiLeader.handle = kMultiLeaderHandle;
+        multiLeader.styleHandle.ref = kDirectMLeaderStyleHandle;
         multiLeader.styleContentType = 2u;
         multiLeader.context.hasTextContents = true;
         multiLeader.context.textLabel = "whole-operation multi-leader text";
@@ -1323,7 +1337,9 @@ public:
             && output.writeTableStyle(&tableStyle, storage.textStyles);
         const bool cellStyleMapWritten = tableStyleWritten
             && output.writeCellStyleMap(&cellStyleMap);
-        objectsWritten = cellStyleMapWritten
+        const bool mleaderStyleWritten = cellStyleMapWritten
+            && output.writeMLeaderStyle(&multiLeaderStyle);
+        objectsWritten = mleaderStyleWritten
             && output.writeAcDbPlaceholder(&placeholder);
     }
 
@@ -1341,6 +1357,7 @@ public:
     DRW_Image image;
     DRW_Wipeout wipeout;
     DRW_AcDbPlaceholder placeholder;
+    DRW_MLeaderStyle multiLeaderStyle;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1499,6 +1516,13 @@ public:
         if (value != nullptr) {
             ++multiLeaderCount;
             multiLeader = *value;
+        }
+    }
+    void addMLeaderStyle(const DRW_MLeaderStyle* value) override {
+        dx_iface::addMLeaderStyle(value);
+        if (value != nullptr) {
+            ++multiLeaderStyleCount;
+            multiLeaderStyle = *value;
         }
     }
     void addXRecord(const DRW_XRecord& value) override {
@@ -1874,6 +1898,7 @@ public:
     DRW_DbColor dbColor;
     DRW_XRecord typedXRecord;
     DRW_MLeader multiLeader;
+    DRW_MLeaderStyle multiLeaderStyle;
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
     DRW_Mesh mesh;
@@ -1961,6 +1986,7 @@ public:
     unsigned dbColorCount = 0u;
     unsigned typedXRecordCount = 0u;
     unsigned multiLeaderCount = 0u;
+    unsigned multiLeaderStyleCount = 0u;
     unsigned underlayDefinitionCount = 0u;
     unsigned underlayCount = 0u;
     unsigned meshCount = 0u;
@@ -2436,6 +2462,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.multiLeader.context.roots[0].leaderLines[0].color == 4
         && adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight == 25
         && adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize == 2.25
+        && adapter.multiLeader.styleHandle.ref == kDirectMLeaderStyleHandle
+        && adapter.multiLeaderStyle.handle == kDirectMLeaderStyleHandle
+        && adapter.multiLeaderStyle.parentHandle == kCustomDictionaryHandle
+        && adapter.multiLeaderStyle.textStyleHandle.ref
+            == kDirectTextstyleHandle
+        && adapter.multiLeaderStyle.description
+            == "whole-operation MLEADERSTYLE"
+        && adapter.multiLeaderStyle.textDefault == "callout"
+        && adapter.multiLeaderStyle.textHeight == 2.25
+        && adapter.multiLeaderStyle.arrowHeadSize == 1.75
+        && adapter.multiLeaderStyle.maxLeaderPoints == 5
         && adapter.placeholder.handle == kDirectPlaceholderHandle
         && adapter.placeholder.parentHandle == kCustomDictionaryHandle
         && adapter.ole2Frame.handle == kOle2FrameHandle
@@ -3626,6 +3663,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.multiLeader.context.roots[0].leaderLines[0].color != 4
         || adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight != 25
         || adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize != 2.25
+        || adapter.multiLeaderStyleCount != 1u
+        || adapter.multiLeader.styleHandle.ref
+            != adapter.multiLeaderStyle.handle
+        || adapter.multiLeaderStyle.handle == 0u
+        || adapter.multiLeaderStyle.parentHandle != kCustomDictionaryHandle
+        || adapter.multiLeaderStyle.textStyleHandle.ref
+            != customTextStyle->handle
+        || adapter.multiLeaderStyle.description
+            != "whole-operation MLEADERSTYLE"
+        || adapter.multiLeaderStyle.textDefault != "callout"
+        || adapter.multiLeaderStyle.textHeight != 2.25
+        || adapter.multiLeaderStyle.arrowHeadSize != 1.75
+        || adapter.multiLeaderStyle.maxLeaderPoints != 5
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
@@ -4773,7 +4823,7 @@ bool matchesReadback(const std::filesystem::path& path) {
               [&root, &customRootEntry](const DRW_Dictionary& value) {
                   return value.handle == customRootEntry->m_handle
                       && value.parentHandle == root.handle
-                      && value.m_entries.size() == 5u
+                      && value.m_entries.size() == 6u
                       && value.m_entries.front().m_name == kNestedXrecordName
                       && value.m_entries.front().m_handle == 0xD901u
                       && value.m_entries[1].m_name == "MAIN_DATALINK"
@@ -4785,7 +4835,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                       && value.m_entries[4].m_name
                           == "WHOLE_OPERATION_TYPED_XRECORD"
                       && value.m_entries[4].m_handle
-                          == kTypedXRecordHandle;
+                          == kTypedXRecordHandle
+                      && value.m_entries[5].m_name
+                          == "WHOLE_OPERATION_MLEADERSTYLE"
+                      && value.m_entries[5].m_handle
+                          == kDirectMLeaderStyleHandle;
               });
     const auto group = std::find_if(
         adapter.groups.begin(), adapter.groups.end(),
