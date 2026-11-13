@@ -1,0 +1,28 @@
+{
+  "id": "p8-librecad-upstream-table-attribute-test-compat-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Keep LibreCAD's entity metadata tests source-compatible with the upstream libdxfrw DRW_TableCellAttribute, whose private retained-text accounting member makes aggregate initialization unavailable.",
+  "change": {
+    "repository": "LibreCAD",
+    "commit": "078aac892",
+    "file": "librecad/src/lib/filters/tests/entity_metadata_tests.cpp",
+    "details": "Replaced three brace aggregate initializers with explicit assignments to m_attdefHandle, m_index, and m_text. This also remains compatible with LibreCAD's bundled libdxfrw type."
+  },
+  "upstream_source": {
+    "repository": "libdxfrw",
+    "commit": "9b1c20a0",
+    "overlay": "/private/tmp/librecad-upstream-libdxfrw-check"
+  },
+  "validation": {
+    "build": "cmake --build /private/tmp/librecad-upstream-libdxfrw-check-build --target librecad_entity_metadata_tests -j6",
+    "build_result": "PASS",
+    "test": "/private/tmp/librecad-upstream-libdxfrw-check-build/librecad_entity_metadata_tests",
+    "test_result": "PASS: 1,341 assertions in 64 cases",
+    "notes": [
+      "The focused build rebuilt LibreCAD's application library and the entity metadata test target against the clean upstream libdxfrw overlay.",
+      "CTest has no registered entity metadata test in this overlay; the built executable was run directly.",
+      "A pre-existing Qt Q_OS_MAC deprecation warning appeared in qg_graphicview.cpp; it did not fail the build."
+    ]
+  },
+  "limits": "This qualifies compilation and metadata test behavior against the upstream API. It is not a native DWG/DXF semantic, ABI, platform, or full LibreCAD release qualification. No DWG/DXF fixture was added."
+}
