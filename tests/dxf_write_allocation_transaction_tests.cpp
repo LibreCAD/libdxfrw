@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -414,9 +415,11 @@ public:
     }
 
     bool finalizeDxfWrite() override {
-        return entitiesWritten && objectsWritten;
+        return entitiesWritten && objectsWritten
+            && (!finalizeHook || finalizeHook());
     }
 
+    std::function<bool()> finalizeHook;
     dxfRW& output;
     dx_data storage;
     DRW_Line line;
@@ -1533,6 +1536,56 @@ bool run(const std::filesystem::path& directory) {
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
+    const auto publicationTarget = directory / "publication-race-target.dxf";
+    const auto marker = publicationTarget / "existing-destination";
+    std::error_code cleanupError;
+    std::filesystem::remove_all(publicationTarget, cleanupError);
+    if (cleanupError)
+        return fail("could not prepare publication-race destination");
+    const std::string markerBytes = "destination created during write\n";
+    dxfRW publicationCodec(publicationTarget.string().c_str());
+    Export publicationAdapter(publicationCodec);
+    if (!installGeneratedGroupGraph(publicationCodec,
+                                    publicationAdapter.line.handle,
+                                    publicationAdapter.circle.handle)
+        || !installGeneratedImageDefinition(publicationCodec))
+        return fail("could not install graph before publication-race control");
+    publicationAdapter.finalizeHook = [&]() {
+        std::error_code error;
+        if (!std::filesystem::create_directory(publicationTarget, error)
+            || error)
+            return false;
+        std::ofstream destination(marker, std::ios::binary);
+        destination.write(markerBytes.data(),
+                          static_cast<std::streamsize>(markerBytes.size()));
+        destination.close();
+        return destination.good();
+    };
+    const bool publicationAccepted = publicationCodec.write(
+        &publicationAdapter, DRW::AC1027, false);
+    std::string markerAfterRace;
+    const bool markerPreserved = std::filesystem::is_directory(publicationTarget)
+        && readBytes(marker, markerAfterRace) && markerAfterRace == markerBytes;
+    if (publicationAccepted || !publicationAdapter.entitiesWritten
+        || !publicationAdapter.objectsWritten || !markerPreserved
+        || publicationCodec.getError() != DRW::BAD_OPEN
+        || !callerRecordsUnchanged(publicationAdapter))
+        return fail("publication race overwrote or damaged the concurrent destination");
+
+    std::filesystem::remove_all(publicationTarget, cleanupError);
+    if (cleanupError)
+        return fail("could not clear raced destination before same-codec retry");
+    publicationAdapter.finalizeHook = {};
+    const bool publicationRetry = publicationCodec.write(
+        &publicationAdapter, DRW::AC1027, false);
+    const bool publicationRetryReadback = matchesReadback(publicationTarget);
+    if (!publicationRetry || !publicationAdapter.entitiesWritten
+        || !publicationAdapter.objectsWritten || !publicationRetryReadback
+        || !callerRecordsUnchanged(publicationAdapter))
+        return fail("whole-file publication failure did not allow corrected same-codec retry");
+    std::filesystem::remove(publicationTarget, cleanupError);
+    if (cleanupError)
+        return fail("could not remove publication-race retry output");
     return true;
 }
 } // namespace

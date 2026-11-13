@@ -716,11 +716,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "e847a4c4d43ed72d20e932f6bb783d32b5d158cb84ca8115d3c4de203b310a9b",
+    "testSha256": "85a3fe0d388a954ef6af9a08c549a2f3c94c9933105d947f2e469cfe7723a73a",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "ff02b4fdaec9eb2599f60125dc9e41fa47eda93b61b00e1ccdedfd960fc82442",
-    "asanExecutableSha256": "5bdd49781ebe4e1ec727625f8f07f540d9a914f4b9c641b9ac49ce86bab33eca",
+    "normalExecutableSha256": "a2009dc5a9af3443d11853e9ee07250a55e8ef7a29117e516cfea647e4ea75d9",
+    "asanExecutableSha256": "b3dd0f406e68e5b1b89850b50dc0da21d0789f413782c12ade9123355c3533a7",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/libdxfrw.h",
@@ -734,6 +734,7 @@
       "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a"
     },
     "details": [
+      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
       "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
       "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback.",
       "Generated patterned HATCH output now participates in the whole-operation sweep with a closed polyline boundary, pattern dash vector and seed point.",
@@ -750,20 +751,19 @@
       "Generated 3DLINE output with distinct 3D endpoints now participates in the sweep; typed readback verifies the 3DLINE callback and endpoint values.",
       "Generated planar SOLID output at nonzero elevation now participates in the sweep; typed readback verifies all four corners and elevation.",
       "The test readback adapter delegates POINT, 3DLINE and SOLID callbacks to dx_iface storage before capturing values, preserving block-body graph reconstruction.",
-      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
-      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
       "Generated TEXT output with a non-origin 3D insertion point, simple content, height, rotation, width factor and STANDARD style now participates in the whole-operation sweep; typed readback checks every field.",
       "Generated MTEXT output with a non-origin insertion point, simple content, box width, height, STANDARD style and explicitly present R2007+ defined height now participates in the whole-operation sweep; typed readback checks these fields.",
-      "Generated RAY and XLINE output with non-origin 3D base points and non-axis-aligned direction vectors now participates in the whole-operation sweep. Typed readback verifies each handle, base point and normalized direction; whole-file failure and success checks preserve the caller\u2019s original direction vectors.",
+      "Generated RAY and XLINE output with non-origin 3D base points and non-axis-aligned direction vectors now participates in the whole-operation sweep. Typed readback verifies each handle, base point and normalized direction; whole-file failure and success checks preserve the caller’s original direction vectors.",
       "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style.",
-      "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND."
+      "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND.",
+      "An ASCII publication-race control creates a destination directory and marker after staged output is finalized but before commit; commit refuses with BAD_OPEN without replacing the concurrent destination, then corrected same-codec retry succeeds with typed readback."
     ]
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
-    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-insert-attrib-borrowed-lifetime-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-publication-race-control; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -771,7 +771,7 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 2.28 seconds; ASan 1/1 passed in 17.24 seconds.",
+    "ctest": "Normal 1/1 passed in 2.30 seconds; ASan 1/1 passed in 17.53 seconds.",
     "ascii": {
       "measuredAllocationOffsets": 453,
       "allOffsetsFailedAsExpected": true,
@@ -946,17 +946,17 @@
       "twoAttribAllocationFailureAbortsWholeWrite": true,
       "callerInsertAndBothAttribsPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 17.24 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 17.53 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
-      "fix": "When EntityRecordScope sees a writer-local failure, it now sets dxfRW::m_writeError before DxfWriterRecordScope cleanup restores the writer\u2019s prior local error bit. The record-scope commit path also latches exceptions during byte materialization or inspection.",
+      "fix": "When EntityRecordScope sees a writer-local failure, it now sets dxfRW::m_writeError before DxfWriterRecordScope cleanup restores the writer’s prior local error bit. The record-scope commit path also latches exceptions during byte materialization or inspection.",
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
       "normalDirectRun": "ASCII 453 allocation offsets; Binary 447 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
-      "normalCtest": "1/1 passed in 2.28 seconds.",
-      "asanCtest": "1/1 passed in 17.24 seconds.",
+      "normalCtest": "1/1 passed in 2.30 seconds.",
+      "asanCtest": "1/1 passed in 17.53 seconds.",
       "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
       "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
       "ellipseReadback": "Generated partial ELLIPSE center, major axis, ratio, parameter range, and perpendicular extrusion match typed readback.",
@@ -970,7 +970,8 @@
       "attdefReadback": "Generated BLOCK body contains POINT plus ATTDEF. Typed readback checks ATTDEF owner block, tag, prompt, default text, insertion point, height and style.",
       "insertReadback": "A generated named BLOCK contains a POINT and ATTDEF; a name-resolved INSERT has two ATTRIB children and generated SEQEND. ASCII/Binary readback checks target, each attribute owner/tag/text/position/height, and block body records.",
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
-      "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics."
+      "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics.",
+      "publicationRace": "ASCII finalization hook creates a destination directory with marker data after staged writes; final publication refuses with BAD_OPEN, preserves marker and source records, then the same codec succeeds after clearing the destination and typed readback matches."
     },
     "additionalFailuresFoundAndFixed": [
       {
@@ -985,12 +986,24 @@
         "fix": "For whole-file writes, restore INSERT and ATTRIB caller handles at the end of the compound callback; rely on the codec identity ledger for later references. This avoids storing borrowed entity pointers beyond callback lifetime. Standalone writeInsert calls retain prior behavior.",
         "regression": "All offsets check original INSERT/ATTRIB and block caller state; successful calibration also confirms caller records remain unchanged. Same-codec retry reproduces exact bytes and typed readback verifies the graph."
       }
-    ]
+    ],
+    "publicationRace": {
+      "encoding": "ASCII",
+      "destinationCreatedDuringFinalization": true,
+      "allEntityAndObjectCallbacksReached": true,
+      "commitRejectedWith": "BAD_OPEN",
+      "concurrentDestinationMarkerPreserved": true,
+      "callerRecordsUnchanged": true,
+      "sameCodecRetryAfterClearingDestination": true,
+      "retryTypedReadbackMatched": true,
+      "scope": "Generated local filesystem publication-race transaction control; not native-format semantic or cross-platform filesystem qualification."
+    }
   },
   "limits": [
     "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with two ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
-    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
+    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding.",
+    "The publication-race control exercises one ASCII generated destination-directory replacement race on this macOS host; it does not establish behavior for every filesystem or platform."
   ],
   "baseRevision": "e23b1468"
 }

@@ -2,15 +2,14 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **76 completed implementation slices**. It does **not** yet
+The plan records **77 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The earlier `63 / (63 + 6) = 91.3%`
-figure is therefore only an **upper-bound proxy** obtained by pretending each
+gates as six slices mixes unlike units. The `77 / (77 + 6) = 92.8%`
+figure is only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 92.8%** (`76 / (76 + 6)` is the
-rounded six-gate upper-bound proxy), but cannot be calculated
+actual slice-based percentage is **below 92.8%**, but cannot be calculated
 honestly until those requirements are decomposed and counted as remaining
 slices.
 
@@ -3873,10 +3872,14 @@ MTEXT checks insertion, content, height, box width, style and explicitly present
 R2007+ defined height; its callback also delegates to `dx_iface`. RAY/XLINE readback checks unit-normalized direction vectors while whole-write
 caller-state checks preserve the original vectors. The custom block readback verifies both POINT and ATTDEF children, including
 ATTDEF tag, prompt, default text and block ownership. The sweep reaches 453 ASCII
-and 447 Binary allocation offsets; focused CTest passes in normal (2.28 s) and
-ASan (17.24 s) builds.
-This closes only these generated whole-operation paths; other drawing families
-and platform/filesystem failure modes remain open
+and 447 Binary allocation offsets. An additional generated ASCII publication-
+race control creates a destination directory with marker data during
+finalization. Commit returns `BAD_OPEN`, preserves the concurrent destination
+and caller records, and the same codec then succeeds after the destination is
+cleared, with typed readback. The focused CTest passes in normal (2.30 s) and
+ASan (17.53 s) builds. This closes only these generated whole-operation paths
+and this destination-race profile; other drawing families and
+platform/filesystem failure modes remain open
 ([receipt](docs/research/p6-dxf-whole-operation-allocation-rollback-retry-2026-11-13.json)).
 
 **P6 DXF OBJECTS callback failure propagation (2026-11-13):** `dx_iface::writeObjects()`
