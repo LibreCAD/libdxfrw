@@ -22,6 +22,7 @@ constexpr std::uint32_t kMainDataLinkHandle = 0xD915u;
 constexpr std::uint32_t kTargetAlphaHandle = 0xD916u;
 constexpr std::uint32_t kTargetBetaHandle = 0xD917u;
 constexpr std::uint32_t kPolylineHandle = 0xD918u;
+constexpr std::uint32_t kMeshHandle = 0xD919u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -137,6 +138,17 @@ public:
         image.vVector = DRW_Coord(0.0, 1.0, 0.0);
         image.sizeu = 640.0;
         image.sizev = 480.0;
+        mesh.handle = kMeshHandle;
+        mesh.vertices = {DRW_Coord(0.0, 0.0, 0.0),
+                         DRW_Coord(2.0, 0.0, 0.0),
+                         DRW_Coord(0.0, 3.0, 0.0)};
+        mesh.faces = {{0, 1, 2}};
+        mesh.edges = {{0, 1}, {1, 2}, {2, 0}};
+        mesh.creases = {0.5};
+        DRW_MeshPropertyOverride overrideData;
+        overrideData.subEntityMarker = 7;
+        overrideData.propertyTypes = {0, 2};
+        mesh.propertyOverrides.push_back(overrideData);
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -173,7 +185,8 @@ public:
             && output.writeCircle(&circle)
             && output.writeLWPolyline(&polyline)
             && output.writeImage(&image, "whole-operation-image.png", 7u,
-                                 image.ref) != nullptr;
+                                 image.ref) != nullptr
+            && output.writeMesh(&mesh);
     }
 
     void writeObjects() override {
@@ -194,6 +207,7 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_Mesh mesh;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -223,6 +237,10 @@ public:
             image = *value;
         }
     }
+    void addMesh(const DRW_Mesh& value) override {
+        ++meshCount;
+        mesh = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -239,6 +257,7 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_Mesh mesh;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -247,6 +266,7 @@ public:
     unsigned circleCount = 0u;
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
+    unsigned meshCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -292,6 +312,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.basePoint.z == 4.0
         && adapter.image.sizeu == 640.0
         && adapter.image.sizev == 480.0
+        && adapter.mesh.handle == kMeshHandle
+        && adapter.mesh.vertices.size() == 3u
+        && adapter.mesh.vertices[0].x == 0.0
+        && adapter.mesh.vertices[1].x == 2.0
+        && adapter.mesh.vertices[2].y == 3.0
+        && adapter.mesh.faces == std::vector<std::vector<std::int32_t>>{{0, 1, 2}}
+        && adapter.mesh.edges
+            == std::vector<std::pair<std::int32_t, std::int32_t>>{{0, 1}, {1, 2}, {2, 0}}
+        && adapter.mesh.creases == std::vector<double>{0.5}
+        && adapter.mesh.propertyOverrides.size() == 1u
+        && adapter.mesh.propertyOverrides.front().subEntityMarker == 7
+        && adapter.mesh.propertyOverrides.front().propertyTypes
+            == std::vector<std::int32_t>{0, 2}
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -349,6 +382,7 @@ bool matchesReadback(const std::filesystem::path& path) {
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
+        || adapter.meshCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -374,6 +408,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.image.basePoint.z != 4.0
         || adapter.image.sizeu != 640.0
         || adapter.image.sizev != 480.0
+        || adapter.mesh.handle == 0u
+        || adapter.mesh.vertices.size() != 3u
+        || adapter.mesh.vertices[0].x != 0.0
+        || adapter.mesh.vertices[1].x != 2.0
+        || adapter.mesh.vertices[2].y != 3.0
+        || adapter.mesh.faces != std::vector<std::vector<std::int32_t>>{{0, 1, 2}}
+        || adapter.mesh.edges
+            != std::vector<std::pair<std::int32_t, std::int32_t>>{{0, 1}, {1, 2}, {2, 0}}
+        || adapter.mesh.creases != std::vector<double>{0.5}
+        || adapter.mesh.propertyOverrides.size() != 1u
+        || adapter.mesh.propertyOverrides.front().subEntityMarker != 7
+        || adapter.mesh.propertyOverrides.front().propertyTypes
+            != std::vector<std::int32_t>{0, 2}
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
