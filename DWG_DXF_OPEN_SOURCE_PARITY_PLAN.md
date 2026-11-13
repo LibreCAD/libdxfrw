@@ -2,13 +2,12 @@
 
 ## Progress estimate (2026-11-12)
 
-The current queue has **45 completed implementation slices** and **6 remaining
-phase exit gates**, so the item-count progression is **88.2%**:
-`45 / (45 + 6)`. This is a queue-count estimate: a small implementation slice
-and a broad phase gate each count as one item, so it is not effort-weighted
-completion of DWG/DXF parity. Completed actions have been removed from this
-plan; their implementation and evidence remain in Git history and
-`docs/research/`.
+The current plan records **45 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **88.2%**:
+`45 / (45 + 6)`. This is an item-count estimate, not effort-weighted completion
+of DWG/DXF parity: a small implementation slice and a broad phase gate each
+count once. Completed actions are excluded from the execution queue; their
+implementation and evidence remain in Git history and `docs/research/`.
 
 **Gate completion remains 0 of 6 (0%)**: P4–P8 are OPEN and P9 is
 DEFERRED_EXTERNAL. No phase gate has met its full evidence requirements.
@@ -1134,7 +1133,7 @@ integration/release checkpoints.
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
-| P8 | OPEN — consumers, platforms, packaging and release | Preserve LibreCAD and LibreCAD_3 2D behavior (the HATCH/MPOLYGON radians contract and associative-prefix mapper pass focused wire/readback and metadata checks; the LibreCAD metadata suite now also builds and passes all 1,341 assertions against the upstream overlay after its test fixtures switched to explicit TABLE-attribute field assignment); qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. See the [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json). |
+| P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json). |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
