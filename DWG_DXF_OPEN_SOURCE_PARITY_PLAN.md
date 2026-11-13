@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **211 completed implementation slices** and **35 remaining
+The plan records **212 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`211 / (211 + 35) = 85.8%`. This is a count-based progress measure, not an
+`212 / (212 + 35) = 85.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1387,6 +1387,15 @@ allocation offsets pass. This is generated writer transaction evidence only;
 optional reference-graph closure, producer interoperability, and native
 viewport behavior remain open
 ([receipt](docs/research/p6-dxf-vport-table-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G VPORT missing-revision transaction follow-up (2026-11-13):** the
+existing generated VPORT sweep now also exercises AC1024 and AC1027. The
+expanded seven-revision ASCII/Binary matrix reaches 343 allocation offsets;
+every failure preserves the destination and complete caller record, then
+same-codec retry matches clean bytes and typed readback. The focused CTest
+passes in 0.92 seconds. This only fills the two missing local writer revisions;
+optional reference closure, producer interoperability, and native viewport
+behavior remain open ([follow-up receipt](docs/research/p6-dxf-vport-version-matrix-followup-2026-11-13.json)).
 
 **P6-G UNDERLAY graph caller-state transaction follow-up (2026-11-13):** the
 generated three-kind AC1027 PDF/DGN/DWF OBJECTS sweep now compares the full
