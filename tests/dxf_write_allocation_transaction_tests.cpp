@@ -69,6 +69,7 @@ constexpr std::uint32_t kDbColorHandle = 0xD945u;
 constexpr std::uint32_t kUnderlayDefinitionHandle = 0xD946u;
 constexpr std::uint32_t kUnderlayHandle = 0xD947u;
 constexpr std::uint32_t kLineTypeHandle = 0xD948u;
+constexpr std::uint32_t kTypedXRecordHandle = 0xD949u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -113,6 +114,9 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
         {"TARGET_ALPHA", kTargetAlphaHandle, DictionaryEdge::SoftOwner});
     custom.m_entries.push_back(
         {"TARGET_BETA", kTargetBetaHandle, DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"WHOLE_OPERATION_TYPED_XRECORD", kTypedXRecordHandle,
+         DictionaryEdge::SoftOwner});
     writer.setNamedDictObjects({custom});
     return true;
 }
@@ -856,6 +860,11 @@ public:
         lineType.size = 2;
         lineType.length = 15.0;
         storage.lineTypes.push_back(lineType);
+        typedXRecord.handle = kTypedXRecordHandle;
+        typedXRecord.parentHandle = kCustomDictionaryHandle;
+        typedXRecord.m_values.emplace_back(
+            1, UTF8STRING("whole-operation typed XRECORD"));
+        typedXRecord.m_values.emplace_back(90, std::int32_t{42});
     }
 
     void writeEntities() override {
@@ -928,6 +937,7 @@ public:
             && output.writeRasterVariables(&rasterVariables)
             && output.writeDictionaryVar(&dictionaryVar)
             && output.writeDbColor(&dbColor)
+            && output.writeXRecord(&typedXRecord)
             && output.writeUnderlayDefinition(&underlayDefinition)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
@@ -998,6 +1008,7 @@ public:
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
     DRW_LType lineType;
+    DRW_XRecord typedXRecord;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1062,6 +1073,18 @@ public:
     void addDbColor(const DRW_DbColor& value) override {
         ++dbColorCount;
         dbColor = value;
+    }
+    void addXRecord(const DRW_XRecord& value) override {
+        dx_iface::addXRecord(value);
+        const bool isGeneratedTypedXRecord = std::any_of(
+            value.m_values.begin(), value.m_values.end(),
+            [](const DRW_Variant& item) {
+                return item.stringEquals("whole-operation typed XRECORD");
+            });
+        if (isGeneratedTypedXRecord) {
+            ++typedXRecordCount;
+            typedXRecord = value;
+        }
     }
     void addUnderlay(const DRW_Underlay* value) override {
         if (value != nullptr) {
@@ -1359,6 +1382,7 @@ public:
     DRW_RasterVariables rasterVariables;
     DRW_DictionaryVar dictionaryVar;
     DRW_DbColor dbColor;
+    DRW_XRecord typedXRecord;
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
     DRW_Mesh mesh;
@@ -1428,6 +1452,7 @@ public:
     unsigned rasterVariablesCount = 0u;
     unsigned dictionaryVarCount = 0u;
     unsigned dbColorCount = 0u;
+    unsigned typedXRecordCount = 0u;
     unsigned underlayDefinitionCount = 0u;
     unsigned underlayCount = 0u;
     unsigned meshCount = 0u;
@@ -1601,6 +1626,16 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && lineType->path == std::vector<double>{10.0, -5.0}
         && lineType->size == 2
         && lineType->length == 15.0
+        && adapter.typedXRecord.handle == kTypedXRecordHandle
+        && adapter.typedXRecord.parentHandle == kCustomDictionaryHandle
+        && adapter.typedXRecord.m_values.size() == 2u
+        && adapter.typedXRecord.m_values[0].code() == 1
+        && adapter.typedXRecord.m_values[0].type() == DRW_Variant::STRING
+        && adapter.typedXRecord.m_values[0].stringEquals(
+            "whole-operation typed XRECORD")
+        && adapter.typedXRecord.m_values[1].code() == 90
+        && adapter.typedXRecord.m_values[1].type() == DRW_Variant::INTEGER
+        && adapter.typedXRecord.m_values[1].i_val() == 42
         && adapter.ole2Frame.handle == kOle2FrameHandle
         && adapter.ole2Frame.m_oleVersion == 2u
         && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
@@ -2309,7 +2344,14 @@ bool matchesReadback(const std::filesystem::path& path) {
     const bool read = reader.read(&adapter, false);
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
-        [](const DRW_RawDxfObject& value) { return value.name == "XRECORD"; });
+        [](const DRW_RawDxfObject& value) {
+            return value.name == "XRECORD"
+                && std::any_of(
+                    value.groups.begin(), value.groups.end(),
+                    [](const DRW_Variant& group) {
+                        return group.stringEquals("whole operation payload");
+                    });
+        });
     const auto mainDataLink = std::find_if(
         adapter.dataLinks.begin(), adapter.dataLinks.end(),
         [](const DRW_DataLink& value) {
@@ -2414,6 +2456,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || lineType->path != std::vector<double>{10.0, -5.0}
         || lineType->size != 2
         || lineType->length != 15.0
+        || adapter.typedXRecordCount != 1u
+        || adapter.typedXRecord.handle == 0u
+        || adapter.typedXRecord.parentHandle != kCustomDictionaryHandle
+        || adapter.typedXRecord.m_values.size() != 2u
+        || adapter.typedXRecord.m_values[0].code() != 1
+        || adapter.typedXRecord.m_values[0].type() != DRW_Variant::STRING
+        || !adapter.typedXRecord.m_values[0].stringEquals(
+            "whole-operation typed XRECORD")
+        || adapter.typedXRecord.m_values[1].code() != 90
+        || adapter.typedXRecord.m_values[1].type() != DRW_Variant::INTEGER
+        || adapter.typedXRecord.m_values[1].i_val() != 42
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
@@ -3169,9 +3222,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || imageDefinition->loaded != 1 || imageDefinition->resolution != 5
         || rawXrecord == adapter.objects.end()
         || rawXrecord->groups.size() != 4u
-        || rawXrecord->groups[3].c_str() == nullptr
-        || std::string(rawXrecord->groups[3].c_str())
-            != "whole operation payload"
+        || !rawXrecord->groups[3].stringEquals("whole operation payload")
         || adapter.dataLinks.size() != 3u
         || mainDataLink == adapter.dataLinks.end()
         || targetAlpha == adapter.dataLinks.end()
@@ -3298,9 +3349,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         }
         std::cerr << '\n';
         if (rawXrecord != adapter.objects.end()
-            && rawXrecord->groups.size() > 3u
-            && rawXrecord->groups[3].c_str() != nullptr)
-            std::cerr << " rawPayload=" << rawXrecord->groups[3].c_str();
+            && rawXrecord->groups.size() > 3u)
+            std::cerr << " rawPayloadMatches="
+                      << rawXrecord->groups[3].stringEquals(
+                             "whole operation payload");
+        std::cerr << " typed-xrecord=" << adapter.typedXRecordCount << '/'
+                  << adapter.typedXRecord.handle << '/'
+                  << adapter.typedXRecord.parentHandle << '/'
+                  << adapter.typedXRecord.m_values.size();
+        for (const DRW_Variant& value : adapter.typedXRecord.m_values)
+            std::cerr << '[' << value.code() << ':' << value.type() << ':'
+                      << value.stringEquals("whole-operation typed XRECORD")
+                      << ':' << (value.type() == DRW_Variant::INTEGER
+                                      ? value.i_val() : -999) << ']';
         std::cerr << " underlay-definitions=" << adapter.underlayDefinitionCount
                   << " underlay-entities=" << adapter.underlayCount
                   << " underlay-def-handle=" << adapter.underlayDefinition.handle
@@ -3397,7 +3458,7 @@ bool matchesReadback(const std::filesystem::path& path) {
               [&root, &customRootEntry](const DRW_Dictionary& value) {
                   return value.handle == customRootEntry->m_handle
                       && value.parentHandle == root.handle
-                      && value.m_entries.size() == 4u
+                      && value.m_entries.size() == 5u
                       && value.m_entries.front().m_name == kNestedXrecordName
                       && value.m_entries.front().m_handle == 0xD901u
                       && value.m_entries[1].m_name == "MAIN_DATALINK"
@@ -3405,7 +3466,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                       && value.m_entries[2].m_name == "TARGET_ALPHA"
                       && value.m_entries[2].m_handle == kTargetAlphaHandle
                       && value.m_entries[3].m_name == "TARGET_BETA"
-                      && value.m_entries[3].m_handle == kTargetBetaHandle;
+                      && value.m_entries[3].m_handle == kTargetBetaHandle
+                      && value.m_entries[4].m_name
+                          == "WHOLE_OPERATION_TYPED_XRECORD"
+                      && value.m_entries[4].m_handle
+                          == kTypedXRecordHandle;
               });
     const auto group = std::find_if(
         adapter.groups.begin(), adapter.groups.end(),

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **116 completed implementation slices** and **35 remaining
+The plan records **117 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`116 / (116 + 35) = 76.8%`. This is a count-based progress measure, not an
+`117 / (117 + 35) = 77.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1505,6 +1505,21 @@ adapter-side reconciliation of an edited `LC_LineType` against its archived
 `DRW_LType` record; that behavior and its LibreCAD DXF/DWG tests are outside
 this plan. The focused transaction CTest passes in 5.55 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
+XRECORD with group 1 text and group 90 integer is now part of the custom
+dictionary graph and whole-operation ASCII/Binary allocation sweep. All 842
+ASCII and 823 Binary injected failures preserve the previous destination and
+caller records; same-writer retries reproduce clean bytes. Typed readback
+checks the two payload variants, parent handle, and named-dictionary entry.
+The callback selects the generated row by payload because the same drawing
+also contains other XRECORDs. This is generated libdxfrw transaction and
+readback evidence only; it does not provide independent source-profile or
+consumer semantic proof. It also does not implement LibreCAD PR
+[#3269](https://github.com/LibreCAD/LibreCAD/pull/3269)'s adapter-side
+reconciliation of edited `LC_LineType` definitions against archived
+`DRW_LType` records. The focused transaction CTest passes in 5.41 seconds. See
+the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
