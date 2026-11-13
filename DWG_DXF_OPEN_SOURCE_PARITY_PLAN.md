@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **150 completed implementation slices** and **35 remaining
+The plan records **151 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`150 / (150 + 35) = 81.1%`. This is a count-based progress measure, not an
+`151 / (151 + 35) = 81.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4743,6 +4743,15 @@ focused CTest passes in normal and ASan builds. This is generated transaction
 evidence for one profile; block-reference ownership, source-authored layouts
 and clipping behavior in consumers remain unqualified
 ([receipt](docs/research/p6-dxf-spatial-filter-allocation-rollback-retry-2026-11-13.json)).
+The same whole-operation sweep now exercises the public AC1032
+`writeSection(..., "SECTIONMANAGER")` route with three ordered section-object
+references. All 96 ASCII and 93 Binary injected allocation failures preserve
+the destination, caller list and handle-binding state and remove staging files;
+same-codec retry reproduces the clean output, while typed readback verifies the
+manager identity, owner, live flag and remapped handle order. The focused CTest
+passes in normal and ASan builds. This is generated transaction evidence for a
+manager profile only; SECTION_SETTINGS geometry variants and source/native
+graph semantics remain open ([receipt](docs/research/p6-dxf-section-manager-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

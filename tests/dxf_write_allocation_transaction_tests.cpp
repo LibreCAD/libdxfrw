@@ -6372,6 +6372,166 @@ bool runSpatialFilterSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runSectionManagerSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "SECTIONMANAGER allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "section-manager-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files in test scratch");
+    const std::string sentinel = "previous complete document\n";
+    const std::map<std::uint32_t, std::uint32_t> remap = {
+        {0xDC00u, 0xEDC00u}, {0xDC01u, 0xEDC01u},
+        {0xDC02u, 0xEDC02u}, {0xDC03u, 0xEDC03u},
+        {0xDC04u, 0xEDC04u}};
+    const auto makeManager = [] {
+        DRW_Section value;
+        value.handle = 0xDC00u;
+        value.parentHandle = 0xDC01u;
+        value.m_kind = DRW_Section::Manager;
+        value.m_isLive = true;
+        value.m_sectionCount = 3;
+        value.m_sectionHandles = {0xDC02u, 0xDC03u, 0xDC04u};
+        return value;
+    };
+    const auto sameManager = [](const DRW_Section& a, const DRW_Section& b) {
+        return a.handle == b.handle && a.parentHandle == b.parentHandle
+            && a.m_kind == b.m_kind && a.m_isLive == b.m_isLive
+            && a.m_sectionCount == b.m_sectionCount
+            && a.m_sectionHandles == b.m_sectionHandles;
+    };
+    class SectionManagerExport final : public dx_iface {
+    public:
+        SectionManagerExport(dxfRW& codec, DRW_Section source)
+            : output(codec), manager(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override {
+            written = output.writeSection(&manager, "SECTIONMANAGER");
+        }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Section manager;
+        bool written = false;
+    };
+    class SectionManagerReadback final : public dx_iface {
+    public:
+        SectionManagerReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addSection(const DRW_Section& value) override {
+            manager = value;
+            found = true;
+        }
+        dx_data storage;
+        DRW_Section manager;
+        bool found = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        SectionManagerReadback probe;
+        const DRW_Section expected = makeManager();
+        return reader.read(&probe, true) && probe.found
+            && probe.manager.handle == 0xEDC00u
+            && probe.manager.parentHandle == 0xEDC01u
+            && probe.manager.m_kind == DRW_Section::Manager
+            && probe.manager.m_isLive == expected.m_isLive
+            && probe.manager.m_sectionCount == expected.m_sectionCount
+            && probe.manager.m_sectionHandles
+                == std::vector<std::uint32_t>{0xEDC02u, 0xEDC03u, 0xEDC04u};
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionManagerExport adapter(codec, makeManager());
+            if (!codec.write(&adapter, DRW::AC1032, binary))
+                return fail("warm-up write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionManagerExport adapter(codec, makeManager());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionManagerExport adapter(codec, makeManager());
+            const DRW_Section original(adapter.manager);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !sameManager(adapter.manager, original)
+                || !identitiesRolledBack || stageRemains) {
+                std::cerr << "offset=" << offset << " wrote=" << wrote
+                          << " injected=" << injected
+                          << " destinationPreserved=" << (afterFailure == sentinel)
+                          << " callerSame=" << sameManager(adapter.manager, original)
+                          << " identitiesRolledBack=" << identitiesRolledBack
+                          << " stageRemains=" << stageRemains << '\n';
+                return fail("injected allocation failure changed caller or destination state");
+            }
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            if (!retried || !sameManager(adapter.manager, original)
+                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                || !readbackMatches(output) || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "SECTIONMANAGER " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -6389,7 +6549,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -6405,6 +6565,8 @@ int main(int argc, char** argv) {
             return runSunStudySweep(directory) ? 0 : 1;
         if (mode == "spatial-filter")
             return runSpatialFilterSweep(directory) ? 0 : 1;
+        if (mode == "section-manager")
+            return runSectionManagerSweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;
