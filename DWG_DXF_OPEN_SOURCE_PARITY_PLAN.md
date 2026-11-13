@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **172 completed implementation slices** and **35 remaining
+The plan records **173 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`172 / (172 + 35) = 83.1%`. This is a count-based progress measure, not an
+`173 / (173 + 35) = 83.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
