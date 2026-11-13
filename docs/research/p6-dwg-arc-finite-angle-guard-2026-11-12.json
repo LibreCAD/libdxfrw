@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-arc-finite-angle-guard-2026-11-12",
+  "purpose": "Prevent DWG ARC writer output from encoding non-finite angular parameters that cannot describe native arc geometry.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.18 ARC (object type 17)",
+    "page": 122,
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "Start angle (group 50) and end angle (group 51) are encoded as BD values.",
+    "nativeContract": {
+      "source": "Autodesk ObjectARX AcDbArc::setStartAngle and AcDbArc::setEndAngle references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbArc__setStartAngle_double.html",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbArc__setEndAngle_double.html"
+      ],
+      "requirements": "Both values are angular parameters in radians; negative finite angles are allowed."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "DWG ARC writer admission now requires finite start and end angles as well as the existing finite positive radius check. Validation occurs before staged record publication; no arbitrary angular range was imposed.",
+    "scope": "Writer admission only; input parsing remains unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "refusedAngles": [
+      {"start": "NaN", "end": 1.0},
+      {"start": "+Infinity", "end": 1.0},
+      {"start": 0.25, "end": "NaN"},
+      {"start": 0.25, "end": "-Infinity"}
+    ],
+    "failureRetry": "Each refusal preserves a seeded destination; corrected 0.25/1.0-radian output succeeds using the same dwgRW instance and reads back both parameters with zero entity/object parse failures.",
+    "fixturePolicy": "All records are authored by the test in scratch storage; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(circle_arc_radius_domain|arc_angle_domain)$' --output-on-failure PASS 2/2 in 0.16 seconds"
+  },
+  "limitations": [
+    "The generated controls prove bounded writer admission, failure/retry and typed readback, not source prevalence, native rendering or complete-document qualification.",
+    "The broader P6 geometry/no-loss audit remains open."
+  ],
+  "supportClaimEffect": "Closes a bounded DWG ARC non-finite-angle writer gap; no broad DWG/DXF support claim is promoted."
+}

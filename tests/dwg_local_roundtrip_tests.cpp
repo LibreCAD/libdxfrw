@@ -10358,6 +10358,11 @@ public:
     DwgCircleArcRadiusWriter(dwgRW& writer, bool arc, double radius)
         : writer_(writer), arc_(arc), radius_(radius) {}
 
+    DwgCircleArcRadiusWriter(dwgRW& writer, double startAngle,
+                             double endAngle)
+        : writer_(writer), arc_(true), radius_(2.5),
+          startAngle_(startAngle), endAngle_(endAngle) {}
+
     void writeHeader(DRW_Header& header) override { header.vars.clear(); }
     void writeDwgClasses() override {}
     void collectDwgAppIds() override {}
@@ -10369,8 +10374,8 @@ public:
             DRW_Arc value;
             value.basePoint = {2.0, 3.0, 4.0};
             value.radious = radius_;
-            value.staangle = 0.25;
-            value.endangle = 1.0;
+            value.staangle = startAngle_;
+            value.endangle = endAngle_;
             wrote_ = writer_.writeArc(&value) && value.handle != 0u;
         } else {
             DRW_Circle value;
@@ -10395,12 +10400,18 @@ private:
     dwgRW& writer_;
     bool arc_;
     double radius_;
+    double startAngle_{0.25};
+    double endAngle_{1.0};
     bool wrote_{false};
 };
 
 class DwgCircleArcRadiusReader final : public dx_iface {
 public:
-    explicit DwgCircleArcRadiusReader(bool arc) : arc_(arc) {}
+    explicit DwgCircleArcRadiusReader(bool arc, double expectedRadius = 2.5,
+                                      double expectedStart = 0.25,
+                                      double expectedEnd = 1.0)
+        : arc_(arc), expectedRadius_(expectedRadius),
+          expectedStart_(expectedStart), expectedEnd_(expectedEnd) {}
     void addCircle(const DRW_Circle& value) override {
         if (!arc_) {
             ++count_;
@@ -10411,16 +10422,26 @@ public:
         if (arc_) {
             ++count_;
             radius_ = value.radious;
+            startAngle_ = value.staangle;
+            endAngle_ = value.endangle;
         }
     }
     bool matches(double radius) const noexcept {
-        return count_ == 1u && radius_ == radius;
+        return count_ == 1u && radius_ == expectedRadius_
+            && radius_ == radius
+            && (!arc_ || (startAngle_ == expectedStart_
+                          && endAngle_ == expectedEnd_));
     }
 
 private:
     bool arc_;
     std::size_t count_{0u};
     double radius_{0.0};
+    double expectedRadius_;
+    double startAngle_{0.0};
+    double endAngle_{0.0};
+    double expectedStart_;
+    double expectedEnd_;
 };
 
 bool runDwgCircleArcRadiusDomain(const std::filesystem::path& directory) {
@@ -10471,6 +10492,57 @@ bool runDwgCircleArcRadiusDomain(const std::filesystem::path& directory) {
             }
             std::filesystem::remove(path, ec);
         }
+    }
+    return true;
+}
+
+bool runDwgArcAngleDomain(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double infinity = std::numeric_limits<double>::infinity();
+    const std::array<std::pair<double, double>, 4> invalidAngles{{
+        {nan, 1.0}, {infinity, 1.0}, {0.25, nan}, {0.25, -infinity}}};
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        const auto path = directory / ("libdxfrw-arc-angle-"
+            + std::to_string(static_cast<int>(version)) + ".dwg");
+        for (const auto& angles : invalidAngles) {
+            {
+                std::ofstream sentinel(path, std::ios::binary
+                                               | std::ios::trunc);
+                sentinel << "existing-dwg-destination";
+            }
+            dwgRW writer(path.string().c_str());
+            DwgCircleArcRadiusWriter source(writer, angles.first,
+                                             angles.second);
+            const std::string before = readBytes(path);
+            if (writer.write(&source, version, false)
+                || before.empty() || readBytes(path) != before)
+                return false;
+
+            DwgCircleArcRadiusWriter retry(writer, true, 2.5);
+            if (!writer.write(&retry, version, false))
+                return false;
+            dwgRW reader(path.string().c_str());
+            DwgCircleArcRadiusReader capture(true, 2.5, 0.25, 1.0);
+            dx_data readData;
+            capture.cData = &readData;
+            if (!reader.read(&capture, false) || !capture.matches(2.5)
+                || reader.getEntityParseFailures() != 0u
+                || reader.getObjectParseFailures() != 0u)
+                return false;
+        }
+        std::filesystem::remove(path, ec);
     }
     return true;
 }
@@ -41333,6 +41405,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-ellipse-geometry-admission") {
         const bool passed = runDwgEllipseGeometryAdmission(directory);
         std::cout << "DWG ELLIPSE geometry admission rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-arc-angle-domain") {
+        const bool passed = runDwgArcAngleDomain(directory);
+        std::cout << "DWG ARC finite-angle rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2

@@ -9845,7 +9845,9 @@ bool DRW_Arc::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
   (void)bs;
   (void)strBuf;
   // AcDbArc has the same strictly-positive radius contract as AcDbCircle.
-  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0)
+  // Its two BD angular parameters must also remain finite on the wire.
+  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0
+      || !std::isfinite(staangle) || !std::isfinite(endangle))
     return false;
 
   dwgBufferW *const bodyTarget = buf;

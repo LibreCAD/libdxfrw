@@ -4419,6 +4419,18 @@ set_tests_properties(libdxfrw_dwg_ellipse_geometry_admission PROPERTIES
     TIMEOUT 30
 )
 
+# ARC angles are encoded as BD values; reject non-finite values before DWG
+# output publication and verify correction/retry for each writer version.
+add_test(
+    NAME libdxfrw_dwg_arc_angle_domain
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-arc-angle-domain
+)
+set_tests_properties(libdxfrw_dwg_arc_angle_domain PROPERTIES
+    LABELS "fast;dwg;writer;reader;arc;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome
