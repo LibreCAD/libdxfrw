@@ -208,12 +208,25 @@ public:
 bool physical(const char* path) {
     PhysicalCapture sink;
     dwgR input(path);
-    if (!input.read(&sink, false) || sink.count != 1 || !sink.ok
+    const bool readOk = input.read(&sink, false);
+    if (!readOk || sink.count != 1 || !sink.ok
         || sink.result.m_sourceHandle != 0x2A8u
         || sink.result.m_nextNodeIdCandidate != 13
+        || sink.result.m_rootId != 0
+        || sink.result.m_rootConnectionCount != 0
+        || sink.result.m_rootFlag
         || sink.result.m_classNames.size() != 6u
-        || sink.result.m_registeredNodes.size() != 13u)
+        || sink.result.m_registeredNodes.size() != 13u) {
+        std::cerr << "physical header read=" << readOk << " count=" << sink.count
+                  << " ok=" << sink.ok << " handle=" << sink.result.m_sourceHandle
+                  << " next=" << sink.result.m_nextNodeIdCandidate
+                  << " root=" << sink.result.m_rootId
+                  << " rootConnections=" << sink.result.m_rootConnectionCount
+                  << " rootFlag=" << sink.result.m_rootFlag
+                  << " classes=" << sink.result.m_classNames.size()
+                  << " nodes=" << sink.result.m_registeredNodes.size() << '\n';
         return false;
+    }
     const auto& line = sink.result.m_registeredNodes[0];
     const auto& arc = sink.result.m_registeredNodes[5];
     const std::array<int, 13> classes{{1, 2, 3, 2, 3, 4, 2, 3, 2, 3, 2, 5, 6}};
@@ -253,51 +266,114 @@ bool physical(const char* path) {
     const auto& fourthArcImplicit = sink.result.m_registeredNodes[10].m_fields;
     const auto& centerConstraint = sink.result.m_registeredNodes[11].m_fields;
     const auto& tangentConstraint = sink.result.m_registeredNodes[12].m_fields;
+    const auto close = [](double actual, double expected, double tolerance) {
+        return std::fabs(actual - expected) <= tolerance;
+    };
+    const auto closeCoord = [&close](const DRW_Coord& actual,
+                                     double x, double y, double z) {
+        return close(actual.x, x, 1e-9) && close(actual.y, y, 1e-9)
+            && close(actual.z, z, 1e-9);
+    };
     return line.m_fields.m_nodeId == 1 && line.m_statusRaw == 1
         && line.m_fields.m_className == classNames[0]
         && line.m_bodyStartBit == 429 && line.m_bodyEndBit == 1026
+        && !line.m_fields.m_hasStatus
+        && line.m_fields.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::BoundedLine
+        && line.m_fields.m_hasPoint
         && line.m_fields.m_geometryDependencyHandle == 0x2A9u
+        && line.m_fields.m_geometryDependencyCode == DRW::DwgSoftPointer
         && line.m_fields.m_geometryNodeId == 0
         && line.m_fields.m_isRay == false
-        && std::fabs(line.m_fields.m_point.x - 1223.6079238755863) < 1e-9
-        && std::fabs(line.m_fields.m_point.y - 1574.7905199791435) < 1e-9
-        && std::fabs(line.m_fields.m_direction.x - 0.9211473736090738) < 1e-12
-        && std::fabs(line.m_fields.m_direction.y - 0.38921397211947806) < 1e-12
-        && std::fabs(line.m_fields.m_startPoint.x - 1223.6079238755592) < 1e-9
-        && std::fabs(line.m_fields.m_endPoint.x - 2717.1980837635074) < 1e-9
+        && closeCoord(line.m_fields.m_point,
+                      1223.6079238755863, 1574.7905199791435, 0.0)
+        && closeCoord(line.m_fields.m_direction,
+                      0.9211473736090738, 0.38921397211947806, 0.0)
+        && closeCoord(line.m_fields.m_startPoint,
+                      1223.6079238755592, 1574.7905199791321, 0.0)
+        && closeCoord(line.m_fields.m_endPoint,
+                      2717.1980837635074, 2205.879719713629, 0.0)
+        && firstImplicit.m_hasGeometryDependency
+        && firstImplicit.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+        && firstImplicit.m_geometryDependencyCode == DRW::DwgSoftPointer
         && firstImplicit.m_geometryDependencyHandle == 0u
         && firstImplicit.m_geometryNodeId == 0
+        && !firstImplicit.m_hasPoint
         && firstImplicit.m_pointType == 0u
         && firstImplicit.m_pointIndex == -1
         && firstImplicit.m_curveNodeId == 1
+        && secondImplicit.m_hasGeometryDependency
+        && secondImplicit.m_geometryDependencyCode == DRW::DwgSoftPointer
+        && secondImplicit.m_geometryDependencyHandle == 0u
+        && secondImplicit.m_geometryNodeId == 0
+        && !secondImplicit.m_hasPoint
         && secondImplicit.m_pointType == 1u
+        && secondImplicit.m_pointIndex == -1
         && secondImplicit.m_curveNodeId == 1
         && firstPointCurve.m_ownerId == 0
+        && firstPointCurve.m_hasActiveFlag
         && firstPointCurve.m_isImplied && firstPointCurve.m_isActive
         && secondPointCurve.m_ownerId == 0
+        && secondPointCurve.m_hasActiveFlag
         && secondPointCurve.m_isImplied && secondPointCurve.m_isActive
         && arc.m_fields.m_nodeId == 6 && arc.m_bodyStartBit == 1314
         && arc.m_bodyEndBit == 1934 && arc.m_fields.m_geometryDependencyHandle == 0x2AAu
         && arc.m_fields.m_className == classNames[3]
+        && !arc.m_fields.m_hasPoint
+        && arc.m_fields.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Arc
+        && arc.m_fields.m_hasReserved
+        && arc.m_fields.m_geometryDependencyCode == DRW::DwgSoftPointer
         && arc.m_fields.m_geometryNodeId == 0
-        && std::fabs(arc.m_fields.m_center.x - 2054.8988985670894) < 1e-9
-        && std::fabs(arc.m_fields.m_center.y - 1081.7260399142574) < 1e-9
-        && std::fabs(arc.m_fields.m_normal.z - 1.0) < 1e-12
-        && std::fabs(arc.m_fields.m_endParameter - 2 * 3.14159265358979323846) < 1e-12
-        && std::fabs(arc.m_fields.m_radius - 777.7351130784532) < 1e-8
-        && std::fabs(arc.m_fields.m_startPoint.x - 2611.1592886840135) < 1e-9
-        && std::fabs(arc.m_fields.m_endPoint.x - 1368.438090213127) < 1e-9
+        && closeCoord(arc.m_fields.m_center,
+                      2054.8988985670894, 1081.7260399142574, 0.0)
+        && closeCoord(arc.m_fields.m_normal, 0.0, 0.0, 1.0)
+        && closeCoord(arc.m_fields.m_direction, 1.0, 0.0, 0.0)
+        && close(arc.m_fields.m_startParameter, 0.0, 1e-12)
+        && close(arc.m_fields.m_endParameter,
+                 2 * 3.14159265358979323846, 1e-12)
+        && close(arc.m_fields.m_reserved, 0.0, 1e-12)
+        && close(arc.m_fields.m_radius, 777.7351130784532, 1e-8)
+        && closeCoord(arc.m_fields.m_startPoint,
+                      2611.1592886840135, 1625.2757473947436, 0.0)
+        && closeCoord(arc.m_fields.m_endPoint,
+                      1368.438090213127, 1447.298829805927, 0.0)
+        && arcImplicit.m_hasGeometryDependency
+        && arcImplicit.m_geometryDependencyCode == DRW::DwgSoftPointer
         && arcImplicit.m_geometryDependencyHandle == 0u
+        && arcImplicit.m_geometryNodeId == 0
+        && !arcImplicit.m_hasPoint
+        && arcImplicit.m_pointType == 0u
+        && arcImplicit.m_pointIndex == -1
         && arcImplicit.m_curveNodeId == 6
+        && arcPointCurve.m_ownerId == 0
+        && arcPointCurve.m_hasActiveFlag
         && arcPointCurve.m_isImplied && arcPointCurve.m_isActive
+        && thirdArcImplicit.m_hasGeometryDependency
+        && thirdArcImplicit.m_geometryDependencyCode == DRW::DwgSoftPointer
+        && thirdArcImplicit.m_geometryDependencyHandle == 0u
+        && thirdArcImplicit.m_geometryNodeId == 0
+        && !thirdArcImplicit.m_hasPoint
+        && thirdArcImplicit.m_pointIndex == -1
         && thirdArcImplicit.m_pointType == 1u
         && thirdArcImplicit.m_curveNodeId == 6
+        && thirdPointCurve.m_ownerId == 0
+        && thirdPointCurve.m_hasActiveFlag
         && thirdPointCurve.m_isImplied && thirdPointCurve.m_isActive
+        && fourthArcImplicit.m_hasGeometryDependency
+        && fourthArcImplicit.m_geometryDependencyCode == DRW::DwgSoftPointer
+        && fourthArcImplicit.m_geometryDependencyHandle == 0u
+        && fourthArcImplicit.m_geometryNodeId == 0
+        && !fourthArcImplicit.m_hasPoint
+        && fourthArcImplicit.m_pointIndex == -1
         && fourthArcImplicit.m_pointType == 3u
         && fourthArcImplicit.m_curveNodeId == 6
         && centerConstraint.m_ownerId == 0
+        && centerConstraint.m_hasActiveFlag
         && centerConstraint.m_isImplied && centerConstraint.m_isActive
         && tangentConstraint.m_ownerId == 0
+        && tangentConstraint.m_hasActiveFlag
         && !tangentConstraint.m_isImplied && tangentConstraint.m_isActive;
 }
 } // namespace

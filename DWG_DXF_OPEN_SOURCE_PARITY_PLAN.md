@@ -102,15 +102,18 @@ normative class-version-2 schema or native constraint behavior.
 On the forum source, acadrust also returns typed data for constraint group
 `0x2A8`, including its 13 registered nodes plus the root. libdxfrw currently
 retains bounded candidate rows and exact spans for those 13 records but keeps
-their `m_classDataParsed` flags false. Next compare every candidate node's
-class, status, connections and bit spans plus key geometry/constraint values
-are now checked by `libdxfrw_constraint_group_candidate_api`; its focused CTest
-and the hash-bound physical selector pass. A full value/handle-role differential
-remains before any read-only typed callback promotion. The
+their `m_classDataParsed` flags false. The `libdxfrw_constraint_group_candidate_api`
+selector now checks every registered candidate node's ID, class, status,
+connections, registry flag and body span, the group root metadata, and all
+decoded values and handle roles exposed by the line, arc, implicit-point and
+constraint-node candidate profiles against acadrust's typed output. Its
+focused CTest and hash-bound physical selector pass. This closes the candidate
+field comparison for this one source; it does not qualify unobserved node
+classes, the producer, native constraint behavior, or output. The
 [peer-reader receipt](docs/research/p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13.json)
 records the bounded agreement; it does not establish native solver semantics.
-If the remaining exact profile closes, expose it read-only while keeping
-AC1032 output refused.
+If an eligible source/schema profile and consumer contract close, expose the
+qualified data read-only while keeping AC1032 output refused.
 Current graph/writer admission remains AC1024-only and physical output stays
 refused. Before enabling any AC1032 writer route, obtain eligible
 producer/schema evidence for class version 2 and close the exact owner/action

@@ -171,7 +171,22 @@
     "readerImplementation": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs; typed AssocNetwork fields in src/objects/associative.rs",
     "probeExecutableSha256": "5e6304284385d2fc55ef874b494f7e6e1aec1c2328ac155c30687e6a5ecae69a",
     "probeSource": "/private/tmp/acadrust_probe/src/main.rs",
-    "result": "DwgReader returned AC1032 CadDocument values; each listed network was ObjectType::Associative with AssociativeData::Network, rather than a raw Unknown object. The listed typed values agree with the source-bound libdxfrw candidates and the previously recorded LibreDWG comparison."
+    "result": "DwgReader returned AC1032 CadDocument values; each listed network was ObjectType::Associative with AssociativeData::Network, rather than a raw Unknown object. The listed typed values agree with the source-bound libdxfrw candidates and the previously recorded LibreDWG comparison.",
+    "constraintGroupProbeOutput": "/private/tmp/acadrust_forum_full.txt",
+    "constraintGroupProbeOutputSha256": "3a8cc575d8c1359a2b8747fc6928736acb569f4bed8f42b9e96af42f853d1721",
+    "constraintGroupComparison": {
+      "handle": "0x2A8",
+      "nodesCompared": 13,
+      "fields": [
+        "registered node IDs, class indexes and names, statuses, registry flags, connections, and exact bounded body spans",
+        "group root ID, connection count, and flag",
+        "bounded-line dependency handle role, node ID, point, direction, ray flag, and endpoints",
+        "arc dependency handle role, node ID, center, normal, direction, radius, curve parameters, reserved value, and trim points",
+        "all implicit-point dependency roles, handles, optional-point states, point types and indexes, and curve IDs",
+        "point-curve, center-point, and tangent owner/implied/active values"
+      ],
+      "result": "All values exposed by the current candidate model for the observed node classes match the independent typed acadrust output. This is one source comparison and not source-profile, semantic, or output qualification."
+    }
   },
   "comparison": {
     "libdxfrwSourceReceipt": "docs/research/p4-ac1032-forum-assocnetwork-source-spans-2026-11-10.json",
@@ -184,7 +199,7 @@
     "command": "CARGO_HOME=/private/tmp/acadrust-cargo cargo run --manifest-path /private/tmp/acadrust_probe/Cargo.toml --release -- /private/tmp/p4-autodesk-forum-constraints.dwg /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
     "sourceFixturePolicy": "Both DWGs were read in place and were not copied into or committed to libdxfrw. The probe source, crate cache and executable remain under /private/tmp.",
     "validation": "cmake --build build-gcc --target libdxfrw_constraint_group_candidate_api_tests -j4; ctest --test-dir build-gcc -R ^libdxfrw_constraint_group_candidate_api$ --output-on-failure; build-gcc/tests/libdxfrw_constraint_group_candidate_api_tests --physical /private/tmp/p4-autodesk-forum-constraints.dwg",
-    "validationResult": "Focused CTest passed 1/1 in 0.15 seconds; the physical candidate selector passed against the hash-bound forum source. The separate libdxfrw associative graph-closure selector also passed against that source."
+    "validationResult": "Focused CTest passed 1/1 in 0.14 seconds; the hash-bound physical candidate selector exited 0 against the forum source. The separate libdxfrw associative graph-closure selector also passed against that source."
   },
   "limits": [
     "The independent reader's schema is implementation evidence, not the ODA specification or a controlled producer witness.",
@@ -195,10 +210,10 @@
   "implementation": {
     "productionCodeChanged": false,
     "test": "tests/constraint_group_candidate_api_tests.cpp",
-    "testSha256": "60c191d99bc4c1dd5a41a1399b6f1b0b8d29f33696ba7d2fb4299160880fccdb",
+    "testSha256": "012eeb5d4c719167d95296070341f038b96d8b0a59fd13814f097691391ee5a5",
     "cmakeTarget": "libdxfrw_constraint_group_candidate_api_tests",
     "ctestName": "libdxfrw_constraint_group_candidate_api",
-    "testExecutableSha256": "a5ced171f3190b19ff65323e69ee527f11f60acd284bb0acd3e15dee578116f2",
-    "change": "Extend the source-bound candidate selector to assert all 13 registered node IDs, class indexes/names, statuses, connection lists, and exact body spans, plus independently observed geometry and constraint values for the bounded node profiles."
+    "testExecutableSha256": "6acc357841e136c28aea3bfa4c573adb92cd8903b59d5f15165c76e71024dd8f",
+    "change": "Compare all fields exposed by the bounded candidate model for this source against the independent typed acadrust output: all 13 node IDs/classes/statuses/connections/registry flags/body spans, root metadata, handle roles, and modeled line/arc/implicit-point/constraint values."
   }
 }
