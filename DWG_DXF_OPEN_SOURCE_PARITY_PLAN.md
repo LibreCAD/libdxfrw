@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **161 completed implementation slices** and **35 remaining
+The plan records **162 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`161 / (161 + 35) = 82.1%`. This is a count-based progress measure, not an
+`162 / (162 + 35) = 82.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4615,6 +4615,13 @@ Same-codec retry reproduces clean bytes and fresh adapter import confirms the
 typed 3DSOLID payload and chunk order. Focused normal and ASan CTests pass. This
 proves transaction behavior for one locally authored SAT text carrier only; it
 does not establish ACIS syntax, topology, or consumer semantics ([receipt](docs/research/p6-modeler-dxf-sat-text-allocation-rollback-retry-2026-11-13.json)).
+**P6-G modeler SAT text Binary transaction follow-up (2026-11-13):** the same
+600-byte AC1024 3DSOLID carrier now also sweeps Binary DXF. ASCII and Binary
+profiles reach 102 and 101 allocation offsets respectively; both preserve
+caller and destination state on failure, then same-codec retry matches clean
+bytes and typed import verifies the ordered payload chunks. Focused normal and
+ASan CTests pass. This adds transport transaction evidence only; the generated
+text is not ACIS syntax or geometry proof ([receipt](docs/research/p6-modeler-dxf-sat-text-binary-allocation-rollback-retry-2026-11-13.json)).
 The existing generated DICTIONARYWDFLT/ACDBPLACEHOLDER rollback control now
 also invokes the public typed `writeDictionaryWithDefault()` and
 `writeAcDbPlaceholder()` entry points directly, retaining the raw adapter
