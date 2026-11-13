@@ -127,6 +127,7 @@ constexpr std::uint32_t kDirectPlaceholderHandle = 0xD97Cu;
 constexpr std::uint32_t kDirectMLeaderStyleHandle = 0xD97Du;
 constexpr std::uint32_t kDirectGeoDataHandle = 0xD97Eu;
 constexpr std::uint32_t kDirectLayoutHandle = 0xD97Fu;
+constexpr std::uint32_t kDirectRawEntityHandle = 0xD980u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -1127,6 +1128,16 @@ public:
         layout.limMaxY = 30.0;
         layout.paperSize = "ISO_A4_(210.00_x_297.00_MM)";
         layout.currentStyleSheet = "WHOLE_OPERATION_STYLE";
+        rawEntity.name = "WHOLE_OPERATION_RAW_ENTITY";
+        rawEntity.handle = kDirectRawEntityHandle;
+        rawEntity.parentHandle = DRW::DxfModelSpaceBlockRecordHandle;
+        rawEntity.m_version = DRW::AC1027;
+        rawEntity.groups.emplace_back(5, UTF8STRING("D980"));
+        rawEntity.groups.emplace_back(330, UTF8STRING("1F"));
+        rawEntity.groups.emplace_back(100, UTF8STRING("AcDbEntity"));
+        rawEntity.groups.emplace_back(8, UTF8STRING("0"));
+        rawEntity.groups.emplace_back(100, UTF8STRING("AcDbWholeOperation"));
+        rawEntity.groups.emplace_back(90, std::int32_t{77});
         ole2Frame.handle = kOle2FrameHandle;
         ole2Frame.m_oleVersion = 2u;
         ole2Frame.m_oleClient = "WHOLE_OPERATION_OLE2";
@@ -1332,7 +1343,9 @@ public:
             && check("PLANESURFACE", output.writeSurface(&planeSurface))
             && check("EXTRUDEDSURFACE", output.writeSurface(&extrudedSurface))
             && check("REVOLVEDSURFACE", output.writeSurface(&revolvedSurface))
-            && check("NURBSSURFACE", output.writeSurface(&nurbsSurface));
+            && check("NURBSSURFACE", output.writeSurface(&nurbsSurface))
+            && check("RAW_ENTITY", output.writeRawDxfEntity(
+                &rawEntity, DRW::DxfModelSpaceBlockRecordHandle));
     }
 
     void writeObjects() override {
@@ -1389,6 +1402,7 @@ public:
     DRW_MLeaderStyle multiLeaderStyle;
     DRW_GeoData geoData;
     DRW_Layout layout;
+    DRW_RawDxfObject rawEntity;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -2533,6 +2547,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.layout.limMaxY == 30.0
         && adapter.layout.paperSize == "ISO_A4_(210.00_x_297.00_MM)"
         && adapter.layout.currentStyleSheet == "WHOLE_OPERATION_STYLE"
+        && adapter.rawEntity.name == "WHOLE_OPERATION_RAW_ENTITY"
+        && adapter.rawEntity.handle == kDirectRawEntityHandle
+        && adapter.rawEntity.parentHandle
+            == DRW::DxfModelSpaceBlockRecordHandle
+        && adapter.rawEntity.m_version == DRW::AC1027
+        && adapter.rawEntity.groups.size() == 6u
+        && adapter.rawEntity.groups[0].code() == 5
+        && adapter.rawEntity.groups[0].stringEquals("D980")
+        && adapter.rawEntity.groups[1].code() == 330
+        && adapter.rawEntity.groups[1].stringEquals("1F")
+        && adapter.rawEntity.groups[5].code() == 90
+        && adapter.rawEntity.groups[5].i_val() == 77
         && adapter.placeholder.handle == kDirectPlaceholderHandle
         && adapter.placeholder.parentHandle == kCustomDictionaryHandle
         && adapter.ole2Frame.handle == kOle2FrameHandle
@@ -3461,6 +3487,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const dx_ifaceBlock* value) {
             return value != nullptr && value->name == kInsertBlockName;
         });
+    const DRW_RawDxfObject* rawEntity = nullptr;
+    if (adapter.storage.mBlock != nullptr) {
+        for (const dx_ifaceRawEntityEvent& event
+             : adapter.storage.mBlock->rawEntities) {
+            if (event.record.name == "WHOLE_OPERATION_RAW_ENTITY") {
+                if (rawEntity != nullptr)
+                    return false;
+                rawEntity = &event.record;
+            }
+        }
+    }
     const DRW_ImageDef* imageDefinition = adapter.storage.findImageDefinition(
         adapter.storage.importGeneration, adapter.image.ref);
     const auto commonDimensionMatches = [](const DRW_Dimension& value,
@@ -4619,6 +4656,18 @@ bool matchesReadback(const std::filesystem::path& path) {
             != "ISO_A4_(210.00_x_297.00_MM)"
         || adapter.storage.layouts.front().currentStyleSheet
             != "WHOLE_OPERATION_STYLE"
+        || rawEntity == nullptr
+        || rawEntity->handle != kDirectRawEntityHandle
+        || rawEntity->parentHandle
+            != DRW::DxfModelSpaceBlockRecordHandle
+        || rawEntity->m_version != DRW::AC1027
+        || rawEntity->groups.size() != 6u
+        || rawEntity->groups[0].code() != 5
+        || !rawEntity->groups[0].stringEquals("D980")
+        || rawEntity->groups[1].code() != 330
+        || !rawEntity->groups[1].stringEquals("1F")
+        || rawEntity->groups[5].code() != 90
+        || rawEntity->groups[5].i_val() != 77
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

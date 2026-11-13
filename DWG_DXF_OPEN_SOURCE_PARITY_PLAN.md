@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **136 completed implementation slices** and **35 remaining
+The plan records **137 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`136 / (136 + 35) = 79.5%`. This is a count-based progress measure, not an
+`137 / (137 + 35) = 79.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1692,6 +1692,18 @@ order, flags, paper dimensions, limits, sheet and stylesheet. The sweep covers
 not qualify canonical ACAD_LAYOUT ownership, target-reference closure, producer
 interoperability or native plotting, and it does not close P6-G's remaining
 writer inventory. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 raw ENTITY whole-operation transaction follow-up (2026-11-13):** the
+multi-callback sweep now emits one locally generated opaque custom entity
+through `writeRawDxfEntity()` under the fixed model-space BLOCK_RECORD. Every
+injected failure preserves the prior destination and the raw caller record;
+same-writer retry reproduces clean output, and fresh readback checks exactly
+one raw record's handle, owner, version and selected payload groups. The sweep
+covers 1,162 ASCII and 1,138 Binary allocation offsets; focused CTest passes in
+8.63 seconds. This is raw replay transaction evidence only; the custom type
+has no semantic support claim. The broader P6-G writer inventory remains open.
+See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the
