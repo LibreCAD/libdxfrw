@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -124,6 +124,60 @@
           1.0
         ],
         "weights": []
+      },
+      {
+        "kind": "HATCH",
+        "sourceHandle": "0xD91B",
+        "pattern": "ANSI31",
+        "solid": 0,
+        "patternType": 0,
+        "patternAngleRadians": 0.25,
+        "scale": 1.5,
+        "polylineBoundary": {
+          "closed": true,
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              2.0,
+              3.0
+            ],
+            [
+              0.0,
+              3.0
+            ]
+          ]
+        },
+        "patternLines": [
+          {
+            "angleRadians": 0.5,
+            "base": [
+              0.25,
+              -0.5
+            ],
+            "offset": [
+              0.0,
+              1.25
+            ],
+            "dashList": [
+              0.5,
+              -0.25,
+              1.0
+            ]
+          }
+        ],
+        "seedPoints": [
+          [
+            0.5,
+            0.5
+          ]
+        ]
       },
       {
         "kind": "XRECORD",
@@ -266,11 +320,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "a940835b01e87a6e128a189db1234b6156ec28f1dea3118aa0b5f643030d0258",
+    "testSha256": "89cc5b98709b060691c1ed0fed311e25f1d619509b5d4a2f44d0bfc08bcc3030",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "e0047aadaf54c5d2dae4f5c584aecb8550c388cf3c9a1f6fe7bf3280ea195359",
-    "asanExecutableSha256": "912a8be4559f84ba52430b9d9b0acc32ec1af599628010f5244ae57b8f7f5c44",
+    "normalExecutableSha256": "c61b0e6cc20b1eadb62f3ccc4f2c3c046ceda0d0418881baf929ea3f2a8bbbd3",
+    "asanExecutableSha256": "b2fb653b2a0ea9030b40b39f8a6ab8c50f3a2822d326375d9418c8512ae1809e",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/intern/dxfwriter.h"
@@ -283,7 +337,8 @@
     },
     "details": [
       "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
-      "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback."
+      "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback.",
+      "Generated patterned HATCH output now participates in the whole-operation sweep with a closed polyline boundary, pattern dash vector and seed point."
     ]
   },
   "procedure": {
@@ -298,9 +353,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.20 seconds; ASan 1/1 passed in 8.04 seconds.",
+    "ctest": "Normal 1/1 passed in 1.30 seconds; ASan 1/1 passed in 8.46 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 233,
+      "measuredAllocationOffsets": 242,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -325,10 +380,13 @@
       "callerMeshPreserved": true,
       "splineReadbackMatched": true,
       "splineAllocationFailureAbortsWholeWrite": true,
-      "callerSplinePreserved": true
+      "callerSplinePreserved": true,
+      "hatchReadbackMatched": true,
+      "hatchAllocationFailureAbortsWholeWrite": true,
+      "callerHatchPreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 229,
+      "measuredAllocationOffsets": 238,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -353,9 +411,12 @@
       "callerMeshPreserved": true,
       "splineReadbackMatched": true,
       "splineAllocationFailureAbortsWholeWrite": true,
-      "callerSplinePreserved": true
+      "callerSplinePreserved": true,
+      "hatchReadbackMatched": true,
+      "hatchAllocationFailureAbortsWholeWrite": true,
+      "callerHatchPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 8.04 seconds",
+    "addressSanitizerCtest": "1/1 passed in 8.46 seconds",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -363,15 +424,16 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 233 allocation offsets; Binary 229 allocation offsets; both pass rollback, caller-state preservation, same-codec retry, byte comparison and typed readback.",
-      "normalCtest": "1/1 passed in 1.20 seconds.",
-      "asanCtest": "1/1 passed in 8.04 seconds.",
+      "normalDirectRun": "ASCII 242 allocation offsets; Binary 238 allocation offsets; both pass rollback, caller-state preservation, same-codec retry, byte comparison and typed readback.",
+      "normalCtest": "1/1 passed in 1.30 seconds.",
+      "asanCtest": "1/1 passed in 8.46 seconds.",
       "generatedMeshReadback": "One triangle, three edge pairs, one crease value, and one property override with two types matched after ASCII and Binary readback.",
-      "generatedSplineReadback": "Degree-1 SPLINE with two 3D control points and four knots matched after ASCII and Binary readback."
+      "generatedSplineReadback": "Degree-1 SPLINE with two 3D control points and four knots matched after ASCII and Binary readback.",
+      "generatedHatchReadback": "Patterned ANSI31 HATCH with a closed four-vertex polyline boundary, one pattern line containing three dash values, and one seed point matched after ASCII and Binary readback."
     }
   },
   "limits": [
-    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],

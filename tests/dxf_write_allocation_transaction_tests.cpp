@@ -24,6 +24,7 @@ constexpr std::uint32_t kTargetBetaHandle = 0xD917u;
 constexpr std::uint32_t kPolylineHandle = 0xD918u;
 constexpr std::uint32_t kMeshHandle = 0xD919u;
 constexpr std::uint32_t kSplineHandle = 0xD91Au;
+constexpr std::uint32_t kHatchHandle = 0xD91Bu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -156,6 +157,31 @@ public:
             std::make_shared<DRW_Coord>(DRW_Coord(-1.0, 0.0, 2.0)),
             std::make_shared<DRW_Coord>(DRW_Coord(3.0, 4.0, 5.0))};
         spline.knotslist = {0.0, 0.0, 1.0, 1.0};
+        hatch.handle = kHatchHandle;
+        hatch.name = "ANSI31";
+        hatch.solid = 0;
+        hatch.hpattern = 0;
+        hatch.angle = 0.25;
+        hatch.scale = 1.5;
+        DRW_Hatch::PatternLine pattern;
+        pattern.angle = 0.5;
+        pattern.baseX = 0.25;
+        pattern.baseY = -0.5;
+        pattern.offsetX = 0.0;
+        pattern.offsetY = 1.25;
+        pattern.dashList = {0.5, -0.25, 1.0};
+        hatch.patternLines.push_back(pattern);
+        auto loop = std::make_shared<DRW_HatchLoop>(2);
+        auto boundary = std::make_shared<DRW_LWPolyline>();
+        boundary->flags = 1;
+        boundary->addVertex(DRW_Vertex2D(0.0, 0.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(2.0, 0.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(2.0, 3.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(0.0, 3.0, 0.0));
+        loop->objlist.push_back(boundary);
+        loop->update();
+        hatch.appendLoop(loop);
+        hatch.seedPoints.emplace_back(0.5, 0.5, 0.0);
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -194,7 +220,8 @@ public:
             && output.writeImage(&image, "whole-operation-image.png", 7u,
                                  image.ref) != nullptr
             && output.writeMesh(&mesh)
-            && output.writeSpline(&spline);
+            && output.writeSpline(&spline)
+            && output.writeHatch(&hatch);
     }
 
     void writeObjects() override {
@@ -217,6 +244,7 @@ public:
     DRW_Image image;
     DRW_Mesh mesh;
     DRW_Spline spline;
+    DRW_Hatch hatch;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -256,6 +284,12 @@ public:
             spline = *value;
         }
     }
+    void addHatch(const DRW_Hatch* value) override {
+        if (value != nullptr) {
+            ++hatchCount;
+            hatch = *value;
+        }
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -274,6 +308,7 @@ public:
     DRW_Image image;
     DRW_Mesh mesh;
     DRW_Spline spline;
+    DRW_Hatch hatch;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -284,6 +319,7 @@ public:
     unsigned imageCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
+    unsigned hatchCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -351,6 +387,21 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.spline.controllist[1]
         && adapter.spline.controllist[1]->y == 4.0
         && adapter.spline.knotslist == std::vector<double>{0.0, 0.0, 1.0, 1.0}
+        && adapter.hatch.handle == kHatchHandle
+        && adapter.hatch.name == "ANSI31"
+        && adapter.hatch.looplist.size() == 1u
+        && adapter.hatch.looplist.front()
+        && adapter.hatch.looplist.front()->objlist.size() == 1u
+        && dynamic_cast<const DRW_LWPolyline*>(
+            adapter.hatch.looplist.front()->objlist.front().get()) != nullptr
+        && dynamic_cast<const DRW_LWPolyline*>(
+            adapter.hatch.looplist.front()->objlist.front().get())->vertlist.size() == 4u
+        && adapter.hatch.patternLines.size() == 1u
+        && adapter.hatch.patternLines.front().dashList
+            == std::vector<double>{0.5, -0.25, 1.0}
+        && adapter.hatch.seedPoints.size() == 1u
+        && adapter.hatch.seedPoints.front().x == 0.5
+        && adapter.hatch.seedPoints.front().y == 0.5
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -410,6 +461,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.imageCount != 1u
         || adapter.meshCount != 1u
         || adapter.splineCount != 1u
+        || adapter.hatchCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -457,6 +509,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         || !adapter.spline.controllist[1]
         || adapter.spline.controllist[1]->y != 4.0
         || adapter.spline.knotslist != std::vector<double>{0.0, 0.0, 1.0, 1.0}
+        || adapter.hatch.handle == 0u
+        || adapter.hatch.name != "ANSI31"
+        || adapter.hatch.solid != 0
+        || adapter.hatch.hpattern != 0
+        || adapter.hatch.looplist.size() != 1u
+        || !adapter.hatch.looplist.front()
+        || adapter.hatch.looplist.front()->objlist.size() != 1u
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.hatch.looplist.front()->objlist.front().get()) == nullptr
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.hatch.looplist.front()->objlist.front().get())->vertlist.size() != 4u
+        || adapter.hatch.patternLines.size() != 1u
+        || adapter.hatch.patternLines.front().dashList
+            != std::vector<double>{0.5, -0.25, 1.0}
+        || adapter.hatch.seedPoints.size() != 1u
+        || adapter.hatch.seedPoints.front().x != 0.5
+        || adapter.hatch.seedPoints.front().y != 0.5
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
