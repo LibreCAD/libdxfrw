@@ -161,7 +161,6 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
 
     const auto input = directory / "sun-owner-override-input.dxf";
-    const auto output = directory / "sun-owner-override-output.dxf";
     if (!writeInput(input))
         return fail("could not generate the AC1027 VPORT/SUN source");
     dx_data source;
@@ -176,54 +175,63 @@ bool run(const std::filesystem::path& directory) {
 
     const DRW_RawDxfObject expectedSource = source.rawSunObjects.front();
     const std::string sentinel = "previous SUN owner-override destination\n";
-    long allocationCount = 0;
-    std::string expectedBytes;
-    {
-        RawSunExport exporter(expectedSource);
-        exporter.failAt = 1000000;
-        const bool wrote = exporter.fileExport(
-            output.string(), DRW::AC1027, false, &source, false);
-        if (!wrote || !exporter.emitted || !readbackMatches(output)
-            || !rawMatches(exporter.sun, expectedSource))
-            return fail("calibration output/readback failed");
-        allocationCount = exporter.reached;
-        if (!readBytes(output, expectedBytes) || allocationCount <= 0)
-            return fail("could not retain calibration bytes/count");
-    }
-
-    for (long offset = 0; offset < allocationCount; ++offset) {
+    for (const bool binary : {false, true}) {
+        const auto output = directory / (binary
+            ? "sun-owner-override-binary.dxf"
+            : "sun-owner-override-ascii.dxf");
+        long allocationCount = 0;
+        std::string expectedBytes;
         {
-            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-            prior << sentinel;
-            if (!prior)
-                return fail("could not initialize destination sentinel");
+            RawSunExport exporter(expectedSource);
+            exporter.failAt = 1000000;
+            const bool wrote = exporter.fileExport(
+                output.string(), DRW::AC1027, binary, &source, false);
+            if (!wrote || !exporter.emitted || !readbackMatches(output)
+                || !rawMatches(exporter.sun, expectedSource))
+                return fail("calibration output/readback failed");
+            allocationCount = exporter.reached;
+            if (!readBytes(output, expectedBytes) || allocationCount <= 0)
+                return fail("could not retain calibration bytes/count");
         }
-        RawSunExport exporter(expectedSource);
-        exporter.failAt = offset;
-        const bool wrote = exporter.fileExport(
-            output.string(), DRW::AC1027, false, &source, false);
-        if (!allocationFailed || wrote || exporter.emitted
-            || allocationAttempts != static_cast<std::size_t>(offset + 1u)
-            || !rawMatches(exporter.sun, expectedSource))
-            return fail("injected allocation changed caller state or succeeded");
-        std::string afterFailure;
-        if (!readBytes(output, afterFailure) || afterFailure != sentinel)
-            return fail("injected allocation replaced destination");
 
-        exporter.failAt = -1;
-        const bool retried = exporter.fileExport(
-            output.string(), DRW::AC1027, false, &source, false);
-        std::string retryBytes;
-        if (!retried || !exporter.emitted
-            || !readBytes(output, retryBytes) || retryBytes != expectedBytes
-            || !readbackMatches(output)
-            || !rawMatches(exporter.sun, expectedSource))
-            return fail("same-adapter retry failed exact output/readback");
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output,
+                                    std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not initialize destination sentinel");
+            }
+            RawSunExport exporter(expectedSource);
+            exporter.failAt = offset;
+            const bool wrote = exporter.fileExport(
+                output.string(), DRW::AC1027, binary, &source, false);
+            if (!allocationFailed || wrote || exporter.emitted
+                || allocationAttempts
+                    != static_cast<std::size_t>(offset + 1u)
+                || !rawMatches(exporter.sun, expectedSource))
+                return fail(
+                    "injected allocation changed caller state or succeeded");
+            std::string afterFailure;
+            if (!readBytes(output, afterFailure) || afterFailure != sentinel)
+                return fail("injected allocation replaced destination");
+
+            exporter.failAt = -1;
+            const bool retried = exporter.fileExport(
+                output.string(), DRW::AC1027, binary, &source, false);
+            std::string retryBytes;
+            if (!retried || !exporter.emitted
+                || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes || !readbackMatches(output)
+                || !rawMatches(exporter.sun, expectedSource))
+                return fail("same-adapter retry failed exact output/readback");
+        }
+
+        std::cout << "raw SUN owner override "
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", rollback/retry/typed-owner-readback=PASS\n";
     }
-
-    std::cout << "raw SUN owner override ASCII: allocation offsets="
-              << allocationCount
-              << ", rollback/retry/typed-owner-readback=PASS\n";
     std::error_code ignored;
     std::filesystem::remove_all(directory, ignored);
     return true;
