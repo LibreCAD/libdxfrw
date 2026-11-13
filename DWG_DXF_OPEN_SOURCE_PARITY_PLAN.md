@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **143 completed implementation slices** and **35 remaining
+The plan records **144 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`143 / (143 + 35) = 80.3%`. This is a count-based progress measure, not an
+`144 / (144 + 35) = 80.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
-| P6-G | OPEN | Close caller-state coverage for remaining public writers, including custom/dynamic dimension subtypes and variable-size/object builders absent from the current sweep. | Writer inventory diff; each selected operation has rollback and same-writer retry, then fresh typed readback or exact bounded raw-group readback where the reader intentionally uses a raw-only route. |
+| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. The current whole-operation suite already exercises the modeled standard and dynamic dimension subtypes; only uncovered field combinations remain candidates. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. |
 | P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
 | P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
 | P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
@@ -4559,6 +4559,20 @@ same-codec retry reproduces clean bytes and fresh readback preserves group 370.
 This is transaction evidence for the writer only; source-qualified LayerStates
 selection, dictionary closure and producer semantics remain separate open gates
 ([receipt](docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json)).
+**P6-G R2018 embedded-attribute transaction slice (2026-11-13):** added a
+separate AC1032 INSERT/ATTRIB profile with an embedded two-paragraph MTEXT
+payload to the generated whole-operation allocation test. The ASCII and Binary
+sweeps reach 109 and 108 injected allocation offsets; each failure preserves
+the prior destination and every initialized caller INSERT/ATTRIB/MTEXT value, then
+same-codec retry reproduces the calibrated bytes and typed readback checks the
+attribute type, fallback text, nested MTEXT text, insertion, height and style.
+The focused `libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction`
+CTest passes. This is
+generated serializer/parser transaction evidence for one R2018 attribute
+profile only; outer annotative metadata, producer interoperability and native
+attribute rendering remain open. The dedicated fast selector passes in normal
+and ASan builds. See the [embedded attribute transaction
+receipt](docs/research/p6-dxf-r2018-embedded-attribute-allocation-rollback-retry-2026-11-13.json).
 The raw OBJECTS string-override allocation control now also covers the combined
 string/Int32 override writer, with generated XRECORD group 90 readback, caller
 state, prior-destination preservation, and same-codec exact-byte retry. Both

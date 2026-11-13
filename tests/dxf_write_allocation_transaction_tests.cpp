@@ -1552,6 +1552,41 @@ public:
     bool objectsWritten = false;
 };
 
+class EmbeddedAttributeMTextExport final : public dx_iface {
+public:
+    explicit EmbeddedAttributeMTextExport(dxfRW& output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        insert.handle = 0xDA01u;
+        insert.name = "WHOLE_OPERATION_ATTRIBUTE_MTEXT_BLOCK";
+        insert.basePoint = DRW_Coord{1.0, 2.0, 0.0};
+        auto attribute = std::make_shared<DRW_Attrib>();
+        attribute->handle = 0xDA02u;
+        attribute->tag = "R2018_MULTILINE_ATTRIBUTE";
+        attribute->text = "attribute fallback";
+        attribute->basePoint = DRW_Coord{3.0, 4.0, 0.0};
+        attribute->secPoint = DRW_Coord{5.0, 6.0, 0.0};
+        attribute->height = 2.5;
+        attribute->style = "STANDARD";
+        attribute->m_attributeType = 2;
+        attribute->mtext = std::make_unique<DRW_MText>();
+        attribute->mtext->text = "embedded attribute first paragraph\\Psecond paragraph";
+        attribute->mtext->basePoint = DRW_Coord{3.0, 4.0, 0.0};
+        attribute->mtext->height = 2.5;
+        attribute->mtext->style = "STANDARD";
+        insert.attlist.push_back(std::move(attribute));
+    }
+
+    void writeEntities() override {
+        entitiesWritten = dxfW != nullptr && dxfW->writeInsert(&insert);
+    }
+
+    DRW_Insert insert;
+    bool entitiesWritten = false;
+    dx_data storage;
+};
+
 class Readback final : public dx_iface {
 public:
     Readback() {
@@ -5440,6 +5475,165 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not remove publication-race retry output");
     return true;
 }
+
+bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "R2018 embedded ATTRIB/MTEXT allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "r2018-embedded-attribute-mtext.dxf";
+    const std::string sentinel = "previous complete attribute drawing\n";
+    const auto sourceUnchanged = [](const EmbeddedAttributeMTextExport& adapter) {
+        if (adapter.insert.handle != 0xDA01u
+            || adapter.insert.name != "WHOLE_OPERATION_ATTRIBUTE_MTEXT_BLOCK"
+            || adapter.insert.basePoint.x != 1.0
+            || adapter.insert.basePoint.y != 2.0
+            || adapter.insert.basePoint.z != 0.0
+            || adapter.insert.attlist.size() != 1u
+            || !adapter.insert.attlist.front())
+            return false;
+        const DRW_Attrib& attribute = *adapter.insert.attlist.front();
+        return attribute.handle == 0xDA02u
+            && attribute.tag == "R2018_MULTILINE_ATTRIBUTE"
+            && attribute.text == "attribute fallback"
+            && attribute.m_attributeType == 2u
+            && attribute.basePoint.x == 3.0
+            && attribute.basePoint.y == 4.0
+            && attribute.basePoint.z == 0.0
+            && attribute.secPoint.x == 5.0
+            && attribute.secPoint.y == 6.0
+            && attribute.height == 2.5
+            && attribute.style == "STANDARD"
+            && attribute.mtext != nullptr
+            && attribute.mtext->text
+                == "embedded attribute first paragraph\\Psecond paragraph"
+            && attribute.mtext->basePoint.x == 3.0
+            && attribute.mtext->basePoint.y == 4.0
+            && attribute.mtext->height == 2.5
+            && attribute.mtext->style == "STANDARD";
+    };
+    const auto readbackMatches = [](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        Readback adapter;
+        const bool read = reader.read(&adapter, false);
+        if (!read || adapter.insertCount != 1u
+            || adapter.insert.name != "WHOLE_OPERATION_ATTRIBUTE_MTEXT_BLOCK"
+            || adapter.insert.attlist.size() != 1u
+            || !adapter.insert.attlist.front()) {
+            std::cerr << "readback read=" << read
+                      << " error=" << reader.getError()
+                      << " insertCount=" << adapter.insertCount
+                      << " name=" << adapter.insert.name
+                      << " attributes=" << adapter.insert.attlist.size() << '\n';
+            return false;
+        }
+        const DRW_Attrib& attribute = *adapter.insert.attlist.front();
+        const bool matches = attribute.tag == "R2018_MULTILINE_ATTRIBUTE"
+            && attribute.text == "attribute fallback"
+            && attribute.m_attributeType == 2u
+            && attribute.mtext != nullptr
+            && attribute.mtext->text
+                == "embedded attribute first paragraph\\Psecond paragraph"
+            && attribute.mtext->basePoint.x == 3.0
+            && attribute.mtext->basePoint.y == 4.0
+            && attribute.mtext->height == 2.5
+            && attribute.mtext->style == "STANDARD";
+        if (!matches)
+            std::cerr << "attribute tag=" << attribute.tag
+                      << " fallback=" << attribute.text
+                      << " type=" << static_cast<unsigned>(attribute.m_attributeType)
+                      << " mtext=" << (attribute.mtext != nullptr)
+                      << (attribute.mtext ? " text=" + attribute.mtext->text
+                                             : std::string{})
+                      << (attribute.mtext ? " height=" + std::to_string(attribute.mtext->height)
+                                             : std::string{})
+                      << (attribute.mtext ? " style=" + attribute.mtext->style
+                                             : std::string{}) << '\n';
+        return matches;
+    };
+
+    for (const bool binary : {false, true}) {
+        if (!clearStagedOutput(output))
+            return fail("could not clear output before warm-up");
+        {
+            dxfRW codec(output.string().c_str());
+            EmbeddedAttributeMTextExport adapter(codec);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool unchanged = sourceUnchanged(adapter);
+            const bool readback = wrote && readbackMatches(output);
+            if (!wrote || !adapter.entitiesWritten || !unchanged || !readback) {
+                std::cerr << "warm-up binary=" << binary << " wrote=" << wrote
+                          << " entities=" << adapter.entitiesWritten
+                          << " source=" << unchanged
+                          << " readback=" << readback
+                          << " error=" << codec.getError() << '\n';
+                return fail("AC1032 warm-up or typed readback failed");
+            }
+        }
+        std::error_code removeError;
+        std::filesystem::remove(output, removeError);
+
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            EmbeddedAttributeMTextExport adapter(codec);
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || !adapter.entitiesWritten
+                || !sourceUnchanged(adapter) || !readbackMatches(output)
+                || !readBytes(output, expectedBytes))
+                return fail("allocation calibration or readback failed");
+        }
+        if (allocationCount <= 0)
+            return fail("calibration observed no allocations");
+
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output,
+                                   std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not seed destination sentinel");
+            }
+            dxfRW codec(output.string().c_str());
+            EmbeddedAttributeMTextExport adapter(codec);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const std::size_t reached = allocationAttempts;
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            if (!injected || wrote
+                || reached != static_cast<std::size_t>(offset + 1)
+                || !readBytes(output, afterFailure) || afterFailure != sentinel
+                || !sourceUnchanged(adapter) || hasStagedOutput(output))
+                return fail("injected failure changed caller or destination state");
+
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            if (!retried || !adapter.entitiesWritten
+                || !sourceUnchanged(adapter) || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes || !readbackMatches(output)
+                || hasStagedOutput(output))
+                return fail("same-codec retry did not reproduce typed output");
+        }
+        std::cout << "R2018 embedded ATTRIB/MTEXT "
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -5456,9 +5650,15 @@ void operator delete(void* value, std::size_t) noexcept { std::free(value); }
 void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR\n";
+    if (argc < 2 || argc > 3) {
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute]\n";
         return 2;
     }
-    return run(argv[1]) ? 0 : 1;
+    const std::filesystem::path directory(argv[1]);
+    if (argc == 3) {
+        if (std::string(argv[2]) != "r2018-embedded-attribute")
+            return 2;
+        return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
+    }
+    return run(directory) ? 0 : 1;
 }
