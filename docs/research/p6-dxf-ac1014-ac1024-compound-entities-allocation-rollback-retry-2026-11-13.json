@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1014_AC1024_ATTRIB_AND_POLYLINE_COMPOUND_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add whole-write rollback/retry/readback coverage for two legacy compound entity routes across accepted pre-R2018 DXF writer revisions AC1014 through AC1024.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during the test",
+    "profile": "One classic POLYLINE with two VERTEX children, a bulge, and SEQEND; one INSERT with two standalone non-MTEXT ATTRIB children and SEQEND. Tested in ASCII and Binary for AC1014, AC1015, AC1018, AC1021 and AC1024.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "The focused legacy compound-entity sweep now writes both the INSERT/ATTRIB/SEQEND chain and POLYLINE/VERTEX/SEQEND chain for all accepted legacy writer revisions in the matrix.",
+    "method": "For each version and codec, calibrate allocations in a successful whole dxfRW::write, inject std::bad_alloc at each reached allocation, verify failure and prior destination preservation, preserve caller entities, ensure no staged file remains, retry on the same codec to byte-identical output, and freshly parse both compound entities. Typed readback checks attributes, polyline geometry/bulge, distinct remapped parent/vertex handles, and a nonzero SEQEND handle."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_legacy_compound_entities_allocation_transaction$' --output-on-failure: PASS 1/1 in 8.51 seconds.",
+    "allocationOffsets": "1330/1330 injected allocation failures pass rollback/retry/typed-readback across five versions and two codecs.",
+    "perVersion": {
+      "AC1014": {"ASCII": 131, "Binary": 129},
+      "AC1015": {"ASCII": 134, "Binary": 131},
+      "AC1018": {"ASCII": 134, "Binary": 131},
+      "AC1021": {"ASCII": 133, "Binary": 130},
+      "AC1024": {"ASCII": 140, "Binary": 137}
+    },
+    "diffCheck": "PASS: git diff --check on implementation, plan and receipt paths"
+  },
+  "limitations": [
+    "Generated transport/transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
+    "The polyline profile uses two ordinary vertices and one bulge; meshes, polyfaces, widths, spline-fit variants and richer vertex XDATA profiles remain outside this slice.",
+    "AC1012 whole-write output remains refused with BAD_VERSION as recorded in the [AC1014 receipt](p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json).",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1014/AC1015/AC1018/AC1021/AC1024 whole-write allocation rollback, same-codec retry and typed readback for standalone attributed INSERT and classic POLYLINE compound chains.",
+    "remainingP6G": "Continue with distinct public-writer overloads, other compound-record variants, variable-size OBJECTS builders, and uncovered caller-state combinations.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+}

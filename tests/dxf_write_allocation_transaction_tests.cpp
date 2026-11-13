@@ -1604,12 +1604,21 @@ public:
     dx_data storage;
 };
 
-class LegacyAttributedInsertExport final : public dx_iface {
+class LegacyCompoundEntitiesExport final : public dx_iface {
 public:
-    explicit LegacyAttributedInsertExport(dxfRW& output) {
+    explicit LegacyCompoundEntitiesExport(dxfRW& output) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &output;
+        polyline.handle = 0xDA30u;
+        polyline.flags = 0;
+        polyline.basePoint = DRW_Coord{0.0, 0.0, 2.5};
+        DRW_Vertex firstVertex(19.0, 20.0, 0.0, 0.375);
+        firstVertex.handle = 0xDA31u;
+        DRW_Vertex secondVertex(22.0, 24.0, 0.0, 0.0);
+        secondVertex.handle = 0xDA32u;
+        polyline.addVertex(firstVertex);
+        polyline.addVertex(secondVertex);
         insert.handle = 0xDA20u;
         insert.name = "LEGACY_ATTRIBUTED_INSERT_BLOCK";
         insert.basePoint = DRW_Coord{11.0, 12.0, 0.0};
@@ -1627,9 +1636,11 @@ public:
     }
 
     void writeEntities() override {
-        entitiesWritten = dxfW != nullptr && dxfW->writeInsert(&insert);
+        entitiesWritten = dxfW != nullptr && dxfW->writePolyline(&polyline)
+            && dxfW->writeInsert(&insert);
     }
 
+    DRW_Polyline polyline;
     DRW_Insert insert;
     bool entitiesWritten = false;
     dx_data storage;
@@ -5752,9 +5763,9 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
-bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
+bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
-        std::cerr << "pre-R2018 attributed INSERT allocation transaction: "
+        std::cerr << "legacy compound entity allocation transaction: "
                   << message << '\n';
         return false;
     };
@@ -5763,8 +5774,22 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
     const std::string sentinel = "prior legacy attributed drawing\n";
-    const auto sourceUnchanged = [](const LegacyAttributedInsertExport& adapter) {
-        if (adapter.insert.handle != 0xDA20u
+    const auto sourceUnchanged = [](const LegacyCompoundEntitiesExport& adapter) {
+        if (adapter.polyline.handle != 0xDA30u
+            || adapter.polyline.flags != 0
+            || adapter.polyline.basePoint.x != 0.0
+            || adapter.polyline.basePoint.y != 0.0
+            || adapter.polyline.basePoint.z != 2.5
+            || adapter.polyline.vertlist.size() != 2u
+            || !adapter.polyline.vertlist[0] || !adapter.polyline.vertlist[1]
+            || adapter.polyline.vertlist[0]->handle != 0xDA31u
+            || adapter.polyline.vertlist[0]->basePoint.x != 19.0
+            || adapter.polyline.vertlist[0]->basePoint.y != 20.0
+            || adapter.polyline.vertlist[0]->bulge != 0.375
+            || adapter.polyline.vertlist[1]->handle != 0xDA32u
+            || adapter.polyline.vertlist[1]->basePoint.x != 22.0
+            || adapter.polyline.vertlist[1]->basePoint.y != 24.0
+            || adapter.insert.handle != 0xDA20u
             || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
             || adapter.insert.attlist.size() != 2u)
             return false;
@@ -5784,10 +5809,41 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
     const auto readbackMatches = [](const std::filesystem::path& path) {
         dxfRW reader(path.string().c_str());
         Readback adapter;
-        if (!reader.read(&adapter, false) || adapter.insertCount != 1u
+        const bool read = reader.read(&adapter, false);
+        if (!read || adapter.polyline3Count != 1u
+            || adapter.polyline3.handle == 0u
+            || adapter.polyline3.flags != 0
+            || adapter.polyline3.basePoint.x != 0.0
+            || adapter.polyline3.basePoint.y != 0.0
+            || adapter.polyline3.basePoint.z != 2.5
+            || adapter.polyline3.vertlist.size() != 2u
+            || !adapter.polyline3.vertlist[0] || !adapter.polyline3.vertlist[1]
+            || adapter.polyline3.vertlist[0]->handle == 0u
+            || adapter.polyline3.vertlist[0]->handle == adapter.polyline3.handle
+            || adapter.polyline3.vertlist[0]->basePoint.x != 19.0
+            || adapter.polyline3.vertlist[0]->basePoint.y != 20.0
+            || adapter.polyline3.vertlist[0]->bulge != 0.375
+            || adapter.polyline3.vertlist[1]->handle == 0u
+            || adapter.polyline3.vertlist[1]->handle == adapter.polyline3.handle
+            || adapter.polyline3.vertlist[1]->handle
+                == adapter.polyline3.vertlist[0]->handle
+            || adapter.polyline3.vertlist[1]->basePoint.x != 22.0
+            || adapter.polyline3.vertlist[1]->basePoint.y != 24.0
+            || !adapter.polyline3.seqEndEntity
+            || adapter.polyline3.seqEndEntity->handle == 0u
+            || adapter.insertCount != 1u
             || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
-            || adapter.insert.attlist.size() != 2u)
+            || adapter.insert.attlist.size() != 2u) {
+            std::cerr << "legacy compound readback read=" << read
+                      << " error=" << reader.getError()
+                      << " polylineCount=" << adapter.polyline3Count
+                      << " polylineHandle=" << adapter.polyline3.handle
+                      << " vertices=" << adapter.polyline3.vertlist.size()
+                      << " insertCount=" << adapter.insertCount
+                      << " attributes=" << adapter.insert.attlist.size()
+                      << '\n';
             return false;
+        }
         for (unsigned i = 0; i < 2u; ++i) {
             const auto& ptr = adapter.insert.attlist[i];
             if (!ptr || ptr->tag != (i == 0u ? "LEGACY_TAG_A" : "LEGACY_TAG_B")
@@ -5815,7 +5871,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
             return fail("could not clear output before warm-up");
         {
             dxfRW codec(output.string().c_str());
-            LegacyAttributedInsertExport adapter(codec);
+            LegacyCompoundEntitiesExport adapter(codec);
             const bool wrote = codec.write(&adapter, version, binary);
             const bool unchanged = sourceUnchanged(adapter);
             const bool readback = wrote && readbackMatches(output);
@@ -5836,7 +5892,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
         std::string expectedBytes;
         {
             dxfRW codec(output.string().c_str());
-            LegacyAttributedInsertExport adapter(codec);
+            LegacyCompoundEntitiesExport adapter(codec);
             armAllocationFailure(1000000000L);
             const bool wrote = codec.write(&adapter, version, binary);
             allocationCount = static_cast<long>(allocationAttempts);
@@ -5857,7 +5913,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
                     return fail("could not seed destination sentinel");
             }
             dxfRW codec(output.string().c_str());
-            LegacyAttributedInsertExport adapter(codec);
+            LegacyCompoundEntitiesExport adapter(codec);
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, version, binary);
             const std::size_t reached = allocationAttempts;
@@ -7919,7 +7975,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-attributed-insert|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -7927,8 +7983,8 @@ int main(int argc, char** argv) {
         const std::string mode(argv[2]);
         if (mode == "r2018-embedded-attribute")
             return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
-        if (mode == "legacy-attributed-insert")
-            return runLegacyAttributedInsertSweep(directory) ? 0 : 1;
+        if (mode == "legacy-compound-entities")
+            return runLegacyCompoundEntitiesSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "light-list")
