@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **171 completed implementation slices** and **35 remaining
+The plan records **172 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`171 / (171 + 35) = 83.0%`. This is a count-based progress measure, not an
+`172 / (172 + 35) = 83.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
-| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, and AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [legacy compound-entity allocation receipt](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json) and [AC1014 writer boundary receipt](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
+| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, and AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [legacy compound-chain allocation matrix](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json) and [AC1012 refusal boundary](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
 | P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
 | P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
 | P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
