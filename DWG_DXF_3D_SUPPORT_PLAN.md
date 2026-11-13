@@ -10773,3 +10773,11 @@ The focused transaction CTest passes 1/1. This is failure/retry coverage only;
 independent DXF acceptance, DWG parsing, curve evaluation and native HELIX
 semantics remain open. See the
 [receipt](docs/research/p6-dxf-helix-allocation-rollback-retry-2026-11-13.json).
+
+**P6 MATERIAL writer allocation rollback/retry (2026-11-13):** the generated
+whole-operation transaction test now includes a typed MATERIAL with only the
+modeled name and description. All 467 ASCII and 460 Binary allocation
+failure offsets preserve the destination and caller record; same-codec retry
+reproduces clean bytes and typed readback. This adds transaction coverage only;
+material appearance and native rendering remain unqualified. See the
+[receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).

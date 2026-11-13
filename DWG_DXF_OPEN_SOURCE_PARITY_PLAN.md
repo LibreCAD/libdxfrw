@@ -1194,6 +1194,14 @@ same-codec retries reproduce clean output and typed readback. Its focused
 CTest passes. This adds transaction evidence only; native or independent
 HELIX semantics and support remain unqualified. See the [receipt](docs/research/p6-dxf-helix-allocation-rollback-retry-2026-11-13.json).
 
+**P6 local MATERIAL transaction slice (2026-11-13):** the same generated
+whole-operation sweep now also writes one typed AC1027 MATERIAL with its
+modeled name and description. All 467 ASCII and 460 Binary allocation
+failure offsets preserve the destination and caller record, and same-codec
+retry reproduces clean output plus typed readback. The focused transaction
+CTest passes. This covers allocation rollback only; material appearance,
+textures and native rendering remain unqualified. See the [receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).
+
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
 CLASSES CRC mismatch for all nine AC1024 DWGs currently under

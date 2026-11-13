@@ -48,6 +48,7 @@ constexpr std::uint32_t kRayHandle = 0xD92Fu;
 constexpr std::uint32_t kXlineHandle = 0xD930u;
 constexpr std::uint32_t kAttdefHandle = 0xD931u;
 constexpr std::uint32_t kHelixHandle = 0xD933u;
+constexpr std::uint32_t kMaterialHandle = 0xD934u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -391,6 +392,10 @@ public:
         helix.turnHeight = 3.0;
         helix.handedness = true;
         helix.constraintType = 1;
+        material.handle = kMaterialHandle;
+        material.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        material.m_name = "WHOLE_OPERATION_MATERIAL";
+        material.m_description = "material allocation retry";
     }
 
     void writeEntities() override {
@@ -428,6 +433,7 @@ public:
     void writeObjects() override {
         dx_iface::writeObjects();
         objectsWritten = output.writeMLineStyle(&mlineStyle)
+            && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
@@ -466,6 +472,7 @@ public:
     DRW_Ray ray;
     DRW_Xline xline;
     DRW_Helix helix;
+    DRW_Material material;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -593,6 +600,10 @@ public:
             helix = *value;
         }
     }
+    void addMaterial(const DRW_Material& value) override {
+        ++materialCount;
+        material = value;
+    }
     void addAttDef(const DRW_Attdef& value) override {
         dx_iface::addAttDef(value);
         ++attdefCount;
@@ -634,6 +645,7 @@ public:
     DRW_Ray ray;
     DRW_Xline xline;
     DRW_Helix helix;
+    DRW_Material material;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -663,6 +675,7 @@ public:
     unsigned rayCount = 0u;
     unsigned xlineCount = 0u;
     unsigned helixCount = 0u;
+    unsigned materialCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -963,6 +976,10 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.helix.turnHeight == 3.0
         && adapter.helix.handedness
         && adapter.helix.constraintType == 1
+        && adapter.material.handle == kMaterialHandle
+        && adapter.material.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.material.m_name == "WHOLE_OPERATION_MATERIAL"
+        && adapter.material.m_description == "material allocation retry"
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1297,6 +1314,10 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.helix.turnHeight != 3.0
         || !adapter.helix.handedness
         || adapter.helix.constraintType != 1
+        || adapter.materialCount != 1u
+        || adapter.material.handle == 0u
+        || adapter.material.m_name != "WHOLE_OPERATION_MATERIAL"
+        || adapter.material.m_description != "material allocation retry"
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u
