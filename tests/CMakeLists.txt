@@ -6150,12 +6150,12 @@ add_test(NAME libdxfrw_dxf_legacy_compound_entities_allocation_transaction
         legacy-compound-entities)
 set_tests_properties(libdxfrw_dxf_legacy_compound_entities_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation" TIMEOUT 60)
-add_test(NAME libdxfrw_dxf_hatch_version_allocation_transaction
+add_test(NAME libdxfrw_dxf_hatch_mpolygon_version_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
-        ${CMAKE_CURRENT_BINARY_DIR}/dxf-hatch-version-allocation
-        hatch-versions)
-set_tests_properties(libdxfrw_dxf_hatch_version_allocation_transaction PROPERTIES
-    LABELS "dxf;fast;transaction;allocation;hatch" TIMEOUT 120)
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-hatch-mpolygon-version-allocation
+        hatch-mpolygon-versions)
+set_tests_properties(libdxfrw_dxf_hatch_mpolygon_version_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;hatch;mpolygon" TIMEOUT 120)
 add_test(NAME libdxfrw_dxf_long_mtext_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-long-mtext-allocation

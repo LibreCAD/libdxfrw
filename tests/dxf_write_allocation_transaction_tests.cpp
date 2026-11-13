@@ -5572,7 +5572,8 @@ bool run(const std::filesystem::path& directory) {
 
 class HatchOnlyExport final : public dx_iface {
 public:
-    explicit HatchOnlyExport(dxfRW& output) : output(output) {
+    explicit HatchOnlyExport(dxfRW& output, bool useMPolygon = false)
+        : output(output), useMPolygon(useMPolygon) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &output;
@@ -5648,39 +5649,55 @@ public:
         splineLoop->update();
         hatch.appendLoop(splineLoop);
         hatch.seedPoints.emplace_back(0.5, 0.75, 0.0);
+        if (useMPolygon) {
+            static_cast<DRW_Hatch&>(mpolygon) = hatch;
+            mpolygon.eType = DRW::MPOLYGON;
+            mpolygon.dxfVersion = 1;
+            mpolygon.fillColorAci = 5;
+            mpolygon.annotatedBoundary = 1;
+            mpolygon.xDirX = 1.5;
+            mpolygon.xDirY = -0.75;
+        }
     }
 
     void writeEntities() override {
-        entitiesWritten = output.writeHatch(&hatch);
+        entitiesWritten = useMPolygon ? output.writeMPolygon(&mpolygon)
+                                      : output.writeHatch(&hatch);
     }
 
     bool sourceUnchanged() const {
-        if (hatch.handle != 0xDA50u || hatch.name != "ANSI31"
-            || hatch.solid != 0 || hatch.hpattern != 0
-            || hatch.angle != 0.25 || hatch.scale != 1.5
-            || hatch.looplist.size() != 5u || !hatch.looplist[0]
-            || hatch.looplist[0]->objlist.size() != 1u
-            || !hatch.looplist[1] || hatch.looplist[1]->objlist.size() != 1u
-            || !hatch.looplist[2] || hatch.looplist[2]->objlist.size() != 1u
-            || !hatch.looplist[3] || hatch.looplist[3]->objlist.size() != 1u
-            || !hatch.looplist[4] || hatch.looplist[4]->objlist.size() != 1u
-            || hatch.patternLines.size() != 1u
-            || hatch.patternLines.front().dashList
+        const DRW_Hatch& entity = useMPolygon
+            ? static_cast<const DRW_Hatch&>(mpolygon) : hatch;
+        if (entity.handle != 0xDA50u || entity.name != "ANSI31"
+            || entity.solid != 0 || entity.hpattern != 0
+            || entity.angle != 0.25 || entity.scale != 1.5
+            || entity.looplist.size() != 5u || !entity.looplist[0]
+            || entity.looplist[0]->objlist.size() != 1u
+            || !entity.looplist[1] || entity.looplist[1]->objlist.size() != 1u
+            || !entity.looplist[2] || entity.looplist[2]->objlist.size() != 1u
+            || !entity.looplist[3] || entity.looplist[3]->objlist.size() != 1u
+            || !entity.looplist[4] || entity.looplist[4]->objlist.size() != 1u
+            || entity.patternLines.size() != 1u
+            || entity.patternLines.front().dashList
                 != std::vector<double>{0.5, -0.25, 1.0}
-            || hatch.seedPoints.size() != 1u
-            || hatch.seedPoints.front().x != 0.5
-            || hatch.seedPoints.front().y != 0.75)
+            || entity.seedPoints.size() != 1u
+            || entity.seedPoints.front().x != 0.5
+            || entity.seedPoints.front().y != 0.75
+            || (useMPolygon && (mpolygon.dxfVersion != 1
+                || mpolygon.fillColorAci != 5
+                || mpolygon.annotatedBoundary != 1
+                || mpolygon.xDirX != 1.5 || mpolygon.xDirY != -0.75)))
             return false;
         const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
-            hatch.looplist[0]->objlist.front().get());
+            entity.looplist[0]->objlist.front().get());
         const auto* lineEdge = dynamic_cast<const DRW_Line*>(
-            hatch.looplist[1]->objlist.front().get());
+            entity.looplist[1]->objlist.front().get());
         const auto* arcEdge = dynamic_cast<const DRW_Arc*>(
-            hatch.looplist[2]->objlist.front().get());
+            entity.looplist[2]->objlist.front().get());
         const auto* ellipseEdge = dynamic_cast<const DRW_Ellipse*>(
-            hatch.looplist[3]->objlist.front().get());
+            entity.looplist[3]->objlist.front().get());
         const auto* splineEdge = dynamic_cast<const DRW_Spline*>(
-            hatch.looplist[4]->objlist.front().get());
+            entity.looplist[4]->objlist.front().get());
         return boundary != nullptr && lineEdge != nullptr && arcEdge != nullptr
             && ellipseEdge != nullptr && splineEdge != nullptr
             && lineEdge->basePoint.x == 1.0 && lineEdge->secPoint.y == 6.0
@@ -5704,6 +5721,8 @@ public:
     dxfRW& output;
     dx_data storage;
     DRW_Hatch hatch;
+    DRW_MPolygon mpolygon;
+    bool useMPolygon;
     std::shared_ptr<DRW_Line> line;
     std::shared_ptr<DRW_Arc> arc;
     std::shared_ptr<DRW_Ellipse> ellipse;
@@ -5729,11 +5748,12 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
     const std::vector<DRW::Version> versions = {
         DRW::AC1014, DRW::AC1015, DRW::AC1018,
         DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
-    for (const DRW::Version version : versions) {
+    for (const bool useMPolygon : {false, true}) {
+      for (const DRW::Version version : versions) {
         for (const bool binary : {false, true}) {
             {
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec);
+                HatchOnlyExport adapter(codec, useMPolygon);
                 const bool wrote = codec.write(&adapter, version, binary);
                 if (!wrote || !adapter.entitiesWritten
                     || !adapter.sourceUnchanged()) {
@@ -5748,7 +5768,7 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec);
+                HatchOnlyExport adapter(codec, useMPolygon);
                 armAllocationFailure(1000000000L);
                 const bool wrote = codec.write(&adapter, version, binary);
                 allocationCount = static_cast<long>(allocationAttempts);
@@ -5771,7 +5791,7 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                                     "could not seed destination sentinel");
                 }
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec);
+                HatchOnlyExport adapter(codec, useMPolygon);
                 armAllocationFailure(offset);
                 const bool wrote = codec.write(&adapter, version, binary);
                 const std::size_t reached = allocationAttempts;
@@ -5791,47 +5811,56 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                 Readback readback;
                 dxfRW reader(output.string().c_str());
                 const bool read = reader.read(&readback, false);
+                const DRW_Hatch& typedEntity = useMPolygon
+                    ? static_cast<const DRW_Hatch&>(readback.mpolygon)
+                    : readback.hatch;
                 if (!retried || !adapter.entitiesWritten
                     || !adapter.sourceUnchanged()
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes || !read
-                    || readback.hatchCount != 1u
-                    || readback.hatch.name != "ANSI31"
-                    || readback.hatch.solid != 0
-                    || readback.hatch.handle == 0u
-                    || readback.hatch.angle != 0.25
-                    || readback.hatch.scale != 1.5
-                    || readback.hatch.looplist.size() != 5u
-                    || std::any_of(readback.hatch.looplist.begin(),
-                        readback.hatch.looplist.end(), [](const auto& loop) {
+                    || (useMPolygon ? readback.mpolygonCount != 1u
+                                    : readback.hatchCount != 1u)
+                    || typedEntity.name != "ANSI31"
+                    || typedEntity.solid != 0
+                    || typedEntity.handle == 0u
+                    || typedEntity.angle != 0.25
+                    || typedEntity.scale != 1.5
+                    || typedEntity.looplist.size() != 5u
+                    || std::any_of(typedEntity.looplist.begin(),
+                        typedEntity.looplist.end(), [](const auto& loop) {
                             return !loop || loop->objlist.size() != 1u;
                         })
                     || dynamic_cast<const DRW_LWPolyline*>(
-                        readback.hatch.looplist.front()->objlist.front().get())
+                        typedEntity.looplist.front()->objlist.front().get())
                         == nullptr
-                    || readback.hatch.patternLines.size() != 1u
-                    || readback.hatch.patternLines.front().angle != 0.5
-                    || readback.hatch.patternLines.front().baseX != 0.25
-                    || readback.hatch.patternLines.front().baseY != -0.5
-                    || readback.hatch.patternLines.front().offsetY != 1.25
-                    || readback.hatch.patternLines.front().dashList
+                    || typedEntity.patternLines.size() != 1u
+                    || typedEntity.patternLines.front().angle != 0.5
+                    || typedEntity.patternLines.front().baseX != 0.25
+                    || typedEntity.patternLines.front().baseY != -0.5
+                    || typedEntity.patternLines.front().offsetY != 1.25
+                    || typedEntity.patternLines.front().dashList
                         != std::vector<double>{0.5, -0.25, 1.0}
-                    || readback.hatch.seedPoints.size() != 1u
-                    || readback.hatch.seedPoints.front().x != 0.5
-                    || readback.hatch.seedPoints.front().y != 0.75
+                    || typedEntity.seedPoints.size() != 1u
+                    || typedEntity.seedPoints.front().x != 0.5
+                    || typedEntity.seedPoints.front().y != 0.75
+                    || (useMPolygon && (readback.mpolygon.dxfVersion != 1
+                        || readback.mpolygon.fillColorAci != 5
+                        || readback.mpolygon.annotatedBoundary != 1
+                        || readback.mpolygon.xDirX != 1.5
+                        || readback.mpolygon.xDirY != -0.75))
                     || hasStagedOutput(output))
                     return fail(version, binary,
                                 "retry or typed readback failed");
                 const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
-                    readback.hatch.looplist[0]->objlist.front().get());
+                    typedEntity.looplist[0]->objlist.front().get());
                 const auto* lineEdge = dynamic_cast<const DRW_Line*>(
-                    readback.hatch.looplist[1]->objlist.front().get());
+                    typedEntity.looplist[1]->objlist.front().get());
                 const auto* arcEdge = dynamic_cast<const DRW_Arc*>(
-                    readback.hatch.looplist[2]->objlist.front().get());
+                    typedEntity.looplist[2]->objlist.front().get());
                 const auto* ellipseEdge = dynamic_cast<const DRW_Ellipse*>(
-                    readback.hatch.looplist[3]->objlist.front().get());
+                    typedEntity.looplist[3]->objlist.front().get());
                 const auto* splineEdge = dynamic_cast<const DRW_Spline*>(
-                    readback.hatch.looplist[4]->objlist.front().get());
+                    typedEntity.looplist[4]->objlist.front().get());
                 if (boundary->flags != 1 || boundary->vertlist.size() != 4u
                     || boundary->vertlist[0]->x != 0.0
                     || boundary->vertlist[1]->x != 2.0
@@ -5855,11 +5884,13 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                     return fail(version, binary,
                                 "typed boundary readback mismatch");
             }
-            std::cout << "HATCH " << static_cast<int>(version)
+            std::cout << (useMPolygon ? "MPOLYGON " : "HATCH ")
+                      << static_cast<int>(version)
                       << (binary ? " Binary" : " ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
         }
+      }
     }
     std::error_code ignored;
     std::filesystem::remove(output, ignored);
@@ -8271,7 +8302,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|hatch-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|hatch-mpolygon-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -8281,7 +8312,7 @@ int main(int argc, char** argv) {
             return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
         if (mode == "legacy-compound-entities")
             return runLegacyCompoundEntitiesSweep(directory) ? 0 : 1;
-        if (mode == "hatch-versions")
+        if (mode == "hatch-mpolygon-versions")
             return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;

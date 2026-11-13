@@ -1,12 +1,12 @@
 {
   "receipt": "p6-dxf-hatch-version-allocation-rollback-retry",
   "date": "2026-11-13",
-  "scope": "Generated DXF HATCH whole-file transaction profiles across all supported writer versions from AC1014 through AC1032.",
+  "scope": "Generated DXF HATCH and MPOLYGON whole-file transaction profiles across all supported writer versions from AC1014 through AC1032.",
   "source": {
     "kind": "generated locally from scratch by the test adapter",
     "committed_fixture": false,
     "profile": {
-      "entity": "HATCH",
+      "entities": ["HATCH", "MPOLYGON"],
       "pattern_name": "ANSI31",
       "solid": false,
       "boundaries": [
@@ -22,7 +22,13 @@
         "offset": [0.0, 1.25],
         "dashes": [0.5, -0.25, 1.0]
       },
-      "seed_point": [0.5, 0.75]
+      "seed_point": [0.5, 0.75],
+      "mpolygon_fields": {
+        "dxf_version": 1,
+        "fill_color_aci": 5,
+        "annotated_boundary": 1,
+        "offset_vector": [1.5, -0.75]
+      }
     }
   },
   "method": {
@@ -38,21 +44,21 @@
     "retry_assertions": [
       "same dxfRW writer and adapter retry successfully",
       "retry output is byte-for-byte equal to clean calibration output",
-      "fresh typed DXF readback checks HATCH identity, geometry, pattern fields, dash list, and seed point"
+      "fresh typed DXF readback checks boundary edge types and geometry, pattern fields, dash list, seed point, and MPOLYGON-specific fields"
     ]
   },
   "results": [
-    {"version": "AC1014", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
-    {"version": "AC1015", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
-    {"version": "AC1018", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
-    {"version": "AC1021", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
-    {"version": "AC1024", "ascii_allocation_offsets": 102, "binary_allocation_offsets": 101, "result": "PASS"},
-    {"version": "AC1027", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
-    {"version": "AC1032", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"}
+    {"version": "AC1014", "hatch": {"ascii_allocation_offsets": 92, "binary_allocation_offsets": 91}, "mpolygon": {"ascii_allocation_offsets": 92, "binary_allocation_offsets": 91}, "result": "PASS"},
+    {"version": "AC1015", "hatch": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "mpolygon": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "result": "PASS"},
+    {"version": "AC1018", "hatch": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "mpolygon": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "result": "PASS"},
+    {"version": "AC1021", "hatch": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "mpolygon": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "result": "PASS"},
+    {"version": "AC1024", "hatch": {"ascii_allocation_offsets": 101, "binary_allocation_offsets": 100}, "mpolygon": {"ascii_allocation_offsets": 101, "binary_allocation_offsets": 100}, "result": "PASS"},
+    {"version": "AC1027", "hatch": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "mpolygon": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "result": "PASS"},
+    {"version": "AC1032", "hatch": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "mpolygon": {"ascii_allocation_offsets": 94, "binary_allocation_offsets": 93}, "result": "PASS"}
   ],
   "validation": {
-    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_version_allocation_transaction$' --output-on-failure",
-    "result": "PASS; 1/1 test, 2.88 seconds",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_mpolygon_version_allocation_transaction$' --output-on-failure",
+    "result": "PASS; 1/1 test, 5.71 seconds",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
     "build_result": "PASS"
   },
