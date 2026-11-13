@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dbcolor-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DBCOLOR_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated DBCOLOR OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "source": {
+    "kind": "deterministic locally-authored record generated during each test run",
+    "profile": "One rooted ACAD_COLOR dictionary and one DBCOLOR record with explicit owner, RGB, color method, entry name, and book name.",
+    "versions": ["AC1021", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dbcolor_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate a complete write, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller record, retry on the same codec, compare retry bytes with clean output, and freshly read the typed DBCOLOR record."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 8, "Binary": 8},
+    "AC1027": {"ASCII": 8, "Binary": 8},
+    "AC1032": {"ASCII": 8, "Binary": 8},
+    "totals": {"ASCII": 24, "Binary": 24, "all": 48}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dbcolor_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.40 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_dbcolor_objects_allocation_tests /tmp/libdxfrw-dbcolor-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 8 and Binary 8 offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated DBCOLOR field profile is tested per version; other payload combinations and independent producer behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated DBCOLOR transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "204 completed slices and 27 remaining packages: 204/(204+27)=88.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json"
+}

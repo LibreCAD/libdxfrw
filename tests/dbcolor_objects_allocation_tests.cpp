@@ -151,96 +151,106 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / "dbcolor-objects.dxf";
     const std::string sentinel = "prior DBCOLOR destination bytes\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(output.string().c_str());
-            DbColorExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            exporter.failAt = 1000000;
-            const bool exported = codec.write(&exporter, DRW::AC1027, binary);
-            const bool matches = exported && exporter.wrote
-                && readbackMatches(output);
-            if (!matches) {
-                std::cerr << "calibration codecWrite=" << exported
-                          << " callbackWrite=" << exporter.wrote
-                          << " binary=" << binary << '\n';
-                return fail("allocation calibration output did not read back");
-            }
-            allocationCount = exporter.reached;
-            if (!readAll(output, expectedBytes))
-                return fail("could not retain calibration output bytes");
-        }
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("dbcolor-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        for (const bool binary : {false, true}) {
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
-            }
-            dxfRW codec(output.string().c_str());
-            DbColorExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            const DRW_DbColor source = exporter.color;
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.wrote = false;
-            const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.wrote || exporter.reached != offset + 1
-                || !allocationFailed
-                || !readAll(output, current) || current != sentinel)
-            {
-                std::cerr << "allocation offset=" << offset
-                          << " codecWrite=" << wrote
-                          << " callbackWrite=" << exporter.wrote
-                          << " reached=" << exporter.reached
-                          << " sentinel=" << (current == sentinel) << '\n';
-                return fail("injected failure changed destination or missed allocation");
-            }
-            if (!sourceMatches(exporter.color, source))
-                return fail("injected failure changed caller DBCOLOR state");
-            const bool retry = codec.write(&exporter, DRW::AC1027, binary);
-            std::string retryBytes;
-            const bool byteEqual = retry && readAll(output, retryBytes)
-                && retryBytes == expectedBytes;
-            const bool readback = retry && readbackMatches(output);
-            if (!retry || !exporter.wrote || !byteEqual || !readback
-                || !sourceMatches(exporter.color, source)) {
-                std::cerr << "retry codecWrite=" << retry
-                          << " callbackWrite=" << exporter.wrote
-                          << " readback=" << readback
-                          << " bytesEqual=" << byteEqual
-                          << " binary=" << binary
-                          << " offset=" << offset << '\n';
-                if (retry && !byteEqual) {
-                    std::size_t diff = 0u;
-                    while (diff < expectedBytes.size()
-                           && diff < retryBytes.size()
-                           && expectedBytes[diff] == retryBytes[diff])
-                        ++diff;
-                    std::cerr << "first byte difference=" << diff
-                              << " expected-size=" << expectedBytes.size()
-                              << " actual-size=" << retryBytes.size()
-                              << " expected-context="
-                              << expectedBytes.substr(diff > 40u ? diff - 40u : 0u, 100u)
-                              << " actual-context="
-                              << retryBytes.substr(diff > 40u ? diff - 40u : 0u, 100u)
-                              << '\n';
+                dxfRW codec(output.string().c_str());
+                DbColorExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                exporter.failAt = 1000000;
+                const bool exported = codec.write(&exporter, version, binary);
+                const bool matches = exported && exporter.wrote
+                    && readbackMatches(output);
+                if (!matches) {
+                    std::cerr << "calibration codecWrite=" << exported
+                              << " callbackWrite=" << exporter.wrote
+                              << " version=" << static_cast<int>(version)
+                              << " binary=" << binary << '\n';
+                    return fail("allocation calibration output did not read back");
                 }
-                return fail("same-codec retry failed typed DBCOLOR readback");
+                allocationCount = exporter.reached;
+                if (!readAll(output, expectedBytes))
+                    return fail("could not retain calibration output bytes");
             }
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                DbColorExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                const DRW_DbColor source = exporter.color;
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                exporter.wrote = false;
+                const bool wrote = codec.write(&exporter, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.wrote || exporter.reached != offset + 1
+                    || !allocationFailed
+                    || !readAll(output, current) || current != sentinel)
+                {
+                    std::cerr << "allocation offset=" << offset
+                              << " codecWrite=" << wrote
+                              << " callbackWrite=" << exporter.wrote
+                              << " reached=" << exporter.reached
+                              << " version=" << static_cast<int>(version)
+                              << " sentinel=" << (current == sentinel) << '\n';
+                    return fail("injected failure changed destination or missed allocation");
+                }
+                if (!sourceMatches(exporter.color, source))
+                    return fail("injected failure changed caller DBCOLOR state");
+                const bool retry = codec.write(&exporter, version, binary);
+                std::string retryBytes;
+                const bool byteEqual = retry && readAll(output, retryBytes)
+                    && retryBytes == expectedBytes;
+                const bool readback = retry && readbackMatches(output);
+                if (!retry || !exporter.wrote || !byteEqual || !readback
+                    || !sourceMatches(exporter.color, source)) {
+                    std::cerr << "retry codecWrite=" << retry
+                              << " callbackWrite=" << exporter.wrote
+                              << " readback=" << readback
+                              << " bytesEqual=" << byteEqual
+                              << " binary=" << binary
+                              << " version=" << static_cast<int>(version)
+                              << " offset=" << offset << '\n';
+                    if (retry && !byteEqual) {
+                        std::size_t diff = 0u;
+                        while (diff < expectedBytes.size()
+                               && diff < retryBytes.size()
+                               && expectedBytes[diff] == retryBytes[diff])
+                            ++diff;
+                        std::cerr << "first byte difference=" << diff
+                                  << " expected-size=" << expectedBytes.size()
+                                  << " actual-size=" << retryBytes.size()
+                                  << " expected-context="
+                                  << expectedBytes.substr(diff > 40u ? diff - 40u : 0u, 100u)
+                                  << " actual-context="
+                                  << retryBytes.substr(diff > 40u ? diff - 40u : 0u, 100u)
+                                  << '\n';
+                    }
+                    return fail("same-codec retry failed typed DBCOLOR readback");
+                }
+            }
+            std::cout << "DBCOLOR OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "DBCOLOR OBJECTS " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
