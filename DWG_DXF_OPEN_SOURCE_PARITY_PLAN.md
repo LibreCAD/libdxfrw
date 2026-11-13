@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **108 completed implementation slices** and **35 remaining
+The plan records **109 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`108 / (108 + 35) = 75.5%`. This is a count-based progress measure, not an
+`109 / (109 + 35) = 75.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1300,6 +1300,14 @@ field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 direct LINE-family writer transaction slice (2026-11-13):** the
+whole-file ASCII/Binary allocation sweep now calls `write3DLine()`, `writeRay()`
+and `writeXline()` directly; `writeLine()`, `writeSolid()` and `writeTrace()`
+are also explicit. All 744 ASCII and 733 Binary failure offsets preserve
+destination, caller state and identity maps; same-writer retry and typed
+readback pass. The focused transaction CTest passes 1/1 in 4.51 seconds. See
+the [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local VIEWPORT transaction slice (2026-11-13):** the generated whole-file
 ASCII/Binary sweep writes a VIEWPORT with nondefault paper dimensions, status,
