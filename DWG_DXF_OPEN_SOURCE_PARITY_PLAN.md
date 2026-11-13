@@ -1122,8 +1122,6 @@ repeat the corpus census or alter the aggregate strict guard from this audit.
    be promoted by generated controls, advisory reports, or transport-only
    evidence.
 
-Completed P6 encoder-allocation rollback/retry and raw-shell recovery slices have been removed from this queue; their implementation and focused validation receipts remain under `docs/research/` and in Git history. Reopen one only if new evidence exposes a regression.
-
 After every slice: run its focused fast checks; update this queue and the
 relevant receipt; commit code, plan and receipt together; report the commit and
 next eligible slice, then continue. Keep fixtures out of commits unless already
