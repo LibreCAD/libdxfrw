@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **140 completed implementation slices** and **35 remaining
+The plan records **141 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`140 / (140 + 35) = 80.0%`. This is a count-based progress measure, not an
+`141 / (141 + 35) = 80.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4535,6 +4535,15 @@ Its focused fast CTest passes in ASCII and Binary; the earlier rollback,
 destination, child-XRECORD and typed-readback checks remain active. This is one
 generated DATATABLE profile only; P6-G's remaining writer inventory is still
 open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
+The existing generated DICTIONARYWDFLT/ACDBPLACEHOLDER rollback control now
+also invokes the public typed `writeDictionaryWithDefault()` and
+`writeAcDbPlaceholder()` entry points directly, retaining the raw adapter
+route. For the generated no-reactor graph, all 12 ASCII and 11 Binary typed
+route allocation offsets preserve the destination and source graph, then
+same-adapter retry passes typed readback; the raw route retains its 25/24
+offset sweeps. This closes the direct typed writer path for this bounded
+profile only; dictionary ownership variants and P6-G's wider writer inventory
+remain open ([receipt](docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json)).
 The raw OBJECTS string-override allocation control now also covers the combined
 string/Int32 override writer, with generated XRECORD group 90 readback, caller
 state, prior-destination preservation, and same-codec exact-byte retry. Both

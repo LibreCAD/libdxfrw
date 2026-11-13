@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_TYPED_DIRECT_WRITER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the existing generated DICTIONARYWDFLT/ACDBPLACEHOLDER allocation rollback and retry control to cover the public typed writer entry points directly, alongside the existing raw adapter path.",
+  "source": {
+    "kind": "deterministic locally-authored DXF generated in test code",
+    "profile": "One NOD-owned DICTIONARYWDFLT with one placeholder member/default target. The dictionary uses hard-owner flag zero, matching the typed writer's supported grammar. No external or committed DWG/DXF fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "3cc118e0",
+    "files": [
+      "tests/dictionary_default_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add a direct typed callback route invoking writeDictionaryWithDefault() and writeAcDbPlaceholder() against the generated source graph. Preserve the existing raw adapter route. For every measured allocation offset, require whole-export refusal, unchanged destination sentinel and source graph, then same-adapter retry and fresh typed graph readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dictionary_default_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure: PASS 1/1 (0.36 sec)",
+    "directRun": "PASS; raw adapter route: ASCII 25 and Binary 24 allocation offsets; typed direct route: ASCII 12 and Binary 11 offsets; all preserve destination/source, retry through the same adapter, and pass typed readback",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "This is generated transaction and typed-readback evidence only; it does not qualify producer-authored profiles, external graph closure, or native consumer semantics.",
+    "The control covers one no-reactor placeholder and one dictionary member/default edge; larger dictionaries, reactors, extension dictionaries and other ownership variants remain open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory and select the next genuinely uncovered public route for rollback, same-writer retry and typed or exact bounded raw readback."
+}

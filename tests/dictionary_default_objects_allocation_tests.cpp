@@ -24,8 +24,48 @@ class DictionaryDefaultExport final : public dx_iface {
 public:
     long failAt = -1;
     long reached = 0;
+    bool directTyped = false;
 
     void writeObjects() override {
+        if (directTyped) {
+            bool emitted = false;
+            const auto emit = [this]() {
+                if (cData == nullptr || dxfW == nullptr
+                    || cData->dictionaryWithDefaults.size() != 1u
+                    || cData->rawPlaceholders.size() != 1u)
+                    return false;
+                const DRW_RawDxfObject& source =
+                    cData->rawPlaceholders.front();
+                DRW_AcDbPlaceholder placeholder;
+                placeholder.handle = source.handle;
+                placeholder.parentHandle = source.parentHandle;
+                const bool dictionaryWritten = dxfW->writeDictionaryWithDefault(
+                    &cData->dictionaryWithDefaults.front());
+                const bool placeholderWritten = dictionaryWritten
+                    && dxfW->writeAcDbPlaceholder(&placeholder);
+                return dictionaryWritten && placeholderWritten;
+            };
+            if (failAt < 0) {
+                emitted = emit();
+            } else {
+                const auto before = failedAllocations;
+                try {
+                    AllocationFailure failure(failAt);
+                    emitted = emit();
+                    reached = failedAllocations != before
+                        ? static_cast<long>(failedAllocations - before)
+                        : failAt - allocationsBeforeFailure;
+                } catch (const std::bad_alloc&) {
+                    reached = failedAllocations != before
+                        ? static_cast<long>(failedAllocations - before)
+                        : failAt - allocationsBeforeFailure;
+                    throw;
+                }
+            }
+            if (!emitted)
+                (void)dxfW->writeRawDxfObject(nullptr);
+            return;
+        }
         if (failAt < 0) {
             dx_iface::writeObjects();
             return;
@@ -54,7 +94,7 @@ const char* sourceText =
     "280\n1\n281\n1\n3\nACAD_PLOTSTYLENAME\n350\n10\n"
     "0\nACDBPLACEHOLDER\n5\n11\n330\n10\n"
     "0\nDICTIONARYWDFLT\n5\n10\n330\nC\n"
-    "100\nAcDbDictionary\n280\n1\n281\n1\n100\nAcDbDictionaryWithDefault\n340\n11\n"
+    "100\nAcDbDictionary\n280\n0\n281\n1\n100\nAcDbDictionaryWithDefault\n340\n11\n"
     "0\nENDSEC\n0\nEOF\n";
 
 bool readAll(const std::filesystem::path& path, std::string& value) {
@@ -215,40 +255,57 @@ bool run(const std::filesystem::path& directory) {
             &data, false, true);
     };
 
-    for (const bool binary : {false, true}) {
-        exporter.failAt = 1000000;
-        if (!write(binary) || !verifyGraph(outputPath))
-            return fail("allocation calibration did not read back graph");
-        const long allocationCount = exporter.reached;
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-        for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream previous(
-                    outputPath, std::ios::binary | std::ios::trunc);
-                previous << sentinel;
-                if (!previous)
-                    return fail("could not initialize destination sentinel");
+    for (const bool directTyped : {false, true}) {
+        exporter.directTyped = directTyped;
+        for (const bool binary : {false, true}) {
+            exporter.failAt = 1000000;
+            const bool wroteCalibration = write(binary);
+            const bool graphReadback = wroteCalibration
+                && verifyGraph(outputPath);
+            if (!wroteCalibration || !graphReadback) {
+                std::cerr << "directTyped=" << directTyped
+                          << " binary=" << binary
+                          << " fileExport=" << wroteCalibration
+                          << " callback=" << exporter.reached
+                          << " graphReadback=" << graphReadback << '\n';
+                return fail("allocation calibration did not read back graph");
             }
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            const bool wrote = write(binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached < 1
-                || !readAll(outputPath, current) || current != sentinel
-                || !sourceUnchanged(data, sourceDictionary, sourcePlaceholder,
-                                    sourceRawDictionary))
-                return fail("injected failure changed destination or source graph");
-            if (!write(binary) || !verifyGraph(outputPath)
-                || !sourceUnchanged(data, sourceDictionary, sourcePlaceholder,
-                                    sourceRawDictionary))
-                return fail("same-adapter retry failed typed graph readback");
+            const long allocationCount = exporter.reached;
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream previous(
+                        outputPath, std::ios::binary | std::ios::trunc);
+                    previous << sentinel;
+                    if (!previous)
+                        return fail("could not initialize destination sentinel");
+                }
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                const bool wrote = write(binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached < 1
+                    || !readAll(outputPath, current) || current != sentinel
+                    || !sourceUnchanged(data, sourceDictionary,
+                                        sourcePlaceholder,
+                                        sourceRawDictionary))
+                    return fail(
+                        "injected failure changed destination or source graph");
+                if (!write(binary) || !verifyGraph(outputPath)
+                    || !sourceUnchanged(data, sourceDictionary,
+                                        sourcePlaceholder,
+                                        sourceRawDictionary))
+                    return fail(
+                        "same-adapter retry failed typed graph readback");
+            }
+            std::cout << "DICTIONARYWDFLT/PLACEHOLDER "
+                      << (directTyped ? "typed direct " : "raw adapter ")
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "DICTIONARYWDFLT/PLACEHOLDER OBJECTS "
-                  << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
     }
     std::filesystem::remove(sourcePath, error);
     std::filesystem::remove(outputPath, error);
