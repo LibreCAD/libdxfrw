@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **186 completed implementation slices** and **35 remaining
+The plan records **187 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`186 / (186 + 35) = 84.2%`. This is a count-based progress measure, not an
+`187 / (187 + 35) = 84.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1224,6 +1224,17 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. |
+
+**P6-G DATALINK custom-data vector transaction follow-up (2026-11-13):**
+the generated AC1027 DATALINK OBJECTS profile now contains sixteen distinct
+typed target records, all parented by the DATALINK dictionary and referenced
+in order by the main link's custom-data vector. ASCII and Binary whole-file
+allocation sweeps cover 136 and 119 injected allocation failures; each failure
+preserves the destination sentinel and caller graph, and same-codec retry
+matches clean bytes and passes typed readback for all seventeen links,
+ownership, dictionary membership, and each target/text reference. This adds
+generated variable-length vector transaction evidence only; it does not
+establish producer-profile breadth or native consumer semantics ([receipt](docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json)).
 
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work

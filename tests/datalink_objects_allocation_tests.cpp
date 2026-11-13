@@ -25,6 +25,8 @@ struct AllocationFailure {
 
 class DataLinkExport final : public LC3CompatCheck {
 public:
+    static constexpr std::uint32_t kTargetCount = 16u;
+
     explicit DataLinkExport(dxfRW& output) : output(output) {
         dictionary.handle = 0xE000u;
         DRW_Dictionary::Entry entry;
@@ -51,25 +53,24 @@ public:
         mainLink.m_pathOption = 3;
         mainLink.m_value93 = 19;
         mainLink.m_updateStatus = "ready";
-        mainLink.m_customDataCount = 2;
-        mainLink.m_customData.push_back({0xE002u, "sheet target alpha"});
-        mainLink.m_customData.push_back({0xE003u, "sheet target beta"});
-
-        targetAlpha.handle = 0xE002u;
-        targetAlpha.parentHandle = dictionary.handle;
-        targetAlpha.m_dataAdapter = "EXCEL";
-        targetAlpha.m_description = "alpha target";
-        targetBeta.handle = 0xE003u;
-        targetBeta.parentHandle = dictionary.handle;
-        targetBeta.m_dataAdapter = "EXCEL";
-        targetBeta.m_description = "beta target";
+        mainLink.m_customDataCount = static_cast<std::int32_t>(kTargetCount);
+        for (std::uint32_t index = 0; index < kTargetCount; ++index) {
+            const std::uint32_t handle = 0xE002u + index;
+            mainLink.m_customData.push_back(
+                {handle, "sheet target " + std::to_string(index)});
+            DRW_DataLink target;
+            target.handle = handle;
+            target.parentHandle = dictionary.handle;
+            target.m_dataAdapter = "EXCEL";
+            target.m_description = "target " + std::to_string(index);
+            targets.push_back(std::move(target));
+        }
     }
 
     dxfRW& output;
     DRW_Dictionary dictionary;
     DRW_DataLink mainLink;
-    DRW_DataLink targetAlpha;
-    DRW_DataLink targetBeta;
+    std::vector<DRW_DataLink> targets;
     long failAt = -1;
     long reached = 0;
     bool emitted = false;
@@ -77,9 +78,9 @@ public:
     void writeObjects() override {
         const auto emit = [this]() {
             emitted = output.writeDictionary(&dictionary)
-                && output.writeDataLink(&mainLink)
-                && output.writeDataLink(&targetAlpha)
-                && output.writeDataLink(&targetBeta);
+                && output.writeDataLink(&mainLink);
+            for (DRW_DataLink& target : targets)
+                emitted = emitted && output.writeDataLink(&target);
         };
         if (failAt < 0) {
             emit();
@@ -121,7 +122,8 @@ bool verifyGraph(const std::filesystem::path& path) {
     dx_data data;
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
-        || !data.hasNamedObjectDictionary || data.dataLinks.size() != 3u)
+        || !data.hasNamedObjectDictionary
+        || data.dataLinks.size() != DataLinkExport::kTargetCount + 1u)
         return false;
     bool rooted = false;
     for (const auto& entry : data.namedObjectDictionary.m_entries)
@@ -145,31 +147,34 @@ bool verifyGraph(const std::filesystem::path& path) {
         return found == data.dataLinks.end() ? nullptr : &*found;
     };
     const DRW_DataLink* main = link(0xE001u);
-    const DRW_DataLink* alpha = link(0xE002u);
-    const DRW_DataLink* beta = link(0xE003u);
-    return main != nullptr && alpha != nullptr && beta != nullptr
-        && main->parentHandle == 0xE000u
-        && main->m_dataAdapter == "EXCEL"
-        && main->m_description == "generated DATALINK with custom references"
-        && main->m_tooltip == "rollback control"
-        && main->m_connectionString == "inert://generated-control.xlsx"
-        && main->m_option == 7 && main->m_updateOption == 511
-        && main->m_value92 == -3 && main->m_year == 2026
-        && main->m_month == 11 && main->m_day == 8
-        && main->m_hour == 14 && main->m_minute == 30
-        && main->m_seconds == 12 && main->m_milliseconds == 345
-        && main->m_pathOption == 3 && main->m_value93 == 19
-        && main->m_updateStatus == "ready"
-        && main->m_customDataCount == 2
-        && main->m_customData.size() == 2u
-        && main->m_customData[0].m_targetHandle == 0xE002u
-        && main->m_customData[0].m_text == "sheet target alpha"
-        && main->m_customData[1].m_targetHandle == 0xE003u
-        && main->m_customData[1].m_text == "sheet target beta"
-        && alpha->parentHandle == 0xE000u
-        && alpha->m_description == "alpha target"
-        && beta->parentHandle == 0xE000u
-        && beta->m_description == "beta target";
+    if (main == nullptr)
+        return false;
+    if (main->parentHandle != 0xE000u
+        || main->m_dataAdapter != "EXCEL"
+        || main->m_description != "generated DATALINK with custom references"
+        || main->m_tooltip != "rollback control"
+        || main->m_connectionString != "inert://generated-control.xlsx"
+        || main->m_option != 7 || main->m_updateOption != 511
+        || main->m_value92 != -3 || main->m_year != 2026
+        || main->m_month != 11 || main->m_day != 8
+        || main->m_hour != 14 || main->m_minute != 30
+        || main->m_seconds != 12 || main->m_milliseconds != 345
+        || main->m_pathOption != 3 || main->m_value93 != 19
+        || main->m_updateStatus != "ready"
+        || main->m_customDataCount
+            != static_cast<std::int32_t>(DataLinkExport::kTargetCount)
+        || main->m_customData.size() != DataLinkExport::kTargetCount)
+        return false;
+    for (std::uint32_t index = 0; index < DataLinkExport::kTargetCount; ++index) {
+        const DRW_DataLink* target = link(0xE002u + index);
+        if (target == nullptr || target->parentHandle != 0xE000u
+            || target->m_description != "target " + std::to_string(index)
+            || main->m_customData[index].m_targetHandle != 0xE002u + index
+            || main->m_customData[index].m_text
+                != "sheet target " + std::to_string(index))
+            return false;
+    }
+    return true;
 }
 
 bool sourceUnchanged(const DataLinkExport& actual,
@@ -196,15 +201,19 @@ bool sourceUnchanged(const DataLinkExport& actual,
                 return false;
         return true;
     };
-    return actual.dictionary.handle == expected.dictionary.handle
+    if (!(actual.dictionary.handle == expected.dictionary.handle
         && actual.dictionary.m_entries.size() == expected.dictionary.m_entries.size()
         && actual.dictionary.m_entries.front().m_name
             == expected.dictionary.m_entries.front().m_name
         && actual.dictionary.m_entries.front().m_handle
             == expected.dictionary.m_entries.front().m_handle
         && sameLink(actual.mainLink, expected.mainLink)
-        && sameLink(actual.targetAlpha, expected.targetAlpha)
-        && sameLink(actual.targetBeta, expected.targetBeta);
+        && actual.targets.size() == expected.targets.size()))
+        return false;
+    for (std::size_t index = 0; index < actual.targets.size(); ++index)
+        if (!sameLink(actual.targets[index], expected.targets[index]))
+            return false;
+    return true;
 }
 
 bool run(const std::filesystem::path& directory) {
@@ -229,6 +238,9 @@ bool run(const std::filesystem::path& directory) {
             return fail("allocation calibration export was refused");
         if (!verifyGraph(output))
             return fail("allocation calibration output did not read back graph");
+        std::string cleanBytes;
+        if (!readAll(output, cleanBytes))
+            return fail("could not read allocation calibration bytes");
         const long allocationCount = exporter.reached;
         if (allocationCount <= 0)
             return fail("calibration observed no callback allocations");
@@ -252,6 +264,9 @@ bool run(const std::filesystem::path& directory) {
                 return fail("injected failure changed the caller graph");
             if (!write(exporter, codec, binary) || !verifyGraph(output))
                 return fail("same-writer retry failed typed graph readback");
+            std::string retryBytes;
+            if (!readAll(output, retryBytes) || retryBytes != cleanBytes)
+                return fail("same-writer retry differs from clean output");
             if (!sourceUnchanged(exporter, expected))
                 return fail("same-writer retry changed the caller graph");
         }
