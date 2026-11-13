@@ -72,6 +72,7 @@ constexpr std::uint32_t kLineTypeHandle = 0xD948u;
 constexpr std::uint32_t kTypedXRecordHandle = 0xD949u;
 constexpr std::uint32_t kMultiLeaderHandle = 0xD94Au;
 constexpr std::uint32_t kDynamicConstraintDimensionHandle = 0xD94Bu;
+constexpr std::uint32_t kLegacyDynamicConstraintDimensionHandle = 0xD94Cu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -365,6 +366,17 @@ public:
         dynamicConstraintDimension.setText(
             "whole-operation dynamic constraint");
         dynamicConstraintDimension.setStyle("STANDARD");
+        legacyDynamicConstraintDimension.handle =
+            kLegacyDynamicConstraintDimensionHandle;
+        legacyDynamicConstraintDimension.layer =
+            "*LayerNameForDynamicConstraint";
+        legacyDynamicConstraintDimension.setDefPoint(
+            DRW_Coord{18.0, 19.0, 20.0});
+        legacyDynamicConstraintDimension.setTextPoint(
+            DRW_Coord{18.5, 19.5, 0.0});
+        legacyDynamicConstraintDimension.setText(
+            "whole-operation legacy dynamic constraint");
+        legacyDynamicConstraintDimension.setStyle("STANDARD");
         const auto initDimension = [](DRW_Dimension& value,
                                       std::uint32_t handle,
                                       double coordinate) {
@@ -906,6 +918,8 @@ public:
             && check("DIMENSION", output.writeDimension(&dimension))
             && check("DYNAMIC_CONSTRAINT_DIMENSION",
                      output.writeDimension(&dynamicConstraintDimension))
+            && check("LEGACY_DYNAMIC_CONSTRAINT_DIMENSION",
+                     output.writeDimension(&legacyDynamicConstraintDimension))
             && check("DIMLINEAR", output.writeDimension(&linearDimension))
             && check("DIMRADIAL", output.writeDimension(&radialDimension))
             && check("DIMDIAMETRIC", output.writeDimension(&diametricDimension))
@@ -991,6 +1005,7 @@ public:
     DRW_3Dface face;
     DRW_DimAligned dimension;
     DRW_Dimension dynamicConstraintDimension;
+    DRW_Dimension legacyDynamicConstraintDimension;
     DRW_DimLinear linearDimension;
     DRW_DimRadial radialDimension;
     DRW_DimDiametric diametricDimension;
@@ -1182,7 +1197,11 @@ public:
         if (value == nullptr)
             return;
         dx_iface::addDimLinear(value);
-        if (value->layer == "*ADSK_CONSTRAINTS") {
+        if (value->getText()
+            == "whole-operation legacy dynamic constraint") {
+            ++legacyDynamicConstraintDimensionCount;
+            legacyDynamicConstraintDimension = *value;
+        } else if (value->layer == "*ADSK_CONSTRAINTS") {
             ++dynamicConstraintDimensionCount;
             dynamicConstraintDimension = *value;
         } else {
@@ -1431,6 +1450,7 @@ public:
     DRW_3Dface face;
     DRW_DimAligned dimension;
     DRW_DimLinear dynamicConstraintDimension;
+    DRW_DimLinear legacyDynamicConstraintDimension;
     DRW_DimLinear linearDimension;
     DRW_DimRadial radialDimension;
     DRW_DimDiametric diametricDimension;
@@ -1504,6 +1524,7 @@ public:
     unsigned dimensionCount = 0u;
     unsigned linearDimensionCount = 0u;
     unsigned dynamicConstraintDimensionCount = 0u;
+    unsigned legacyDynamicConstraintDimensionCount = 0u;
     unsigned radialDimensionCount = 0u;
     unsigned diametricDimensionCount = 0u;
     unsigned angularDimensionCount = 0u;
@@ -1886,6 +1907,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dynamicConstraintDimension.getTextPoint().y == 16.5
         && adapter.dynamicConstraintDimension.getText()
             == "whole-operation dynamic constraint"
+        && adapter.legacyDynamicConstraintDimension.handle
+            == kLegacyDynamicConstraintDimensionHandle
+        && adapter.legacyDynamicConstraintDimension.layer
+            == "*LayerNameForDynamicConstraint"
+        && adapter.legacyDynamicConstraintDimension.getDefPoint().x == 18.0
+        && adapter.legacyDynamicConstraintDimension.getDefPoint().y == 19.0
+        && adapter.legacyDynamicConstraintDimension.getDefPoint().z == 20.0
+        && adapter.legacyDynamicConstraintDimension.getTextPoint().x == 18.5
+        && adapter.legacyDynamicConstraintDimension.getTextPoint().y == 19.5
+        && adapter.legacyDynamicConstraintDimension.getText()
+            == "whole-operation legacy dynamic constraint"
         && unchangedSubtypeDimension(adapter.linearDimension, 0xD961u, 10.0)
         && adapter.linearDimension.getDef1Point().z == 12.0
         && adapter.linearDimension.getDef2Point().x == 13.0
@@ -2469,6 +2501,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mlineStyleCount != 1u
         || adapter.dimensionCount != 1u
         || adapter.dynamicConstraintDimensionCount != 1u
+        || adapter.legacyDynamicConstraintDimensionCount != 1u
         || adapter.linearDimensionCount != 1u
         || adapter.radialDimensionCount != 1u
         || adapter.diametricDimensionCount != 1u
@@ -2764,6 +2797,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dynamicConstraintDimension.getText()
             != "whole-operation dynamic constraint"
         || adapter.dynamicConstraintDimension.getStyle() != "STANDARD"
+        || adapter.legacyDynamicConstraintDimension.handle == 0u
+        || adapter.legacyDynamicConstraintDimension.layer
+            != "*ADSK_CONSTRAINTS"
+        || adapter.legacyDynamicConstraintDimension.getDefPoint().x != 18.0
+        || adapter.legacyDynamicConstraintDimension.getDefPoint().y != 19.0
+        || adapter.legacyDynamicConstraintDimension.getDefPoint().z != 20.0
+        || adapter.legacyDynamicConstraintDimension.getTextPoint().x != 18.5
+        || adapter.legacyDynamicConstraintDimension.getTextPoint().y != 19.5
+        || adapter.legacyDynamicConstraintDimension.getText()
+            != "whole-operation legacy dynamic constraint"
+        || adapter.legacyDynamicConstraintDimension.getStyle() != "STANDARD"
         || !commonDimensionMatches(adapter.linearDimension, 10.0)
         || adapter.linearDimension.getDef1Point().z != 12.0
         || adapter.linearDimension.getDef2Point().x != 13.0
