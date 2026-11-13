@@ -5698,6 +5698,39 @@ int selfTest() {
         || traceEdges[0].parentHandle != DRW::NoHandle)
         return fail(__LINE__);
 
+    fallbackTrace.thickness = 2.0;
+    legacyTraceSink.traceFallbackLines.clear();
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (legacyTraceSink.traceFallbackLines.size() != 12u)
+        return fail(__LINE__);
+    const auto& thickTraceEdges = legacyTraceSink.traceFallbackLines;
+    if (thickTraceEdges[4].basePoint.x != 1.0
+        || thickTraceEdges[4].basePoint.z != 5.0
+        || thickTraceEdges[4].secPoint.x != 4.0
+        || thickTraceEdges[4].secPoint.z != 5.0
+        || thickTraceEdges[5].basePoint.x != 1.0
+        || thickTraceEdges[5].basePoint.z != 3.0
+        || thickTraceEdges[5].secPoint.x != 1.0
+        || thickTraceEdges[5].secPoint.z != 5.0
+        || thickTraceEdges[4].layer != fallbackTrace.layer
+        || thickTraceEdges[4].handle != DRW::NoHandle
+        || thickTraceEdges[4].parentHandle != DRW::NoHandle)
+        return fail(__LINE__);
+
+    fallbackTrace.thickness = -1.5;
+    legacyTraceSink.traceFallbackLines.clear();
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (legacyTraceSink.traceFallbackLines.size() != 12u
+        || legacyTraceSink.traceFallbackLines[4].basePoint.z != 1.5
+        || legacyTraceSink.traceFallbackLines[5].secPoint.z != 1.5)
+        return fail(__LINE__);
+
+    fallbackTrace.thickness = std::numeric_limits<double>::infinity();
+    legacyTraceSink.traceFallbackLines.clear();
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (legacyTraceSink.traceFallbackLines.size() != 4u)
+        return fail(__LINE__);
+
     DRW_Solid fallbackSolid;
     fallbackSolid.basePoint = DRW_Coord{0.0, 0.0, 2.0};
     fallbackSolid.secPoint = DRW_Coord{3.0, 0.0, 2.0};
@@ -5706,6 +5739,14 @@ int selfTest() {
     SemanticSink legacySolidSink("DRW_Interface", "read");
     legacySolidSink.exerciseDefaultSolidFallback(fallbackSolid);
     if (legacySolidSink.traceFallbackLines.size() != 3u)
+        return fail(__LINE__);
+    fallbackSolid.thickness = 1.25;
+    legacySolidSink.traceFallbackLines.clear();
+    legacySolidSink.exerciseDefaultSolidFallback(fallbackSolid);
+    if (legacySolidSink.traceFallbackLines.size() != 9u
+        || legacySolidSink.traceFallbackLines[3].basePoint.z != 3.25
+        || legacySolidSink.traceFallbackLines[6].basePoint.z != 2.0
+        || legacySolidSink.traceFallbackLines[6].secPoint.z != 3.25)
         return fail(__LINE__);
 
     fallbackTrace.extPoint = DRW_Coord{0.0, 1.0, 0.0};

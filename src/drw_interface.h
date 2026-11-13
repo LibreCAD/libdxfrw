@@ -432,10 +432,11 @@ public:
   virtual void addTable(const DRW_Table &data) { addInsert(data); }
 
   /** Called for every TRACE entity. Consumers without a typed callback receive
-   *  its boundary as LINE callbacks when it uses the default +Z extrusion.
-   *  Other extrusion directions stay on the typed callback path so an OCS
-   *  point is never mislabeled as WCS. This wireframe does not represent fill
-   *  or thickness; 3D consumers should override this callback.
+   *  its boundary as LINE callbacks when it uses the default +Z extrusion;
+   *  finite nonzero thickness also emits the translated top boundary and side
+   *  edges. Other extrusion directions stay on the typed callback path so an
+   *  OCS point is never mislabeled as WCS. This wireframe does not represent
+   *  fill; 3D consumers should override this callback.
    */
   virtual void addTrace(const DRW_Trace &data) {
     addPlanarTraceWireframe(data);
@@ -505,7 +506,7 @@ public:
   virtual void addSectionObject(const DRW_SectionObject &data) { (void)data; }
 
   /** Called for every SOLID entity. The default follows addTrace's bounded
-   *  +Z-only wireframe fallback. */
+   *  +Z-only wireframe fallback, including finite thickness edges. */
   virtual void addSolid(const DRW_Solid &data) {
     addPlanarTraceWireframe(data);
   }
@@ -886,12 +887,12 @@ private:
       target.visible = data.visible;
       target.space = data.space;
     };
-    for (std::size_t edge = 0; edge < 4u; ++edge) {
-      const DRW_Coord& start = *corners[edge];
-      const DRW_Coord& end = *corners[(edge + 1u) % 4u];
+    const auto emitEdge = [&finite, &copyPresentation, this](
+                              const DRW_Coord& start,
+                              const DRW_Coord& end) {
       if (!finite(start) || !finite(end)
           || (start.x == end.x && start.y == end.y && start.z == end.z))
-        continue;
+        return;
       DRW_Line line;
       line.basePoint = start;
       line.secPoint = end;
@@ -899,6 +900,33 @@ private:
       line.parentHandle = DRW::NoHandle;
       copyPresentation(line);
       addLine(line);
+    };
+    for (std::size_t edge = 0; edge < 4u; ++edge) {
+      emitEdge(*corners[edge], *corners[(edge + 1u) % 4u]);
+    }
+
+    if (!std::isfinite(data.thickness) || data.thickness == 0.0)
+      return;
+    DRW_Coord translated[4];
+    for (std::size_t vertex = 0; vertex < 4u; ++vertex) {
+      translated[vertex] = *corners[vertex];
+      translated[vertex].z += data.thickness;
+      if (!finite(*corners[vertex]) || !finite(translated[vertex]))
+        return;
+    }
+    for (std::size_t edge = 0; edge < 4u; ++edge) {
+      emitEdge(translated[edge], translated[(edge + 1u) % 4u]);
+      bool duplicateCorner = false;
+      for (std::size_t previous = 0; previous < edge; ++previous) {
+        const DRW_Coord& a = *corners[edge];
+        const DRW_Coord& b = *corners[previous];
+        if (a.x == b.x && a.y == b.y && a.z == b.z) {
+          duplicateCorner = true;
+          break;
+        }
+      }
+      if (!duplicateCorner)
+        emitEdge(*corners[edge], translated[edge]);
     }
   }
 };

@@ -10833,3 +10833,16 @@ destination and tested caller fields/carriers; same-codec retry reproduces
 clean output and typed readback. This does not qualify DWG layout, embedded
 geometry, dependency closure, surface evaluation or native rendering. See the
 [receipt](docs/research/p6-dxf-surface-family-allocation-rollback-retry-2026-11-13.json).
+
+**P8/S8.3.25 legacy SOLID/TRACE finite-thickness wireframe fallback
+(2026-11-13):** the default interface callback now emits the translated top
+boundary and unique vertical edges for finite nonzero signed thickness when
+the extrusion is canonical +Z. Autodesk documents group 39 as thickness and
+defines Solid thickness along the extrusion normal; with +Z, the transform is
+unambiguous. Generated callback controls cover positive and negative
+thickness, triangular duplicate suppression, zero-thickness compatibility,
+presentation attributes, handle clearing, and tilted-normal refusal. The
+focused consumer test passes and `lc3_compat_check` builds. These LINE
+callbacks describe boundary wireframe, not filled faces or a native 3D
+semantic result. See the
+[receipt](docs/research/p8-solid-trace-finite-thickness-wireframe-2026-11-13.json).

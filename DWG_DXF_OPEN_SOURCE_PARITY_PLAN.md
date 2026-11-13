@@ -2,16 +2,16 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **90 completed implementation slices**. It does **not** yet
+The plan records **91 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
 gates as six slices mixes unlike units. The `89 / (89 + 6) = 93.7%`
-figure is only an **upper-bound proxy** obtained by pretending each
-gate is one remaining slice (`90 / (90 + 6) = 93.75%`); it is not a reliable point estimate of plan
-progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 93.7%**, but cannot be calculated
-honestly until those requirements are decomposed and counted as remaining
-slices.
+figure in the earlier revision was stale and is removed. A valid completion
+percentage still cannot be calculated: the remaining requirements have not
+been decomposed into a counted slice denominator, and the six phase gates are
+not six implementation slices. The completed count is an audit counter, not a
+percentage. Do not publish a numeric progress estimate until the remaining
+queue is enumerated at matching slice granularity.
 
 Use this formula after that decomposition: `completed slices /
 (completed slices + remaining slices)`. Keep the independent gate status at
@@ -1183,7 +1183,7 @@ integration/release checkpoints.
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER envelope/suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
-| P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. The default +Z SOLID/TRACE wireframe callback slice adds bounded legacy-consumer delivery; it does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json) and the [SOLID/TRACE callback receipt](docs/research/p8-solid-trace-default-z-wireframe-fallback-2026-11-13.json). |
+| P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. The default +Z SOLID/TRACE wireframe callback covers perimeter and finite-thickness boundary delivery to legacy consumers; it does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json) and the [SOLID/TRACE callback receipt](docs/research/p8-solid-trace-default-z-wireframe-fallback-2026-11-13.json). |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
 
 **P6 local caller-state slice (2026-11-13):** the whole-operation DXF

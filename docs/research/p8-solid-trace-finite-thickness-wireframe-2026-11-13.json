@@ -1,0 +1,34 @@
+{
+  "title": "SOLID and TRACE finite-thickness +Z wireframe fallback",
+  "date": "2026-11-13",
+  "scope": "Extend the legacy-consumer fallback for canonical +Z SOLID/TRACE entities to expose finite signed thickness as a boundary wireframe.",
+  "formatEvidence": {
+    "autodeskDxfSolid": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+      "facts": ["Group 39 is optional thickness, default 0.", "Group 210 is the extrusion direction, default (0,0,1).", "A SOLID with the fourth corner equal to the third is triangular."]
+    },
+    "autodeskSolidThickness": {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Solid_Thickness.html",
+      "fact": "Thickness is the shape dimension along its normal vector direction, also called the extrusion direction."
+    },
+    "autodeskDxfTrace": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-EA6FBCA8-1AD6-4FB2-B149-770313E93511.htm",
+      "facts": ["TRACE group 39 is optional thickness, default 0.", "Group 210 is the extrusion direction, default (0,0,1)."]
+    }
+  },
+  "implementation": {
+    "behavior": "For canonical +Z extrusion only, emit the base boundary and, for finite nonzero thickness, the translated top boundary plus unique vertical edges. Translation is along WCS Z because canonical +Z makes the OCS/WCS axes coincide. Signed thickness is preserved. Non-finite input/translated vertices fail closed for the extrusion portion; zero thickness keeps the existing planar fallback. Other extrusion normals remain on the typed callback path.",
+    "triangleBehavior": "A repeated fourth/third corner emits no zero-length edge and no duplicate vertical edge.",
+    "limits": ["The fallback emits boundary LINE callbacks only; it does not encode filled faces or volume.", "No independent native CAD rendering or file interoperability claim is made.", "3D consumers should override addTrace/addSolid to receive the full typed record."]
+  },
+  "files": ["src/drw_interface.h", "tests/semantic_differential_adapter.cpp"],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe lc3_compat_check --parallel 2",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1",
+    "controls": ["zero-thickness quadrilateral remains four edges", "positive thickness emits top and side edges", "negative thickness follows the signed +Z extrusion", "non-finite thickness omits the extrusion portion", "triangular SOLID has nine unique boundary edges", "presentation attributes and synthetic NoHandle identities are preserved", "tilted extrusion remains fail-closed"],
+    "gitDiffCheck": "PASS"
+  },
+  "fixturePolicy": "No DWG or DXF fixture was added."
+}
