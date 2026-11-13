@@ -1156,7 +1156,16 @@ decoded CLASSES page ended 14 bytes after its stored CRC and the tail helper
 required 16 bytes before it would permit warn-only sentinel handling. The
 bounded fix now reports the incomplete end sentinel as a warning and skips
 the out-of-range sentinel read; the same file proceeds through CLASSES and
-fails later at `BAD_READ_TABLES`. Its producer provenance is not established,
+fails later at `BAD_READ_TABLES` on LTYPE_CONTROL handle `0x05`. The framed
+control is 17 bytes/136 bits and declares a zero-bit detached handle stream;
+the bounded parser reads BL count 1 but cannot match its AC1024 separated-tail
+profile. LibreDWG 0.14 reads the complete file and reports this object as type
+56 with size 17, but its minJSON exposes null owner/BYBLOCK/BYLAYER handles and
+does not establish the missing reference roles. ODA v5.4.1 §20.4.57 requires
+a BL count and ordered soft-owner/hard-owner references; the peer output and
+this source's unexplained CLASSES CRC mismatch do not prove a valid alternate
+layout. Keep the LTYPE_CONTROL refusal; do not relax parsing from this sample.
+Its producer provenance is not established,
 so this does not resolve the AutoCAD 2010 RTM report or qualify AC1024 support.
 The sample remains outside the repository; no fixture was added. The bounded
 high-bit footer decoder and extended-prefix gate remain covered by the generated
