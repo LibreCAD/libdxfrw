@@ -5210,6 +5210,17 @@ selector passes 1/1 and keeps these API controls out of the full DXF fixture
 suite. This does not qualify a clean LibreCAD/LibreCAD_3 integration or native
 application behavior; see the [focused facade receipt](docs/research/p8-dxf-consumer-write-facade-fast-selector-2026-11-11.json).
 
+**LibreCAD_3 current-upstream focused compatibility (2026-11-13):** refreshed
+the existing temporary LibreCAD_3 snapshot's bundled source from libdxfrw
+commit `898fdc0dddb2a04ab7f428a53729b922f856898c`, then rebuilt `lcunittest`.
+The libdxfrw library and LibreCAD_3 persistence adapter compile and link; six
+focused consumer tests pass for DXF export, ASCII/Binary roundtrip and the
+libdxfrw API fingerprint. This is partial source/API/runtime evidence only:
+the LibreCAD_3 source and build directories were not a clean checkout/build
+pair, and DWG import was disabled. Keep P8-D open for clean-build, DWG import,
+broader compatibility, ABI and platform qualification. See the
+[LibreCAD_3 receipt](docs/research/p8-librecad3-current-libdxfrw-focused-compat-2026-11-13.json).
+
 The matching libdxfrw writer change permits a supplied AC1027 layer 0 only when
 its material reference is the exact staged Global handle; arbitrary supplied
 material references remain refused. The focused
