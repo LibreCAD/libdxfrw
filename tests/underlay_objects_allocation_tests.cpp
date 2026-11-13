@@ -10,12 +10,34 @@
 
 namespace {
 long allocationsBeforeFailure = -1;
-std::size_t failedAllocations = 0;
+std::size_t allocationAttempts = 0u;
+bool allocationFailed = false;
+bool allocationTracking = false;
 
-struct AllocationFailure {
-    explicit AllocationFailure(long count) { allocationsBeforeFailure = count; }
-    ~AllocationFailure() { allocationsBeforeFailure = -1; }
-};
+bool failAllocation() noexcept {
+    if (!allocationTracking || allocationsBeforeFailure < 0)
+        return false;
+    ++allocationAttempts;
+    if (allocationsBeforeFailure == 0) {
+        allocationsBeforeFailure = -1;
+        allocationFailed = true;
+        return true;
+    }
+    --allocationsBeforeFailure;
+    return false;
+}
+
+void armAllocationFailure(long offset) noexcept {
+    allocationsBeforeFailure = offset;
+    allocationAttempts = 0u;
+    allocationFailed = false;
+    allocationTracking = true;
+}
+
+void disarmAllocationFailure() noexcept {
+    allocationTracking = false;
+    allocationsBeforeFailure = -1;
+}
 
 class UnderlayExport final : public dx_iface {
 public:
@@ -27,19 +49,16 @@ public:
             dx_iface::writeObjects();
             return;
         }
-        const std::size_t failuresBefore = failedAllocations;
+        armAllocationFailure(failAt);
         try {
-            AllocationFailure failure(failAt);
             dx_iface::writeObjects();
-            reached = failedAllocations != failuresBefore
-                ? static_cast<long>(failedAllocations - failuresBefore)
-                : failAt - allocationsBeforeFailure;
         } catch (const std::bad_alloc&) {
-            reached = failedAllocations != failuresBefore
-                ? static_cast<long>(failedAllocations - failuresBefore)
-                : failAt - allocationsBeforeFailure;
+            reached = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
             throw;
         }
+        reached = static_cast<long>(allocationAttempts);
+        disarmAllocationFailure();
     }
 };
 
@@ -158,13 +177,14 @@ bool run(const std::filesystem::path& directory, bool binary) {
         const bool wrote = write();
         exporter.failAt = -1;
         std::string current;
-        if (wrote || exporter.reached < 1
+        if (wrote || exporter.reached != offset + 1 || !allocationFailed
             || !readAll(destination, current) || current != sentinel) {
             std::cerr << "offset=" << offset << " wrote=" << wrote
                       << " reached=" << exporter.reached
                       << " current-size=" << current.size()
                       << " sentinel-size=" << sentinel.size()
-                      << " failed-allocations=" << failedAllocations << '\n';
+                      << " injected=" << allocationFailed
+                      << " attempts=" << allocationAttempts << '\n';
             return fail("injected failure did not preserve the prior destination");
         }
         if (!write() || !verifyGraph(destination))
@@ -181,12 +201,8 @@ bool run(const std::filesystem::path& directory, bool binary) {
 } // namespace
 
 void* operator new(std::size_t size) {
-    if (allocationsBeforeFailure == 0) {
-        ++failedAllocations;
+    if (failAllocation())
         throw std::bad_alloc();
-    }
-    if (allocationsBeforeFailure > 0)
-        --allocationsBeforeFailure;
     if (void* value = std::malloc(size == 0 ? 1 : size))
         return value;
     throw std::bad_alloc();
@@ -210,12 +226,5 @@ int main(int argc, char** argv) {
         std::cerr << "could not create scratch directory: " << error.message() << '\n';
         return 2;
     }
-    const auto before = failedAllocations;
-    if (!run(directory, false) || !run(directory, true))
-        return 1;
-    if (failedAllocations == before) {
-        std::cerr << "allocation fault injector did not reach operator new\n";
-        return 1;
-    }
-    return 0;
+    return run(directory, false) && run(directory, true) ? 0 : 1;
 }
