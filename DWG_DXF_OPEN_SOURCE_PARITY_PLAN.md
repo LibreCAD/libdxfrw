@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The current plan records **52 completed implementation slices** and **6
-remaining phase exit gates**, so the count-based progression is **89.7%**:
-`52 / (52 + 6)`. This is an item-count estimate, not effort-weighted completion
+The current plan records **53 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **89.8%**:
+`53 / (53 + 6)`. This is an item-count estimate, not effort-weighted completion
 of DWG/DXF parity: a small implementation slice and a broad phase gate each
 count once. Completed actions are excluded from the execution queue; their
 implementation and evidence remain in Git history and `docs/research/`.
@@ -3843,6 +3843,19 @@ staged writer failures before local rollback. The sweep reaches 217 ASCII and
 This closes only these generated whole-operation paths; other drawing families
 and platform/filesystem failure modes remain open
 ([receipt](docs/research/p6-dxf-whole-operation-allocation-rollback-retry-2026-11-13.json)).
+
+**P6 DXF OBJECTS callback failure propagation (2026-11-13):** `dx_iface::writeObjects()`
+returns `void`, so early exits must leave a sticky writer error for the enclosing
+`dxfRW::writeObjects()` transaction to observe. A pass over the adapter found
+source-binding rejection branches that returned without an explicit failure
+signal. An incomplete-callback scope guard now signals failure through the
+existing null-raw-object refusal path, covering every early return while
+preserving successful completion. The `dxfrw` library and focused adapter test
+target compile; the whole-write allocation rollback/retry CTest passes 1/1.
+Building the full CLI target remains blocked by macOS SDK `_Nullable` warnings
+promoted to errors in `dx_batch_output_names.cpp`. This closes only callback
+failure propagation; broader object-family coverage, source graph closure and
+semantic support gates remain open.
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

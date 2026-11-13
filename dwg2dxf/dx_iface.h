@@ -2057,13 +2057,20 @@ public:
         struct ObjectWriteDiagnostic {
             const char*& phase;
             bool& completed;
+            dxfRW* writer;
             ~ObjectWriteDiagnostic() {
                 if (!completed) {
+                    // DRW_Interface::writeObjects() has no return value. A
+                    // bare return from this callback must therefore latch a
+                    // failure on dxfRW, or the enclosing OBJECTS transaction
+                    // can commit a truncated section. A null raw object is
+                    // the writer's established failure signal.
+                    writer->writeRawDxfObject(nullptr);
                     std::cerr << "DXF OBJECTS callback aborted in "
                               << phase << '\n';
                 }
             }
-        } objectWriteDiagnostic{objectWritePhase, objectWriteCompleted};
+        } objectWriteDiagnostic{objectWritePhase, objectWriteCompleted, dxfW};
 
         if (!hasUnchangedAcdsDxfHistorySources()) {
             objectWritePhase = "ACDS history source snapshot";
