@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/3DFACE/ARC/ELLIPSE/POINT/3DLINE/SOLID/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE/INSERT-ATTRIB compound emission, OBJECTS emission, finalization, generated custom BLOCK/BLOCK_RECORD/INSERT/ATTRIB/SEQEND plus NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/3DFACE/ARC/ELLIPSE/POINT/3DLINE/SOLID/TRACE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE/INSERT-ATTRIB compound emission, OBJECTS emission, finalization, generated custom BLOCK/BLOCK_RECORD/INSERT/ATTRIB/SEQEND plus NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -572,6 +572,33 @@
             1.5
           ]
         ]
+      },
+      {
+        "kind": "TRACE",
+        "sourceHandle": "0xD92C",
+        "elevation": 2.0,
+        "corners": [
+          [
+            0.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0,
+            2.0
+          ],
+          [
+            0.0,
+            2.0,
+            2.0
+          ]
+        ]
       }
     ],
     "fixtureFilesCommitted": false,
@@ -604,11 +631,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "67806789b5ec2379b3bfc63d53fcdba4f178f6ed107d87b4f9fdca7b80e253c6",
+    "testSha256": "4e5b512f03cc8d80390ed89cc8c0573c88742a47a9827cccc36a7573e781a41b",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "577ba7da76f038c2e3809856c8010b3982eafcb052060b300874f7c25ec51fb3",
-    "asanExecutableSha256": "c8f89bf04fc22888b5bd5634b2e5edf6588ced7d303b1df351ad5567d1a4be71",
+    "normalExecutableSha256": "554db7bf1c1cb236d26f4648583b4523fed581089081d0f3fc0bf994ba0acf22",
+    "asanExecutableSha256": "72e011c05582fc8a26b7953ba0ad4979d3581fcfee6b5f9cdf248c9b80204fa3",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/libdxfrw.h",
@@ -618,7 +645,7 @@
     "productionSourceSha256": {
       "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "67806789b5ec2379b3bfc63d53fcdba4f178f6ed107d87b4f9fdca7b80e253c6",
+      "tests/dxf_write_allocation_transaction_tests.cpp": "4e5b512f03cc8d80390ed89cc8c0573c88742a47a9827cccc36a7573e781a41b",
       "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a"
     },
     "details": [
@@ -637,7 +664,8 @@
       "Generated POINT output with a nonzero 3D position and X-axis angle now participates in the whole-operation sweep; typed readback verifies all values and both failed/successful writes preserve the caller record.",
       "Generated 3DLINE output with distinct 3D endpoints now participates in the sweep; typed readback verifies the 3DLINE callback and endpoint values.",
       "Generated planar SOLID output at nonzero elevation now participates in the sweep; typed readback verifies all four corners and elevation.",
-      "The test readback adapter delegates POINT, 3DLINE and SOLID callbacks to dx_iface storage before capturing values, preserving block-body graph reconstruction."
+      "The test readback adapter delegates POINT, 3DLINE and SOLID callbacks to dx_iface storage before capturing values, preserving block-body graph reconstruction.",
+      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners."
     ]
   },
   "procedure": {
@@ -652,8 +680,77 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.87 seconds; ASan 1/1 passed in 14.62 seconds.",
+    "ctest": "Normal 1/1 passed in 1.94 seconds; ASan 1/1 passed in 15.24 seconds.",
     "ascii": {
+      "measuredAllocationOffsets": 399,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true,
+      "derivedIdentityMappingsRolledBack": true,
+      "generatedNodGroupGraphReadbackMatched": true,
+      "circleReadbackMatched": true,
+      "groupLineAndCircleMembershipMatched": true,
+      "imageReadbackMatched": true,
+      "imageDefinitionAndNodDictionaryGraphMatched": true,
+      "typedImageAndImageDefinitionReadbackMatched": true,
+      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
+      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
+      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
+      "callerDataLinkRecordsPreserved": true,
+      "variableLengthLwPolylineReadbackMatched": true,
+      "lWPolylineAllocationFailureAbortsWholeWrite": true,
+      "callerLwPolylinePreserved": true,
+      "meshReadbackMatched": true,
+      "meshAllocationFailureAbortsWholeWrite": true,
+      "callerMeshPreserved": true,
+      "splineReadbackMatched": true,
+      "splineAllocationFailureAbortsWholeWrite": true,
+      "callerSplinePreserved": true,
+      "hatchReadbackMatched": true,
+      "hatchAllocationFailureAbortsWholeWrite": true,
+      "callerHatchPreserved": true,
+      "leaderReadbackMatched": true,
+      "leaderAllocationFailureAbortsWholeWrite": true,
+      "callerLeaderPreserved": true,
+      "mlineReadbackMatched": true,
+      "mlineStyleAndReferenceReadbackMatched": true,
+      "mlineAllocationFailureAbortsWholeWrite": true,
+      "callerMLineAndStylePreserved": true,
+      "destinationAndDerivedIdentitiesRolledBack": true,
+      "polylineParentAndVertexReadbackMatched": true,
+      "polylineAllocationFailureAbortsWholeWrite": true,
+      "callerPolylineParentAndVertexHandlesPreserved": true,
+      "insertAttributeReadbackMatched": true,
+      "generatedBlockAndBodyReadbackMatched": true,
+      "insertAttribWholeOperationHandleRollback": true,
+      "blockStructuralHandleRetryIdentityStable": true,
+      "callerInsertAttribAndBlockRecordsPreserved": true,
+      "wholeWriteCallerHandlesUnchangedOnSuccess": true,
+      "threeDFaceReadbackMatched": true,
+      "threeDFaceAllocationFailureAbortsWholeWrite": true,
+      "callerThreeDFacePreserved": true,
+      "arcReadbackMatched": true,
+      "arcAllocationFailureAbortsWholeWrite": true,
+      "callerArcPreserved": true,
+      "ellipseReadbackMatched": true,
+      "ellipseAllocationFailureAbortsWholeWrite": true,
+      "callerEllipsePreserved": true,
+      "pointReadbackMatched": true,
+      "pointAllocationFailureAbortsWholeWrite": true,
+      "callerPointPreserved": true,
+      "3DLineReadbackMatched": true,
+      "3DLineAllocationFailureAbortsWholeWrite": true,
+      "caller3DLinePreserved": true,
+      "solidReadbackMatched": true,
+      "solidAllocationFailureAbortsWholeWrite": true,
+      "callerSolidPreserved": true,
+      "traceReadbackMatched": true,
+      "traceAllocationFailureAbortsWholeWrite": true,
+      "callerTracePreserved": true
+    },
+    "binary": {
       "measuredAllocationOffsets": 392,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
@@ -717,75 +814,12 @@
       "caller3DLinePreserved": true,
       "solidReadbackMatched": true,
       "solidAllocationFailureAbortsWholeWrite": true,
-      "callerSolidPreserved": true
+      "callerSolidPreserved": true,
+      "traceReadbackMatched": true,
+      "traceAllocationFailureAbortsWholeWrite": true,
+      "callerTracePreserved": true
     },
-    "binary": {
-      "measuredAllocationOffsets": 385,
-      "allOffsetsFailedAsExpected": true,
-      "destinationPreserved": true,
-      "callerLineAndRawObjectPreserved": true,
-      "sameCodecRetryMatchedCleanBytes": true,
-      "typedLineAndRawObjectReadbackMatched": true,
-      "derivedIdentityMappingsRolledBack": true,
-      "generatedNodGroupGraphReadbackMatched": true,
-      "circleReadbackMatched": true,
-      "groupLineAndCircleMembershipMatched": true,
-      "imageReadbackMatched": true,
-      "imageDefinitionAndNodDictionaryGraphMatched": true,
-      "typedImageAndImageDefinitionReadbackMatched": true,
-      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
-      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
-      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
-      "callerDataLinkRecordsPreserved": true,
-      "variableLengthLwPolylineReadbackMatched": true,
-      "lWPolylineAllocationFailureAbortsWholeWrite": true,
-      "callerLwPolylinePreserved": true,
-      "meshReadbackMatched": true,
-      "meshAllocationFailureAbortsWholeWrite": true,
-      "callerMeshPreserved": true,
-      "splineReadbackMatched": true,
-      "splineAllocationFailureAbortsWholeWrite": true,
-      "callerSplinePreserved": true,
-      "hatchReadbackMatched": true,
-      "hatchAllocationFailureAbortsWholeWrite": true,
-      "callerHatchPreserved": true,
-      "leaderReadbackMatched": true,
-      "leaderAllocationFailureAbortsWholeWrite": true,
-      "callerLeaderPreserved": true,
-      "mlineReadbackMatched": true,
-      "mlineStyleAndReferenceReadbackMatched": true,
-      "mlineAllocationFailureAbortsWholeWrite": true,
-      "callerMLineAndStylePreserved": true,
-      "destinationAndDerivedIdentitiesRolledBack": true,
-      "polylineParentAndVertexReadbackMatched": true,
-      "polylineAllocationFailureAbortsWholeWrite": true,
-      "callerPolylineParentAndVertexHandlesPreserved": true,
-      "insertAttributeReadbackMatched": true,
-      "generatedBlockAndBodyReadbackMatched": true,
-      "insertAttribWholeOperationHandleRollback": true,
-      "blockStructuralHandleRetryIdentityStable": true,
-      "callerInsertAttribAndBlockRecordsPreserved": true,
-      "wholeWriteCallerHandlesUnchangedOnSuccess": true,
-      "threeDFaceReadbackMatched": true,
-      "threeDFaceAllocationFailureAbortsWholeWrite": true,
-      "callerThreeDFacePreserved": true,
-      "arcReadbackMatched": true,
-      "arcAllocationFailureAbortsWholeWrite": true,
-      "callerArcPreserved": true,
-      "ellipseReadbackMatched": true,
-      "ellipseAllocationFailureAbortsWholeWrite": true,
-      "callerEllipsePreserved": true,
-      "pointReadbackMatched": true,
-      "pointAllocationFailureAbortsWholeWrite": true,
-      "callerPointPreserved": true,
-      "3DLineReadbackMatched": true,
-      "3DLineAllocationFailureAbortsWholeWrite": true,
-      "caller3DLinePreserved": true,
-      "solidReadbackMatched": true,
-      "solidAllocationFailureAbortsWholeWrite": true,
-      "callerSolidPreserved": true
-    },
-    "addressSanitizerCtest": "1/1 passed in 14.62 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 15.24 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -793,15 +827,16 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 392 allocation offsets; Binary 385 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
-      "normalCtest": "1/1 passed in 1.87 seconds.",
-      "asanCtest": "1/1 passed in 14.62 seconds.",
+      "normalDirectRun": "ASCII 399 allocation offsets; Binary 392 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
+      "normalCtest": "1/1 passed in 1.94 seconds.",
+      "asanCtest": "1/1 passed in 15.24 seconds.",
       "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
       "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
       "ellipseReadback": "Generated partial ELLIPSE center, major axis, ratio, parameter range, and perpendicular extrusion match typed readback.",
       "pointReadback": "Generated POINT position and X-axis angle match typed readback. The callback delegates to dx_iface so existing BLOCK point storage remains intact.",
       "3dLineReadback": "Generated 3DLINE callback and both 3D endpoints match typed readback.",
       "solidReadback": "Generated SOLID elevation and all four corners match typed readback.",
+      "traceReadback": "Generated elevated TRACE callback, elevation and all four corners match typed readback.",
       "insertReadback": "A generated named BLOCK contains a POINT; a name-resolved INSERT has one ATTRIB and generated SEQEND. ASCII/Binary readback confirms target, owner, tag, text and geometry.",
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
       "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics."
@@ -822,9 +857,9 @@
     ]
   },
   "limits": [
-    "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT, name-resolved INSERT with ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT, name-resolved INSERT with ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "a96ddafb"
+  "baseRevision": "99c2696e"
 }

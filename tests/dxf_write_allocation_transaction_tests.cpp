@@ -40,6 +40,7 @@ constexpr std::uint32_t kEllipseHandle = 0xD928u;
 constexpr std::uint32_t kPointHandle = 0xD929u;
 constexpr std::uint32_t k3DLineHandle = 0xD92Au;
 constexpr std::uint32_t kSolidHandle = 0xD92Bu;
+constexpr std::uint32_t kTraceHandle = 0xD92Cu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -322,6 +323,11 @@ public:
         solid.secPoint = DRW_Coord(3.0, 0.0, 1.5);
         solid.thirdPoint = DRW_Coord(3.0, 2.0, 1.5);
         solid.fourPoint = DRW_Coord(0.0, 2.0, 1.5);
+        trace.handle = kTraceHandle;
+        trace.basePoint = DRW_Coord(0.0, 0.0, 2.0);
+        trace.secPoint = DRW_Coord(3.0, 0.0, 2.0);
+        trace.thirdPoint = DRW_Coord(3.0, 2.0, 2.0);
+        trace.fourPoint = DRW_Coord(0.0, 2.0, 2.0);
     }
 
     void writeEntities() override {
@@ -347,7 +353,8 @@ public:
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
             && check("3DLINE", output.writeLine(&line3d))
-            && check("SOLID", output.writeLine(&solid));
+            && check("SOLID", output.writeLine(&solid))
+            && check("TRACE", output.writeLine(&trace));
     }
 
     void writeObjects() override {
@@ -383,6 +390,7 @@ public:
     DRW_Point point;
     DRW_3DLine line3d;
     DRW_Solid solid;
+    DRW_Trace trace;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -479,6 +487,11 @@ public:
         ++solidCount;
         solid = value;
     }
+    void addTrace(const DRW_Trace& value) override {
+        dx_iface::addTrace(value);
+        ++traceCount;
+        trace = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -509,6 +522,7 @@ public:
     DRW_Point point;
     DRW_3DLine line3d;
     DRW_Solid solid;
+    DRW_Trace trace;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -531,6 +545,7 @@ public:
     unsigned pointCount = 0u;
     unsigned line3dCount = 0u;
     unsigned solidCount = 0u;
+    unsigned traceCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -721,6 +736,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.solid.secPoint.x == 3.0
         && adapter.solid.thirdPoint.y == 2.0
         && adapter.solid.fourPoint.y == 2.0
+        && adapter.trace.handle == kTraceHandle
+        && adapter.trace.basePoint.z == 2.0
+        && adapter.trace.secPoint.x == 3.0
+        && adapter.trace.thirdPoint.y == 2.0
+        && adapter.trace.fourPoint.y == 2.0
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -972,6 +992,13 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.solid.secPoint.x != 3.0
         || adapter.solid.thirdPoint.y != 2.0
         || adapter.solid.fourPoint.y != 2.0
+        || adapter.traceCount != 1u
+        || adapter.trace.handle == 0u
+        || adapter.trace.basePoint.z != 2.0
+        || adapter.trace.secPoint.x != 3.0
+        || adapter.trace.thirdPoint.x != 3.0
+        || adapter.trace.thirdPoint.y != 2.0
+        || adapter.trace.fourPoint.y != 2.0
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
