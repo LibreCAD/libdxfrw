@@ -26,5 +26,16 @@
     "Generated serializer transaction and typed DXF readback evidence only.",
     "Does not qualify a physical producer, ACAD_COLOR graph semantics, native color-book behavior, DWG output, or broad support.",
     "No DWG/DXF fixture was added; test output uses its build scratch directory."
-  ]
+  ],
+  "recheck_2026_11_12": {
+    "testSourceSha256": "83d2b060e672e5620ce164e1443d3204253abb5918dc723ec1a45e4df89af535",
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175",
+    "normalTestExecutableSha256": "2817660e82cc0fd65aaa275b6e819009f9de78e33e3e1a8b9ebbe6894d7b6b3b",
+    "asanTestExecutableSha256": "f2df268c7ca121ff968c2f220ef7232efeae20b08b5438c5f7bfbf998ccd5a4c",
+    "explicitOffsetAssertion": "Each injected failure is confirmed at exactly offset+1, with a one-shot bad_alloc; ASCII and Binary each reach all 8 callback allocations.",
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dbcolor_objects_allocation_tests -j6",
+    "normalTest": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dbcolor_objects_allocation_tests -j6",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1"
+  }
 }
