@@ -374,6 +374,20 @@ public:
         initDimension(ordinateDimension, 0xD966u, 60.0);
         ordinateDimension.setFirstLine(DRW_Coord(61.0, 62.0, 63.0));
         ordinateDimension.setSecondLine(DRW_Coord(64.0, 65.0, 66.0));
+        arcDimension.handle = 0xD967u;
+        arcDimension.setArcDefPoint(DRW_Coord(70.0, 71.0, 72.0));
+        arcDimension.setTextPoint(DRW_Coord(70.5, 71.5, 0.0));
+        arcDimension.setText("whole-operation arc dimension");
+        arcDimension.setStyle("STANDARD");
+        arcDimension.setExtLine1(DRW_Coord(71.0, 70.0, 0.0));
+        arcDimension.setExtLine2(DRW_Coord(71.0, 72.0, 0.0));
+        arcDimension.setArcCenter(DRW_Coord(70.0, 71.0, 0.0));
+        arcDimension.setLeaderPt1(DRW_Coord(72.0, 71.0, 0.0));
+        arcDimension.leaderPt2 = DRW_Coord(73.0, 71.0, 0.0);
+        arcDimension.arcStartAngle = 0.25;
+        arcDimension.arcEndAngle = 1.75;
+        arcDimension.isPartial = true;
+        arcDimension.hasLeader = true;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -637,6 +651,7 @@ public:
             && check("DIMANGULAR", output.writeDimension(&angularDimension))
             && check("DIMANGULAR3P", output.writeDimension(&angular3pDimension))
             && check("DIMORDINATE", output.writeDimension(&ordinateDimension))
+            && check("ARC_DIMENSION", output.writeDimension(&arcDimension))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -699,6 +714,7 @@ public:
     DRW_DimAngular angularDimension;
     DRW_DimAngular3p angular3pDimension;
     DRW_DimOrdinate ordinateDimension;
+    DRW_DimArc arcDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -844,6 +860,13 @@ public:
         ++ordinateDimensionCount;
         ordinateDimension = *value;
     }
+    void addDimArc(const DRW_DimArc* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimArc(value);
+        ++arcDimensionCount;
+        arcDimension = *value;
+    }
     void addArc(const DRW_Arc& value) override {
         ++arcCount;
         arc = value;
@@ -985,6 +1008,7 @@ public:
     DRW_DimAngular angularDimension;
     DRW_DimAngular3p angular3pDimension;
     DRW_DimOrdinate ordinateDimension;
+    DRW_DimArc arcDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1033,6 +1057,7 @@ public:
     unsigned angularDimensionCount = 0u;
     unsigned angular3pDimensionCount = 0u;
     unsigned ordinateDimensionCount = 0u;
+    unsigned arcDimensionCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1312,6 +1337,23 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && unchangedSubtypeDimension(adapter.ordinateDimension, 0xD966u, 60.0)
         && adapter.ordinateDimension.getFirstLine().x == 61.0
         && adapter.ordinateDimension.getSecondLine().z == 66.0
+        && adapter.arcDimension.handle == 0xD967u
+        && adapter.arcDimension.getArcDefPoint().x == 70.0
+        && adapter.arcDimension.getArcDefPoint().y == 71.0
+        && adapter.arcDimension.getArcDefPoint().z == 72.0
+        && adapter.arcDimension.getTextPoint().x == 70.5
+        && adapter.arcDimension.getTextPoint().y == 71.5
+        && adapter.arcDimension.getText() == "whole-operation arc dimension"
+        && adapter.arcDimension.getStyle() == "STANDARD"
+        && adapter.arcDimension.getExtLine1().x == 71.0
+        && adapter.arcDimension.getExtLine2().y == 72.0
+        && adapter.arcDimension.getArcCenter().x == 70.0
+        && adapter.arcDimension.getLeaderPt1().x == 72.0
+        && adapter.arcDimension.leaderPt2.x == 73.0
+        && adapter.arcDimension.arcStartAngle == 0.25
+        && adapter.arcDimension.arcEndAngle == 1.75
+        && adapter.arcDimension.isPartial
+        && adapter.arcDimension.hasLeader
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1679,6 +1721,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.angularDimensionCount != 1u
         || adapter.angular3pDimensionCount != 1u
         || adapter.ordinateDimensionCount != 1u
+        || adapter.arcDimensionCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -1858,6 +1901,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         || !commonDimensionMatches(adapter.ordinateDimension, 60.0)
         || adapter.ordinateDimension.getFirstLine().x != 61.0
         || adapter.ordinateDimension.getSecondLine().z != 66.0
+        || adapter.arcDimension.handle == 0u
+        || adapter.arcDimension.getArcDefPoint().x != 70.0
+        || adapter.arcDimension.getArcDefPoint().y != 71.0
+        || adapter.arcDimension.getArcDefPoint().z != 72.0
+        || adapter.arcDimension.getTextPoint().x != 70.5
+        || adapter.arcDimension.getTextPoint().y != 71.5
+        || adapter.arcDimension.getText() != "whole-operation arc dimension"
+        || adapter.arcDimension.getStyle() != "STANDARD"
+        || adapter.arcDimension.getExtLine1().x != 71.0
+        || adapter.arcDimension.getExtLine2().y != 72.0
+        || adapter.arcDimension.getArcCenter().x != 70.0
+        || adapter.arcDimension.getLeaderPt1().x != 72.0
+        || adapter.arcDimension.leaderPt2.x != 73.0
+        || adapter.arcDimension.arcStartAngle != 0.25
+        || adapter.arcDimension.arcEndAngle != 1.75
+        || !adapter.arcDimension.isPartial
+        || !adapter.arcDimension.hasLeader
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
