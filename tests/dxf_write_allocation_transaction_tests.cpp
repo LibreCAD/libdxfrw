@@ -6766,6 +6766,244 @@ bool runSectionSettingsSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runBackgroundSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "BACKGROUND allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "background-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files");
+    const std::string sentinel = "previous complete document\n";
+    const auto makeBackgrounds = [] {
+        std::vector<DRW_Background> result;
+        DRW_Background solid;
+        solid.parentHandle = 0xCu;
+        solid.m_kind = DRW_Background::Solid;
+        solid.m_classVersion = 1;
+        solid.m_solidColor = 0x010203;
+        result.push_back(solid);
+
+        DRW_Background gradient;
+        gradient.parentHandle = 0xCu;
+        gradient.m_kind = DRW_Background::Gradient;
+        gradient.m_classVersion = 1;
+        gradient.m_colorTop = 0x101112;
+        gradient.m_colorMiddle = 0x202122;
+        gradient.m_colorBottom = 0x303132;
+        gradient.m_horizon = 0.1;
+        gradient.m_height = 0.2;
+        gradient.m_rotation = 0.3;
+        result.push_back(gradient);
+
+        DRW_Background ground;
+        ground.parentHandle = 0xCu;
+        ground.m_kind = DRW_Background::GroundPlane;
+        ground.m_classVersion = 1;
+        ground.m_colorSkyZenith = 0x404142;
+        ground.m_colorSkyHorizon = 0x505152;
+        ground.m_colorUndergroundHorizon = 0x606162;
+        ground.m_colorUndergroundAzimuth = 0x707172;
+        ground.m_colorNear = 0x808182;
+        ground.m_colorFar = 0x909192;
+        result.push_back(ground);
+
+        DRW_Background image;
+        image.parentHandle = 0xCu;
+        image.m_kind = DRW_Background::Image;
+        image.m_classVersion = 1;
+        image.m_fileName = "LOCAL_BACKGROUND_IMAGE.png";
+        image.m_fitToScreen = true;
+        image.m_maintainAspect = true;
+        image.m_useTiling = false;
+        image.m_offset = DRW_Coord{1.0, 2.0, 0.0};
+        image.m_scale = DRW_Coord{3.0, 4.0, 0.0};
+        result.push_back(image);
+
+        DRW_Background ibl;
+        ibl.parentHandle = 0xCu;
+        ibl.m_kind = DRW_Background::Ibl;
+        ibl.m_classVersion = 1;
+        ibl.m_iblName = "LOCAL_IBL";
+        ibl.m_enabled = true;
+        ibl.m_displayImage = true;
+        ibl.m_rotation = 0.4;
+        result.push_back(ibl);
+
+        DRW_Background skylight;
+        skylight.parentHandle = 0xCu;
+        skylight.m_kind = DRW_Background::Skylight;
+        skylight.m_classVersion = 1;
+        result.push_back(skylight);
+        return result;
+    };
+    const auto samePayload = [](const DRW_Background& a,
+                                const DRW_Background& b) {
+        return a.parentHandle == b.parentHandle && a.m_kind == b.m_kind
+            && a.m_classVersion == b.m_classVersion
+            && a.m_solidColor == b.m_solidColor
+            && a.m_colorTop == b.m_colorTop
+            && a.m_colorMiddle == b.m_colorMiddle
+            && a.m_colorBottom == b.m_colorBottom
+            && a.m_horizon == b.m_horizon && a.m_height == b.m_height
+            && a.m_rotation == b.m_rotation
+            && a.m_colorSkyZenith == b.m_colorSkyZenith
+            && a.m_colorSkyHorizon == b.m_colorSkyHorizon
+            && a.m_colorUndergroundHorizon == b.m_colorUndergroundHorizon
+            && a.m_colorUndergroundAzimuth == b.m_colorUndergroundAzimuth
+            && a.m_colorNear == b.m_colorNear && a.m_colorFar == b.m_colorFar
+            && a.m_fileName == b.m_fileName
+            && a.m_fitToScreen == b.m_fitToScreen
+            && a.m_maintainAspect == b.m_maintainAspect
+            && a.m_useTiling == b.m_useTiling
+            && a.m_offset.x == b.m_offset.x && a.m_offset.y == b.m_offset.y
+            && a.m_scale.x == b.m_scale.x && a.m_scale.y == b.m_scale.y
+            && a.m_iblName == b.m_iblName && a.m_enabled == b.m_enabled
+            && a.m_displayImage == b.m_displayImage
+            && a.m_secondaryBackgroundHandle == b.m_secondaryBackgroundHandle
+            && a.m_sunHandle == b.m_sunHandle;
+    };
+    class BackgroundExport final : public dx_iface {
+    public:
+        BackgroundExport(dxfRW& codec, std::vector<DRW_Background> source)
+            : output(codec), backgrounds(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override {
+            written = true;
+            for (DRW_Background& value : backgrounds) {
+                const char* name = recordName(value.m_kind);
+                if (name == nullptr || !output.writeBackground(&value, name)) {
+                    written = false;
+                    break;
+                }
+            }
+        }
+        bool finalizeDxfWrite() override { return written; }
+        static const char* recordName(DRW_Background::Kind kind) {
+            switch (kind) {
+            case DRW_Background::Solid: return "SOLIDBACKGROUND";
+            case DRW_Background::Gradient: return "GRADIENTBACKGROUND";
+            case DRW_Background::GroundPlane: return "GROUNDPLANEBACKGROUND";
+            case DRW_Background::Image: return "IMAGEBACKGROUND";
+            case DRW_Background::Ibl: return "IBLBACKGROUND";
+            case DRW_Background::Skylight: return "SKYLIGHTBACKGROUND";
+            }
+            return nullptr;
+        }
+        dxfRW& output;
+        dx_data storage;
+        std::vector<DRW_Background> backgrounds;
+        bool written = false;
+    };
+    class BackgroundReadback final : public dx_iface {
+    public:
+        BackgroundReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addBackground(const DRW_Background& value) override {
+            backgrounds.push_back(value);
+        }
+        dx_data storage;
+        std::vector<DRW_Background> backgrounds;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        BackgroundReadback probe;
+        const std::vector<DRW_Background> expected = makeBackgrounds();
+        if (!reader.read(&probe, true)
+            || probe.backgrounds.size() != expected.size())
+            return false;
+        for (std::size_t i = 0u; i < expected.size(); ++i) {
+            if (!samePayload(probe.backgrounds[i], expected[i])
+                || probe.backgrounds[i].handle == 0u
+                || probe.backgrounds[i].handle == DRW::NoHandle)
+                return false;
+        }
+        return true;
+    };
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            BackgroundExport adapter(codec, makeBackgrounds());
+            if (!codec.write(&adapter, DRW::AC1032, binary))
+                return fail("warm-up write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            BackgroundExport adapter(codec, makeBackgrounds());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            BackgroundExport adapter(codec, makeBackgrounds());
+            const std::vector<DRW_Background> original(adapter.backgrounds);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            bool callerSame = adapter.backgrounds.size() == original.size();
+            for (std::size_t i = 0u; callerSame && i < original.size(); ++i)
+                callerSame = samePayload(adapter.backgrounds[i], original[i])
+                    && adapter.backgrounds[i].handle == original[i].handle;
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !callerSame || !identitiesRolledBack || stageRemains)
+                return fail("injected failure changed caller/destination state");
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            if (!retried || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes || !readbackMatches(output)
+                || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "BACKGROUND variants " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool runRenderSettingsSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "RENDERSETTINGS allocation transaction: " << message << '\n';
@@ -7181,7 +7419,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -7201,6 +7439,8 @@ int main(int argc, char** argv) {
             return runSectionManagerSweep(directory) ? 0 : 1;
         if (mode == "section-settings")
             return runSectionSettingsSweep(directory) ? 0 : 1;
+        if (mode == "background")
+            return runBackgroundSweep(directory) ? 0 : 1;
         if (mode == "render-settings")
             return runRenderSettingsSweep(directory) ? 0 : 1;
         return 2;
