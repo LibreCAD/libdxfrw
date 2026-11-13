@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **101 completed implementation slices** and **35 remaining
+The plan records **102 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`101 / (101 + 35) = 74.3%`. This is a count-based progress measure, not an
+`102 / (102 + 35) = 74.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1300,6 +1300,15 @@ field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local CAMERA transaction slice (2026-11-13):** the generated whole-file
+ASCII/Binary allocation sweep now writes and reads back a CAMERA using its
+supported no-VIEW-reference profile. All 686 ASCII and 678 Binary failure
+offsets preserve the destination, caller state and identity maps; same-writer
+retry reproduces clean bytes and the typed callback retains the absent optional
+reference. The focused transaction CTest passes 1/1 in 4.07 seconds. This does
+not qualify the CAMERA-to-VIEW reference route or native camera semantics. See
+the [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local LIGHT transaction slice (2026-11-13):** the same generated
 whole-file ASCII/Binary allocation sweep now writes an AC1027 LIGHT with

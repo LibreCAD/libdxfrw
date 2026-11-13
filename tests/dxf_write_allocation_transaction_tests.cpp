@@ -458,6 +458,7 @@ public:
         light.m_shadowType = 1;
         light.m_shadowMapSize = 512;
         light.m_shadowMapSoftness = 2;
+        camera.handle = 0xD96Du;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -727,6 +728,7 @@ public:
             && check("RTEXT", output.writeRText(&rtext))
             && check("ARCALIGNEDTEXT", output.writeArcAlignedText(&arcAlignedText))
             && check("LIGHT", output.writeLight(&light))
+            && check("CAMERA", output.writeCamera(&camera))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -795,6 +797,7 @@ public:
     DRW_RText rtext;
     DRW_ArcAlignedText arcAlignedText;
     DRW_Light light;
+    DRW_Camera camera;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1004,6 +1007,10 @@ public:
         ++lightCount;
         light = value;
     }
+    void addCamera(const DRW_Camera& value) override {
+        ++cameraCount;
+        camera = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1118,6 +1125,7 @@ public:
     DRW_RText rtext;
     DRW_ArcAlignedText arcAlignedText;
     DRW_Light light;
+    DRW_Camera camera;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1172,6 +1180,7 @@ public:
     unsigned rtextCount = 0u;
     unsigned arcAlignedTextCount = 0u;
     unsigned lightCount = 0u;
+    unsigned cameraCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1546,6 +1555,8 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.light.m_shadowType == 1u
         && adapter.light.m_shadowMapSize == 512u
         && adapter.light.m_shadowMapSoftness == 2u
+        && adapter.camera.handle == 0xD96Du
+        && adapter.camera.m_viewHandle == 0u
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1919,6 +1930,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.rtextCount != 1u
         || adapter.arcAlignedTextCount != 1u
         || adapter.lightCount != 1u
+        || adapter.cameraCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2199,6 +2211,8 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.light.m_shadowType != 1u
         || adapter.light.m_shadowMapSize != 512u
         || adapter.light.m_shadowMapSoftness != 2u
+        || adapter.camera.handle == 0u
+        || adapter.camera.m_viewHandle != 0u
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
