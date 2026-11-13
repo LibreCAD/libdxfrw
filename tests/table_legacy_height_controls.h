@@ -392,6 +392,7 @@ struct TableLegacyCountLateProbe final:dx_iface {
 };
 struct TableLegacyCountDirectProbe final:dx_iface {
     std::vector<std::uint8_t> spellings;
+    bool useZeroOverrideApi=false;
     long allocation=-1;
     long measuredAllocations=0;
     bool allocationReached=false;
@@ -400,13 +401,17 @@ struct TableLegacyCountDirectProbe final:dx_iface {
         auto& table=cData->tables.front();const auto sourceHandle=table.handle;
         const auto failedBefore=symbolFailedAllocations;
         bool written=false;
+        const auto writeTable=[&]() {
+            return useZeroOverrideApi
+                ? dxfW->writeTableWithLegacyZeroOverrides(&table,spellings)
+                : dxfW->writeTableWithLegacySourcePresence(&table,spellings);
+        };
         if(allocation<0) {
-            written=dxfW->writeTableWithLegacySourcePresence(&table,spellings);
+            written=writeTable();
         } else {
             try {
                 SymbolAllocationFailure fault(allocation);
-                written=dxfW->writeTableWithLegacySourcePresence(
-                    &table,spellings);
+                written=writeTable();
                 allocationReached=symbolFailedAllocations!=failedBefore;
                 measuredAllocations=allocationReached
                     ? allocation+1
@@ -435,10 +440,11 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
         bytes.assign(std::istreambuf_iterator<char>{input},{});
         return !input.bad();
     };
-    for(bool binary:{false,true}) {
+    for(bool useZeroOverrideApi:{false,true})for(bool binary:{false,true}) {
         dx_data calibrationData;TableLegacyCountDirectProbe calibration;
         tableExportReuseDrawing(calibration,calibrationData,0u,false);
         calibration.spellings={0u};
+        calibration.useZeroOverrideApi=useZeroOverrideApi;
         DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";
         calibrationData.blockRecords.push_back(model);
         calibration.allocation=1000000;
@@ -457,7 +463,8 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
         for(long offset=0;offset<allocationCount;++offset) {
             dx_data data;TableLegacyCountDirectProbe writer;
             tableExportReuseDrawing(writer,data,0u,false);
-            writer.spellings={0u};data.blockRecords.push_back(model);
+            writer.spellings={0u};writer.useZeroOverrideApi=useZeroOverrideApi;
+            data.blockRecords.push_back(model);
             const auto identities=tableExportIdentities(data);
             const DRW_Table baseline(data.tables.front());
             if(!tableExportSentinel(output,true))
@@ -494,7 +501,8 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
                 ||!tableExportReadback(output,binary,0u,false))
                 return fail("same-writer retry bytes/readback mismatch");
         }
-        std::cout<<"legacy TABLE source presence "
+        std::cout<<"legacy TABLE "
+                 <<(useZeroOverrideApi?"zero overrides ":"source presence ")
                  <<(binary?"Binary":"ASCII")<<": allocation offsets="
                  <<allocationCount<<", rollback/retry/readback=PASS\n";
     }

@@ -4344,6 +4344,14 @@ after the callback has marked the TABLE emitted; the evidence gate is atomic
 whole-file refusal and retry, not the callback flag alone. This covers a
 one-cell zero-presence mask only; the P6-G inventory and other legacy TABLE
 spellings remain open ([receipt](docs/research/p6-dxf-table-legacy-source-presence-allocation-rollback-retry-2026-11-13.json)).
+The same generated allocation sweep now also exercises the public
+`writeTableWithLegacyZeroOverrides()` wrapper, which validates the legacy
+spelling vector before delegating to the source-presence serializer. Its
+one-cell zero-mask profile passes all 11 injected allocation offsets in both
+ASCII and Binary, with whole-file refusal, caller and destination preservation,
+same-writer byte-identical retry, and typed readback. This proves the wrapper
+route for that mask only; invalid masks, nonzero masks, and other TABLE payloads
+remain uncovered ([receipt](docs/research/p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
