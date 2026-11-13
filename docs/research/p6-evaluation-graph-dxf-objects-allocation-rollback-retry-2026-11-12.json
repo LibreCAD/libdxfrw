@@ -7,9 +7,9 @@
     "fixtureCommitted": false,
     "temporaryOutputRemoved": true,
     "testSource": "tests/evaluation_graph_objects_allocation_tests.cpp",
-    "testSourceSha256": "8f35ad5c666d96dd744220f52eecd7abeb7bb612c00cf53348be6691d456f7d5",
+    "testSourceSha256": "4dc7f2a269a6f44447c050cd9d231dd2404d4251f068ea5375688e4a50f3ebd6",
     "cmakeSource": "tests/CMakeLists.txt",
-    "cmakeSourceSha256": "b470f347031b3c46fdbfa88524f5620fed3824db731259343320a29fbb46b6e0"
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175"
   },
   "checks": {
     "asciiAllocationFailureOffsets": 10,
@@ -19,16 +19,20 @@
     "sameCodecRetryAfterEachFailure": true,
     "retryBytesMatchCleanCalibrationExactly": true,
     "freshTypedReadbackChecksGraphHeaderNodesAndEdge": true,
-    "onlyGeneratedScratchFilesUsed": true
+    "onlyGeneratedScratchFilesUsed": true,
+    "eachFailureInjectedAtRequestedOffset": true
   },
   "validation": {
     "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
-    "build": "cmake --build build-gcc --target libdxfrw_evaluation_graph_objects_allocation_tests -j4",
+    "build": "cmake --build build-gcc --target libdxfrw_evaluation_graph_objects_allocation_tests -j6",
     "test": "ctest --test-dir build-gcc -R '^libdxfrw_evaluation_graph_objects_allocation$' --output-on-failure",
-    "testResult": "passed 1/1",
-    "directSelectorResult": "ASCII passed all 10 and Binary all 9 allocation-failure offsets, rollback, retry, and typed readback",
+    "testResult": "passed 1/1 in normal and ASan builds",
+    "directSelectorResult": "Explicit offset assertions passed: ASCII 10 and Binary 9 allocation-failure offsets, rollback, retry, and typed readback",
     "diffCheck": "git diff --check passed",
-    "testExecutableSha256": "00d0a3f5033a7223fcfafd45f0b64826d6b953bd00fb78fa6f5b3dd1aacd226c"
+    "testExecutableSha256": {
+      "normal": "d82a973105875bfa75a5c3fd8c4cac5d9db7328b2ed88c2c780b6955671c0059",
+      "asan": "bfb951e7061718b9182acaf1ea81182598be44981ab813f0861beca29351944a"
+    }
   },
   "limitations": [
     "Generated transaction evidence only; no physical producer or independent semantic evidence.",

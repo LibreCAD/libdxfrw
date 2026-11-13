@@ -13,12 +13,34 @@
 
 namespace {
 long allocationsBeforeFailure = -1;
-std::size_t failedAllocations = 0u;
+std::size_t allocationAttempts = 0u;
+bool allocationFailed = false;
+bool allocationTracking = false;
 
-struct AllocationFailure {
-    explicit AllocationFailure(long count) { allocationsBeforeFailure = count; }
-    ~AllocationFailure() { allocationsBeforeFailure = -1; }
-};
+bool failAllocation() noexcept {
+    if (!allocationTracking || allocationsBeforeFailure < 0)
+        return false;
+    ++allocationAttempts;
+    if (allocationsBeforeFailure == 0) {
+        allocationsBeforeFailure = -1;
+        allocationFailed = true;
+        return true;
+    }
+    --allocationsBeforeFailure;
+    return false;
+}
+
+void armAllocationFailure(long offset) noexcept {
+    allocationsBeforeFailure = offset;
+    allocationAttempts = 0u;
+    allocationFailed = false;
+    allocationTracking = true;
+}
+
+void disarmAllocationFailure() noexcept {
+    allocationTracking = false;
+    allocationsBeforeFailure = -1;
+}
 
 DRW_EvaluationGraph makeGraph() {
     DRW_EvaluationGraph graph;
@@ -105,17 +127,15 @@ public:
                 &graph, "ACAD_EVALUATION_GRAPH");
             return;
         }
-        const std::size_t before = failedAllocations;
-        AllocationFailure failure(failAt);
+        armAllocationFailure(failAt);
         try {
             accepted = codec.writeEvaluationGraph(
                 &graph, "ACAD_EVALUATION_GRAPH");
         } catch (const std::bad_alloc&) {
             accepted = false;
         }
-        reached = failedAllocations != before
-            ? static_cast<long>(failedAllocations - before)
-            : failAt - allocationsBeforeFailure;
+        reached = static_cast<long>(allocationAttempts);
+        disarmAllocationFailure();
     }
 
     bool finalizeDxfWrite() override { return accepted; }
@@ -204,7 +224,8 @@ bool run(const std::filesystem::path& directory) {
             const bool written = codec.write(&exporter, DRW::AC1027, binary);
             exporter.failAt = -1;
             std::string current;
-            if (written || exporter.reached != 1
+            if (written || exporter.accepted || exporter.reached != offset + 1
+                || !allocationFailed
                 || !readBytes(output, current) || current != sentinel)
                 return fail("injected failure changed destination or missed allocation");
             if (!sourceMatches(exporter.graph, source))
@@ -228,13 +249,8 @@ bool run(const std::filesystem::path& directory) {
 } // namespace
 
 void* operator new(std::size_t size) {
-    if (allocationsBeforeFailure == 0) {
-        ++failedAllocations;
-        allocationsBeforeFailure = -1;
+    if (failAllocation())
         throw std::bad_alloc();
-    }
-    if (allocationsBeforeFailure > 0)
-        --allocationsBeforeFailure;
     if (void* value = std::malloc(size == 0 ? 1u : size))
         return value;
     throw std::bad_alloc();
@@ -251,12 +267,5 @@ int main(int argc, char** argv) {
         std::cerr << "usage: evaluation_graph_objects_allocation_tests SCRATCH_DIR\n";
         return 2;
     }
-    const std::size_t before = failedAllocations;
-    if (!run(argv[1]))
-        return 1;
-    if (failedAllocations == before) {
-        std::cerr << "allocation injector did not reach operator new\n";
-        return 1;
-    }
-    return 0;
+    return run(argv[1]) ? 0 : 1;
 }
