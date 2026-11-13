@@ -33,6 +33,7 @@ constexpr std::uint32_t kInsertHandle = 0xD922u;
 constexpr std::uint32_t kInsertBlockPointHandle = 0xD923u;
 constexpr std::uint32_t kInsertAttribHandle = 0xD924u;
 constexpr std::uint32_t kInsertBlockHandle = 0xD925u;
+constexpr std::uint32_t kFaceHandle = 0xD926u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -284,6 +285,13 @@ public:
         attribute->height = 2.5;
         attribute->style = "STANDARD";
         insert.attlist.push_back(std::move(attribute));
+
+        face.handle = kFaceHandle;
+        face.basePoint = DRW_Coord(0.0, 0.0, 1.0);
+        face.secPoint = DRW_Coord(3.0, 0.0, 2.0);
+        face.thirdPoint = DRW_Coord(3.0, 4.0, 3.0);
+        face.fourPoint = DRW_Coord(0.0, 4.0, 4.0);
+        face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
     }
 
     void writeEntities() override {
@@ -298,7 +306,8 @@ public:
             && output.writeLeader(&leader)
             && output.writeMLine(&mline)
             && output.writePolyline(&polyline3)
-            && output.writeInsert(&insert);
+            && output.writeInsert(&insert)
+            && output.writeLine(&face);
     }
 
     void writeObjects() override {
@@ -328,6 +337,7 @@ public:
     DRW_MLineStyle mlineStyle;
     DRW_Polyline polyline3;
     DRW_Insert insert;
+    DRW_3Dface face;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -397,6 +407,10 @@ public:
         ++insertCount;
         insert = value;
     }
+    void add3dFace(const DRW_3Dface& value) override {
+        ++faceCount;
+        face = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -421,6 +435,7 @@ public:
     DRW_MLineStyle mlineStyle;
     DRW_Polyline polyline3;
     DRW_Insert insert;
+    DRW_3Dface face;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -437,6 +452,7 @@ public:
     unsigned mlineStyleCount = 0u;
     unsigned polyline3Count = 0u;
     unsigned insertCount = 0u;
+    unsigned faceCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -582,6 +598,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.insert.attlist.front()->text == "whole operation attribute"
         && adapter.insert.attlist.front()->basePoint.x == 11.0
         && adapter.insert.attlist.front()->height == 2.5
+        && adapter.face.handle == kFaceHandle
+        && adapter.face.basePoint.x == 0.0
+        && adapter.face.basePoint.y == 0.0
+        && adapter.face.basePoint.z == 1.0
+        && adapter.face.secPoint.x == 3.0
+        && adapter.face.secPoint.z == 2.0
+        && adapter.face.thirdPoint.y == 4.0
+        && adapter.face.thirdPoint.z == 3.0
+        && adapter.face.fourPoint.y == 4.0
+        && adapter.face.fourPoint.z == 4.0
+        && adapter.face.invisibleflag
+            == (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -782,6 +810,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.insert.attlist.front()->text != "whole operation attribute"
         || adapter.insert.attlist.front()->basePoint.x != 11.0
         || adapter.insert.attlist.front()->height != 2.5
+        || adapter.faceCount != 1u
+        || adapter.face.handle == 0u
+        || adapter.face.basePoint.z != 1.0
+        || adapter.face.secPoint.x != 3.0
+        || adapter.face.secPoint.z != 2.0
+        || adapter.face.thirdPoint.y != 4.0
+        || adapter.face.thirdPoint.z != 3.0
+        || adapter.face.fourPoint.y != 4.0
+        || adapter.face.fourPoint.z != 4.0
+        || adapter.face.invisibleflag
+            != (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
