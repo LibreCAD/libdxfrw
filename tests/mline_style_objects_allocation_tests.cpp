@@ -149,17 +149,34 @@ bool readbackMatches(const std::filesystem::path& path) {
         && sameStyle(reader.styles.front(), true);
 }
 
+const char* versionCode(DRW::Version version) {
+    switch (version) {
+    case DRW::AC1014: return "AC1014";
+    case DRW::AC1015: return "AC1015";
+    case DRW::AC1018: return "AC1018";
+    case DRW::AC1021: return "AC1021";
+    case DRW::AC1024: return "AC1024";
+    case DRW::AC1027: return "AC1027";
+    case DRW::AC1032: return "AC1032";
+    default: return "unknown";
+    }
+}
+
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "mline-style-allocation.dxf";
     const std::string prior = "prior MLINESTYLE destination\n";
-    for (const bool binary : {false, true}) {
+    constexpr std::array<DRW::Version, 7> versions{{
+        DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    for (const DRW::Version version : versions) {
+      for (const bool binary : {false, true}) {
         long allocationCount = 0;
         std::string expectedBytes;
         {
             dxfRW codec(path.string().c_str());
             Export exporter(codec);
             exporter.failAt = 1000000;
-            const bool written = codec.write(&exporter, DRW::AC1027, binary);
+            const bool written = codec.write(&exporter, version, binary);
             if (!written || !exporter.accepted || !sameStyle(exporter.style)
                 || !readbackMatches(path) || !readBytes(path, expectedBytes)) {
                 std::cerr << "clean MLINESTYLE write failed: write=" << written
@@ -183,7 +200,7 @@ bool allocationSweep(const std::filesystem::path& directory) {
             dxfRW codec(path.string().c_str());
             Export exporter(codec);
             exporter.failAt = offset;
-            const bool written = codec.write(&exporter, DRW::AC1027, binary);
+            const bool written = codec.write(&exporter, version, binary);
             exporter.failAt = -1;
             std::string current;
             if (written || exporter.accepted || exporter.reached != 1
@@ -191,16 +208,18 @@ bool allocationSweep(const std::filesystem::path& directory) {
                 || !sameStyle(exporter.style))
                 return false;
 
-            const bool retried = codec.write(&exporter, DRW::AC1027, binary);
+            const bool retried = codec.write(&exporter, version, binary);
             std::string retryBytes;
             if (!retried || !exporter.accepted || !sameStyle(exporter.style)
                 || !readBytes(path, retryBytes)
                 || retryBytes != expectedBytes || !readbackMatches(path))
                 return false;
         }
-        std::cout << (binary ? "Binary" : "ASCII")
+        std::cout << versionCode(version) << ' '
+                  << (binary ? "Binary" : "ASCII")
                   << " MLINESTYLE writer allocation offsets="
                   << allocationCount << '\n';
+      }
     }
     return true;
 }

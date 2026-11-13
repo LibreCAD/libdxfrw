@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-mline-style-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_MLINESTYLE_OBJECT_WRITER_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated MLINESTYLE OBJECTS writer allocation rollback, same-codec retry, and typed readback across supported DXF revisions.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_MLineStyle generated during each test run",
+    "profile": "One two-element MLINESTYLE with BYLAYER and BYBLOCK built-in linetype references, nondefault offsets, ACI colors, scalar fields, and two EED values.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/mline_style_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-mline-style-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "ebb053ff699877f0e5c62b909a3f33adba6218dd759404d9ae8f41cf54f93963",
+    "testExecutableSha256": "3733f39d89a3b3d8ac5fc2e06700fb85486def460be4387aa6441822315fb5f0",
+    "method": "For each revision and encoding, calibrate allocations reached by writeMLineStyle() in the OBJECTS callback, inject bad_alloc at every measured offset, require destination and input record preservation, retry with the same codec, compare exact output bytes, and verify fresh typed MLINESTYLE readback."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 26, "Binary": 25},
+    "AC1015": {"ASCII": 26, "Binary": 25},
+    "AC1018": {"ASCII": 26, "Binary": 25},
+    "AC1021": {"ASCII": 23, "Binary": 21},
+    "AC1024": {"ASCII": 23, "Binary": 21},
+    "AC1027": {"ASCII": 23, "Binary": 21},
+    "AC1032": {"ASCII": 23, "Binary": 21},
+    "totals": {"ASCII": 170, "Binary": 159, "all": 329}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_mline_style_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_mline_style_objects_allocation$' --output-on-failure: PASS 1/1 in 2.36 seconds",
+    "directControl": "build/tests/libdxfrw_mline_style_objects_allocation_tests: PASS; seven revisions, both encodings, all 329 allocation offsets",
+    "relatedSelector": "ctest --test-dir build -R 'mline.*allocation' --output-on-failure: PASS 4/4 (includes three unrelated MLINE parser/DWG selectors)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated writer transaction and same-library typed readback only; producer interoperability, full reference closure, and native behavior are not qualified.",
+    "The profile uses built-in BYLAYER/BYBLOCK linetype meanings only and does not exercise named external linetype dependencies.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated two-element MLINESTYLE profile passes allocation rollback, input preservation, exact same-codec retry, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory for distinct uncovered routes, overloads, and compound variants; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "219 completed slices and 35 remaining packages: 219/(219+35)=86.2%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-mline-style-objects-dxf-allocation-rollback-retry-2026-11-12.json"
+}
