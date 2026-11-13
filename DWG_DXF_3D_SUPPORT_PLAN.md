@@ -6905,46 +6905,11 @@ Steps:
    S8.2a legacy-mode assertion. Keep the probe independent of DWG so DXF work
    continues while a DWG dependency is blocked; runtime-generated fixtures
    only.
-   **S8.3.1 — Typed ELLIPSE consumer fields.** Serialize center, WCS
-   major-axis vector, ratio, start/end parameters, and extrusion normal in the
-   neutral semantic record. The fast probe writes default-plane full and
-   oblique-plane partial ellipses in ASCII and binary DXF, then verifies the
-   same fields with both `ext=false` and legacy `ext=true`. Keep coordinates
-   and curve parameters distinct from the extrusion normal; this proves
-   callback data delivery and the established 2D-mode invariant only, not
-   FreeCAD shape construction or DWG-version support.
-   **S8.3.2 — Typed HELIX consumer fields.** Write a locally authored rational
-   3D HELIX through generated ASCII and binary DXF, then assert its SPLINE
-   degree/flags, knot and weight samples, control-point XYZ, AcDbHelix version,
-   axis/base/start points, radius, turns, turn height, handedness, and
-   constraint type through both `ext=false` and `ext=true` callbacks. This
-   verifies callback delivery and that the legacy 2D extrusion mode does not
-   rewrite HELIX's WCS/control/trailer data; it does not qualify independent
-   interoperability, DWG layout, or downstream HELIX construction.
-   **S8.3.3 — Typed NURBSURFACE consumer fields.** Write a locally authored
-   AC1027 NURBSURFACE with all four complete WCS vector groups, a non-default
-   group-170 scalar, and enabled control-hull display through generated ASCII
-   and binary DXF. Verify the same callback values with `ext=false` and
-   `ext=true`. This covers DXF field transport only; it does not evaluate a
-   NURBS surface, establish DWG layout, or qualify independent/native support.
-   **S8.3.4 — Typed EXTRUDEDSURFACE consumer fields.** Write an AC1027
-   EXTRUDEDSURFACE vector with distinct values in the sweep vector, extrusion,
-   sweep-entity and path-entity transforms, draft/scale parameters, alignment
-   flags, Boolean options, and reference vector. Verify those values in the
-   callback under ASCII and Binary DXF with `ext=false` and `ext=true`. This is
-   DXF transport evidence only; it does not establish sweep geometry or DWG
-   semantics.
-   **S8.3.5 — Typed REVOLVEDSURFACE/SWEPTSURFACE consumer fields and payload
-   identity.** Write distinct runtime-authored AC1027 samples for both types
-   through ASCII and Binary DXF; verify the documented axis/angle/transform or
-   sweep/path transform, flags, scalar and reference fields with `ext=false`
-   and `ext=true`. For SWEPTSURFACE, verify the sweep and path group-310 byte
-   sequences by exact size and digest, separately from typed fields. Autodesk's
-   [SWEPTSURFACE DXF table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-55DCEC23-9286-4A32-AAFA-E1F945B10A19.htm)
-   does not list the DWG `classVersion` or group-71 `pathFlags`; exclude both
-   from this DXF support assertion and leave their mapping unqualified. This
-   local callback check does not evaluate surface geometry or qualify native
-   consumers/DWG layouts.
+   The generated ASCII/Binary consumer cases for ELLIPSE, HELIX, NURBSURFACE,
+   EXTRUDEDSURFACE, REVOLVEDSURFACE, and SWEPTSURFACE are implemented and
+   recorded in their commits/receipts. Remove them from the open-work queue;
+   their same-library callback evidence does not qualify independent DXF
+   interoperability, DWG layouts, surface evaluation, or native consumers.
 5. **S8.4a — Sample-backed DWG consumer comparison (AC1024 INSERT/SPLINE).**
    The locally available `tests/samples/AC1024/visualization_-_conference_room.dwg`
    completes both the libdxfrw read and LibreDWG 0.14 `dwgread -O minJSON`

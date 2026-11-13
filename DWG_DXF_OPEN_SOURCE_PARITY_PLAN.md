@@ -78,6 +78,17 @@ codecs, tests, and controls have been removed from the queue; their commits and
 receipts remain in Git and `docs/research/`. Resume from the linked blocker
 instead of repeating successful scans or controls.
 
+**Fast-test harness repair — `libdxfrw_3d_consumer_probe`.** A fresh focused
+build succeeds, but its CTest currently exits in the shared semantic adapter
+self-test before reaching the DXF 3D probe: `runPartialDwgReadbackControl()`
+fails while generating its temporary DWG (`error=0`, adapter line 5286;
+self-test line 5466). Preserve the purpose of this generated partial-read
+recovery control while updating its construction to match the current writer
+admission behavior. Keep the artifact temporary, isolate the smallest owning
+fast check, and do not record the HELIX/NURBS/surface receipts as a fresh pass
+from this failed run. Then continue to the next uncompleted S8.4a sample-backed
+read-field packet.
+
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now
 preserves separate base/network action-index candidates for class-version-2
