@@ -8482,10 +8482,19 @@ bool DRW_Ray::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
 // cannot be distinguished from the legacy unspecified convention.
 bool drwHasDwgSingleElevation(const DRW_Trace& entity) noexcept {
     const double elevation = entity.basePoint.z;
-    if (!std::isfinite(elevation)) return false;
+    if (!isFiniteDwgCoord(entity.basePoint)
+        || !std::isfinite(entity.thickness)
+        || !isFiniteDwgCoord(entity.extPoint))
+        return false;
+    for (const DRW_Coord* point : {&entity.secPoint, &entity.thirdPoint,
+                                   &entity.fourPoint}) {
+        if (!isFiniteDwgCoord(*point))
+            return false;
+    }
     for (const double z : {entity.secPoint.z, entity.thirdPoint.z,
                            entity.fourPoint.z}) {
-        if (!std::isfinite(z) || (z != 0.0 && z != elevation)) return false;
+        if (z != 0.0 && z != elevation)
+            return false;
     }
     return true;
 }
@@ -9306,7 +9315,11 @@ bool DRW_3Dface::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  if (buf == nullptr || !isFiniteDwgCoord(basePoint)
+      || !isFiniteDwgCoord(secPoint) || !isFiniteDwgCoord(thirdPoint)
+      || !isFiniteDwgCoord(fourPoint) || invisibleflag < NoEdge
+      || invisibleflag > AllEdges || thickness != 0.0
+      || extPoint.x != 0.0 || extPoint.y != 0.0 || extPoint.z != 1.0)
     return false;
 
   dwgBufferW *const bodyTarget = buf;

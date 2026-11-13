@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-trace-solid-3dface-output-admission-2026-11-12",
+  "purpose": "Prevent malformed TRACE/SOLID geometry and silent 3DFACE field loss in DWG output.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.32 3DFACE (object type 28)", "20.4.35 SOLID (object type 31)", "20.4.36 TRACE (object type 32)"],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "3DFACE stores its four WCS corners and invisible-edge flags; SOLID and TRACE store thickness, shared elevation, four OCS corner XY pairs and extrusion.",
+    "readerConsistency": "The corresponding DWG parsers reject non-finite decoded values before publishing a typed entity."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "TRACE/SOLID writer preflight now checks all modeled coordinates, thickness and extrusion for finiteness while retaining the existing shared-elevation rule. 3DFACE preflight checks all corners and edge-flag range, and refuses nonzero thickness or nondefault extrusion fields absent from its DWG body.",
+    "scope": "Writer admission only; readers and tolerated malformed source handling are unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "traceSolidRefusals": ["NaN corner coordinate", "infinite corner coordinate", "NaN thickness", "infinite extrusion"],
+    "3dfaceRefusals": ["NaN corner", "infinite corner", "nonzero inherited thickness", "nondefault inherited extrusion"],
+    "failureRetry": "Every refusal preserves the seeded destination. Corrected same-writer output reads back typed corner geometry with zero entity/object parse failures.",
+    "fixturePolicy": "All test files are authored from scratch in scratch storage; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_trace_solid_3dface_geometry$' --output-on-failure PASS 1/1 in 0.39 seconds"
+  },
+  "limitations": [
+    "The generated control establishes bounded writer field admission and retry/readback only, not native surface semantics or producer prevalence.",
+    "The broader P6 geometry/no-loss and consumer gates remain open."
+  ],
+  "supportClaimEffect": "Closes bounded DWG TRACE/SOLID finite-field and 3DFACE omitted-field writer gaps; no broad support claim is promoted."
+}

@@ -4479,6 +4479,18 @@ set_tests_properties(libdxfrw_dwg_3dline_finite_admission PROPERTIES
     TIMEOUT 30
 )
 
+# TRACE/SOLID require finite 2.5D fields. 3DFACE must preserve only its four
+# WCS corners and edge flags, refusing inherited common fields absent on wire.
+add_test(
+    NAME libdxfrw_dwg_trace_solid_3dface_geometry
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-trace-solid-3dface-geometry
+)
+set_tests_properties(libdxfrw_dwg_trace_solid_3dface_geometry PROPERTIES
+    LABELS "fast;dwg;writer;reader;trace;solid;3dface;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

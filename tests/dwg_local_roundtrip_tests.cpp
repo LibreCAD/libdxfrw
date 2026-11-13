@@ -11239,6 +11239,183 @@ bool runDwg3DLineFiniteAdmission(const std::filesystem::path& directory) {
     return true;
 }
 
+class DwgTraceSolidFaceWriter final : public dx_iface {
+public:
+    DwgTraceSolidFaceWriter(dwgRW& writer, int kind,
+                            std::function<void(DRW_Trace&)> mutate = {})
+        : writer_(writer), kind_(kind), mutate_(std::move(mutate)) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        if (kind_ == 0) {
+            DRW_Trace value;
+            setGeometry(value);
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeTrace(&value) && value.handle != 0u;
+        } else if (kind_ == 1) {
+            DRW_Solid value;
+            setGeometry(value);
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeSolid(&value) && value.handle != 0u;
+        } else {
+            DRW_3Dface value;
+            setGeometry(value);
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.write3dface(&value) && value.handle != 0u;
+        }
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    static void setGeometry(DRW_Trace& value) {
+        value.basePoint = {1.0, 2.0, 3.0};
+        value.secPoint = {4.0, 5.0, 3.0};
+        value.thirdPoint = {6.0, 7.0, 3.0};
+        value.fourPoint = {8.0, 9.0, 3.0};
+    }
+
+    dwgRW& writer_;
+    int kind_;
+    std::function<void(DRW_Trace&)> mutate_;
+    bool wrote_{false};
+};
+
+class DwgTraceSolidFaceReader final : public dx_iface {
+public:
+    explicit DwgTraceSolidFaceReader(int kind) : kind_(kind) {}
+    void addTrace(const DRW_Trace& value) override {
+        if (kind_ == 0)
+            capture(value);
+    }
+    void addSolid(const DRW_Solid& value) override {
+        if (kind_ == 1)
+            capture(value);
+    }
+    void add3dFace(const DRW_3Dface& value) override {
+        if (kind_ == 2) {
+            capture(value);
+            flags_ = value.invisibleflag;
+        }
+    }
+    bool matches() const noexcept {
+        const bool geometry = count_ == 1u && base_.x == 1.0
+            && base_.y == 2.0 && base_.z == 3.0
+            && sec_.x == 4.0 && sec_.y == 5.0 && sec_.z == 3.0
+            && third_.x == 6.0 && third_.y == 7.0 && third_.z == 3.0
+            && four_.x == 8.0 && four_.y == 9.0 && four_.z == 3.0;
+        return geometry && (kind_ != 2 || flags_ == DRW_3Dface::NoEdge);
+    }
+
+private:
+    void capture(const DRW_Trace& value) {
+        ++count_;
+        base_ = value.basePoint;
+        sec_ = value.secPoint;
+        third_ = value.thirdPoint;
+        four_ = value.fourPoint;
+    }
+
+    int kind_;
+    std::size_t count_{0u};
+    int flags_{-1};
+    DRW_Coord base_;
+    DRW_Coord sec_;
+    DRW_Coord third_;
+    DRW_Coord four_;
+};
+
+bool runDwgTraceSolidFaceGeometryAdmission(
+    const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Trace&)>>> traceProfiles{
+            {"nan-first-corner", [](DRW_Trace& value) {
+                value.basePoint.x = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-last-corner", [](DRW_Trace& value) {
+                value.fourPoint.y = std::numeric_limits<double>::infinity(); }},
+            {"nan-thickness", [](DRW_Trace& value) {
+                value.thickness = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-extrusion", [](DRW_Trace& value) {
+                value.extPoint.z = std::numeric_limits<double>::infinity(); }}
+        };
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Trace&)>>> faceProfiles{
+            {"nan-corner", [](DRW_Trace& value) {
+                value.thirdPoint.z = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-corner", [](DRW_Trace& value) {
+                value.secPoint.x = std::numeric_limits<double>::infinity(); }},
+            {"unrepresented-thickness", [](DRW_Trace& value) {
+                value.thickness = 1.0; }},
+            {"unrepresented-extrusion", [](DRW_Trace& value) {
+                value.extPoint.x = 0.25; }}
+        };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        for (int kind = 0; kind < 3; ++kind) {
+            const auto& profiles = kind == 2 ? faceProfiles : traceProfiles;
+            const auto path = directory / (std::string("libdxfrw-")
+                + (kind == 0 ? "trace" : kind == 1 ? "solid" : "3dface")
+                + "-geometry-" + std::to_string(static_cast<int>(version))
+                + ".dwg");
+            for (const auto& invalid : profiles) {
+                {
+                    std::ofstream sentinel(path, std::ios::binary
+                                                   | std::ios::trunc);
+                    sentinel << "existing-dwg-destination";
+                }
+                dwgRW writer(path.string().c_str());
+                DwgTraceSolidFaceWriter source(writer, kind, invalid.second);
+                const std::string before = readBytes(path);
+                if (writer.write(&source, version, false)
+                    || before.empty() || readBytes(path) != before)
+                    return false;
+
+                DwgTraceSolidFaceWriter retry(writer, kind);
+                if (!writer.write(&retry, version, false))
+                    return false;
+                dwgRW reader(path.string().c_str());
+                DwgTraceSolidFaceReader capture(kind);
+                dx_data readData;
+                capture.cData = &readData;
+                if (!reader.read(&capture, false) || !capture.matches()
+                    || reader.getEntityParseFailures() != 0u
+                    || reader.getObjectParseFailures() != 0u)
+                    return false;
+            }
+            std::filesystem::remove(path, ec);
+        }
+    }
+    return true;
+}
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -41978,6 +42155,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-3dline-finite-admission") {
         const bool passed = runDwg3DLineFiniteAdmission(directory);
         std::cout << "DWG 3DLINE finite-field rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-trace-solid-3dface-geometry") {
+        const bool passed = runDwgTraceSolidFaceGeometryAdmission(directory);
+        std::cout << "DWG TRACE/SOLID/3DFACE geometry rollback/retry matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2
