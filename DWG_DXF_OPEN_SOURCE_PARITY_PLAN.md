@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The current plan records **48 completed implementation slices** and **6
-remaining phase exit gates**, so the count-based progression is **88.9%**:
-`48 / (48 + 6)`. This is an item-count estimate, not effort-weighted completion
+The current plan records **49 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **89.1%**:
+`49 / (49 + 6)`. This is an item-count estimate, not effort-weighted completion
 of DWG/DXF parity: a small implementation slice and a broad phase gate each
 count once. Completed actions are excluded from the execution queue; their
 implementation and evidence remain in Git history and `docs/research/`.
@@ -3815,14 +3815,14 @@ refused, and advance to a different implementation-ready packet.
 | CLI and oracle contracts | Single-file output/input filesystem-alias refusal is implemented for positional and FreeCAD `-o` routes; the fast CLI selector covers same-path, symlink and hard-link aliases and verifies source preservation (see the [alias guard receipt](docs/research/p6-cli-single-file-input-output-alias-guard-2026-11-02.json)). Generated source-DXF FreeCAD `-o` controls now bind default target selection for all nine supported revision headers in ASCII and Binary, including AC1012→AC1014. Locally authored DWGs now cover every DWG-writer version (AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032). The generated sources succeed at their default targets in ASCII/Binary, with binary readback at the same revision. The bounded AC1018 minimal root/empty-group source also succeeds at explicit AC1024 ([receipt](docs/research/p4-ac1018-minimal-root-group-output-2026-11-04.json)); broader AC1018 graphs remain open. A debug-only preflight projection now exposes source format/revision, selected target revision, implicit-versus-explicit selection, encoding and input-appropriate read-completeness mode before writer setup. Generated AC1012 DXF input verifies its AC1014 default; AC1006 input verifies a fail-closed unavailable default; generated AC1021 and AC1018 default/explicit successes verify the projection before output preflight. An external AC1014 sample also selects AC1014 but is refused because two source objects fail parsing and the frame disposition is incomplete; this is diagnostic evidence only, and the sample is not committed. See the [default target-version receipt](docs/research/p6-cli-freecad-default-target-version-matrix-2026-11-02.json). Remaining contracts: eligible AC1012/AC1014 DWG-source output/readback; other partial-read failure profiles (the six-writer-version generated control covers ASCII and Binary strict refusal, opt-in output and readback; the original ASCII control is recorded in the [all-version receipt](docs/research/p6-cli-partial-dwg-read-all-writer-versions-2026-11-02.json)); and broader CLI projections: broader HEADER structure/repairability profiles beyond generated duplicate `$ACADVER`/`$LTSCALE` variables and repeated group 10 in `$INSBASE`/`$EXTMIN`; the API repair workflow for duplicate variables/repeated group codes is covered by the ASCII/Binary same-adapter replacement/retry control in [the HEADER receipt](docs/research/par27-header-repeated-group-refusal-fast-slice-2026-10-22.json); broader malformed structures remain open; `$REQUIREDVERSIONS` malformed/repeated diagnostic controls now cover duplicate variable, repeated group 160, and wrong group code with AC1032 atomic refusal; feature semantics/native acceptance beyond one generated bit preserved through AC1032 typed DXF output/readback plus AC1024 refusal remain open; decoder issue-mask projection now exercises all 15 defined `DxfTextIssue` flags across 14 locally authored profiles with exact-mask and atomic-refusal checks; see the [CLI issue-mask matrix receipt](docs/research/p6-cli-text-decoder-issue-mask-matrix-2026-11-02.json); skipped-record projections cover one and three same-class instances plus three distinct AC1027 custom class names; and the source-disposition projection now also exposes DWG entity/object parse-failure counts and all seven HANDLE-frame dispositions, checked against generated partial-read sources across AC1015–AC1032. See the [frame-projection receipt](docs/research/p6-cli-source-disposition-frame-projection-2026-11-07.json). Named skipped-record totals remain separate from frame/parse counters and are not combined into semantic-loss counts. Other skip/recovery categories, revisions, broader HEADER structures, and native/feature semantics remain open. The CLI applies no repair; these projections diagnose only. See the [source-disposition projection receipt](docs/research/p6-cli-source-disposition-projection-2026-11-02.json).
 
 **P6 whole-operation DXF allocation rollback/retry (2026-11-13):** a generated
-ASCII/Binary full `dxfRW::write` control sweeps 131/130 measured global
-allocation offsets across one LINE, one CIRCLE, one raw XRECORD, and a rooted
-NOD/GROUP dictionary graph with both entities as members. Every injected
-failure preserves prior destination bytes, caller records and derived identity
-maps; same-codec retry reproduces clean bytes, both remapped GROUP members and
-typed readback. The focused CTest passes in normal and ASan builds. This closes
-only the exercised whole-operation graph profile, not all drawing families or
-platform/filesystem failure modes
+ASCII/Binary full `dxfRW::write` control sweeps 161/160 measured global
+allocation offsets across LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, and rooted
+NOD/GROUP plus ACAD_IMAGE_DICT graphs. Every injected failure preserves prior
+destination bytes, caller records and derived identity maps; same-codec retry
+reproduces clean bytes, remapped GROUP membership, IMAGE references, the
+IMAGEDEF dictionary path, and typed readback. The focused CTest passes in normal
+and ASan builds. This closes only these generated whole-operation paths; other
+drawing families and platform/filesystem failure modes remain open
 ([receipt](docs/research/p6-dxf-whole-operation-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox

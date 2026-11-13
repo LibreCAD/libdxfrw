@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across the public dxfRW::write operation, including setup, LINE and CIRCLE entity emission, OBJECTS emission, finalization, generated NOD/GROUP dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across the public dxfRW::write operation, including setup, LINE/CIRCLE/IMAGE entity emission, OBJECTS emission, finalization, generated NOD/GROUP and ACAD_IMAGE_DICT/IMAGEDEF dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -38,6 +38,41 @@
           "0xD902"
         ],
         "dictionaryPath": "NOD[ACAD_GROUP] -> GROUP dictionary[WHOLE_OPERATION_ALLOCATION_GROUP] -> GROUP"
+      },
+      {
+        "kind": "IMAGE",
+        "sourceHandle": "0xD903",
+        "imageDefinitionSourceHandle": "0xD913",
+        "insertionPoint": [
+          2.0,
+          3.0,
+          4.0
+        ],
+        "uVector": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "vVector": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "pixelSize": [
+          640.0,
+          480.0
+        ]
+      },
+      {
+        "kind": "IMAGEDEF",
+        "sourceHandle": "0xD913",
+        "name": "whole-operation-image.png",
+        "pixelSize": [
+          640.0,
+          480.0
+        ],
+        "loaded": 1,
+        "resolution": 5
       }
     ],
     "fixtureFilesCommitted": false,
@@ -48,23 +83,26 @@
       "groupDictionaryOutputHandle": "0xD",
       "groupOutputHandle": "remapped and verified through dictionary edge",
       "memberOutputHandle": "remapped LINE handle verified in GROUP membership",
-      "memberOutputHandles": "Both remapped LINE and CIRCLE handles verified in GROUP membership"
+      "memberOutputHandles": "Both remapped LINE and CIRCLE handles verified in GROUP membership",
+      "imageDefinitionSourceHandle": "0xD913",
+      "imageDefinitionOutputHandle": "remapped and verified through IMAGE and ACAD_IMAGE_DICT readback",
+      "imageDictionaryPath": "NOD[ACAD_IMAGE_DICT] -> IMAGE dictionary -> IMAGEDEF -> IMAGE reference"
     }
   },
   "implementation": {
     "productionCodeChanged": false,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "ae5930904a60a57329eb1dbcf59c0978aae1d108fd228a107a4c65074aa628bd",
+    "testSha256": "616c42b2b13c635d997fde6006f905a39141613950d5c8802e4d12968659f72a",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "36e28ba02ec260b0ce161ad41098b31800d1280349f97441dfd2533705bd26aa",
-    "asanExecutableSha256": "899805800ee70d7c7b20d060b0650d34f8b5e64c56028b14f66addcfc1f51a40"
+    "normalExecutableSha256": "71356f2a09184f5bae6d0a8d390d5060da9b21cf68970f44fd3616d696469531",
+    "asanExecutableSha256": "7302990875e1645c09cddf37656da9f69e9e36edda31c29f11b11255d862e3de"
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
-    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
-    "validation": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-op-circle-control",
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j2",
+    "validation": "ctest --test-dir build -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-op-image-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j2; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -72,9 +110,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 0.80 seconds; ASan 1/1 passed in 4.75 seconds",
+    "ctest": "Normal 1/1 passed in 2.64 seconds; ASan 1/1 passed in 5.70 seconds",
     "ascii": {
-      "measuredAllocationOffsets": 131,
+      "measuredAllocationOffsets": 161,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -83,10 +121,12 @@
       "derivedIdentityMappingsRolledBack": true,
       "generatedNodGroupGraphReadbackMatched": true,
       "circleReadbackMatched": true,
-      "groupLineAndCircleMembershipMatched": true
+      "groupLineAndCircleMembershipMatched": true,
+      "imageReadbackMatched": true,
+      "imageDefinitionAndNodDictionaryGraphMatched": true
     },
     "binary": {
-      "measuredAllocationOffsets": 130,
+      "measuredAllocationOffsets": 160,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -95,14 +135,16 @@
       "derivedIdentityMappingsRolledBack": true,
       "generatedNodGroupGraphReadbackMatched": true,
       "circleReadbackMatched": true,
-      "groupLineAndCircleMembershipMatched": true
+      "groupLineAndCircleMembershipMatched": true,
+      "imageReadbackMatched": true,
+      "imageDefinitionAndNodDictionaryGraphMatched": true
     },
-    "addressSanitizerCtest": "1/1 passed in 3.61 seconds"
+    "addressSanitizerCtest": "1/1 passed in 5.70 seconds"
   },
   "limits": [
-    "This generated transaction control exercises one LINE, one CIRCLE, one raw XRECORD, and one NOD/GROUP dictionary graph; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises one LINE, one CIRCLE, one IMAGE, one IMAGEDEF, one raw XRECORD, and rooted NOD/GROUP plus ACAD_IMAGE_DICT graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "fc65f9b5"
+  "baseRevision": "21703897c071a837a7e582802321e8dea6555552"
 }
