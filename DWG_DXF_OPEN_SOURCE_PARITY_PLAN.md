@@ -1218,6 +1218,15 @@ state; corrected same-codec retries reproduce clean output and typed
 readback. The focused CTest passes. The token vectors do not resolve embedded
 geometry or the DWG profile. See the [receipt](docs/research/p6-dxf-swept-surface-allocation-rollback-retry-2026-11-13.json).
 
+**P6 remaining surface-writer transaction slice (2026-11-13):** the same
+whole-operation sweep now includes PLANESURFACE, EXTRUDEDSURFACE,
+REVOLVEDSURFACE and NURBSSURFACE, alongside the already recorded LOFTED and
+SWEPT controls. All 519 ASCII and 512 Binary allocation failures preserve
+the destination and tested caller surface state; corrected retries reproduce
+clean output and typed readback. The focused transaction CTest passes. This
+does not qualify DWG fields, embedded geometry, dependency closure or native
+surface semantics. See the [receipt](docs/research/p6-dxf-surface-family-allocation-rollback-retry-2026-11-13.json).
+
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
 CLASSES CRC mismatch for all nine AC1024 DWGs currently under

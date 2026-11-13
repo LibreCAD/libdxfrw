@@ -51,6 +51,10 @@ constexpr std::uint32_t kHelixHandle = 0xD933u;
 constexpr std::uint32_t kMaterialHandle = 0xD934u;
 constexpr std::uint32_t kLoftedSurfaceHandle = 0xD935u;
 constexpr std::uint32_t kSweptSurfaceHandle = 0xD936u;
+constexpr std::uint32_t kPlaneSurfaceHandle = 0xD937u;
+constexpr std::uint32_t kExtrudedSurfaceHandle = 0xD938u;
+constexpr std::uint32_t kRevolvedSurfaceHandle = 0xD939u;
+constexpr std::uint32_t kNurbsSurfaceHandle = 0xD93Au;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -445,6 +449,64 @@ public:
         sweptSurface.basePointSet = true;
         sweptSurface.sweepEntityTransformComputed = true;
         sweptSurface.pathEntityTransformComputed = true;
+        planeSurface.handle = kPlaneSurfaceHandle;
+        planeSurface.modelerFormatVersion = 1;
+        planeSurface.uIsolines = 2;
+        planeSurface.vIsolines = 3;
+        extrudedSurface.handle = kExtrudedSurfaceHandle;
+        extrudedSurface.modelerFormatVersion = 1;
+        extrudedSurface.uIsolines = 4;
+        extrudedSurface.vIsolines = 5;
+        extrudedSurface.classId = 2;
+        extrudedSurface.dxfBinaryData = {0x21u, 0x43u};
+        extrudedSurface.sweepVector = DRW_Coord(0.0, 0.0, 1.0);
+        extrudedSurface.referenceVector = DRW_Coord(1.0, 2.0, 3.0);
+        extrudedSurface.sweepAlignmentFlags = 3;
+        extrudedSurface.pathFlags = 7;
+        extrudedSurface.draftAngle = 0.1;
+        extrudedSurface.draftStartDistance = 0.25;
+        extrudedSurface.draftEndDistance = 0.5;
+        extrudedSurface.twistAngle = 0.75;
+        extrudedSurface.scaleFactor = 1.25;
+        extrudedSurface.alignAngle = 0.5;
+        extrudedSurface.solid = true;
+        extrudedSurface.alignStart = true;
+        extrudedSurface.bank = true;
+        extrudedSurface.basePointSet = true;
+        extrudedSurface.sweepEntityTransformComputed = true;
+        extrudedSurface.pathEntityTransformComputed = true;
+        extrudedSurface.extrudedTransform[3] = 0.25;
+        extrudedSurface.sweepEntityTransform[3] = 1.25;
+        extrudedSurface.pathEntityTransform[7] = 1.5;
+        revolvedSurface.handle = kRevolvedSurfaceHandle;
+        revolvedSurface.modelerFormatVersion = 1;
+        revolvedSurface.uIsolines = 6;
+        revolvedSurface.vIsolines = 7;
+        revolvedSurface.id = 2;
+        revolvedSurface.dxfBinaryData = {0x65u, 0x87u};
+        revolvedSurface.axisPoint = DRW_Coord(1.0, 2.0, 3.0);
+        revolvedSurface.axisVector = DRW_Coord(0.0, 1.0, 2.0);
+        revolvedSurface.revolveAngle = 1.5;
+        revolvedSurface.startAngle = 0.25;
+        revolvedSurface.draftAngle = 0.5;
+        revolvedSurface.draftStartDistance = 0.75;
+        revolvedSurface.draftEndDistance = 1.0;
+        revolvedSurface.twistAngle = 1.25;
+        revolvedSurface.solid = true;
+        revolvedSurface.closeToAxis = true;
+        revolvedSurface.transform[3] = 0.25;
+        revolvedSurface.transform[7] = 0.5;
+        revolvedSurface.transform[11] = 0.75;
+        nurbsSurface.handle = kNurbsSurfaceHandle;
+        nurbsSurface.modelerFormatVersion = 1;
+        nurbsSurface.uIsolines = 14;
+        nurbsSurface.vIsolines = 15;
+        nurbsSurface.short170 = 16;
+        nurbsSurface.cvHullDisplay = true;
+        nurbsSurface.uvec1 = DRW_Coord(1.0, 0.0, 0.0);
+        nurbsSurface.vvec1 = DRW_Coord(0.0, 1.0, 0.0);
+        nurbsSurface.uvec2 = DRW_Coord(2.0, 0.0, 0.0);
+        nurbsSurface.vvec2 = DRW_Coord(0.0, 2.0, 0.0);
     }
 
     void writeEntities() override {
@@ -478,7 +540,11 @@ public:
             && check("XLINE", output.writeLine(&xline))
             && check("HELIX", output.writeHelix(&helix))
             && check("LOFTEDSURFACE", output.writeSurface(&loftedSurface))
-            && check("SWEPTSURFACE", output.writeSurface(&sweptSurface));
+            && check("SWEPTSURFACE", output.writeSurface(&sweptSurface))
+            && check("PLANESURFACE", output.writeSurface(&planeSurface))
+            && check("EXTRUDEDSURFACE", output.writeSurface(&extrudedSurface))
+            && check("REVOLVEDSURFACE", output.writeSurface(&revolvedSurface))
+            && check("NURBSSURFACE", output.writeSurface(&nurbsSurface));
     }
 
     void writeObjects() override {
@@ -526,6 +592,10 @@ public:
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
+    DRW_PlaneSurface planeSurface;
+    DRW_ExtrudedSurface extrudedSurface;
+    DRW_RevolvedSurface revolvedSurface;
+    DRW_NurbsSurface nurbsSurface;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -666,6 +736,18 @@ public:
         } else if (value->eType == DRW::SWEPTSURFACE) {
             ++sweptSurfaceCount;
             sweptSurface = *static_cast<const DRW_SweptSurface*>(value);
+        } else if (value->eType == DRW::PLANESURFACE) {
+            ++planeSurfaceCount;
+            planeSurface = *static_cast<const DRW_PlaneSurface*>(value);
+        } else if (value->eType == DRW::EXTRUDEDSURFACE) {
+            ++extrudedSurfaceCount;
+            extrudedSurface = *static_cast<const DRW_ExtrudedSurface*>(value);
+        } else if (value->eType == DRW::REVOLVEDSURFACE) {
+            ++revolvedSurfaceCount;
+            revolvedSurface = *static_cast<const DRW_RevolvedSurface*>(value);
+        } else if (value->eType == DRW::NURBSURFACE) {
+            ++nurbsSurfaceCount;
+            nurbsSurface = *static_cast<const DRW_NurbsSurface*>(value);
         }
     }
     void addAttDef(const DRW_Attdef& value) override {
@@ -712,6 +794,10 @@ public:
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
+    DRW_PlaneSurface planeSurface;
+    DRW_ExtrudedSurface extrudedSurface;
+    DRW_RevolvedSurface revolvedSurface;
+    DRW_NurbsSurface nurbsSurface;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -744,6 +830,10 @@ public:
     unsigned materialCount = 0u;
     unsigned loftedSurfaceCount = 0u;
     unsigned sweptSurfaceCount = 0u;
+    unsigned planeSurfaceCount = 0u;
+    unsigned extrudedSurfaceCount = 0u;
+    unsigned revolvedSurfaceCount = 0u;
+    unsigned nurbsSurfaceCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1103,6 +1193,57 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.sweptSurface.basePointSet
         && adapter.sweptSurface.sweepEntityTransformComputed
         && adapter.sweptSurface.pathEntityTransformComputed
+        && adapter.planeSurface.handle == kPlaneSurfaceHandle
+        && adapter.planeSurface.modelerFormatVersion == 1
+        && adapter.planeSurface.uIsolines == 2
+        && adapter.planeSurface.vIsolines == 3
+        && adapter.extrudedSurface.handle == kExtrudedSurfaceHandle
+        && adapter.extrudedSurface.classId == 2u
+        && adapter.extrudedSurface.dxfBinaryData
+            == std::vector<std::uint8_t>{0x21u, 0x43u}
+        && adapter.extrudedSurface.sweepVector.z == 1.0
+        && adapter.extrudedSurface.referenceVector.x == 1.0
+        && adapter.extrudedSurface.sweepAlignmentFlags == 3
+        && adapter.extrudedSurface.pathFlags == 7
+        && adapter.extrudedSurface.draftAngle == 0.1
+        && adapter.extrudedSurface.draftStartDistance == 0.25
+        && adapter.extrudedSurface.draftEndDistance == 0.5
+        && adapter.extrudedSurface.twistAngle == 0.75
+        && adapter.extrudedSurface.scaleFactor == 1.25
+        && adapter.extrudedSurface.alignAngle == 0.5
+        && adapter.extrudedSurface.solid
+        && adapter.extrudedSurface.alignStart
+        && adapter.extrudedSurface.bank
+        && adapter.extrudedSurface.basePointSet
+        && adapter.extrudedSurface.sweepEntityTransformComputed
+        && adapter.extrudedSurface.pathEntityTransformComputed
+        && adapter.extrudedSurface.extrudedTransform[3] == 0.25
+        && adapter.extrudedSurface.sweepEntityTransform[3] == 1.25
+        && adapter.extrudedSurface.pathEntityTransform[7] == 1.5
+        && adapter.revolvedSurface.handle == kRevolvedSurfaceHandle
+        && adapter.revolvedSurface.id == 2u
+        && adapter.revolvedSurface.dxfBinaryData
+            == std::vector<std::uint8_t>{0x65u, 0x87u}
+        && adapter.revolvedSurface.axisPoint.x == 1.0
+        && adapter.revolvedSurface.axisVector.y == 1.0
+        && adapter.revolvedSurface.revolveAngle == 1.5
+        && adapter.revolvedSurface.startAngle == 0.25
+        && adapter.revolvedSurface.draftAngle == 0.5
+        && adapter.revolvedSurface.draftStartDistance == 0.75
+        && adapter.revolvedSurface.draftEndDistance == 1.0
+        && adapter.revolvedSurface.twistAngle == 1.25
+        && adapter.revolvedSurface.solid
+        && adapter.revolvedSurface.closeToAxis
+        && adapter.revolvedSurface.transform[3] == 0.25
+        && adapter.revolvedSurface.transform[7] == 0.5
+        && adapter.revolvedSurface.transform[11] == 0.75
+        && adapter.nurbsSurface.handle == kNurbsSurfaceHandle
+        && adapter.nurbsSurface.short170 == 16u
+        && adapter.nurbsSurface.cvHullDisplay
+        && adapter.nurbsSurface.uvec1.x == 1.0
+        && adapter.nurbsSurface.vvec1.y == 1.0
+        && adapter.nurbsSurface.uvec2.x == 2.0
+        && adapter.nurbsSurface.vvec2.y == 2.0
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1498,6 +1639,61 @@ bool matchesReadback(const std::filesystem::path& path) {
         || !adapter.sweptSurface.basePointSet
         || !adapter.sweptSurface.sweepEntityTransformComputed
         || !adapter.sweptSurface.pathEntityTransformComputed
+        || adapter.planeSurfaceCount != 1u
+        || adapter.planeSurface.handle == 0u
+        || adapter.planeSurface.modelerFormatVersion != 1
+        || adapter.planeSurface.uIsolines != 2
+        || adapter.planeSurface.vIsolines != 3
+        || adapter.extrudedSurfaceCount != 1u
+        || adapter.extrudedSurface.handle == 0u
+        || adapter.extrudedSurface.classId != 2u
+        || adapter.extrudedSurface.dxfBinaryData
+            != std::vector<std::uint8_t>{0x21u, 0x43u}
+        || adapter.extrudedSurface.sweepVector.z != 1.0
+        || adapter.extrudedSurface.referenceVector.x != 1.0
+        || adapter.extrudedSurface.sweepAlignmentFlags != 3
+        || adapter.extrudedSurface.pathFlags != 7
+        || adapter.extrudedSurface.draftAngle != 0.1
+        || adapter.extrudedSurface.draftStartDistance != 0.25
+        || adapter.extrudedSurface.draftEndDistance != 0.5
+        || adapter.extrudedSurface.twistAngle != 0.75
+        || adapter.extrudedSurface.scaleFactor != 1.25
+        || adapter.extrudedSurface.alignAngle != 0.5
+        || !adapter.extrudedSurface.solid
+        || !adapter.extrudedSurface.alignStart
+        || !adapter.extrudedSurface.bank
+        || !adapter.extrudedSurface.basePointSet
+        || !adapter.extrudedSurface.sweepEntityTransformComputed
+        || !adapter.extrudedSurface.pathEntityTransformComputed
+        || adapter.extrudedSurface.extrudedTransform[3] != 0.25
+        || adapter.extrudedSurface.sweepEntityTransform[3] != 1.25
+        || adapter.extrudedSurface.pathEntityTransform[7] != 1.5
+        || adapter.revolvedSurfaceCount != 1u
+        || adapter.revolvedSurface.handle == 0u
+        || adapter.revolvedSurface.id != 2u
+        || adapter.revolvedSurface.dxfBinaryData
+            != std::vector<std::uint8_t>{0x65u, 0x87u}
+        || adapter.revolvedSurface.axisPoint.x != 1.0
+        || adapter.revolvedSurface.axisVector.y != 1.0
+        || adapter.revolvedSurface.revolveAngle != 1.5
+        || adapter.revolvedSurface.startAngle != 0.25
+        || adapter.revolvedSurface.draftAngle != 0.5
+        || adapter.revolvedSurface.draftStartDistance != 0.75
+        || adapter.revolvedSurface.draftEndDistance != 1.0
+        || adapter.revolvedSurface.twistAngle != 1.25
+        || !adapter.revolvedSurface.solid
+        || !adapter.revolvedSurface.closeToAxis
+        || adapter.revolvedSurface.transform[3] != 0.25
+        || adapter.revolvedSurface.transform[7] != 0.5
+        || adapter.revolvedSurface.transform[11] != 0.75
+        || adapter.nurbsSurfaceCount != 1u
+        || adapter.nurbsSurface.handle == 0u
+        || adapter.nurbsSurface.short170 != 16u
+        || !adapter.nurbsSurface.cvHullDisplay
+        || adapter.nurbsSurface.uvec1.x != 1.0
+        || adapter.nurbsSurface.vvec1.y != 1.0
+        || adapter.nurbsSurface.uvec2.x != 2.0
+        || adapter.nurbsSurface.vvec2.y != 2.0
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u
