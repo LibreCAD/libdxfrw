@@ -6351,6 +6351,15 @@ target_link_libraries(libdxfrw_appid_table_allocation_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_appid_table_allocation COMMAND libdxfrw_appid_table_allocation_tests)
 set_tests_properties(libdxfrw_appid_table_allocation PROPERTIES LABELS "dxf;fast;appid;transaction;generated" TIMEOUT 30)
 
+add_executable(libdxfrw_dimstyle_table_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dimstyle_table_allocation_tests.cpp)
+target_compile_features(libdxfrw_dimstyle_table_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dimstyle_table_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dimstyle_table_allocation_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dimstyle_table_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dimstyle_table_allocation COMMAND libdxfrw_dimstyle_table_allocation_tests)
+set_tests_properties(libdxfrw_dimstyle_table_allocation PROPERTIES LABELS "dxf;fast;dimstyle;transaction;generated" TIMEOUT 60)
+
 add_executable(libdxfrw_vport_table_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/vport_table_allocation_tests.cpp)
 target_compile_features(libdxfrw_vport_table_allocation_tests PRIVATE cxx_std_17)
