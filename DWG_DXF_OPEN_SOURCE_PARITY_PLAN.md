@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **135 completed implementation slices** and **35 remaining
+The plan records **136 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`135 / (135 + 35) = 79.4%`. This is a count-based progress measure, not an
+`136 / (136 + 35) = 79.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1680,6 +1680,19 @@ focused CTest passes in 8.58 seconds. This is local whole-write transaction
 evidence only; source-producer breadth and native georeferencing semantics
 remain open. It does not close P6-G's remaining public-writer inventory. See
 the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 LAYOUT whole-operation transaction follow-up (2026-11-13):** the
+multi-callback sweep now writes one generated LAYOUT owned by the custom
+dictionary, with an explicit named dictionary edge. Every injected failure
+preserves the prior destination and caller fields; same-writer retry reproduces
+clean output, and fresh readback verifies the dictionary edge, identity, tab
+order, flags, paper dimensions, limits, sheet and stylesheet. The sweep covers
+1,156 ASCII and 1,133 Binary allocation offsets; focused CTest passes in
+8.59 seconds. This is a generated transaction/readback profile only. It does
+not qualify canonical ACAD_LAYOUT ownership, target-reference closure, producer
+interoperability or native plotting, and it does not close P6-G's remaining
+writer inventory. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the
 whole-file allocation sweep includes a generic `DRW_Dimension` on the

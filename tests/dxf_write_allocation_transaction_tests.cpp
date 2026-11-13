@@ -126,6 +126,7 @@ constexpr std::uint32_t kDirectWipeoutHandle = 0xD97Bu;
 constexpr std::uint32_t kDirectPlaceholderHandle = 0xD97Cu;
 constexpr std::uint32_t kDirectMLeaderStyleHandle = 0xD97Du;
 constexpr std::uint32_t kDirectGeoDataHandle = 0xD97Eu;
+constexpr std::uint32_t kDirectLayoutHandle = 0xD97Fu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -175,6 +176,9 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
          DictionaryEdge::SoftOwner});
     custom.m_entries.push_back(
         {"WHOLE_OPERATION_MLEADERSTYLE", kDirectMLeaderStyleHandle,
+         DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"WHOLE_OPERATION_LAYOUT", kDirectLayoutHandle,
          DictionaryEdge::SoftOwner});
     writer.setNamedDictObjects({custom});
     return true;
@@ -1110,6 +1114,19 @@ public:
         geoData.m_referencePoint = DRW_Coord(10.0, 20.0, 0.0);
         geoData.m_coordinateSystemDefinition = "LOCAL_GRID_PROFILE";
         geoData.m_geoRssTag = "LOCAL_GEODATA_TAG";
+        layout.handle = kDirectLayoutHandle;
+        layout.parentHandle = kCustomDictionaryHandle;
+        layout.name = "WHOLE_OPERATION_LAYOUT";
+        layout.tabOrder = 4;
+        layout.layoutFlags = 1;
+        layout.paperWidth = 210.0;
+        layout.paperHeight = 297.0;
+        layout.limMinX = -2.0;
+        layout.limMinY = -3.0;
+        layout.limMaxX = 20.0;
+        layout.limMaxY = 30.0;
+        layout.paperSize = "ISO_A4_(210.00_x_297.00_MM)";
+        layout.currentStyleSheet = "WHOLE_OPERATION_STYLE";
         ole2Frame.handle = kOle2FrameHandle;
         ole2Frame.m_oleVersion = 2u;
         ole2Frame.m_oleClient = "WHOLE_OPERATION_OLE2";
@@ -1349,7 +1366,9 @@ public:
             && output.writeCellStyleMap(&cellStyleMap);
         const bool mleaderStyleWritten = cellStyleMapWritten
             && output.writeMLeaderStyle(&multiLeaderStyle);
-        objectsWritten = mleaderStyleWritten
+        const bool layoutWritten = mleaderStyleWritten
+            && output.writeLayout(&layout);
+        objectsWritten = layoutWritten
             && output.writeAcDbPlaceholder(&placeholder);
     }
 
@@ -1369,6 +1388,7 @@ public:
     DRW_AcDbPlaceholder placeholder;
     DRW_MLeaderStyle multiLeaderStyle;
     DRW_GeoData geoData;
+    DRW_Layout layout;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -2500,6 +2520,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.geoData.m_referencePoint.y == 20.0
         && adapter.geoData.m_coordinateSystemDefinition == "LOCAL_GRID_PROFILE"
         && adapter.geoData.m_geoRssTag == "LOCAL_GEODATA_TAG"
+        && adapter.layout.handle == kDirectLayoutHandle
+        && adapter.layout.parentHandle == kCustomDictionaryHandle
+        && adapter.layout.name == "WHOLE_OPERATION_LAYOUT"
+        && adapter.layout.tabOrder == 4
+        && adapter.layout.layoutFlags == 1
+        && adapter.layout.paperWidth == 210.0
+        && adapter.layout.paperHeight == 297.0
+        && adapter.layout.limMinX == -2.0
+        && adapter.layout.limMinY == -3.0
+        && adapter.layout.limMaxX == 20.0
+        && adapter.layout.limMaxY == 30.0
+        && adapter.layout.paperSize == "ISO_A4_(210.00_x_297.00_MM)"
+        && adapter.layout.currentStyleSheet == "WHOLE_OPERATION_STYLE"
         && adapter.placeholder.handle == kDirectPlaceholderHandle
         && adapter.placeholder.parentHandle == kCustomDictionaryHandle
         && adapter.ole2Frame.handle == kOle2FrameHandle
@@ -4569,6 +4602,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.geoData.m_coordinateSystemDefinition
             != "LOCAL_GRID_PROFILE"
         || adapter.geoData.m_geoRssTag != "LOCAL_GEODATA_TAG"
+        || adapter.storage.layouts.size() != 1u
+        || adapter.storage.layouts.front().handle == 0u
+        || adapter.storage.layouts.front().parentHandle
+            != kCustomDictionaryHandle
+        || adapter.storage.layouts.front().name != "WHOLE_OPERATION_LAYOUT"
+        || adapter.storage.layouts.front().tabOrder != 4
+        || adapter.storage.layouts.front().layoutFlags != 1
+        || adapter.storage.layouts.front().paperWidth != 210.0
+        || adapter.storage.layouts.front().paperHeight != 297.0
+        || adapter.storage.layouts.front().limMinX != -2.0
+        || adapter.storage.layouts.front().limMinY != -3.0
+        || adapter.storage.layouts.front().limMaxX != 20.0
+        || adapter.storage.layouts.front().limMaxY != 30.0
+        || adapter.storage.layouts.front().paperSize
+            != "ISO_A4_(210.00_x_297.00_MM)"
+        || adapter.storage.layouts.front().currentStyleSheet
+            != "WHOLE_OPERATION_STYLE"
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u
@@ -4862,7 +4912,7 @@ bool matchesReadback(const std::filesystem::path& path) {
               [&root, &customRootEntry](const DRW_Dictionary& value) {
                   return value.handle == customRootEntry->m_handle
                       && value.parentHandle == root.handle
-                      && value.m_entries.size() == 6u
+                      && value.m_entries.size() == 7u
                       && value.m_entries.front().m_name == kNestedXrecordName
                       && value.m_entries.front().m_handle == 0xD901u
                       && value.m_entries[1].m_name == "MAIN_DATALINK"
@@ -4878,7 +4928,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                       && value.m_entries[5].m_name
                           == "WHOLE_OPERATION_MLEADERSTYLE"
                       && value.m_entries[5].m_handle
-                          == kDirectMLeaderStyleHandle;
+                          == kDirectMLeaderStyleHandle
+                      && value.m_entries[6].m_name
+                          == "WHOLE_OPERATION_LAYOUT"
+                      && value.m_entries[6].m_handle
+                          == kDirectLayoutHandle;
               });
     const auto group = std::find_if(
         adapter.groups.begin(), adapter.groups.end(),
