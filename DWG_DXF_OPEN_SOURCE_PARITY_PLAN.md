@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **180 completed implementation slices** and **35 remaining
+The plan records **181 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`180 / (180 + 35) = 83.7%`. This is a count-based progress measure, not an
+`181 / (181 + 35) = 83.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
-| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND, generated AC1024 nine-node associative constraint-group output, and generated HATCH/MPOLYGON line/arc/ellipse/spline/polyline edge profiles for AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 plus AC1018+ gradient profiles now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [legacy compound-chain allocation matrix](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json), [HATCH/MPOLYGON transaction matrix](docs/research/p6-dxf-hatch-version-allocation-rollback-retry-2026-11-13.json), [AC1024 associative graph transaction receipts](docs/research/p6-dxf-associative-geometry-seven-node-allocation-rollback-retry-2026-11-13.json), [eight-node follow-up](docs/research/p6-dxf-associative-geometry-eight-node-allocation-rollback-retry-2026-11-13.json), [nine-node value/dimension dependency follow-up](docs/research/p6-dxf-associative-geometry-nine-node-allocation-rollback-retry-2026-11-13.json), and [AC1012 refusal boundary](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
+| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. All four public BLOCK_RECORD `writeBlockRecord()` overloads now have whole-operation rollback/retry/readback coverage. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND, generated AC1024 nine-node associative constraint-group output, and generated HATCH/MPOLYGON line/arc/ellipse/spline/polyline edge profiles for AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 plus AC1018+ gradient profiles now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [BLOCK_RECORD all-overload transaction receipt](docs/research/p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13.json), [legacy compound-chain allocation matrix](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json), [HATCH/MPOLYGON transaction matrix](docs/research/p6-dxf-hatch-version-allocation-rollback-retry-2026-11-13.json), [AC1024 associative graph transaction receipts](docs/research/p6-dxf-associative-geometry-seven-node-allocation-rollback-retry-2026-11-13.json), [eight-node follow-up](docs/research/p6-dxf-associative-geometry-eight-node-allocation-rollback-retry-2026-11-13.json), [nine-node value/dimension dependency follow-up](docs/research/p6-dxf-associative-geometry-nine-node-allocation-rollback-retry-2026-11-13.json), and [AC1012 refusal boundary](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
 | P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
 | P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
 | P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
@@ -1756,6 +1756,20 @@ typed readback checks the preview, units, APPID/XDATA, and BLKREFS handle
 against the emitted INSERT identity. The focused CTest passes in normal and
 ASan builds. This covers one locally generated rich overload profile, not
 producer-authored preview semantics or broader BLOCK_RECORD variants ([receipt](docs/research/p6-dxf-block-record-rich-overload-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G BLOCK_RECORD overload transaction follow-up (2026-11-13):** the same
+whole-operation ASCII/Binary sweep now runs all four public
+`writeBlockRecord()` overloads: name/units, preview bytes, preview plus ordered
+INSERT handles, and the rich preview/INSERT/XDATA form. Every measured
+allocation failure preserves the prior destination and caller model; retry on
+the same codec reproduces clean bytes and typed readback checks the fields
+appropriate to that overload, including remapped INSERT identities when
+present. Counts are 122/119, 123/120, 126/123, and 142/139 ASCII/Binary
+allocation offsets respectively. The focused CTest passes in 2.34 seconds.
+This is generated transaction evidence only; producer preview semantics,
+broader BLOCK_RECORD graph closure, and native consumer behavior remain open.
+See the [all-overload receipt](docs/research/p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13.json)
+and [rich-overload predecessor](docs/research/p6-dxf-block-record-rich-overload-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G ordered BLOCK_RECORD reference transaction follow-up (2026-11-13):**
 the same generated profile now emits two INSERTs with distinct handles and

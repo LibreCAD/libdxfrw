@@ -7396,9 +7396,10 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
     public:
         BlockRecordExport(dxfRW& codec, const std::string& name,
                           const std::vector<std::uint8_t>& previewBytes,
-                          const std::vector<std::uint32_t>& inserts)
+                          const std::vector<std::uint32_t>& inserts,
+                          unsigned writerOverload)
             : output(codec), blockName(name), previewData(previewBytes),
-              sourceInsertHandles(inserts),
+              sourceInsertHandles(inserts), overload(writerOverload),
               appId(1001, std::string("LOCAL_BLOCK_RECORD_APP")),
               xdataText(1000, std::string("block-record metadata")) {
             cData = &storage;
@@ -7420,10 +7421,29 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             }
         }
         void writeBlockRecords() override {
-            blockRecordWritten = output.writeBlockRecord(
-                blockName, 4, previewData, sourceInsertHandles, xdata);
+            switch (overload) {
+            case 0u:
+                blockRecordWritten = output.writeBlockRecord(blockName, 4);
+                break;
+            case 1u:
+                blockRecordWritten = output.writeBlockRecord(
+                    blockName, 4, previewData);
+                break;
+            case 2u:
+                blockRecordWritten = output.writeBlockRecord(
+                    blockName, 4, previewData, sourceInsertHandles);
+                break;
+            case 3u:
+                blockRecordWritten = output.writeBlockRecord(
+                    blockName, 4, previewData, sourceInsertHandles, xdata);
+                break;
+            default:
+                blockRecordWritten = false;
+                break;
+            }
             if (!blockRecordWritten && !allocationTracking)
-                std::cerr << "BLOCK_RECORD writer rejected staged rich record\n";
+                std::cerr << "BLOCK_RECORD writer overload " << overload
+                          << " rejected staged record\n";
         }
         void writeEntities() override {
             insertWritten = true;
@@ -7440,6 +7460,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         std::string blockName;
         std::vector<std::uint8_t> previewData;
         std::vector<std::uint32_t> sourceInsertHandles;
+        unsigned overload = 0u;
         DRW_Variant appId;
         DRW_Variant xdataText;
         std::vector<DRW_Variant*> xdata;
@@ -7490,7 +7511,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         std::vector<Record> records;
         std::vector<DRW_Insert> inserts;
     };
-    const auto readbackMatches = [&](const std::filesystem::path& path) {
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     unsigned overload) {
         dxfRW reader(path.string().c_str());
         BlockRecordReadback probe(blockName);
         const bool read = reader.read(&probe, true);
@@ -7516,12 +7538,16 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         }
         const bool matches = record.handle != 0u && record.handle != DRW::NoHandle
             && record.insUnits == 4 && record.name == blockName
-            && record.previewData == preview
-            && insertsMatch && record.insertHandles == emittedInsertHandles
-            && record.xdata
-                == std::vector<std::pair<int, std::string>>{
+            && record.previewData == (overload >= 1u
+                ? preview : std::vector<std::uint8_t>{})
+            && insertsMatch
+            && record.insertHandles == (overload >= 2u
+                ? emittedInsertHandles : std::vector<std::uint32_t>{})
+            && record.xdata == (overload >= 3u
+                ? std::vector<std::pair<int, std::string>>{
                     {1001, "LOCAL_BLOCK_RECORD_APP"},
-                    {1000, "block-record metadata"}};
+                    {1000, "block-record metadata"}}
+                : std::vector<std::pair<int, std::string>>{});
         if (!matches) {
             std::cerr << "BLOCK_RECORD mismatch handle=" << record.handle
                       << " insUnits=" << record.insUnits
@@ -7542,8 +7568,16 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
     };
     const auto sameCaller = [&](const BlockRecordExport& adapter,
                                 const std::vector<DRW_Insert>& original) {
-        if (adapter.previewData != preview
+        if (adapter.blockName != blockName || adapter.overload > 3u
+            || adapter.previewData != preview
             || adapter.sourceInsertHandles != insertHandles
+            || adapter.xdata.size() != 2u
+            || adapter.xdata[0] != &adapter.appId
+            || adapter.xdata[1] != &adapter.xdataText
+            || adapter.appId.code() != 1001
+            || !adapter.appId.stringEquals("LOCAL_BLOCK_RECORD_APP")
+            || adapter.xdataText.code() != 1000
+            || !adapter.xdataText.stringEquals("block-record metadata")
             || adapter.inserts.size() != original.size())
             return false;
         for (std::size_t index = 0; index < original.size(); ++index) {
@@ -7559,10 +7593,12 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         }
         return true;
     };
-    for (const bool binary : {false, true}) {
+    for (unsigned overload = 0u; overload < 4u; ++overload) {
+      for (const bool binary : {false, true}) {
         {
             dxfRW codec(output.string().c_str());
-            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles,
+                                      overload);
             if (!codec.write(&adapter, DRW::AC1032, binary)) {
                 const DRW_OperationDiagnostic diagnostic =
                     codec.getLastDiagnostic();
@@ -7586,7 +7622,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         std::string expectedBytes;
         {
             dxfRW codec(output.string().c_str());
-            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles,
+                                      overload);
             armAllocationFailure(1000000000L);
             const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
             allocationCount = static_cast<long>(allocationAttempts);
@@ -7605,7 +7642,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                     return fail("could not seed prior destination");
             }
             dxfRW codec(output.string().c_str());
-            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles,
+                                      overload);
             const std::vector<DRW_Insert> originalInserts = adapter.inserts;
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
@@ -7628,10 +7666,11 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             std::string retryBytes;
             const bool retryRead = readBytes(output, retryBytes);
             const bool sameBytes = retryRead && retryBytes == expectedBytes;
-            const bool readback = retryRead && readbackMatches(output);
+            const bool readback = retryRead
+                && readbackMatches(output, overload);
             const bool stageAfterRetry = hasStagedOutput(output);
             if (!retried || !retryRead || !sameBytes || !readback
-                || stageAfterRetry) {
+                || stageAfterRetry || !sameCaller(adapter, originalInserts)) {
                 std::cerr << "BLOCK_RECORD retry=" << retried
                           << " read=" << retryRead << " sameBytes=" << sameBytes
                           << " readback=" << readback
@@ -7639,12 +7678,13 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                 return fail("same-codec retry or typed readback failed");
             }
         }
-        std::cout << "BLOCK_RECORD rich overload "
+        std::cout << "BLOCK_RECORD overload " << overload << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", caller/destination rollback, retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }

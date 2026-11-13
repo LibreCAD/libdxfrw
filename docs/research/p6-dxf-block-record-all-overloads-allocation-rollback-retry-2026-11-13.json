@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DXF_BLOCK_RECORD_ALL_PUBLIC_OVERLOADS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend whole-operation ASCII and Binary DXF allocation-failure coverage from the rich BLOCK_RECORD route to every public writeBlockRecord overload, preserving fields relevant to each overload and checking typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored callback model",
+    "profile": "A generated AC1032 drawing with one named BLOCK_RECORD and two INSERTs. Four writer routes are exercised: (1) name and insertion units, (2) name, units, and preview bytes, (3) name, units, preview bytes, and ordered INSERT source handles, and (4) the same plus APPID/XDATA. Fields omitted by a route are verified absent; supplied references are checked against emitted INSERT identities.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Parameterized the focused BLOCK_RECORD whole-operation allocation sweep to invoke all four public overloads. Readback checks name, insertion units, optional preview data, optional ordered/remapped INSERT handles, and optional APPID/XDATA. Existing source model, caller preservation, identity rollback, stage cleanup, and retry checks apply to every variant.",
+    "method": "For each overload and each ASCII/Binary encoding, calibrate allocation count from a successful clean export, inject std::bad_alloc at every reached offset with a prior destination sentinel, require failure and exact destination/source preservation plus identity-ledger rollback and stage cleanup, then retry the same codec and require byte-identical output and fresh typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_block_record_allocation_transaction$' --output-on-failure: PASS 1/1 in 2.34 seconds",
+    "asciiAllocationOffsetsByOverload": [122, 123, 126, 142],
+    "binaryAllocationOffsetsByOverload": [119, 120, 123, 139],
+    "result": "All 8 overload/encoding combinations passed rollback, same-codec retry, byte-identical output, caller preservation, stage cleanup, and typed readback.",
+    "diffCheck": "PASS for tests/dxf_write_allocation_transaction_tests.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  },
+  "limitations": [
+    "Generated output transaction and typed readback evidence only; no producer-authored preview semantics, broad BLOCK_RECORD graph closure, or native consumer claim follows.",
+    "The profile uses AC1032. Legacy version-specific admission and producer interoperability remain separate qualification work.",
+    "No DWG/DXF fixture files were added, and no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Transaction and typed readback coverage for all four public BLOCK_RECORD writer overloads, extending the prior rich-overload-only profile.",
+    "remainingP6G": "Continue the public-writer inventory diff for uncovered routes, overloads, version-specific compound-record variants, and variable-size OBJECTS profiles; preserve independent producer and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "181 completed slices and 35 remaining packages: 181/(181+35)=83.8%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-block-record-rich-overload-allocation-rollback-retry-2026-11-13.json"
+}
