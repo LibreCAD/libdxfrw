@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-polyline-identifier-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1024_PLUS_VERTEX_IDENTIFIER_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the version-gated classic VERTEX identifier field through generated whole-operation ASCII/Binary transaction controls and retain refusal before its implemented AC1024 boundary.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "3D POLYLINE with two WCS VERTEX children carrying distinct nonzero group-91 identifiers 101 and 202.",
+    "acceptedVersions": ["AC1024", "AC1027", "AC1032"],
+    "refusedVersion": "AC1021",
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-polyline-identifier-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For AC1024/AC1027/AC1032, inject std::bad_alloc at every measured allocation in the complete write, require destination and caller-state preservation, retry with the same codec, compare exact bytes, and require typed readback of both identifiers. For AC1021, require refusal before replacing a seeded destination and unchanged caller state."
+  },
+  "allocationOffsets": {
+    "AC1024": {"ASCII": 109, "Binary": 108},
+    "AC1027": {"ASCII": 102, "Binary": 101},
+    "AC1032": {"ASCII": 102, "Binary": 101},
+    "total": 623
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_polyline_topology_allocation_transaction$' --output-on-failure: PASS 1/1 in 7.97 seconds",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF wire and transaction evidence only; producer interoperability and native CAD handling are not qualified.",
+    "The version refusal control verifies failure and atomic destination/caller preservation, not a specific CLI diagnostic wording.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1024+ VERTEX group-91 identifiers roundtrip transactionally in ASCII/Binary for AC1024, AC1027, and AC1032; AC1021 refusal preserves state.",
+    "remainingP6G": "Continue the public-writer inventory for other compound-record variants and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "185 completed slices and 35 remaining packages: 185/(185+35)=84.1%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-polyline-topology-allocation-rollback-retry-2026-11-13.json"
+}

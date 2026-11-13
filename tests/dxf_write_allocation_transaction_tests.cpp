@@ -1648,20 +1648,31 @@ public:
 
 class PolylineTopologyExport final : public dx_iface {
 public:
-    enum class Topology { ThreeDimensional, PolygonMesh, Polyface };
+    enum class Topology {
+        ThreeDimensional,
+        ThreeDimensionalWithIdentifiers,
+        PolygonMesh,
+        Polyface
+    };
 
-    PolylineTopologyExport(dxfRW& output, Topology topology) {
+    PolylineTopologyExport(dxfRW& output, Topology topology)
+        : topology(topology) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &output;
         polyline.handle = 0xDB00u;
         polyline.basePoint = DRW_Coord{0.0, 0.0, 2.5};
-        if (topology == Topology::ThreeDimensional) {
+        if (topology == Topology::ThreeDimensional
+            || topology == Topology::ThreeDimensionalWithIdentifiers) {
+            const bool identifiers =
+                topology == Topology::ThreeDimensionalWithIdentifiers;
             polyline.flags = 8;
             addVertex(0xDB01u, 1.0, 2.0, 3.0,
-                      DRW_Vertex::DwgSubtype::Vertex3D, 32);
+                      DRW_Vertex::DwgSubtype::Vertex3D, 32,
+                      identifiers ? 101 : 0);
             addVertex(0xDB02u, 4.0, 5.0, 6.0,
-                      DRW_Vertex::DwgSubtype::Vertex3D, 32);
+                      DRW_Vertex::DwgSubtype::Vertex3D, 32,
+                      identifiers ? 202 : 0);
         } else if (topology == Topology::PolygonMesh) {
             polyline.flags = 16 | 32;
             polyline.vertexcount = 2;
@@ -1704,16 +1715,19 @@ public:
     bool finalizeDxfWrite() override { return written; }
 
     DRW_Polyline polyline;
+    Topology topology;
     bool written = false;
     dx_data storage;
 
 private:
     void addVertex(std::uint32_t handle, double x, double y, double z,
-                   DRW_Vertex::DwgSubtype subtype, int flags) {
+                   DRW_Vertex::DwgSubtype subtype, int flags,
+                   int identifier = 0) {
         DRW_Vertex vertex(x, y, z, 0.0);
         vertex.handle = handle;
         vertex.setDwgSubtype(subtype);
         vertex.flags = flags;
+        vertex.identifier = identifier;
         polyline.addVertex(vertex);
     }
 };
@@ -6250,17 +6264,20 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
         int parentFlags;
         std::size_t vertexCount;
     };
-    const std::array<Profile, 3> profiles{{
+    const std::array<Profile, 4> profiles{{
         {PolylineTopologyExport::Topology::ThreeDimensional,
          "3d-polyline", 8, 2u},
+        {PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers,
+         "3d-polyline-identifiers", 8, 2u},
         {PolylineTopologyExport::Topology::PolygonMesh,
          "polygon-mesh", 16 | 32, 4u},
         {PolylineTopologyExport::Topology::Polyface,
          "polyface-mesh", 64, 7u}
     }};
-    const std::array<std::pair<DRW::Version, const char*>, 4> versions{{
+    const std::array<std::pair<DRW::Version, const char*>, 5> versions{{
         {DRW::AC1014, "AC1014"}, {DRW::AC1021, "AC1021"},
-        {DRW::AC1024, "AC1024"}, {DRW::AC1032, "AC1032"}
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}
     }};
     const std::string sentinel = "prior POLYLINE topology drawing bytes\n";
 
@@ -6271,12 +6288,43 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
             const auto& vertex = adapter.polyline.vertlist[i];
             if (!vertex || vertex->handle != 0xDB01u + i)
                 return false;
+            if (adapter.topology
+                    == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                && vertex->identifier != (i == 0u ? 101 : 202))
+                return false;
         }
         return true;
     };
 
+    const auto refusalPath = directory / "AC1021-polyline-identifiers-refused.dxf";
+    {
+        std::ofstream prior(refusalPath, std::ios::binary | std::ios::trunc);
+        prior << sentinel;
+        if (!prior)
+            return fail("could not seed pre-AC1024 refusal sentinel");
+    }
+    dxfRW refusalCodec(refusalPath.string().c_str());
+    PolylineTopologyExport refusalAdapter(refusalCodec,
+        PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers);
+    const bool refusedWrite =
+        refusalCodec.write(&refusalAdapter, DRW::AC1021, false);
+    if (refusedWrite || !sourceUnchanged(refusalAdapter)) {
+        std::cerr << "pre-AC1024 identifier refusal: wrote=" << refusedWrite
+                  << " error=" << refusalCodec.getError() << '\n';
+        return fail("pre-AC1024 VERTEX identifiers were not refused cleanly");
+    }
+    std::string refusalBytes;
+    if (!readBytes(refusalPath, refusalBytes) || refusalBytes != sentinel)
+        return fail("pre-AC1024 identifier refusal changed destination");
+    std::error_code refusalCleanup;
+    std::filesystem::remove(refusalPath, refusalCleanup);
+
     for (const Profile& profile : profiles) {
       for (const auto& version : versions) {
+        if (profile.topology
+                == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+            && version.first < DRW::AC1024)
+            continue;
         const auto output = directory
             / (std::string(version.second) + "-" + profile.name + ".dxf");
         for (const bool binary : {false, true}) {
@@ -6324,6 +6372,10 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                             || vertex->basePoint.y != 2.0 + 3.0 * i
                             || vertex->basePoint.z != 3.0 + 3.0 * i)
                             return fail("coordinate-pool readback mismatch");
+                        if (profile.topology
+                                == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                            && vertex->identifier != (i == 0u ? 101 : 202))
+                            return fail("AC1024+ VERTEX identifier readback mismatch");
                     }
                 }
                 if (!readBytes(output, cleanBytes) || cleanBytes.empty())
@@ -6382,6 +6434,11 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                     || readback.polylines.front().vertlist.size()
                         != profile.vertexCount)
                     return fail("retry typed readback mismatch");
+                if (profile.topology
+                        == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                    && (readback.polylines.front().vertlist[0]->identifier != 101
+                        || readback.polylines.front().vertlist[1]->identifier != 202))
+                    return fail("retry VERTEX identifier readback mismatch");
             }
             std::cout << version.second << ' ' << profile.name << ' '
                       << (binary ? "Binary" : "ASCII")
