@@ -66,6 +66,8 @@ constexpr std::uint32_t kShapeHandle = 0xD942u;
 constexpr std::uint32_t kRasterVariablesHandle = 0xD943u;
 constexpr std::uint32_t kDictionaryVarHandle = 0xD944u;
 constexpr std::uint32_t kDbColorHandle = 0xD945u;
+constexpr std::uint32_t kUnderlayDefinitionHandle = 0xD946u;
+constexpr std::uint32_t kUnderlayHandle = 0xD947u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -826,6 +828,26 @@ public:
         dbColor.setDxfColorIndex(7u);
         dbColor.bookName = "WHOLE_OPERATION_BOOK";
         dbColor.name = "ACCENT";
+        underlayDefinition.handle = kUnderlayDefinitionHandle;
+        underlayDefinition.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        underlayDefinition.kind = DRW_UnderlayDefinition::PDF;
+        underlayDefinition.filename = "whole-operation-underlay.pdf";
+        underlayDefinition.sheetName = "sheet-1";
+        underlay.handle = kUnderlayHandle;
+        underlay.kind = DRW_Underlay::PDF;
+        underlay.position = DRW_Coord(141.0, 142.0, 143.0);
+        underlay.scale = DRW_Coord(2.0, 3.0, 1.0);
+        underlay.rotation = 0.25;
+        underlay.flags = 2u;
+        underlay.contrast = 80u;
+        underlay.fade = 5u;
+        underlay.definitionHandle = kUnderlayDefinitionHandle;
+        underlay.clipBoundary = {DRW_Coord(0.0, 0.0), DRW_Coord(64.0, 0.0),
+            DRW_Coord(64.0, 48.0), DRW_Coord(0.0, 48.0)};
+        underlay.inverseClipBoundary = {DRW_Coord(8.0, 8.0),
+            DRW_Coord(56.0, 8.0), DRW_Coord(56.0, 40.0),
+            DRW_Coord(8.0, 40.0)};
+        underlay.flags = static_cast<std::uint8_t>(underlay.flags | 0x10u);
     }
 
     void writeEntities() override {
@@ -880,6 +902,7 @@ public:
             && check("OLE2FRAME", output.writeOle2Frame(&ole2Frame))
             && check("OLEFRAME", output.writeOleFrame(&oleFrame))
             && check("SHAPE", output.writeShape(&shape))
+            && check("UNDERLAY", output.writeUnderlay(&underlay))
             && check("LOFTEDSURFACE", output.writeSurface(&loftedSurface))
             && check("SWEPTSURFACE", output.writeSurface(&sweptSurface))
             && check("PLANESURFACE", output.writeSurface(&planeSurface))
@@ -897,6 +920,7 @@ public:
             && output.writeRasterVariables(&rasterVariables)
             && output.writeDictionaryVar(&dictionaryVar)
             && output.writeDbColor(&dbColor)
+            && output.writeUnderlayDefinition(&underlayDefinition)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
@@ -963,6 +987,8 @@ public:
     DRW_RasterVariables rasterVariables;
     DRW_DictionaryVar dictionaryVar;
     DRW_DbColor dbColor;
+    DRW_UnderlayDefinition underlayDefinition;
+    DRW_Underlay underlay;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1027,6 +1053,18 @@ public:
     void addDbColor(const DRW_DbColor& value) override {
         ++dbColorCount;
         dbColor = value;
+    }
+    void addUnderlay(const DRW_Underlay* value) override {
+        if (value != nullptr) {
+            ++underlayCount;
+            underlay = *value;
+        }
+    }
+    void linkUnderlay(const DRW_UnderlayDefinition* value) override {
+        if (value != nullptr) {
+            ++underlayDefinitionCount;
+            underlayDefinition = *value;
+        }
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1312,6 +1350,8 @@ public:
     DRW_RasterVariables rasterVariables;
     DRW_DictionaryVar dictionaryVar;
     DRW_DbColor dbColor;
+    DRW_UnderlayDefinition underlayDefinition;
+    DRW_Underlay underlay;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1379,6 +1419,8 @@ public:
     unsigned rasterVariablesCount = 0u;
     unsigned dictionaryVarCount = 0u;
     unsigned dbColorCount = 0u;
+    unsigned underlayDefinitionCount = 0u;
+    unsigned underlayCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1585,6 +1627,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dbColor.colorIndex == 7u
         && adapter.dbColor.bookName == "WHOLE_OPERATION_BOOK"
         && adapter.dbColor.name == "ACCENT"
+        && adapter.underlayDefinition.handle == kUnderlayDefinitionHandle
+        && adapter.underlayDefinition.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.underlayDefinition.kind == DRW_UnderlayDefinition::PDF
+        && adapter.underlayDefinition.filename
+            == "whole-operation-underlay.pdf"
+        && adapter.underlayDefinition.sheetName == "sheet-1"
+        && adapter.underlay.handle == kUnderlayHandle
+        && adapter.underlay.definitionHandle == kUnderlayDefinitionHandle
+        && adapter.underlay.clipBoundary.size() == 4u
+        && adapter.underlay.inverseClipBoundary.size() == 4u
+        && adapter.underlay.flags == 0x12u
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2375,6 +2429,33 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dbColor.colorIndex != 7u
         || adapter.dbColor.bookName != "WHOLE_OPERATION_BOOK"
         || adapter.dbColor.name != "ACCENT"
+        || adapter.underlayDefinitionCount != 1u
+        || adapter.underlayDefinition.handle != kUnderlayDefinitionHandle
+        || adapter.underlayDefinition.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.underlayDefinition.kind != DRW_UnderlayDefinition::PDF
+        || adapter.underlayDefinition.filename
+            != "whole-operation-underlay.pdf"
+        || adapter.underlayDefinition.sheetName != "sheet-1"
+        || adapter.underlayCount != 1u
+        || adapter.underlay.handle == 0u
+        || adapter.underlay.kind != DRW_Underlay::PDF
+        || adapter.underlay.definitionHandle != kUnderlayDefinitionHandle
+        || adapter.underlay.position.x != 141.0
+        || adapter.underlay.position.y != 142.0
+        || adapter.underlay.position.z != 143.0
+        || adapter.underlay.scale.x != 2.0
+        || adapter.underlay.scale.y != 3.0
+        || adapter.underlay.rotation != 0.25
+        || adapter.underlay.contrast != 80u
+        || adapter.underlay.fade != 5u
+        || adapter.underlay.flags != 0x12u
+        || adapter.underlay.clipBoundary.size() != 4u
+        || adapter.underlay.clipBoundary[2].x != 64.0
+        || adapter.underlay.clipBoundary[2].y != 48.0
+        || adapter.underlay.inverseClipBoundary.size() != 4u
+        || adapter.underlay.inverseClipBoundary[2].x != 56.0
+        || adapter.underlay.inverseClipBoundary[2].y != 40.0
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
@@ -3177,6 +3258,36 @@ bool matchesReadback(const std::filesystem::path& path) {
             && rawXrecord->groups.size() > 3u
             && rawXrecord->groups[3].c_str() != nullptr)
             std::cerr << " rawPayload=" << rawXrecord->groups[3].c_str();
+        std::cerr << " underlay-definitions=" << adapter.underlayDefinitionCount
+                  << " underlay-entities=" << adapter.underlayCount
+                  << " underlay-def-handle=" << adapter.underlayDefinition.handle
+                  << " underlay-def-parent=" << adapter.underlayDefinition.parentHandle
+                  << " underlay-def-name=" << adapter.underlayDefinition.filename
+                  << '/' << adapter.underlayDefinition.sheetName
+                  << " underlay-handle=" << adapter.underlay.handle
+                  << " underlay-kind=" << adapter.underlay.kind
+                  << " underlay-ref=" << adapter.underlay.definitionHandle
+                  << " flags=" << static_cast<unsigned>(adapter.underlay.flags)
+                  << " pos=" << adapter.underlay.position.x << ','
+                  << adapter.underlay.position.y << ','
+                  << adapter.underlay.position.z
+                  << " scale=" << adapter.underlay.scale.x << ','
+                  << adapter.underlay.scale.y << ','
+                  << adapter.underlay.scale.z
+                  << " rotation=" << adapter.underlay.rotation
+                  << " contrast/fade=" << static_cast<unsigned>(adapter.underlay.contrast)
+                  << '/' << static_cast<unsigned>(adapter.underlay.fade)
+                  << " clip=" << adapter.underlay.clipBoundary.size()
+                  << ':' << (adapter.underlay.clipBoundary.size() > 2u
+                          ? adapter.underlay.clipBoundary[2].x : -1.0)
+                  << ',' << (adapter.underlay.clipBoundary.size() > 2u
+                          ? adapter.underlay.clipBoundary[2].y : -1.0)
+                  << " inverse-clip="
+                  << adapter.underlay.inverseClipBoundary.size()
+                  << ':' << (adapter.underlay.inverseClipBoundary.size() > 2u
+                          ? adapter.underlay.inverseClipBoundary[2].x : -1.0)
+                  << ',' << (adapter.underlay.inverseClipBoundary.size() > 2u
+                          ? adapter.underlay.inverseClipBoundary[2].y : -1.0);
         std::cerr << '\n';
         return false;
     }

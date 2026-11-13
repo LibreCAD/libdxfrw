@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **114 completed implementation slices** and **35 remaining
+The plan records **115 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`114 / (114 + 35) = 76.5%`. This is a count-based progress measure, not an
+`115 / (115 + 35) = 76.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1483,6 +1483,16 @@ the destination and caller fields; same-writer retries reproduce clean output
 and typed readback checks the color payload, parent and root membership. The
 encoded owner role is not independently inspected. The focused transaction
 CTest passes in 5.25 seconds. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 UNDERLAY transaction slice (2026-11-13):** the sweep now writes a
+generated PDFUNDERLAY plus its PDFDEFINITION, with entity-to-definition
+handle, position/scale/rotation, contrast/fade and normal/inverse clip paths.
+All 818 ASCII and 801 Binary allocation failures preserve destination and
+caller state; same-writer retries reproduce clean output and typed readback
+closes the entity reference to its definition. This does not prove named
+underlay-dictionary membership or native PDF display. The focused transaction
+CTest passes in 5.70 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
