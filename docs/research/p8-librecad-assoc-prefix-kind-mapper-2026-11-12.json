@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-librecad-assoc-prefix-kind-mapper-2026-11-12",
+  "purpose": "Preserve and classify all associative-prefix kinds exposed by current upstream libdxfrw in LibreCAD diagnostic metadata.",
+  "trigger": "The clean LibreCAD origin/master filter compile against the upstream libdxfrw overlay warned that four newer associative-prefix enum values were not handled by the metadata mapper.",
+  "implementation": {
+    "repository": "LibreCAD",
+    "commit": "9e1bde5b3",
+    "files": [
+      "librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h",
+      "librecad/src/lib/filters/tests/entity_metadata_tests.cpp"
+    ],
+    "behavior": "The diagnostic adapter now maps AcDbAssocValueDependency, AcDbAssocDependencyBody, AcDbAssoc2dConstraintGroup and AcDbAssocVariable to distinct LibreCAD metadata kinds, names and counts. New count members are appended after existing fields to preserve their offsets; enum values are appended to preserve existing values.",
+    "scope": "Diagnostic metadata transport only; no associative graph/output or semantic support claim."
+  },
+  "validation": {
+    "cleanFilterCompile": "cmake --build /private/tmp/librecad-upstream-libdxfrw-check-build --target librecad_filter_compile_check -j6 PASS after the mapper change, with no associative-prefix switch warning.",
+    "standaloneMetadataSmoke": "Compiled against the clean overlay's CMake include/flag set, linked to the current upstream libdxfrw archive, then executed PASS. It maps all four kinds distinctly and checks prefix totals, per-kind counts and complete status counts.",
+    "broaderTestTarget": "The dedicated librecad_entity_metadata_tests target could not build because the existing entity_metadata_tests.cpp has unrelated DRW_TableCellAttribute initializer errors at earlier table-test sites against the upstream overlay API. The four-kind smoke test isolates and passes the changed mapper path.",
+    "diffCheck": "git diff --check on the two changed LibreCAD paths PASS."
+  },
+  "compatibility": {
+    "sourceStatus": "The current upstream enum values are retained as four separate LibreCAD diagnostic categories; they are not collapsed into older kinds.",
+    "binaryLayout": "Existing count fields retain their original offsets because additions are appended. Full ABI compatibility remains unqualified."
+  },
+  "limitations": [
+    "No full LibreCAD application build or runtime test was completed.",
+    "No LibreCAD_3 application, binary ABI, Linux/Windows platform, or native associative behavior qualification follows.",
+    "The open P8 consumer/platform/release gate remains open."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture added.",
+  "supportClaimEffect": "Removes the four-case upstream-enum mapper warning and preserves their diagnostic categories; does not promote DWG/DXF support claims."
+}
