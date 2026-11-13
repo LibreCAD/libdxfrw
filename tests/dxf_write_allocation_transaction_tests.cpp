@@ -55,6 +55,7 @@ constexpr std::uint32_t kPlaneSurfaceHandle = 0xD937u;
 constexpr std::uint32_t kExtrudedSurfaceHandle = 0xD938u;
 constexpr std::uint32_t kRevolvedSurfaceHandle = 0xD939u;
 constexpr std::uint32_t kNurbsSurfaceHandle = 0xD93Au;
+constexpr std::uint32_t kScaleHandle = 0xD93Bu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -507,6 +508,12 @@ public:
         nurbsSurface.vvec1 = DRW_Coord(0.0, 1.0, 0.0);
         nurbsSurface.uvec2 = DRW_Coord(2.0, 0.0, 0.0);
         nurbsSurface.vvec2 = DRW_Coord(0.0, 2.0, 0.0);
+        scale.handle = kScaleHandle;
+        scale.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        scale.name = "WHOLE_OPERATION_SCALE";
+        scale.paperUnits = 2.0;
+        scale.drawingUnits = 5.0;
+        scale.isUnitScale = false;
     }
 
     void writeEntities() override {
@@ -550,6 +557,7 @@ public:
     void writeObjects() override {
         dx_iface::writeObjects();
         objectsWritten = output.writeMLineStyle(&mlineStyle)
+            && output.writeScale(&scale)
             && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
@@ -596,6 +604,7 @@ public:
     DRW_ExtrudedSurface extrudedSurface;
     DRW_RevolvedSurface revolvedSurface;
     DRW_NurbsSurface nurbsSurface;
+    DRW_Scale scale;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -727,6 +736,11 @@ public:
         ++materialCount;
         material = value;
     }
+    void addScale(const DRW_Scale& value) override {
+        dx_iface::addScale(value);
+        ++scaleCount;
+        scale = value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -798,6 +812,7 @@ public:
     DRW_ExtrudedSurface extrudedSurface;
     DRW_RevolvedSurface revolvedSurface;
     DRW_NurbsSurface nurbsSurface;
+    DRW_Scale scale;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -834,6 +849,7 @@ public:
     unsigned extrudedSurfaceCount = 0u;
     unsigned revolvedSurfaceCount = 0u;
     unsigned nurbsSurfaceCount = 0u;
+    unsigned scaleCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1244,6 +1260,13 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.nurbsSurface.vvec1.y == 1.0
         && adapter.nurbsSurface.uvec2.x == 2.0
         && adapter.nurbsSurface.vvec2.y == 2.0
+        && adapter.scale.handle == kScaleHandle
+        && adapter.scale.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.scale.name == "WHOLE_OPERATION_SCALE"
+        && adapter.scale.flag == 0
+        && adapter.scale.paperUnits == 2.0
+        && adapter.scale.drawingUnits == 5.0
+        && !adapter.scale.isUnitScale
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1694,6 +1717,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.nurbsSurface.vvec1.y != 1.0
         || adapter.nurbsSurface.uvec2.x != 2.0
         || adapter.nurbsSurface.vvec2.y != 2.0
+        || adapter.scaleCount != 1u
+        || adapter.scale.handle == 0u
+        || adapter.scale.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.scale.name != "WHOLE_OPERATION_SCALE"
+        || adapter.scale.flag != 0
+        || adapter.scale.paperUnits != 2.0
+        || adapter.scale.drawingUnits != 5.0
+        || adapter.scale.isUnitScale
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

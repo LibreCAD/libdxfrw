@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-scale-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for an OBJECTS SCALE record.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "fields": {
+      "name": "WHOLE_OPERATION_SCALE",
+      "paperUnits": 2.0,
+      "drawingUnits": 5.0,
+      "isUnitScale": false,
+      "flag": 0
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 524,
+      "binary": 518,
+      "eachOffset": "Injected failure refused the write, preserved the previous destination and caller SCALE identity/owner/name/units/flags, and allowed same-codec retry to reproduce clean output and typed readback."
+    }
+  },
+  "scopeLimit": "This closes allocation transaction coverage for one generated AC1027 SCALE OBJECTS record only. It does not qualify annotation rendering, independent interoperability, or general scale behavior.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}
