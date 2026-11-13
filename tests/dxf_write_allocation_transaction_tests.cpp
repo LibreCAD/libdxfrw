@@ -102,6 +102,7 @@ constexpr std::uint32_t kMultiLeaderHandle = 0xD94Au;
 constexpr std::uint32_t kDynamicConstraintDimensionHandle = 0xD94Bu;
 constexpr std::uint32_t kLegacyDynamicConstraintDimensionHandle = 0xD94Cu;
 constexpr std::uint32_t kDirectAttdefHandle = 0xD94Du;
+constexpr std::uint32_t kPointCloudColorMapHandle = 0xD94Eu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -688,6 +689,21 @@ public:
         material.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         material.m_name = "WHOLE_OPERATION_MATERIAL";
         material.m_description = "material allocation retry";
+        pointCloudColorMap.handle = kPointCloudColorMapHandle;
+        pointCloudColorMap.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        pointCloudColorMap.m_classVersion = 4;
+        pointCloudColorMap.m_defaultIntensityColorScheme = "intensity ramp";
+        pointCloudColorMap.m_defaultElevationColorScheme = "elevation ramp";
+        pointCloudColorMap.m_defaultClassificationColorScheme = "classification ramp";
+        pointCloudColorMap.m_colorRamps = {
+            {2, 3u, {"ground", "canopy", "roof"}},
+            {3, 2u, {"low", "high"}}};
+        pointCloudColorMap.m_colorRampCount =
+            static_cast<std::uint32_t>(pointCloudColorMap.m_colorRamps.size());
+        pointCloudColorMap.m_classificationColorRamps = {
+            {4, 2u, {"road", "rail"}}};
+        pointCloudColorMap.m_classificationColorRampCount =
+            static_cast<std::uint32_t>(pointCloudColorMap.m_classificationColorRamps.size());
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1019,6 +1035,7 @@ public:
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
+            && output.writePointCloudColorMap(&pointCloudColorMap)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
@@ -1091,6 +1108,7 @@ public:
     DRW_XRecord typedXRecord;
     DRW_MLeader multiLeader;
     DRW_Material material;
+    DRW_PointCloudColorMap pointCloudColorMap;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1406,6 +1424,10 @@ public:
         ++materialCount;
         material = value;
     }
+    void addPointCloudColorMap(const DRW_PointCloudColorMap& value) override {
+        ++pointCloudColorMapCount;
+        pointCloudColorMap = value;
+    }
     void addScale(const DRW_Scale& value) override {
         dx_iface::addScale(value);
         ++scaleCount;
@@ -1531,6 +1553,7 @@ public:
     DRW_Xline xline;
     DRW_Helix helix;
     DRW_Material material;
+    DRW_PointCloudColorMap pointCloudColorMap;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1604,6 +1627,7 @@ public:
     unsigned xlineCount = 0u;
     unsigned helixCount = 0u;
     unsigned materialCount = 0u;
+    unsigned pointCloudColorMapCount = 0u;
     unsigned loftedSurfaceCount = 0u;
     unsigned sweptSurfaceCount = 0u;
     unsigned planeSurfaceCount = 0u;
@@ -2285,6 +2309,31 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.material.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
         && adapter.material.m_name == "WHOLE_OPERATION_MATERIAL"
         && adapter.material.m_description == "material allocation retry"
+        && adapter.pointCloudColorMap.handle == kPointCloudColorMapHandle
+        && adapter.pointCloudColorMap.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.pointCloudColorMap.m_classVersion == 4
+        && adapter.pointCloudColorMap.m_defaultIntensityColorScheme
+            == "intensity ramp"
+        && adapter.pointCloudColorMap.m_defaultElevationColorScheme
+            == "elevation ramp"
+        && adapter.pointCloudColorMap.m_defaultClassificationColorScheme
+            == "classification ramp"
+        && adapter.pointCloudColorMap.m_colorRampCount == 2u
+        && adapter.pointCloudColorMap.m_colorRamps.size() == 2u
+        && adapter.pointCloudColorMap.m_colorRamps[0].m_classVersion == 2
+        && adapter.pointCloudColorMap.m_colorRamps[0].m_rampCount == 3u
+        && adapter.pointCloudColorMap.m_colorRamps[0].m_colorSchemes
+            == std::vector<UTF8STRING>{"ground", "canopy", "roof"}
+        && adapter.pointCloudColorMap.m_colorRamps[1].m_classVersion == 3
+        && adapter.pointCloudColorMap.m_colorRamps[1].m_rampCount == 2u
+        && adapter.pointCloudColorMap.m_colorRamps[1].m_colorSchemes
+            == std::vector<UTF8STRING>{"low", "high"}
+        && adapter.pointCloudColorMap.m_classificationColorRampCount == 1u
+        && adapter.pointCloudColorMap.m_classificationColorRamps.size() == 1u
+        && adapter.pointCloudColorMap.m_classificationColorRamps[0].m_classVersion == 4
+        && adapter.pointCloudColorMap.m_classificationColorRamps[0].m_colorSchemes
+            == std::vector<UTF8STRING>{"road", "rail"}
         && adapter.loftedSurface.handle == kLoftedSurfaceHandle
         && adapter.loftedSurface.modelerFormatVersion == 1
         && adapter.loftedSurface.uIsolines == 10
@@ -3218,6 +3267,33 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.material.handle == 0u
         || adapter.material.m_name != "WHOLE_OPERATION_MATERIAL"
         || adapter.material.m_description != "material allocation retry"
+        || adapter.pointCloudColorMapCount != 1u
+        || adapter.pointCloudColorMap.handle == 0u
+        || adapter.pointCloudColorMap.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.pointCloudColorMap.m_classVersion != 4
+        || adapter.pointCloudColorMap.m_defaultIntensityColorScheme
+            != "intensity ramp"
+        || adapter.pointCloudColorMap.m_defaultElevationColorScheme
+            != "elevation ramp"
+        || adapter.pointCloudColorMap.m_defaultClassificationColorScheme
+            != "classification ramp"
+        || adapter.pointCloudColorMap.m_colorRampCount != 2u
+        || adapter.pointCloudColorMap.m_colorRamps.size() != 2u
+        || adapter.pointCloudColorMap.m_colorRamps[0].m_classVersion != 2
+        || adapter.pointCloudColorMap.m_colorRamps[0].m_rampCount != 3u
+        || adapter.pointCloudColorMap.m_colorRamps[0].m_colorSchemes
+            != std::vector<UTF8STRING>{"ground", "canopy", "roof"}
+        || adapter.pointCloudColorMap.m_colorRamps[1].m_classVersion != 3
+        || adapter.pointCloudColorMap.m_colorRamps[1].m_rampCount != 2u
+        || adapter.pointCloudColorMap.m_colorRamps[1].m_colorSchemes
+            != std::vector<UTF8STRING>{"low", "high"}
+        || adapter.pointCloudColorMap.m_classificationColorRampCount != 1u
+        || adapter.pointCloudColorMap.m_classificationColorRamps.size() != 1u
+        || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_classVersion != 4
+        || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_rampCount != 2u
+        || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_colorSchemes
+            != std::vector<UTF8STRING>{"road", "rail"}
         || adapter.loftedSurfaceCount != 1u
         || adapter.loftedSurface.handle == 0u
         || adapter.loftedSurface.modelerFormatVersion != 1

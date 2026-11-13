@@ -4364,6 +4364,15 @@ same-writer retry reproduces clean output and typed readback verifies the
 standalone record. The focused transaction CTest passes 1/1 in 6.23 seconds.
 This closes that direct writer route only; the public-writer inventory remains
 open ([receipt](docs/research/p6-dxf-attdef-direct-writer-allocation-rollback-retry-2026-11-13.json)).
+The same whole-operation sweep now calls `writePointCloudColorMap()` with two
+intensity/elevation ramps and one classification ramp, each carrying multiple
+scheme strings. All 935 ASCII and 914 Binary injected allocation failures
+preserve caller fields and the previous destination; same-writer retry
+reproduces clean output and typed readback verifies each declared ramp count,
+class version and ordered scheme list. The focused transaction CTest passes
+1/1. This is generated codec and transaction evidence only; dictionary
+membership, native point-cloud styling and independent consumer semantics remain
+unqualified ([receipt](docs/research/p6-dxf-pointcloud-colormap-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
