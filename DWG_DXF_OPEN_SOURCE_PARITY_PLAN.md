@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **194 completed implementation slices** and **35 remaining
+The plan records **195 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`194 / (194 + 35) = 84.7%`. This is a count-based progress measure, not an
+`195 / (195 + 35) = 84.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4900,6 +4900,15 @@ ATTDEF type 4 and nested MTEXT fields. Normal and ASan focused CTests pass. This
 does not qualify producer breadth, outer annotative metadata, or native
 attribute-definition behavior; see the [ATTDEF transaction receipt]
 (docs/research/p6-dxf-r2018-embedded-attdef-allocation-rollback-retry-2026-11-13.json).
+**P6-G attributed MINSERT array transaction follow-up (2026-11-13):** the
+existing attributed INSERT whole-operation sweep now uses a real 2-column by
+3-row MINSERT array with nonzero row/column spacing and two attached ATTRIBs.
+All seven tested DXF revisions (AC1014 through AC1032) in ASCII and Binary
+retain the counts and spacing through typed readback; the 1,842 measured
+allocation offsets preserve caller and destination state and pass same-codec
+retry. This closes the generated compound array writer profile only; consumer
+array expansion, producer interoperability, and native MINSERT semantics
+remain separate gates ([receipt](docs/research/p6-dxf-minsert-attributed-array-allocation-rollback-retry-2026-11-13.json)).
 **P6-G long UTF-8 MTEXT chunk transaction slice (2026-11-13):** a separate
 AC1027 generated whole-write selector now sweeps a 552-byte MTEXT payload whose
 three-byte euro sign crosses the 250-byte chunk boundary. All 101 ASCII and

@@ -1622,6 +1622,10 @@ public:
         insert.handle = 0xDA20u;
         insert.name = "LEGACY_ATTRIBUTED_INSERT_BLOCK";
         insert.basePoint = DRW_Coord{11.0, 12.0, 0.0};
+        insert.colcount = 2;
+        insert.rowcount = 3;
+        insert.colspace = 4.5;
+        insert.rowspace = 5.5;
         for (unsigned i = 0; i < 2u; ++i) {
             auto attribute = std::make_shared<DRW_Attrib>();
             attribute->handle = 0xDA21u + i;
@@ -6619,6 +6623,9 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
             || adapter.polyline.vertlist[1]->basePoint.y != 24.0
             || adapter.insert.handle != 0xDA20u
             || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
+            || !adapter.insert.isMInsert()
+            || adapter.insert.colcount != 2 || adapter.insert.rowcount != 3
+            || adapter.insert.colspace != 4.5 || adapter.insert.rowspace != 5.5
             || adapter.insert.attlist.size() != 2u)
             return false;
         for (unsigned i = 0; i < 2u; ++i) {
@@ -6661,6 +6668,9 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
             || adapter.polyline3.seqEndEntity->handle == 0u
             || adapter.insertCount != 1u
             || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
+            || !adapter.insert.isMInsert()
+            || adapter.insert.colcount != 2 || adapter.insert.rowcount != 3
+            || adapter.insert.colspace != 4.5 || adapter.insert.rowspace != 5.5
             || adapter.insert.attlist.size() != 2u) {
             std::cerr << "legacy compound readback read=" << read
                       << " error=" << reader.getError()
