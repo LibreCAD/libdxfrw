@@ -43,6 +43,8 @@ constexpr std::uint32_t kSolidHandle = 0xD92Bu;
 constexpr std::uint32_t kTraceHandle = 0xD92Cu;
 constexpr std::uint32_t kTextHandle = 0xD92Du;
 constexpr std::uint32_t kMTextHandle = 0xD92Eu;
+constexpr std::uint32_t kRayHandle = 0xD92Fu;
+constexpr std::uint32_t kXlineHandle = 0xD930u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -345,6 +347,12 @@ public:
         mtext.style = "STANDARD";
         mtext.m_definedHeight = 2.25;
         mtext.m_definedHeightPresent = true;
+        ray.handle = kRayHandle;
+        ray.basePoint = DRW_Coord(-5.0, 7.0, 2.0);
+        ray.secPoint = DRW_Coord(1.0, 2.0, 3.0);
+        xline.handle = kXlineHandle;
+        xline.basePoint = DRW_Coord(8.0, -6.0, 4.0);
+        xline.secPoint = DRW_Coord(-2.0, 1.0, 0.5);
     }
 
     void writeEntities() override {
@@ -373,7 +381,9 @@ public:
             && check("SOLID", output.writeLine(&solid))
             && check("TRACE", output.writeLine(&trace))
             && check("TEXT", output.writeText(&text))
-            && check("MTEXT", output.writeMText(&mtext));
+            && check("MTEXT", output.writeMText(&mtext))
+            && check("RAY", output.writeLine(&ray))
+            && check("XLINE", output.writeLine(&xline));
     }
 
     void writeObjects() override {
@@ -412,6 +422,8 @@ public:
     DRW_Trace trace;
     DRW_Text text;
     DRW_MText mtext;
+    DRW_Ray ray;
+    DRW_Xline xline;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -523,6 +535,16 @@ public:
         ++mtextCount;
         mtext = value;
     }
+    void addRay(const DRW_Ray& value) override {
+        dx_iface::addRay(value);
+        ++rayCount;
+        ray = value;
+    }
+    void addXline(const DRW_Xline& value) override {
+        dx_iface::addXline(value);
+        ++xlineCount;
+        xline = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -556,6 +578,8 @@ public:
     DRW_Trace trace;
     DRW_Text text;
     DRW_MText mtext;
+    DRW_Ray ray;
+    DRW_Xline xline;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -581,6 +605,8 @@ public:
     unsigned traceCount = 0u;
     unsigned textCount = 0u;
     unsigned mtextCount = 0u;
+    unsigned rayCount = 0u;
+    unsigned xlineCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -795,6 +821,20 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.mtext.style == "STANDARD"
         && adapter.mtext.m_definedHeight == 2.25
         && adapter.mtext.m_definedHeightPresent
+        && adapter.ray.handle == kRayHandle
+        && adapter.ray.basePoint.x == -5.0
+        && adapter.ray.basePoint.y == 7.0
+        && adapter.ray.basePoint.z == 2.0
+        && adapter.ray.secPoint.x == 1.0
+        && adapter.ray.secPoint.y == 2.0
+        && adapter.ray.secPoint.z == 3.0
+        && adapter.xline.handle == kXlineHandle
+        && adapter.xline.basePoint.x == 8.0
+        && adapter.xline.basePoint.y == -6.0
+        && adapter.xline.basePoint.z == 4.0
+        && adapter.xline.secPoint.x == -2.0
+        && adapter.xline.secPoint.y == 1.0
+        && adapter.xline.secPoint.z == 0.5
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1074,6 +1114,22 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mtext.style != "STANDARD"
         || adapter.mtext.m_definedHeight != 2.25
         || !adapter.mtext.m_definedHeightPresent
+        || adapter.rayCount != 1u
+        || adapter.ray.handle == 0u
+        || adapter.ray.basePoint.x != -5.0
+        || adapter.ray.basePoint.y != 7.0
+        || adapter.ray.basePoint.z != 2.0
+        || std::abs(adapter.ray.secPoint.x - 1.0 / std::sqrt(14.0)) > 1.0e-12
+        || std::abs(adapter.ray.secPoint.y - 2.0 / std::sqrt(14.0)) > 1.0e-12
+        || std::abs(adapter.ray.secPoint.z - 3.0 / std::sqrt(14.0)) > 1.0e-12
+        || adapter.xlineCount != 1u
+        || adapter.xline.handle == 0u
+        || adapter.xline.basePoint.x != 8.0
+        || adapter.xline.basePoint.y != -6.0
+        || adapter.xline.basePoint.z != 4.0
+        || std::abs(adapter.xline.secPoint.x - -2.0 / std::sqrt(5.25)) > 1.0e-12
+        || std::abs(adapter.xline.secPoint.y - 1.0 / std::sqrt(5.25)) > 1.0e-12
+        || std::abs(adapter.xline.secPoint.z - 0.5 / std::sqrt(5.25)) > 1.0e-12
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
@@ -1127,6 +1183,18 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << " point=" << adapter.point.basePoint.x << ','
                   << adapter.point.basePoint.y << ',' << adapter.point.basePoint.z
                   << " angle=" << adapter.point.xAxisAngle
+                  << " rays=" << adapter.rayCount << " rayHandle="
+                  << adapter.ray.handle << " rayBase="
+                  << adapter.ray.basePoint.x << ',' << adapter.ray.basePoint.y
+                  << ',' << adapter.ray.basePoint.z << " rayDir="
+                  << adapter.ray.secPoint.x << ',' << adapter.ray.secPoint.y
+                  << ',' << adapter.ray.secPoint.z << " xlines="
+                  << adapter.xlineCount << " xlineHandle="
+                  << adapter.xline.handle << " xlineBase="
+                  << adapter.xline.basePoint.x << ',' << adapter.xline.basePoint.y
+                  << ',' << adapter.xline.basePoint.z << " xlineDir="
+                  << adapter.xline.secPoint.x << ',' << adapter.xline.secPoint.y
+                  << ',' << adapter.xline.secPoint.z
                   << " blocks=" << adapter.storage.blocks.size()
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
