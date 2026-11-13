@@ -44,7 +44,7 @@ dx_data makeSource() {
     line->layer = "0";
     line->basePoint = DRW_Coord(1.0, 2.0, 0.0);
     line->secPoint = DRW_Coord(3.0, 4.0, 0.0);
-    line->reactorHandles.push_back(0x904u);
+    line->reactorHandles = {0x904u, 0x906u};
     source.mBlock->ent.push_back(line);
 
     DRW_AssociativeObject network("ACDBASSOCNETWORK");
@@ -74,12 +74,12 @@ dx_data makeSource() {
     group.m_constraintGroupBodyParsed = true;
     group.m_constraintGroupVersion = 0;
     group.m_constraintActionsParsed = true;
-    group.m_constraintActionCount = 1;
-    group.m_constraintActions.push_back(0x904u);
+    group.m_constraintActions = {0x904u, 0x906u};
+    group.m_constraintActionCount = 2;
     group.m_constraintNextNodeIdRead = true;
     group.m_constraintNextNodeId = 3;
     group.m_constraintNodesParsed = true;
-    group.m_constraintNodeCount = 2;
+    group.m_constraintNodeCount = 4;
     DRW_AssociativeConstraintNode node;
     node.m_className = "AcConstrainedImplicitPoint";
     node.m_nodeId = 1;
@@ -99,6 +99,31 @@ dx_data makeSource() {
     node.m_geometryDependencyHandle = 0u;
     node.m_geometryNodeId = 0;
     group.m_constraintNodes.push_back(node);
+    node = DRW_AssociativeConstraintNode();
+    node.m_className = "AcHorizontalConstraint";
+    node.m_nodeId = 3;
+    node.m_dataKind =
+        DRW_AssociativeConstraintNode::DataKind::Horizontal;
+    node.m_hasDatumLineIndex = true;
+    node.m_datumLineIndex = 12;
+    node.m_classDataParsed = true;
+    group.m_constraintNodes.push_back(node);
+    node = DRW_AssociativeConstraintNode();
+    node.m_className = "AcConstrainedCircle";
+    node.m_nodeId = 4;
+    node.m_dataKind = DRW_AssociativeConstraintNode::DataKind::Circle;
+    node.m_hasGeometryDependency = true;
+    node.m_geometryDependencyCode = DRW::DwgSoftPointer;
+    node.m_geometryDependencyHandle = 0x906u;
+    node.m_geometryNodeId = 8;
+    node.m_center = DRW_Coord(1.0, 2.0, 3.0);
+    node.m_normal = DRW_Coord(0.0, 0.0, 1.0);
+    node.m_direction = DRW_Coord(1.0, 0.0, 0.0);
+    node.m_radius = 4.0;
+    node.m_startParameter = 0.25;
+    node.m_endParameter = 0.75;
+    node.m_classDataParsed = true;
+    group.m_constraintNodes.push_back(node);
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
@@ -106,7 +131,7 @@ dx_data makeSource() {
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
-        2u, 2u, 2, "authored two-node inline implicit-point profile"});
+        4u, 4u, 4, "authored four-node inline constraint profile"});
 
     DRW_AssociativeObject dependency("ACDBASSOCGEOMDEPENDENCY");
     dependency.handle = 0x904u;
@@ -137,7 +162,12 @@ dx_data makeSource() {
         0u, 0u, 0u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
         0u, 4u, 0, "authored Edge subentity profile"});
 
-    source.dwgAssociativeObjects = {network, group, dependency};
+    DRW_AssociativeObject circleDependency = dependency;
+    circleDependency.handle = 0x906u;
+    circleDependency.parentHandle = group.handle;
+    circleDependency.m_dependencyHandle = line->handle;
+    source.dwgAssociativeObjects = {network, group, dependency,
+                                    circleDependency};
     dx_associativeDwgImportReceipt& receipt = source.associativeDwgImport;
     receipt.generation = source.importGeneration;
     receipt.sourceVersion = source.sourceVersion;
@@ -185,17 +215,25 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
 }
 
 bool sourceGraphUnchanged(const dx_data& source) {
-    if (source.dwgAssociativeObjects.size() != 3u
+    if (source.dwgAssociativeObjects.size() != 4u
         || source.dwgAssociativeObjects[0].handle != 0x902u
         || source.dwgAssociativeObjects[1].handle != 0x903u
-        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 2
-        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 2u
+        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 4
+        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 4u
         || source.dwgAssociativeObjects[1].m_constraintNodes[0].m_nodeId != 1
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_nodeId != 2
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_className
             != "AcFixedConstraint"
         || source.dwgAssociativeObjects[1].m_constraintNodes[1]
                 .m_hasGeometryDependency
+        || source.dwgAssociativeObjects[1].m_constraintNodes[2].m_className
+            != "AcHorizontalConstraint"
+        || source.dwgAssociativeObjects[1].m_constraintNodes[2]
+                .m_datumLineIndex != 12
+        || source.dwgAssociativeObjects[1].m_constraintNodes[3].m_className
+            != "AcConstrainedCircle"
+        || source.dwgAssociativeObjects[1].m_constraintNodes[3].m_radius
+            != 4.0
         || source.dwgAssociativeObjects[2].handle != 0x904u
         || source.dwgAssociativeObjects[2].parentHandle != 0x903u
         || source.dwgAssociativeObjects[2].m_dependencyHandle != 0x905u
@@ -203,13 +241,16 @@ bool sourceGraphUnchanged(const dx_data& source) {
             != 201
         || source.dwgAssociativeObjects[2].m_geomPersistentSubentityIndex2
             != 202
+        || source.dwgAssociativeObjects[3].handle != 0x906u
+        || source.dwgAssociativeObjects[3].parentHandle != 0x903u
+        || source.dwgAssociativeObjects[3].m_dependencyHandle != 0x905u
         || source.mBlock == nullptr || source.mBlock->ent.size() != 1u)
         return false;
     const auto* line = dynamic_cast<const DRW_Line*>(
         source.mBlock->ent.front());
     return line != nullptr && line->handle == 0x905u
         && line->reactorHandles
-            == std::vector<std::uint32_t>{0x904u};
+            == std::vector<std::uint32_t>{0x904u, 0x906u};
 }
 
 bool verify(const std::filesystem::path& path) {
@@ -217,7 +258,7 @@ bool verify(const std::filesystem::path& path) {
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
         || !data.hasNamedObjectDictionary || data.mBlock == nullptr
-        || data.associativeObjects.size() != 3u)
+        || data.associativeObjects.size() != 4u)
         return false;
     const auto root = std::find_if(
         data.namedObjectDictionary.m_entries.begin(),
@@ -248,6 +289,11 @@ bool verify(const std::filesystem::path& path) {
         [](const DRW_AssociativeObject& object) {
             return object.m_recordName == "ACDBASSOCGEOMDEPENDENCY";
         });
+    const auto circleDependency = std::find_if(
+        data.associativeObjects.begin(), data.associativeObjects.end(),
+        [](const DRW_AssociativeObject& object) {
+            return object.handle == 0x906u;
+        });
     const DRW_Line* line = nullptr;
     for (const DRW_Entity* entity : data.mBlock->ent) {
         if (entity != nullptr && entity->eType == DRW::LINE) {
@@ -256,20 +302,29 @@ bool verify(const std::filesystem::path& path) {
         }
     }
     return root != data.namedObjectDictionary.m_entries.end()
-        && root->m_handle == dictionary->handle
         && dictionary != data.dictionaries.end()
+        && root->m_handle == dictionary->handle
         && dictionary->parentHandle == data.namedObjectDictionary.handle
         && network != data.associativeObjects.end()
         && group != data.associativeObjects.end()
-        && dependency != data.associativeObjects.end() && line != nullptr
+        && dependency != data.associativeObjects.end()
+        && circleDependency != data.associativeObjects.end()
+        && line != nullptr
+        && circleDependency->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
+        && circleDependency->parentHandle == 0x903u
+        && circleDependency->m_dependencyHandle == line->handle
+        && circleDependency->m_geomDependencyFieldsParsed
+        && circleDependency->m_geomPersistentSubentityIndex1 == 201
+        && circleDependency->m_geomPersistentSubentityIndex2 == 202
         && network->parentHandle == dictionary->handle
         && network->m_actions.size() == 1u
         && network->m_actions.front().m_handle == group->handle
         && group->parentHandle == network->handle
         && group->m_constraintActions
-            == std::vector<std::uint32_t>{dependency->handle}
-        && group->m_constraintNodes.size() == 2u
-        && group->m_constraintNodeCount == 2
+            == std::vector<std::uint32_t>{dependency->handle, 0x906u}
+        && group->m_constraintActionCount == 2
+        && group->m_constraintNodes.size() == 4u
+        && group->m_constraintNodeCount == 4
         && group->m_constraintNodes[0].m_nodeId == 1
         && group->m_constraintNodes.front().m_hasGeometryDependency
         && group->m_constraintNodes.front().m_geometryDependencyHandle
@@ -280,6 +335,21 @@ bool verify(const std::filesystem::path& path) {
             == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && !group->m_constraintNodes[1].m_hasGeometryDependency
         && group->m_constraintNodes[1].m_geometryDependencyHandle == 0u
+        && group->m_constraintNodes[2].m_className
+            == "AcHorizontalConstraint"
+        && group->m_constraintNodes[2].m_hasDatumLineIndex
+        && group->m_constraintNodes[2].m_datumLineIndex == 12
+        && group->m_constraintNodes[3].m_className
+            == "AcConstrainedCircle"
+        && group->m_constraintNodes[3].m_hasGeometryDependency
+        && group->m_constraintNodes[3].m_geometryDependencyHandle == 0x906u
+        && group->m_constraintNodes[3].m_geometryNodeId == 8
+        && group->m_constraintNodes[3].m_center.x == 1.0
+        && group->m_constraintNodes[3].m_center.y == 2.0
+        && group->m_constraintNodes[3].m_center.z == 3.0
+        && group->m_constraintNodes[3].m_radius == 4.0
+        && group->m_constraintNodes[3].m_startParameter == 0.25
+        && group->m_constraintNodes[3].m_endParameter == 0.75
         && dependency->parentHandle == group->handle
         && dependency->m_dependencyWireComplete
         && dependency->m_dependencyHandle == line->handle
@@ -290,7 +360,7 @@ bool verify(const std::filesystem::path& path) {
         && dependency->m_geomPersistentSubentityIndex1 == 201
         && dependency->m_geomPersistentSubentityIndex2 == 202
         && line->reactorHandles
-            == std::vector<std::uint32_t>{dependency->handle};
+            == std::vector<std::uint32_t>{dependency->handle, 0x906u};
 }
 
 bool run(const std::filesystem::path& directory) {

@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-associative-geometry-four-node-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1024_FOUR_NODE_ROOTED_GEOMETRY_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend existing rooted AC1024 whole-file allocation rollback/retry control to a four-node inline constraint group with distinct geometry-dependency references.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory dx_data graph",
+    "profile": "NOD ACAD_ASSOCNETWORK -> association DICTIONARY -> NETWORK -> owned 2D constraint GROUP -> two owned geometry dependencies -> one LINE target; four ordered inline nodes are an AcConstrainedImplicitPoint, AcFixedConstraint, AcHorizontalConstraint with datum-line index, and AcConstrainedCircle with geometry link, center, normal, direction, radius, and parameter bounds. The group has one action reference per geometry dependency and the LINE has both reciprocal dependency reactors.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/associative_geometry_graph_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-associative-geometry-four-node-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Expanded the generated constraint group to four inline nodes and two geometry dependencies. The new profiles cover datum-line index and circle geometry payload, reference a distinct dependency handle, and maintain the matching source graph action list and target reactor list. Strengthened caller-state and fresh typed readback assertions for all four nodes and both dependency relationships.",
+    "method": "Warm and calibrate per encoding. Inject std::bad_alloc at each reached OBJECTS callback allocation; require failed whole-file publication, byte-identical destination sentinel preservation, source graph preservation, same-adapter retry, and fresh typed DXF readback of root, ownership, all four ordered group nodes, both dependency targets/subentity fields, and reciprocal LINE reactors."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_associative_geometry_graph_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_associative_geometry_graph_allocation_retry$' --output-on-failure: PASS 1/1 in 0.62 seconds",
+    "ascii": "65/65 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed four-node rooted graph readback passed.",
+    "binary": "62/62 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed four-node rooted graph readback passed.",
+    "diffCheck": "PASS for tests/associative_geometry_graph_allocation_tests.cpp"
+  },
+  "limitations": [
+    "Generated transaction and readback evidence only; no physical producer prevalence, native constraint solving, or geometric semantics are established.",
+    "Only these four generated node shapes and one AC1024 graph are qualified by this transaction control; other node-class combinations and producer semantics remain open.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Four-node variable-size constraint-group emission in the existing rooted AC1024 whole-file transaction profile, including distinct geometry-dependency edges, checked across rollback, retry and typed readback.",
+    "remainingP6G": "Finish the public-writer inventory diff and qualify only uncovered direct routes, overloads, compound-record variants, and variable-size OBJECTS profiles; keep source/semantic and producer gates separate.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13.json"
+}

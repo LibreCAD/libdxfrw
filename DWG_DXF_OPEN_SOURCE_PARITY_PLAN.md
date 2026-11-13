@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **176 completed implementation slices** and **35 remaining
+The plan records **177 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`176 / (176 + 35) = 83.4%`. This is a count-based progress measure, not an
+`177 / (177 + 35) = 83.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1229,17 +1229,19 @@ P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work
 package or promote a support claim.
 
-**P6-G rooted associative graph repeated-node transaction slice (2026-11-13):**
-the existing generated AC1024 whole-file ASCII/Binary allocation sweep now
-serializes a constraint group with two inline nodes: one implicit point linked
-to the geometry dependency and one geometrical constraint node. The generated
-profile verifies node count, ordered node IDs/classes, optional reference
-absence, dependency linkage, source-state preservation, destination rollback,
-same-adapter retry, and fresh typed readback. All 54 ASCII and 51 Binary
-allocation offsets pass; the focused CTest passes in 0.49 seconds. This extends
-transaction coverage for a repeated variable-size group body only; it does not
-qualify additional producer profiles or constraint semantics. See the
-[follow-up receipt](docs/research/p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13.json).
+**P6-G rooted associative graph transaction follow-up (2026-11-13):** the
+generated AC1024 whole-file ASCII/Binary allocation sweep now serializes four
+ordered inline nodes: implicit point, geometrical constraint, horizontal
+constraint with datum-line index, and circle with geometry and curve fields.
+The latter nodes use distinct geometry-dependency records, with the source
+action list and target LINE reactors checked as reciprocal edges. The profile
+verifies source preservation, destination rollback, same-adapter retry, and
+fresh typed readback across all four node shapes. All 65 ASCII and 62 Binary
+allocation offsets pass; the focused CTest passes in 0.54 seconds. This is
+generated transaction and codec-readback evidence only, not producer or
+constraint-semantic qualification. The earlier two-node receipt is retained.
+See the [four-node receipt](docs/research/p6-dxf-associative-geometry-four-node-allocation-rollback-retry-2026-11-13.json)
+and [prior two-node receipt](docs/research/p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local caller-state slice (2026-11-13):** the whole-operation DXF
 allocation sweep now includes a generated AC1027 HELIX with spline controls,
