@@ -47,6 +47,7 @@ constexpr std::uint32_t kMTextHandle = 0xD92Eu;
 constexpr std::uint32_t kRayHandle = 0xD92Fu;
 constexpr std::uint32_t kXlineHandle = 0xD930u;
 constexpr std::uint32_t kAttdefHandle = 0xD931u;
+constexpr std::uint32_t kHelixHandle = 0xD933u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -372,6 +373,24 @@ public:
         xline.handle = kXlineHandle;
         xline.basePoint = DRW_Coord(8.0, -6.0, 4.0);
         xline.secPoint = DRW_Coord(-2.0, 1.0, 0.5);
+        helix.handle = kHelixHandle;
+        helix.m_majorVersion = 1;
+        helix.m_maintVersion = 2;
+        helix.degree = 2;
+        helix.flags = 8;
+        helix.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        helix.controllist = {
+            std::make_shared<DRW_Coord>(DRW_Coord(1.0, 0.0, 0.0)),
+            std::make_shared<DRW_Coord>(DRW_Coord(0.0, 1.0, 2.0)),
+            std::make_shared<DRW_Coord>(DRW_Coord(-1.0, 0.0, 4.0))};
+        helix.axisBasePt = DRW_Coord(2.0, 3.0, 4.0);
+        helix.startPt = DRW_Coord(3.0, 3.0, 4.0);
+        helix.axisVector = DRW_Coord(0.0, 0.0, 1.0);
+        helix.radius = 1.0;
+        helix.turns = 2.5;
+        helix.turnHeight = 3.0;
+        helix.handedness = true;
+        helix.constraintType = 1;
     }
 
     void writeEntities() override {
@@ -402,7 +421,8 @@ public:
             && check("TEXT", output.writeText(&text))
             && check("MTEXT", output.writeMText(&mtext))
             && check("RAY", output.writeLine(&ray))
-            && check("XLINE", output.writeLine(&xline));
+            && check("XLINE", output.writeLine(&xline))
+            && check("HELIX", output.writeHelix(&helix));
     }
 
     void writeObjects() override {
@@ -445,6 +465,7 @@ public:
     DRW_MText mtext;
     DRW_Ray ray;
     DRW_Xline xline;
+    DRW_Helix helix;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -566,6 +587,12 @@ public:
         ++xlineCount;
         xline = value;
     }
+    void addHelix(const DRW_Helix* value) override {
+        if (value != nullptr) {
+            ++helixCount;
+            helix = *value;
+        }
+    }
     void addAttDef(const DRW_Attdef& value) override {
         dx_iface::addAttDef(value);
         ++attdefCount;
@@ -606,6 +633,7 @@ public:
     DRW_MText mtext;
     DRW_Ray ray;
     DRW_Xline xline;
+    DRW_Helix helix;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -634,6 +662,7 @@ public:
     unsigned mtextCount = 0u;
     unsigned rayCount = 0u;
     unsigned xlineCount = 0u;
+    unsigned helixCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -911,6 +940,29 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.xline.secPoint.x == -2.0
         && adapter.xline.secPoint.y == 1.0
         && adapter.xline.secPoint.z == 0.5
+        && adapter.helix.handle == kHelixHandle
+        && adapter.helix.m_majorVersion == 1
+        && adapter.helix.m_maintVersion == 2
+        && adapter.helix.degree == 2
+        && adapter.helix.flags == 8
+        && adapter.helix.knotslist == std::vector<double>{0.0, 0.0, 0.0, 1.0, 1.0, 1.0}
+        && adapter.helix.controllist.size() == 3u
+        && adapter.helix.controllist.front()
+        && adapter.helix.controllist.front()->x == 1.0
+        && adapter.helix.controllist.back()
+        && adapter.helix.controllist.back()->z == 4.0
+        && adapter.helix.axisBasePt.x == 2.0
+        && adapter.helix.axisBasePt.y == 3.0
+        && adapter.helix.axisBasePt.z == 4.0
+        && adapter.helix.startPt.x == 3.0
+        && adapter.helix.startPt.y == 3.0
+        && adapter.helix.startPt.z == 4.0
+        && adapter.helix.axisVector.z == 1.0
+        && adapter.helix.radius == 1.0
+        && adapter.helix.turns == 2.5
+        && adapter.helix.turnHeight == 3.0
+        && adapter.helix.handedness
+        && adapter.helix.constraintType == 1
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1221,6 +1273,30 @@ bool matchesReadback(const std::filesystem::path& path) {
         || std::abs(adapter.xline.secPoint.x - -2.0 / std::sqrt(5.25)) > 1.0e-12
         || std::abs(adapter.xline.secPoint.y - 1.0 / std::sqrt(5.25)) > 1.0e-12
         || std::abs(adapter.xline.secPoint.z - 0.5 / std::sqrt(5.25)) > 1.0e-12
+        || adapter.helixCount != 1u
+        || adapter.helix.handle == 0u
+        || adapter.helix.m_majorVersion != 1
+        || adapter.helix.m_maintVersion != 2
+        || adapter.helix.degree != 2
+        || adapter.helix.flags != 8
+        || adapter.helix.knotslist != std::vector<double>{0.0, 0.0, 0.0, 1.0, 1.0, 1.0}
+        || adapter.helix.controllist.size() != 3u
+        || !adapter.helix.controllist.front()
+        || adapter.helix.controllist.front()->x != 1.0
+        || !adapter.helix.controllist.back()
+        || adapter.helix.controllist.back()->z != 4.0
+        || adapter.helix.axisBasePt.x != 2.0
+        || adapter.helix.axisBasePt.y != 3.0
+        || adapter.helix.axisBasePt.z != 4.0
+        || adapter.helix.startPt.x != 3.0
+        || adapter.helix.startPt.y != 3.0
+        || adapter.helix.startPt.z != 4.0
+        || adapter.helix.axisVector.z != 1.0
+        || adapter.helix.radius != 1.0
+        || adapter.helix.turns != 2.5
+        || adapter.helix.turnHeight != 3.0
+        || !adapter.helix.handedness
+        || adapter.helix.constraintType != 1
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

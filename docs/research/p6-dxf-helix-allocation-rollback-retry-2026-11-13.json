@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-helix-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for DXF HELIX output.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "fields": [
+      "HELIX major/maintenance version, degree, flags, knots, and control points",
+      "axis base point, start point, axis vector, radius, turns, turn height, handedness, and constraint type"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 461,
+      "binary": 455,
+      "eachOffset": "Injected failure refused the write, preserved the prior destination and source HELIX fields, and allowed same-codec retry to reproduce clean output and typed readback."
+    }
+  },
+  "scopeLimit": "This closes allocation transaction coverage for the generated AC1027 HELIX profile only. It does not qualify independent DXF interoperability, DWG HELIX parsing, curve evaluation, native rendering, or general HELIX support.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

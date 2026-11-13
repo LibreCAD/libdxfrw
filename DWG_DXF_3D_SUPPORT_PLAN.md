@@ -10763,3 +10763,13 @@ recorded as red and is not a pass for this slice. No drawing fixture was
 added. This is one generated malformed LINE recovery profile only; broader
 entity/version recovery and all support claims remain unchanged. See the
 [receipt](docs/research/p8-dwg-malformed-line-reader-recovery-2026-11-13.json).
+
+**P6 HELIX writer allocation rollback/retry (2026-11-13):** the generated
+whole-operation DXF write control now includes a variable-sized HELIX with
+knots, control points, axis geometry and helix-specific parameters. All 461
+ASCII and 455 Binary allocation-failure offsets preserve the destination and
+caller fields; same-codec retry reproduces clean bytes and typed readback.
+The focused transaction CTest passes 1/1. This is failure/retry coverage only;
+independent DXF acceptance, DWG parsing, curve evaluation and native HELIX
+semantics remain open. See the
+[receipt](docs/research/p6-dxf-helix-allocation-rollback-retry-2026-11-13.json).

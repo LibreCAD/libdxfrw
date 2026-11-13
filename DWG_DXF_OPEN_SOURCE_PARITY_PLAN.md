@@ -1186,6 +1186,14 @@ integration/release checkpoints.
 | P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json). |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
 
+**P6 local caller-state slice (2026-11-13):** the whole-operation DXF
+allocation sweep now includes a generated AC1027 HELIX with spline controls,
+knots and helix-specific geometry. All 461 ASCII and 455 Binary failure
+offsets preserve the existing destination and caller fields; corrected
+same-codec retries reproduce clean output and typed readback. Its focused
+CTest passes. This adds transaction evidence only; native or independent
+HELIX semantics and support remain unqualified. See the [receipt](docs/research/p6-dxf-helix-allocation-rollback-retry-2026-11-13.json).
+
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
 CLASSES CRC mismatch for all nine AC1024 DWGs currently under
