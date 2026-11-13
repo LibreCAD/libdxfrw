@@ -6766,6 +6766,254 @@ bool runSectionSettingsSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runBlockRecordSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "BLOCK_RECORD allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "block-record-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files");
+    const std::string sentinel = "previous complete document\n";
+    const std::string blockName = "LOCAL_BLOCK_RECORD_PROFILE";
+    const std::vector<std::uint8_t> preview = {
+        0x89u, 0x50u, 0x4Eu, 0x47u, 0x0Du, 0x0Au, 0x1Au, 0x0Au,
+        0x10u, 0x20u, 0x30u, 0x40u};
+    const std::vector<std::uint32_t> insertHandles = {0xA100u};
+    class BlockRecordExport final : public dx_iface {
+    public:
+        BlockRecordExport(dxfRW& codec, const std::string& name,
+                          const std::vector<std::uint8_t>& previewBytes,
+                          const std::vector<std::uint32_t>& inserts)
+            : output(codec), blockName(name), previewData(previewBytes),
+              sourceInsertHandles(inserts),
+              appId(1001, std::string("LOCAL_BLOCK_RECORD_APP")),
+              xdataText(1000, std::string("block-record metadata")) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+            DRW_AppId appIdRecord;
+            appIdRecord.name = "LOCAL_BLOCK_RECORD_APP";
+            storage.appIds.push_back(appIdRecord);
+            xdata = {&appId, &xdataText};
+            insert.handle = 0xA100u;
+            insert.parentHandle = DRW::DxfModelSpaceBlockRecordHandle;
+            insert.name = blockName;
+            insert.basePoint = DRW_Coord{12.0, 34.0, 0.0};
+        }
+        void writeBlockRecords() override {
+            blockRecordWritten = output.writeBlockRecord(
+                blockName, 4, previewData, sourceInsertHandles, xdata);
+            if (!blockRecordWritten && !allocationTracking)
+                std::cerr << "BLOCK_RECORD writer rejected staged rich record\n";
+        }
+        void writeEntities() override {
+            insertWritten = output.writeInsert(&insert);
+            if (!insertWritten && !allocationTracking)
+                std::cerr << "BLOCK_RECORD profile INSERT write failed\n";
+        }
+        bool finalizeDxfWrite() override {
+            return blockRecordWritten && insertWritten;
+        }
+        dxfRW& output;
+        dx_data storage;
+        std::string blockName;
+        std::vector<std::uint8_t> previewData;
+        std::vector<std::uint32_t> sourceInsertHandles;
+        DRW_Variant appId;
+        DRW_Variant xdataText;
+        std::vector<DRW_Variant*> xdata;
+        DRW_Insert insert;
+        bool blockRecordWritten = false;
+        bool insertWritten = false;
+    };
+    class BlockRecordReadback final : public dx_iface {
+    public:
+        struct Record {
+            std::uint32_t handle = DRW::NoHandle;
+            std::int32_t insUnits = 0;
+            std::string name;
+            std::vector<std::uint8_t> previewData;
+            std::vector<std::uint32_t> insertHandles;
+            std::vector<std::pair<int, std::string>> xdata;
+        };
+        explicit BlockRecordReadback(std::string target)
+            : targetName(std::move(target)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addBlockRecord(const DRW_Block_Record& value) override {
+            if (value.name != targetName)
+                return;
+            Record record;
+            record.handle = value.handle;
+            record.insUnits = value.insUnits;
+            record.name = value.name;
+            record.previewData = value.previewData;
+            record.insertHandles = value.insertHandles;
+            for (const DRW_Variant* item : value.extData) {
+                if (item == nullptr)
+                    continue;
+                if (item->type() == DRW_Variant::STRING
+                    && item->content.s != nullptr)
+                    record.xdata.emplace_back(item->code(), item->c_str());
+                else
+                    record.xdata.emplace_back(item->code(), std::string());
+            }
+            records.push_back(std::move(record));
+        }
+        void addInsert(const DRW_Insert& value) override {
+            inserts.push_back(value);
+        }
+        dx_data storage;
+        std::string targetName;
+        std::vector<Record> records;
+        std::vector<DRW_Insert> inserts;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        BlockRecordReadback probe(blockName);
+        const bool read = reader.read(&probe, true);
+        if (!read || probe.records.size() != 1u
+            || probe.inserts.size() != 1u) {
+            std::cerr << "BLOCK_RECORD readback read=" << read
+                      << " records=" << probe.records.size()
+                      << " inserts=" << probe.inserts.size() << '\n';
+            return false;
+        }
+        const BlockRecordReadback::Record& record = probe.records.front();
+        const DRW_Insert& inserted = probe.inserts.front();
+        const bool matches = record.handle != 0u && record.handle != DRW::NoHandle
+            && record.insUnits == 4 && record.name == blockName
+            && record.previewData == preview
+            && inserted.handle != 0u && inserted.handle != DRW::NoHandle
+            && record.insertHandles
+                == std::vector<std::uint32_t>{inserted.handle}
+            && record.xdata
+                == std::vector<std::pair<int, std::string>>{
+                    {1001, "LOCAL_BLOCK_RECORD_APP"},
+                    {1000, "block-record metadata"}}
+            && inserted.name == blockName
+            && inserted.basePoint.x == 12.0 && inserted.basePoint.y == 34.0;
+        if (!matches) {
+            std::cerr << "BLOCK_RECORD mismatch handle=" << record.handle
+                      << " insUnits=" << record.insUnits
+                      << " name=" << record.name
+                      << " preview=" << record.previewData.size()
+                      << " refs=" << record.insertHandles.size();
+            for (std::uint32_t handle : record.insertHandles)
+                std::cerr << ' ' << handle;
+            std::cerr << " xdata=" << record.xdata.size()
+                      << " insert=" << inserted.handle << ',' << inserted.name
+                      << ',' << inserted.basePoint.x << ','
+                      << inserted.basePoint.y << '\n';
+        }
+        return matches;
+    };
+    const auto sameCaller = [&](const BlockRecordExport& adapter,
+                                const DRW_Insert& original) {
+        return adapter.previewData == preview
+            && adapter.sourceInsertHandles == insertHandles
+            && adapter.insert.handle == original.handle
+            && adapter.insert.parentHandle == original.parentHandle
+            && adapter.insert.name == original.name
+            && adapter.insert.basePoint.x == original.basePoint.x
+            && adapter.insert.basePoint.y == original.basePoint.y
+            && adapter.insert.basePoint.z == original.basePoint.z;
+    };
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            if (!codec.write(&adapter, DRW::AC1032, binary)) {
+                const DRW_OperationDiagnostic diagnostic =
+                    codec.getLastDiagnostic();
+                std::cerr << "BLOCK_RECORD warmup callbacks="
+                          << adapter.blockRecordWritten << ','
+                          << adapter.insertWritten << " diagnostic="
+                          << diagnostic.code << ": " << diagnostic.message
+                          << '\n';
+                return fail("warm-up write failed");
+            }
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            BlockRecordExport adapter(codec, blockName, preview, insertHandles);
+            const DRW_Insert originalInsert = adapter.insert;
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !sameCaller(adapter, originalInsert)
+                || !identitiesRolledBack || stageRemains)
+                return fail("injected failure changed caller/destination state");
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            const bool retryRead = readBytes(output, retryBytes);
+            const bool sameBytes = retryRead && retryBytes == expectedBytes;
+            const bool readback = retryRead && readbackMatches(output);
+            const bool stageAfterRetry = hasStagedOutput(output);
+            if (!retried || !retryRead || !sameBytes || !readback
+                || stageAfterRetry) {
+                std::cerr << "BLOCK_RECORD retry=" << retried
+                          << " read=" << retryRead << " sameBytes=" << sameBytes
+                          << " readback=" << readback
+                          << " stageRemains=" << stageAfterRetry << '\n';
+                return fail("same-codec retry or typed readback failed");
+            }
+        }
+        std::cout << "BLOCK_RECORD rich overload "
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool runBackgroundSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "BACKGROUND allocation transaction: " << message << '\n';
@@ -7477,7 +7725,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -7497,6 +7745,8 @@ int main(int argc, char** argv) {
             return runSectionManagerSweep(directory) ? 0 : 1;
         if (mode == "section-settings")
             return runSectionSettingsSweep(directory) ? 0 : 1;
+        if (mode == "block-record")
+            return runBlockRecordSweep(directory) ? 0 : 1;
         if (mode == "background")
             return runBackgroundSweep(directory) ? 0 : 1;
         if (mode == "render-settings")
