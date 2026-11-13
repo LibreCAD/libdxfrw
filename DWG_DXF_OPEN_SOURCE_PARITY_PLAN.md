@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **219 completed implementation slices** and **35 remaining
+The plan records **220 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`219 / (219 + 35) = 86.2%`. This is a count-based progress measure, not an
+`220 / (220 + 35) = 86.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1306,13 +1306,13 @@ remain open ([version-matrix receipt](docs/research/p6-dxf-imagebackground-alloc
 
 **P6-G SCALE writer version-matrix transaction follow-up (2026-11-13):** the
 rooted ACAD_SCALELIST dictionary and its `1:1` SCALE entry now pass for AC1021,
-AC1027, and AC1032 in ASCII and Binary. All fifteen measured allocation
+AC1024, AC1027, and AC1032 in ASCII and Binary. All fifteen measured allocation
 failures per profile preserve the destination and caller graph; same-writer
 retry reproduces the clean bytes exactly and typed readback verifies root,
-owner, dictionary entry, name, units, flags, and scale fields. The focused CTest
-passes in 0.43 seconds; the direct control covers 90 allocation offsets. This
-is generated transaction evidence across these writer revisions only; producer
-profiles and native scale-list behavior remain open
+owner, dictionary entry, name, units, flags, and scale fields. The expanded
+focused CTest passes in 1.55 seconds; the direct control covers 120 allocation
+offsets. This is generated transaction evidence across these writer revisions
+only; producer profiles and native scale-list behavior remain open
 ([version-matrix receipt](docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G SPATIAL_FILTER writer version-matrix transaction follow-up
@@ -1365,6 +1365,13 @@ AC1032 in ASCII and Binary. All 329 measured allocation offsets pass; focused
 CTest runtime is 2.36 seconds. This generated profile does not qualify named
 linetype dependency closure, producer interoperability, or native behavior
 ([receipt](docs/research/p6-dxf-mline-style-version-matrix-allocation-2026-11-13.json)).
+
+**P6-G rooted SCALE OBJECTS version follow-up (2026-11-13):** the generated
+`ACAD_SCALELIST` graph now covers AC1021, AC1024, AC1027, and AC1032 in both
+encodings. The added AC1024 case passes all fifteen allocation offsets in each
+encoding; rollback, caller preservation, byte-identical retry and fresh typed
+graph readback pass. Producer coverage and native scale-list semantics remain
+open ([receipt](docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G UCS table-writer revision-boundary transaction slice (2026-11-13):** a
 generated UCS with two repeated orthographic-option tuples and XDATA now has

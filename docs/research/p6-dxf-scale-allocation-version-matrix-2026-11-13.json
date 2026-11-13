@@ -4,11 +4,11 @@
   "date": "2026-11-13",
   "status": "GENERATED_SCALE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Extend generated SCALE OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "scope": "Extend generated SCALE OBJECTS allocation transaction evidence across AC1021, AC1024, AC1027, and AC1032 writer versions.",
   "source": {
     "kind": "deterministic locally-authored graph generated during each test run",
     "profile": "One ACAD_SCALELIST root entry targeting one SCALE object named 1:1 with unit scale and exact owner relationships.",
-    "versions": ["AC1021", "AC1027", "AC1032"],
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
   },
@@ -23,15 +23,18 @@
   },
   "allocationOffsets": {
     "AC1021": {"ASCII": 15, "Binary": 15},
+    "AC1024": {"ASCII": 15, "Binary": 15},
     "AC1027": {"ASCII": 15, "Binary": 15},
     "AC1032": {"ASCII": 15, "Binary": 15},
-    "totals": {"ASCII": 45, "Binary": 45, "all": 90}
+    "totals": {"ASCII": 60, "Binary": 60, "all": 120}
   },
   "validation": {
-    "build": "cmake --build build-gcc --target libdxfrw_scale_objects_allocation_tests --parallel 4: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.43 seconds",
-    "directControl": "build-gcc/tests/libdxfrw_scale_objects_allocation_tests /tmp/libdxfrw-scale-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 15 and Binary 15 offsets",
-    "diffCheck": "PASS"
+    "build": "cmake --build build --target libdxfrw_scale_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.55 seconds",
+    "directControl": "build/tests/libdxfrw_scale_objects_allocation_tests build/scale-scratch: PASS; AC1021, AC1024, AC1027, and AC1032 each cover ASCII 15 and Binary 15 offsets",
+    "testSourceSha256": "3f1b5c61a820a8590beca2de3f0bcd02749ddbccdbc48a5ef886392ab66bad4d",
+    "testExecutableSha256": "e9dcf6fe777f245b71419a64f32bb18a1dfc044eb28dda7958233a060be2db18",
+    "diffCheck": "git diff --check: PASS"
   },
   "limitations": [
     "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
@@ -39,10 +42,10 @@
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "The rooted SCALE transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retry checks.",
+    "completedSlice": "The rooted SCALE transaction proof now passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary with byte-identical retry checks.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "206 completed slices and 35 remaining packages: 206/(206+35)=85.5%; count-based, not effort-weighted."
+    "progressEstimate": "220 completed slices and 35 remaining packages: 220/(220+35)=86.3%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json"
 }
