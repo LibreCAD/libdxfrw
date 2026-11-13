@@ -34489,6 +34489,8 @@ bool DRW_AssociativeObject::parseDwgConstraintCandidate(
                 } else if (nodesGood && (className == "AcPointCurveConstraint"
                             || className == "AcCenterPointConstraint"
                             || className == "AcTangentConstraint")) {
+                    node.m_fields.m_dataKind =
+                        DRW_AssociativeConstraintNode::DataKind::Geometrical;
                     node.m_fields.m_hasActiveFlag = true;
                     nodesGood = readBitLongWithinBody(&nodeBody, version, objectDataEnd,
                                                       node.m_fields.m_ownerId)

@@ -199,7 +199,7 @@
     "command": "CARGO_HOME=/private/tmp/acadrust-cargo cargo run --manifest-path /private/tmp/acadrust_probe/Cargo.toml --release -- /private/tmp/p4-autodesk-forum-constraints.dwg /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
     "sourceFixturePolicy": "Both DWGs were read in place and were not copied into or committed to libdxfrw. The probe source, crate cache and executable remain under /private/tmp.",
     "validation": "cmake --build build-gcc --target libdxfrw_constraint_group_candidate_api_tests -j4; ctest --test-dir build-gcc -R ^libdxfrw_constraint_group_candidate_api$ --output-on-failure; build-gcc/tests/libdxfrw_constraint_group_candidate_api_tests --physical /private/tmp/p4-autodesk-forum-constraints.dwg",
-    "validationResult": "Focused CTest passed 1/1 in 0.14 seconds; the hash-bound physical candidate selector exited 0 against the forum source. The separate libdxfrw associative graph-closure selector also passed against that source."
+    "validationResult": "Focused CTest passed 1/1 in 0.18 seconds; the hash-bound physical candidate selector exited 0 against the forum source. The separate libdxfrw associative graph-closure selector also passed against that source."
   },
   "limits": [
     "The independent reader's schema is implementation evidence, not the ODA specification or a controlled producer witness.",
@@ -208,12 +208,14 @@
     "Keep m_networkFieldsParsed false and AC1032 network output refused until the source-profile and semantic gates in P4 pass."
   ],
   "implementation": {
-    "productionCodeChanged": false,
+    "productionCodeChanged": true,
     "test": "tests/constraint_group_candidate_api_tests.cpp",
-    "testSha256": "012eeb5d4c719167d95296070341f038b96d8b0a59fd13814f097691391ee5a5",
+    "testSha256": "6b1a0a021c818e617cced08c63ab79b498190e0b344272fd02f9bdffae806a15",
     "cmakeTarget": "libdxfrw_constraint_group_candidate_api_tests",
     "ctestName": "libdxfrw_constraint_group_candidate_api",
-    "testExecutableSha256": "6acc357841e136c28aea3bfa4c573adb92cd8903b59d5f15165c76e71024dd8f",
-    "change": "Compare all fields exposed by the bounded candidate model for this source against the independent typed acadrust output: all 13 node IDs/classes/statuses/connections/registry flags/body spans, root metadata, handle roles, and modeled line/arc/implicit-point/constraint values."
+    "testExecutableSha256": "71645df76425f976fc2004c3c99703f98bae7402cdc8654e16d9946e7875feb2",
+    "change": "Compare all fields exposed by the bounded candidate model for this source against the independent typed acadrust output. Fix the omitted Geometrical data-kind classification for AC1032 point-curve, center-point and tangent candidate nodes; keep their class bodies partial and output refused.",
+    "productionFile": "src/drw_objects.cpp",
+    "productionSha256": "a2998a89ef1c860c6c77fa86ef0e66702d940874f81f58a83b44e00436e36056"
   }
 }

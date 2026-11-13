@@ -106,7 +106,10 @@ their `m_classDataParsed` flags false. The `libdxfrw_constraint_group_candidate_
 selector now checks every registered candidate node's ID, class, status,
 connections, registry flag and body span, the group root metadata, and all
 decoded values and handle roles exposed by the line, arc, implicit-point and
-constraint-node candidate profiles against acadrust's typed output. Its
+constraint-node candidate profiles against acadrust's typed output. That
+differential exposed unset `m_dataKind` values on the three geometric
+constraint classes; the bounded candidate decoder now labels those nodes
+`Geometrical`, without marking their class bodies complete. Its
 focused CTest and hash-bound physical selector pass. This closes the candidate
 field comparison for this one source; it does not qualify unobserved node
 classes, the producer, native constraint behavior, or output. The

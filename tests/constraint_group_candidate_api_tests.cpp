@@ -312,9 +312,13 @@ bool physical(const char* path) {
         && secondImplicit.m_pointIndex == -1
         && secondImplicit.m_curveNodeId == 1
         && firstPointCurve.m_ownerId == 0
+        && firstPointCurve.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && firstPointCurve.m_hasActiveFlag
         && firstPointCurve.m_isImplied && firstPointCurve.m_isActive
         && secondPointCurve.m_ownerId == 0
+        && secondPointCurve.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && secondPointCurve.m_hasActiveFlag
         && secondPointCurve.m_isImplied && secondPointCurve.m_isActive
         && arc.m_fields.m_nodeId == 6 && arc.m_bodyStartBit == 1314
@@ -348,6 +352,8 @@ bool physical(const char* path) {
         && arcImplicit.m_pointIndex == -1
         && arcImplicit.m_curveNodeId == 6
         && arcPointCurve.m_ownerId == 0
+        && arcPointCurve.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && arcPointCurve.m_hasActiveFlag
         && arcPointCurve.m_isImplied && arcPointCurve.m_isActive
         && thirdArcImplicit.m_hasGeometryDependency
@@ -359,6 +365,8 @@ bool physical(const char* path) {
         && thirdArcImplicit.m_pointType == 1u
         && thirdArcImplicit.m_curveNodeId == 6
         && thirdPointCurve.m_ownerId == 0
+        && thirdPointCurve.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && thirdPointCurve.m_hasActiveFlag
         && thirdPointCurve.m_isImplied && thirdPointCurve.m_isActive
         && fourthArcImplicit.m_hasGeometryDependency
@@ -370,9 +378,13 @@ bool physical(const char* path) {
         && fourthArcImplicit.m_pointType == 3u
         && fourthArcImplicit.m_curveNodeId == 6
         && centerConstraint.m_ownerId == 0
+        && centerConstraint.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && centerConstraint.m_hasActiveFlag
         && centerConstraint.m_isImplied && centerConstraint.m_isActive
         && tangentConstraint.m_ownerId == 0
+        && tangentConstraint.m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
         && tangentConstraint.m_hasActiveFlag
         && !tangentConstraint.m_isImplied && tangentConstraint.m_isActive;
 }
