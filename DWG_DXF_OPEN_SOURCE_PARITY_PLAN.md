@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **207 completed implementation slices** and **24 remaining
+The plan records **208 completed implementation slices** and **23 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`207 / (207 + 24) = 89.6%`. This is a count-based progress measure, not an
+`208 / (208 + 23) = 90.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1246,6 +1246,17 @@ the direct control reports 765 allocation offsets across the six profiles.
 This extends generated transaction evidence across writer revisions only; it
 does not prove independent producer schemas or native consumer semantics
 ([version-matrix receipt](docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json)).
+
+**P6-G GEODATA writer version-matrix transaction follow-up (2026-11-13):**
+the generated version-2 GEODATA object now passes for AC1021, AC1027, and
+AC1032 in ASCII and Binary. All eleven measured allocation failures per
+profile preserve the destination and caller record; same-codec retry matches
+clean bytes and typed readback checks the host block, design/reference points,
+coordinate-system definition, and RSS tag. The focused CTest passes in 0.57
+seconds; the direct control covers 66 allocation offsets. This is generated
+transaction evidence across these writer revisions only; producer-specific
+georeferencing semantics remain open
+([version-matrix receipt](docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G DBCOLOR writer version-matrix transaction follow-up (2026-11-13):**
 the generated DBCOLOR record now passes for AC1021, AC1027, and AC1032 in

@@ -126,61 +126,76 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / "geodata-objects.dxf";
     const std::string sentinel = "prior GEODATA destination bytes\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        {
-            dxfRW codec(output.string().c_str());
-            GeoDataExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            exporter.failAt = 1000000;
-            if (!codec.write(&exporter, DRW::AC1027, binary)
-                || !exporter.wrote || !readbackMatches(output))
-                return fail("allocation calibration output did not read back");
-            allocationCount = exporter.reached;
-        }
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("geodata-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        for (const bool binary : {false, true}) {
+            long allocationCount = 0;
+            std::string cleanBytes;
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+                dxfRW codec(output.string().c_str());
+                GeoDataExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                exporter.failAt = 1000000;
+                if (!codec.write(&exporter, version, binary)
+                    || !exporter.wrote || !readbackMatches(output))
+                    return fail("allocation calibration output did not read back");
+                allocationCount = exporter.reached;
+                if (!readAll(output, cleanBytes))
+                    return fail("could not retain calibration output bytes");
             }
-            dxfRW codec(output.string().c_str());
-            GeoDataExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            const DRW_GeoData source = exporter.geo;
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.wrote = false;
-            const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached != 1
-                || !readAll(output, current) || current != sentinel)
-            {
-                std::cerr << "allocation offset=" << offset
-                          << " codecWrite=" << wrote
-                          << " callbackWrite=" << exporter.wrote
-                          << " reached=" << exporter.reached
-                          << " sentinel=" << (current == sentinel) << '\n';
-                return fail("injected failure changed destination or missed allocation");
-            }
-            if (!sourceMatches(exporter.geo, source))
-                return fail("injected failure changed caller GEODATA state");
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
 
-            if (!codec.write(&exporter, DRW::AC1027, binary)
-                || !exporter.wrote || !readbackMatches(output)
-                || !sourceMatches(exporter.geo, source))
-                return fail("same-codec retry failed typed GEODATA readback");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                GeoDataExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                const DRW_GeoData source = exporter.geo;
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                exporter.wrote = false;
+                const bool wrote = codec.write(&exporter, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached != 1
+                    || !readAll(output, current) || current != sentinel)
+                {
+                    std::cerr << "version=" << static_cast<int>(version)
+                              << " binary=" << binary
+                              << " allocation offset=" << offset
+                              << " codecWrite=" << wrote
+                              << " callbackWrite=" << exporter.wrote
+                              << " reached=" << exporter.reached
+                              << " sentinel=" << (current == sentinel) << '\n';
+                    return fail("injected failure changed destination or missed allocation");
+                }
+                if (!sourceMatches(exporter.geo, source))
+                    return fail("injected failure changed caller GEODATA state");
+
+                if (!codec.write(&exporter, version, binary)
+                    || !exporter.wrote || !readbackMatches(output)
+                    || !sourceMatches(exporter.geo, source))
+                    return fail("same-codec retry failed typed GEODATA readback");
+                std::string retryBytes;
+                if (!readAll(output, retryBytes) || retryBytes != cleanBytes)
+                    return fail("same-codec retry differs from clean output");
+            }
+            std::cout << "GEODATA OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "GEODATA OBJECTS " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }

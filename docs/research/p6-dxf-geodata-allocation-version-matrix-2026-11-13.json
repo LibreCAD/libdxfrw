@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-geodata-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_GEODATA_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated GEODATA OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "source": {
+    "kind": "deterministic locally-authored record generated during each test run",
+    "profile": "One version-2 GEODATA object with host block, design/reference points, coordinate-system definition, and RSS tag.",
+    "versions": ["AC1021", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/geodata_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate a complete write, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller record, retry on the same codec, compare retry bytes with clean output, and freshly read the typed GEODATA fields."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 11, "Binary": 11},
+    "AC1027": {"ASCII": 11, "Binary": 11},
+    "AC1032": {"ASCII": 11, "Binary": 11},
+    "totals": {"ASCII": 33, "Binary": 33, "all": 66}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_geodata_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.57 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_geodata_objects_allocation_tests /tmp/libdxfrw-geodata-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 11 and Binary 11 offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated GEODATA field profile is tested per version; independent producer mappings and georeferencing meaning remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated GEODATA transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retries.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "208 completed slices and 23 remaining packages: 208/(208+23)=90.0%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-spatial-filter-allocation-version-matrix-2026-11-13.json"
+}
