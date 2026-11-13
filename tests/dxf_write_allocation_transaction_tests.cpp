@@ -59,6 +59,7 @@ constexpr std::uint32_t kScaleHandle = 0xD93Bu;
 constexpr std::uint32_t kBackgroundHandle = 0xD93Cu;
 constexpr std::uint32_t kPlotSettingsHandle = 0xD93Du;
 constexpr std::uint32_t kWipeoutVariablesHandle = 0xD93Eu;
+constexpr std::uint32_t kSunHandle = 0xD93Fu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -556,6 +557,19 @@ public:
         wipeoutVariables.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         wipeoutVariables.m_classVersion = 0;
         wipeoutVariables.m_displayFrame = 1;
+        sun.handle = kSunHandle;
+        sun.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        sun.m_classVersion = 0;
+        sun.m_isOn = true;
+        sun.m_color = 7;
+        sun.m_intensity = 0.625;
+        sun.m_hasShadow = true;
+        sun.m_julianDay = 2460000;
+        sun.m_milliseconds = 43210000;
+        sun.m_isDaylightSavings = true;
+        sun.m_shadowType = 2;
+        sun.m_shadowMapSize = 1024;
+        sun.m_shadowSoftness = 3;
     }
 
     void writeEntities() override {
@@ -603,6 +617,7 @@ public:
             && output.writeBackground(&background, "SOLIDBACKGROUND")
             && output.writePlotSettings(&plotSettings)
             && output.writeWipeoutVariables(&wipeoutVariables)
+            && output.writeSun(&sun)
             && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
@@ -653,6 +668,7 @@ public:
     DRW_Background background;
     DRW_PlotSettings plotSettings;
     DRW_WipeoutVariables wipeoutVariables;
+    DRW_Sun sun;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -803,6 +819,10 @@ public:
         ++wipeoutVariablesCount;
         wipeoutVariables = value;
     }
+    void addSun(const DRW_Sun& value) override {
+        ++sunCount;
+        sun = value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -878,6 +898,7 @@ public:
     DRW_Background background;
     DRW_PlotSettings plotSettings;
     DRW_WipeoutVariables wipeoutVariables;
+    DRW_Sun sun;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -918,6 +939,7 @@ public:
     unsigned backgroundCount = 0u;
     unsigned plotSettingsCount = 0u;
     unsigned wipeoutVariablesCount = 0u;
+    unsigned sunCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1374,6 +1396,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.wipeoutVariables.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
         && adapter.wipeoutVariables.m_classVersion == 0
         && adapter.wipeoutVariables.m_displayFrame == 1
+        && adapter.sun.handle == kSunHandle
+        && adapter.sun.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.sun.m_classVersion == 0
+        && adapter.sun.m_isOn
+        && adapter.sun.m_color == 7
+        && adapter.sun.m_intensity == 0.625
+        && adapter.sun.m_hasShadow
+        && adapter.sun.m_julianDay == 2460000
+        && adapter.sun.m_milliseconds == 43210000
+        && adapter.sun.m_isDaylightSavings
+        && adapter.sun.m_shadowType == 2
+        && adapter.sun.m_shadowMapSize == 1024
+        && adapter.sun.m_shadowSoftness == 3
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1874,6 +1909,20 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.wipeoutVariables.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
         || adapter.wipeoutVariables.m_classVersion != 0
         || adapter.wipeoutVariables.m_displayFrame != 1u
+        || adapter.sunCount != 1u
+        || adapter.sun.handle == 0u
+        || adapter.sun.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.sun.m_classVersion != 0
+        || !adapter.sun.m_isOn
+        || adapter.sun.m_color != 7u
+        || adapter.sun.m_intensity != 0.625
+        || !adapter.sun.m_hasShadow
+        || adapter.sun.m_julianDay != 2460000
+        || adapter.sun.m_milliseconds != 43210000
+        || !adapter.sun.m_isDaylightSavings
+        || adapter.sun.m_shadowType != 2u
+        || adapter.sun.m_shadowMapSize != 1024u
+        || adapter.sun.m_shadowSoftness != 3u
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

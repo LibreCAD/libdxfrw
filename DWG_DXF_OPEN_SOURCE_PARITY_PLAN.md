@@ -2,14 +2,14 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **88 completed implementation slices**. It does **not** yet
+The plan records **89 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The `88 / (88 + 6) = 93.6%`
+gates as six slices mixes unlike units. The `89 / (89 + 6) = 93.7%`
 figure is only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 93.6%**, but cannot be calculated
+actual slice-based percentage is **below 93.7%**, but cannot be calculated
 honestly until those requirements are decomposed and counted as remaining
 slices.
 
@@ -1227,6 +1227,15 @@ destination and caller fields; same-codec retry reproduces clean output with
 typed readback. The focused transaction CTest passes. This is transaction
 coverage for one generated object profile only; native wipeout display and
 independent producer behavior remain open. See the [receipt](docs/research/p6-dxf-wipeoutvariables-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local SUN transaction slice (2026-11-13):** the generated whole-operation
+AC1027 sweep now includes a SUN object with nondefault state, ACI color,
+intensity, date/time and shadow settings. All 547 ASCII and 540 Binary
+allocation failures preserve the destination and caller fields; same-codec
+retry reproduces clean output with typed readback. The focused transaction
+CTest passes. This is generated transaction and codec evidence only; native
+lighting behavior, CMC variants and independent producer acceptance remain
+open. See the [receipt](docs/research/p6-dxf-sun-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local MATERIAL transaction slice (2026-11-13):** the same generated
 whole-operation sweep now also writes one typed AC1027 MATERIAL with its
