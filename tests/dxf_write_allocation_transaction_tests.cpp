@@ -438,6 +438,26 @@ public:
         arcAlignedText.m_wizardFlag = 1;
         arcAlignedText.m_textPosition = 1;
         arcAlignedText.m_textDirection = 1;
+        light.handle = 0xD96Cu;
+        light.m_classVersion = 1;
+        light.m_name = "WHOLE_OPERATION_LIGHT";
+        light.m_type = 2;
+        light.m_status = true;
+        light.m_color = 3;
+        light.m_plotGlyph = true;
+        light.m_intensity = 2.5;
+        light.m_position = DRW_Coord(110.0, 111.0, 112.0);
+        light.m_target = DRW_Coord(113.0, 114.0, 115.0);
+        light.m_attenuationType = 1;
+        light.m_useAttenuationLimits = true;
+        light.m_attenuationStartLimit = 0.5;
+        light.m_attenuationEndLimit = 12.5;
+        light.m_hotspotAngle = 0.25;
+        light.m_falloffAngle = 0.75;
+        light.m_castShadows = true;
+        light.m_shadowType = 1;
+        light.m_shadowMapSize = 512;
+        light.m_shadowMapSoftness = 2;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -706,6 +726,7 @@ public:
             && check("TOLERANCE", output.writeTolerance(&tolerance))
             && check("RTEXT", output.writeRText(&rtext))
             && check("ARCALIGNEDTEXT", output.writeArcAlignedText(&arcAlignedText))
+            && check("LIGHT", output.writeLight(&light))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -773,6 +794,7 @@ public:
     DRW_Tolerance tolerance;
     DRW_RText rtext;
     DRW_ArcAlignedText arcAlignedText;
+    DRW_Light light;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -978,6 +1000,10 @@ public:
             text = value;
         }
     }
+    void addLight(const DRW_Light& value) override {
+        ++lightCount;
+        light = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1091,6 +1117,7 @@ public:
     DRW_Tolerance tolerance;
     DRW_RText rtext;
     DRW_ArcAlignedText arcAlignedText;
+    DRW_Light light;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1144,6 +1171,7 @@ public:
     unsigned toleranceCount = 0u;
     unsigned rtextCount = 0u;
     unsigned arcAlignedTextCount = 0u;
+    unsigned lightCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1494,6 +1522,30 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.arcAlignedText.m_wizardFlag == 1
         && adapter.arcAlignedText.m_textPosition == 1
         && adapter.arcAlignedText.m_textDirection == 1
+        && adapter.light.handle == 0xD96Cu
+        && adapter.light.m_classVersion == 1u
+        && adapter.light.m_name == "WHOLE_OPERATION_LIGHT"
+        && adapter.light.m_type == 2u
+        && adapter.light.m_status
+        && adapter.light.m_color == 3u
+        && adapter.light.m_plotGlyph
+        && adapter.light.m_intensity == 2.5
+        && adapter.light.m_position.x == 110.0
+        && adapter.light.m_position.y == 111.0
+        && adapter.light.m_position.z == 112.0
+        && adapter.light.m_target.x == 113.0
+        && adapter.light.m_target.y == 114.0
+        && adapter.light.m_target.z == 115.0
+        && adapter.light.m_attenuationType == 1u
+        && adapter.light.m_useAttenuationLimits
+        && adapter.light.m_attenuationStartLimit == 0.5
+        && adapter.light.m_attenuationEndLimit == 12.5
+        && adapter.light.m_hotspotAngle == 0.25
+        && adapter.light.m_falloffAngle == 0.75
+        && adapter.light.m_castShadows
+        && adapter.light.m_shadowType == 1u
+        && adapter.light.m_shadowMapSize == 512u
+        && adapter.light.m_shadowMapSoftness == 2u
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1866,6 +1918,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.toleranceCount != 1u
         || adapter.rtextCount != 1u
         || adapter.arcAlignedTextCount != 1u
+        || adapter.lightCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2122,6 +2175,30 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.arcAlignedText.m_wizardFlag != 1
         || adapter.arcAlignedText.m_textPosition != 1
         || adapter.arcAlignedText.m_textDirection != 1
+        || adapter.light.handle == 0u
+        || adapter.light.m_classVersion != 1u
+        || adapter.light.m_name != "WHOLE_OPERATION_LIGHT"
+        || adapter.light.m_type != 2u
+        || !adapter.light.m_status
+        || adapter.light.m_color != 3u
+        || !adapter.light.m_plotGlyph
+        || adapter.light.m_intensity != 2.5
+        || adapter.light.m_position.x != 110.0
+        || adapter.light.m_position.y != 111.0
+        || adapter.light.m_position.z != 112.0
+        || adapter.light.m_target.x != 113.0
+        || adapter.light.m_target.y != 114.0
+        || adapter.light.m_target.z != 115.0
+        || adapter.light.m_attenuationType != 1u
+        || !adapter.light.m_useAttenuationLimits
+        || adapter.light.m_attenuationStartLimit != 0.5
+        || adapter.light.m_attenuationEndLimit != 12.5
+        || adapter.light.m_hotspotAngle != 0.25
+        || adapter.light.m_falloffAngle != 0.75
+        || !adapter.light.m_castShadows
+        || adapter.light.m_shadowType != 1u
+        || adapter.light.m_shadowMapSize != 512u
+        || adapter.light.m_shadowMapSoftness != 2u
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **100 completed implementation slices** and **35 remaining
+The plan records **101 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`100 / (100 + 35) = 74.1%`. This is a count-based progress measure, not an
+`101 / (101 + 35) = 74.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,17 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local LIGHT transaction slice (2026-11-13):** the same generated
+whole-file ASCII/Binary allocation sweep now writes an AC1027 LIGHT with
+nondefault type/status/color, intensity, position/target, attenuation limits,
+angles and shadow settings. All 680 ASCII and 672 Binary failure offsets
+preserve destination, caller fields and derived identity maps; same-writer
+retry reproduces clean bytes and typed readback verifies the fields. The
+focused transaction CTest passes 1/1 in 4.04 seconds. This is generated
+rollback/retry and codec readback only; native lighting behavior and
+independent producer semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local SOLID/TRACE writer-entry transaction slice (2026-11-13):** the
