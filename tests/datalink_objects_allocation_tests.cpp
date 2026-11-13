@@ -227,7 +227,7 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
     const std::string sentinel = "prior DATALINK destination bytes\n";
     for (const DRW::Version version : {
-             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto output = directory
             / (std::string("datalink-objects-")
                + std::to_string(static_cast<int>(version)) + ".dxf");
