@@ -2,25 +2,18 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **93 completed implementation slices**. It does **not** yet
-enumerate the remaining work as implementation slices: P4–P8 are broad phase
-exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The `89 / (89 + 6) = 93.7%`
-figure in the earlier revision was stale and is removed. A valid completion
-percentage still cannot be calculated: the remaining requirements have not
-been decomposed into a counted slice denominator, and the six phase gates are
-not six implementation slices. The completed count is an audit counter, not a
-percentage. Do not publish a numeric progress estimate until the remaining
-queue is enumerated at matching slice granularity.
-
-Use this formula after that decomposition: `completed slices /
-(completed slices + remaining slices)`. Keep the independent gate status at
-**0 of 6 complete (0%)**: P4–P8 are OPEN and P9 is DEFERRED_EXTERNAL. No phase
-gate has met its full evidence requirements. Completed implementation actions
-have been removed from the execution queue; their commits and receipts remain
-the evidence record. Do not count historical evidence notes or the earlier
-145-entry mixed checkpoint as extra completed items. The six open phase gates
-remain the objective-level blockers, not six implementation slices.
+The plan records **93 completed implementation slices** and **35 remaining
+core work packages** in the inventory below. The equal-weight count estimate is
+`93 / (93 + 35) = 72.7%`. This is a count-based progress measure, not an
+effort-weighted estimate: the work packages vary in size, and phase gates remain
+open until their full evidence criteria pass. P9's six deferred external-only
+items are tracked separately because they cannot promote support claims and do
+not stop local implementation. Keep the independent gate status at **0 of 6
+complete (0%)**: P4–P8 are OPEN and P9 is DEFERRED_EXTERNAL. No phase gate has
+met its full evidence requirements. Completed implementation actions have
+been removed from the execution queue; their commits and receipts remain the
+evidence record. Do not count historical evidence notes or the earlier
+145-entry mixed checkpoint as extra completed items.
 
 ## Authority and completion gates
 
@@ -1185,6 +1178,56 @@ integration/release checkpoints.
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
 | P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. The default SOLID/TRACE wireframe callback now applies the Autodesk arbitrary-axis OCS transform and finite-thickness boundary delivery to legacy consumers; it does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json), the [base callback receipt](docs/research/p8-solid-trace-default-z-wireframe-fallback-2026-11-13.json), the [thickness receipt](docs/research/p8-solid-trace-finite-thickness-wireframe-2026-11-13.json), and the [arbitrary-axis receipt](docs/research/p8-solid-trace-arbitrary-axis-ocs-wireframe-2026-11-13.json). |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
+
+## Remaining core work packages (35)
+
+These are the equal-weight denominator for the progress estimate above. Each
+package ends with an evidence-backed receipt and commit; remove it from this
+inventory when its exit checks pass. If an external dependency blocks a
+package, record the attempted route and immediately continue with a
+dependency-ready local package. Do not stop implementation at a blocker.
+
+| ID | State | Implementation sub-plan | Entry evidence and exit check |
+| --- | --- | --- | --- |
+| P4-A | OPEN | Select one distinct producer-authored OBJECTS subgraph and freeze source hash, version, producer/build, frame census, and source-to-callback identity. | New eligible source not already screened; provenance and hashed inventory receipt. |
+| P4-B | OPEN | Resolve AC1032 associative-network class-version-2 fields from ODA and source-bound spans; add bounded parser and boundary controls. | Exact source/class frame plus ODA chapter; field/span map and generated boundary controls. |
+| P4-C | OPEN | Resolve AC1027 Sweep suffix and embedded-entity layout without assuming padding; preserve unknown bytes until role/order is proven. | Source-bound Sweep frame and ODA version comparison; truncation and following-frame alignment controls. |
+| P4-D | OPEN | Close one selected source OBJECTS subgraph: frame identities, handle roles, owners, dictionary edges, recursive dependencies, and omissions. | P4-A witness; zero unknown dispositions for the admitted profile. |
+| P4-E | OPEN | Add strict writer admission, fresh readback, and transactional retry for that closed subgraph. | P4-D closure; emitted records and handle graph match the frozen source plan; mutation refuses atomically. |
+| P5-A | OPEN | Acquire a FIELD/FIELDLIST graph with a visible root and enumerate owners, field codes, dependencies, and expressions. | Producer/source identity, independently visible result, and complete raw frame inventory. |
+| P5-B | OPEN | Implement typed FIELD/FIELDLIST parse and write for the selected profile, preserving unsupported tokens and reference roles. | P5-A map; parser spans, graph closure, strict output, typed readback. |
+| P5-C | OPEN | Qualify TABLE producer profiles and retained subrecords, separating geometry from metadata and cell caches. | Distinct source profile; physical field spans and field-by-field loss classification. |
+| P5-D | OPEN | Close R24 TABLECONTENT ownership, CELLSTYLEMAP, row/column dependencies, and emitted-record identity. | P5-C source and source-bound handles; focused ASCII/Binary output and fresh readback. |
+| P5-E | OPEN | Resolve Content Format/CELLSTYLEMAP semantics with native or independent consumer evidence; refuse unmodeled style state. | Independent semantic observation tied to exact producer/version and output candidate. |
+| P5-F | OPEN | Trace table layer overrides through parse, storage, writer, and native presentation; implement only verified precedence rules. | Source plus consumer-observed appearance; field/value/precedence matrix and roundtrip. |
+| P5-G | OPEN | Qualify dynamic constraint evaluation and required dependencies; retain raw state and refuse unsupported evaluation loss. | Producer-authored model with known parameters and independent evaluation result. |
+| P5-H | OPEN | Resolve VIEWPORT group-91 type and semantics from native ASCII and Binary pairs, then lock the parser profile. | Paired source files and type/range agreement; malformed-domain fast controls. |
+| P6-A | OPEN | Resolve the IMAGEDEF parent-role conflict across source field, handle stream, dictionary membership, and target graph. | Exact source spans and independently decoded handle roles; strict output/readback proof. |
+| P6-B | OPEN | Qualify PERSUBENTMGR typed semantics, ownership, dependencies, and output route; retain raw-only refusal for unknown members. | Source-bound object plus independent field mapping and fresh output readback. |
+| P6-C | OPEN | Close TABLECONTENT/DATATABLE record families, nested references, and per-version writer behavior. | Distinct source profile for each admitted version; exact owner/target roles and roundtrip. |
+| P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
+| P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
+| P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
+| P6-G | OPEN | Close caller-state coverage for remaining public writers, including dimension subtypes and variable-size/object builders absent from the current sweep. | Writer inventory diff; each selected operation has rollback, same-writer retry, and typed readback. |
+| P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
+| P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
+| P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
+| P7-D | OPEN | Resolve ACIS 21500 header and entity semantics without treating framing as geometry meaning. | ACIS specification plus independent parser evidence; exact field map and negative controls. |
+| P7-E | OPEN | Prove topology and B-rep meaning with a kernel independent of the writer/parser lineage. | Known-shape recipe, independent kernel import, entity counts, topology, bounds, and volume/area. |
+| P7-F | OPEN | Qualify transforms and units across nested blocks and modeler payloads against known dimensions. | Independent geometry measurement and transform chain; tolerance and unit-conversion receipt. |
+| P7-G | OPEN | Qualify trims, periodic surfaces, and spline meaning through independent kernel evaluations and boundary comparisons. | Exact source types and kernel-evaluated points/edges; retain refusal for unsupported trims. |
+| P7-H | OPEN | Run native modeler acceptance on closed representative 3DSOLID/REGION/BODY profiles and compare geometry. | Exact application/version/build/importer receipt and analytic or independent-kernel comparison. |
+| P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
+| P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | Native Linux receipt with document counts, inserted geometry, bounds, and diagnostics. |
+| P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | Native Windows receipt matching P8-B observations and exact converter/importer path. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, focused import/export cases, no fork-only callbacks. |
+| P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
+| P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
+| P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. |
+
+P9/J256, J260, J268, J284, J293, and J295 remain separately
+`DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work
+package or promote a support claim.
 
 **P6 local caller-state slice (2026-11-13):** the whole-operation DXF
 allocation sweep now includes a generated AC1027 HELIX with spline controls,
