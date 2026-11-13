@@ -77,9 +77,9 @@ dx_data makeSource() {
     group.m_constraintActionCount = 1;
     group.m_constraintActions.push_back(0x904u);
     group.m_constraintNextNodeIdRead = true;
-    group.m_constraintNextNodeId = 2;
+    group.m_constraintNextNodeId = 3;
     group.m_constraintNodesParsed = true;
-    group.m_constraintNodeCount = 1;
+    group.m_constraintNodeCount = 2;
     DRW_AssociativeConstraintNode node;
     node.m_className = "AcConstrainedImplicitPoint";
     node.m_nodeId = 1;
@@ -91,6 +91,14 @@ dx_data makeSource() {
     node.m_geometryNodeId = 7;
     node.m_classDataParsed = true;
     group.m_constraintNodes.push_back(node);
+    node.m_nodeId = 2;
+    node.m_className = "AcFixedConstraint";
+    node.m_dataKind =
+        DRW_AssociativeConstraintNode::DataKind::Geometrical;
+    node.m_hasGeometryDependency = false;
+    node.m_geometryDependencyHandle = 0u;
+    node.m_geometryNodeId = 0;
+    group.m_constraintNodes.push_back(node);
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
@@ -98,7 +106,7 @@ dx_data makeSource() {
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
-        2u, 1u, 1, "authored inline implicit-point profile"});
+        2u, 2u, 2, "authored two-node inline implicit-point profile"});
 
     DRW_AssociativeObject dependency("ACDBASSOCGEOMDEPENDENCY");
     dependency.handle = 0x904u;
@@ -180,6 +188,14 @@ bool sourceGraphUnchanged(const dx_data& source) {
     if (source.dwgAssociativeObjects.size() != 3u
         || source.dwgAssociativeObjects[0].handle != 0x902u
         || source.dwgAssociativeObjects[1].handle != 0x903u
+        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 2
+        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 2u
+        || source.dwgAssociativeObjects[1].m_constraintNodes[0].m_nodeId != 1
+        || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_nodeId != 2
+        || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_className
+            != "AcFixedConstraint"
+        || source.dwgAssociativeObjects[1].m_constraintNodes[1]
+                .m_hasGeometryDependency
         || source.dwgAssociativeObjects[2].handle != 0x904u
         || source.dwgAssociativeObjects[2].parentHandle != 0x903u
         || source.dwgAssociativeObjects[2].m_dependencyHandle != 0x905u
@@ -252,10 +268,18 @@ bool verify(const std::filesystem::path& path) {
         && group->parentHandle == network->handle
         && group->m_constraintActions
             == std::vector<std::uint32_t>{dependency->handle}
-        && group->m_constraintNodes.size() == 1u
+        && group->m_constraintNodes.size() == 2u
+        && group->m_constraintNodeCount == 2
+        && group->m_constraintNodes[0].m_nodeId == 1
         && group->m_constraintNodes.front().m_hasGeometryDependency
         && group->m_constraintNodes.front().m_geometryDependencyHandle
             == dependency->handle
+        && group->m_constraintNodes[1].m_nodeId == 2
+        && group->m_constraintNodes[1].m_className == "AcFixedConstraint"
+        && group->m_constraintNodes[1].m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Geometrical
+        && !group->m_constraintNodes[1].m_hasGeometryDependency
+        && group->m_constraintNodes[1].m_geometryDependencyHandle == 0u
         && dependency->parentHandle == group->handle
         && dependency->m_dependencyWireComplete
         && dependency->m_dependencyHandle == line->handle

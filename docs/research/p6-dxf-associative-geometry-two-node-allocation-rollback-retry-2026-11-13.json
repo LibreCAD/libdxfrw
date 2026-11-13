@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1024_TWO_NODE_ROOTED_GEOMETRY_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend existing rooted AC1024 whole-file allocation rollback/retry control to a constraint group with two inline node records.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory dx_data graph",
+    "profile": "NOD ACAD_ASSOCNETWORK -> association DICTIONARY -> NETWORK -> owned 2D constraint GROUP -> owned geometry dependency -> LINE target; the group has an action reference to the dependency, one implicit-point node linked to that dependency, and one AcFixedConstraint geometrical node with no optional dependency reference. The LINE has the reciprocal dependency reactor.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/associative_geometry_graph_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Expanded the generated constraint-group node count and next-node seed to two; the second node is a supported AcFixedConstraint with no geometry reference. Strengthened caller-state and fresh typed readback assertions for the count, ordered node IDs, class/DataKind, optional-reference absence, and existing implicit-point dependency link.",
+    "method": "Warm and calibrate per encoding. Inject std::bad_alloc at each reached OBJECTS callback allocation; require failed whole-file publication, byte-identical destination sentinel preservation, source graph preservation, same-adapter retry, and fresh typed DXF readback of root, ownership, both group nodes, dependency target/subentity fields, and reciprocal LINE reactor."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_associative_geometry_graph_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_associative_geometry_graph_allocation_retry$' --output-on-failure: PASS 1/1 in 0.49 seconds",
+    "ascii": "54/54 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed two-node rooted graph readback passed.",
+    "binary": "51/51 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed two-node rooted graph readback passed.",
+    "diffCheck": "PASS for tests/associative_geometry_graph_allocation_tests.cpp"
+  },
+  "limitations": [
+    "Generated transaction and readback evidence only; no physical producer prevalence, native constraint solving, or geometric semantics are established.",
+    "The second node has no geometry dependency, value dependency, dimension dependency, or optional point payload; repeated non-null action-reference roles are not newly qualified.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Repeated variable-size constraint-group node emission in the existing rooted AC1024 whole-file transaction profile, with both nodes checked across rollback, retry and typed readback.",
+    "remainingP6G": "Finish the public-writer inventory diff and qualify only uncovered direct routes, overloads, compound-record variants, and variable-size OBJECTS profiles; keep source/semantic and producer gates separate.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-associative-geometry-graph-allocation-failure-retry-2026-11-08.json"
+}

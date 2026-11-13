@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **162 completed implementation slices** and **35 remaining
+The plan records **163 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`162 / (162 + 35) = 82.2%`. This is a count-based progress measure, not an
+`163 / (163 + 35) = 82.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1228,6 +1228,18 @@ dependency-ready local package. Do not stop implementation at a blocker.
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work
 package or promote a support claim.
+
+**P6-G rooted associative graph repeated-node transaction slice (2026-11-13):**
+the existing generated AC1024 whole-file ASCII/Binary allocation sweep now
+serializes a constraint group with two inline nodes: one implicit point linked
+to the geometry dependency and one geometrical constraint node. The generated
+profile verifies node count, ordered node IDs/classes, optional reference
+absence, dependency linkage, source-state preservation, destination rollback,
+same-adapter retry, and fresh typed readback. All 54 ASCII and 51 Binary
+allocation offsets pass; the focused CTest passes in 0.49 seconds. This extends
+transaction coverage for a repeated variable-size group body only; it does not
+qualify additional producer profiles or constraint semantics. See the
+[follow-up receipt](docs/research/p6-dxf-associative-geometry-two-node-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local caller-state slice (2026-11-13):** the whole-operation DXF
 allocation sweep now includes a generated AC1027 HELIX with spline controls,
