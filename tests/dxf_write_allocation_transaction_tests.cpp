@@ -1652,6 +1652,7 @@ public:
         ThreeDimensional,
         ThreeDimensionalWithIdentifiers,
         PolygonMesh,
+        RectangularPolygonMesh,
         Polyface
     };
 
@@ -1673,18 +1674,22 @@ public:
             addVertex(0xDB02u, 4.0, 5.0, 6.0,
                       DRW_Vertex::DwgSubtype::Vertex3D, 32,
                       identifiers ? 202 : 0);
-        } else if (topology == Topology::PolygonMesh) {
+        } else if (topology == Topology::PolygonMesh
+                   || topology == Topology::RectangularPolygonMesh) {
             polyline.flags = 16 | 32;
-            polyline.vertexcount = 2;
+            polyline.vertexcount = topology == Topology::PolygonMesh ? 2 : 3;
             polyline.facecount = 2;
-            addVertex(0xDB01u, 1.0, 2.0, 3.0,
-                      DRW_Vertex::DwgSubtype::Mesh, 64);
-            addVertex(0xDB02u, 4.0, 5.0, 6.0,
-                      DRW_Vertex::DwgSubtype::Mesh, 64);
-            addVertex(0xDB03u, 7.0, 8.0, 9.0,
-                      DRW_Vertex::DwgSubtype::Mesh, 64);
-            addVertex(0xDB04u, 10.0, 11.0, 12.0,
-                      DRW_Vertex::DwgSubtype::Mesh, 64);
+            if (topology == Topology::RectangularPolygonMesh)
+                polyline.flags |= 1;
+            const unsigned vertexCount = topology == Topology::PolygonMesh
+                ? 4u : 6u;
+            for (unsigned i = 0; i != vertexCount; ++i) {
+                const double column = i % static_cast<unsigned>(polyline.vertexcount);
+                const double row = i / static_cast<unsigned>(polyline.vertexcount);
+                addVertex(0xDB01u + i, 1.0 + column, 2.0 + row,
+                          3.0 + 3.0 * i,
+                          DRW_Vertex::DwgSubtype::Mesh, 64);
+            }
         } else {
             polyline.flags = 64;
             polyline.vertexcount = 5;
@@ -6264,13 +6269,15 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
         int parentFlags;
         std::size_t vertexCount;
     };
-    const std::array<Profile, 4> profiles{{
+    const std::array<Profile, 5> profiles{{
         {PolylineTopologyExport::Topology::ThreeDimensional,
          "3d-polyline", 8, 2u},
         {PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers,
          "3d-polyline-identifiers", 8, 2u},
         {PolylineTopologyExport::Topology::PolygonMesh,
          "polygon-mesh", 16 | 32, 4u},
+        {PolylineTopologyExport::Topology::RectangularPolygonMesh,
+         "polygon-mesh-3x2-closed-both", 16 | 32 | 1, 6u},
         {PolylineTopologyExport::Topology::Polyface,
          "polyface-mesh", 64, 7u}
     }};
@@ -6282,15 +6289,90 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
     const std::string sentinel = "prior POLYLINE topology drawing bytes\n";
 
     const auto sourceUnchanged = [](const PolylineTopologyExport& adapter) {
-        if (adapter.polyline.handle != 0xDB00u)
+        const int expectedFlags =
+            adapter.topology == PolylineTopologyExport::Topology::ThreeDimensional
+                || adapter.topology
+                    == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                ? 8
+                : adapter.topology
+                    == PolylineTopologyExport::Topology::PolygonMesh
+                    ? 16 | 32
+                    : adapter.topology
+                        == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                        ? 16 | 32 | 1 : 64;
+        const std::size_t expectedVertices =
+            adapter.topology == PolylineTopologyExport::Topology::ThreeDimensional
+                || adapter.topology
+                    == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                ? 2u
+                : adapter.topology
+                    == PolylineTopologyExport::Topology::PolygonMesh
+                    ? 4u
+                    : adapter.topology
+                        == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                        ? 6u : 7u;
+        const int expectedM =
+            adapter.topology == PolylineTopologyExport::Topology::PolygonMesh
+                ? 2
+                : adapter.topology
+                    == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                    ? 3
+                    : adapter.topology == PolylineTopologyExport::Topology::Polyface
+                        ? 5 : 0;
+        const int expectedN = expectedM == 0 ? 0 : 2;
+        if (adapter.polyline.handle != 0xDB00u
+            || adapter.polyline.flags != expectedFlags
+            || adapter.polyline.vertexcount != expectedM
+            || adapter.polyline.facecount != expectedN
+            || adapter.polyline.vertlist.size() != expectedVertices
+            || adapter.polyline.basePoint.x != 0.0
+            || adapter.polyline.basePoint.y != 0.0
+            || adapter.polyline.basePoint.z != 2.5)
             return false;
         for (std::size_t i = 0; i < adapter.polyline.vertlist.size(); ++i) {
             const auto& vertex = adapter.polyline.vertlist[i];
             if (!vertex || vertex->handle != 0xDB01u + i)
                 return false;
             if (adapter.topology
+                    == PolylineTopologyExport::Topology::Polyface
+                && i >= 5u) {
+                const int expectedIndex = i == 5u ? -1 : 2;
+                if (vertex->vindex1 != expectedIndex
+                    || vertex->vindex2 != (i == 5u ? 2 : -4)
+                    || vertex->vindex3 != (i == 5u ? -3 : 5)
+                    || vertex->vindex4 != 0)
+                    return false;
+                continue;
+            }
+            double expectedX = 1.0 + 3.0 * i;
+            double expectedY = 2.0 + 3.0 * i;
+            double expectedZ = 3.0 + 3.0 * i;
+            if (adapter.topology
+                    == PolylineTopologyExport::Topology::PolygonMesh
+                || adapter.topology
+                    == PolylineTopologyExport::Topology::RectangularPolygonMesh) {
+                const std::size_t columns = adapter.topology
+                        == PolylineTopologyExport::Topology::PolygonMesh
+                    ? 2u : 3u;
+                expectedX = 1.0 + static_cast<double>(i % columns);
+                expectedY = 2.0 + static_cast<double>(i / columns);
+            } else if (adapter.topology
+                           == PolylineTopologyExport::Topology::Polyface) {
+                expectedX = 1.0 + static_cast<double>(i);
+                expectedY = 2.0 + static_cast<double>(i);
+                expectedZ = 3.0 + static_cast<double>(i);
+            }
+            if (vertex->basePoint.x != expectedX
+                || vertex->basePoint.y != expectedY
+                || vertex->basePoint.z != expectedZ)
+                return false;
+            if (adapter.topology
                     == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
                 && vertex->identifier != (i == 0u ? 101 : 202))
+                return false;
+            if (adapter.topology
+                    != PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers
+                && vertex->identifier != 0)
                 return false;
         }
         return true;
@@ -6346,10 +6428,36 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                 const auto& actual = readback.polylines.front();
                 if (actual.flags != profile.parentFlags
                     || actual.vertlist.size() != profile.vertexCount
-                    || actual.handle == 0u)
+                    || actual.handle == 0u
+                    || actual.vertexcount
+                        != (profile.topology
+                                == PolylineTopologyExport::Topology::PolygonMesh
+                            ? 2
+                            : profile.topology
+                                == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                                ? 3
+                                : profile.topology
+                                    == PolylineTopologyExport::Topology::Polyface
+                                    ? 5 : 0)
+                    || actual.facecount
+                        != (profile.topology
+                                == PolylineTopologyExport::Topology::PolygonMesh
+                            || profile.topology
+                                == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                            || profile.topology
+                                == PolylineTopologyExport::Topology::Polyface
+                            ? 2 : 0))
                     return fail("baseline topology header mismatch");
                 if (profile.topology
                     == PolylineTopologyExport::Topology::Polyface) {
+                    for (std::size_t i = 0; i < 5u; ++i) {
+                        const auto& coordinate = actual.vertlist[i];
+                        if (!coordinate || coordinate->handle == 0u
+                            || coordinate->basePoint.x != 1.0 + i
+                            || coordinate->basePoint.y != 2.0 + i
+                            || coordinate->basePoint.z != 3.0 + i)
+                            return fail("polyface coordinate-pool readback mismatch");
+                    }
                     const auto& firstFace = actual.vertlist[5];
                     const auto& secondFace = actual.vertlist[6];
                     if (!firstFace || !secondFace
@@ -6367,9 +6475,22 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                 } else {
                     for (std::size_t i = 0; i < actual.vertlist.size(); ++i) {
                         const auto& vertex = actual.vertlist[i];
+                        double expectedX = 1.0 + 3.0 * i;
+                        double expectedY = 2.0 + 3.0 * i;
+                        if (profile.topology
+                                == PolylineTopologyExport::Topology::PolygonMesh
+                            || profile.topology
+                                == PolylineTopologyExport::Topology::RectangularPolygonMesh) {
+                            const std::size_t columns =
+                                profile.topology
+                                    == PolylineTopologyExport::Topology::PolygonMesh
+                                    ? 2u : 3u;
+                            expectedX = 1.0 + static_cast<double>(i % columns);
+                            expectedY = 2.0 + static_cast<double>(i / columns);
+                        }
                         if (!vertex || vertex->handle == 0u
-                            || vertex->basePoint.x != 1.0 + 3.0 * i
-                            || vertex->basePoint.y != 2.0 + 3.0 * i
+                            || vertex->basePoint.x != expectedX
+                            || vertex->basePoint.y != expectedY
                             || vertex->basePoint.z != 3.0 + 3.0 * i)
                             return fail("coordinate-pool readback mismatch");
                         if (profile.topology
@@ -6432,7 +6553,25 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                     || readback.polylines.size() != 1u
                     || readback.polylines.front().flags != profile.parentFlags
                     || readback.polylines.front().vertlist.size()
-                        != profile.vertexCount)
+                        != profile.vertexCount
+                    || readback.polylines.front().vertexcount
+                        != (profile.topology
+                                == PolylineTopologyExport::Topology::PolygonMesh
+                            ? 2
+                            : profile.topology
+                                == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                                ? 3
+                                : profile.topology
+                                    == PolylineTopologyExport::Topology::Polyface
+                                    ? 5 : 0)
+                    || readback.polylines.front().facecount
+                        != (profile.topology
+                                == PolylineTopologyExport::Topology::PolygonMesh
+                            || profile.topology
+                                == PolylineTopologyExport::Topology::RectangularPolygonMesh
+                            || profile.topology
+                                == PolylineTopologyExport::Topology::Polyface
+                            ? 2 : 0))
                     return fail("retry typed readback mismatch");
                 if (profile.topology
                         == PolylineTopologyExport::Topology::ThreeDimensionalWithIdentifiers

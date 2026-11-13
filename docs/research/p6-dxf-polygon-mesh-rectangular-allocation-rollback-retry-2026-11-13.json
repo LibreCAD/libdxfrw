@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-polygon-mesh-rectangular-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RECTANGULAR_POLYGONMESH_CLOSURE_FLAGS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend classic polygon-mesh writer transaction evidence beyond the existing square 2x2 profile to a rectangular 3x2 grid with both M and N closure flags.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "POLYGONMESH parent flags 16|1|32, M vertex count 3, N vertex count 2, and six WCS coordinate vertices arranged in a rectangular grid.",
+    "versions": ["AC1014", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-polygon-mesh-rectangular-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Calibrate complete whole-file writes for each version and encoding, inject std::bad_alloc at every reached allocation, require unchanged caller topology/coordinates and destination sentinel, retry using the same codec, compare exact bytes, and read back mesh header fields and all six vertices. Caller-state checks for the topology matrix now validate flags, root elevation, vertex coordinates, identifiers, and polyface indices."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 114, "Binary": 113},
+    "AC1021": {"ASCII": 116, "Binary": 115},
+    "AC1024": {"ASCII": 123, "Binary": 122},
+    "AC1027": {"ASCII": 116, "Binary": 115},
+    "AC1032": {"ASCII": 116, "Binary": 115},
+    "total": 1165
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_polyline_topology_allocation_transaction$' --output-on-failure: PASS 1/1 in 10.88 seconds",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF transport and transaction evidence only; producer interoperability and native CAD mesh interpretation are not qualified.",
+    "The tested rectangular profile does not cover arbitrary mesh dimensions, independent closure combinations, or spline-fit mesh variants.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Rectangular 3x2 POLYGONMESH with M/N closure bits roundtrips transactionally in ASCII/Binary across AC1014, AC1021, AC1024, AC1027, and AC1032.",
+    "remainingP6G": "Continue the public-writer inventory for other compound-record variants and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "186 completed slices and 35 remaining packages: 186/(186+35)=84.2%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-polyline-topology-allocation-rollback-retry-2026-11-13.json"
+}
