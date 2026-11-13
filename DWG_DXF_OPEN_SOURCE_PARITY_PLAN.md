@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **202 completed implementation slices** and **29 remaining
+The plan records **203 completed implementation slices** and **28 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`202 / (202 + 29) = 87.4%`. This is a count-based progress measure, not an
+`203 / (203 + 28) = 87.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1235,6 +1235,17 @@ matches clean bytes and passes typed readback for all seventeen links,
 ownership, dictionary membership, and each target/text reference. This adds
 generated variable-length vector transaction evidence only; it does not
 establish producer-profile breadth or native consumer semantics ([receipt](docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G DATALINK version-matrix transaction follow-up (2026-11-13):** the same
+sixteen-target graph now passes for AC1021, AC1027, and AC1032, each in ASCII
+and Binary. Every version/encoding profile covers all 136 ASCII or 119 Binary
+measured allocation failures, preserves the destination and caller graph,
+retries on the same writer to byte-identical output, and verifies fresh typed
+readback of the full rooted graph. The focused CTest passes in 2.17 seconds;
+the direct control reports 765 allocation offsets across the six profiles.
+This extends generated transaction evidence across writer revisions only; it
+does not prove independent producer schemas or native consumer semantics
+([version-matrix receipt](docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G DIMASSOC caller-state transaction follow-up (2026-11-13):** the
 existing AC1024 whole-file ASCII/Binary allocation sweep now passes the actual

@@ -113,9 +113,10 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
     return !input.bad();
 }
 
-bool write(DataLinkExport& exporter, dxfRW& codec, bool binary) {
+bool write(DataLinkExport& exporter, dxfRW& codec, DRW::Version version,
+           bool binary) {
     codec.setRootDictEntries({{"ACAD_DATALINK", "E000"}});
-    return codec.write(&exporter, DRW::AC1027, binary);
+    return codec.write(&exporter, version, binary);
 }
 
 bool verifyGraph(const std::filesystem::path& path) {
@@ -224,58 +225,65 @@ bool run(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto output = directory / "datalink-objects.dxf";
     const std::string sentinel = "prior DATALINK destination bytes\n";
-    dxfRW codec(output.string().c_str());
-    DataLinkExport exporter(codec);
-    DataLinkExport expected(codec);
-
-    for (const bool binary : {false, true}) {
-        if (!write(exporter, codec, binary))
-            return fail("warm-up export was refused");
-        exporter.failAt = 1000000;
-        if (!write(exporter, codec, binary))
-            return fail("allocation calibration export was refused");
-        if (!verifyGraph(output))
-            return fail("allocation calibration output did not read back graph");
-        std::string cleanBytes;
-        if (!readAll(output, cleanBytes))
-            return fail("could not read allocation calibration bytes");
-        const long allocationCount = exporter.reached;
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-        for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("datalink-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        dxfRW codec(output.string().c_str());
+        DataLinkExport exporter(codec);
+        DataLinkExport expected(codec);
+        for (const bool binary : {false, true}) {
+            if (!write(exporter, codec, version, binary))
+                return fail("warm-up export was refused");
+            exporter.failAt = 1000000;
+            if (!write(exporter, codec, version, binary))
+                return fail("allocation calibration export was refused");
+            if (!verifyGraph(output))
+                return fail("allocation calibration output did not read back graph");
+            std::string cleanBytes;
+            if (!readAll(output, cleanBytes))
+                return fail("could not read allocation calibration bytes");
+            const long allocationCount = exporter.reached;
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                exporter.emitted = false;
+                const bool wrote = write(exporter, codec, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached < 1
+                    || !readAll(output, current) || current != sentinel)
+                    return fail("injected failure changed destination or was missed");
+                if (!sourceUnchanged(exporter, expected))
+                    return fail("injected failure changed the caller graph");
+                if (!write(exporter, codec, version, binary)
+                    || !verifyGraph(output))
+                    return fail("same-writer retry failed typed graph readback");
+                std::string retryBytes;
+                if (!readAll(output, retryBytes) || retryBytes != cleanBytes)
+                    return fail("same-writer retry differs from clean output");
+                if (!sourceUnchanged(exporter, expected))
+                    return fail("same-writer retry changed the caller graph");
             }
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.emitted = false;
-            const bool wrote = write(exporter, codec, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached < 1
-                || !readAll(output, current) || current != sentinel)
-                return fail("injected failure changed destination or was missed");
-            if (!sourceUnchanged(exporter, expected))
-                return fail("injected failure changed the caller graph");
-            if (!write(exporter, codec, binary) || !verifyGraph(output))
-                return fail("same-writer retry failed typed graph readback");
-            std::string retryBytes;
-            if (!readAll(output, retryBytes) || retryBytes != cleanBytes)
-                return fail("same-writer retry differs from clean output");
-            if (!sourceUnchanged(exporter, expected))
-                return fail("same-writer retry changed the caller graph");
+            std::cout << "DATALINK OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "DATALINK OBJECTS " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
     }
-    std::error_code ignored;
-    std::filesystem::remove(output, ignored);
     return true;
 }
 } // namespace
