@@ -16,12 +16,34 @@
 
 namespace {
 long allocationsBeforeFailure = -1;
-std::size_t failedAllocations = 0;
+std::size_t allocationAttempts = 0u;
+bool allocationFailed = false;
+bool allocationTracking = false;
 
-struct AllocationFailure {
-    explicit AllocationFailure(long count) { allocationsBeforeFailure = count; }
-    ~AllocationFailure() { allocationsBeforeFailure = -1; }
-};
+bool failAllocation() noexcept {
+    if (!allocationTracking || allocationsBeforeFailure < 0)
+        return false;
+    ++allocationAttempts;
+    if (allocationsBeforeFailure == 0) {
+        allocationsBeforeFailure = -1;
+        allocationFailed = true;
+        return true;
+    }
+    --allocationsBeforeFailure;
+    return false;
+}
+
+void armAllocationFailure(long offset) noexcept {
+    allocationsBeforeFailure = offset;
+    allocationAttempts = 0u;
+    allocationFailed = false;
+    allocationTracking = true;
+}
+
+void disarmAllocationFailure() noexcept {
+    allocationTracking = false;
+    allocationsBeforeFailure = -1;
+}
 
 DRW_AssociativeObject makeNetwork() {
     DRW_AssociativeObject network("ACDBASSOCNETWORK");
@@ -163,19 +185,16 @@ public:
             emit();
             return;
         }
-        const auto before = failedAllocations;
+        armAllocationFailure(failAt);
         try {
-            AllocationFailure failure(failAt);
             emit();
-            reached = failedAllocations != before
-                ? static_cast<long>(failedAllocations - before)
-                : failAt - allocationsBeforeFailure;
         } catch (const std::bad_alloc&) {
-            reached = failedAllocations != before
-                ? static_cast<long>(failedAllocations - before)
-                : failAt - allocationsBeforeFailure;
+            reached = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
             throw;
         }
+        reached = static_cast<long>(allocationAttempts);
+        disarmAllocationFailure();
     }
 
     bool finalizeDxfWrite() override { return emitted; }
@@ -404,7 +423,8 @@ bool run(const std::filesystem::path& directory) {
             const bool wrote = write(exporter, codec, binary);
             exporter.failAt = -1;
             std::string current;
-            if (wrote || exporter.reached < 1 || !readAll(output, current)
+            if (wrote || exporter.reached != offset + 1 || !allocationFailed
+                || !readAll(output, current)
                 || current != sentinel)
                 return fail("injected failure changed destination or was missed");
             if (!sourceUnchanged(exporter, expected))
@@ -426,12 +446,8 @@ bool run(const std::filesystem::path& directory) {
 } // namespace
 
 void* operator new(std::size_t size) {
-    if (allocationsBeforeFailure == 0) {
-        ++failedAllocations;
+    if (failAllocation())
         throw std::bad_alloc();
-    }
-    if (allocationsBeforeFailure > 0)
-        --allocationsBeforeFailure;
     if (void* value = std::malloc(size == 0 ? 1 : size))
         return value;
     throw std::bad_alloc();
