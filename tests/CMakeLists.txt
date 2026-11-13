@@ -30,6 +30,19 @@ function(libdxfrw_require_test_cli control)
     endif()
 endfunction()
 
+add_executable(libdxfrw_batch_output_names_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dx_batch_output_names_tests.cpp
+    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_batch_output_names.cpp)
+target_compile_features(libdxfrw_batch_output_names_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_batch_output_names_tests
+    PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_batch_output_names_tests
+    PRIVATE ${CMAKE_SOURCE_DIR}/dwg2dxf)
+add_test(NAME libdxfrw_batch_output_names
+    COMMAND libdxfrw_batch_output_names_tests)
+set_tests_properties(libdxfrw_batch_output_names PROPERTIES
+    LABELS "fast;cli;filesystem" TIMEOUT 30)
+
 option(LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL
     "Enable external AC1015 SAT-v1 dwg2dxf comparison" OFF)
 set(LIBDXFRW_SAT_V1_DWG "" CACHE FILEPATH

@@ -9,11 +9,6 @@ if(MINGW)
     # Select the Unicode console startup routine for main.cpp's wmain entry.
     target_link_options(dwg2dxf PRIVATE -municode)
 endif()
-if(APPLE)
-    find_library(LIBDXFRW_COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
-    target_link_libraries(dwg2dxf PRIVATE ${LIBDXFRW_COREFOUNDATION_FRAMEWORK})
-endif()
-
 # A shared libdxfrw build installs its library under libdir while the
 # standalone converter is installed under bindir. Keep the installed CLI
 # runnable when FreeCAD launches it without developer loader paths.

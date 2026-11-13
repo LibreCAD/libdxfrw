@@ -13,10 +13,10 @@
 #endif
 #include <windows.h>
 #elif defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
 #include <cerrno>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/attr.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -268,29 +268,27 @@ bool queryCollationProfile(const std::filesystem::path& path,
         error = "output filesystem is not a qualified APFS volume";
         return false;
     }
-    const auto native = absolutePath.native();
-    CFURLRef url = CFURLCreateFromFileSystemRepresentation(
-        kCFAllocatorDefault,
-        reinterpret_cast<const UInt8*>(native.data()),
-        static_cast<CFIndex>(native.size()), true);
-    if (url == nullptr) {
-        error = "cannot construct output-directory volume query";
+    attrlist attributes{};
+    attributes.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attributes.volattr = ATTR_VOL_CAPABILITIES;
+    struct VolumeCapabilities {
+        std::uint32_t length;
+        vol_capabilities_attr_t value;
+    } capabilities{};
+    if (::getattrlist(absolutePath.c_str(), &attributes, &capabilities,
+                      sizeof(capabilities), 0) != 0
+        || capabilities.length < sizeof(capabilities)) {
+        error = "APFS volume did not report case-sensitivity capability";
         return false;
     }
-    CFTypeRef caseValue = nullptr;
-    const Boolean queried = CFURLCopyResourcePropertyForKey(
-        url, kCFURLVolumeSupportsCaseSensitiveNamesKey, &caseValue, nullptr);
-    CFRelease(url);
-    if (!queried || caseValue == nullptr
-        || CFGetTypeID(caseValue) != CFBooleanGetTypeID()) {
-        if (caseValue != nullptr)
-            CFRelease(caseValue);
+    const auto valid = capabilities.value.valid[VOL_CAPABILITIES_FORMAT];
+    if ((valid & VOL_CAP_FMT_CASE_SENSITIVE) == 0u) {
         error = "APFS volume did not report case-sensitivity capability";
         return false;
     }
     profile.volume = static_cast<std::uint64_t>(fileInfo.st_dev);
-    profile.caseSensitive = CFBooleanGetValue(static_cast<CFBooleanRef>(caseValue)) != 0;
-    CFRelease(caseValue);
+    profile.caseSensitive = (capabilities.value.capabilities[
+        VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE) != 0u;
     return true;
 }
 

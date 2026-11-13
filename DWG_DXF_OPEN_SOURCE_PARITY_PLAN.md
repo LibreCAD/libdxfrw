@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The current plan records **53 completed implementation slices** and **6
-remaining phase exit gates**, so the count-based progression is **89.8%**:
-`53 / (53 + 6)`. This is an item-count estimate, not effort-weighted completion
+The current plan records **54 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **90.0%**:
+`54 / (54 + 6)`. This is an item-count estimate, not effort-weighted completion
 of DWG/DXF parity: a small implementation slice and a broad phase gate each
 count once. Completed actions are excluded from the execution queue; their
 implementation and evidence remain in Git history and `docs/research/`.
@@ -4252,6 +4252,17 @@ entity/version profiles, native application semantics and broad support claims
 remain open. The full seven-entity local AC1021 profile passes both open and
 insert in 2.48 seconds. See the [AC1021 primitive qualification receipt](docs/research/p8-freecad-ac1021-generated-primitives-open-insert-2026-11-12.json)
 and the [tilted-SPLINE receipt](docs/research/p8-freecad-ac1021-tilted-spline-open-insert-2026-11-12.json).
+
+**P8 macOS CLI build and batch-name preflight (2026-11-13):** the batch
+output-name checker now queries APFS case-sensitivity through `getattrlist`
+volume capabilities instead of CoreFoundation resource properties. This
+removes the macOS SDK nullability-extension diagnostics that failed the CLI
+target under `-Werror` without weakening warning policy or adding a framework
+dependency. The normal `dwg2dxf` target builds, and a generated filesystem
+control passes exact-duplicate refusal, distinct-name admission, actual
+case-folding behavior, and scratch cleanup (1/1 CTest). This qualifies the
+local macOS preflight path only; Linux/Windows hosted builds and native consumer
+gates remain open.
 
 **P8 native platform workflow pin refresh (2026-11-12):** the dispatch workflow
 and generated-consumer expected revision now target the official FreeCAD 1.1.4
