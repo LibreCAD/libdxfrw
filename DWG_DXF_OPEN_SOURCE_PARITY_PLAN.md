@@ -5221,6 +5221,19 @@ pair, and DWG import was disabled. Keep P8-D open for clean-build, DWG import,
 broader compatibility, ABI and platform qualification. See the
 [LibreCAD_3 receipt](docs/research/p8-librecad3-current-libdxfrw-focused-compat-2026-11-13.json).
 
+**Clean LibreCAD_3 `origin/master` AC1009 save gate (2026-11-13):** a fresh
+source archive at LibreCAD_3 `origin/master` commit
+`5cf435f4a5a57d8dba1599c720917b902e74b25b`, populated with the current
+libdxfrw commit, builds successfully. Five of six focused tests pass; the
+ASCII round-trip selector stops on AC1009 because the consumer adapter always
+adds `$INSUNITS=4`, while libdxfrw correctly refuses that unrepresentable
+header variable for AC1009/AC1014. Preserve the writer's refusal contract.
+P8-D now has a concrete LibreCAD_3 follow-up: omit INSUNITS at the adapter
+boundary for those targets and report the metadata loss, then rerun the
+AC1009/AC1014 ASCII save cases and focused selectors. The consumer code is in
+a different repository and was not changed here. See the
+[failure and source-boundary receipt](docs/research/p8-librecad3-origin-master-r12-save-insunits-refusal-2026-11-13.json).
+
 The matching libdxfrw writer change permits a supplied AC1027 layer 0 only when
 its material reference is the exact staged Global handle; arbitrary supplied
 material references remain refused. The focused

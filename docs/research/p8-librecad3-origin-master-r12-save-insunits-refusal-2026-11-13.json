@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-origin-master-r12-save-insunits-refusal-2026-11-13",
+  "date": "2026-11-13",
+  "status": "CLEAN_LIBRECAD3_ORIGIN_MASTER_AC1009_SAVE_REFUSED_BY_UNREPRESENTABLE_INSUNITS",
+  "supportClaimEffect": "none",
+  "scope": "Reproduce and assign the AC1009 save failure found by the clean LibreCAD_3 origin/master focused round-trip selector.",
+  "source": {
+    "consumerRepository": "LibreCAD/LibreCAD_3",
+    "consumerCommit": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "consumerSource": "/private/tmp/p8-lc3-origin-clean",
+    "consumerBuild": "/private/tmp/p8-lc3-origin-clean-build",
+    "libdxfrwCommit": "ce272f9857f0dbd8d0ec3ab992970d2ffaf66756",
+    "fixturesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: clean-source cmake configure and `cmake --build /private/tmp/p8-lc3-origin-clean-build --target lcunittest -j4`.",
+    "selector": "`lcunittest --gtest_filter='DxfExportTest.*:DxfRoundTripTest.AsciiRoundTripStaysAscii:DxfRoundTripTest.BinaryAndAsciiCarryTheSameText:FormatTest.LibdxfrwApiIsUnchanged'`",
+    "result": "5/6 pass. DxfExportTest (3/3), DxfRoundTripTest.BinaryAndAsciiCarryTheSameText, and FormatTest.LibdxfrwApiIsUnchanged pass. DxfRoundTripTest.AsciiRoundTripStaysAscii fails on its first AC1009 save; the failure log is DRW::error 2, emit-failure during HEADER emission.",
+    "reproduction": "The test source writes an ASCII AC1009 file, opens it, confirms the recorded target is not binary, then asks LibreCAD_3 to save it as ASCII AC1009. Save is refused before the test reaches the AC1014/AC1015/AC1027 loop cases."
+  },
+  "cause": {
+    "consumerAdapter": "LibreCAD_3 persistence/libdxfrw/dxfimpl.cpp::DXFimpl::writeHeader unconditionally adds $INSUNITS=4 for a new drawing and restores a preserved INSUNITS value without filtering by target revision.",
+    "writerContract": "DRW_Header::canWriteDxfInsunits rejects a present $INSUNITS value for targets through AC1014. DRW_Header::write applies this guard before emitting HEADER fields. Existing hardening tests assert atomic refusal for AC1014 rather than silently dropping the value.",
+    "result": "The AC1009 failure is an adapter target-field mismatch, not a regression in libdxfrw ASCII encoding or the DXF writer."
+  },
+  "recommendedConsumerChange": "At the LibreCAD_3 adapter boundary, omit $INSUNITS when the selected target is AC1009 or AC1014 and report the resulting unit-metadata loss through the save result. Retain libdxfrw's fail-closed preflight for callers that explicitly supply an unrepresentable value.",
+  "limitations": [
+    "This receipt identifies a LibreCAD_3 change; no consumer source was modified in the libdxfrw workspace.",
+    "The focused run aborts the ASCII loop on AC1009, so AC1014 ASCII save behavior is not established by that test run.",
+    "No DXF/DWG fixture was added and no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Clean LibreCAD_3 origin/master build passes; focused export tests, binary/ascii text parity, and the API fingerprint pass.",
+    "remainingP8D": "Apply and qualify target-aware INSUNITS omission/loss reporting in LibreCAD_3 for pre-AC1015 saves, then rerun ASCII AC1009/AC1014 plus the existing DXF selectors; continue clean consumer, ABI, DWG and platform gates.",
+    "phaseStatusesChanged": false
+  }
+}
