@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-vport-table-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_VPORT_TABLE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Qualify generated VPORT table-record allocation rollback, caller-state preservation, retry and typed readback across the R14-through-R2018 DXF lanes.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_Vport generated during each test run",
+    "profile": "One active VPORT with nondefault viewport geometry, AC1015+ per-viewport UCS values, AC1021+ lighting/grid and shade-plot mode fields, and two XDATA entries; optional reference handles remain null.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/vport_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-vport-table-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate allocations reached by the public writeVport callback, inject failure at every measured offset, verify destination-sentinel rollback and preservation of all initialized VPORT geometry, flags, versioned fields, optional handles, XDATA, reactors, and XDictionary state; retry with the same codec and check exact bytes plus typed readback."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 24, "Binary": 25},
+    "AC1015": {"ASCII": 24, "Binary": 25},
+    "AC1018": {"ASCII": 24, "Binary": 25},
+    "AC1021": {"ASCII": 24, "Binary": 25},
+    "AC1032": {"ASCII": 24, "Binary": 25},
+    "total": 245
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_vport_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_vport_table_allocation$' --output-on-failure: PASS 1/1 in 0.60 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_vport_table_allocation_tests: PASS; 245 injected allocation offsets across AC1014/15/18/21/32 ASCII/Binary",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated writer transaction evidence only; producer interoperability and native VPORT behavior are not qualified.",
+    "No optional background, visual-style, shade-plot-target, SUN, or UCS reference graph is emitted; dependency closure remains open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The selected VPORT profile survives every measured allocation failure across five DXF revisions and both encodings, with destination/caller rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the exact public-writer inventory and caller-state audit; retain optional reference-graph, producer, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "194 completed slices and 35 remaining packages: 194/(194+35)=84.7%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-view-table-allocation-rollback-retry-2026-11-13.json"
+}

@@ -6287,6 +6287,15 @@ target_link_libraries(libdxfrw_view_table_allocation_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_view_table_allocation COMMAND libdxfrw_view_table_allocation_tests)
 set_tests_properties(libdxfrw_view_table_allocation PROPERTIES LABELS "dxf;fast;view;transaction;generated" TIMEOUT 30)
 
+add_executable(libdxfrw_vport_table_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/vport_table_allocation_tests.cpp)
+target_compile_features(libdxfrw_vport_table_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_vport_table_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_vport_table_allocation_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_vport_table_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_vport_table_allocation COMMAND libdxfrw_vport_table_allocation_tests)
+set_tests_properties(libdxfrw_vport_table_allocation PROPERTIES LABELS "dxf;fast;vport;transaction;generated" TIMEOUT 30)
+
 add_executable(libdxfrw_blockrepresentation_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/blockrepresentation_objects_allocation_tests.cpp
     ${_libdxfrw_test_adapter_source})

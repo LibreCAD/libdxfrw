@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **193 completed implementation slices** and **35 remaining
+The plan records **194 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`193 / (193 + 35) = 84.6%`. This is a count-based progress measure, not an
+`194 / (194 + 35) = 84.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1286,6 +1286,17 @@ offsets and spans the AC1018/AC1021 lighting-field boundary. This is generated
 writer transaction evidence only; source-profile semantics, reference-graph
 closure, producer interoperability, and native view behavior remain open
 ([receipt](docs/research/p6-dxf-view-table-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G VPORT table-writer revision-boundary transaction slice (2026-11-13):**
+a generated VPORT with nondefault viewport geometry, R2000+ UCS state,
+post-AC1018 lighting and grid fields, AC1021+ shade-plot mode, and XDATA now
+has whole-operation allocation rollback, full selected caller-state
+preservation, same-codec byte-identical retry, and typed readback at AC1014,
+AC1015, AC1018, AC1021, and AC1032 in ASCII and Binary. All 245 measured
+allocation offsets pass. This is generated writer transaction evidence only;
+optional reference-graph closure, producer interoperability, and native
+viewport behavior remain open
+([receipt](docs/research/p6-dxf-vport-table-allocation-rollback-retry-2026-11-13.json)).
 
 **P6-G UNDERLAY graph caller-state transaction follow-up (2026-11-13):** the
 generated three-kind AC1027 PDF/DGN/DWF OBJECTS sweep now compares the full
