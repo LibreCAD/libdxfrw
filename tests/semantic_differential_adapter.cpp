@@ -2431,9 +2431,8 @@ void SemanticSink::writeEntities() {
             return;
         }
 
-        // Generated-only control: the non-finite LINE coordinate is preserved
-        // by the writer, rejected by the bounded reader, and followed by a
-        // valid LINE to prove record-level recovery continues.
+        // The DWG encoder skips a non-finite LINE and reports one entity
+        // omission. The following valid LINE must still be emitted.
         DRW_Line malformed;
         malformed.basePoint = DRW_Coord{
             std::numeric_limits<double>::quiet_NaN(), 12.0, 13.0};
@@ -5180,30 +5179,6 @@ bool runCleanDwgReadbackControl() {
     return true;
 }
 
-template <typename Reader>
-bool verifyPartialReadbackObservation(const Reader& reader,
-                                      std::string& envelope) {
-    envelope = serializeDwgObservationEnvelope(
-        reader, "outputReadback", "AC1027");
-    if constexpr (HasDwgReadObservations<Reader>::value) {
-        const auto observations = reader.getReadObservations();
-        return observations.entityParseFailures == 1
-            && observations.objectParseFailures == 0
-            && static_cast<int>(observations.frames.status) == 3
-            && observations.frames.sourceFrames != 0
-            && observations.frames.dispositions[5] == 1
-            && envelope.find("\"entityParseFailures\":1") != std::string::npos
-            && envelope.find("\"status\":\"finalizedPartial\"")
-                != std::string::npos;
-    }
-    return envelope.find("\"availability\":\"unavailable\"")
-            != std::string::npos
-        && envelope.find("\"reason\":\"readerApiNotPresent\"")
-            != std::string::npos
-        && envelope.find("\"sourceVersion\":\"AC1027\"")
-            != std::string::npos;
-}
-
 template <typename Summary>
 bool namedObservationIsOne(const Summary& summary,
                            const std::string& expectedName) {
@@ -5277,16 +5252,22 @@ bool runPartialDwgReadbackControl() {
 
     const std::filesystem::path output = directory / "partial-readback.dwg";
     const std::string outputName = output.string();
+
     SemanticSink producer("dwgRW", "write");
     producer.enablePartialDwgReadbackControl();
     dwgRW writer(outputName.c_str());
     producer.configureWrite(&writer);
     if (!writer.write(&producer, DRW::AC1027, true)
-        || !producer.writeRecipeSucceeded()) {
+        || producer.writeRecipeSucceeded()
+        || writer.getWriteSkipCounters().entityWrites != 1) {
         std::cerr << "partial DWG readback control generation failed; error="
-                  << static_cast<int>(writer.getError()) << '\n';
+                  << static_cast<int>(writer.getError())
+                  << ", recipe=" << producer.writeRecipeSucceeded()
+                  << ", skippedEntities="
+                  << writer.getWriteSkipCounters().entityWrites << '\n';
         return false;
     }
+
     SemanticSink consumer("dwgRW", "read");
     dwgRW reader(outputName.c_str());
     const bool operationSucceeded = reader.read(&consumer, false);
@@ -5301,14 +5282,11 @@ bool runPartialDwgReadbackControl() {
         const std::size_t lines = static_cast<std::size_t>(std::count_if(
             consumer.records.begin(), consumer.records.end(),
             [](const RecordRow& row) { return row.entity == "LINE"; }));
-        const std::size_t hatches = static_cast<std::size_t>(std::count_if(
-            consumer.records.begin(), consumer.records.end(),
-            [](const RecordRow& row) { return row.entity == "HATCH"; }));
         const bool observationsMatch =
-            verifyPartialReadbackObservation(reader, observations);
-        if (lines != 1 || hatches != 0 || !observationsMatch) {
+            verifyCleanReadbackObservation(reader, observations);
+        if (lines != 1 || !observationsMatch) {
             std::cerr << "standalone partial DWG readback mismatch; lines="
-                      << lines << ", hatches=" << hatches
+                      << lines
                       << ", observationsMatch=" << observationsMatch
                       << ", observations=" << observations << '\n';
             return false;
@@ -5316,13 +5294,9 @@ bool runPartialDwgReadbackControl() {
         return true;
     }
 
-    // The locked LibreCAD reader predates getReadObservations() and rejects
-    // this generated malformed-HATCH sentinel in its BLOCKS stage. Preserve
-    // that exact result as a non-promoting compatibility control rather than
-    // inventing partial counters for the target.
-    if (operationSucceeded || reader.getError() != DRW::BAD_READ_BLOCKS
+    if (!operationSucceeded || reader.getError() != DRW::BAD_NONE
         || !consumer.diagnostics.empty()
-        || !verifyPartialReadbackObservation(reader, observations)) {
+        || !verifyCleanReadbackObservation(reader, observations)) {
         std::cerr << "locked-target partial DWG readback disposition changed; "
                   << "operationSucceeded=" << operationSucceeded
                   << ", error=" << static_cast<int>(reader.getError())

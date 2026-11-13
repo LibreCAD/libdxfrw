@@ -10740,3 +10740,11 @@ independent interoperability, native applications, or MPOLYGON support claims.
 See the
 [parity-plan checkpoint](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#current-execution-checkpoint-2026-11-12)
 and [receipt](docs/research/p8-mpolygon-legacy-hatch-callback-compat-2026-11-12.json).
+
+**P8 generated DWG writer-skip continuation control (2026-11-13):** the
+semantic adapter no longer assumes a DWG writer emits a non-finite LINE for
+the reader to reject. It now checks the writer's single entity skip, continued
+emission of the following valid LINE, and clean generated readback. The
+focused `libdxfrw_3d_consumer_probe` passes 1/1. Parser recovery from a
+malformed DWG entity remains open; see the [parity-plan follow-up](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#next-work-packets)
+and [receipt](docs/research/p8-dwg-partial-output-writer-skip-continued-readback-2026-11-13.json).
