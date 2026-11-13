@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **189 completed implementation slices** and **35 remaining
+The plan records **190 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`189 / (189 + 35) = 84.4%`. This is a count-based progress measure, not an
+`190 / (190 + 35) = 84.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1255,6 +1255,17 @@ values. Every failure still preserves the prior destination; retries remain
 byte-identical and pass typed readback. All 19 ASCII and 18 Binary allocation
 offsets pass. This strengthens one generated object transaction profile only;
 producer interoperability and native leader rendering remain open ([receipt](docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G UNDERLAY graph caller-state transaction follow-up (2026-11-13):** the
+generated three-kind AC1027 PDF/DGN/DWF OBJECTS sweep now compares the full
+input root dictionary entries, definition dictionaries, typed definitions,
+underlay instances, ownership/reference handles, filenames, sheet names,
+clip bounds, and placement vectors after calibration, each injected failure,
+and same-adapter retry. Retries must also match clean bytes and fresh typed
+readback. All 66 ASCII and 59 Binary allocation failures preserve the caller
+graph and destination. This remains generated writer transaction evidence;
+producer-specific underlay semantics and native presentation are unqualified
+([receipt](docs/research/p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13.json)).
 
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work

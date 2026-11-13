@@ -1,5 +1,6 @@
 #include "dx_iface.h"
 
+#include <array>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -93,6 +94,75 @@ bool verifyGraph(const std::filesystem::path& path) {
     return true;
 }
 
+bool callerGraphMatches(const dx_data& data) {
+    if (!data.hasNamedObjectDictionary
+        || data.namedObjectDictionary.handle != 0xC700u
+        || data.namedObjectDictionary.m_entries.size() != 3u
+        || data.dictionaries.size() != 3u
+        || data.underlayDefinitions.size() != 3u
+        || data.underlays.size() != 3u
+        || data.underlayDefinitionCaptureFailed)
+        return false;
+    constexpr std::array<DRW_Underlay::Kind, 3> kinds{{
+        DRW_Underlay::PDF, DRW_Underlay::DGN, DRW_Underlay::DWF}};
+    constexpr std::array<const char*, 3> rootNames{{
+        "ACAD_PDFDEFINITIONS", "ACAD_DGNDEFINITIONS",
+        "ACAD_DWFDEFINITIONS"}};
+    auto underlayIt = data.underlays.begin();
+    for (std::size_t index = 0; index < kinds.size(); ++index) {
+        const auto dictionaryHandle = static_cast<std::uint32_t>(0xC701u + index);
+        const auto definitionHandle = static_cast<std::uint32_t>(0xC710u + index);
+        const auto underlayHandle = static_cast<std::uint32_t>(0xC720u + index);
+        const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(), [&](const auto& entry) {
+                return entry.m_name == rootNames[index]
+                    && entry.m_handle == dictionaryHandle;
+            });
+        const auto dictionary = std::find_if(data.dictionaries.begin(),
+            data.dictionaries.end(), [&](const DRW_Dictionary& value) {
+                return value.handle == dictionaryHandle;
+            });
+        const auto definition = data.underlayDefinitions.find(
+            {data.importGeneration, definitionHandle});
+        if (root == data.namedObjectDictionary.m_entries.end()
+            || dictionary == data.dictionaries.end()
+            || dictionary->parentHandle != data.namedObjectDictionary.handle
+            || dictionary->hardOwner != 1 || dictionary->cloning != 2
+            || dictionary->m_entries.size() != 1u
+            || dictionary->m_entries.front().m_name != "SOURCE_UNDERLAY"
+            || dictionary->m_entries.front().m_handle != definitionHandle
+            || definition == data.underlayDefinitions.end()
+            || definition->second.handle != definitionHandle
+            || definition->second.parentHandle != dictionaryHandle
+            || static_cast<int>(definition->second.kind)
+                != static_cast<int>(kinds[index])
+            || definition->second.filename
+                != "underlay-" + std::to_string(index) + ".source"
+            || definition->second.sheetName
+                != "Sheet" + std::to_string(index + 1u))
+            return false;
+        const dx_ifaceUnderlay* underlay = *underlayIt++;
+        if (underlay == nullptr || underlay->handle != underlayHandle
+            || underlay->sourceImportGeneration != data.importGeneration
+            || static_cast<int>(underlay->kind) != static_cast<int>(kinds[index])
+            || underlay->definitionHandle != definitionHandle
+            || underlay->position.x != 10.0 + index
+            || underlay->position.y != 20.0 + index
+            || underlay->position.z != 0.0
+            || underlay->scale.x != 1.0 || underlay->scale.y != 1.0
+            || underlay->scale.z != 1.0
+            || underlay->extPoint.x != 0.0 || underlay->extPoint.y != 0.0
+            || underlay->extPoint.z != 1.0
+            || underlay->clipBoundary.size() != 2u
+            || underlay->clipBoundary[0].x != 0.0
+            || underlay->clipBoundary[0].y != 0.0
+            || underlay->clipBoundary[1].x != 100.0
+            || underlay->clipBoundary[1].y != 80.0)
+            return false;
+    }
+    return true;
+}
+
 bool run(const std::filesystem::path& directory, bool binary) {
     const auto fail = [](const char* message) {
         std::cerr << "underlay OBJECTS allocation retry: " << message << '\n';
@@ -158,11 +228,14 @@ bool run(const std::filesystem::path& directory, bool binary) {
                                    &data, false, true);
     };
     exporter.failAt = 1000000;
-    if (!write())
+    if (!write() || !callerGraphMatches(data))
         return fail("allocation calibration export failed");
     const long allocationCount = exporter.reached;
     if (allocationCount <= 0 || !verifyGraph(destination))
         return fail("calibration did not produce the expected graph");
+    std::string expectedBytes;
+    if (!readAll(destination, expectedBytes))
+        return fail("cannot read clean calibration bytes");
 
     unsigned failures = 0u;
     for (long offset = 0; offset < allocationCount; ++offset) {
@@ -178,6 +251,7 @@ bool run(const std::filesystem::path& directory, bool binary) {
         exporter.failAt = -1;
         std::string current;
         if (wrote || exporter.reached != offset + 1 || !allocationFailed
+            || !callerGraphMatches(data)
             || !readAll(destination, current) || current != sentinel) {
             std::cerr << "offset=" << offset << " wrote=" << wrote
                       << " reached=" << exporter.reached
@@ -187,8 +261,11 @@ bool run(const std::filesystem::path& directory, bool binary) {
                       << " attempts=" << allocationAttempts << '\n';
             return fail("injected failure did not preserve the prior destination");
         }
-        if (!write() || !verifyGraph(destination))
+        if (!write() || !callerGraphMatches(data) || !verifyGraph(destination))
             return fail("same-adapter retry failed typed graph readback");
+        std::string retryBytes;
+        if (!readAll(destination, retryBytes) || retryBytes != expectedBytes)
+            return fail("same-adapter retry differs from clean output");
         ++failures;
     }
     if (failures != static_cast<unsigned>(allocationCount))

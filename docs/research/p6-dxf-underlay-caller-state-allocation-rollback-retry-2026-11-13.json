@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_UNDERLAY_CALLER_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen the AC1027 PDF/DGN/DWF underlay OBJECTS allocation sweep with caller-graph preservation and clean-byte retry assertions.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory dx_data graph generated during each test run",
+    "profile": "Three rooted underlay definition dictionaries and typed PDF, DGN, and DWF definitions and instances, with distinct source/target handles, filenames, sheet names, positions, scale, extrusion vector, and clip bounds.",
+    "versions": ["AC1027"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/underlay_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Validate the full generated root/dictionary/definition/instance graph before and after clean calibration, every injected allocation failure, and same-adapter retry. Require destination-sentinel preservation on failure; compare retry bytes with clean bytes; fresh-import typed readback checks every underlay-to-definition edge and kind."
+  },
+  "allocationOffsets": {
+    "AC1027": {"ASCII": 66, "Binary": 59},
+    "total": 125
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_underlay_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.58 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_underlay_objects_allocation_tests /tmp/libdxfrw-underlay-state-audit: PASS; 66 ASCII and 59 Binary offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated AC1027 writer transaction and typed readback evidence only; producer-specific behavior and native presentation remain unqualified.",
+    "Only one three-kind generated graph is checked; broader underlay source schemas and consumer behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The complete generated underlay input graph remains unchanged across all injected failures and retries; the destination rolls back and retries reproduce clean bytes and typed readback.",
+    "remainingP6G": "Continue the public-writer inventory and caller-state audit; retain source-profile, dependency, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "190 completed slices and 35 remaining packages: 190/(190+35)=84.4%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json"
+}
