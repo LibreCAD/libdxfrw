@@ -74,6 +74,8 @@ public:
         index.handle = 0xD7B2u;
         index.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         index.m_entries.push_back({{0.0, 1.0, 2.0}, {7.0, 8.0, 9.0}, line.handle});
+        index.m_entries.push_back({{-1.0, -2.0, -3.0}, {1.0, 2.0, 3.0}, point.handle});
+        index.m_entries.push_back({{10.0, 20.0, 0.0}, {30.0, 40.0, 0.0}, polyline.handle});
     }
 
     void writeEntities() override {
@@ -372,7 +374,11 @@ bool readbackMatches(const std::filesystem::path& path,
             != DRW::DwgNamedObjectsDictionaryHandle)
         return false;
     DRW_PartialViewingIndex expectedOutput = expectedIndex;
-    expectedOutput.m_entries.front().objectHandle = reader.lines.front().handle;
+    if (expectedOutput.m_entries.size() != 3u)
+        return false;
+    expectedOutput.m_entries[0].objectHandle = reader.lines.front().handle;
+    expectedOutput.m_entries[1].objectHandle = actualPoint.handle;
+    expectedOutput.m_entries[2].objectHandle = actualPolyline.handle;
     return indexMatches(reader.indexes.front(), expectedOutput);
 }
 
