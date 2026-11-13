@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **191 completed implementation slices** and **35 remaining
+The plan records **192 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`191 / (191 + 35) = 84.5%`. This is a count-based progress measure, not an
+`192 / (192 + 35) = 84.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1266,6 +1266,16 @@ readback. The AC1018 refusal boundary also preserves caller data and destination
 All 148 supported-lane failure offsets pass. This qualifies generated writer
 revision behavior only, not producer interoperability or native leader
 rendering ([receipt](docs/research/p6-dxf-mleaderstyle-version-matrix-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G UCS table-writer revision-boundary transaction slice (2026-11-13):** a
+generated UCS with two repeated orthographic-option tuples and XDATA now has
+whole-operation allocation rollback, unchanged caller state, same-codec
+byte-identical retry, and typed readback coverage at AC1014, AC1015, AC1021,
+and AC1032 in ASCII and Binary. The matrix reaches all 136 measured allocation
+offsets; AC1014 exercises the pre-option legacy lane, while AC1015+ verifies
+the repeated tuple fields. This is generated writer transaction evidence only;
+source-profile semantics, producer interoperability, and native UCS behavior
+remain open ([receipt](docs/research/p6-dxf-ucs-table-allocation-rollback-retry-2026-11-13.json)).
 
 **P6-G UNDERLAY graph caller-state transaction follow-up (2026-11-13):** the
 generated three-kind AC1027 PDF/DGN/DWF OBJECTS sweep now compares the full
