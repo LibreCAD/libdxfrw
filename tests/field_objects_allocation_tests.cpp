@@ -63,6 +63,54 @@ DRW_FieldList makeFieldList() {
     return fieldList;
 }
 
+bool fieldStateMatches(const DRW_Field& value, const DRW_Field& expected) {
+    return value.tType == expected.tType
+        && value.handle == expected.handle
+        && value.parentHandle == expected.parentHandle
+        && value.name == expected.name && value.flags == expected.flags
+        && value.extData.size() == expected.extData.size()
+        && value.appData.size() == expected.appData.size()
+        && value.reactorHandles == expected.reactorHandles
+        && value.xDictHandle == expected.xDictHandle
+        && value.m_evaluatorId == expected.m_evaluatorId
+        && value.m_fieldCode == expected.m_fieldCode
+        && value.m_formatString == expected.m_formatString
+        && value.m_evaluationOptionFlags == expected.m_evaluationOptionFlags
+        && value.m_filingOptionFlags == expected.m_filingOptionFlags
+        && value.m_fieldStateFlags == expected.m_fieldStateFlags
+        && value.m_evaluationStatusFlags == expected.m_evaluationStatusFlags
+        && value.m_evaluationErrorCode == expected.m_evaluationErrorCode
+        && value.m_evaluationErrorMessage == expected.m_evaluationErrorMessage
+        && value.m_value.m_formatFlags == expected.m_value.m_formatFlags
+        && value.m_value.m_dataType == expected.m_value.m_dataType
+        && value.m_value.m_dataSize == expected.m_value.m_dataSize
+        && value.m_value.m_unitType == expected.m_value.m_unitType
+        && value.m_value.m_value.code() == expected.m_value.m_value.code()
+        && value.m_value.m_value.type() == expected.m_value.m_value.type()
+        && value.m_value.m_value.type() == DRW_Variant::DOUBLE
+        && value.m_value.m_value.d_val() == expected.m_value.m_value.d_val()
+        && value.m_value.m_formatString == expected.m_value.m_formatString
+        && value.m_value.m_valueString == expected.m_value.m_valueString
+        && value.m_value.m_handle == expected.m_value.m_handle
+        && value.m_value.m_rawData == expected.m_value.m_rawData
+        && value.m_valueString == expected.m_valueString
+        && value.m_valueStringLength == expected.m_valueStringLength
+        && value.m_childHandles == expected.m_childHandles
+        && value.m_objectHandles == expected.m_objectHandles
+        && value.m_childValues.size() == expected.m_childValues.size();
+}
+
+bool fieldListStateMatches(const DRW_FieldList& value,
+                           const DRW_FieldList& expected) {
+    return value.tType == expected.tType && value.handle == expected.handle
+        && value.parentHandle == expected.parentHandle
+        && value.name == expected.name && value.flags == expected.flags
+        && value.reactorHandles == expected.reactorHandles
+        && value.xDictHandle == expected.xDictHandle
+        && value.m_unknown == expected.m_unknown
+        && value.m_fieldHandles == expected.m_fieldHandles;
+}
+
 enum class FailureTarget { Field, FieldList };
 
 class Export final : public dx_iface {
@@ -142,14 +190,12 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 bool readbackMatches(const std::filesystem::path& path) {
     dxfRW codec(path.string().c_str());
     Readback reader;
+    const DRW_Field expectedField = makeField();
+    const DRW_FieldList expectedFieldList = makeFieldList();
     return codec.read(&reader, false) && reader.fields.size() == 1u
         && reader.fieldLists.size() == 1u
-        && reader.fields.front().handle == makeField().handle
-        && reader.fields.front().m_evaluatorId == makeField().m_evaluatorId
-        && reader.fields.front().m_fieldCode == makeField().m_fieldCode
-        && reader.fieldLists.front().handle == makeFieldList().handle
-        && reader.fieldLists.front().m_fieldHandles
-            == makeFieldList().m_fieldHandles;
+        && fieldStateMatches(reader.fields.front(), expectedField)
+        && fieldListStateMatches(reader.fieldLists.front(), expectedFieldList);
 }
 
 bool run(const std::filesystem::path& directory) {
@@ -197,11 +243,9 @@ bool run(const std::filesystem::path& directory) {
                     || !allocationFailed || !readBytes(output, current)
                     || current != sentinel)
                     return fail("injected failure changed destination or was missed");
-                if (exporter.field.handle != originalField.handle
-                    || exporter.field.m_fieldCode != originalField.m_fieldCode
-                    || exporter.fieldList.handle != originalFieldList.handle
-                    || exporter.fieldList.m_fieldHandles
-                        != originalFieldList.m_fieldHandles)
+                if (!fieldStateMatches(exporter.field, originalField)
+                    || !fieldListStateMatches(exporter.fieldList,
+                                              originalFieldList))
                     return fail("injected failure changed caller object state");
                 exporter.failAt = -1;
                 exporter.accepted = true;

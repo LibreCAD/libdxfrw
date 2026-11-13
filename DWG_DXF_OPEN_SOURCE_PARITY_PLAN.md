@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **121 completed implementation slices** and **35 remaining
+The plan records **122 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`121 / (121 + 35) = 77.6%`. This is a count-based progress measure, not an
+`122 / (122 + 35) = 77.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1561,6 +1561,17 @@ typed readback preserve each override. This is generated DXF transaction
 evidence and does not establish native evaluation or display. The focused
 transaction CTest passes in 6.26 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 FIELD/FIELDLIST caller-state slice (2026-11-13):** strengthened the
+existing generated whole-operation allocation control to compare the complete
+modeled FIELD value profile and common metadata before/after every injected
+failure, and to check that profile plus the FIELDLIST's single member on fresh
+readback. The four ASCII/Binary writer sweeps cover 12/11 FIELD and 4/4
+FIELDLIST allocation failures respectively; every destination rolls back and
+same-codec retry reproduces clean bytes. This checks the generated object
+profile only; root dictionary reachability, source-producer semantics and
+native field evaluation remain open. The focused CTest passes in 0.30 seconds.
+See the [FIELD/FIELDLIST receipt](docs/research/p6-dxf-field-fieldlist-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no

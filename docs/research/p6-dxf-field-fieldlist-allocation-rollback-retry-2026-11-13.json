@@ -1,0 +1,50 @@
+{
+  "title": "FIELD/FIELDLIST writer allocation rollback and retry",
+  "date": "2026-11-13",
+  "scope": "Strengthen the generated whole-operation ASCII/Binary FIELD and FIELDLIST transaction control to compare the caller's complete modeled test profile after failures and verify the supported typed payload after clean same-codec retry.",
+  "generatedProfiles": {
+    "FIELD": {
+      "handle": "0xA501",
+      "parentHandle": "0xC",
+      "evaluatorId": "AcObjProp",
+      "fieldCode": "%<\\AcVar CustomField>%",
+      "value": {
+        "dataType": 2,
+        "groupCode": 140,
+        "type": "DOUBLE",
+        "number": 23.5,
+        "valueString": "23.5",
+        "valueStringLength": 4
+      },
+      "childHandles": [],
+      "objectHandles": [],
+      "childValues": []
+    },
+    "FIELDLIST": {
+      "handle": "0xA502",
+      "parentHandle": "0xC",
+      "fieldHandles": ["0xA501"]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_field_objects_allocation_tests --parallel 2",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_field_objects_allocation$' --output-on-failure",
+    "ctestResult": "PASS, 1/1 (0.31 sec)",
+    "allocationSweep": {
+      "fieldAscii": "12/12 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
+      "fieldListAscii": "4/4 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
+      "fieldBinary": "11/11 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
+      "fieldListBinary": "4/4 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed."
+    },
+    "readback": "FIELD handle/owner/common metadata, extData/appData counts, evaluator and expression, CadValue format/data type/size/unit, variant code/type/double value, formatted value string/length, child/object handle vectors, and child-value count match the generated profile. FIELDLIST handle/owner/common metadata, extData/appData counts, unknown field and single FIELD member handle match.",
+    "gitDiffCheck": "PASS",
+    "jsonParse": "PASS"
+  },
+  "limitations": [
+    "Generated writer transaction and typed readback only; this does not establish source-producer interoperability or support claims.",
+    "The FIELDLIST member and object owner are checked, but visibility and recursive reachability from a named dictionary root are not qualified here.",
+    "FIELD expression evaluation, native consumer display, and unsupported FIELD token preservation remain open."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added; the existing test generates output in scratch storage."
+}
