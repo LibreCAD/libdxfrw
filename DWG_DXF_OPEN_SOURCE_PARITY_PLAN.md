@@ -1290,9 +1290,14 @@ the out-of-range sentinel read; the same file proceeds through CLASSES and
 fails later at `BAD_READ_TABLES` on LTYPE_CONTROL handle `0x05`. The framed
 control is 17 bytes/136 bits and declares a zero-bit detached handle stream;
 the bounded parser reads BL count 1 but cannot match its AC1024 separated-tail
-profile. LibreDWG 0.14 reads the complete file and reports this object as type
-56 with size 17, but its minJSON exposes null owner/BYBLOCK/BYLAYER handles and
-does not establish the missing reference roles. ODA v5.4.1 §20.4.57 requires
+profile. LibreDWG 0.14 exits with status zero and reports this object as type
+56 with size 17, but a 2026-11-13 verbose recheck shows its decoder exhausts
+the declared zero-bit handle stream at `LTYPE_CONTROL` and emits null
+owner/BYBLOCK/BYLAYER handles; the same run reports corresponding empty-stream
+errors for `VPORT_CONTROL`, `APPID_CONTROL`, and `DIMSTYLE_CONTROL`. Its
+minJSON nulls are decoder fallbacks, not independent layout evidence (see the
+[verbose peer recheck](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json)).
+ODA v5.4.1 §20.4.57 requires
 a BL count and ordered soft-owner/hard-owner references; the peer output and
 this source's unexplained CLASSES CRC mismatch do not prove a valid alternate
 layout. Keep the LTYPE_CONTROL refusal; do not relax parsing from this sample.

@@ -64,6 +64,22 @@
       },
       "limit": "The peer reads the file, but these minJSON fields do not establish the control's counted handle roles or an alternate wire layout."
     },
+    "independent_peer_verbose_recheck_2026_11_13": {
+      "implementation": "LibreDWG 0.14",
+      "version_command": "dwgread --version",
+      "command": "dwgread -v5 -O JSON <source> (stdout and stderr redirected under /tmp)",
+      "exit_status": 0,
+      "json_output_sha256": "56565ce7bcb46a0be2615d95c04f33c7512db3918e7bfbf7a5991832a6272f77",
+      "stderr_sha256": "d8b7d95a80d3de7c2f8a42290d13bedeaa00307cbd54298cc4dc23ee2eba7806",
+      "ltypeControlEvidence": {
+        "frame": "OBJECTS[3], type 56, handle 0x05, size 17 bytes, declared handle stream 0 bits",
+        "diagnostic": "Invalid entries size 1. Need min. 8 bits for HANDLE, have 0 at @17.0 for LTYPE_CONTROL.",
+        "reportedHandles": "ownerhandle, BYBLOCK and BYLAYER are null in JSON output after the handle-read errors"
+      },
+      "additionalControlErrors": "The same verbose log reports zero-byte handle-stream errors for VPORT_CONTROL, APPID_CONTROL and DIMSTYLE_CONTROL.",
+      "interpretation": "Exit status zero is not a successful typed read for these controls: verbose output proves the peer exhausts the declared stream and emits null fallback values. This is not independent confirmation of an alternate LTYPE_CONTROL layout.",
+      "artifacts": "Both peer outputs remain in /tmp; no drawing fixture or tool output was added to the repository."
+    },
     "decision": "Keep the strict LTYPE_CONTROL refusal. The source has unknown producer provenance and an unexplained CLASSES CRC mismatch; the peer result is insufficient evidence for parser relaxation or a support claim."
   },
   "limits": [
