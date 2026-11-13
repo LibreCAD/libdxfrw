@@ -101,6 +101,7 @@ constexpr std::uint32_t kTypedXRecordHandle = 0xD949u;
 constexpr std::uint32_t kMultiLeaderHandle = 0xD94Au;
 constexpr std::uint32_t kDynamicConstraintDimensionHandle = 0xD94Bu;
 constexpr std::uint32_t kLegacyDynamicConstraintDimensionHandle = 0xD94Cu;
+constexpr std::uint32_t kDirectAttdefHandle = 0xD94Du;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -354,6 +355,16 @@ public:
         blockAttdef.style = "STANDARD";
         addAttDef(blockAttdef);
         endBlock();
+
+        directAttdef.handle = kDirectAttdefHandle;
+        directAttdef.tag = "WHOLE_OPERATION_DIRECT_ATTDEF";
+        directAttdef.prompt = "Long direct attribute prompt for allocation rollback";
+        directAttdef.text = "Long direct attribute default value for retry";
+        directAttdef.basePoint = DRW_Coord(3.0, 5.0, 0.0);
+        directAttdef.height = 2.25;
+        directAttdef.style = "STANDARD";
+        directAttdef.attribFlags = 1;
+        directAttdef.m_fieldLength = 48;
 
         insert.handle = kInsertHandle;
         insert.name = kInsertBlockName;
@@ -944,6 +955,8 @@ public:
             && check("MLINE", output.writeMLine(&mline))
             && check("POLYLINE", output.writePolyline(&polyline3))
             && check("INSERT", output.writeInsert(&insert))
+            && check("ATTDEF", output.writeAttdef(
+                &directAttdef, DRW::DxfModelSpaceBlockRecordHandle))
             && check("3DFACE", output.writeLine(&face))
             && check("DIMENSION", output.writeDimension(&dimension))
             && check("DYNAMIC_CONSTRAINT_DIMENSION",
@@ -1034,6 +1047,7 @@ public:
     DRW_Insert insert;
     DRW_3Dface face;
     DRW_DimAligned dimension;
+    DRW_Attdef directAttdef;
     DRW_Dimension dynamicConstraintDimension;
     DRW_Dimension legacyDynamicConstraintDimension;
     DRW_DimLinear linearDimension;
@@ -1440,8 +1454,13 @@ public:
     }
     void addAttDef(const DRW_Attdef& value) override {
         dx_iface::addAttDef(value);
-        ++attdefCount;
-        attdef = value;
+        if (value.tag == "WHOLE_OPERATION_DIRECT_ATTDEF") {
+            ++directAttdefCount;
+            directAttdef = value;
+        } else {
+            ++attdefCount;
+            attdef = value;
+        }
     }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
@@ -1524,6 +1543,7 @@ public:
     DRW_WipeoutVariables wipeoutVariables;
     DRW_Sun sun;
     DRW_Attdef attdef;
+    DRW_Attdef directAttdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -1596,6 +1616,7 @@ public:
     unsigned wipeoutVariablesCount = 0u;
     unsigned sunCount = 0u;
     unsigned attdefCount = 0u;
+    unsigned directAttdefCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -1684,6 +1705,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.line.secPoint.x == 4.5
         && adapter.line.secPoint.y == 5.25
         && adapter.line.secPoint.z == -6.0
+        && adapter.directAttdef.handle == kDirectAttdefHandle
+        && adapter.directAttdef.tag == "WHOLE_OPERATION_DIRECT_ATTDEF"
+        && adapter.directAttdef.prompt
+            == "Long direct attribute prompt for allocation rollback"
+        && adapter.directAttdef.text
+            == "Long direct attribute default value for retry"
+        && adapter.directAttdef.basePoint.x == 3.0
+        && adapter.directAttdef.basePoint.y == 5.0
+        && adapter.directAttdef.height == 2.25
+        && adapter.directAttdef.style == "STANDARD"
+        && adapter.directAttdef.attribFlags == 1
+        && adapter.directAttdef.m_fieldLength == 48
         && adapter.circle.handle == 0xD902u
         && adapter.circle.basePoint.x == -7.0
         && adapter.circle.basePoint.y == 8.5
@@ -3378,6 +3411,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.attdef.basePoint.x != 2.0
         || adapter.attdef.basePoint.y != 4.0
         || adapter.attdef.height != 1.75
+        || adapter.directAttdefCount != 1u
+        || adapter.directAttdef.handle == 0u
+        || adapter.directAttdef.tag != "WHOLE_OPERATION_DIRECT_ATTDEF"
+        || adapter.directAttdef.prompt
+            != "Long direct attribute prompt for allocation rollback"
+        || adapter.directAttdef.text
+            != "Long direct attribute default value for retry"
+        || adapter.directAttdef.basePoint.x != 3.0
+        || adapter.directAttdef.basePoint.y != 5.0
+        || adapter.directAttdef.height != 2.25
+        || adapter.directAttdef.style != "STANDARD"
+        || adapter.directAttdef.attribFlags != 1
+        || adapter.directAttdef.m_fieldLength != 48
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0

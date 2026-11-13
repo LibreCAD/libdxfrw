@@ -4355,6 +4355,15 @@ then succeeds on the same adapter after correction to `{0}` in both encodings.
 This proves only the zero mask and one invalid value; other invalid/nonzero
 masks and TABLE payloads remain uncovered
 ([receipt](docs/research/p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13.json)).
+The whole-operation DXF sweep now also invokes the public `writeAttdef()` entry
+point directly for a generated model-space ATTDEF with nondefault tag, prompt,
+default text, field length, flags and insertion point; earlier coverage reached
+ATTDEF only through a BLOCK definition. All 928 ASCII and 907 Binary injected
+allocation failures preserve caller records and the prior destination, while a
+same-writer retry reproduces clean output and typed readback verifies the
+standalone record. The focused transaction CTest passes 1/1 in 6.23 seconds.
+This closes that direct writer route only; the public-writer inventory remains
+open ([receipt](docs/research/p6-dxf-attdef-direct-writer-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

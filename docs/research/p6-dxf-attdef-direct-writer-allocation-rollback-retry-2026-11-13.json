@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-attdef-direct-writer-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DIRECT_ATTDEF_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public writeAttdef entry point directly for a generated model-space ATTDEF within whole-operation AC1027 ASCII and Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One standalone model-space ATTDEF with nondefault text, tag, prompt, field length, flags and insertion point; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "bcf2110b",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add a standalone ATTDEF source to the existing whole-operation adapter and invoke writeAttdef directly with the model-space owner override. Compare its complete modeled caller fields after each injected whole-file allocation failure and retry; require destination preservation on failure, then same-writer clean retry and typed callback readback of the standalone ATTDEF independently from the existing BLOCK ATTDEF."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1 (6.23 sec)",
+    "directRun": "PASS; ASCII 928/928 and Binary 907/907 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "This is generated DXF allocation rollback/retry and typed readback evidence only; it does not establish independent producer or consumer behavior.",
+    "The ATTDEF has no embedded MTEXT, XDATA or extension-dictionary graph; those paths are not qualified by this slice.",
+    "This closes the direct writeAttdef entry point for this generated profile only; P6-G's public-writer inventory remains open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory and select another uncovered direct route with rollback, same-writer retry and typed readback."
+}
