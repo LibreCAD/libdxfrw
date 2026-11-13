@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **112 completed implementation slices** and **35 remaining
+The plan records **113 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`112 / (112 + 35) = 76.2%`. This is a count-based progress measure, not an
+`113 / (113 + 35) = 76.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1465,6 +1465,15 @@ same-writer retries reproduce clean output, and typed readback checks the
 class version, frame, quality and unit values. This does not qualify the
 ACAD_IMAGE_VARS dictionary edge or raster consumer behavior. The focused
 transaction CTest passes in 5.02 seconds. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 DICTIONARYVAR writer transaction slice (2026-11-13):** the whole-
+operation sweep now calls the direct DICTIONARYVAR writer with a generated NOD
+parent and named root entry. All 788 ASCII and 773 Binary allocation failures
+preserve the destination and caller fields; same-writer retries reproduce
+clean output, and typed readback verifies the schema, value, parent and root
+membership. The encoded handle role is not independently inspected here. The
+focused transaction CTest passes in 5.02 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-

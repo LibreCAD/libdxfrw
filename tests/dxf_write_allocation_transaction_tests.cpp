@@ -64,6 +64,7 @@ constexpr std::uint32_t kOle2FrameHandle = 0xD940u;
 constexpr std::uint32_t kOleFrameHandle = 0xD941u;
 constexpr std::uint32_t kShapeHandle = 0xD942u;
 constexpr std::uint32_t kRasterVariablesHandle = 0xD943u;
+constexpr std::uint32_t kDictionaryVarHandle = 0xD944u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -94,7 +95,8 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
         return false;
 
     writer.setRootDictEntries(
-        {{kCustomDictionaryName, "D914"}});
+        {{kCustomDictionaryName, "D914"},
+         {"WHOLE_OPERATION_DICTIONARYVAR", "D944"}});
     DRW_Dictionary custom;
     custom.handle = kCustomDictionaryHandle;
     custom.parentHandle = kNodHandle;
@@ -812,6 +814,10 @@ public:
         rasterVariables.m_imageFrame = 1;
         rasterVariables.m_imageQuality = 1;
         rasterVariables.m_units = 4;
+        dictionaryVar.handle = kDictionaryVarHandle;
+        dictionaryVar.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        dictionaryVar.m_schema = 1;
+        dictionaryVar.m_value = "whole-operation dictionary value";
     }
 
     void writeEntities() override {
@@ -881,6 +887,7 @@ public:
             && output.writeBackground(&background, "SOLIDBACKGROUND")
             && output.writePlotSettings(&plotSettings)
             && output.writeRasterVariables(&rasterVariables)
+            && output.writeDictionaryVar(&dictionaryVar)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
@@ -945,6 +952,7 @@ public:
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
     DRW_RasterVariables rasterVariables;
+    DRW_DictionaryVar dictionaryVar;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1001,6 +1009,10 @@ public:
     void addRasterVariables(const DRW_RasterVariables& value) override {
         ++rasterVariablesCount;
         rasterVariables = value;
+    }
+    void addDictionaryVar(const DRW_DictionaryVar& value) override {
+        ++dictionaryVarCount;
+        dictionaryVar = value;
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1284,6 +1296,7 @@ public:
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
     DRW_RasterVariables rasterVariables;
+    DRW_DictionaryVar dictionaryVar;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1349,6 +1362,7 @@ public:
     unsigned oleFrameCount = 0u;
     unsigned shapeCount = 0u;
     unsigned rasterVariablesCount = 0u;
+    unsigned dictionaryVarCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1541,6 +1555,12 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.rasterVariables.m_imageFrame == 1
         && adapter.rasterVariables.m_imageQuality == 1
         && adapter.rasterVariables.m_units == 4
+        && adapter.dictionaryVar.handle == kDictionaryVarHandle
+        && adapter.dictionaryVar.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.dictionaryVar.m_schema == 1
+        && adapter.dictionaryVar.m_value
+            == "whole-operation dictionary value"
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2315,6 +2335,13 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.rasterVariables.m_imageFrame != 1
         || adapter.rasterVariables.m_imageQuality != 1
         || adapter.rasterVariables.m_units != 4
+        || adapter.dictionaryVarCount != 1u
+        || adapter.dictionaryVar.handle != kDictionaryVarHandle
+        || adapter.dictionaryVar.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.dictionaryVar.m_schema != 1
+        || adapter.dictionaryVar.m_value
+            != "whole-operation dictionary value"
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
@@ -3137,11 +3164,18 @@ bool matchesReadback(const std::filesystem::path& path) {
             return entry.m_name == kCustomDictionaryName
                 && entry.m_handle == kCustomDictionaryHandle;
         });
+    const auto dictionaryVarRootEntry = std::find_if(
+        root.m_entries.begin(), root.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "WHOLE_OPERATION_DICTIONARYVAR"
+                && entry.m_handle == kDictionaryVarHandle;
+        });
     const bool rootMatches = adapter.storage.hasNamedObjectDictionary
-        && root.handle == 0xCu && root.m_entries.size() == 3u
+        && root.handle == 0xCu && root.m_entries.size() == 4u
         && groupRootEntry != root.m_entries.end()
         && imageRootEntry != root.m_entries.end()
-        && customRootEntry != root.m_entries.end();
+        && customRootEntry != root.m_entries.end()
+        && dictionaryVarRootEntry != root.m_entries.end();
     const auto child = std::find_if(
         adapter.dictionaries.begin(), adapter.dictionaries.end(),
         [](const DRW_Dictionary& value) {
