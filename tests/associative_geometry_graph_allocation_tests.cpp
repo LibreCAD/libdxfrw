@@ -79,9 +79,9 @@ dx_data makeSource() {
     group.m_constraintActions = {0x904u, 0x906u, 0x908u, 0x909u};
     group.m_constraintActionCount = 4;
     group.m_constraintNextNodeIdRead = true;
-    group.m_constraintNextNodeId = 8;
+    group.m_constraintNextNodeId = 9;
     group.m_constraintNodesParsed = true;
-    group.m_constraintNodeCount = 7;
+    group.m_constraintNodeCount = 8;
     DRW_AssociativeConstraintNode node;
     node.m_className = "AcConstrainedImplicitPoint";
     node.m_nodeId = 1;
@@ -172,6 +172,23 @@ dx_data makeSource() {
     node.m_endParameter = 0.75;
     node.m_classDataParsed = true;
     group.m_constraintNodes.push_back(node);
+    node = DRW_AssociativeConstraintNode();
+    node.m_className = "AcConstrainedRigidSet";
+    node.m_nodeId = 8;
+    node.m_dataKind = DRW_AssociativeConstraintNode::DataKind::RigidSet;
+    node.m_hasGeometryDependency = true;
+    node.m_geometryDependencyCode = DRW::DwgSoftPointer;
+    node.m_geometryDependencyHandle = 0u;
+    node.m_hasRigidSetReservedFlag = true;
+    node.m_rigidSetReservedFlag = true;
+    node.m_hasRigidSetTransform = true;
+    node.m_rigidSetTransform = {{1.0, 0.0, 0.0, 0.0,
+                                 0.0, 1.0, 0.0, 0.0,
+                                 0.0, 0.0, 1.0, 0.0,
+                                 0.0, 0.0, 0.0, 1.0}};
+    node.m_rigidSetGeometryIds = {2, 3};
+    node.m_classDataParsed = true;
+    group.m_constraintNodes.push_back(node);
     std::sort(group.m_constraintNodes.begin(), group.m_constraintNodes.end(),
         [](const DRW_AssociativeConstraintNode& left,
            const DRW_AssociativeConstraintNode& right) {
@@ -184,7 +201,7 @@ dx_data makeSource() {
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
-        9u, 7u, 7, "authored seven-node inline constraint profile"});
+        10u, 8u, 8, "authored eight-node inline constraint profile"});
 
     DRW_AssociativeObject dependency("ACDBASSOCGEOMDEPENDENCY");
     dependency.handle = 0x904u;
@@ -278,9 +295,9 @@ bool sourceGraphUnchanged(const dx_data& source) {
     if (source.dwgAssociativeObjects.size() != 6u
         || source.dwgAssociativeObjects[0].handle != 0x902u
         || source.dwgAssociativeObjects[1].handle != 0x903u
-        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 7
-        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 7u
-        || source.dwgAssociativeObjects[1].m_constraintNextNodeId != 8
+        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 8
+        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 8u
+        || source.dwgAssociativeObjects[1].m_constraintNextNodeId != 9
         || source.dwgAssociativeObjects[1].m_constraintNodes[0].m_nodeId != 1
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_nodeId != 2
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_className
@@ -308,6 +325,10 @@ bool sourceGraphUnchanged(const dx_data& source) {
             != "AcConstrainedArc"
         || source.dwgAssociativeObjects[1].m_constraintNodes[6].m_radius
             != 5.0
+        || source.dwgAssociativeObjects[1].m_constraintNodes[7].m_className
+            != "AcConstrainedRigidSet"
+        || source.dwgAssociativeObjects[1].m_constraintNodes[7]
+                .m_rigidSetGeometryIds != std::vector<std::int32_t>({2, 3})
         || source.dwgAssociativeObjects[2].handle != 0x904u
         || source.dwgAssociativeObjects[2].parentHandle != 0x903u
         || source.dwgAssociativeObjects[2].m_dependencyHandle != 0x905u
@@ -386,7 +407,7 @@ bool verify(const std::filesystem::path& path) {
     }
     std::array<std::uint32_t, 4> dependencyHandles{};
     const bool hasDependencyRefs = group != data.associativeObjects.end()
-        && group->m_constraintNodes.size() == 7u
+        && group->m_constraintNodes.size() == 8u
         && group->m_constraintNodes[0].m_hasGeometryDependency
         && group->m_constraintNodes[3].m_hasGeometryDependency
         && group->m_constraintNodes[5].m_hasGeometryDependency
@@ -474,8 +495,8 @@ bool verify(const std::filesystem::path& path) {
             == std::vector<std::uint32_t>(dependencyHandles.begin(),
                                           dependencyHandles.end())
         && group->m_constraintActionCount == 4
-        && group->m_constraintNodes.size() == 7u
-        && group->m_constraintNodeCount == 7
+        && group->m_constraintNodes.size() == 8u
+        && group->m_constraintNodeCount == 8
         && group->m_constraintNodes[0].m_nodeId == 1
         && group->m_constraintNodes.front().m_hasGeometryDependency
         && group->m_constraintNodes.front().m_geometryDependencyHandle
@@ -526,6 +547,20 @@ bool verify(const std::filesystem::path& path) {
         && group->m_constraintNodes[6].m_endParameter == 1.0
         && group->m_constraintNodes[6].m_startPoint.y == 3.0
         && group->m_constraintNodes[6].m_endPoint.z == 7.0
+        && group->m_constraintNodes[7].m_nodeId == 8
+        && group->m_constraintNodes[7].m_className
+            == "AcConstrainedRigidSet"
+        && group->m_constraintNodes[7].m_hasGeometryDependency
+        && group->m_constraintNodes[7].m_geometryDependencyHandle == 0u
+        && group->m_constraintNodes[7].m_hasRigidSetReservedFlag
+        && group->m_constraintNodes[7].m_rigidSetReservedFlag
+        && group->m_constraintNodes[7].m_hasRigidSetTransform
+        && group->m_constraintNodes[7].m_rigidSetTransform[0] == 1.0
+        && group->m_constraintNodes[7].m_rigidSetTransform[5] == 1.0
+        && group->m_constraintNodes[7].m_rigidSetTransform[10] == 1.0
+        && group->m_constraintNodes[7].m_rigidSetTransform[15] == 1.0
+        && group->m_constraintNodes[7].m_rigidSetGeometryIds
+            == std::vector<std::int32_t>({2, 3})
         && dependency->parentHandle == group->handle
         && dependency->m_dependencyWireComplete
         && dependency->m_dependencyHandle == line->handle
@@ -547,8 +582,8 @@ bool verify(const std::filesystem::path& path) {
                   << " dependencies=" << dependenciesClosed << " line="
                   << (line != nullptr) << " refs=" << hasDependencyRefs;
         if (group != data.associativeObjects.end()
-            && group->m_constraintNodes.size() == 7u) {
-            for (const std::size_t index : {0u, 3u, 5u, 6u})
+            && group->m_constraintNodes.size() == 8u) {
+            for (const std::size_t index : {0u, 3u, 5u, 6u, 7u})
                 std::cerr << " "
                           << group->m_constraintNodes[index]
                                  .m_hasGeometryDependency
