@@ -125,6 +125,7 @@ constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
 constexpr std::uint32_t kDirectWipeoutHandle = 0xD97Bu;
 constexpr std::uint32_t kDirectPlaceholderHandle = 0xD97Cu;
 constexpr std::uint32_t kDirectMLeaderStyleHandle = 0xD97Du;
+constexpr std::uint32_t kDirectGeoDataHandle = 0xD97Eu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -1101,6 +1102,14 @@ public:
         sun.m_shadowType = 2;
         sun.m_shadowMapSize = 1024;
         sun.m_shadowSoftness = 3;
+        geoData.handle = kDirectGeoDataHandle;
+        geoData.parentHandle = 0x2Fu;
+        geoData.m_version = 2;
+        geoData.m_hostBlockHandle = 0x17u;
+        geoData.m_designPoint = DRW_Coord(100.0, 200.0, 0.0);
+        geoData.m_referencePoint = DRW_Coord(10.0, 20.0, 0.0);
+        geoData.m_coordinateSystemDefinition = "LOCAL_GRID_PROFILE";
+        geoData.m_geoRssTag = "LOCAL_GEODATA_TAG";
         ole2Frame.handle = kOle2FrameHandle;
         ole2Frame.m_oleVersion = 2u;
         ole2Frame.m_oleClient = "WHOLE_OPERATION_OLE2";
@@ -1322,6 +1331,7 @@ public:
             && output.writeUnderlayDefinition(&underlayDefinition)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
+            && output.writeGeoData(&geoData)
             && output.writeMaterial(&material)
             && output.writePointCloudColorMap(&pointCloudColorMap)
             && output.writeNavisworksModelDef(&navisworksModelDef)
@@ -1358,6 +1368,7 @@ public:
     DRW_Wipeout wipeout;
     DRW_AcDbPlaceholder placeholder;
     DRW_MLeaderStyle multiLeaderStyle;
+    DRW_GeoData geoData;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1829,6 +1840,10 @@ public:
         ++sunCount;
         sun = value;
     }
+    void addGeoData(const DRW_GeoData& value) override {
+        ++geoDataCount;
+        geoData = value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -1958,6 +1973,7 @@ public:
     DRW_PlotSettings plotSettings;
     DRW_WipeoutVariables wipeoutVariables;
     DRW_Sun sun;
+    DRW_GeoData geoData;
     DRW_Attdef attdef;
     DRW_Attdef directAttdef;
     DRW_TableStyle tableStyle;
@@ -2044,6 +2060,7 @@ public:
     unsigned plotSettingsCount = 0u;
     unsigned wipeoutVariablesCount = 0u;
     unsigned sunCount = 0u;
+    unsigned geoDataCount = 0u;
     unsigned attdefCount = 0u;
     unsigned directAttdefCount = 0u;
     unsigned tableStyleCount = 0u;
@@ -2473,6 +2490,16 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.multiLeaderStyle.textHeight == 2.25
         && adapter.multiLeaderStyle.arrowHeadSize == 1.75
         && adapter.multiLeaderStyle.maxLeaderPoints == 5
+        && adapter.geoData.handle == kDirectGeoDataHandle
+        && adapter.geoData.parentHandle == 0x2Fu
+        && adapter.geoData.m_version == 2
+        && adapter.geoData.m_hostBlockHandle == 0x17u
+        && adapter.geoData.m_designPoint.x == 100.0
+        && adapter.geoData.m_designPoint.y == 200.0
+        && adapter.geoData.m_referencePoint.x == 10.0
+        && adapter.geoData.m_referencePoint.y == 20.0
+        && adapter.geoData.m_coordinateSystemDefinition == "LOCAL_GRID_PROFILE"
+        && adapter.geoData.m_geoRssTag == "LOCAL_GEODATA_TAG"
         && adapter.placeholder.handle == kDirectPlaceholderHandle
         && adapter.placeholder.parentHandle == kCustomDictionaryHandle
         && adapter.ole2Frame.handle == kOle2FrameHandle
@@ -4530,6 +4557,18 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.sun.m_shadowType != 2u
         || adapter.sun.m_shadowMapSize != 1024u
         || adapter.sun.m_shadowSoftness != 3u
+        || adapter.geoDataCount != 1u
+        || adapter.geoData.handle == 0u
+        || adapter.geoData.parentHandle != 0x2Fu
+        || adapter.geoData.m_version != 2
+        || adapter.geoData.m_hostBlockHandle != 0x17u
+        || adapter.geoData.m_designPoint.x != 100.0
+        || adapter.geoData.m_designPoint.y != 200.0
+        || adapter.geoData.m_referencePoint.x != 10.0
+        || adapter.geoData.m_referencePoint.y != 20.0
+        || adapter.geoData.m_coordinateSystemDefinition
+            != "LOCAL_GRID_PROFILE"
+        || adapter.geoData.m_geoRssTag != "LOCAL_GEODATA_TAG"
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

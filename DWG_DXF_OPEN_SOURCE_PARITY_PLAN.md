@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **134 completed implementation slices** and **35 remaining
+The plan records **135 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`134 / (134 + 35) = 79.3%`. This is a count-based progress measure, not an
+`135 / (135 + 35) = 79.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1668,6 +1668,18 @@ clean output. Focused CTest passes in 8.14 seconds. This is generated
 transaction and reference-closure evidence only; physical producer profiles
 and native annotation semantics remain open. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 GEODATA whole-operation transaction follow-up (2026-11-13):** the
+multi-callback ASCII/Binary allocation sweep now emits one generated version-2
+GEODATA after its earlier entity and OBJECTS records. Every injected failure
+preserves the previous destination and the source GEODATA fields; same-writer
+retry reproduces clean output and fresh typed readback verifies version,
+host-block handle, design/reference points, coordinate-system definition and
+RSS tag. The sweep covers 1,145 ASCII and 1,122 Binary allocation offsets;
+focused CTest passes in 8.58 seconds. This is local whole-write transaction
+evidence only; source-producer breadth and native georeferencing semantics
+remain open. It does not close P6-G's remaining public-writer inventory. See
+the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the
 whole-file allocation sweep includes a generic `DRW_Dimension` on the
