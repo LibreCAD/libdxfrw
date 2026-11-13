@@ -103,6 +103,7 @@ constexpr std::uint32_t kDynamicConstraintDimensionHandle = 0xD94Bu;
 constexpr std::uint32_t kLegacyDynamicConstraintDimensionHandle = 0xD94Cu;
 constexpr std::uint32_t kDirectAttdefHandle = 0xD94Du;
 constexpr std::uint32_t kPointCloudColorMapHandle = 0xD94Eu;
+constexpr std::uint32_t kNavisworksModelDefHandle = 0xD94Fu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -704,6 +705,14 @@ public:
             {4, 2u, {"road", "rail"}}};
         pointCloudColorMap.m_classificationColorRampCount =
             static_cast<std::uint32_t>(pointCloudColorMap.m_classificationColorRamps.size());
+        navisworksModelDef.handle = kNavisworksModelDefHandle;
+        navisworksModelDef.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        navisworksModelDef.m_flags = 3;
+        navisworksModelDef.m_path = "models/" + std::string(160u, 'n') + ".nwd";
+        navisworksModelDef.m_status = true;
+        navisworksModelDef.m_minExtent = DRW_Coord(-1.5, -2.5, -3.5);
+        navisworksModelDef.m_maxExtent = DRW_Coord(4.5, 5.5, 6.5);
+        navisworksModelDef.m_hostDrawingVisibility = true;
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1036,6 +1045,7 @@ public:
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
             && output.writePointCloudColorMap(&pointCloudColorMap)
+            && output.writeNavisworksModelDef(&navisworksModelDef)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
@@ -1109,6 +1119,7 @@ public:
     DRW_MLeader multiLeader;
     DRW_Material material;
     DRW_PointCloudColorMap pointCloudColorMap;
+    DRW_NavisworksModelDef navisworksModelDef;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1428,6 +1439,10 @@ public:
         ++pointCloudColorMapCount;
         pointCloudColorMap = value;
     }
+    void addNavisworksModelDef(const DRW_NavisworksModelDef& value) override {
+        ++navisworksModelDefCount;
+        navisworksModelDef = value;
+    }
     void addScale(const DRW_Scale& value) override {
         dx_iface::addScale(value);
         ++scaleCount;
@@ -1554,6 +1569,7 @@ public:
     DRW_Helix helix;
     DRW_Material material;
     DRW_PointCloudColorMap pointCloudColorMap;
+    DRW_NavisworksModelDef navisworksModelDef;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1628,6 +1644,7 @@ public:
     unsigned helixCount = 0u;
     unsigned materialCount = 0u;
     unsigned pointCloudColorMapCount = 0u;
+    unsigned navisworksModelDefCount = 0u;
     unsigned loftedSurfaceCount = 0u;
     unsigned sweptSurfaceCount = 0u;
     unsigned planeSurfaceCount = 0u;
@@ -2334,6 +2351,20 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.pointCloudColorMap.m_classificationColorRamps[0].m_classVersion == 4
         && adapter.pointCloudColorMap.m_classificationColorRamps[0].m_colorSchemes
             == std::vector<UTF8STRING>{"road", "rail"}
+        && adapter.navisworksModelDef.handle == kNavisworksModelDefHandle
+        && adapter.navisworksModelDef.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.navisworksModelDef.m_flags == 3
+        && adapter.navisworksModelDef.m_path
+            == "models/" + std::string(160u, 'n') + ".nwd"
+        && adapter.navisworksModelDef.m_status
+        && adapter.navisworksModelDef.m_minExtent.x == -1.5
+        && adapter.navisworksModelDef.m_minExtent.y == -2.5
+        && adapter.navisworksModelDef.m_minExtent.z == -3.5
+        && adapter.navisworksModelDef.m_maxExtent.x == 4.5
+        && adapter.navisworksModelDef.m_maxExtent.y == 5.5
+        && adapter.navisworksModelDef.m_maxExtent.z == 6.5
+        && adapter.navisworksModelDef.m_hostDrawingVisibility
         && adapter.loftedSurface.handle == kLoftedSurfaceHandle
         && adapter.loftedSurface.modelerFormatVersion == 1
         && adapter.loftedSurface.uIsolines == 10
@@ -3294,6 +3325,21 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_rampCount != 2u
         || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_colorSchemes
             != std::vector<UTF8STRING>{"road", "rail"}
+        || adapter.navisworksModelDefCount != 1u
+        || adapter.navisworksModelDef.handle == 0u
+        || adapter.navisworksModelDef.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.navisworksModelDef.m_flags != 3
+        || adapter.navisworksModelDef.m_path
+            != "models/" + std::string(160u, 'n') + ".nwd"
+        || !adapter.navisworksModelDef.m_status
+        || adapter.navisworksModelDef.m_minExtent.x != -1.5
+        || adapter.navisworksModelDef.m_minExtent.y != -2.5
+        || adapter.navisworksModelDef.m_minExtent.z != -3.5
+        || adapter.navisworksModelDef.m_maxExtent.x != 4.5
+        || adapter.navisworksModelDef.m_maxExtent.y != 5.5
+        || adapter.navisworksModelDef.m_maxExtent.z != 6.5
+        || !adapter.navisworksModelDef.m_hostDrawingVisibility
         || adapter.loftedSurfaceCount != 1u
         || adapter.loftedSurface.handle == 0u
         || adapter.loftedSurface.modelerFormatVersion != 1

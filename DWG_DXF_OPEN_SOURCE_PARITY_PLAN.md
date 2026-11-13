@@ -4373,6 +4373,14 @@ class version and ordered scheme list. The focused transaction CTest passes
 1/1. This is generated codec and transaction evidence only; dictionary
 membership, native point-cloud styling and independent consumer semantics remain
 unqualified ([receipt](docs/research/p6-dxf-pointcloud-colormap-allocation-rollback-retry-2026-11-13.json)).
+The same generated OBJECTS sweep now calls `writeNavisworksModelDef()` directly
+with a 160-character path and nondefault flags, status, extents and host
+visibility. All 942 ASCII and 922 Binary injected allocation failures preserve
+the caller definition and previous destination; same-writer retry reproduces
+clean output and typed readback verifies the path and modeled fields. The
+focused transaction CTest passes 1/1. This does not qualify dictionary
+membership, linked NAVISWORKSMODEL references, external asset loading or native
+consumer behavior ([receipt](docs/research/p6-dxf-navisworks-model-def-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
