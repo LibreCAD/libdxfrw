@@ -17,7 +17,10 @@ constexpr std::uint32_t kNodHandle = 0xD910u;
 constexpr std::uint32_t kGroupDictionaryHandle = 0xD911u;
 constexpr std::uint32_t kGroupHandle = 0xD912u;
 constexpr std::uint32_t kImageDefHandle = 0xD913u;
+constexpr std::uint32_t kCustomDictionaryHandle = 0xD914u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
+const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
+const std::string kNestedXrecordName = "NESTED_XRECORD";
 using DictionaryEdge = DRW_Dictionary::Entry::DxfHandleCode;
 
 bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
@@ -39,8 +42,19 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
     groupDictionary->parentHandle = kNodHandle;
     groupDictionary->m_entries.push_back(
         {kGroupName, kGroupHandle, DictionaryEdge::SoftOwner});
-    return writer.setGeneratedDictionarySourceRecords(
-        std::move(nod), std::move(groupDictionary));
+    if (!writer.setGeneratedDictionarySourceRecords(
+            std::move(nod), std::move(groupDictionary)))
+        return false;
+
+    writer.setRootDictEntries(
+        {{kCustomDictionaryName, "D914"}});
+    DRW_Dictionary custom;
+    custom.handle = kCustomDictionaryHandle;
+    custom.parentHandle = kNodHandle;
+    custom.m_entries.push_back(
+        {kNestedXrecordName, 0xD901u, DictionaryEdge::SoftOwner});
+    writer.setNamedDictObjects({custom});
+    return true;
 }
 
 bool installGeneratedImageDefinition(dxfRW& writer) {
@@ -110,10 +124,10 @@ public:
         image.sizev = 480.0;
         object.name = "XRECORD";
         object.handle = 0xD901u;
-        object.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        object.parentHandle = kCustomDictionaryHandle;
         object.m_version = DRW::AC1027;
         object.groups.emplace_back(5, std::string("D901"));
-        object.groups.emplace_back(330, std::string("C"));
+        object.groups.emplace_back(330, std::string("D914"));
         object.groups.emplace_back(100, std::string("AcDbXrecord"));
         object.groups.emplace_back(1, std::string("whole operation payload"));
     }
@@ -213,11 +227,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.sizev == 480.0
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
-        && adapter.object.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.object.parentHandle == kCustomDictionaryHandle
         && adapter.object.groups.size() == 4u
         && adapter.object.groups[0].code() == 5
         && adapter.object.groups[0].c_str() != nullptr
         && std::string(adapter.object.groups[0].c_str()) == "D901"
+        && adapter.object.groups[1].code() == 330
+        && adapter.object.groups[1].c_str() != nullptr
+        && std::string(adapter.object.groups[1].c_str()) == "D914"
         && adapter.object.groups[3].code() == 1
         && adapter.object.groups[3].c_str() != nullptr
         && std::string(adapter.object.groups[3].c_str())
@@ -282,10 +299,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_Dictionary::Entry& entry) {
             return entry.m_name == "ACAD_IMAGE_DICT";
         });
+    const auto customRootEntry = std::find_if(
+        root.m_entries.begin(), root.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == kCustomDictionaryName
+                && entry.m_handle == kCustomDictionaryHandle;
+        });
     const bool rootMatches = adapter.storage.hasNamedObjectDictionary
-        && root.handle == 0xCu && root.m_entries.size() == 2u
+        && root.handle == 0xCu && root.m_entries.size() == 3u
         && groupRootEntry != root.m_entries.end()
-        && imageRootEntry != root.m_entries.end();
+        && imageRootEntry != root.m_entries.end()
+        && customRootEntry != root.m_entries.end();
     const auto child = std::find_if(
         adapter.dictionaries.begin(), adapter.dictionaries.end(),
         [](const DRW_Dictionary& value) {
@@ -306,6 +330,17 @@ bool matchesReadback(const std::filesystem::path& path) {
                       && value.m_entries.front().m_handle
                           == imageDefinition->handle;
               });
+    const auto customDictionary = customRootEntry == root.m_entries.end()
+        ? adapter.dictionaries.end()
+        : std::find_if(
+              adapter.dictionaries.begin(), adapter.dictionaries.end(),
+              [&root, &customRootEntry](const DRW_Dictionary& value) {
+                  return value.handle == customRootEntry->m_handle
+                      && value.parentHandle == root.handle
+                      && value.m_entries.size() == 1u
+                      && value.m_entries.front().m_name == kNestedXrecordName
+                      && value.m_entries.front().m_handle == 0xD901u;
+              });
     const auto group = std::find_if(
         adapter.groups.begin(), adapter.groups.end(),
         [](const DRW_Group& value) {
@@ -315,6 +350,9 @@ bool matchesReadback(const std::filesystem::path& path) {
     const bool graphMatches = rootMatches
         && child != adapter.dictionaries.end()
         && imageDictionary != adapter.dictionaries.end()
+        && customDictionary != adapter.dictionaries.end()
+        && rawXrecord != adapter.objects.end()
+        && rawXrecord->parentHandle == customDictionary->handle
         && group != adapter.groups.end()
         && child->m_entries.front().m_handle == group->handle
         && group->m_entityHandles[0] == adapter.line.handle
@@ -332,6 +370,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         if (group != adapter.groups.end())
             std::cerr << " groupHandle=" << group->handle << " members="
                       << group->m_entityHandles.size();
+        std::cerr << " imageRoot="
+                  << (imageRootEntry != root.m_entries.end())
+                  << " imageDict="
+                  << (imageDictionary != adapter.dictionaries.end())
+                  << " customRoot="
+                  << (customRootEntry != root.m_entries.end())
+                  << " customDict="
+                  << (customDictionary != adapter.dictionaries.end())
+                  << " xrecords=" << adapter.objects.size();
+        if (customRootEntry != root.m_entries.end())
+            std::cerr << " customRootHandle=" << customRootEntry->m_handle;
+        if (customDictionary != adapter.dictionaries.end())
+            std::cerr << " customParent=" << customDictionary->parentHandle
+                      << " customEntryHandle="
+                      << customDictionary->m_entries.front().m_handle;
+        if (rawXrecord != adapter.objects.end())
+            std::cerr << " xrecordParent=" << rawXrecord->parentHandle;
         std::cerr << " lineHandle=" << adapter.line.handle << '\n';
     }
     return graphMatches;
