@@ -144,7 +144,10 @@ const char* versionCode(DRW::Version version) {
     switch (version) {
     case DRW::AC1014: return "AC1014";
     case DRW::AC1015: return "AC1015";
+    case DRW::AC1018: return "AC1018";
     case DRW::AC1021: return "AC1021";
+    case DRW::AC1024: return "AC1024";
+    case DRW::AC1027: return "AC1027";
     case DRW::AC1032: return "AC1032";
     default: return "unknown";
     }
@@ -161,8 +164,9 @@ bool readbackMatches(const std::filesystem::path& path,
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "ucs-table-allocation.dxf";
     const std::string prior = "prior UCS destination bytes\n";
-    constexpr std::array<DRW::Version, 4> versions{{
-        DRW::AC1014, DRW::AC1015, DRW::AC1021, DRW::AC1032}};
+    constexpr std::array<DRW::Version, 7> versions{{
+        DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
     for (const DRW::Version version : versions) {
         for (const bool binary : {false, true}) {
             long allocationCount = 0;
