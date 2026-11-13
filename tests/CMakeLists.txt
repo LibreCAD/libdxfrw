@@ -4443,6 +4443,18 @@ set_tests_properties(libdxfrw_dwg_circle_arc_geometry_domain PROPERTIES
     TIMEOUT 30
 )
 
+# POINT and LINE writers must reject non-finite modeled fields that their DWG
+# readers already refuse, preserving the destination for same-writer retry.
+add_test(
+    NAME libdxfrw_dwg_point_line_finite_admission
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-point-line-finite-admission
+)
+set_tests_properties(libdxfrw_dwg_point_line_finite_admission PROPERTIES
+    LABELS "fast;dwg;writer;reader;point;line;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

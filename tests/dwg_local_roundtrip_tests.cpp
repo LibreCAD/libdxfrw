@@ -10818,6 +10818,168 @@ bool runDwgEllipseGeometryAdmission(const std::filesystem::path& directory) {
     return true;
 }
 
+class DwgPointLineFiniteWriter final : public dx_iface {
+public:
+    DwgPointLineFiniteWriter(dwgRW& writer, bool line,
+                             std::function<void(DRW_Point&)> mutate = {})
+        : writer_(writer), line_(line), mutate_(std::move(mutate)) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        if (line_) {
+            DRW_Line value;
+            value.basePoint = {1.0, 2.0, 3.0};
+            value.secPoint = {4.0, 5.0, 6.0};
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeLine(&value) && value.handle != 0u;
+        } else {
+            DRW_Point value;
+            value.basePoint = {1.0, 2.0, 3.0};
+            value.xAxisAngle = 0.5;
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writePoint(&value) && value.handle != 0u;
+        }
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    dwgRW& writer_;
+    bool line_;
+    std::function<void(DRW_Point&)> mutate_;
+    bool wrote_{false};
+};
+
+class DwgPointLineFiniteReader final : public dx_iface {
+public:
+    explicit DwgPointLineFiniteReader(bool line) : line_(line) {}
+    void addPoint(const DRW_Point& value) override {
+        if (!line_) {
+            ++count_;
+            base_ = value.basePoint;
+            extrusion_ = value.extPoint;
+            thickness_ = value.thickness;
+            xAxisAngle_ = value.xAxisAngle;
+        }
+    }
+    void addLine(const DRW_Line& value) override {
+        if (line_) {
+            ++count_;
+            base_ = value.basePoint;
+            sec_ = value.secPoint;
+            extrusion_ = value.extPoint;
+            thickness_ = value.thickness;
+        }
+    }
+    bool matches() const noexcept {
+        const bool common = count_ == 1u && base_.x == 1.0
+            && base_.y == 2.0 && base_.z == 3.0
+            && extrusion_.x == 0.0 && extrusion_.y == 0.0
+            && extrusion_.z == 1.0 && thickness_ == 0.0;
+        return line_ ? common && sec_.x == 4.0 && sec_.y == 5.0
+                                  && sec_.z == 6.0
+                      : common && xAxisAngle_ == 0.5;
+    }
+
+private:
+    bool line_;
+    std::size_t count_{0u};
+    DRW_Coord base_;
+    DRW_Coord sec_;
+    DRW_Coord extrusion_;
+    double thickness_{0.0};
+    double xAxisAngle_{0.0};
+};
+
+bool runDwgPointLineFiniteAdmission(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Point&)>>> pointProfiles{
+            {"point-nan-position", [](DRW_Point& value) {
+                value.basePoint.x = std::numeric_limits<double>::quiet_NaN(); }},
+            {"point-infinite-thickness", [](DRW_Point& value) {
+                value.thickness = std::numeric_limits<double>::infinity(); }},
+            {"point-nan-extrusion", [](DRW_Point& value) {
+                value.extPoint.y = std::numeric_limits<double>::quiet_NaN(); }},
+            {"point-infinite-x-angle", [](DRW_Point& value) {
+                value.xAxisAngle = std::numeric_limits<double>::infinity(); }}
+        };
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Point&)>>> lineProfiles{
+            {"line-nan-start", [](DRW_Point& value) {
+                value.basePoint.z = std::numeric_limits<double>::quiet_NaN(); }},
+            {"line-infinite-end", [](DRW_Point& value) {
+                static_cast<DRW_Line&>(value).secPoint.x =
+                    std::numeric_limits<double>::infinity(); }},
+            {"line-nan-thickness", [](DRW_Point& value) {
+                value.thickness = std::numeric_limits<double>::quiet_NaN(); }},
+            {"line-infinite-extrusion", [](DRW_Point& value) {
+                value.extPoint.z = std::numeric_limits<double>::infinity(); }}
+        };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        for (const bool line : {false, true}) {
+            const auto& profiles = line ? lineProfiles : pointProfiles;
+            const auto path = directory / (std::string("libdxfrw-")
+                + (line ? "line" : "point") + "-finite-"
+                + std::to_string(static_cast<int>(version)) + ".dwg");
+            for (const auto& invalid : profiles) {
+                {
+                    std::ofstream sentinel(path, std::ios::binary
+                                                   | std::ios::trunc);
+                    sentinel << "existing-dwg-destination";
+                }
+                dwgRW writer(path.string().c_str());
+                DwgPointLineFiniteWriter source(writer, line, invalid.second);
+                const std::string before = readBytes(path);
+                if (writer.write(&source, version, false)
+                    || before.empty() || readBytes(path) != before)
+                    return false;
+
+                DwgPointLineFiniteWriter retry(writer, line);
+                if (!writer.write(&retry, version, false))
+                    return false;
+                dwgRW reader(path.string().c_str());
+                DwgPointLineFiniteReader capture(line);
+                dx_data readData;
+                capture.cData = &readData;
+                if (!reader.read(&capture, false) || !capture.matches()
+                    || reader.getEntityParseFailures() != 0u
+                    || reader.getObjectParseFailures() != 0u)
+                    return false;
+            }
+            std::filesystem::remove(path, ec);
+        }
+    }
+    return true;
+}
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -41539,6 +41701,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-circle-arc-geometry-domain") {
         const bool passed = runDwgCircleArcGeometryDomain(directory);
         std::cout << "DWG CIRCLE/ARC geometry rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-point-line-finite-admission") {
+        const bool passed = runDwgPointLineFiniteAdmission(directory);
+        std::cout << "DWG POINT/LINE finite-field rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2

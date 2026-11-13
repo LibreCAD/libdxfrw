@@ -79,13 +79,15 @@ bool readDwgRepresentableAppDataHandle(const DRW_Variant& value,
     return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
 }
 
+bool isFiniteDwgCoord(const DRW_Coord& point) noexcept {
+    return std::isfinite(point.x) && std::isfinite(point.y)
+        && std::isfinite(point.z);
+}
+
 bool hasRepresentableDwgEllipseGeometry(const DRW_Ellipse& ellipse) noexcept {
-    const auto finiteCoord = [](const DRW_Coord& point) {
-        return std::isfinite(point.x) && std::isfinite(point.y)
-            && std::isfinite(point.z);
-    };
-    if (!finiteCoord(ellipse.basePoint) || !finiteCoord(ellipse.secPoint)
-        || !finiteCoord(ellipse.extPoint) || !std::isfinite(ellipse.ratio)
+    if (!isFiniteDwgCoord(ellipse.basePoint)
+        || !isFiniteDwgCoord(ellipse.secPoint)
+        || !isFiniteDwgCoord(ellipse.extPoint) || !std::isfinite(ellipse.ratio)
         || ellipse.ratio < 1.0e-6 || ellipse.ratio > 1.0
         || !std::isfinite(ellipse.staparam)
         || !std::isfinite(ellipse.endparam))
@@ -122,11 +124,9 @@ bool hasRepresentableDwgEllipseGeometry(const DRW_Ellipse& ellipse) noexcept {
 bool hasRepresentableDwgCircleGeometry(const DRW_Circle& circle) noexcept {
     const DRW_Coord& center = circle.basePoint;
     const DRW_Coord& normal = circle.extPoint;
-    return std::isfinite(center.x) && std::isfinite(center.y)
-        && std::isfinite(center.z) && std::isfinite(circle.thickness)
+    return isFiniteDwgCoord(center) && std::isfinite(circle.thickness)
         && std::isfinite(circle.radious) && circle.radious > 0.0
-        && std::isfinite(normal.x) && std::isfinite(normal.y)
-        && std::isfinite(normal.z)
+        && isFiniteDwgCoord(normal)
         && (normal.x != 0.0 || normal.y != 0.0 || normal.z != 0.0);
 }
 
@@ -7983,7 +7983,9 @@ bool DRW_Point::encodeDwg(DRW::Version version, dwgBufferW *buf,
                           dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  if (buf == nullptr || !isFiniteDwgCoord(basePoint)
+      || !std::isfinite(thickness) || !isFiniteDwgCoord(extPoint)
+      || !std::isfinite(xAxisAngle))
     return false;
 
   dwgBufferW *const bodyTarget = buf;
@@ -8138,7 +8140,9 @@ bool DRW_Line::encodeDwg(DRW::Version version, dwgBufferW *buf,
                          dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  if (buf == nullptr || !isFiniteDwgCoord(basePoint)
+      || !isFiniteDwgCoord(secPoint) || !std::isfinite(thickness)
+      || !isFiniteDwgCoord(extPoint))
     return false;
 
   dwgBufferW *const bodyTarget = buf;
