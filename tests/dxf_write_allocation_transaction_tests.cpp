@@ -68,6 +68,7 @@ constexpr std::uint32_t kDictionaryVarHandle = 0xD944u;
 constexpr std::uint32_t kDbColorHandle = 0xD945u;
 constexpr std::uint32_t kUnderlayDefinitionHandle = 0xD946u;
 constexpr std::uint32_t kUnderlayHandle = 0xD947u;
+constexpr std::uint32_t kLineTypeHandle = 0xD948u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -848,6 +849,13 @@ public:
             DRW_Coord(56.0, 8.0), DRW_Coord(56.0, 40.0),
             DRW_Coord(8.0, 40.0)};
         underlay.flags = static_cast<std::uint8_t>(underlay.flags | 0x10u);
+        lineType.handle = kLineTypeHandle;
+        lineType.name = "WHOLE_OPERATION_LTYPE";
+        lineType.desc = "whole-operation line type";
+        lineType.path = {10.0, -5.0};
+        lineType.size = 2;
+        lineType.length = 15.0;
+        storage.lineTypes.push_back(lineType);
     }
 
     void writeEntities() override {
@@ -989,6 +997,7 @@ public:
     DRW_DbColor dbColor;
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
+    DRW_LType lineType;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1543,7 +1552,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
             && value.getText() == "whole-operation subtype dimension"
             && value.getStyle() == "STANDARD";
     };
+    const auto lineType = std::find_if(
+        adapter.storage.lineTypes.begin(), adapter.storage.lineTypes.end(),
+        [](const DRW_LType& value) {
+            return value.name == "WHOLE_OPERATION_LTYPE";
+        });
+    const std::size_t lineTypeCount = static_cast<std::size_t>(std::count_if(
+        adapter.storage.lineTypes.begin(), adapter.storage.lineTypes.end(),
+        [](const DRW_LType& value) {
+            return value.name == "WHOLE_OPERATION_LTYPE";
+        }));
     return adapter.line.handle == 0xD900u
+        && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
         && adapter.line.basePoint.y == -2.5
         && adapter.line.basePoint.z == 3.75
@@ -1575,6 +1595,12 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.basePoint.z == 4.0
         && adapter.image.sizeu == 640.0
         && adapter.image.sizev == 480.0
+        && lineType != adapter.storage.lineTypes.end()
+        && lineType->handle == kLineTypeHandle
+        && lineType->desc == "whole-operation line type"
+        && lineType->path == std::vector<double>{10.0, -5.0}
+        && lineType->size == 2
+        && lineType->length == 15.0
         && adapter.ole2Frame.handle == kOle2FrameHandle
         && adapter.ole2Frame.m_oleVersion == 2u
         && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
@@ -2299,6 +2325,16 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_DataLink& value) {
             return value.handle == kTargetBetaHandle;
         });
+    const auto lineType = std::find_if(
+        adapter.storage.lineTypes.begin(), adapter.storage.lineTypes.end(),
+        [](const DRW_LType& value) {
+            return value.name == "WHOLE_OPERATION_LTYPE";
+        });
+    const std::size_t lineTypeCount = static_cast<std::size_t>(std::count_if(
+        adapter.storage.lineTypes.begin(), adapter.storage.lineTypes.end(),
+        [](const DRW_LType& value) {
+            return value.name == "WHOLE_OPERATION_LTYPE";
+        }));
     const auto insertBlock = std::find_if(
         adapter.storage.blocks.begin(), adapter.storage.blocks.end(),
         [](const dx_ifaceBlock* value) {
@@ -2371,6 +2407,13 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.image.basePoint.z != 4.0
         || adapter.image.sizeu != 640.0
         || adapter.image.sizev != 480.0
+        || lineTypeCount != 1u
+        || lineType == adapter.storage.lineTypes.end()
+        || lineType->handle == 0u
+        || lineType->desc != "whole-operation line type"
+        || lineType->path != std::vector<double>{10.0, -5.0}
+        || lineType->size != 2
+        || lineType->length != 15.0
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
