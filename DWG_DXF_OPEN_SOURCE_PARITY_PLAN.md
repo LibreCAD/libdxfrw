@@ -1202,6 +1202,14 @@ retry reproduces clean output plus typed readback. The focused transaction
 CTest passes. This covers allocation rollback only; material appearance,
 textures and native rendering remain unqualified. See the [receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).
 
+**P6 local LOFTEDSURFACE transaction slice (2026-11-13):** the same sweep
+now writes a generated AC1027 LOFTEDSURFACE with its modeled draft/flag and
+transform fields plus ordered group-90/group-310 tokens. All 476 ASCII and
+468 Binary allocation failures preserve the destination and caller state;
+same-codec retry reproduces clean output and typed readback. The fast
+transaction CTest passes. This does not resolve token handles or qualify
+surface geometry. See the [receipt](docs/research/p6-dxf-lofted-surface-allocation-rollback-retry-2026-11-13.json).
+
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
 CLASSES CRC mismatch for all nine AC1024 DWGs currently under

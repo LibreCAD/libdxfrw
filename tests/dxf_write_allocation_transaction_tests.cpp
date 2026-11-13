@@ -49,6 +49,7 @@ constexpr std::uint32_t kXlineHandle = 0xD930u;
 constexpr std::uint32_t kAttdefHandle = 0xD931u;
 constexpr std::uint32_t kHelixHandle = 0xD933u;
 constexpr std::uint32_t kMaterialHandle = 0xD934u;
+constexpr std::uint32_t kLoftedSurfaceHandle = 0xD935u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -396,6 +397,26 @@ public:
         material.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         material.m_name = "WHOLE_OPERATION_MATERIAL";
         material.m_description = "material allocation retry";
+        loftedSurface.handle = kLoftedSurfaceHandle;
+        loftedSurface.modelerFormatVersion = 1;
+        loftedSurface.uIsolines = 10;
+        loftedSurface.vIsolines = 11;
+        loftedSurface.planeNormalLoftingType = 1;
+        loftedSurface.startDraftAngle = 0.2;
+        loftedSurface.endDraftAngle = 0.3;
+        loftedSurface.startDraftMagnitude = 0.4;
+        loftedSurface.endDraftMagnitude = 0.5;
+        loftedSurface.arcLengthParameterization = true;
+        loftedSurface.closedSurfaces = true;
+        loftedSurface.solid = true;
+        loftedSurface.ruledSurface = true;
+        loftedSurface.virtualGuide = true;
+        loftedSurface.loftEntityTransform[3] = 0.25;
+        loftedSurface.loftEntityTransform[7] = 0.5;
+        loftedSurface.loftEntityTransform[11] = 0.75;
+        loftedSurface.dxfReferenceData.emplace_back(90, std::int32_t{2});
+        loftedSurface.dxfReferenceData.emplace_back(
+            310, std::vector<std::uint8_t>{0x12u, 0x34u});
     }
 
     void writeEntities() override {
@@ -427,7 +448,8 @@ public:
             && check("MTEXT", output.writeMText(&mtext))
             && check("RAY", output.writeLine(&ray))
             && check("XLINE", output.writeLine(&xline))
-            && check("HELIX", output.writeHelix(&helix));
+            && check("HELIX", output.writeHelix(&helix))
+            && check("LOFTEDSURFACE", output.writeSurface(&loftedSurface));
     }
 
     void writeObjects() override {
@@ -473,6 +495,7 @@ public:
     DRW_Xline xline;
     DRW_Helix helix;
     DRW_Material material;
+    DRW_LoftedSurface loftedSurface;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -604,6 +627,12 @@ public:
         ++materialCount;
         material = value;
     }
+    void addSurface(const DRW_Surface* value) override {
+        if (value != nullptr && value->eType == DRW::LOFTEDSURFACE) {
+            ++loftedSurfaceCount;
+            loftedSurface = *static_cast<const DRW_LoftedSurface*>(value);
+        }
+    }
     void addAttDef(const DRW_Attdef& value) override {
         dx_iface::addAttDef(value);
         ++attdefCount;
@@ -646,6 +675,7 @@ public:
     DRW_Xline xline;
     DRW_Helix helix;
     DRW_Material material;
+    DRW_LoftedSurface loftedSurface;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -676,6 +706,7 @@ public:
     unsigned xlineCount = 0u;
     unsigned helixCount = 0u;
     unsigned materialCount = 0u;
+    unsigned loftedSurfaceCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -980,6 +1011,30 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.material.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
         && adapter.material.m_name == "WHOLE_OPERATION_MATERIAL"
         && adapter.material.m_description == "material allocation retry"
+        && adapter.loftedSurface.handle == kLoftedSurfaceHandle
+        && adapter.loftedSurface.modelerFormatVersion == 1
+        && adapter.loftedSurface.uIsolines == 10
+        && adapter.loftedSurface.vIsolines == 11
+        && adapter.loftedSurface.planeNormalLoftingType == 1
+        && adapter.loftedSurface.startDraftAngle == 0.2
+        && adapter.loftedSurface.endDraftAngle == 0.3
+        && adapter.loftedSurface.startDraftMagnitude == 0.4
+        && adapter.loftedSurface.endDraftMagnitude == 0.5
+        && adapter.loftedSurface.arcLengthParameterization
+        && adapter.loftedSurface.closedSurfaces
+        && adapter.loftedSurface.solid
+        && adapter.loftedSurface.ruledSurface
+        && adapter.loftedSurface.virtualGuide
+        && adapter.loftedSurface.loftEntityTransform[3] == 0.25
+        && adapter.loftedSurface.loftEntityTransform[7] == 0.5
+        && adapter.loftedSurface.loftEntityTransform[11] == 0.75
+        && adapter.loftedSurface.dxfReferenceData.size() == 2u
+        && adapter.loftedSurface.dxfReferenceData[0].code() == 90
+        && adapter.loftedSurface.dxfReferenceData[0].i_val() == 2
+        && adapter.loftedSurface.dxfReferenceData[1].code() == 310
+        && adapter.loftedSurface.dxfReferenceData[1].binary()
+        && *adapter.loftedSurface.dxfReferenceData[1].binary()
+            == std::vector<std::uint8_t>{0x12u, 0x34u}
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1318,6 +1373,31 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.material.handle == 0u
         || adapter.material.m_name != "WHOLE_OPERATION_MATERIAL"
         || adapter.material.m_description != "material allocation retry"
+        || adapter.loftedSurfaceCount != 1u
+        || adapter.loftedSurface.handle == 0u
+        || adapter.loftedSurface.modelerFormatVersion != 1
+        || adapter.loftedSurface.uIsolines != 10
+        || adapter.loftedSurface.vIsolines != 11
+        || adapter.loftedSurface.planeNormalLoftingType != 1
+        || adapter.loftedSurface.startDraftAngle != 0.2
+        || adapter.loftedSurface.endDraftAngle != 0.3
+        || adapter.loftedSurface.startDraftMagnitude != 0.4
+        || adapter.loftedSurface.endDraftMagnitude != 0.5
+        || !adapter.loftedSurface.arcLengthParameterization
+        || !adapter.loftedSurface.closedSurfaces
+        || !adapter.loftedSurface.solid
+        || !adapter.loftedSurface.ruledSurface
+        || !adapter.loftedSurface.virtualGuide
+        || adapter.loftedSurface.loftEntityTransform[3] != 0.25
+        || adapter.loftedSurface.loftEntityTransform[7] != 0.5
+        || adapter.loftedSurface.loftEntityTransform[11] != 0.75
+        || adapter.loftedSurface.dxfReferenceData.size() != 2u
+        || adapter.loftedSurface.dxfReferenceData[0].code() != 90
+        || adapter.loftedSurface.dxfReferenceData[0].i_val() != 2
+        || adapter.loftedSurface.dxfReferenceData[1].code() != 310
+        || !adapter.loftedSurface.dxfReferenceData[1].binary()
+        || *adapter.loftedSurface.dxfReferenceData[1].binary()
+            != std::vector<std::uint8_t>{0x12u, 0x34u}
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

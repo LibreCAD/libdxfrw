@@ -10781,3 +10781,11 @@ failure offsets preserve the destination and caller record; same-codec retry
 reproduces clean bytes and typed readback. This adds transaction coverage only;
 material appearance and native rendering remain unqualified. See the
 [receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).
+
+**P6 LOFTEDSURFACE allocation rollback/retry (2026-11-13):** the generated
+whole-operation transaction control now includes modeled loft scalars/flags,
+selected transform values, and ordered group-90/group-310 tokens. All 476
+ASCII and 468 Binary failure offsets preserve the destination and caller
+state; same-codec retry reproduces clean bytes and typed readback. Token
+identity is not treated as dependency closure or surface semantics. See the
+[receipt](docs/research/p6-dxf-lofted-surface-allocation-rollback-retry-2026-11-13.json).
