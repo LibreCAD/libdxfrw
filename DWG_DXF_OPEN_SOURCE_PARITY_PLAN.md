@@ -4428,6 +4428,15 @@ to the same 3DFACE writer; this closes direct-entry inventory coverage without
 claiming a wire-format behavior change. The focused transaction CTest passes
 1/1. This does not qualify producer-authored 3DFACE profiles or native 3D
 consumer behavior ([updated receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json)).
+The same whole-operation sweep now calls `writeTableStyle()` directly with a
+locally generated legacy three-row style, a nondefault emitted text style and
+six ordered borders per row. Typed readback checks the style identity/name,
+text-style name, row heights/colors and border values. The focused transaction
+CTest passes 1/1; current ASCII/Binary sweeps pass 1026/1026 and 1005/1005
+allocation offsets with destination/caller rollback and same-writer retry.
+This covers only that legacy DXF row-style profile; R24 rich-cell TABLESTYLE
+and native table presentation remain open. P6-G's public-writer inventory is
+still open ([updated receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

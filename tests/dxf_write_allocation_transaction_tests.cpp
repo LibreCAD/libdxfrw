@@ -112,6 +112,8 @@ constexpr std::uint32_t kPointCloudReactorExHandle = 0xD953u;
 constexpr std::uint32_t kPointCloudHandle = 0xD954u;
 constexpr std::uint32_t kPointCloudExHandle = 0xD955u;
 constexpr std::uint32_t kNavisworksModelHandle = 0xD956u;
+constexpr std::uint32_t kTableStyleTextHandle = 0xD957u;
+constexpr std::uint32_t kTableStyleHandle = 0xD958u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -375,6 +377,32 @@ public:
         directAttdef.style = "STANDARD";
         directAttdef.attribFlags = 1;
         directAttdef.m_fieldLength = 48;
+
+        DRW_Textstyle tableStyleText;
+        tableStyleText.handle = kTableStyleTextHandle;
+        tableStyleText.name = "WHOLE_OPERATION_TABLE_TEXT";
+        storage.textStyles.push_back(tableStyleText);
+        tableStyle.handle = kTableStyleHandle;
+        tableStyle.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        tableStyle.m_name = "WHOLE_OPERATION_TABLE_STYLE";
+        for (int rowIndex = 0; rowIndex < 3; ++rowIndex) {
+            DRW_TableStyleRowStyle row;
+            row.m_textStyleHandle = kTableStyleTextHandle;
+            row.m_textHeight = 1.25 + rowIndex;
+            row.m_textAlignment = 5;
+            row.m_textColor = rowIndex + 1;
+            row.m_fillColor = rowIndex + 4;
+            row.m_hasBackgroundColor = rowIndex != 1;
+            for (int borderIndex = 0; borderIndex < 6; ++borderIndex) {
+                DRW_TableStyleBorder border;
+                border.m_edgeFlags = 1 << borderIndex;
+                border.m_lineWeight = borderIndex;
+                border.m_visible = borderIndex % 2;
+                border.m_color = borderIndex + 1;
+                row.m_borders.push_back(border);
+            }
+            tableStyle.m_rowStyles.push_back(std::move(row));
+        }
 
         insert.handle = kInsertHandle;
         insert.name = kInsertBlockName;
@@ -1154,7 +1182,8 @@ public:
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
-            && output.writeDataLink(&targetBeta);
+            && output.writeDataLink(&targetBeta)
+            && output.writeTableStyle(&tableStyle, storage.textStyles);
     }
 
     bool finalizeDxfWrite() override {
@@ -1180,6 +1209,7 @@ public:
     DRW_3Dface face;
     DRW_DimAligned dimension;
     DRW_Attdef directAttdef;
+    DRW_TableStyle tableStyle;
     DRW_Dimension dynamicConstraintDimension;
     DRW_Dimension legacyDynamicConstraintDimension;
     DRW_DimLinear linearDimension;
@@ -1632,6 +1662,10 @@ public:
             attdef = value;
         }
     }
+    void addTableStyle(const DRW_TableStyle& value) override {
+        ++tableStyleCount;
+        tableStyle = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -1720,6 +1754,7 @@ public:
     DRW_Sun sun;
     DRW_Attdef attdef;
     DRW_Attdef directAttdef;
+    DRW_TableStyle tableStyle;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -1798,6 +1833,7 @@ public:
     unsigned sunCount = 0u;
     unsigned attdefCount = 0u;
     unsigned directAttdefCount = 0u;
+    unsigned tableStyleCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -1886,6 +1922,34 @@ bool callerRecordsUnchanged(const Export& adapter) {
             && value.getText() == "whole-operation subtype dimension"
             && value.getStyle() == "STANDARD";
     };
+    const auto unchangedTableStyle = [](const DRW_TableStyle& value) {
+        if (value.handle != kTableStyleHandle
+            || value.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+            || value.m_name != "WHOLE_OPERATION_TABLE_STYLE"
+            || value.m_rowStyles.size() != 3u)
+            return false;
+        for (std::size_t rowIndex = 0; rowIndex < 3u; ++rowIndex) {
+            const DRW_TableStyleRowStyle& row = value.m_rowStyles[rowIndex];
+            if (row.m_textStyleHandle != kTableStyleTextHandle
+                || row.m_textHeight != 1.25 + rowIndex
+                || row.m_textAlignment != 5
+                || row.m_textColor != static_cast<int>(rowIndex + 1u)
+                || row.m_fillColor != static_cast<int>(rowIndex + 4u)
+                || row.m_hasBackgroundColor != (rowIndex != 1u)
+                || row.m_borders.size() != 6u)
+                return false;
+            for (std::size_t borderIndex = 0; borderIndex < 6u;
+                 ++borderIndex) {
+                const DRW_TableStyleBorder& border = row.m_borders[borderIndex];
+                if (border.m_edgeFlags != (1 << borderIndex)
+                    || border.m_lineWeight != static_cast<int>(borderIndex)
+                    || border.m_visible != static_cast<int>(borderIndex % 2u)
+                    || border.m_color != static_cast<int>(borderIndex + 1u))
+                    return false;
+            }
+        }
+        return true;
+    };
     const auto lineType = std::find_if(
         adapter.storage.lineTypes.begin(), adapter.storage.lineTypes.end(),
         [](const DRW_LType& value) {
@@ -1896,7 +1960,8 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_LType& value) {
             return value.name == "WHOLE_OPERATION_LTYPE";
         }));
-    return adapter.line.handle == 0xD900u
+    return unchangedTableStyle(adapter.tableStyle)
+        && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
         && adapter.line.basePoint.y == -2.5
@@ -2811,6 +2876,35 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.targetAlpha.parentHandle == kCustomDictionaryHandle
         && adapter.targetBeta.handle == kTargetBetaHandle
         && adapter.targetBeta.parentHandle == kCustomDictionaryHandle;
+}
+
+bool tableStyleReadbackMatches(const DRW_TableStyle& value) {
+    if (value.handle != kTableStyleHandle
+        || value.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || value.m_name != "WHOLE_OPERATION_TABLE_STYLE"
+        || value.m_rowStyles.size() != 3u)
+        return false;
+    for (std::size_t rowIndex = 0; rowIndex < 3u; ++rowIndex) {
+        const DRW_TableStyleRowStyle& row = value.m_rowStyles[rowIndex];
+        if (row.m_textStyleName != "WHOLE_OPERATION_TABLE_TEXT"
+            || row.m_textHeight != 1.25 + rowIndex
+            || row.m_textAlignment != 5
+            || row.m_textColor != static_cast<int>(rowIndex + 1u)
+            || row.m_fillColor != static_cast<int>(rowIndex + 4u)
+            || row.m_hasBackgroundColor != (rowIndex != 1u)
+            || row.m_borders.size() != 6u)
+            return false;
+        for (std::size_t borderIndex = 0; borderIndex < 6u;
+             ++borderIndex) {
+            const DRW_TableStyleBorder& border = row.m_borders[borderIndex];
+            if (border.m_edgeFlags != (1 << borderIndex)
+                || border.m_lineWeight != static_cast<int>(borderIndex)
+                || border.m_visible != static_cast<int>(borderIndex % 2u)
+                || border.m_color != static_cast<int>(borderIndex + 1u))
+                return false;
+        }
+    }
+    return true;
 }
 
 bool matchesReadback(const std::filesystem::path& path) {
@@ -3891,6 +3985,8 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.directAttdef.style != "STANDARD"
         || adapter.directAttdef.attribFlags != 1
         || adapter.directAttdef.m_fieldLength != 48
+        || adapter.tableStyleCount != 1u
+        || !tableStyleReadbackMatches(adapter.tableStyle)
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
