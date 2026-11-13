@@ -4262,6 +4262,18 @@ survives truncation refusal followed by corrected retry; thus the observed
 closure loss is after conversion, at the tested FreeCAD importer boundary. See
 the [closed 3D POLYLINE gap receipt](docs/research/p8-freecad-ac1021-closed-3d-polyline-import-gap-2026-11-12.json).
 
+**FreeCAD MINSERT array-expansion boundary (2026-11-13):** a direct
+FreeCAD 1.1.4 C++ DXF-importer check on the existing tracked AC1015 MINSERT
+control ran both `open` and `insert`. In each operation, FreeCAD created one
+link with one edge at the first array cell even though the DXF contains the
+2x2 row/column counts and spacings. This isolates a consumer behavior gap;
+the earlier libdxfrw control confirms the MINSERT array fields survive DXF
+write/readback. Do not expand arrays in standard libdxfrw output, which could
+duplicate geometry in consumers that honor MINSERT. The optional diagnostic
+is registered with the native FreeCAD primitive-control option. This qualifies
+only the observed FreeCAD 1.1.4 macOS ARM64 behavior; Linux/Windows and other
+MINSERT profiles remain open. See the [direct-import receipt](docs/research/p8-freecad-ac1015-minsert-direct-dxf-import-2026-11-13.json).
+
 **FreeCAD ACIS consumer boundary (2026-11-12):** FreeCAD's current Draft DXF
 documentation says its built-in DXF importer cannot read ACIS/SAT solid blobs;
 its documented C++ entity list excludes 3DSOLID, REGION, and BODY. Its DWG

@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p8-freecad-ac1015-minsert-direct-dxf-import-2026-11-13",
+  "purpose": "Isolate FreeCAD's native DXF MINSERT array handling from DWG writing and conversion, using an existing tracked AC1015 control.",
+  "source": {
+    "path": "tests/fixtures/dxf/ac1015_minsert_freecad_control.dxf",
+    "sha256": "3e33a0d1acd93e50a964d75989cca4ca5bafbdc850a0dd2992682e6b340ba529",
+    "repositoryTracked": true,
+    "sourceEntities": {
+      "BLOCK": 1,
+      "INSERT": 1,
+      "LINE": 1
+    },
+    "insert": {
+      "block": "ARRAY_CELL",
+      "rows": 2,
+      "columns": 2,
+      "rowSpacing": 4.0,
+      "columnSpacing": 5.0
+    }
+  },
+  "consumer": {
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.2.1 arm64",
+    "importer": "C++ DXF importer, Draft DxfImportMode 2, legacy importer disabled",
+    "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "importDXFPy": "/Applications/FreeCAD.app/Contents/Resources/Mod/Draft/importDXF.py",
+    "importDXFPySha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992"
+  },
+  "operations": {
+    "open": {
+      "linkCount": 1,
+      "importedEdgeCount": 1,
+      "firstCellOnly": true,
+      "fullArrayImported": false,
+      "edgeVertices": [[11.0, 22.0, 33.0], [14.0, 26.0, 39.0]]
+    },
+    "insert": {
+      "linkCount": 1,
+      "importedEdgeCount": 1,
+      "firstCellOnly": true,
+      "fullArrayImported": false,
+      "edgeVertices": [[11.0, 22.0, 33.0], [14.0, 26.0, 39.0]]
+    }
+  },
+  "implementation": {
+    "macro": "tests/freecad_dxf_minsert_import_check.FCMacro",
+    "macroSha256": "e3c75100315c71c088c557d70c2e048b5f4ab449b1cd14120984d7c3bbf31b0c",
+    "cmakeTarget": "freecad_dxf_minsert_direct_import_diagnostic",
+    "option": "LIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL",
+    "fixtureFilesAdded": false
+  },
+  "procedure": {
+    "command": "ctest --test-dir build-gcc -R ^freecad_dxf_minsert_direct_import_diagnostic$ --output-on-failure",
+    "validation": "CMake configure registered the diagnostic; CTest passed 1/1 in 0.53 seconds outside the sandbox. A first sandboxed FreeCADCmd launch stopped before macro execution because Qt could not detect ARM NEON; that attempt is not consumer evidence.",
+    "result": "Both direct importDXF.open and importDXF.insert create one App::Link containing only the first MINSERT cell. The control's DXF array values remain present; this isolates a FreeCAD consumer behavior gap."
+  },
+  "limits": [
+    "This checks FreeCAD 1.1.4 on macOS ARM64 only and uses an existing tracked DXF directly; it does not exercise libdxfrw conversion in this receipt.",
+    "The run does not authorize changing standard MINSERT output or expanding arrays inside libdxfrw; compliant DXF consumers may already apply array fields.",
+    "Hosted Linux/Windows FreeCAD behavior and other MINSERT profiles remain unqualified."
+  ],
+  "supportClaimEffect": "none; records a native FreeCAD MINSERT array-expansion gap for direct DXF open and insert only"
+}

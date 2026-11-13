@@ -1,0 +1,95 @@
+# Optional direct FreeCAD C++ DXF importer diagnostic for the tracked
+# AC1015 MINSERT control. This isolates downstream array expansion from any
+# DWG writer or converter behavior.
+
+import hashlib
+import json
+import os
+import platform
+import sys
+
+import FreeCAD as App
+
+source = os.environ.get("LIBDXFRW_FREECAD_DXF")
+if not source or not os.path.isfile(source):
+    raise RuntimeError("LIBDXFRW_FREECAD_DXF must name the tracked MINSERT DXF")
+
+sys.path.insert(0, os.path.join(App.getResourceDir(), "Mod", "Draft"))
+import importDXF
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+preferences.SetBool("dxfUseLegacyImporter", False)
+preferences.SetInt("DxfImportMode", 2)
+
+
+def digest(path):
+    sha = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
+
+
+def import_report(operation):
+    if operation == "open":
+        document = importDXF.open(source)
+    else:
+        document = App.newDocument("MInsertDirectImport")
+        importDXF.insert(source, document.Name)
+    if document is None:
+        raise AssertionError("FreeCAD returned no document for " + operation)
+    links = [obj for obj in document.Objects if obj.TypeId == "App::Link"]
+    edges = []
+    for link in links:
+        for edge in link.Shape.Edges:
+            edges.append(sorted([
+                [float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z)]
+                for vertex in edge.Vertexes
+            ]))
+    edges.sort()
+    first_cell = [[11.0, 22.0, 33.0], [14.0, 26.0, 39.0]]
+    expected = [
+        first_cell,
+        [[16.0, 22.0, 33.0], [19.0, 26.0, 39.0]],
+        [[11.0, 26.0, 33.0], [14.0, 30.0, 39.0]],
+        [[16.0, 26.0, 33.0], [19.0, 30.0, 39.0]],
+    ]
+    tolerance = 1e-8
+
+    def edge_matches(actual, wanted):
+        return len(actual) == 2 and all(
+            len(a) == 3 and all(abs(x - y) <= tolerance for x, y in zip(a, b))
+            for a, b in zip(actual, wanted)
+        )
+
+    full_array = len(edges) == 4 and all(
+        edge_matches(actual, wanted) for actual, wanted in zip(edges, expected)
+    )
+    first_cell_only = len(edges) == 1 and edge_matches(edges[0], first_cell)
+    if not full_array and not first_cell_only:
+        raise AssertionError("FreeCAD MINSERT geometry has an unclassified shape")
+    result = {
+        "operation": operation,
+        "linkCount": len(links),
+        "importedEdgeCount": len(edges),
+        "fullArrayImported": full_array,
+        "firstCellOnly": first_cell_only,
+        "semanticStatus": "SUPPORTED" if full_array else "FIRST_CELL_ONLY",
+        "edges": edges,
+    }
+    App.closeDocument(document.Name)
+    return result
+
+
+result = {
+    "freecadVersion": list(App.Version()),
+    "platform": platform.platform(),
+    "architecture": platform.machine(),
+    "importer": "C++",
+    "importMode": preferences.GetInt("DxfImportMode", 2),
+    "source": source,
+    "sourceSha256": digest(source),
+    "open": import_report("open"),
+    "insert": import_report("insert"),
+}
+print("FREECAD_DIRECT_DXF_MINSERT=" + json.dumps(result, sort_keys=True))

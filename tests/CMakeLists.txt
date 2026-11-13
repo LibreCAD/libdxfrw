@@ -5113,6 +5113,17 @@ if(LIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL)
                     TIMEOUT 180)
         endforeach()
     endforeach()
+    add_test(
+        NAME freecad_dxf_minsert_direct_import_diagnostic
+        COMMAND "${LIBDXFRW_FREECADCMD_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/freecad_dxf_minsert_import_check.FCMacro"
+    )
+    set_tests_properties(freecad_dxf_minsert_direct_import_diagnostic PROPERTIES
+        ENVIRONMENT
+            "LIBDXFRW_FREECAD_DXF=${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dxf/ac1015_minsert_freecad_control.dxf"
+        LABELS "freecad;native;diagnostic;AC1015"
+        TIMEOUT 120
+    )
 endif()
 
 # Exercise the current shared build after CMake installs it into a relocatable
