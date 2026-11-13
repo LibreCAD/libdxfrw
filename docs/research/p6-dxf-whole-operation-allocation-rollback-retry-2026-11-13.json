@@ -599,6 +599,33 @@
             2.0
           ]
         ]
+      },
+      {
+        "kind": "TRACE",
+        "sourceHandle": "0xD92C",
+        "elevation": 2.0,
+        "corners": [
+          [
+            0.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0,
+            2.0
+          ],
+          [
+            0.0,
+            2.0,
+            2.0
+          ]
+        ]
       }
     ],
     "fixtureFilesCommitted": false,
@@ -665,6 +692,7 @@
       "Generated 3DLINE output with distinct 3D endpoints now participates in the sweep; typed readback verifies the 3DLINE callback and endpoint values.",
       "Generated planar SOLID output at nonzero elevation now participates in the sweep; typed readback verifies all four corners and elevation.",
       "The test readback adapter delegates POINT, 3DLINE and SOLID callbacks to dx_iface storage before capturing values, preserving block-body graph reconstruction.",
+      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
       "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners."
     ]
   },
