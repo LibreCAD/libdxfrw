@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **137 completed implementation slices** and **35 remaining
+The plan records **138 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`137 / (137 + 35) = 79.7%`. This is a count-based progress measure, not an
+`138 / (138 + 35) = 79.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1667,6 +1667,20 @@ failures preserve caller and destination state; same-writer retry reproduces
 clean output. Focused CTest passes in 8.14 seconds. This is generated
 transaction and reference-closure evidence only; physical producer profiles
 and native annotation semantics remain open. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 MULTILEADER block-content transaction follow-up (2026-11-13):** the
+whole-operation ASCII/Binary allocation sweep now writes a second generated
+MULTILEADER with block content, linked to its own named MLEADERSTYLE. Both the
+context and style block references resolve to the remapped BLOCK_RECORD for
+the generated block containing POINT and ATTDEF entities. Typed readback
+checks the style edge and block normal, location, scale, rotation and color;
+all 1,183 ASCII and 1,159 Binary allocation offsets preserve caller and
+destination state, then same-writer retry reproduces clean bytes. Focused
+CTest passes 1/1 in 8.91 seconds. This adds generated transaction and reference
+closure only; the generated profile also checks a 16-value transform and one
+nested root/line. Physical producer profiles, multiple roots/lines, break
+pairs and native annotation semantics remain open. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 GEODATA whole-operation transaction follow-up (2026-11-13):** the

@@ -128,6 +128,8 @@ constexpr std::uint32_t kDirectMLeaderStyleHandle = 0xD97Du;
 constexpr std::uint32_t kDirectGeoDataHandle = 0xD97Eu;
 constexpr std::uint32_t kDirectLayoutHandle = 0xD97Fu;
 constexpr std::uint32_t kDirectRawEntityHandle = 0xD980u;
+constexpr std::uint32_t kBlockMLeaderHandle = 0xD981u;
+constexpr std::uint32_t kBlockMLeaderStyleHandle = 0xD982u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -177,6 +179,9 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
          DictionaryEdge::SoftOwner});
     custom.m_entries.push_back(
         {"WHOLE_OPERATION_MLEADERSTYLE", kDirectMLeaderStyleHandle,
+         DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"WHOLE_OPERATION_BLOCK_MLEADERSTYLE", kBlockMLeaderStyleHandle,
          DictionaryEdge::SoftOwner});
     custom.m_entries.push_back(
         {"WHOLE_OPERATION_LAYOUT", kDirectLayoutHandle,
@@ -1243,6 +1248,14 @@ public:
         multiLeaderStyle.textHeight = 2.25;
         multiLeaderStyle.arrowHeadSize = 1.75;
         multiLeaderStyle.maxLeaderPoints = 5;
+        blockMultiLeaderStyle.handle = kBlockMLeaderStyleHandle;
+        blockMultiLeaderStyle.parentHandle = kCustomDictionaryHandle;
+        blockMultiLeaderStyle.contentType = 1;
+        blockMultiLeaderStyle.description =
+            "whole-operation block MLEADERSTYLE";
+        blockMultiLeaderStyle.blockHandle.ref = kInsertBlockHandle;
+        blockMultiLeaderStyle.blockScale = DRW_Coord{1.25, 1.5, 1.75};
+        blockMultiLeaderStyle.blockScaleEnabled = true;
         typedXRecord.handle = kTypedXRecordHandle;
         typedXRecord.parentHandle = kCustomDictionaryHandle;
         typedXRecord.m_values.emplace_back(
@@ -1272,6 +1285,35 @@ public:
         multiLeaderLine.arrowSize = 2.25;
         multiLeaderRoot.leaderLines.push_back(multiLeaderLine);
         multiLeader.context.roots.push_back(multiLeaderRoot);
+        blockMultiLeader.handle = kBlockMLeaderHandle;
+        blockMultiLeader.styleHandle.ref = kBlockMLeaderStyleHandle;
+        blockMultiLeader.styleContentType = 1u;
+        blockMultiLeader.context.hasContentsBlock = true;
+        blockMultiLeader.context.blockTableRecordHandle.ref =
+            kInsertBlockHandle;
+        blockMultiLeader.context.blockNormal = DRW_Coord{0.0, 0.0, 1.0};
+        blockMultiLeader.context.blockLocation =
+            DRW_Coord{21.0, 22.0, 23.0};
+        blockMultiLeader.context.blockScale =
+            DRW_Coord{1.25, 1.5, 1.75};
+        blockMultiLeader.context.blockRotation = 0.625;
+        blockMultiLeader.context.blockColor = 4;
+        blockMultiLeader.context.blockTransform = {
+            1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0, 21.0, 22.0, 23.0, 1.0};
+        DRW_MLeaderRoot blockMultiLeaderRoot;
+        blockMultiLeaderRoot.connectionPoint =
+            DRW_Coord{24.0, 25.0, 26.0};
+        blockMultiLeaderRoot.direction = DRW_Coord{0.0, 0.0, 1.0};
+        blockMultiLeaderRoot.leaderIndex = 4;
+        DRW_MLeaderLeaderLine blockMultiLeaderLine;
+        blockMultiLeaderLine.points = {
+            DRW_Coord{24.0, 25.0, 26.0}, DRW_Coord{27.0, 28.0, 29.0}};
+        blockMultiLeaderLine.segmentIndex = 2;
+        blockMultiLeaderLine.leaderLineIndex = 5;
+        blockMultiLeaderLine.leaderType = 1;
+        blockMultiLeaderRoot.leaderLines.push_back(blockMultiLeaderLine);
+        blockMultiLeader.context.roots.push_back(blockMultiLeaderRoot);
     }
 
     void writeEntities() override {
@@ -1293,6 +1335,8 @@ public:
             && check("MLINE", output.writeMLine(&mline))
             && check("POLYLINE", output.writePolyline(&polyline3))
             && check("INSERT", output.writeInsert(&insert))
+            && check("block MULTILEADER",
+                     output.writeMultiLeader(&blockMultiLeader))
             && check("POINTCLOUD", output.writePointCloud(&pointCloud))
             && check("POINTCLOUDEX", output.writePointCloudEx(&pointCloudEx))
             && check("NAVISWORKSMODEL", output.writeNavisworksModel(&navisworksModel))
@@ -1378,7 +1422,8 @@ public:
         const bool cellStyleMapWritten = tableStyleWritten
             && output.writeCellStyleMap(&cellStyleMap);
         const bool mleaderStyleWritten = cellStyleMapWritten
-            && output.writeMLeaderStyle(&multiLeaderStyle);
+            && output.writeMLeaderStyle(&multiLeaderStyle)
+            && output.writeMLeaderStyle(&blockMultiLeaderStyle);
         const bool layoutWritten = mleaderStyleWritten
             && output.writeLayout(&layout);
         objectsWritten = layoutWritten
@@ -1400,6 +1445,7 @@ public:
     DRW_Wipeout wipeout;
     DRW_AcDbPlaceholder placeholder;
     DRW_MLeaderStyle multiLeaderStyle;
+    DRW_MLeaderStyle blockMultiLeaderStyle;
     DRW_GeoData geoData;
     DRW_Layout layout;
     DRW_RawDxfObject rawEntity;
@@ -1458,6 +1504,7 @@ public:
     DRW_LType lineType;
     DRW_XRecord typedXRecord;
     DRW_MLeader multiLeader;
+    DRW_MLeader blockMultiLeader;
     DRW_Material material;
     DRW_PointCloudColorMap pointCloudColorMap;
     DRW_NavisworksModelDef navisworksModelDef;
@@ -1560,14 +1607,20 @@ public:
         dx_iface::addMLeader(value);
         if (value != nullptr) {
             ++multiLeaderCount;
-            multiLeader = *value;
+            if (value->context.hasContentsBlock)
+                blockMultiLeader = *value;
+            else
+                multiLeader = *value;
         }
     }
     void addMLeaderStyle(const DRW_MLeaderStyle* value) override {
         dx_iface::addMLeaderStyle(value);
         if (value != nullptr) {
             ++multiLeaderStyleCount;
-            multiLeaderStyle = *value;
+            if (value->contentType == 1)
+                blockMultiLeaderStyle = *value;
+            else
+                multiLeaderStyle = *value;
         }
     }
     void addXRecord(const DRW_XRecord& value) override {
@@ -1947,7 +2000,9 @@ public:
     DRW_DbColor dbColor;
     DRW_XRecord typedXRecord;
     DRW_MLeader multiLeader;
+    DRW_MLeader blockMultiLeader;
     DRW_MLeaderStyle multiLeaderStyle;
+    DRW_MLeaderStyle blockMultiLeaderStyle;
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
     DRW_Mesh mesh;
@@ -2524,6 +2579,42 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.multiLeaderStyle.textHeight == 2.25
         && adapter.multiLeaderStyle.arrowHeadSize == 1.75
         && adapter.multiLeaderStyle.maxLeaderPoints == 5
+        && adapter.blockMultiLeader.handle == kBlockMLeaderHandle
+        && adapter.blockMultiLeader.styleHandle.ref
+            == kBlockMLeaderStyleHandle
+        && adapter.blockMultiLeader.context.hasContentsBlock
+        && !adapter.blockMultiLeader.context.hasTextContents
+        && adapter.blockMultiLeader.context.blockTableRecordHandle.ref
+            == kInsertBlockHandle
+        && adapter.blockMultiLeader.context.blockLocation.x == 21.0
+        && adapter.blockMultiLeader.context.blockLocation.y == 22.0
+        && adapter.blockMultiLeader.context.blockLocation.z == 23.0
+        && adapter.blockMultiLeader.context.blockScale.x == 1.25
+        && adapter.blockMultiLeader.context.blockScale.y == 1.5
+        && adapter.blockMultiLeader.context.blockScale.z == 1.75
+        && adapter.blockMultiLeader.context.blockRotation == 0.625
+        && adapter.blockMultiLeader.context.blockNormal.z == 1.0
+        && adapter.blockMultiLeader.context.blockTransform
+            == std::array<double, 16>{
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0, 21.0, 22.0, 23.0, 1.0}
+        && adapter.blockMultiLeader.context.roots.size() == 1u
+        && adapter.blockMultiLeader.context.roots[0].leaderIndex == 4
+        && adapter.blockMultiLeader.context.roots[0].connectionPoint.x == 24.0
+        && adapter.blockMultiLeader.context.roots[0].leaderLines.size() == 1u
+        && adapter.blockMultiLeader.context.roots[0].leaderLines[0].points.size()
+            == 2u
+        && adapter.blockMultiLeader.context.roots[0].leaderLines[0]
+            .points[1].z == 29.0
+        && adapter.blockMultiLeaderStyle.handle == kBlockMLeaderStyleHandle
+        && adapter.blockMultiLeaderStyle.parentHandle
+            == kCustomDictionaryHandle
+        && adapter.blockMultiLeaderStyle.contentType == 1
+        && adapter.blockMultiLeaderStyle.blockHandle.ref == kInsertBlockHandle
+        && adapter.blockMultiLeaderStyle.blockScale.x == 1.25
+        && adapter.blockMultiLeaderStyle.blockScale.y == 1.5
+        && adapter.blockMultiLeaderStyle.blockScale.z == 1.75
+        && adapter.blockMultiLeaderStyle.blockScaleEnabled
         && adapter.geoData.handle == kDirectGeoDataHandle
         && adapter.geoData.parentHandle == 0x2Fu
         && adapter.geoData.m_version == 2
@@ -3731,7 +3822,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.typedXRecord.m_values[1].code() != 90
         || adapter.typedXRecord.m_values[1].type() != DRW_Variant::INTEGER
         || adapter.typedXRecord.m_values[1].i_val() != 42
-        || adapter.multiLeaderCount != 1u
+        || adapter.multiLeaderCount != 2u
         || adapter.multiLeader.handle == 0u
         || !adapter.multiLeader.isDxfContextClosed()
         || !adapter.multiLeader.context.hasTextContents
@@ -3760,7 +3851,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.multiLeader.context.roots[0].leaderLines[0].color != 4
         || adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight != 25
         || adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize != 2.25
-        || adapter.multiLeaderStyleCount != 1u
+        || adapter.multiLeaderStyleCount != 2u
         || adapter.multiLeader.styleHandle.ref
             != adapter.multiLeaderStyle.handle
         || adapter.multiLeaderStyle.handle == 0u
@@ -3773,6 +3864,49 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.multiLeaderStyle.textHeight != 2.25
         || adapter.multiLeaderStyle.arrowHeadSize != 1.75
         || adapter.multiLeaderStyle.maxLeaderPoints != 5
+        || adapter.blockMultiLeader.handle == 0u
+        || adapter.blockMultiLeader.parentHandle
+            != DRW::DxfModelSpaceBlockRecordHandle
+        || adapter.blockMultiLeader.styleHandle.ref
+            != adapter.blockMultiLeaderStyle.handle
+        || adapter.blockMultiLeader.styleContentType != 1u
+        || adapter.blockMultiLeader.context.hasTextContents
+        || !adapter.blockMultiLeader.context.hasContentsBlock
+        || insertBlock == adapter.storage.blocks.end()
+        || adapter.blockMultiLeader.context.blockTableRecordHandle.ref
+            != (*insertBlock)->handle
+        || adapter.blockMultiLeader.context.blockLocation.x != 21.0
+        || adapter.blockMultiLeader.context.blockLocation.y != 22.0
+        || adapter.blockMultiLeader.context.blockLocation.z != 23.0
+        || adapter.blockMultiLeader.context.blockScale.x != 1.25
+        || adapter.blockMultiLeader.context.blockScale.y != 1.5
+        || adapter.blockMultiLeader.context.blockScale.z != 1.75
+        || adapter.blockMultiLeader.context.blockRotation != 0.625
+        || adapter.blockMultiLeader.context.blockNormal.z != 1.0
+        || adapter.blockMultiLeader.context.blockTransform.size() != 16u
+        || adapter.blockMultiLeader.context.blockTransform
+            != std::array<double, 16>{
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0, 21.0, 22.0, 23.0, 1.0}
+        || adapter.blockMultiLeader.context.roots.size() != 1u
+        || adapter.blockMultiLeader.context.roots[0].leaderIndex != 4
+        || adapter.blockMultiLeader.context.roots[0].connectionPoint.x != 24.0
+        || adapter.blockMultiLeader.context.roots[0].leaderLines.size() != 1u
+        || adapter.blockMultiLeader.context.roots[0].leaderLines[0].points.size()
+            != 2u
+        || adapter.blockMultiLeader.context.roots[0].leaderLines[0]
+            .points[1].z != 29.0
+        || adapter.blockMultiLeader.context.blockColor != 4
+        || adapter.multiLeaderStyleCount != 2u
+        || adapter.blockMultiLeaderStyle.handle != kBlockMLeaderStyleHandle
+        || adapter.blockMultiLeaderStyle.parentHandle
+            != kCustomDictionaryHandle
+        || adapter.blockMultiLeaderStyle.contentType != 1
+        || adapter.blockMultiLeaderStyle.blockHandle.ref != (*insertBlock)->handle
+        || adapter.blockMultiLeaderStyle.blockScale.x != 1.25
+        || adapter.blockMultiLeaderStyle.blockScale.y != 1.5
+        || adapter.blockMultiLeaderStyle.blockScale.z != 1.75
+        || !adapter.blockMultiLeaderStyle.blockScaleEnabled
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
@@ -4961,7 +5095,7 @@ bool matchesReadback(const std::filesystem::path& path) {
               [&root, &customRootEntry](const DRW_Dictionary& value) {
                   return value.handle == customRootEntry->m_handle
                       && value.parentHandle == root.handle
-                      && value.m_entries.size() == 7u
+                      && value.m_entries.size() == 8u
                       && value.m_entries.front().m_name == kNestedXrecordName
                       && value.m_entries.front().m_handle == 0xD901u
                       && value.m_entries[1].m_name == "MAIN_DATALINK"
@@ -4979,8 +5113,12 @@ bool matchesReadback(const std::filesystem::path& path) {
                       && value.m_entries[5].m_handle
                           == kDirectMLeaderStyleHandle
                       && value.m_entries[6].m_name
-                          == "WHOLE_OPERATION_LAYOUT"
+                          == "WHOLE_OPERATION_BLOCK_MLEADERSTYLE"
                       && value.m_entries[6].m_handle
+                          == kBlockMLeaderStyleHandle
+                      && value.m_entries[7].m_name
+                          == "WHOLE_OPERATION_LAYOUT"
+                      && value.m_entries[7].m_handle
                           == kDirectLayoutHandle;
               });
     const auto group = std::find_if(
