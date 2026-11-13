@@ -403,6 +403,14 @@ public:
         tolerance.text = "whole-operation tolerance";
         tolerance.extPoint = DRW_Coord(0.0, 0.0, 1.0);
         tolerance.xAxisDirectionVector = DRW_Coord(1.0, 0.0, 0.0);
+        rtext.handle = 0xD96Au;
+        rtext.basePoint = DRW_Coord(95.0, 96.0, 0.0);
+        rtext.text = "whole-operation RTEXT";
+        rtext.height = 2.5;
+        rtext.angle = 30.0;
+        rtext.style = "STANDARD";
+        rtext.m_rTextFlags = 1;
+        rtext.extPoint = DRW_Coord(0.0, 0.0, 1.0);
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -669,6 +677,7 @@ public:
             && check("ARC_DIMENSION", output.writeDimension(&arcDimension))
             && check("LARGE_RADIAL_DIMENSION", output.writeDimension(&largeRadialDimension))
             && check("TOLERANCE", output.writeTolerance(&tolerance))
+            && check("RTEXT", output.writeRText(&rtext))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -734,6 +743,7 @@ public:
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadialDimension;
     DRW_Tolerance tolerance;
+    DRW_RText rtext;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -926,8 +936,13 @@ public:
     }
     void addText(const DRW_Text& value) override {
         dx_iface::addText(value);
-        ++textCount;
-        text = value;
+        if (const auto* reactive = dynamic_cast<const DRW_RText*>(&value)) {
+            ++rtextCount;
+            rtext = *reactive;
+        } else {
+            ++textCount;
+            text = value;
+        }
     }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
@@ -1040,6 +1055,7 @@ public:
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadialDimension;
     DRW_Tolerance tolerance;
+    DRW_RText rtext;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1091,6 +1107,7 @@ public:
     unsigned arcDimensionCount = 0u;
     unsigned largeRadialDimensionCount = 0u;
     unsigned toleranceCount = 0u;
+    unsigned rtextCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1404,6 +1421,15 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.tolerance.text == "whole-operation tolerance"
         && adapter.tolerance.extPoint.z == 1.0
         && adapter.tolerance.xAxisDirectionVector.x == 1.0
+        && adapter.rtext.handle == 0xD96Au
+        && adapter.rtext.basePoint.x == 95.0
+        && adapter.rtext.basePoint.y == 96.0
+        && adapter.rtext.text == "whole-operation RTEXT"
+        && adapter.rtext.height == 2.5
+        && adapter.rtext.angle == 30.0
+        && adapter.rtext.style == "STANDARD"
+        && adapter.rtext.m_rTextFlags == 1
+        && adapter.rtext.extPoint.z == 1.0
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1774,6 +1800,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.arcDimensionCount != 1u
         || adapter.largeRadialDimensionCount != 1u
         || adapter.toleranceCount != 1u
+        || adapter.rtextCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -1991,6 +2018,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.tolerance.xAxisDirectionVector.x != 1.0
         || adapter.tolerance.xAxisDirectionVector.y != 0.0
         || adapter.tolerance.xAxisDirectionVector.z != 0.0
+        || adapter.rtext.handle == 0u
+        || adapter.rtext.basePoint.x != 95.0
+        || adapter.rtext.basePoint.y != 96.0
+        || adapter.rtext.text != "whole-operation RTEXT"
+        || adapter.rtext.height != 2.5
+        || adapter.rtext.angle != 30.0
+        || adapter.rtext.style != "STANDARD"
+        || adapter.rtext.m_rTextFlags != 1
+        || adapter.rtext.extPoint.x != 0.0
+        || adapter.rtext.extPoint.y != 0.0
+        || adapter.rtext.extPoint.z != 1.0
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
