@@ -5572,8 +5572,9 @@ bool run(const std::filesystem::path& directory) {
 
 class HatchOnlyExport final : public dx_iface {
 public:
-    explicit HatchOnlyExport(dxfRW& output, bool useMPolygon = false)
-        : output(output), useMPolygon(useMPolygon) {
+    explicit HatchOnlyExport(dxfRW& output, bool useMPolygon = false,
+                             bool useGradient = false)
+        : output(output), useMPolygon(useMPolygon), useGradient(useGradient) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &output;
@@ -5649,6 +5650,19 @@ public:
         splineLoop->update();
         hatch.appendLoop(splineLoop);
         hatch.seedPoints.emplace_back(0.5, 0.75, 0.0);
+        if (useGradient) {
+            hatch.solid = 1;
+            hatch.patternLines.clear();
+            hatch.isGradient = 1;
+            hatch.gradReserved = 0;
+            hatch.gradAngle = 0.75;
+            hatch.gradShift = 0.25;
+            hatch.singleColor = 0;
+            hatch.gradName = "LINEAR";
+            hatch.gradColors = {
+                DRW_Hatch::GradientStop{0.0, 0x112233, 0, 0, "", ""},
+                DRW_Hatch::GradientStop{1.0, 0x445566, 0, 0, "", ""}};
+        }
         if (useMPolygon) {
             static_cast<DRW_Hatch&>(mpolygon) = hatch;
             mpolygon.eType = DRW::MPOLYGON;
@@ -5669,7 +5683,7 @@ public:
         const DRW_Hatch& entity = useMPolygon
             ? static_cast<const DRW_Hatch&>(mpolygon) : hatch;
         if (entity.handle != 0xDA50u || entity.name != "ANSI31"
-            || entity.solid != 0 || entity.hpattern != 0
+            || entity.solid != (useGradient ? 1 : 0) || entity.hpattern != 0
             || entity.angle != 0.25 || entity.scale != 1.5
             || entity.looplist.size() != 5u || !entity.looplist[0]
             || entity.looplist[0]->objlist.size() != 1u
@@ -5677,12 +5691,23 @@ public:
             || !entity.looplist[2] || entity.looplist[2]->objlist.size() != 1u
             || !entity.looplist[3] || entity.looplist[3]->objlist.size() != 1u
             || !entity.looplist[4] || entity.looplist[4]->objlist.size() != 1u
-            || entity.patternLines.size() != 1u
-            || entity.patternLines.front().dashList
+            || entity.patternLines.size() != (useGradient ? 0u : 1u)
+            || (!useGradient && entity.patternLines.front().dashList
                 != std::vector<double>{0.5, -0.25, 1.0}
+            )
             || entity.seedPoints.size() != 1u
             || entity.seedPoints.front().x != 0.5
             || entity.seedPoints.front().y != 0.75
+            || entity.isGradient != (useGradient ? 1 : 0)
+            || (useGradient && (entity.gradName != "LINEAR"
+                || entity.gradReserved != 0 || entity.gradAngle != 0.75
+                || entity.gradShift != 0.25 || entity.singleColor != 0
+                || entity.gradTint != 0.0
+                || entity.gradColors.size() != 2u
+                || entity.gradColors[0].value != 0.0
+                || entity.gradColors[0].rgb != 0x112233
+                || entity.gradColors[1].value != 1.0
+                || entity.gradColors[1].rgb != 0x445566))
             || (useMPolygon && (mpolygon.dxfVersion != 1
                 || mpolygon.fillColorAci != 5
                 || mpolygon.annotatedBoundary != 1
@@ -5723,6 +5748,7 @@ public:
     DRW_Hatch hatch;
     DRW_MPolygon mpolygon;
     bool useMPolygon;
+    bool useGradient;
     std::shared_ptr<DRW_Line> line;
     std::shared_ptr<DRW_Arc> arc;
     std::shared_ptr<DRW_Ellipse> ellipse;
@@ -5750,10 +5776,13 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
         DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
     for (const bool useMPolygon : {false, true}) {
       for (const DRW::Version version : versions) {
+        for (const bool useGradient : {false, true}) {
+          if (useGradient && version < DRW::AC1018)
+              continue;
         for (const bool binary : {false, true}) {
             {
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec, useMPolygon);
+                HatchOnlyExport adapter(codec, useMPolygon, useGradient);
                 const bool wrote = codec.write(&adapter, version, binary);
                 if (!wrote || !adapter.entitiesWritten
                     || !adapter.sourceUnchanged()) {
@@ -5768,7 +5797,7 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec, useMPolygon);
+                HatchOnlyExport adapter(codec, useMPolygon, useGradient);
                 armAllocationFailure(1000000000L);
                 const bool wrote = codec.write(&adapter, version, binary);
                 allocationCount = static_cast<long>(allocationAttempts);
@@ -5791,7 +5820,7 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                                     "could not seed destination sentinel");
                 }
                 dxfRW codec(output.string().c_str());
-                HatchOnlyExport adapter(codec, useMPolygon);
+                HatchOnlyExport adapter(codec, useMPolygon, useGradient);
                 armAllocationFailure(offset);
                 const bool wrote = codec.write(&adapter, version, binary);
                 const std::size_t reached = allocationAttempts;
@@ -5821,10 +5850,10 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                     || (useMPolygon ? readback.mpolygonCount != 1u
                                     : readback.hatchCount != 1u)
                     || typedEntity.name != "ANSI31"
-                    || typedEntity.solid != 0
+                    || typedEntity.solid != (useGradient ? 1 : 0)
                     || typedEntity.handle == 0u
-                    || typedEntity.angle != 0.25
-                    || typedEntity.scale != 1.5
+                    || (!useGradient && (typedEntity.angle != 0.25
+                        || typedEntity.scale != 1.5))
                     || typedEntity.looplist.size() != 5u
                     || std::any_of(typedEntity.looplist.begin(),
                         typedEntity.looplist.end(), [](const auto& loop) {
@@ -5833,24 +5862,51 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                     || dynamic_cast<const DRW_LWPolyline*>(
                         typedEntity.looplist.front()->objlist.front().get())
                         == nullptr
-                    || typedEntity.patternLines.size() != 1u
-                    || typedEntity.patternLines.front().angle != 0.5
-                    || typedEntity.patternLines.front().baseX != 0.25
-                    || typedEntity.patternLines.front().baseY != -0.5
-                    || typedEntity.patternLines.front().offsetY != 1.25
-                    || typedEntity.patternLines.front().dashList
-                        != std::vector<double>{0.5, -0.25, 1.0}
+                    || typedEntity.patternLines.size()
+                        != (useGradient ? 0u : 1u)
+                    || (!useGradient
+                        && (typedEntity.patternLines.front().angle != 0.5
+                            || typedEntity.patternLines.front().baseX != 0.25
+                            || typedEntity.patternLines.front().baseY != -0.5
+                            || typedEntity.patternLines.front().offsetY != 1.25
+                            || typedEntity.patternLines.front().dashList
+                                != std::vector<double>{0.5, -0.25, 1.0}))
                     || typedEntity.seedPoints.size() != 1u
                     || typedEntity.seedPoints.front().x != 0.5
                     || typedEntity.seedPoints.front().y != 0.75
+                    || typedEntity.isGradient != (useGradient ? 1 : 0)
+                    || (useGradient && (typedEntity.gradName != "LINEAR"
+                        || typedEntity.gradReserved != 0
+                        || typedEntity.gradAngle != 0.75
+                        || typedEntity.gradShift != 0.25
+                        || typedEntity.singleColor != 0
+                        || typedEntity.gradTint != 0.0
+                        || typedEntity.gradColors.size() != 2u
+                        || typedEntity.gradColors[0].value != 0.0
+                        || typedEntity.gradColors[0].rgb != 0x112233
+                        || typedEntity.gradColors[1].value != 1.0
+                        || typedEntity.gradColors[1].rgb != 0x445566))
                     || (useMPolygon && (readback.mpolygon.dxfVersion != 1
                         || readback.mpolygon.fillColorAci != 5
                         || readback.mpolygon.annotatedBoundary != 1
                         || readback.mpolygon.xDirX != 1.5
                         || readback.mpolygon.xDirY != -0.75))
-                    || hasStagedOutput(output))
+                    || hasStagedOutput(output)) {
+                    std::cerr << "retry=" << retried << " read=" << read
+                              << " readError=" << reader.getError()
+                              << " hatchCount=" << readback.hatchCount
+                              << " mpolygonCount=" << readback.mpolygonCount
+                              << " gradient=" << typedEntity.isGradient
+                              << " gradientName=" << typedEntity.gradName
+                              << " gradientStops=" << typedEntity.gradColors.size()
+                              << " patternLines=" << typedEntity.patternLines.size()
+                              << " solid=" << typedEntity.solid
+                              << " outputBytesMatch="
+                              << (readBytes(output, retryBytes)
+                                  && retryBytes == expectedBytes) << '\n';
                     return fail(version, binary,
                                 "retry or typed readback failed");
+                }
                 const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
                     typedEntity.looplist[0]->objlist.front().get());
                 const auto* lineEdge = dynamic_cast<const DRW_Line*>(
@@ -5885,10 +5941,12 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                                 "typed boundary readback mismatch");
             }
             std::cout << (useMPolygon ? "MPOLYGON " : "HATCH ")
+                      << (useGradient ? "gradient " : "pattern ")
                       << static_cast<int>(version)
                       << (binary ? " Binary" : " ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
+        }
         }
       }
     }
