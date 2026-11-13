@@ -1083,7 +1083,7 @@ public:
             && check("NAVISWORKSMODEL", output.writeNavisworksModel(&navisworksModel))
             && check("ATTDEF", output.writeAttdef(
                 &directAttdef, DRW::DxfModelSpaceBlockRecordHandle))
-            && check("3DFACE", output.writeLine(&face))
+            && check("3DFACE", output.write3dface(&face))
             && check("DIMENSION", output.writeDimension(&dimension))
             && check("DYNAMIC_CONSTRAINT_DIMENSION",
                      output.writeDimension(&dynamicConstraintDimension))

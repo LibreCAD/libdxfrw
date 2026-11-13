@@ -4419,6 +4419,15 @@ same-writer retry; the focused transaction CTest passes 1/1. This verifies the
 generated DXF reference route only, not the NAVISWORKS dictionary edge, NWD
 asset loading or native consumer behavior
 ([receipt](docs/research/p6-dxf-navisworks-model-entity-allocation-rollback-retry-2026-11-13.json)).
+The whole-operation entity sweep also invokes the public `write3dface()` entry
+point directly. Its generated 3DFACE readback checks all four corners and the
+invisible-edge mask, and the updated ASCII/Binary sweeps pass 992/992 and
+972/972 injected allocation failures with destination/caller rollback and
+same-writer retry. The earlier call through `writeLine()` already dispatched
+to the same 3DFACE writer; this closes direct-entry inventory coverage without
+claiming a wire-format behavior change. The focused transaction CTest passes
+1/1. This does not qualify producer-authored 3DFACE profiles or native 3D
+consumer behavior ([updated receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
