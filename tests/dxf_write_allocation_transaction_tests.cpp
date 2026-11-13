@@ -63,6 +63,7 @@ constexpr std::uint32_t kSunHandle = 0xD93Fu;
 constexpr std::uint32_t kOle2FrameHandle = 0xD940u;
 constexpr std::uint32_t kOleFrameHandle = 0xD941u;
 constexpr std::uint32_t kShapeHandle = 0xD942u;
+constexpr std::uint32_t kRasterVariablesHandle = 0xD943u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -805,6 +806,12 @@ public:
         shape.m_thickness = 0.25;
         shape.m_extrusion = DRW_Coord(0.0, 0.0, 1.0);
         shape.m_styleName = "STANDARD";
+        rasterVariables.handle = kRasterVariablesHandle;
+        rasterVariables.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        rasterVariables.m_classVersion = 0;
+        rasterVariables.m_imageFrame = 1;
+        rasterVariables.m_imageQuality = 1;
+        rasterVariables.m_units = 4;
     }
 
     void writeEntities() override {
@@ -873,6 +880,7 @@ public:
             && output.writeScale(&scale)
             && output.writeBackground(&background, "SOLIDBACKGROUND")
             && output.writePlotSettings(&plotSettings)
+            && output.writeRasterVariables(&rasterVariables)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
@@ -936,6 +944,7 @@ public:
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
+    DRW_RasterVariables rasterVariables;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -988,6 +997,10 @@ public:
     void addShape(const DRW_Shape& value) override {
         ++shapeCount;
         shape = value;
+    }
+    void addRasterVariables(const DRW_RasterVariables& value) override {
+        ++rasterVariablesCount;
+        rasterVariables = value;
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1270,6 +1283,7 @@ public:
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
+    DRW_RasterVariables rasterVariables;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1334,6 +1348,7 @@ public:
     unsigned ole2FrameCount = 0u;
     unsigned oleFrameCount = 0u;
     unsigned shapeCount = 0u;
+    unsigned rasterVariablesCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1519,6 +1534,13 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.shape.m_oblique == 0.1
         && adapter.shape.m_thickness == 0.25
         && adapter.shape.m_extrusion.z == 1.0
+        && adapter.rasterVariables.handle == kRasterVariablesHandle
+        && adapter.rasterVariables.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.rasterVariables.m_classVersion == 0
+        && adapter.rasterVariables.m_imageFrame == 1
+        && adapter.rasterVariables.m_imageQuality == 1
+        && adapter.rasterVariables.m_units == 4
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2285,6 +2307,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || std::abs(adapter.shape.m_oblique - 0.1) > 1.0e-12
         || adapter.shape.m_thickness != 0.25
         || adapter.shape.m_extrusion.z != 1.0
+        || adapter.rasterVariablesCount != 1u
+        || adapter.rasterVariables.handle == 0u
+        || adapter.rasterVariables.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.rasterVariables.m_classVersion != 0
+        || adapter.rasterVariables.m_imageFrame != 1
+        || adapter.rasterVariables.m_imageQuality != 1
+        || adapter.rasterVariables.m_units != 4
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
