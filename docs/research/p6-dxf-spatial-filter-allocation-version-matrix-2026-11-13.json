@@ -42,7 +42,7 @@
     "completedSlice": "The generated SPATIAL_FILTER transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retries.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "207 completed slices and 24 remaining packages: 207/(207+24)=89.6%; count-based, not effort-weighted."
+    "progressEstimate": "207 completed slices and 35 remaining packages: 207/(207+35)=85.5%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json"
 }

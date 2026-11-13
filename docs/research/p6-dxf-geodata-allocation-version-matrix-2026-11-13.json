@@ -42,7 +42,7 @@
     "completedSlice": "The generated GEODATA transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retries.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "208 completed slices and 23 remaining packages: 208/(208+23)=90.0%; count-based, not effort-weighted."
+    "progressEstimate": "208 completed slices and 35 remaining packages: 208/(208+35)=85.6%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-spatial-filter-allocation-version-matrix-2026-11-13.json"
 }

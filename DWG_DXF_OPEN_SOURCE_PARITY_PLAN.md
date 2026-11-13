@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **209 completed implementation slices** and **22 remaining
+The plan records **209 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`209 / (209 + 22) = 90.5%`. This is a count-based progress measure, not an
+`209 / (209 + 35) = 85.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -12,7 +12,11 @@ not stop local implementation. Keep the independent gate status at **0 of 6
 complete (0%)**: P4–P8 are OPEN and P9 is DEFERRED_EXTERNAL. No phase gate has
 met its full evidence requirements. Completed implementation actions have
 been removed from the execution queue; their commits and receipts remain the
-evidence record. Do not count historical evidence notes or the earlier
+evidence record. The remaining count is derived from the OPEN P4–P8 rows below;
+closing a sub-slice under P6-G does not reduce its parent package until P6-G's
+full inventory gate passes. Treat the percentage as a rough equal-weight
+activity proxy, not as the percentage of package gates completed. Do not count
+historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
 
 ## Authority and completion gates

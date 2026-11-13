@@ -42,7 +42,7 @@
     "completedSlice": "The rooted SCALE transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retry checks.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "206 completed slices and 25 remaining packages: 206/(206+25)=89.2%; count-based, not effort-weighted."
+    "progressEstimate": "206 completed slices and 35 remaining packages: 206/(206+35)=85.5%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json"
 }

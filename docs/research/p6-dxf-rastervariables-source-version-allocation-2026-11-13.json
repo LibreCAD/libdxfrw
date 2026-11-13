@@ -45,7 +45,7 @@
     "completedSlice": "Matching-source AC1021 and AC1027 RASTERVARIABLES export profiles pass allocation rollback, same-adapter retry, byte comparison, and typed readback.",
     "remainingP6G": "Continue remaining public-writer route/variant inventory; keep AC1032 class-integrity, producer-profile, and consumer semantics open.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "209 completed slices and 22 remaining packages: 209/(209+22)=90.5%; count-based, not effort-weighted."
+    "progressEstimate": "209 completed slices and 35 remaining packages: 209/(209+35)=85.7%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json"
 }

@@ -42,7 +42,7 @@
     "completedSlice": "The generated DBCOLOR transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "204 completed slices and 27 remaining packages: 204/(204+27)=88.3%; count-based, not effort-weighted."
+    "progressEstimate": "204 completed slices and 35 remaining packages: 204/(204+35)=85.4%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json"
 }
