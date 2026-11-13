@@ -19,11 +19,12 @@ constexpr std::uint32_t kGroupHandle = 0xD912u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 using DictionaryEdge = DRW_Dictionary::Entry::DxfHandleCode;
 
-bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t memberHandle) {
+bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
+                                std::uint32_t circleHandle) {
     DRW_Group group;
     group.handle = kGroupHandle;
     group.name = kGroupName;
-    group.m_entityHandles = {memberHandle};
+    group.m_entityHandles = {lineHandle, circleHandle};
     writer.setGroups({group});
     writer.setHandleRemap({{kNodHandle, 0xCu},
                            {kGroupDictionaryHandle, 0xDu}});
@@ -82,6 +83,9 @@ public:
         line.handle = 0xD900u;
         line.basePoint = DRW_Coord(1.25, -2.5, 3.75);
         line.secPoint = DRW_Coord(4.5, 5.25, -6.0);
+        circle.handle = 0xD902u;
+        circle.basePoint = DRW_Coord(-7.0, 8.5, 9.25);
+        circle.radious = 2.75;
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
@@ -93,7 +97,8 @@ public:
     }
 
     void writeEntities() override {
-        entitiesWritten = output.writeLine(&line);
+        entitiesWritten = output.writeLine(&line)
+            && output.writeCircle(&circle);
     }
 
     void writeObjects() override {
@@ -108,6 +113,7 @@ public:
     dxfRW& output;
     dx_data storage;
     DRW_Line line;
+    DRW_Circle circle;
     DRW_RawDxfObject object;
     bool entitiesWritten = false;
     bool objectsWritten = false;
@@ -120,6 +126,10 @@ public:
         currentBlock = storage.mBlock;
     }
     void addLine(const DRW_Line& value) override { ++lineCount; line = value; }
+    void addCircle(const DRW_Circle& value) override {
+        ++circleCount;
+        circle = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -130,10 +140,12 @@ public:
     }
     dx_data storage;
     DRW_Line line;
+    DRW_Circle circle;
     DRW_RawDxfObject object;
     std::vector<DRW_Dictionary> dictionaries;
     std::vector<DRW_Group> groups;
     unsigned lineCount = 0u;
+    unsigned circleCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -154,6 +166,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.line.secPoint.x == 4.5
         && adapter.line.secPoint.y == 5.25
         && adapter.line.secPoint.z == -6.0
+        && adapter.circle.handle == 0xD902u
+        && adapter.circle.basePoint.x == -7.0
+        && adapter.circle.basePoint.y == 8.5
+        && adapter.circle.basePoint.z == 9.25
+        && adapter.circle.radious == 2.75
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
@@ -171,18 +188,23 @@ bool matchesReadback(const std::filesystem::path& path) {
     dxfRW reader(path.string().c_str());
     Readback adapter;
     const bool read = reader.read(&adapter, false);
-    if (!read || adapter.lineCount != 1u
+    if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.objectCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
+        || adapter.circle.basePoint.x != -7.0
+        || adapter.circle.basePoint.y != 8.5
+        || adapter.circle.basePoint.z != 9.25
+        || adapter.circle.radious != 2.75
         || adapter.object.name != "XRECORD"
         || adapter.object.groups.size() != 4u
         || adapter.object.groups[3].c_str() == nullptr
         || std::string(adapter.object.groups[3].c_str())
             != "whole operation payload") {
         std::cerr << "readback read=" << read << " version=" << reader.getVersion()
-                  << " lines=" << adapter.lineCount << " objects="
-                  << adapter.objectCount << " lineHandle=" << adapter.line.handle
+                  << " lines=" << adapter.lineCount << " circles="
+                  << adapter.circleCount << " objects=" << adapter.objectCount
+                  << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
                   << adapter.line.secPoint.z << " rawGroups="
                   << adapter.object.groups.size();
@@ -208,13 +230,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         adapter.groups.begin(), adapter.groups.end(),
         [](const DRW_Group& value) {
             return value.handle != 0u && value.handle != DRW::NoHandle
-                && value.m_entityHandles.size() == 1u;
+                && value.m_entityHandles.size() == 2u;
         });
     const bool graphMatches = rootMatches
         && child != adapter.dictionaries.end()
         && group != adapter.groups.end()
         && child->m_entries.front().m_handle == group->handle
-        && group->m_entityHandles.front() == adapter.line.handle;
+        && group->m_entityHandles[0] == adapter.line.handle
+        && group->m_entityHandles[1] == adapter.circle.handle;
     if (!graphMatches) {
         std::cerr << "graph dictionaries=" << adapter.dictionaries.size()
                   << " groups=" << adapter.groups.size()
@@ -226,8 +249,8 @@ bool matchesReadback(const std::filesystem::path& path) {
             std::cerr << " childHandle=" << child->handle << " groupRef="
                       << child->m_entries.front().m_handle;
         if (group != adapter.groups.end())
-            std::cerr << " groupHandle=" << group->handle << " member="
-                      << group->m_entityHandles.front();
+            std::cerr << " groupHandle=" << group->handle << " members="
+                      << group->m_entityHandles.size();
         std::cerr << " lineHandle=" << adapter.line.handle << '\n';
     }
     return graphMatches;
@@ -251,7 +274,8 @@ bool run(const std::filesystem::path& directory) {
         {
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
-            if (!installGeneratedGroupGraph(codec, adapter.line.handle)
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle,
+                                            adapter.circle.handle)
                 || !codec.write(&adapter, DRW::AC1027, binary))
                 return fail("warm-up write failed");
         }
@@ -263,7 +287,8 @@ bool run(const std::filesystem::path& directory) {
         {
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
-            if (!installGeneratedGroupGraph(codec, adapter.line.handle))
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle,
+                                            adapter.circle.handle))
                 return fail("could not install generated graph before calibration");
             armAllocationFailure(1000000000L);
             const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
@@ -296,7 +321,8 @@ bool run(const std::filesystem::path& directory) {
 
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
-            if (!installGeneratedGroupGraph(codec, adapter.line.handle))
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle,
+                                            adapter.circle.handle))
                 return fail("could not install generated graph before injection");
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
