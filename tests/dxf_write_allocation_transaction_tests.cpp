@@ -26,6 +26,8 @@ constexpr std::uint32_t kMeshHandle = 0xD919u;
 constexpr std::uint32_t kSplineHandle = 0xD91Au;
 constexpr std::uint32_t kHatchHandle = 0xD91Bu;
 constexpr std::uint32_t kLeaderHandle = 0xD91Cu;
+constexpr std::uint32_t kMLineHandle = 0xD91Du;
+constexpr std::uint32_t kMLineStyleHandle = 0xD91Eu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -191,6 +193,31 @@ public:
             std::make_shared<DRW_Coord>(DRW_Coord(4.0, 5.0, 6.0)),
             std::make_shared<DRW_Coord>(DRW_Coord(7.0, 8.0, 9.0))};
         leader.offsetblock = DRW_Coord(0.25, 0.5, 0.75);
+        mlineStyle.handle = kMLineStyleHandle;
+        mlineStyle.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        mlineStyle.name = "WHOLE_OPERATION_MLINESTYLE";
+        DRW_MLineElement mlineElement;
+        mlineElement.offset = 0.5;
+        mlineElement.color = 256;
+        mlineElement.linetypeIndex = -1;
+        mlineStyle.elements.push_back(mlineElement);
+        mline.handle = kMLineHandle;
+        mline.styleName = mlineStyle.name;
+        mline.styleHandle = kMLineStyleHandle;
+        mline.numLines = 1;
+        mline.numVerts = 2;
+        mline.basePoint = DRW_Coord(2.0, 3.0, 0.0);
+        mline.vertlist.resize(2);
+        mline.vertlist[0].position = DRW_Coord(2.0, 3.0, 0.0);
+        mline.vertlist[0].vertexDir = DRW_Coord(1.0, 0.0, 0.0);
+        mline.vertlist[0].miterDir = DRW_Coord(0.0, 1.0, 0.0);
+        mline.vertlist[0].segParms = {{0.25}};
+        mline.vertlist[0].areaFillParms = {{0.0}};
+        mline.vertlist[1].position = DRW_Coord(7.0, 3.0, 0.0);
+        mline.vertlist[1].vertexDir = DRW_Coord(1.0, 0.0, 0.0);
+        mline.vertlist[1].miterDir = DRW_Coord(0.0, 1.0, 0.0);
+        mline.vertlist[1].segParms = {{-0.5, 0.75}};
+        mline.vertlist[1].areaFillParms = {{0.125}};
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -231,12 +258,14 @@ public:
             && output.writeMesh(&mesh)
             && output.writeSpline(&spline)
             && output.writeHatch(&hatch)
-            && output.writeLeader(&leader);
+            && output.writeLeader(&leader)
+            && output.writeMLine(&mline);
     }
 
     void writeObjects() override {
         dx_iface::writeObjects();
-        objectsWritten = output.writeRawDxfObject(&object)
+        objectsWritten = output.writeMLineStyle(&mlineStyle)
+            && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
             && output.writeDataLink(&targetBeta);
@@ -256,6 +285,8 @@ public:
     DRW_Spline spline;
     DRW_Hatch hatch;
     DRW_Leader leader;
+    DRW_MLine mline;
+    DRW_MLineStyle mlineStyle;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -307,6 +338,16 @@ public:
             leader = *value;
         }
     }
+    void addMLine(const DRW_MLine* value) override {
+        if (value != nullptr) {
+            ++mlineCount;
+            mline = *value;
+        }
+    }
+    void addMLineStyle(const DRW_MLineStyle& value) override {
+        ++mlineStyleCount;
+        mlineStyle = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -327,6 +368,8 @@ public:
     DRW_Spline spline;
     DRW_Hatch hatch;
     DRW_Leader leader;
+    DRW_MLine mline;
+    DRW_MLineStyle mlineStyle;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -339,6 +382,8 @@ public:
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
     unsigned leaderCount = 0u;
+    unsigned mlineCount = 0u;
+    unsigned mlineStyleCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -434,6 +479,32 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.leader.offsetblock.x == 0.25
         && adapter.leader.offsetblock.y == 0.5
         && adapter.leader.offsetblock.z == 0.75
+        && adapter.mline.handle == kMLineHandle
+        && adapter.mline.styleName == "WHOLE_OPERATION_MLINESTYLE"
+        && adapter.mline.styleHandle == kMLineStyleHandle
+        && adapter.mline.numLines == 1
+        && adapter.mline.numVerts == 2
+        && adapter.mline.vertlist.size() == 2u
+        && adapter.mline.vertlist[0].position.x == 2.0
+        && adapter.mline.vertlist[0].vertexDir.x == 1.0
+        && adapter.mline.vertlist[0].miterDir.y == 1.0
+        && adapter.mline.vertlist[0].segParms
+            == std::vector<std::vector<double>>{{0.25}}
+        && adapter.mline.vertlist[0].areaFillParms
+            == std::vector<std::vector<double>>{{0.0}}
+        && adapter.mline.vertlist[1].position.x == 7.0
+        && adapter.mline.vertlist[1].segParms
+            == std::vector<std::vector<double>>{{-0.5, 0.75}}
+        && adapter.mline.vertlist[1].areaFillParms
+            == std::vector<std::vector<double>>{{0.125}}
+        && adapter.mlineStyle.handle == kMLineStyleHandle
+        && adapter.mlineStyle.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.mlineStyle.name == "WHOLE_OPERATION_MLINESTYLE"
+        && adapter.mlineStyle.elements.size() == 1u
+        && adapter.mlineStyle.elements.front().offset == 0.5
+        && adapter.mlineStyle.elements.front().linetype.empty()
+        && adapter.mlineStyle.elements.front().linetypeIndex == -1
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -495,6 +566,8 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.splineCount != 1u
         || adapter.hatchCount != 1u
         || adapter.leaderCount != 1u
+        || adapter.mlineCount != 1u
+        || adapter.mlineStyleCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -572,6 +645,29 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.leader.offsetblock.x != 0.25
         || adapter.leader.offsetblock.y != 0.5
         || adapter.leader.offsetblock.z != 0.75
+        || adapter.mline.handle == 0u
+        || adapter.mline.styleName != "WHOLE_OPERATION_MLINESTYLE"
+        || adapter.mline.styleHandle == 0u
+        || adapter.mline.numLines != 1
+        || adapter.mline.numVerts != 2
+        || adapter.mline.vertlist.size() != 2u
+        || adapter.mline.vertlist[0].position.x != 2.0
+        || adapter.mline.vertlist[0].vertexDir.x != 1.0
+        || adapter.mline.vertlist[0].miterDir.y != 1.0
+        || adapter.mline.vertlist[0].segParms
+            != std::vector<std::vector<double>>{{0.25}}
+        || adapter.mline.vertlist[0].areaFillParms
+            != std::vector<std::vector<double>>{{0.0}}
+        || adapter.mline.vertlist[1].position.x != 7.0
+        || adapter.mline.vertlist[1].segParms
+            != std::vector<std::vector<double>>{{-0.5, 0.75}}
+        || adapter.mline.vertlist[1].areaFillParms
+            != std::vector<std::vector<double>>{{0.125}}
+        || adapter.mlineStyle.handle == 0u
+        || adapter.mlineStyle.name != "WHOLE_OPERATION_MLINESTYLE"
+        || adapter.mlineStyle.elements.size() != 1u
+        || adapter.mlineStyle.elements.front().offset != 0.5
+        || adapter.mlineStyle.elements.front().linetype != "BYLAYER"
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
@@ -746,8 +842,13 @@ bool run(const std::filesystem::path& directory) {
             if (!installGeneratedGroupGraph(codec, adapter.line.handle,
                                             adapter.circle.handle)
                 || !installGeneratedImageDefinition(codec)
-                || !codec.write(&adapter, DRW::AC1027, binary))
+                || !codec.write(&adapter, DRW::AC1027, binary)) {
+                std::cerr << "warm-up binary=" << binary
+                          << " entities=" << adapter.entitiesWritten
+                          << " objects=" << adapter.objectsWritten
+                          << " error=" << codec.getError() << '\n';
                 return fail("warm-up write failed");
+            }
         }
         std::error_code warmupError;
         std::filesystem::remove(output, warmupError);
@@ -819,8 +920,14 @@ bool run(const std::filesystem::path& directory) {
             std::string afterFailure;
             if (!identitiesRolledBack || !readBytes(output, afterFailure)
                 || afterFailure != sentinel
-                || !callerRecordsUnchanged(adapter))
+                || !callerRecordsUnchanged(adapter)) {
+                std::cerr << "rollback offset=" << offset
+                          << " identities=" << identitiesRolledBack
+                          << " destination=" << (afterFailure == sentinel)
+                          << " caller=" << callerRecordsUnchanged(adapter)
+                          << '\n';
                 return fail("failure published identities or changed destination/caller records");
+            }
 
             const bool retried = codec.write(&adapter, DRW::AC1027, binary);
             std::string retryBytes;
