@@ -116,6 +116,7 @@ constexpr std::uint32_t kTableStyleTextHandle = 0xD957u;
 constexpr std::uint32_t kTableStyleHandle = 0xD958u;
 constexpr std::uint32_t kCellStyleMapHandle = 0xD959u;
 constexpr std::uint32_t kDirectViewHandle = 0xD974u;
+constexpr std::uint32_t kDirectUcsHandle = 0xD975u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -613,6 +614,18 @@ public:
         directView.renderMode = 2;
         directView.cameraPlottable = true;
         storage.views.push_back(directView);
+        DRW_UCS directUcs;
+        directUcs.handle = kDirectUcsHandle;
+        directUcs.name = "WHOLE_OPERATION_DIRECT_UCS";
+        directUcs.origin = DRW_Coord(4.0, 5.0, 6.0);
+        directUcs.xAxisDirection = DRW_Coord(1.0, 0.0, 0.0);
+        directUcs.yAxisDirection = DRW_Coord(0.0, 1.0, 0.0);
+        directUcs.orthoOrigin = DRW_Coord(1.0, 2.0, 3.0);
+        directUcs.elevation = 2.5;
+        directUcs.orthographicOptions = {
+            {2, DRW_Coord(1.0, 2.0, 3.0)},
+            {5, DRW_Coord(4.0, 5.0, 6.0)}};
+        storage.ucsList.push_back(directUcs);
         camera.handle = 0xD96Du;
         camera.m_viewHandle = cameraView.handle;
         geoPositionMarker.handle = 0xD96Fu;
@@ -1591,6 +1604,12 @@ public:
             directView = value;
         }
     }
+    void addUCS(const DRW_UCS& value) override {
+        dx_iface::addUCS(value);
+        ++ucsCount;
+        if (value.name == "WHOLE_OPERATION_DIRECT_UCS")
+            directUcs = value;
+    }
     void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
         ++geoPositionMarkerCount;
         if (value.m_notes == "whole-operation embedded geo marker")
@@ -1803,6 +1822,7 @@ public:
     DRW_TableStyle tableStyle;
     DRW_CellStyleMap cellStyleMap;
     DRW_View directView;
+    DRW_UCS directUcs;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -1884,6 +1904,7 @@ public:
     unsigned tableStyleCount = 0u;
     unsigned cellStyleMapCount = 0u;
     unsigned directViewCount = 0u;
+    unsigned ucsCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -2031,6 +2052,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_View& value) {
             return value.handle == kDirectViewHandle;
         });
+    const auto directUcs = std::find_if(
+        adapter.storage.ucsList.begin(), adapter.storage.ucsList.end(),
+        [](const DRW_UCS& value) {
+            return value.handle == kDirectUcsHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
         && adapter.storage.views.size() == 2u
@@ -2045,6 +2071,24 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && directView->twistAngle == 15.0
         && directView->viewMode == 1 && directView->renderMode == 2u
         && directView->cameraPlottable
+        && adapter.storage.ucsList.size() == 1u
+        && directUcs != adapter.storage.ucsList.end()
+        && directUcs->name == "WHOLE_OPERATION_DIRECT_UCS"
+        && directUcs->origin.x == 4.0 && directUcs->origin.y == 5.0
+        && directUcs->origin.z == 6.0
+        && directUcs->xAxisDirection.x == 1.0
+        && directUcs->xAxisDirection.y == 0.0
+        && directUcs->yAxisDirection.x == 0.0
+        && directUcs->yAxisDirection.y == 1.0
+        && directUcs->orthoOrigin.x == 1.0
+        && directUcs->orthoOrigin.y == 2.0
+        && directUcs->orthoOrigin.z == 3.0
+        && directUcs->elevation == 2.5
+        && directUcs->orthographicOptions.size() == 2u
+        && directUcs->orthographicOptions[0].type == 2
+        && directUcs->orthographicOptions[0].point.x == 1.0
+        && directUcs->orthographicOptions[1].type == 5
+        && directUcs->orthographicOptions[1].point.z == 6.0
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -3132,6 +3176,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.cameraCount != 1u
         || adapter.viewCount != 2u
         || adapter.directViewCount != 1u
+        || adapter.ucsCount != 1u
         || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
@@ -3645,6 +3690,27 @@ bool matchesReadback(const std::filesystem::path& path) {
         || directView->twistAngle != 15.0
         || directView->viewMode != 1 || directView->renderMode != 2u
         || !directView->cameraPlottable
+        || adapter.storage.ucsList.size() != 1u
+        || adapter.directUcs.handle == DRW::NoHandle
+        || adapter.directUcs.name != "WHOLE_OPERATION_DIRECT_UCS"
+        || adapter.directUcs.origin.x != 4.0
+        || adapter.directUcs.origin.y != 5.0
+        || adapter.directUcs.origin.z != 6.0
+        || adapter.directUcs.xAxisDirection.x != 1.0
+        || adapter.directUcs.yAxisDirection.y != 1.0
+        || adapter.directUcs.orthoOrigin.x != 1.0
+        || adapter.directUcs.orthoOrigin.y != 2.0
+        || adapter.directUcs.orthoOrigin.z != 3.0
+        || adapter.directUcs.elevation != 2.5
+        || adapter.directUcs.orthographicOptions.size() != 2u
+        || adapter.directUcs.orthographicOptions[0].type != 2
+        || adapter.directUcs.orthographicOptions[0].point.x != 1.0
+        || adapter.directUcs.orthographicOptions[0].point.y != 2.0
+        || adapter.directUcs.orthographicOptions[0].point.z != 3.0
+        || adapter.directUcs.orthographicOptions[1].type != 5
+        || adapter.directUcs.orthographicOptions[1].point.x != 4.0
+        || adapter.directUcs.orthographicOptions[1].point.y != 5.0
+        || adapter.directUcs.orthographicOptions[1].point.z != 6.0
         || adapter.geoPositionMarker.handle == 0u
         || adapter.geoPositionMarker.m_classVersion != 1u
         || adapter.geoPositionMarker.m_position.x != 120.0

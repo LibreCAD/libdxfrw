@@ -1531,6 +1531,17 @@ background, visual-style, sun and live-section references and native view
 semantics remain outside this slice. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
+**P6 direct UCS writer transaction slice (2026-11-13):** the same generated
+whole-operation drawing now writes one standalone UCS through public
+`writeUCS()`, with nondefault origin/axes/elevation and two ordered
+orthographic option tuples. Caller state and destination survive injected
+allocation failure; same-writer retry reproduces clean output, and typed
+readback checks identity, axes, the compatibility orthographic origin and both
+option tuples. All 1,055 ASCII and 1,034 Binary allocation offsets pass. The
+focused CTest passes in 7.40 seconds. This does not qualify producer-specific
+orthographic restoration, UCS name collation or native view behavior. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
 XRECORD with group 1 text and group 90 integer is now part of the custom
 dictionary graph and whole-operation ASCII/Binary allocation sweep. All 842
