@@ -340,6 +340,40 @@ public:
         dimension.setTextPoint(DRW_Coord(1.5, 2.5, 0.0));
         dimension.setText("whole-operation dimension");
         dimension.setStyle("STANDARD");
+        const auto initDimension = [](DRW_Dimension& value,
+                                      std::uint32_t handle,
+                                      double coordinate) {
+            value.handle = handle;
+            value.setDefPoint(DRW_Coord(coordinate, coordinate + 1.0,
+                                        coordinate + 2.0));
+            value.setTextPoint(DRW_Coord(coordinate + 0.5,
+                                         coordinate + 1.5, 0.0));
+            value.setText("whole-operation subtype dimension");
+            value.setStyle("STANDARD");
+        };
+        initDimension(linearDimension, 0xD961u, 10.0);
+        linearDimension.setDef1Point(DRW_Coord(10.0, 11.0, 12.0));
+        linearDimension.setDef2Point(DRW_Coord(13.0, 14.0, 15.0));
+        initDimension(radialDimension, 0xD962u, 20.0);
+        radialDimension.setDiameterPoint(DRW_Coord(22.0, 20.0, 20.0));
+        radialDimension.setLeaderLength(3.0);
+        initDimension(diametricDimension, 0xD963u, 30.0);
+        diametricDimension.setDiameter1Point(DRW_Coord(32.0, 30.0, 30.0));
+        diametricDimension.setLeaderLength(4.0);
+        initDimension(angularDimension, 0xD964u, 40.0);
+        angularDimension.setFirstLine1(DRW_Coord(40.0, 40.0, 0.0));
+        angularDimension.setFirstLine2(DRW_Coord(41.0, 40.0, 0.0));
+        angularDimension.setSecondLine1(DRW_Coord(40.0, 41.0, 0.0));
+        angularDimension.setSecondLine2(DRW_Coord(41.0, 41.0, 0.0));
+        angularDimension.setDimPoint(DRW_Coord(40.5, 40.5, 0.0));
+        initDimension(angular3pDimension, 0xD965u, 50.0);
+        angular3pDimension.setFirstLine(DRW_Coord(50.0, 50.0, 0.0));
+        angular3pDimension.setSecondLine(DRW_Coord(51.0, 50.0, 0.0));
+        angular3pDimension.SetVertexPoint(DRW_Coord(50.0, 51.0, 0.0));
+        angular3pDimension.setDimPoint(DRW_Coord(50.5, 50.5, 0.0));
+        initDimension(ordinateDimension, 0xD966u, 60.0);
+        ordinateDimension.setFirstLine(DRW_Coord(61.0, 62.0, 63.0));
+        ordinateDimension.setSecondLine(DRW_Coord(64.0, 65.0, 66.0));
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -597,6 +631,12 @@ public:
             && check("INSERT", output.writeInsert(&insert))
             && check("3DFACE", output.writeLine(&face))
             && check("DIMENSION", output.writeDimension(&dimension))
+            && check("DIMLINEAR", output.writeDimension(&linearDimension))
+            && check("DIMRADIAL", output.writeDimension(&radialDimension))
+            && check("DIMDIAMETRIC", output.writeDimension(&diametricDimension))
+            && check("DIMANGULAR", output.writeDimension(&angularDimension))
+            && check("DIMANGULAR3P", output.writeDimension(&angular3pDimension))
+            && check("DIMORDINATE", output.writeDimension(&ordinateDimension))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -653,6 +693,12 @@ public:
     DRW_Insert insert;
     DRW_3Dface face;
     DRW_DimAligned dimension;
+    DRW_DimLinear linearDimension;
+    DRW_DimRadial radialDimension;
+    DRW_DimDiametric diametricDimension;
+    DRW_DimAngular angularDimension;
+    DRW_DimAngular3p angular3pDimension;
+    DRW_DimOrdinate ordinateDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -755,6 +801,48 @@ public:
         dx_iface::addDimAlign(value);
         ++dimensionCount;
         dimension = *value;
+    }
+    void addDimLinear(const DRW_DimLinear* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimLinear(value);
+        ++linearDimensionCount;
+        linearDimension = *value;
+    }
+    void addDimRadial(const DRW_DimRadial* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimRadial(value);
+        ++radialDimensionCount;
+        radialDimension = *value;
+    }
+    void addDimDiametric(const DRW_DimDiametric* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimDiametric(value);
+        ++diametricDimensionCount;
+        diametricDimension = *value;
+    }
+    void addDimAngular(const DRW_DimAngular* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimAngular(value);
+        ++angularDimensionCount;
+        angularDimension = *value;
+    }
+    void addDimAngular3P(const DRW_DimAngular3p* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimAngular3P(value);
+        ++angular3pDimensionCount;
+        angular3pDimension = *value;
+    }
+    void addDimOrdinate(const DRW_DimOrdinate* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimOrdinate(value);
+        ++ordinateDimensionCount;
+        ordinateDimension = *value;
     }
     void addArc(const DRW_Arc& value) override {
         ++arcCount;
@@ -891,6 +979,12 @@ public:
     DRW_Insert insert;
     DRW_3Dface face;
     DRW_DimAligned dimension;
+    DRW_DimLinear linearDimension;
+    DRW_DimRadial radialDimension;
+    DRW_DimDiametric diametricDimension;
+    DRW_DimAngular angularDimension;
+    DRW_DimAngular3p angular3pDimension;
+    DRW_DimOrdinate ordinateDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -933,6 +1027,12 @@ public:
     unsigned insertCount = 0u;
     unsigned faceCount = 0u;
     unsigned dimensionCount = 0u;
+    unsigned linearDimensionCount = 0u;
+    unsigned radialDimensionCount = 0u;
+    unsigned diametricDimensionCount = 0u;
+    unsigned angularDimensionCount = 0u;
+    unsigned angular3pDimensionCount = 0u;
+    unsigned ordinateDimensionCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1011,6 +1111,22 @@ bool clearStagedOutput(const std::filesystem::path& target) {
 }
 
 bool callerRecordsUnchanged(const Export& adapter) {
+    const auto unchangedSubtypeDimension = [](const DRW_Dimension& value,
+                                              std::uint32_t handle,
+                                              double coordinate,
+                                              bool checkDefinition = true) {
+        const DRW_Coord definition = value.getDefPoint();
+        const DRW_Coord text = value.getTextPoint();
+        return value.handle == handle
+            && (!checkDefinition
+                || (definition.x == coordinate
+                    && definition.y == coordinate + 1.0
+                    && definition.z == coordinate + 2.0))
+            && text.x == coordinate + 0.5
+            && text.y == coordinate + 1.5
+            && value.getText() == "whole-operation subtype dimension"
+            && value.getStyle() == "STANDARD";
+    };
     return adapter.line.handle == 0xD900u
         && adapter.line.basePoint.x == 1.25
         && adapter.line.basePoint.y == -2.5
@@ -1170,6 +1286,32 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dimension.getTextPoint().y == 2.5
         && adapter.dimension.getText() == "whole-operation dimension"
         && adapter.dimension.getStyle() == "STANDARD"
+        && unchangedSubtypeDimension(adapter.linearDimension, 0xD961u, 10.0)
+        && adapter.linearDimension.getDef1Point().z == 12.0
+        && adapter.linearDimension.getDef2Point().x == 13.0
+        && unchangedSubtypeDimension(adapter.radialDimension, 0xD962u, 20.0)
+        && adapter.radialDimension.getDiameterPoint().x == 22.0
+        && adapter.radialDimension.getLeaderLength() == 3.0
+        && unchangedSubtypeDimension(adapter.diametricDimension, 0xD963u, 30.0)
+        && adapter.diametricDimension.getDiameter1Point().x == 32.0
+        && adapter.diametricDimension.getLeaderLength() == 4.0
+        && unchangedSubtypeDimension(adapter.angularDimension, 0xD964u, 40.0, false)
+        && adapter.angularDimension.getDefPoint().x == 41.0
+        && adapter.angularDimension.getDefPoint().y == 41.0
+        && adapter.angularDimension.getDefPoint().z == 0.0
+        && adapter.angularDimension.getFirstLine1().x == 40.0
+        && adapter.angularDimension.getSecondLine2().y == 41.0
+        && adapter.angularDimension.getDimPoint().x == 40.5
+        && unchangedSubtypeDimension(adapter.angular3pDimension, 0xD965u, 50.0, false)
+        && adapter.angular3pDimension.getDefPoint().x == 50.5
+        && adapter.angular3pDimension.getDefPoint().y == 50.5
+        && adapter.angular3pDimension.getDefPoint().z == 0.0
+        && adapter.angular3pDimension.getFirstLine().x == 50.0
+        && adapter.angular3pDimension.getVertexPoint().y == 51.0
+        && adapter.angular3pDimension.getDimPoint().x == 50.5
+        && unchangedSubtypeDimension(adapter.ordinateDimension, 0xD966u, 60.0)
+        && adapter.ordinateDimension.getFirstLine().x == 61.0
+        && adapter.ordinateDimension.getSecondLine().z == 66.0
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1506,6 +1648,21 @@ bool matchesReadback(const std::filesystem::path& path) {
         });
     const DRW_ImageDef* imageDefinition = adapter.storage.findImageDefinition(
         adapter.storage.importGeneration, adapter.image.ref);
+    const auto commonDimensionMatches = [](const DRW_Dimension& value,
+                                           double coordinate,
+                                           bool checkDefinition = true) {
+        const DRW_Coord definition = value.getDefPoint();
+        const DRW_Coord text = value.getTextPoint();
+        return value.handle != 0u
+            && (!checkDefinition
+                || (definition.x == coordinate
+                    && definition.y == coordinate + 1.0
+                    && definition.z == coordinate + 2.0))
+            && text.x == coordinate + 0.5
+            && text.y == coordinate + 1.5
+            && value.getText() == "whole-operation subtype dimension"
+            && value.getStyle() == "STANDARD";
+    };
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
@@ -1515,6 +1672,13 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.leaderCount != 1u
         || adapter.mlineCount != 1u
         || adapter.mlineStyleCount != 1u
+        || adapter.dimensionCount != 1u
+        || adapter.linearDimensionCount != 1u
+        || adapter.radialDimensionCount != 1u
+        || adapter.diametricDimensionCount != 1u
+        || adapter.angularDimensionCount != 1u
+        || adapter.angular3pDimensionCount != 1u
+        || adapter.ordinateDimensionCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -1668,6 +1832,32 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dimension.getTextPoint().y != 2.5
         || adapter.dimension.getText() != "whole-operation dimension"
         || adapter.dimension.getStyle() != "STANDARD"
+        || !commonDimensionMatches(adapter.linearDimension, 10.0)
+        || adapter.linearDimension.getDef1Point().z != 12.0
+        || adapter.linearDimension.getDef2Point().x != 13.0
+        || !commonDimensionMatches(adapter.radialDimension, 20.0)
+        || adapter.radialDimension.getDiameterPoint().x != 22.0
+        || adapter.radialDimension.getLeaderLength() != 3.0
+        || !commonDimensionMatches(adapter.diametricDimension, 30.0)
+        || adapter.diametricDimension.getDiameter1Point().x != 32.0
+        || adapter.diametricDimension.getLeaderLength() != 4.0
+        || !commonDimensionMatches(adapter.angularDimension, 40.0, false)
+        || adapter.angularDimension.getDefPoint().x != 41.0
+        || adapter.angularDimension.getDefPoint().y != 41.0
+        || adapter.angularDimension.getDefPoint().z != 0.0
+        || adapter.angularDimension.getFirstLine1().x != 40.0
+        || adapter.angularDimension.getSecondLine2().y != 41.0
+        || adapter.angularDimension.getDimPoint().x != 40.5
+        || !commonDimensionMatches(adapter.angular3pDimension, 50.0, false)
+        || adapter.angular3pDimension.getDefPoint().x != 50.5
+        || adapter.angular3pDimension.getDefPoint().y != 50.5
+        || adapter.angular3pDimension.getDefPoint().z != 0.0
+        || adapter.angular3pDimension.getFirstLine().x != 50.0
+        || adapter.angular3pDimension.getVertexPoint().y != 51.0
+        || adapter.angular3pDimension.getDimPoint().x != 50.5
+        || !commonDimensionMatches(adapter.ordinateDimension, 60.0)
+        || adapter.ordinateDimension.getFirstLine().x != 61.0
+        || adapter.ordinateDimension.getSecondLine().z != 66.0
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
@@ -2039,7 +2229,32 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
                   << adapter.line.secPoint.z << " rawGroups="
-                  << adapter.objects.size();
+                  << adapter.objects.size() << " dimensions="
+                  << adapter.dimensionCount << '/' << adapter.linearDimensionCount
+                  << '/' << adapter.radialDimensionCount << '/'
+                  << adapter.diametricDimensionCount << '/'
+                  << adapter.angularDimensionCount << '/'
+                  << adapter.angular3pDimensionCount << '/'
+                  << adapter.ordinateDimensionCount;
+        const auto printDimension = [](const char* name,
+                                       const DRW_Dimension& value) {
+            const DRW_Coord definition = value.getDefPoint();
+            const DRW_Coord text = value.getTextPoint();
+            std::cerr << ' ' << name << "[handle=" << value.handle
+                      << ",type=" << value.eType << ",def="
+                      << definition.x << ',' << definition.y << ','
+                      << definition.z << ",textPoint=" << text.x << ','
+                      << text.y << ',' << text.z << ",label="
+                      << value.getText() << ",style=" << value.getStyle()
+                      << ']';
+        };
+        printDimension("aligned", adapter.dimension);
+        printDimension("linear", adapter.linearDimension);
+        printDimension("radial", adapter.radialDimension);
+        printDimension("diametric", adapter.diametricDimension);
+        printDimension("angular", adapter.angularDimension);
+        printDimension("angular3p", adapter.angular3pDimension);
+        printDimension("ordinate", adapter.ordinateDimension);
         if (rawXrecord != adapter.objects.end()
             && rawXrecord->groups.size() > 3u
             && rawXrecord->groups[3].c_str() != nullptr)
@@ -2219,6 +2434,25 @@ bool run(const std::filesystem::path& directory) {
                           << " callerState="
                           << callerRecordsUnchanged(adapter)
                           << " error=" << codec.getError() << '\n';
+                const auto printDimension = [](const char* name,
+                                               const DRW_Dimension& value) {
+                    const DRW_Coord definition = value.getDefPoint();
+                    const DRW_Coord text = value.getTextPoint();
+                    std::cerr << name << " input: handle=" << value.handle
+                              << ", type=" << value.eType << ", def="
+                              << definition.x << ',' << definition.y << ','
+                              << definition.z << ", textPoint=" << text.x
+                              << ',' << text.y << ',' << text.z << ", label="
+                              << value.getText() << ", style="
+                              << value.getStyle() << '\n';
+                };
+                printDimension("aligned", adapter.dimension);
+                printDimension("linear", adapter.linearDimension);
+                printDimension("radial", adapter.radialDimension);
+                printDimension("diametric", adapter.diametricDimension);
+                printDimension("angular", adapter.angularDimension);
+                printDimension("angular3p", adapter.angular3pDimension);
+                printDimension("ordinate", adapter.ordinateDimension);
                 return fail("calibration write or readback failed");
             }
         }

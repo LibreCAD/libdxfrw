@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **93 completed implementation slices** and **35 remaining
+The plan records **94 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`93 / (93 + 35) = 72.7%`. This is a count-based progress measure, not an
+`94 / (94 + 35) = 72.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1288,15 +1288,16 @@ retry reproduces clean output plus typed readback. The focused transaction
 CTest passes. This covers allocation rollback only; material appearance,
 textures and native rendering remain unqualified. See the [receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).
 
-**P6 local aligned DIMENSION transaction slice (2026-11-13):** the whole-file
-ASCII/Binary allocation sweep now writes a generated DIMALIGNED entity with
-WCS definition point, OCS text point, explicit text and STANDARD style. All
-558 ASCII and 551 Binary failure offsets preserve the previous destination,
-caller fields and derived identity maps; retry on the same writer reproduces
-the clean bytes and typed readback. The focused transaction CTest passes
-1/1 in 3.26 seconds. This qualifies generated rollback/retry and codec
-readback only, not native dimension rendering or producer-specific DWG
-semantics. See the
+**P6 local standard DIMENSION subtype transaction slice (2026-11-13):** the
+whole-file ASCII/Binary allocation sweep now writes all seven standard typed
+subtypes: aligned, linear, radial, diametric, two-line angular, three-point
+angular, and ordinate. All 624 ASCII and 617 Binary failure offsets preserve
+the previous destination, caller fields and derived identity maps; retry on
+the same writer reproduces the clean bytes and typed readback checks each
+subtype's callback and modeled fields. The focused transaction CTest passes
+1/1 in 3.70 seconds. This qualifies generated rollback/retry and codec
+readback only; DIMARC/custom profiles, native dimension rendering, and
+producer-specific DWG semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local LOFTEDSURFACE transaction slice (2026-11-13):** the same sweep
