@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **155 completed implementation slices** and **35 remaining
+The plan records **156 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`155 / (155 + 35) = 81.6%`. This is a count-based progress measure, not an
+`156 / (156 + 35) = 81.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1655,11 +1655,22 @@ SOLID, GRADIENT, GROUNDPLANE, IMAGE, IBL and SKYLIGHT records. All 114 ASCII
 and 111 Binary injected allocation failures preserve the destination and
 caller payload/identity; same-codec retry reproduces clean bytes, staging is
 removed, and typed readback checks each modeled record and allocated identity.
-The focused CTest passes in normal and ASan builds. IBL secondary-background
-and SKYLIGHT sun references are intentionally absent from this profile, so
-reference closure and native rendering remain open. No support claim is
+The focused CTest passes in normal and ASan builds. The initial generated
+profile omitted optional IBL/SKYLIGHT references; one bounded reference
+profile is covered by the follow-up below. Dictionary membership, producer
+interoperability and native rendering remain open. No support claim is
 promoted. See the [transaction
 receipt](docs/research/p6-dxf-background-allocation-rollback-retry-2026-11-13.json).
+
+**P6 BACKGROUND reference-closure transaction follow-up (2026-11-13):** the
+generated graph now gives IBL a secondary-background reference to its emitted
+IMAGE record and SKYLIGHT a reference to an emitted SUN record. Typed readback
+checks both reference roles against the target records' remapped identities.
+All 126 ASCII and 122 Binary injected allocation failures preserve caller and
+destination state; same-codec retries reproduce clean bytes, with staging
+cleanup. The focused CTest passes in normal and ASan builds. This closes only
+these generated DXF reference edges; dictionary membership, physical producer
+profiles and native background semantics remain open ([transaction receipt](docs/research/p6-dxf-background-reference-closure-allocation-rollback-retry-2026-11-13.json)).
 
 **P6 RENDERSETTINGS MentalRay preset follow-up (2026-11-13):** the same
 whole-file sweep now also includes generated Legacy and Modern MentalRay

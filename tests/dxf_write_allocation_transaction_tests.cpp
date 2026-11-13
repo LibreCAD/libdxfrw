@@ -6813,6 +6813,7 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
 
         DRW_Background image;
         image.parentHandle = 0xCu;
+        image.handle = 0xE300u;
         image.m_kind = DRW_Background::Image;
         image.m_classVersion = 1;
         image.m_fileName = "LOCAL_BACKGROUND_IMAGE.png";
@@ -6825,18 +6826,22 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
 
         DRW_Background ibl;
         ibl.parentHandle = 0xCu;
+        ibl.handle = 0xE400u;
         ibl.m_kind = DRW_Background::Ibl;
         ibl.m_classVersion = 1;
         ibl.m_iblName = "LOCAL_IBL";
         ibl.m_enabled = true;
         ibl.m_displayImage = true;
         ibl.m_rotation = 0.4;
+        ibl.m_secondaryBackgroundHandle = image.handle;
         result.push_back(ibl);
 
         DRW_Background skylight;
         skylight.parentHandle = 0xCu;
+        skylight.handle = 0xE500u;
         skylight.m_kind = DRW_Background::Skylight;
         skylight.m_classVersion = 1;
+        skylight.m_sunHandle = 0xE600u;
         result.push_back(skylight);
         return result;
     };
@@ -6873,10 +6878,26 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
             cData = &storage;
             currentBlock = storage.mBlock;
             dxfW = &output;
+            output.setResolvedBackgroundHandles({0xE300u});
+            output.setResolvedSunHandles({0xE600u});
+            sun.handle = 0xE600u;
+            sun.parentHandle = 0xCu;
+            sun.m_classVersion = 1;
+            sun.m_isOn = true;
+            sun.m_color = 3u;
+            sun.m_intensity = 0.85;
+            sun.m_hasShadow = true;
+            sun.m_julianDay = 2460600;
+            sun.m_milliseconds = 43210000;
+            sun.m_shadowType = 2u;
+            sun.m_shadowMapSize = 512u;
+            sun.m_shadowSoftness = 25u;
         }
         void writeObjects() override {
-            written = true;
+            written = output.writeSun(&sun);
             for (DRW_Background& value : backgrounds) {
+                if (!written)
+                    break;
                 const char* name = recordName(value.m_kind);
                 if (name == nullptr || !output.writeBackground(&value, name)) {
                     written = false;
@@ -6898,6 +6919,7 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
         }
         dxfRW& output;
         dx_data storage;
+        DRW_Sun sun;
         std::vector<DRW_Background> backgrounds;
         bool written = false;
     };
@@ -6910,15 +6932,18 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
         void addBackground(const DRW_Background& value) override {
             backgrounds.push_back(value);
         }
+        void addSun(const DRW_Sun& value) override { suns.push_back(value); }
         dx_data storage;
         std::vector<DRW_Background> backgrounds;
+        std::vector<DRW_Sun> suns;
     };
     const auto readbackMatches = [&](const std::filesystem::path& path) {
         dxfRW reader(path.string().c_str());
         BackgroundReadback probe;
         const std::vector<DRW_Background> expected = makeBackgrounds();
         if (!reader.read(&probe, true)
-            || probe.backgrounds.size() != expected.size())
+            || probe.backgrounds.size() != expected.size()
+            || probe.suns.size() != 1u)
             return false;
         for (std::size_t i = 0u; i < expected.size(); ++i) {
             if (!samePayload(probe.backgrounds[i], expected[i])
@@ -6926,6 +6951,25 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
                 || probe.backgrounds[i].handle == DRW::NoHandle)
                 return false;
         }
+        const DRW_Sun& actualSun = probe.suns.front();
+        if (actualSun.parentHandle != 0xCu
+            || actualSun.handle != 0xE600u
+            || actualSun.m_classVersion != 1u || !actualSun.m_isOn
+            || actualSun.m_color != 3u || actualSun.m_intensity != 0.85
+            || !actualSun.m_hasShadow || actualSun.m_julianDay != 2460600
+            || actualSun.m_milliseconds != 43210000
+            || actualSun.m_shadowType != 2u
+            || actualSun.m_shadowMapSize != 512u
+            || actualSun.m_shadowSoftness != 25u)
+            return false;
+        if (probe.backgrounds[3].m_kind != DRW_Background::Image
+            || probe.backgrounds[3].handle != 0xE300u
+            || probe.backgrounds[4].m_kind != DRW_Background::Ibl
+            || probe.backgrounds[4].m_secondaryBackgroundHandle
+                != probe.backgrounds[3].handle
+            || probe.backgrounds[5].m_kind != DRW_Background::Skylight
+            || probe.backgrounds[5].m_sunHandle != actualSun.handle)
+            return false;
         return true;
     };
     for (const bool binary : {false, true}) {
@@ -6967,6 +7011,7 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
             }
             dxfRW codec(output.string().c_str());
             BackgroundExport adapter(codec, makeBackgrounds());
+            const DRW_Sun originalSun = adapter.sun;
             const std::vector<DRW_Background> original(adapter.backgrounds);
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
@@ -6985,6 +7030,19 @@ bool runBackgroundSweep(const std::filesystem::path& directory) {
             for (std::size_t i = 0u; callerSame && i < original.size(); ++i)
                 callerSame = samePayload(adapter.backgrounds[i], original[i])
                     && adapter.backgrounds[i].handle == original[i].handle;
+            callerSame = callerSame
+                && adapter.sun.handle == originalSun.handle
+                && adapter.sun.parentHandle == originalSun.parentHandle
+                && adapter.sun.m_classVersion == originalSun.m_classVersion
+                && adapter.sun.m_isOn == originalSun.m_isOn
+                && adapter.sun.m_color == originalSun.m_color
+                && adapter.sun.m_intensity == originalSun.m_intensity
+                && adapter.sun.m_hasShadow == originalSun.m_hasShadow
+                && adapter.sun.m_julianDay == originalSun.m_julianDay
+                && adapter.sun.m_milliseconds == originalSun.m_milliseconds
+                && adapter.sun.m_shadowType == originalSun.m_shadowType
+                && adapter.sun.m_shadowMapSize == originalSun.m_shadowMapSize
+                && adapter.sun.m_shadowSoftness == originalSun.m_shadowSoftness;
             if (wrote || !injected || !bytesRead || afterFailure != sentinel
                 || !callerSame || !identitiesRolledBack || stageRemains)
                 return fail("injected failure changed caller/destination state");

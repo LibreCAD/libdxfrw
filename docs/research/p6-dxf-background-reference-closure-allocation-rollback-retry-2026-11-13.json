@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-background-reference-closure-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_BACKGROUND_REFERENCE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the whole-operation AC1032 BACKGROUND transaction profile with an IBL-to-IMAGE reference and a SKYLIGHT-to-SUN reference, then verify rollback, retry and typed target identity readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "Generated IMAGEBACKGROUND, IBLBACKGROUND, SKYLIGHTBACKGROUND and SUN objects use explicit source handles. IBL group 340 resolves to the emitted IMAGE handle; SKYLIGHT group 340 resolves to the emitted SUN handle. The other four BACKGROUND kinds remain in the same operation. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "6c04c6d6",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-background-reference-closure-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the existing whole-operation allocation harness with resolved-background and resolved-sun targets plus a typed SUN record. Inject one-shot allocation failures at every calibrated ASCII/Binary offset, verify full caller state, destination preservation, source-handle binding rollback and staging cleanup, then retry on the same codec and require byte-identical output. Fresh typed readback verifies each BACKGROUND payload and confirms the IBL/SKYLIGHT references equal the emitted IMAGE/SUN handles."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_background_allocation_transaction$' --output-on-failure: PASS 1/1 (0.73 sec)",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_background_allocation_transaction$' --output-on-failure: PASS 1/1 (4.51 sec)",
+    "directRun": "PASS; expanded sweep reaches 126 ASCII and 122 Binary allocation offsets; caller/destination/identity rollback, reference-target readback, staging cleanup and same-codec retry pass.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated reference transport does not establish producer-authored field-role semantics or version-wide interoperability.",
+    "Dictionary membership, physical producer profiles and native background rendering remain unqualified.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with another exact uncovered route or version-specific compound-record variant."
+}
