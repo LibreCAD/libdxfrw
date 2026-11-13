@@ -25,6 +25,7 @@ constexpr std::uint32_t kPolylineHandle = 0xD918u;
 constexpr std::uint32_t kMeshHandle = 0xD919u;
 constexpr std::uint32_t kSplineHandle = 0xD91Au;
 constexpr std::uint32_t kHatchHandle = 0xD91Bu;
+constexpr std::uint32_t kLeaderHandle = 0xD91Cu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -182,6 +183,14 @@ public:
         loop->update();
         hatch.appendLoop(loop);
         hatch.seedPoints.emplace_back(0.5, 0.5, 0.0);
+        leader.handle = kLeaderHandle;
+        leader.style = "STANDARD";
+        leader.vertnum = 3;
+        leader.vertexlist = {
+            std::make_shared<DRW_Coord>(DRW_Coord(1.0, 2.0, 3.0)),
+            std::make_shared<DRW_Coord>(DRW_Coord(4.0, 5.0, 6.0)),
+            std::make_shared<DRW_Coord>(DRW_Coord(7.0, 8.0, 9.0))};
+        leader.offsetblock = DRW_Coord(0.25, 0.5, 0.75);
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -221,7 +230,8 @@ public:
                                  image.ref) != nullptr
             && output.writeMesh(&mesh)
             && output.writeSpline(&spline)
-            && output.writeHatch(&hatch);
+            && output.writeHatch(&hatch)
+            && output.writeLeader(&leader);
     }
 
     void writeObjects() override {
@@ -245,6 +255,7 @@ public:
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
+    DRW_Leader leader;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -290,6 +301,12 @@ public:
             hatch = *value;
         }
     }
+    void addLeader(const DRW_Leader* value) override {
+        if (value != nullptr) {
+            ++leaderCount;
+            leader = *value;
+        }
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -309,6 +326,7 @@ public:
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
+    DRW_Leader leader;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -320,6 +338,7 @@ public:
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
+    unsigned leaderCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -402,6 +421,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.hatch.seedPoints.size() == 1u
         && adapter.hatch.seedPoints.front().x == 0.5
         && adapter.hatch.seedPoints.front().y == 0.5
+        && adapter.leader.handle == kLeaderHandle
+        && adapter.leader.style == "STANDARD"
+        && adapter.leader.vertnum == 3
+        && adapter.leader.vertexlist.size() == 3u
+        && adapter.leader.vertexlist[0]
+        && adapter.leader.vertexlist[0]->x == 1.0
+        && adapter.leader.vertexlist[1]
+        && adapter.leader.vertexlist[1]->y == 5.0
+        && adapter.leader.vertexlist[2]
+        && adapter.leader.vertexlist[2]->z == 9.0
+        && adapter.leader.offsetblock.x == 0.25
+        && adapter.leader.offsetblock.y == 0.5
+        && adapter.leader.offsetblock.z == 0.75
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -462,6 +494,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.meshCount != 1u
         || adapter.splineCount != 1u
         || adapter.hatchCount != 1u
+        || adapter.leaderCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -526,6 +559,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.hatch.seedPoints.size() != 1u
         || adapter.hatch.seedPoints.front().x != 0.5
         || adapter.hatch.seedPoints.front().y != 0.5
+        || adapter.leader.handle == 0u
+        || adapter.leader.style != "STANDARD"
+        || adapter.leader.vertnum != 3
+        || adapter.leader.vertexlist.size() != 3u
+        || !adapter.leader.vertexlist[0]
+        || adapter.leader.vertexlist[0]->x != 1.0
+        || !adapter.leader.vertexlist[1]
+        || adapter.leader.vertexlist[1]->y != 5.0
+        || !adapter.leader.vertexlist[2]
+        || adapter.leader.vertexlist[2]->z != 9.0
+        || adapter.leader.offsetblock.x != 0.25
+        || adapter.leader.offsetblock.y != 0.5
+        || adapter.leader.offsetblock.z != 0.75
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
