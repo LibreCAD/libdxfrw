@@ -1366,6 +1366,22 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(dwg2dxf_modeler_dxf_writer_matrix PROPERTIES
         LABELS "fast;dxf;writer;modeler"
         TIMEOUT 30)
+    add_executable(libdxfrw_modeler_dxf_allocation_tests
+        tests/modeler_dxf_allocation_tests.cpp
+        ${_libdxfrw_root_test_adapter_source})
+    target_compile_features(libdxfrw_modeler_dxf_allocation_tests PRIVATE cxx_std_17)
+    target_compile_options(libdxfrw_modeler_dxf_allocation_tests
+        PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_include_directories(libdxfrw_modeler_dxf_allocation_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf
+        ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(libdxfrw_modeler_dxf_allocation_tests PRIVATE dxfrw)
+    add_test(NAME dwg2dxf_modeler_dxf_allocation_transaction
+        COMMAND libdxfrw_modeler_dxf_allocation_tests
+            ${CMAKE_CURRENT_BINARY_DIR}/modeler-dxf-allocation)
+    set_tests_properties(dwg2dxf_modeler_dxf_allocation_transaction PROPERTIES
+        LABELS "fast;dxf;3d;modeler;transaction;allocation"
+        TIMEOUT 60)
     add_test(NAME dwg2dxf_modeler_acds_blob_projection
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-projection)
     set_tests_properties(dwg2dxf_modeler_acds_blob_projection PROPERTIES

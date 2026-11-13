@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **160 completed implementation slices** and **35 remaining
+The plan records **161 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`160 / (160 + 35) = 82.1%`. This is a count-based progress measure, not an
+`161 / (161 + 35) = 82.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4605,6 +4605,16 @@ Its focused fast CTest passes in ASCII and Binary; the earlier rollback,
 destination, child-XRECORD and typed-readback checks remain active. This is one
 generated DATATABLE profile only; P6-G's remaining writer inventory is still
 open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
+
+**P6-G modeler SAT text whole-write transaction slice (2026-11-13):** a new
+AC1024 generated 3DSOLID profile carries 600 SAT text bytes in three ordered
+group-1/3 chunks. Its ASCII whole-operation sweep reaches all 102 measured
+allocation offsets; each failure preserves the caller payload/handle and prior
+destination, rolls back source-handle identities, and removes staging files.
+Same-codec retry reproduces clean bytes and fresh adapter import confirms the
+typed 3DSOLID payload and chunk order. Focused normal and ASan CTests pass. This
+proves transaction behavior for one locally authored SAT text carrier only; it
+does not establish ACIS syntax, topology, or consumer semantics ([receipt](docs/research/p6-modeler-dxf-sat-text-allocation-rollback-retry-2026-11-13.json)).
 The existing generated DICTIONARYWDFLT/ACDBPLACEHOLDER rollback control now
 also invokes the public typed `writeDictionaryWithDefault()` and
 `writeAcDbPlaceholder()` entry points directly, retaining the raw adapter
