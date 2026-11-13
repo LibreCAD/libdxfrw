@@ -458,7 +458,16 @@ public:
         light.m_shadowType = 1;
         light.m_shadowMapSize = 512;
         light.m_shadowMapSoftness = 2;
+        DRW_View cameraView;
+        cameraView.handle = 0xD96Eu;
+        cameraView.name = "WHOLE_OPERATION_CAMERA_VIEW";
+        cameraView.size = DRW_Coord(640.0, 480.0, 0.0);
+        cameraView.center = DRW_Coord(0.5, 0.5, 0.0);
+        cameraView.viewDirectionFromTarget = DRW_Coord(0.0, 0.0, 1.0);
+        cameraView.targetPoint = DRW_Coord(10.0, 20.0, 30.0);
+        storage.views.push_back(cameraView);
         camera.handle = 0xD96Du;
+        camera.m_viewHandle = cameraView.handle;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -1011,6 +1020,10 @@ public:
         ++cameraCount;
         camera = value;
     }
+    void addView(const DRW_View& value) override {
+        ++viewCount;
+        view = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1126,6 +1139,7 @@ public:
     DRW_ArcAlignedText arcAlignedText;
     DRW_Light light;
     DRW_Camera camera;
+    DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1181,6 +1195,7 @@ public:
     unsigned arcAlignedTextCount = 0u;
     unsigned lightCount = 0u;
     unsigned cameraCount = 0u;
+    unsigned viewCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1556,7 +1571,12 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.light.m_shadowMapSize == 512u
         && adapter.light.m_shadowMapSoftness == 2u
         && adapter.camera.handle == 0xD96Du
-        && adapter.camera.m_viewHandle == 0u
+        && adapter.camera.m_viewHandle == 0xD96Eu
+        && adapter.storage.views.size() == 1u
+        && adapter.storage.views.front().handle == 0xD96Eu
+        && adapter.storage.views.front().name == "WHOLE_OPERATION_CAMERA_VIEW"
+        && adapter.storage.views.front().size.x == 640.0
+        && adapter.storage.views.front().targetPoint.z == 30.0
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1931,6 +1951,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.arcAlignedTextCount != 1u
         || adapter.lightCount != 1u
         || adapter.cameraCount != 1u
+        || adapter.viewCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2212,7 +2233,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.light.m_shadowMapSize != 512u
         || adapter.light.m_shadowMapSoftness != 2u
         || adapter.camera.handle == 0u
-        || adapter.camera.m_viewHandle != 0u
+        || adapter.view.handle == 0u
+        || adapter.view.name != "WHOLE_OPERATION_CAMERA_VIEW"
+        || adapter.view.size.x != 640.0
+        || adapter.view.size.y != 480.0
+        || adapter.view.targetPoint.x != 10.0
+        || adapter.view.targetPoint.y != 20.0
+        || adapter.view.targetPoint.z != 30.0
+        || adapter.camera.m_viewHandle != adapter.view.handle
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
