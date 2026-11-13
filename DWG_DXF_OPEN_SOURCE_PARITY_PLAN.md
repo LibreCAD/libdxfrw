@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **128 completed implementation slices** and **35 remaining
+The plan records **129 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`128 / (128 + 35) = 78.5%`. This is a count-based progress measure, not an
+`129 / (129 + 35) = 78.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1573,6 +1573,20 @@ and 1,062 Binary injected allocation failures preserve caller and destination
 state; same-writer retries reproduce clean output. The focused CTest passes in
 7.73 seconds. This is generated transaction/reference evidence for one layer
 profile, not source-profile or native layer-display qualification. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 DIMSTYLE writer transaction slice (2026-11-13):** the generated
+whole-operation TABLES sweep now writes one custom DIMSTYLE through
+`writeDimstyle()`. Across 1,093 ASCII and 1,071 Binary injected allocation
+failures, caller state and the prior destination remain unchanged; same-writer
+retry reproduces clean output. Typed readback checks the remapped DIMSTYLE
+identity, its group-340 reference resolving to the emitted `Standard` STYLE
+row, and generated dimension text, scale, arrow size and precision fields.
+The focused CTest passes in 7.85 seconds. This is one generated transaction
+profile; other DIMSTYLE variable combinations, legacy downgrades, optional
+resource references, producer interoperability and native dimension rendering
+remain open. It does not implement LibreCAD PR #3269's separate adapter-side
+`LC_LineType` reconciliation. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed

@@ -120,6 +120,7 @@ constexpr std::uint32_t kDirectUcsHandle = 0xD975u;
 constexpr std::uint32_t kDirectAppIdHandle = 0xD976u;
 constexpr std::uint32_t kDirectVportHandle = 0xD977u;
 constexpr std::uint32_t kDirectLayerHandle = 0xD978u;
+constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -1151,6 +1152,17 @@ public:
         lineType.size = 2;
         lineType.length = 15.0;
         storage.lineTypes.push_back(lineType);
+        DRW_Dimstyle dimstyle;
+        dimstyle.handle = kDirectDimstyleHandle;
+        dimstyle.name = "WHOLE_OPERATION_DIMSTYLE";
+        dimstyle.dimtxsty = "Standard";
+        dimstyle.dimpost = "<> mm";
+        dimstyle.dimscale = 2.0;
+        dimstyle.dimasz = 2.75;
+        dimstyle.dimtxt = 3.5;
+        dimstyle.dimdec = 3;
+        dimstyle.dimazin = 2;
+        storage.dimStyles.push_back(dimstyle);
         typedXRecord.handle = kTypedXRecordHandle;
         typedXRecord.parentHandle = kCustomDictionaryHandle;
         typedXRecord.m_values.emplace_back(
@@ -2123,6 +2135,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_Layer& value) {
             return value.handle == kDirectLayerHandle;
         });
+    const auto directDimstyle = std::find_if(
+        adapter.storage.dimStyles.begin(), adapter.storage.dimStyles.end(),
+        [](const DRW_Dimstyle& value) {
+            return value.handle == kDirectDimstyleHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
         && adapter.storage.views.size() == 2u
@@ -2180,6 +2197,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && directLayer->color == 3
         && directLayer->lineType == "CONTINUOUS"
         && directLayer->lWeight == DRW_LW_Conv::width07
+        && directDimstyle != adapter.storage.dimStyles.end()
+        && directDimstyle->name == "WHOLE_OPERATION_DIMSTYLE"
+        && directDimstyle->dimpost == "<> mm"
+        && directDimstyle->dimscale == 2.0
+        && directDimstyle->dimasz == 2.75
+        && directDimstyle->dimtxt == 3.5
+        && directDimstyle->dimdec == 3
+        && directDimstyle->dimazin == 2
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -3186,6 +3211,16 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_Layer& value) {
             return value.name == "WHOLE_OPERATION_LAYER";
         });
+    const auto directDimstyle = std::find_if(
+        adapter.storage.dimStyles.begin(), adapter.storage.dimStyles.end(),
+        [](const DRW_Dimstyle& value) {
+            return value.name == "WHOLE_OPERATION_DIMSTYLE";
+        });
+    const auto standardTextStyle = std::find_if(
+        adapter.storage.textStyles.begin(), adapter.storage.textStyles.end(),
+        [](const DRW_Textstyle& value) {
+            return value.name == "Standard";
+        });
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) {
@@ -3308,6 +3343,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || directLayer->color != 3
         || directLayer->lineType != "CONTINUOUS"
         || directLayer->lWeight != DRW_LW_Conv::width07
+        || directDimstyle == adapter.storage.dimStyles.end()
+        || directDimstyle->handle == DRW::NoHandle
+        || standardTextStyle == adapter.storage.textStyles.end()
+        || directDimstyle->dimtxstyH.ref == 0u
+        || directDimstyle->dimtxstyH.ref != standardTextStyle->handle
+        || directDimstyle->dimpost != "<> mm"
+        || directDimstyle->dimscale != 2.0
+        || directDimstyle->dimasz != 2.75
+        || directDimstyle->dimtxt != 3.5
+        || directDimstyle->dimdec != 3
+        || directDimstyle->dimazin != 2
         || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.layer != "WHOLE_OPERATION_LAYER"
