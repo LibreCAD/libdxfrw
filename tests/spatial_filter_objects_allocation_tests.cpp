@@ -140,7 +140,7 @@ bool run(const std::filesystem::path& directory) {
 
     const std::string sentinel = "prior SPATIAL_FILTER destination bytes\n";
     for (const DRW::Version version : {
-             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto output = directory
             / (std::string("spatial-filter-objects-")
                + std::to_string(static_cast<int>(version)) + ".dxf");

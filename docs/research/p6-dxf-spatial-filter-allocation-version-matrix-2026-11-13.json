@@ -4,11 +4,11 @@
   "date": "2026-11-13",
   "status": "GENERATED_SPATIAL_FILTER_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Extend generated SPATIAL_FILTER OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "scope": "Extend generated SPATIAL_FILTER OBJECTS allocation transaction evidence across AC1021, AC1024, AC1027, and AC1032 writer versions.",
   "source": {
     "kind": "deterministic locally-authored record generated during each test run",
     "profile": "One two-point clip boundary with nondefault normal, origin, display/front/back clipping flags and distances, and both 12-value insert transforms.",
-    "versions": ["AC1021", "AC1027", "AC1032"],
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
   },
@@ -23,15 +23,18 @@
   },
   "allocationOffsets": {
     "AC1021": {"ASCII": 11, "Binary": 11},
+    "AC1024": {"ASCII": 11, "Binary": 11},
     "AC1027": {"ASCII": 11, "Binary": 11},
     "AC1032": {"ASCII": 11, "Binary": 11},
-    "totals": {"ASCII": 33, "Binary": 33, "all": 66}
+    "totals": {"ASCII": 44, "Binary": 44, "all": 88}
   },
   "validation": {
-    "build": "cmake --build build-gcc --target libdxfrw_spatial_filter_objects_allocation_tests --parallel 4: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_spatial_filter_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.43 seconds",
-    "directControl": "build-gcc/tests/libdxfrw_spatial_filter_objects_allocation_tests /tmp/libdxfrw-spatial-filter-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 11 and Binary 11 offsets",
-    "diffCheck": "PASS"
+    "build": "cmake --build build --target libdxfrw_spatial_filter_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_spatial_filter_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.25 seconds",
+    "directControl": "build/tests/libdxfrw_spatial_filter_objects_allocation_tests build/spatial-filter-scratch: PASS; AC1021, AC1024, AC1027, and AC1032 each cover ASCII 11 and Binary 11 offsets",
+    "testSourceSha256": "92f0a2e4ab21ec082b122db33df2f4420b2d33394db56b2ca160677649656028",
+    "testExecutableSha256": "390585ba6a5932d91b4afc01004fee8f198b3e165b35f42f406073e2660bb867",
+    "diffCheck": "git diff --check: PASS"
   },
   "limitations": [
     "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
@@ -39,10 +42,10 @@
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "The generated SPATIAL_FILTER transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retries.",
+    "completedSlice": "The generated SPATIAL_FILTER transaction proof now passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary with byte-identical retries.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "207 completed slices and 35 remaining packages: 207/(207+35)=85.5%; count-based, not effort-weighted."
+    "progressEstimate": "225 completed slices and 35 remaining packages: 225/(225+35)=86.5%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json"
 }
