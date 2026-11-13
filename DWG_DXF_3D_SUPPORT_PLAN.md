@@ -10846,3 +10846,14 @@ focused consumer test passes and `lc3_compat_check` builds. These LINE
 callbacks describe boundary wireframe, not filled faces or a native 3D
 semantic result. See the
 [receipt](docs/research/p8-solid-trace-finite-thickness-wireframe-2026-11-13.json).
+
+**P8/S8.3.26 legacy SOLID/TRACE arbitrary-axis OCS fallback (2026-11-13):**
+the default callbacks now transform OCS corners with Autodesk's arbitrary-axis
+algorithm before emitting WCS LINE edges. A finite, nonzero normal is
+normalized; the documented 1/64 polar rule selects Ax and the right-hand rule
+derives Ay. Finite thickness follows the unit normal. Generated controls
+exercise a non-unit +Y normal, expected transformed coordinates, thickness,
+and zero-normal refusal alongside the prior +Z and malformed-input cases.
+This improves the boundary representation delivered to legacy consumers; it
+does not create faces or establish native/file-level 3D support. See the
+[receipt](docs/research/p8-solid-trace-arbitrary-axis-ocs-wireframe-2026-11-13.json).

@@ -5666,8 +5666,8 @@ int selfTest() {
         return fail(__LINE__);
 
     // SOLID/TRACE store the last two raw OCS slots in reverse perimeter
-    // order. The legacy fallback is intentionally limited to +Z, where OCS
-    // and WCS coordinates coincide and no inferred transform is needed.
+    // order. The legacy fallback applies Autodesk's arbitrary-axis OCS basis
+    // before delivering WCS line callbacks.
     DRW_Trace fallbackTrace;
     fallbackTrace.layer = "trace-fallback-layer";
     fallbackTrace.lineType = "DASHED";
@@ -5749,7 +5749,23 @@ int selfTest() {
         || legacySolidSink.traceFallbackLines[6].secPoint.z != 3.25)
         return fail(__LINE__);
 
-    fallbackTrace.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    fallbackTrace.extPoint = DRW_Coord{0.0, 2.0, 0.0};
+    fallbackTrace.thickness = 2.0;
+    legacyTraceSink.traceFallbackLines.clear();
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (legacyTraceSink.traceFallbackLines.size() != 12u
+        || legacyTraceSink.traceFallbackLines[0].basePoint.x != -1.0
+        || legacyTraceSink.traceFallbackLines[0].basePoint.y != 3.0
+        || legacyTraceSink.traceFallbackLines[0].basePoint.z != 2.0
+        || legacyTraceSink.traceFallbackLines[0].secPoint.x != -4.0
+        || legacyTraceSink.traceFallbackLines[0].secPoint.y != 3.0
+        || legacyTraceSink.traceFallbackLines[0].secPoint.z != 5.0
+        || legacyTraceSink.traceFallbackLines[4].basePoint.y != 5.0
+        || legacyTraceSink.traceFallbackLines[5].basePoint.y != 3.0
+        || legacyTraceSink.traceFallbackLines[5].secPoint.y != 5.0)
+        return fail(__LINE__);
+
+    fallbackTrace.extPoint = DRW_Coord{0.0, 0.0, 0.0};
     legacyTraceSink.traceFallbackLines.clear();
     legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
     if (!legacyTraceSink.traceFallbackLines.empty())

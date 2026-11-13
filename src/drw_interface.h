@@ -432,14 +432,14 @@ public:
   virtual void addTable(const DRW_Table &data) { addInsert(data); }
 
   /** Called for every TRACE entity. Consumers without a typed callback receive
-   *  its boundary as LINE callbacks when it uses the default +Z extrusion;
-   *  finite nonzero thickness also emits the translated top boundary and side
-   *  edges. Other extrusion directions stay on the typed callback path so an
-   *  OCS point is never mislabeled as WCS. This wireframe does not represent
-   *  fill; 3D consumers should override this callback.
+   *  its boundary as LINE callbacks transformed from OCS to WCS by the DXF
+   *  arbitrary-axis rule; finite nonzero thickness also emits the translated
+   *  top boundary and side edges. Invalid normals or coordinates emit no
+   *  fallback geometry. This wireframe does not represent fill; 3D consumers
+   *  should override this callback.
    */
   virtual void addTrace(const DRW_Trace &data) {
-    addPlanarTraceWireframe(data);
+    addTraceWireframe(data);
   }
 
   /** Called for every 3DFACE.
@@ -506,9 +506,9 @@ public:
   virtual void addSectionObject(const DRW_SectionObject &data) { (void)data; }
 
   /** Called for every SOLID entity. The default follows addTrace's bounded
-   *  +Z-only wireframe fallback, including finite thickness edges. */
+   *  arbitrary-axis wireframe fallback, including finite thickness edges. */
   virtual void addSolid(const DRW_Solid &data) {
-    addPlanarTraceWireframe(data);
+    addTraceWireframe(data);
   }
 
   /** Called for every Multi Text entity. */
@@ -858,20 +858,78 @@ public:
   }
 
 private:
-  void addPlanarTraceWireframe(const DRW_Trace& data) {
-    // OCS and WCS coincide only for the canonical positive-Z normal. Leave
-    // tilted or malformed normals to a consumer that understands the source
-    // entity's coordinate-space contract.
-    if (data.extPoint.x != 0.0 || data.extPoint.y != 0.0
-        || data.extPoint.z != 1.0)
-      return;
-
-    const DRW_Coord* corners[] = {
-        &data.basePoint, &data.secPoint, &data.fourPoint, &data.thirdPoint};
+  void addTraceWireframe(const DRW_Trace& data) {
     const auto finite = [](const DRW_Coord& point) {
       return std::isfinite(point.x) && std::isfinite(point.y)
           && std::isfinite(point.z);
     };
+    if (!finite(data.extPoint))
+      return;
+
+    const double normalScale = std::max({std::fabs(data.extPoint.x),
+                                         std::fabs(data.extPoint.y),
+                                         std::fabs(data.extPoint.z)});
+    if (normalScale == 0.0 || !std::isfinite(normalScale))
+      return;
+    DRW_Coord normal(data.extPoint.x / normalScale,
+                     data.extPoint.y / normalScale,
+                     data.extPoint.z / normalScale);
+    const double normalLength = std::sqrt(normal.x * normal.x
+                                        + normal.y * normal.y
+                                        + normal.z * normal.z);
+    if (!std::isfinite(normalLength) || normalLength == 0.0)
+      return;
+    normal.x /= normalLength;
+    normal.y /= normalLength;
+    normal.z /= normalLength;
+    if ((data.extPoint.x != 0.0 && normal.x == 0.0)
+        || (data.extPoint.y != 0.0 && normal.y == 0.0)
+        || (data.extPoint.z != 0.0 && normal.z == 0.0))
+      return;
+
+    DRW_Coord axisX;
+    if (std::fabs(normal.x) < 0.015625
+        && std::fabs(normal.y) < 0.015625) {
+      // Ax = Wy x N, where Wy = (0,1,0).
+      axisX = DRW_Coord(normal.z, 0.0, -normal.x);
+    } else {
+      // Ax = Wz x N, where Wz = (0,0,1).
+      axisX = DRW_Coord(-normal.y, normal.x, 0.0);
+    }
+    const double axisXLength = std::sqrt(axisX.x * axisX.x
+                                       + axisX.y * axisX.y
+                                       + axisX.z * axisX.z);
+    if (!std::isfinite(axisXLength) || axisXLength == 0.0)
+      return;
+    axisX.x /= axisXLength;
+    axisX.y /= axisXLength;
+    axisX.z /= axisXLength;
+    DRW_Coord axisY(normal.y * axisX.z - normal.z * axisX.y,
+                    normal.z * axisX.x - normal.x * axisX.z,
+                    normal.x * axisX.y - normal.y * axisX.x);
+    const double axisYLength = std::sqrt(axisY.x * axisY.x
+                                       + axisY.y * axisY.y
+                                       + axisY.z * axisY.z);
+    if (!std::isfinite(axisYLength) || axisYLength == 0.0)
+      return;
+    axisY.x /= axisYLength;
+    axisY.y /= axisYLength;
+    axisY.z /= axisYLength;
+
+    const DRW_Coord* sourceCorners[] = {
+        &data.basePoint, &data.secPoint, &data.fourPoint, &data.thirdPoint};
+    DRW_Coord corners[4];
+    for (std::size_t vertex = 0; vertex < 4u; ++vertex) {
+      const DRW_Coord& source = *sourceCorners[vertex];
+      if (!finite(source))
+        return;
+      corners[vertex] = DRW_Coord(
+          axisX.x * source.x + axisY.x * source.y + normal.x * source.z,
+          axisX.y * source.x + axisY.y * source.y + normal.y * source.z,
+          axisX.z * source.x + axisY.z * source.y + normal.z * source.z);
+      if (!finite(corners[vertex]))
+        return;
+    }
     const auto copyPresentation = [&data](DRW_Entity& target) {
       target.layer = data.layer;
       target.lineType = data.lineType;
@@ -902,31 +960,33 @@ private:
       addLine(line);
     };
     for (std::size_t edge = 0; edge < 4u; ++edge) {
-      emitEdge(*corners[edge], *corners[(edge + 1u) % 4u]);
+      emitEdge(corners[edge], corners[(edge + 1u) % 4u]);
     }
 
     if (!std::isfinite(data.thickness) || data.thickness == 0.0)
       return;
     DRW_Coord translated[4];
     for (std::size_t vertex = 0; vertex < 4u; ++vertex) {
-      translated[vertex] = *corners[vertex];
-      translated[vertex].z += data.thickness;
-      if (!finite(*corners[vertex]) || !finite(translated[vertex]))
+      translated[vertex] = DRW_Coord(
+          corners[vertex].x + normal.x * data.thickness,
+          corners[vertex].y + normal.y * data.thickness,
+          corners[vertex].z + normal.z * data.thickness);
+      if (!finite(translated[vertex]))
         return;
     }
     for (std::size_t edge = 0; edge < 4u; ++edge) {
       emitEdge(translated[edge], translated[(edge + 1u) % 4u]);
       bool duplicateCorner = false;
       for (std::size_t previous = 0; previous < edge; ++previous) {
-        const DRW_Coord& a = *corners[edge];
-        const DRW_Coord& b = *corners[previous];
+        const DRW_Coord& a = corners[edge];
+        const DRW_Coord& b = corners[previous];
         if (a.x == b.x && a.y == b.y && a.z == b.z) {
           duplicateCorner = true;
           break;
         }
       }
       if (!duplicateCorner)
-        emitEdge(*corners[edge], translated[edge]);
+        emitEdge(corners[edge], translated[edge]);
     }
   }
 };

@@ -1,0 +1,34 @@
+{
+  "title": "SOLID and TRACE arbitrary-axis OCS wireframe fallback",
+  "date": "2026-11-13",
+  "scope": "Transform SOLID/TRACE OCS vertices to WCS in the legacy-consumer wireframe fallback, including finite signed thickness along the extrusion normal.",
+  "formatEvidence": {
+    "autodeskOcs": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "facts": ["SOLID and TRACE are planar OCS entities; their points use object coordinates.", "The extrusion vector defines the OCS Z axis.", "Their OCS coordinate system is selected by the arbitrary-axis algorithm."]
+    },
+    "autodeskArbitraryAxis": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm",
+      "facts": ["For a normal near world Z (abs(Nx), abs(Ny) < 1/64), Ax = Wy x N; otherwise Ax = Wz x N.", "Normalize Ax; derive Ay by the right-hand rule."]
+    },
+    "autodeskThickness": {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk-AutoCAD_DatabaseServices_Solid_Thickness.html",
+      "fact": "Thickness extends along the shape normal/extrusion direction."
+    }
+  },
+  "implementation": {
+    "behavior": "The default addTrace/addSolid fallback robustly normalizes a finite, nonzero extrusion vector, applies the Autodesk arbitrary-axis basis, transforms the four OCS vertices to WCS, and emits nondegenerate perimeter lines. For finite nonzero signed thickness it also emits the translated top boundary and unique side edges along the unit normal. Invalid normals, coordinates, or non-finite translated vertices fail closed. Repeated triangle corners do not create zero-length or duplicate vertical edges.",
+    "compatibility": "Typed callbacks remain overridable and no new pure virtual was added. The fallback uses the existing addLine callback for legacy consumers.",
+    "limits": ["The fallback emits boundary lines and does not encode filled faces or volume.", "It does not qualify a native application, file round trip, or general 3D support claim."]
+  },
+  "files": ["src/drw_interface.h", "tests/semantic_differential_adapter.cpp"],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe lc3_compat_check --parallel 2",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1",
+    "controls": ["canonical +Z maintains base/top/side behavior", "non-unit +Y normal is normalized and transforms the OCS perimeter", "thickness follows the transformed extrusion normal", "zero normal fails closed", "non-finite thickness omits only the extrusion portion", "triangular duplicate suppression, presentation fields, and NoHandle identities remain covered"],
+    "gitDiffCheck": "PASS"
+  },
+  "fixturePolicy": "No DWG or DXF fixture was added."
+}
