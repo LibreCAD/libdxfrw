@@ -56,6 +56,7 @@ constexpr std::uint32_t kExtrudedSurfaceHandle = 0xD938u;
 constexpr std::uint32_t kRevolvedSurfaceHandle = 0xD939u;
 constexpr std::uint32_t kNurbsSurfaceHandle = 0xD93Au;
 constexpr std::uint32_t kScaleHandle = 0xD93Bu;
+constexpr std::uint32_t kBackgroundHandle = 0xD93Cu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -514,6 +515,11 @@ public:
         scale.paperUnits = 2.0;
         scale.drawingUnits = 5.0;
         scale.isUnitScale = false;
+        background.handle = kBackgroundHandle;
+        background.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        background.m_kind = DRW_Background::Solid;
+        background.m_classVersion = 1;
+        background.m_solidColor = 0x010203;
     }
 
     void writeEntities() override {
@@ -558,6 +564,7 @@ public:
         dx_iface::writeObjects();
         objectsWritten = output.writeMLineStyle(&mlineStyle)
             && output.writeScale(&scale)
+            && output.writeBackground(&background, "SOLIDBACKGROUND")
             && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
@@ -605,6 +612,7 @@ public:
     DRW_RevolvedSurface revolvedSurface;
     DRW_NurbsSurface nurbsSurface;
     DRW_Scale scale;
+    DRW_Background background;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -741,6 +749,10 @@ public:
         ++scaleCount;
         scale = value;
     }
+    void addBackground(const DRW_Background& value) override {
+        ++backgroundCount;
+        background = value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -813,6 +825,7 @@ public:
     DRW_RevolvedSurface revolvedSurface;
     DRW_NurbsSurface nurbsSurface;
     DRW_Scale scale;
+    DRW_Background background;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -850,6 +863,7 @@ public:
     unsigned revolvedSurfaceCount = 0u;
     unsigned nurbsSurfaceCount = 0u;
     unsigned scaleCount = 0u;
+    unsigned backgroundCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1267,6 +1281,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.scale.paperUnits == 2.0
         && adapter.scale.drawingUnits == 5.0
         && !adapter.scale.isUnitScale
+        && adapter.background.handle == kBackgroundHandle
+        && adapter.background.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.background.m_kind == DRW_Background::Solid
+        && adapter.background.m_classVersion == 1
+        && adapter.background.m_solidColor == 0x010203
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1725,6 +1744,12 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.scale.paperUnits != 2.0
         || adapter.scale.drawingUnits != 5.0
         || adapter.scale.isUnitScale
+        || adapter.backgroundCount != 1u
+        || adapter.background.handle == 0u
+        || adapter.background.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.background.m_kind != DRW_Background::Solid
+        || adapter.background.m_classVersion != 1
+        || adapter.background.m_solidColor != 0x010203
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

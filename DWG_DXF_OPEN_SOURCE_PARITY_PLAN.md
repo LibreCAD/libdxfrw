@@ -2,14 +2,14 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **85 completed implementation slices**. It does **not** yet
+The plan records **86 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The `85 / (85 + 6) = 93.4%`
+gates as six slices mixes unlike units. The `86 / (86 + 6) = 93.5%`
 figure is only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 93.4%**, but cannot be calculated
+actual slice-based percentage is **below 93.5%**, but cannot be calculated
 honestly until those requirements are decomposed and counted as remaining
 slices.
 
@@ -1200,6 +1200,16 @@ sweep now writes a generated AC1027 SCALE OBJECTS record. All 524 ASCII and
 owner, name and units; same-codec retry reproduces clean output with typed
 readback. The focused transaction CTest passes. This does not qualify
 annotation rendering or general scale behavior. See the [receipt](docs/research/p6-dxf-scale-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local SOLIDBACKGROUND transaction slice (2026-11-13):** the same
+whole-operation AC1027 sweep now writes one generated SOLIDBACKGROUND OBJECTS
+record after SCALE. Across the combined profile, all 530 ASCII and 524 Binary
+allocation failures preserve the destination and caller background fields;
+same-codec retry reproduces clean output with typed background and SCALE
+readback. The focused transaction CTest passes. This covers the generated
+SOLID profile's allocation transaction only; source semantics, other
+background kinds, image dependencies, and native rendering remain open. See
+the [receipt](docs/research/p6-dxf-solidbackground-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local MATERIAL transaction slice (2026-11-13):** the same generated
 whole-operation sweep now also writes one typed AC1027 MATERIAL with its
