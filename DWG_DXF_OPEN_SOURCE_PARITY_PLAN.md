@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-12)
 
-The current queue has **29 completed implementation slices** and **6 remaining
-phase exit gates**, so the item-count progression is **82.9%**:
-`29 / (29 + 6)`. This is a queue-count estimate: a small implementation slice
+The current queue has **30 completed implementation slices** and **6 remaining
+phase exit gates**, so the item-count progression is **83.3%**:
+`30 / (30 + 6)`. This is a queue-count estimate: a small implementation slice
 and a broad phase gate each count as one item, so it is not effort-weighted
 completion of DWG/DXF parity. Completed actions have been removed from this
 plan; their implementation and evidence remain in Git history and
@@ -1128,7 +1128,7 @@ integration/release checkpoints.
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
-| P8 | OPEN — consumers, platforms, packaging and release | Preserve LibreCAD and LibreCAD_3 2D behavior; qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. |
+| P8 | OPEN — consumers, platforms, packaging and release | Preserve LibreCAD and LibreCAD_3 2D behavior (the HATCH/MPOLYGON radians contract now passes focused raw-wire/readback and clean LibreCAD filter compile checks); resolve the downstream associative-status mapper warning; qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
@@ -4012,15 +4012,40 @@ now has a focused adapter bridge at `e216b44e763a87374556bad13e16628ff95e574c`.
 It makes `DRW_Interface` public for provider cross-casts, implements opt-in
 default plot-style/material providers with fail-closed opaque-reference and
 existing-graph checks, binds a synthesized layer 0 to the planned Global
-material, and converts hatch angles at the API boundary when building against
-upstream's degree-valued fields while preserving the bundled fork's
-radian-valued API. The generated default-graph adapter test passes (80
+material. At that time the bridge accounted for the then-current upstream
+degree-valued DRW_Hatch fields while preserving the bundled fork's radians.
+The current LibreCAD `origin/master` filter requires the explicit
+`DRW_HATCH_ANGLE_RADIANS == 1` provider contract; upstream has since aligned
+its public HATCH/MPOLYGON angles with that contract (see the
+2026-11-12 slice below). The generated default-graph adapter test passes (80
 assertions in 2 cases) against the upstream libdxfrw overlay. It verifies
 write/readback and LibreCAD import/re-export/readback for AC1021/AC1024/AC1027,
 including suppression of both synthesized graphs when group-1005 XDATA carries
 an opaque handle. The three focused hatch-unit cases pass (19 assertions).
 This is bounded compile/transport/readback evidence, not native consumer
 semantics, ABI qualification, or platform qualification.
+
+### HATCH angle contract convergence (2026-11-12)
+
+A clean LibreCAD `origin/master` filter compile exposed a concrete provider
+contract mismatch: `rs_filterdxfrw.cpp` rejects a libdxfrw header unless
+`DRW_HATCH_ANGLE_RADIANS` is defined as 1, while this upstream header exposed
+degree-valued public fields and no marker. Upstream now advertises the marker
+and keeps `DRW_Hatch::angle` plus pattern-line angles in radians for both HATCH
+and MPOLYGON. DXF groups 52/53 remain degrees and convert at the read/write
+boundary; DWG fields remain radians without conversion. The focused selector
+checks raw ASCII and Binary DXF group values and typed readback for both
+entities; the DWG selector checks radian wire values, malformed-input refusal
+and retry across writer revisions. Both selectors, the HATCH reference graph,
+MPOLYGON metadata and the HATCH encoder allocation rollback selector pass. The
+clean LibreCAD filter compile now passes against the overlay; it still warns
+that four newer associative-prefix enum values are not handled in LibreCAD's
+status mapper. The previous bridge receipt's degree-to-radian provider
+conversion describes the earlier API and is superseded for current upstream
+builds. Callers that consumed the brief degree-valued upstream fields may need
+to remove their conversion. No full/native LibreCAD or LibreCAD_3 runtime, ABI,
+Linux/Windows or broad HATCH semantic qualification is implied. See the
+[current angle-contract receipt](docs/research/p8-hatch-radian-api-libreCAD-contract-2026-11-12.json).
 
 The upstream public consumer write facade now has a dedicated fast CTest for
 the source-version snapshot, explicit-handle query, reference resolver,

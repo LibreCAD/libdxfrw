@@ -23453,7 +23453,7 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         pixelSize = reader->getDouble();
         break;
     case 52:
-        angle = reader->getDouble();
+        angle = reader->getDouble() / ARAD;
         break;
     case 53: // pattern line angle — starts a new PatternLine record
         if (!validateCurrentPatternLineDxf())
@@ -23464,7 +23464,7 @@ bool DRW_Hatch::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (patternLines.size() >= static_cast<std::size_t>(kMaxHatchItems))
             return false;
         patternLines.push_back(PatternLine());
-        patternLines.back().angle = reader->getDouble();
+        patternLines.back().angle = reader->getDouble() / ARAD;
         m_dxfPatternDashCountExpected = -1;
         m_dxfPatternDashCountSeen = false;
         break;
@@ -25072,8 +25072,6 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
             || !std::isfinite(parsedAngle)
             || !std::isfinite(parsedScale))
             return fail();
-        parsedAngle *= ARAD; // DWG radians to public/DXF degrees
-        if (!std::isfinite(parsedAngle)) return fail();
         angle = parsedAngle;
         scale = parsedScale;
         doubleflag = parsedDoubleFlag;
@@ -25095,8 +25093,6 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
                 || !std::isfinite(patternLine.offsetX)
                 || !std::isfinite(patternLine.offsetY))
                 return fail();
-            patternLine.angle *= ARAD;
-            if (!std::isfinite(patternLine.angle)) return fail();
             std::uint32_t numDashL = 0;
             if (!readTableBodyCount(version, buf, objSize, kMaxHatchItems, 2,
                                     numDashL)
@@ -25338,12 +25334,12 @@ bool DRW_Hatch::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t b
             body->putBitShort(static_cast<std::uint16_t>(hpattern));
 
             if (!solid) {
-                body->putBitDouble(angle / ARAD);
+                body->putBitDouble(angle);
                 body->putBitDouble(scale);
                 body->putBit(static_cast<std::uint8_t>(doubleflag));
                 body->putBitShort(static_cast<std::uint16_t>(patternLines.size()));
                 for (const PatternLine& patternLine : patternLines) {
-                    body->putBitDouble(patternLine.angle / ARAD);
+                    body->putBitDouble(patternLine.angle);
                     body->putBitDouble(patternLine.baseX);
                     body->putBitDouble(patternLine.baseY);
                     body->putBitDouble(patternLine.offsetX);

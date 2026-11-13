@@ -273,7 +273,7 @@ Shape makeShape(DRW::Version version) {
         shape.name = "ANSI31";
         shape.solid = false;
         shape.associative = true;
-        shape.angle = 17.0;
+        shape.angle = 17.0 / ARAD;
         shape.scale = 0.75;
 
         if constexpr (std::is_same_v<Shape, HatchProbe>) {
@@ -287,7 +287,7 @@ Shape makeShape(DRW::Version version) {
         }
 
         DRW_Hatch::PatternLine pattern;
-        pattern.angle = 30.0;
+        pattern.angle = 30.0 / ARAD;
         pattern.baseX = 0.25;
         pattern.baseY = 0.5;
         pattern.offsetX = 0.75;

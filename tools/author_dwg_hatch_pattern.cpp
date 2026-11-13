@@ -28,7 +28,7 @@ public:
             if (!writer.writeSpline(&s)) return;
         }
         if (mode == "hatch" || mode == "mixed") {
-            DRW_Hatch h; h.name="ANSI31"; h.solid=0; h.associative=0; h.angle=30.; h.scale=1.; DRW_Hatch::PatternLine pl; pl.angle=75.; pl.offsetX=-3.0668144985; pl.offsetY=.8217504682; h.patternLines.push_back(pl);
+            DRW_Hatch h; h.name="ANSI31"; h.solid=0; h.associative=0; h.angle=30./ARAD; h.scale=1.; DRW_Hatch::PatternLine pl; pl.angle=75./ARAD; pl.offsetX=-3.0668144985; pl.offsetY=.8217504682; h.patternLines.push_back(pl);
             auto loop=std::make_shared<DRW_HatchLoop>(2);
             auto p=std::make_shared<DRW_LWPolyline>(); p->flags=1;
             p->addVertex(DRW_Vertex2D(0.,0.,0.)); p->addVertex(DRW_Vertex2D(5.,0.,0.));

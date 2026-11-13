@@ -6,9 +6,14 @@ DXF, with DWG reader/writer and raw-carrier preservation paths. The 2.0.0
 release is an ABI boundary: it keeps the historical callback surface usable,
 but consumers should rebuild against the installed package.
 
-New DXF files identify this degree-valued hatch-angle writer as version 2.0.1,
+New DXF files identify this degree-valued group-52/53 writer as version 2.0.1,
 so consumers can distinguish its group-52 units from legacy writers that may
 use the same 2.0.0 version comment for raw-radian values.
+
+The public `DRW_Hatch::angle` and `DRW_Hatch::PatternLine::angle` fields use
+radians, advertised by `DRW_HATCH_ANGLE_RADIANS == 1`. DXF group codes 52/53
+are converted to and from degrees at the file boundary; DWG hatch pattern
+angles remain radians in the public API and on the wire.
 
 The project is GPL-2.0-or-later. It was created by [LibreCAD](https://github.com/LibreCAD/LibreCAD)
 contributors; historical project information remains at

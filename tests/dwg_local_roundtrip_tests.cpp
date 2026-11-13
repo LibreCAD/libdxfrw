@@ -26879,10 +26879,10 @@ std::unique_ptr<DRW_MPolygon> makeMPolygonHeaderControl(int fill) {
     polygon->xDirY = -.5;
     if (!fill) {
         polygon->hpattern = 0;
-        polygon->angle = 22.5;
+        polygon->angle = 22.5 / ARAD;
         polygon->scale = 1;
         DRW_Hatch::PatternLine pattern;
-        pattern.angle = 30;
+        pattern.angle = 30.0 / ARAD;
         pattern.offsetY = 2;
         pattern.dashList = {1, -1};
         polygon->patternLines.push_back(pattern);
@@ -26984,8 +26984,8 @@ bool verifyMPolygonHeaderFile(const std::filesystem::path& path, int polygonVers
             || polyline->vertlist[1]->x != 2 || polyline->vertlist[1]->y != 0
             || polyline->vertlist[2]->x != 1 || polyline->vertlist[2]->y != 2)
             return false;
-        if (!fill && (polygon->hpattern != 0 || polygon->angle != 22.5 || polygon->scale != 1
-            || polygon->patternLines.size() != 1 || polygon->patternLines.front().angle != 30
+        if (!fill && (polygon->hpattern != 0 || polygon->angle != 22.5 / ARAD || polygon->scale != 1
+            || polygon->patternLines.size() != 1 || polygon->patternLines.front().angle != 30.0 / ARAD
             || polygon->patternLines.front().offsetY != 2
             || polygon->patternLines.front().dashList != std::vector<double>{1, -1}))
             return false;

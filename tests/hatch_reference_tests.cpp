@@ -477,7 +477,7 @@ bool verifyHatchPixelSize(const std::filesystem::path& path,
         && hatch->solid == (patterned ? 0 : 1)
         && (!patterned || (hatch->name == "LOCAL_PHASE"
             && hatch->patternLines.size() == 1u
-            && hatch->patternLines.front().angle == 30
+            && hatch->patternLines.front().angle == 30.0 / ARAD
             && hatch->patternLines.front().baseX == 2
             && hatch->patternLines.front().baseY == 3
             && hatch->patternLines.front().offsetX == 4
@@ -579,8 +579,8 @@ bool write(const std::filesystem::path& path, dx_data& data, bool binary,
 
 bool verifyPatternedAssociativeHatch(const std::filesystem::path& path) {
     const std::vector<DRW_Hatch::PatternLine> expectedPatternLines{
-        {30.0, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
-        {-45.0, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
+        {30.0 / ARAD, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
+        {-45.0 / ARAD, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
     };
     std::map<std::string, Record> records;
     if (!readRecords(path, records) || records.size() != 5u
@@ -626,7 +626,7 @@ bool verifyPatternedAssociativeHatch(const std::filesystem::path& path) {
         {77, "1"}, {78, "2"}
     };
     for (const DRW_Hatch::PatternLine& line : expectedPatternLines) {
-        expectedPatternTags.emplace_back(53, number(line.angle));
+        expectedPatternTags.emplace_back(53, number(line.angle * ARAD));
         expectedPatternTags.emplace_back(43, number(line.baseX));
         expectedPatternTags.emplace_back(44, number(line.baseY));
         expectedPatternTags.emplace_back(45, number(line.offsetX));
@@ -669,7 +669,7 @@ bool verifyPatternedAssociativeHatch(const std::filesystem::path& path) {
         || hatch->handle != std::stoul(hatchRecord.handle, nullptr, 16)
         || hatch->name != "LOCAL_PHASE" || hatch->solid != 0
         || hatch->associative != 1 || hatch->hpattern != 2
-        || hatch->angle != 22.5 || hatch->scale != 1.25
+        || hatch->angle != 22.5 / ARAD || hatch->scale != 1.25
         || hatch->doubleflag != 1 || hatch->deflines != 2
         || hatch->patternLines.size() != expectedPatternLines.size()
         || hatch->looplist.size() != 3u)
@@ -722,12 +722,12 @@ bool runPatternedAssociativeHatchRoundTrips(
         hatch->name = "LOCAL_PHASE";
         hatch->solid = 0;
         hatch->hpattern = 2;
-        hatch->angle = 22.5;
+        hatch->angle = 22.5 / ARAD;
         hatch->scale = 1.25;
         hatch->doubleflag = 1;
         hatch->patternLines = {
-            {30.0, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
-            {-45.0, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
+            {30.0 / ARAD, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
+            {-45.0 / ARAD, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
         };
         const auto path = directory / (binary
             ? "patterned-associative-binary.dxf"

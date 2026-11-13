@@ -542,6 +542,7 @@ EXTRA_DIST = \
     tests/dxf_fixture_tests.cpp \
     tests/dxf_fourth_corner_tests.cpp \
     tests/dxf_hatch_boundary_payload_tests.cpp \
+    tests/dxf_hatch_pattern_angle_units_tests.cpp \
     tests/dxf_layer_color_order_tests.cpp \
     tests/dxf_legacy_extrusion_conversion_tests.cpp \
     tests/dxf_legacy_extrusion_ezdxf.py \
