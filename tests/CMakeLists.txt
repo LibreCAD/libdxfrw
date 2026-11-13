@@ -4467,6 +4467,18 @@ set_tests_properties(libdxfrw_dwg_ray_xline_finite_admission PROPERTIES
     TIMEOUT 30
 )
 
+# 3DLINE uses a separate custom-class body; ensure all raw-double fields are
+# finite before output and that corrected same-writer output can be read back.
+add_test(
+    NAME libdxfrw_dwg_3dline_finite_admission
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-3dline-finite-admission
+)
+set_tests_properties(libdxfrw_dwg_3dline_finite_admission PROPERTIES
+    LABELS "fast;dwg;writer;reader;3dline;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

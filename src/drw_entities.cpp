@@ -8266,7 +8266,9 @@ bool DRW_3DLine::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            std::uint32_t bs, dwgBufferW *strBuf,
                            dwgBufferW *handleBuf) {
   (void)bs;
-  if (version < DRW::AC1015 || buf == nullptr)
+  if (version < DRW::AC1015 || buf == nullptr
+      || !isFiniteDwgCoord(basePoint) || !isFiniteDwgCoord(secPoint)
+      || !isFiniteDwgCoord(extPoint) || !std::isfinite(thickness))
     return false;
 
   dwgBufferW *const bodyTarget = buf;
