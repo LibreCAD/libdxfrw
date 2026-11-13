@@ -8407,7 +8407,8 @@ bool DRW_Ray::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
                         dwgBufferW *strBuf, dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  if (buf == nullptr || !isFiniteDwgCoord(basePoint)
+      || !isFiniteDwgCoord(secPoint))
     return false;
 
   dwgBufferW *const bodyTarget = buf;

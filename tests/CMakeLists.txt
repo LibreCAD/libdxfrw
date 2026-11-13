@@ -4455,6 +4455,18 @@ set_tests_properties(libdxfrw_dwg_point_line_finite_admission PROPERTIES
     TIMEOUT 30
 )
 
+# RAY and XLINE share bounded point/vector fields and must not emit non-finite
+# coordinates that their readers cannot publish.
+add_test(
+    NAME libdxfrw_dwg_ray_xline_finite_admission
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-ray-xline-finite-admission
+)
+set_tests_properties(libdxfrw_dwg_ray_xline_finite_admission PROPERTIES
+    LABELS "fast;dwg;writer;reader;ray;xline;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

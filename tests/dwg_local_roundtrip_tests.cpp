@@ -10980,6 +10980,144 @@ bool runDwgPointLineFiniteAdmission(const std::filesystem::path& directory) {
     return true;
 }
 
+class DwgRayXlineFiniteWriter final : public dx_iface {
+public:
+    DwgRayXlineFiniteWriter(dwgRW& writer, bool xline,
+                            std::function<void(DRW_Ray&)> mutate = {})
+        : writer_(writer), xline_(xline), mutate_(std::move(mutate)) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        if (xline_) {
+            DRW_Xline value;
+            value.basePoint = {1.0, 2.0, 3.0};
+            value.secPoint = {4.0, 5.0, 6.0};
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeXline(&value) && value.handle != 0u;
+        } else {
+            DRW_Ray value;
+            value.basePoint = {1.0, 2.0, 3.0};
+            value.secPoint = {4.0, 5.0, 6.0};
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeRay(&value) && value.handle != 0u;
+        }
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    dwgRW& writer_;
+    bool xline_;
+    std::function<void(DRW_Ray&)> mutate_;
+    bool wrote_{false};
+};
+
+class DwgRayXlineFiniteReader final : public dx_iface {
+public:
+    explicit DwgRayXlineFiniteReader(bool xline) : xline_(xline) {}
+    void addRay(const DRW_Ray& value) override {
+        if (!xline_)
+            capture(value);
+    }
+    void addXline(const DRW_Xline& value) override {
+        if (xline_)
+            capture(value);
+    }
+    bool matches() const noexcept {
+        return count_ == 1u && base_.x == 1.0 && base_.y == 2.0
+            && base_.z == 3.0 && direction_.x == 4.0
+            && direction_.y == 5.0 && direction_.z == 6.0;
+    }
+
+private:
+    void capture(const DRW_Ray& value) {
+        ++count_;
+        base_ = value.basePoint;
+        direction_ = value.secPoint;
+    }
+
+    bool xline_;
+    std::size_t count_{0u};
+    DRW_Coord base_;
+    DRW_Coord direction_;
+};
+
+bool runDwgRayXlineFiniteAdmission(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Ray&)>>> invalidProfiles{
+            {"nan-origin", [](DRW_Ray& value) {
+                value.basePoint.y = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-origin", [](DRW_Ray& value) {
+                value.basePoint.z = std::numeric_limits<double>::infinity(); }},
+            {"nan-direction", [](DRW_Ray& value) {
+                value.secPoint.x = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-direction", [](DRW_Ray& value) {
+                value.secPoint.z = std::numeric_limits<double>::infinity(); }}
+        };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        for (const bool xline : {false, true}) {
+            const auto path = directory / (std::string("libdxfrw-")
+                + (xline ? "xline" : "ray") + "-finite-"
+                + std::to_string(static_cast<int>(version)) + ".dwg");
+            for (const auto& invalid : invalidProfiles) {
+                {
+                    std::ofstream sentinel(path, std::ios::binary
+                                                   | std::ios::trunc);
+                    sentinel << "existing-dwg-destination";
+                }
+                dwgRW writer(path.string().c_str());
+                DwgRayXlineFiniteWriter source(writer, xline, invalid.second);
+                const std::string before = readBytes(path);
+                if (writer.write(&source, version, false)
+                    || before.empty() || readBytes(path) != before)
+                    return false;
+
+                DwgRayXlineFiniteWriter retry(writer, xline);
+                if (!writer.write(&retry, version, false))
+                    return false;
+                dwgRW reader(path.string().c_str());
+                DwgRayXlineFiniteReader capture(xline);
+                dx_data readData;
+                capture.cData = &readData;
+                if (!reader.read(&capture, false) || !capture.matches()
+                    || reader.getEntityParseFailures() != 0u
+                    || reader.getObjectParseFailures() != 0u)
+                    return false;
+            }
+            std::filesystem::remove(path, ec);
+        }
+    }
+    return true;
+}
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -41707,6 +41845,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-point-line-finite-admission") {
         const bool passed = runDwgPointLineFiniteAdmission(directory);
         std::cout << "DWG POINT/LINE finite-field rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-ray-xline-finite-admission") {
+        const bool passed = runDwgRayXlineFiniteAdmission(directory);
+        std::cout << "DWG RAY/XLINE finite-field rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2
