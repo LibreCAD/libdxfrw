@@ -18,6 +18,9 @@ constexpr std::uint32_t kGroupDictionaryHandle = 0xD911u;
 constexpr std::uint32_t kGroupHandle = 0xD912u;
 constexpr std::uint32_t kImageDefHandle = 0xD913u;
 constexpr std::uint32_t kCustomDictionaryHandle = 0xD914u;
+constexpr std::uint32_t kMainDataLinkHandle = 0xD915u;
+constexpr std::uint32_t kTargetAlphaHandle = 0xD916u;
+constexpr std::uint32_t kTargetBetaHandle = 0xD917u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -53,6 +56,12 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
     custom.parentHandle = kNodHandle;
     custom.m_entries.push_back(
         {kNestedXrecordName, 0xD901u, DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"MAIN_DATALINK", kMainDataLinkHandle, DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"TARGET_ALPHA", kTargetAlphaHandle, DictionaryEdge::SoftOwner});
+    custom.m_entries.push_back(
+        {"TARGET_BETA", kTargetBetaHandle, DictionaryEdge::SoftOwner});
     writer.setNamedDictObjects({custom});
     return true;
 }
@@ -130,6 +139,27 @@ public:
         object.groups.emplace_back(330, std::string("D914"));
         object.groups.emplace_back(100, std::string("AcDbXrecord"));
         object.groups.emplace_back(1, std::string("whole operation payload"));
+
+        mainDataLink.handle = kMainDataLinkHandle;
+        mainDataLink.parentHandle = kCustomDictionaryHandle;
+        mainDataLink.m_dataAdapter = "EXCEL";
+        mainDataLink.m_description = "whole operation data link";
+        mainDataLink.m_tooltip = "allocation retry";
+        mainDataLink.m_connectionString = "inert://whole-operation.xlsx";
+        mainDataLink.m_customDataCount = 2;
+        mainDataLink.m_customData.push_back(
+            {kTargetAlphaHandle, "sheet alpha"});
+        mainDataLink.m_customData.push_back(
+            {kTargetBetaHandle, "sheet beta"});
+
+        targetAlpha.handle = kTargetAlphaHandle;
+        targetAlpha.parentHandle = kCustomDictionaryHandle;
+        targetAlpha.m_dataAdapter = "EXCEL";
+        targetAlpha.m_description = "alpha target";
+        targetBeta.handle = kTargetBetaHandle;
+        targetBeta.parentHandle = kCustomDictionaryHandle;
+        targetBeta.m_dataAdapter = "EXCEL";
+        targetBeta.m_description = "beta target";
     }
 
     void writeEntities() override {
@@ -141,7 +171,10 @@ public:
 
     void writeObjects() override {
         dx_iface::writeObjects();
-        objectsWritten = output.writeRawDxfObject(&object);
+        objectsWritten = output.writeRawDxfObject(&object)
+            && output.writeDataLink(&mainDataLink)
+            && output.writeDataLink(&targetAlpha)
+            && output.writeDataLink(&targetBeta);
     }
 
     bool finalizeDxfWrite() override {
@@ -154,6 +187,9 @@ public:
     DRW_Circle circle;
     DRW_Image image;
     DRW_RawDxfObject object;
+    DRW_DataLink mainDataLink;
+    DRW_DataLink targetAlpha;
+    DRW_DataLink targetBeta;
     bool entitiesWritten = false;
     bool objectsWritten = false;
 };
@@ -183,11 +219,15 @@ public:
         ++objectCount;
         objects.push_back(value);
     }
+    void addDataLink(const DRW_DataLink& value) override {
+        dataLinks.push_back(value);
+    }
     dx_data storage;
     DRW_Line line;
     DRW_Circle circle;
     DRW_Image image;
     std::vector<DRW_RawDxfObject> objects;
+    std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
     std::vector<DRW_Group> groups;
     unsigned lineCount = 0u;
@@ -238,7 +278,21 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.object.groups[3].code() == 1
         && adapter.object.groups[3].c_str() != nullptr
         && std::string(adapter.object.groups[3].c_str())
-            == "whole operation payload";
+            == "whole operation payload"
+        && adapter.mainDataLink.handle == kMainDataLinkHandle
+        && adapter.mainDataLink.parentHandle == kCustomDictionaryHandle
+        && adapter.mainDataLink.m_customDataCount == 2
+        && adapter.mainDataLink.m_customData.size() == 2u
+        && adapter.mainDataLink.m_customData[0].m_targetHandle
+            == kTargetAlphaHandle
+        && adapter.mainDataLink.m_customData[0].m_text == "sheet alpha"
+        && adapter.mainDataLink.m_customData[1].m_targetHandle
+            == kTargetBetaHandle
+        && adapter.mainDataLink.m_customData[1].m_text == "sheet beta"
+        && adapter.targetAlpha.handle == kTargetAlphaHandle
+        && adapter.targetAlpha.parentHandle == kCustomDictionaryHandle
+        && adapter.targetBeta.handle == kTargetBetaHandle
+        && adapter.targetBeta.parentHandle == kCustomDictionaryHandle;
 }
 
 bool matchesReadback(const std::filesystem::path& path) {
@@ -248,6 +302,21 @@ bool matchesReadback(const std::filesystem::path& path) {
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) { return value.name == "XRECORD"; });
+    const auto mainDataLink = std::find_if(
+        adapter.dataLinks.begin(), adapter.dataLinks.end(),
+        [](const DRW_DataLink& value) {
+            return value.handle == kMainDataLinkHandle;
+        });
+    const auto targetAlpha = std::find_if(
+        adapter.dataLinks.begin(), adapter.dataLinks.end(),
+        [](const DRW_DataLink& value) {
+            return value.handle == kTargetAlphaHandle;
+        });
+    const auto targetBeta = std::find_if(
+        adapter.dataLinks.begin(), adapter.dataLinks.end(),
+        [](const DRW_DataLink& value) {
+            return value.handle == kTargetBetaHandle;
+        });
     const DRW_ImageDef* imageDefinition = adapter.storage.findImageDefinition(
         adapter.storage.importGeneration, adapter.image.ref);
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
@@ -272,7 +341,22 @@ bool matchesReadback(const std::filesystem::path& path) {
         || rawXrecord->groups.size() != 4u
         || rawXrecord->groups[3].c_str() == nullptr
         || std::string(rawXrecord->groups[3].c_str())
-            != "whole operation payload") {
+            != "whole operation payload"
+        || adapter.dataLinks.size() != 3u
+        || mainDataLink == adapter.dataLinks.end()
+        || targetAlpha == adapter.dataLinks.end()
+        || targetBeta == adapter.dataLinks.end()
+        || mainDataLink->parentHandle != 0xD914u
+        || mainDataLink->m_customDataCount != 2
+        || mainDataLink->m_customData.size() != 2u
+        || mainDataLink->m_customData[0].m_targetHandle
+            != targetAlpha->handle
+        || mainDataLink->m_customData[0].m_text != "sheet alpha"
+        || mainDataLink->m_customData[1].m_targetHandle
+            != targetBeta->handle
+        || mainDataLink->m_customData[1].m_text != "sheet beta"
+        || targetAlpha->parentHandle != 0xD914u
+        || targetBeta->parentHandle != 0xD914u) {
         std::cerr << "readback read=" << read << " version=" << reader.getVersion()
                   << " lines=" << adapter.lineCount << " circles="
                   << adapter.circleCount << " images=" << adapter.imageCount
@@ -337,9 +421,15 @@ bool matchesReadback(const std::filesystem::path& path) {
               [&root, &customRootEntry](const DRW_Dictionary& value) {
                   return value.handle == customRootEntry->m_handle
                       && value.parentHandle == root.handle
-                      && value.m_entries.size() == 1u
+                      && value.m_entries.size() == 4u
                       && value.m_entries.front().m_name == kNestedXrecordName
-                      && value.m_entries.front().m_handle == 0xD901u;
+                      && value.m_entries.front().m_handle == 0xD901u
+                      && value.m_entries[1].m_name == "MAIN_DATALINK"
+                      && value.m_entries[1].m_handle == kMainDataLinkHandle
+                      && value.m_entries[2].m_name == "TARGET_ALPHA"
+                      && value.m_entries[2].m_handle == kTargetAlphaHandle
+                      && value.m_entries[3].m_name == "TARGET_BETA"
+                      && value.m_entries[3].m_handle == kTargetBetaHandle;
               });
     const auto group = std::find_if(
         adapter.groups.begin(), adapter.groups.end(),

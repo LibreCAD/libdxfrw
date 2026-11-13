@@ -80,9 +80,60 @@
         "sourceHandle": "0xD914",
         "name": "WHOLE_OPERATION_CUSTOM",
         "ownerSourceHandle": "0xD910",
-        "entryName": "NESTED_XRECORD",
-        "entrySourceHandle": "0xD901",
-        "entryRole": "soft owner"
+        "entries": [
+          {
+            "name": "NESTED_XRECORD",
+            "sourceHandle": "0xD901",
+            "role": "soft owner"
+          },
+          {
+            "name": "MAIN_DATALINK",
+            "sourceHandle": "0xD915",
+            "role": "soft owner"
+          },
+          {
+            "name": "TARGET_ALPHA",
+            "sourceHandle": "0xD916",
+            "role": "soft owner"
+          },
+          {
+            "name": "TARGET_BETA",
+            "sourceHandle": "0xD917",
+            "role": "soft owner"
+          }
+        ]
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD915",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "whole operation data link",
+        "customDataCount": 2,
+        "customData": [
+          {
+            "targetSourceHandle": "0xD916",
+            "text": "sheet alpha"
+          },
+          {
+            "targetSourceHandle": "0xD917",
+            "text": "sheet beta"
+          }
+        ]
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD916",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "alpha target"
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD917",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "beta target"
       }
     ],
     "fixtureFilesCommitted": false,
@@ -99,23 +150,33 @@
       "imageDictionaryPath": "NOD[ACAD_IMAGE_DICT] -> IMAGE dictionary -> IMAGEDEF -> IMAGE reference",
       "namedDictionarySourceHandle": "0xD914",
       "namedDictionaryOutputHandle": "remapped and verified through root entry",
-      "nestedXrecordPath": "NOD[WHOLE_OPERATION_CUSTOM] -> named DICTIONARY[NESTED_XRECORD] -> XRECORD"
+      "nestedXrecordPath": "NOD[WHOLE_OPERATION_CUSTOM] -> named DICTIONARY[NESTED_XRECORD] -> XRECORD",
+      "nestedDictionaryPath": "NOD[WHOLE_OPERATION_CUSTOM] -> named DICTIONARY -> XRECORD and three DATALINK records",
+      "dataLinkSourceHandles": [
+        "0xD915",
+        "0xD916",
+        "0xD917"
+      ],
+      "dataLinkTargetReferences": [
+        "0xD915 -> 0xD916",
+        "0xD915 -> 0xD917"
+      ]
     }
   },
   "implementation": {
     "productionCodeChanged": false,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "d7451b3c72ef3827d6e38aee0c2e2bfb75f19c3ad9a73e85f9b242034a690c04",
+    "testSha256": "db3e9238e9c71bd194abdc298b4be68bfc4ee9b6b0872b5b5aa84e234b77f412",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "5da550b8e363ca59517f8a90fd143adef0cce223b0424aa51da9ff7edb8744e4",
-    "asanExecutableSha256": "cdaa75474d46bbf20098a631851cb4044baecef814ac952345c02ed8a0dc9a60"
+    "normalExecutableSha256": "07cff459142d7b063825fcf71bc450ef0df67bb68624fd5b4e01678c393ff27a",
+    "asanExecutableSha256": "3bc0f36db3b3672c6199ab5c848e63efe81630f6e803236fa82572b1f7af03ac"
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j2",
-    "validation": "ctest --test-dir build -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-op-nested-dict-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j2; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "ctest --test-dir build -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-op-nested-dict-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -123,9 +184,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 2.82 seconds; ASan 1/1 passed in 6.14 seconds",
+    "ctest": "Normal 1/1 passed in 3.34 seconds; ASan 1/1 passed in 7.15 seconds",
     "ascii": {
-      "measuredAllocationOffsets": 178,
+      "measuredAllocationOffsets": 209,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -137,13 +198,14 @@
       "groupLineAndCircleMembershipMatched": true,
       "imageReadbackMatched": true,
       "imageDefinitionAndNodDictionaryGraphMatched": true,
-      "nestedNamedDictionaryXrecordGraphReadbackMatched": true,
-      "callerLineCircleImageAndRawObjectPreserved": true,
       "typedImageAndImageDefinitionReadbackMatched": true,
-      "groupImageAndNamedDictionaryGraphReadbackMatched": true
+      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
+      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
+      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
+      "callerDataLinkRecordsPreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 176,
+      "measuredAllocationOffsets": 205,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -155,17 +217,18 @@
       "groupLineAndCircleMembershipMatched": true,
       "imageReadbackMatched": true,
       "imageDefinitionAndNodDictionaryGraphMatched": true,
-      "nestedNamedDictionaryXrecordGraphReadbackMatched": true,
-      "callerLineCircleImageAndRawObjectPreserved": true,
       "typedImageAndImageDefinitionReadbackMatched": true,
-      "groupImageAndNamedDictionaryGraphReadbackMatched": true
+      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
+      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
+      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
+      "callerDataLinkRecordsPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 6.14 seconds"
+    "addressSanitizerCtest": "1/1 passed in 7.15 seconds"
   },
   "limits": [
-    "This generated transaction control exercises LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "95e908e8e55722faf0f1db538cc76d95801029a8"
+  "baseRevision": "762c1d9f49bc25a6e9a4a4d00e68ada3c4911b04"
 }

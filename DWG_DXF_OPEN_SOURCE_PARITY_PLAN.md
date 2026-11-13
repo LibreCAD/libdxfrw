@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The current plan records **50 completed implementation slices** and **6
-remaining phase exit gates**, so the count-based progression is **89.3%**:
-`50 / (50 + 6)`. This is an item-count estimate, not effort-weighted completion
+The current plan records **51 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **89.5%**:
+`51 / (51 + 6)`. This is an item-count estimate, not effort-weighted completion
 of DWG/DXF parity: a small implementation slice and a broad phase gate each
 count once. Completed actions are excluded from the execution queue; their
 implementation and evidence remain in Git history and `docs/research/`.
@@ -3816,13 +3816,16 @@ refused, and advance to a different implementation-ready packet.
 
 **P6 whole-operation DXF allocation rollback/retry (2026-11-13):** a generated
 ASCII/Binary full `dxfRW::write` control sweeps 178/176 measured global
-allocation offsets across LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, and rooted
-NOD/GROUP, ACAD_IMAGE_DICT, and nested named-DICTIONARY graphs. Every injected
-failure preserves prior destination bytes, caller records and derived identity
-maps; same-codec retry reproduces clean bytes, remapped GROUP membership, IMAGE
-references, the IMAGEDEF dictionary path, and NOD-to-named-DICTIONARY-to-XRECORD
-closure. The focused CTest passes in normal and ASan builds. This closes only
-these generated whole-operation paths; other drawing families and
+allocation offsets across LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, three
+DATALINK records with two custom-target references, and rooted NOD/GROUP,
+ACAD_IMAGE_DICT, and nested named-DICTIONARY graphs. Every injected failure
+preserves prior destination bytes, caller records and derived identity maps;
+same-codec retry reproduces clean bytes, remapped GROUP membership, IMAGE
+references, the IMAGEDEF dictionary path, and named-DICTIONARY closure for the
+XRECORD and DATALINK graph. Readback checks all three DATALINK records, parent
+ownership, dictionary entries, and both custom-target links. The sweep reaches
+209 ASCII and 205 Binary allocation offsets; focused CTest passes in normal and
+ASan builds. This closes only these generated whole-operation paths; other drawing families and
 platform/filesystem failure modes remain open
 ([receipt](docs/research/p6-dxf-whole-operation-allocation-rollback-retry-2026-11-13.json)).
 
