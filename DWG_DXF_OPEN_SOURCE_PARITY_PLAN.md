@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **204 completed implementation slices** and **27 remaining
+The plan records **205 completed implementation slices** and **26 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`204 / (204 + 27) = 88.3%`. This is a count-based progress measure, not an
+`205 / (205 + 26) = 88.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1256,6 +1256,16 @@ name. The focused CTest passes in 0.40 seconds; the direct control covers 48
 allocation offsets. This is generated transaction evidence across these writer
 revisions only; producer profiles and native consumer meaning remain open
 ([version-matrix receipt](docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json)).
+
+**P6-G IMAGEBACKGROUND writer version-matrix transaction follow-up
+(2026-11-13):** the generated image background record now passes for AC1021,
+AC1027, and AC1032 in ASCII and Binary. All nine measured allocation failures
+per profile preserve the destination and caller record; same-codec retry
+reproduces clean bytes and typed readback verifies the kind, version, path,
+flags, offset, and scale. The focused CTest passes in 0.35 seconds; the direct
+control covers 54 allocation offsets. This is generated transaction evidence
+across these writer revisions only; producer profiles and native display
+remain open ([version-matrix receipt](docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G DIMASSOC caller-state transaction follow-up (2026-11-13):** the
 existing AC1024 whole-file ASCII/Binary allocation sweep now passes the actual

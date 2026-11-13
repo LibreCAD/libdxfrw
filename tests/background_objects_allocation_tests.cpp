@@ -134,59 +134,65 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / "background-objects.dxf";
     const std::string sentinel = "prior BACKGROUND destination bytes\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(output.string().c_str());
-            BackgroundExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            exporter.failAt = 1000000;
-            if (!codec.write(&exporter, DRW::AC1027, binary)
-                || !exporter.wrote || !readbackMatches(output))
-                return fail("allocation calibration output did not read back");
-            allocationCount = exporter.reached;
-            if (!readAll(output, expectedBytes))
-                return fail("could not retain calibration output bytes");
-        }
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("background-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        for (const bool binary : {false, true}) {
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+                dxfRW codec(output.string().c_str());
+                BackgroundExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                exporter.failAt = 1000000;
+                if (!codec.write(&exporter, version, binary)
+                    || !exporter.wrote || !readbackMatches(output))
+                    return fail("allocation calibration output did not read back");
+                allocationCount = exporter.reached;
+                if (!readAll(output, expectedBytes))
+                    return fail("could not retain calibration output bytes");
             }
-            dxfRW codec(output.string().c_str());
-            BackgroundExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            const DRW_Background source = exporter.background;
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.wrote = false;
-            const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached != 1
-                || !readAll(output, current) || current != sentinel)
-                return fail("injected failure changed destination or missed allocation");
-            if (!sourceMatches(exporter.background, source))
-                return fail("injected failure changed caller BACKGROUND state");
-            const bool retry = codec.write(&exporter, DRW::AC1027, binary);
-            std::string retryBytes;
-            if (!retry || !exporter.wrote || !readAll(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
-                || !sourceMatches(exporter.background, source))
-                return fail("same-codec retry failed exact bytes or typed readback");
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                BackgroundExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                const DRW_Background source = exporter.background;
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                exporter.wrote = false;
+                const bool wrote = codec.write(&exporter, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached != 1
+                    || !readAll(output, current) || current != sentinel)
+                    return fail("injected failure changed destination or missed allocation");
+                if (!sourceMatches(exporter.background, source))
+                    return fail("injected failure changed caller BACKGROUND state");
+                const bool retry = codec.write(&exporter, version, binary);
+                std::string retryBytes;
+                if (!retry || !exporter.wrote || !readAll(output, retryBytes)
+                    || retryBytes != expectedBytes || !readbackMatches(output)
+                    || !sourceMatches(exporter.background, source))
+                    return fail("same-codec retry failed exact bytes or typed readback");
+            }
+            std::cout << "IMAGEBACKGROUND OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "IMAGEBACKGROUND OBJECTS "
-                  << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
