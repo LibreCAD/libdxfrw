@@ -1576,13 +1576,30 @@ public:
         attribute->mtext->height = 2.5;
         attribute->mtext->style = "STANDARD";
         insert.attlist.push_back(std::move(attribute));
+
+        attdef.handle = 0xDA03u;
+        attdef.tag = "WHOLE_OPERATION_R2018_MULTILINE_ATTDEF";
+        attdef.prompt = "R2018 multiline definition prompt";
+        attdef.text = "definition fallback";
+        attdef.basePoint = DRW_Coord{7.0, 8.0, 0.0};
+        attdef.secPoint = DRW_Coord{9.0, 10.0, 0.0};
+        attdef.height = 3.5;
+        attdef.style = "STANDARD";
+        attdef.mtext = std::make_unique<DRW_MText>();
+        attdef.mtext->text = "definition first paragraph\\Psecond paragraph";
+        attdef.mtext->basePoint = DRW_Coord{7.0, 8.0, 0.0};
+        attdef.mtext->height = 3.5;
+        attdef.mtext->style = "STANDARD";
     }
 
     void writeEntities() override {
-        entitiesWritten = dxfW != nullptr && dxfW->writeInsert(&insert);
+        entitiesWritten = dxfW != nullptr && dxfW->writeInsert(&insert)
+            && dxfW->writeAttdef(
+                &attdef, DRW::DxfModelSpaceBlockRecordHandle);
     }
 
     DRW_Insert insert;
+    DRW_Attdef attdef;
     bool entitiesWritten = false;
     dx_data storage;
 };
@@ -2009,7 +2026,8 @@ public:
     }
     void addAttDef(const DRW_Attdef& value) override {
         dx_iface::addAttDef(value);
-        if (value.tag == "WHOLE_OPERATION_DIRECT_ATTDEF") {
+        if (value.tag == "WHOLE_OPERATION_DIRECT_ATTDEF"
+            || value.tag == "WHOLE_OPERATION_R2018_MULTILINE_ATTDEF") {
             ++directAttdefCount;
             directAttdef = value;
         } else {
@@ -5495,7 +5513,22 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
             || adapter.insert.basePoint.y != 2.0
             || adapter.insert.basePoint.z != 0.0
             || adapter.insert.attlist.size() != 1u
-            || !adapter.insert.attlist.front())
+            || !adapter.insert.attlist.front()
+            || adapter.attdef.handle != 0xDA03u
+            || adapter.attdef.tag != "WHOLE_OPERATION_R2018_MULTILINE_ATTDEF"
+            || adapter.attdef.prompt != "R2018 multiline definition prompt"
+            || adapter.attdef.text != "definition fallback"
+            || adapter.attdef.basePoint.x != 7.0
+            || adapter.attdef.basePoint.y != 8.0
+            || adapter.attdef.secPoint.x != 9.0
+            || adapter.attdef.secPoint.y != 10.0
+            || adapter.attdef.height != 3.5
+            || adapter.attdef.style != "STANDARD"
+            || adapter.attdef.mtext == nullptr
+            || adapter.attdef.mtext->text
+                != "definition first paragraph\\Psecond paragraph"
+            || adapter.attdef.mtext->height != 3.5
+            || adapter.attdef.mtext->style != "STANDARD")
             return false;
         const DRW_Attrib& attribute = *adapter.insert.attlist.front();
         return attribute.handle == 0xDA02u
@@ -5524,7 +5557,10 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
         if (!read || adapter.insertCount != 1u
             || adapter.insert.name != "WHOLE_OPERATION_ATTRIBUTE_MTEXT_BLOCK"
             || adapter.insert.attlist.size() != 1u
-            || !adapter.insert.attlist.front()) {
+            || !adapter.insert.attlist.front()
+            || adapter.directAttdefCount != 1u
+            || adapter.directAttdef.tag
+                != "WHOLE_OPERATION_R2018_MULTILINE_ATTDEF") {
             std::cerr << "readback read=" << read
                       << " error=" << reader.getError()
                       << " insertCount=" << adapter.insertCount
@@ -5543,7 +5579,18 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
             && attribute.mtext->basePoint.y == 4.0
             && attribute.mtext->height == 2.5
             && attribute.mtext->style == "STANDARD";
-        if (!matches)
+        const DRW_Attdef& attdef = adapter.directAttdef;
+        const bool attdefMatches =
+            attdef.m_attributeType == 4u
+            && attdef.text == "definition fallback"
+            && attdef.mtext != nullptr
+            && attdef.mtext->text
+                == "definition first paragraph\\Psecond paragraph"
+            && attdef.mtext->basePoint.x == 7.0
+            && attdef.mtext->basePoint.y == 8.0
+            && attdef.mtext->height == 3.5
+            && attdef.mtext->style == "STANDARD";
+        if (!matches || !attdefMatches)
             std::cerr << "attribute tag=" << attribute.tag
                       << " fallback=" << attribute.text
                       << " type=" << static_cast<unsigned>(attribute.m_attributeType)
@@ -5553,8 +5600,13 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
                       << (attribute.mtext ? " height=" + std::to_string(attribute.mtext->height)
                                              : std::string{})
                       << (attribute.mtext ? " style=" + attribute.mtext->style
-                                             : std::string{}) << '\n';
-        return matches;
+                                             : std::string{})
+                      << " attdef type="
+                      << static_cast<unsigned>(attdef.m_attributeType)
+                      << " attdef text="
+                      << (attdef.mtext ? attdef.mtext->text : std::string{})
+                      << '\n';
+        return matches && attdefMatches;
     };
 
     for (const bool binary : {false, true}) {
