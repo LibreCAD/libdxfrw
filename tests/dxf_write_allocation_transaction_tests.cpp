@@ -5987,6 +5987,221 @@ bool runLightListSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runSunStudySweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "SUNSTUDY allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "sun-study-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files in test scratch");
+    const std::string sentinel = "previous complete document\n";
+    const auto makeStudy = [] {
+        DRW_SunStudy value;
+        value.handle = 0xDA20u;
+        value.parentHandle = 0xDA21u;
+        value.m_classVersion = 1;
+        value.m_setupName = "SUMMER_SOLSTICE";
+        value.m_description = "Two dates, three hours";
+        value.m_sheetSetName = "SOLAR_SET";
+        value.m_sheetSubsetName = "NORTH";
+        value.m_outputType = 0;
+        value.m_useSubset = true;
+        value.m_selectDatesFromCalendar = true;
+        value.m_selectRangeOfDates = true;
+        value.m_startTime = 100;
+        value.m_endTime = 900;
+        value.m_interval = 60;
+        value.m_dates = {{2450000, 12345000}, {2450001, 86399000}};
+        value.m_hours = {true, false, true};
+        value.m_shadePlotType = 1;
+        value.m_viewportCount = 2;
+        value.m_rowCount = 1;
+        value.m_columnCount = 2;
+        value.m_spacing = 0.5;
+        value.m_lockViewports = true;
+        value.m_labelViewports = true;
+        return value;
+    };
+    const auto sameStudy = [](const DRW_SunStudy& a, const DRW_SunStudy& b) {
+        if (a.handle != b.handle || a.parentHandle != b.parentHandle
+            || a.m_classVersion != b.m_classVersion
+            || a.m_setupName != b.m_setupName
+            || a.m_description != b.m_description
+            || a.m_sheetSetName != b.m_sheetSetName
+            || a.m_sheetSubsetName != b.m_sheetSubsetName
+            || a.m_outputType != b.m_outputType || a.m_useSubset != b.m_useSubset
+            || a.m_selectDatesFromCalendar != b.m_selectDatesFromCalendar
+            || a.m_selectRangeOfDates != b.m_selectRangeOfDates
+            || a.m_startTime != b.m_startTime || a.m_endTime != b.m_endTime
+            || a.m_interval != b.m_interval || a.m_dates.size() != b.m_dates.size()
+            || a.m_hours != b.m_hours || a.m_shadePlotType != b.m_shadePlotType
+            || a.m_viewportCount != b.m_viewportCount || a.m_rowCount != b.m_rowCount
+            || a.m_columnCount != b.m_columnCount || a.m_spacing != b.m_spacing
+            || a.m_lockViewports != b.m_lockViewports
+            || a.m_labelViewports != b.m_labelViewports)
+            return false;
+        for (std::size_t i = 0u; i < a.m_dates.size(); ++i) {
+            if (a.m_dates[i].m_julianDay != b.m_dates[i].m_julianDay
+                || a.m_dates[i].m_milliseconds != b.m_dates[i].m_milliseconds)
+                return false;
+        }
+        return true;
+    };
+    class SunStudyExport final : public dx_iface {
+    public:
+        SunStudyExport(dxfRW& codec, DRW_SunStudy source)
+            : output(codec), study(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override { written = output.writeSunStudy(&study); }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_SunStudy study;
+        bool written = false;
+    };
+    class SunStudyReadback final : public dx_iface {
+    public:
+        SunStudyReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addSunStudy(const DRW_SunStudy& value) override {
+            study = value;
+            found = true;
+        }
+        dx_data storage;
+        DRW_SunStudy study;
+        bool found = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        SunStudyReadback probe;
+        if (!reader.read(&probe, true) || !probe.found)
+            return false;
+        const DRW_SunStudy expected = makeStudy();
+        return probe.study.handle != 0u
+            && probe.study.parentHandle == expected.parentHandle
+            && probe.study.m_classVersion == expected.m_classVersion
+            && probe.study.m_setupName == expected.m_setupName
+            && probe.study.m_description == expected.m_description
+            && probe.study.m_sheetSetName == expected.m_sheetSetName
+            && probe.study.m_sheetSubsetName == expected.m_sheetSubsetName
+            && probe.study.m_outputType == expected.m_outputType
+            && probe.study.m_useSubset == expected.m_useSubset
+            && probe.study.m_selectDatesFromCalendar == expected.m_selectDatesFromCalendar
+            && probe.study.m_selectRangeOfDates == expected.m_selectRangeOfDates
+            && probe.study.m_startTime == expected.m_startTime
+            && probe.study.m_endTime == expected.m_endTime
+            && probe.study.m_interval == expected.m_interval
+            && probe.study.m_dates.size() == expected.m_dates.size()
+            && probe.study.m_dates[0].m_julianDay == expected.m_dates[0].m_julianDay
+            && probe.study.m_dates[0].m_milliseconds == expected.m_dates[0].m_milliseconds
+            && probe.study.m_dates[1].m_julianDay == expected.m_dates[1].m_julianDay
+            && probe.study.m_dates[1].m_milliseconds == expected.m_dates[1].m_milliseconds
+            && probe.study.m_hours == expected.m_hours
+            && probe.study.m_shadePlotType == expected.m_shadePlotType
+            && probe.study.m_viewportCount == expected.m_viewportCount
+            && probe.study.m_rowCount == expected.m_rowCount
+            && probe.study.m_columnCount == expected.m_columnCount
+            && probe.study.m_spacing == expected.m_spacing
+            && probe.study.m_lockViewports == expected.m_lockViewports
+            && probe.study.m_labelViewports == expected.m_labelViewports;
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            SunStudyExport adapter(codec, makeStudy());
+            if (!codec.write(&adapter, DRW::AC1032, binary)) {
+                std::cerr << "warm-up binary=" << binary
+                          << " objectWritten=" << adapter.written
+                          << " error=" << codec.getError()
+                          << " diagnostic=" << codec.getLastDiagnostic().code
+                          << " message=" << codec.getLastDiagnostic().message
+                          << '\n';
+                return fail("warm-up write failed");
+            }
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            SunStudyExport adapter(codec, makeStudy());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            SunStudyExport adapter(codec, makeStudy());
+            const DRW_SunStudy original(adapter.study);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !sameStudy(adapter.study, original) || !identitiesRolledBack
+                || stageRemains) {
+                std::cerr << "offset=" << offset << " wrote=" << wrote
+                          << " injected=" << injected
+                          << " destinationPreserved=" << (afterFailure == sentinel)
+                          << " callerSame=" << sameStudy(adapter.study, original)
+                          << " identitiesRolledBack=" << identitiesRolledBack
+                          << " stageRemains=" << stageRemains << '\n';
+                return fail("injected allocation failure changed caller or destination state");
+            }
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            if (!retried || !sameStudy(adapter.study, original)
+                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                || !readbackMatches(output) || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "SUNSTUDY " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -6004,7 +6219,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -6016,6 +6231,8 @@ int main(int argc, char** argv) {
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
+        if (mode == "sun-study")
+            return runSunStudySweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;

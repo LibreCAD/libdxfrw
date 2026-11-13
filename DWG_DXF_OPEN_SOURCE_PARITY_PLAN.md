@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **148 completed implementation slices** and **35 remaining
+The plan records **149 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`148 / (148 + 35) = 80.9%`. This is a count-based progress measure, not an
+`149 / (149 + 35) = 81.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4724,6 +4724,15 @@ The focused CTest passes in normal and ASan builds. This closes one generated
 writer transaction profile only; source-profile provenance, ACAD_LIGHT
 dictionary membership and native consumer behavior remain unqualified
 ([receipt](docs/research/p6-dxf-lightlist-allocation-rollback-retry-2026-11-13.json)).
+The same whole-operation sweep now writes a generated AC1032 `SUNSTUDY` with
+two date entries, three modeled hours, subset/range selection and nondefault
+viewport settings. All 93 ASCII and 91 Binary injected allocation failures
+preserve the prior destination, caller fields, source-handle bindings and stage
+cleanup; same-codec retry reproduces clean output and typed readback verifies
+the ordered date/hour arrays and scalar settings. The focused CTest passes in
+normal and ASan builds. This is generated serializer transaction evidence for
+one profile; source graph ownership, independent producer semantics and native
+Sun Study behavior remain separate ([receipt](docs/research/p6-dxf-sunstudy-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
