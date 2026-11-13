@@ -4381,6 +4381,17 @@ clean output and typed readback verifies the path and modeled fields. The
 focused transaction CTest passes 1/1. This does not qualify dictionary
 membership, linked NAVISWORKSMODEL references, external asset loading or native
 consumer behavior ([receipt](docs/research/p6-dxf-navisworks-model-def-allocation-rollback-retry-2026-11-13.json)).
+The generated OBJECTS sweep now exercises all four public point-cloud
+definition variants: `POINTCLOUDDEFINITION`, `POINTCLOUDDEFINITIONEX`,
+`POINTCLOUDDEFREACTOR` and `POINTCLOUDDEFREACTOREX`. The two definition
+profiles include long source paths, load state, point counts and extents; both
+reactor variants carry distinct handles and class versions. All 966 ASCII and
+946 Binary injected failures preserve each caller object and the prior
+destination; same-writer retry reproduces clean output and typed readback
+checks kind, identity, parent, version and all modeled variant fields. The
+focused transaction CTest passes 1/1. This does not prove point-cloud entity to
+definition/reactor graph closure, dictionary membership or external point-cloud
+behavior ([receipt](docs/research/p6-dxf-pointcloud-definition-variants-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

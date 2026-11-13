@@ -104,6 +104,10 @@ constexpr std::uint32_t kLegacyDynamicConstraintDimensionHandle = 0xD94Cu;
 constexpr std::uint32_t kDirectAttdefHandle = 0xD94Du;
 constexpr std::uint32_t kPointCloudColorMapHandle = 0xD94Eu;
 constexpr std::uint32_t kNavisworksModelDefHandle = 0xD94Fu;
+constexpr std::uint32_t kPointCloudDefinitionHandle = 0xD950u;
+constexpr std::uint32_t kPointCloudDefinitionExHandle = 0xD951u;
+constexpr std::uint32_t kPointCloudReactorHandle = 0xD952u;
+constexpr std::uint32_t kPointCloudReactorExHandle = 0xD953u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -713,6 +717,34 @@ public:
         navisworksModelDef.m_minExtent = DRW_Coord(-1.5, -2.5, -3.5);
         navisworksModelDef.m_maxExtent = DRW_Coord(4.5, 5.5, 6.5);
         navisworksModelDef.m_hostDrawingVisibility = true;
+        pointCloudDefinition.handle = kPointCloudDefinitionHandle;
+        pointCloudDefinition.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        pointCloudDefinition.m_kind = DRW_PointCloudDef::Definition;
+        pointCloudDefinition.m_classVersion = 1;
+        pointCloudDefinition.m_sourceFilename =
+            "pointcloud/" + std::string(96u, 'a') + ".rcs";
+        pointCloudDefinition.m_isLoaded = true;
+        pointCloudDefinition.m_pointCount = 123456u;
+        pointCloudDefinition.m_extentsMin = DRW_Coord(-1.0, -2.0, -3.0);
+        pointCloudDefinition.m_extentsMax = DRW_Coord(4.0, 5.0, 6.0);
+        pointCloudDefinitionEx.handle = kPointCloudDefinitionExHandle;
+        pointCloudDefinitionEx.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        pointCloudDefinitionEx.m_kind = DRW_PointCloudDef::DefinitionEx;
+        pointCloudDefinitionEx.m_classVersion = 2;
+        pointCloudDefinitionEx.m_sourceFilename =
+            "pointcloud-ex/" + std::string(80u, 'b') + ".rcs";
+        pointCloudDefinitionEx.m_isLoaded = true;
+        pointCloudDefinitionEx.m_pointCount = 654321u;
+        pointCloudDefinitionEx.m_extentsMin = DRW_Coord(-7.0, -8.0, -9.0);
+        pointCloudDefinitionEx.m_extentsMax = DRW_Coord(10.0, 11.0, 12.0);
+        pointCloudReactor.handle = kPointCloudReactorHandle;
+        pointCloudReactor.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        pointCloudReactor.m_kind = DRW_PointCloudDef::Reactor;
+        pointCloudReactor.m_classVersion = 3;
+        pointCloudReactorEx.handle = kPointCloudReactorExHandle;
+        pointCloudReactorEx.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        pointCloudReactorEx.m_kind = DRW_PointCloudDef::ReactorEx;
+        pointCloudReactorEx.m_classVersion = 4;
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1046,6 +1078,10 @@ public:
             && output.writeMaterial(&material)
             && output.writePointCloudColorMap(&pointCloudColorMap)
             && output.writeNavisworksModelDef(&navisworksModelDef)
+            && output.writePointCloudDef(&pointCloudDefinition)
+            && output.writePointCloudDef(&pointCloudDefinitionEx)
+            && output.writePointCloudDef(&pointCloudReactor)
+            && output.writePointCloudDef(&pointCloudReactorEx)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
             && output.writeDataLink(&targetAlpha)
@@ -1120,6 +1156,10 @@ public:
     DRW_Material material;
     DRW_PointCloudColorMap pointCloudColorMap;
     DRW_NavisworksModelDef navisworksModelDef;
+    DRW_PointCloudDef pointCloudDefinition;
+    DRW_PointCloudDef pointCloudDefinitionEx;
+    DRW_PointCloudDef pointCloudReactor;
+    DRW_PointCloudDef pointCloudReactorEx;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1443,6 +1483,9 @@ public:
         ++navisworksModelDefCount;
         navisworksModelDef = value;
     }
+    void addPointCloudDef(const DRW_PointCloudDef& value) override {
+        pointCloudDefs.push_back(value);
+    }
     void addScale(const DRW_Scale& value) override {
         dx_iface::addScale(value);
         ++scaleCount;
@@ -1570,6 +1613,7 @@ public:
     DRW_Material material;
     DRW_PointCloudColorMap pointCloudColorMap;
     DRW_NavisworksModelDef navisworksModelDef;
+    std::vector<DRW_PointCloudDef> pointCloudDefs;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1709,6 +1753,24 @@ bool clearStagedOutput(const std::filesystem::path& target) {
             return false;
     }
     return true;
+}
+
+bool pointCloudDefinitionMatches(
+    const DRW_PointCloudDef& value, std::uint32_t handle,
+    DRW_PointCloudDef::Kind kind, std::int32_t classVersion,
+    const std::string& filename, bool loaded, std::uint64_t pointCount,
+    const DRW_Coord& minimum, const DRW_Coord& maximum) {
+    return value.handle == handle
+        && value.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && value.m_kind == kind && value.m_classVersion == classVersion
+        && value.m_sourceFilename == filename && value.m_isLoaded == loaded
+        && value.m_pointCount == pointCount
+        && value.m_extentsMin.x == minimum.x
+        && value.m_extentsMin.y == minimum.y
+        && value.m_extentsMin.z == minimum.z
+        && value.m_extentsMax.x == maximum.x
+        && value.m_extentsMax.y == maximum.y
+        && value.m_extentsMax.z == maximum.z;
 }
 
 bool callerRecordsUnchanged(const Export& adapter) {
@@ -2365,6 +2427,24 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.navisworksModelDef.m_maxExtent.y == 5.5
         && adapter.navisworksModelDef.m_maxExtent.z == 6.5
         && adapter.navisworksModelDef.m_hostDrawingVisibility
+        && pointCloudDefinitionMatches(
+            adapter.pointCloudDefinition, kPointCloudDefinitionHandle,
+            DRW_PointCloudDef::Definition, 1,
+            "pointcloud/" + std::string(96u, 'a') + ".rcs", true, 123456u,
+            DRW_Coord(-1.0, -2.0, -3.0), DRW_Coord(4.0, 5.0, 6.0))
+        && pointCloudDefinitionMatches(
+            adapter.pointCloudDefinitionEx, kPointCloudDefinitionExHandle,
+            DRW_PointCloudDef::DefinitionEx, 2,
+            "pointcloud-ex/" + std::string(80u, 'b') + ".rcs", true, 654321u,
+            DRW_Coord(-7.0, -8.0, -9.0), DRW_Coord(10.0, 11.0, 12.0))
+        && pointCloudDefinitionMatches(
+            adapter.pointCloudReactor, kPointCloudReactorHandle,
+            DRW_PointCloudDef::Reactor, 3, "", false, 0u,
+            DRW_Coord(), DRW_Coord())
+        && pointCloudDefinitionMatches(
+            adapter.pointCloudReactorEx, kPointCloudReactorExHandle,
+            DRW_PointCloudDef::ReactorEx, 4, "", false, 0u,
+            DRW_Coord(), DRW_Coord())
         && adapter.loftedSurface.handle == kLoftedSurfaceHandle
         && adapter.loftedSurface.modelerFormatVersion == 1
         && adapter.loftedSurface.uIsolines == 10
@@ -2634,6 +2714,15 @@ bool matchesReadback(const std::filesystem::path& path) {
             && text.y == coordinate + 1.5
             && value.getText() == "whole-operation subtype dimension"
             && value.getStyle() == "STANDARD";
+    };
+    const auto pointCloudDefinitionFor = [&adapter](std::uint32_t handle)
+        -> const DRW_PointCloudDef* {
+        const auto found = std::find_if(
+            adapter.pointCloudDefs.begin(), adapter.pointCloudDefs.end(),
+            [handle](const DRW_PointCloudDef& value) {
+                return value.handle == handle;
+            });
+        return found == adapter.pointCloudDefs.end() ? nullptr : &*found;
     };
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.polylineCount != 1u
@@ -3325,6 +3414,29 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_rampCount != 2u
         || adapter.pointCloudColorMap.m_classificationColorRamps[0].m_colorSchemes
             != std::vector<UTF8STRING>{"road", "rail"}
+        || adapter.pointCloudDefs.size() != 4u
+        || pointCloudDefinitionFor(kPointCloudDefinitionHandle) == nullptr
+        || !pointCloudDefinitionMatches(
+            *pointCloudDefinitionFor(kPointCloudDefinitionHandle),
+            kPointCloudDefinitionHandle, DRW_PointCloudDef::Definition, 1,
+            "pointcloud/" + std::string(96u, 'a') + ".rcs", true, 123456u,
+            DRW_Coord(-1.0, -2.0, -3.0), DRW_Coord(4.0, 5.0, 6.0))
+        || pointCloudDefinitionFor(kPointCloudDefinitionExHandle) == nullptr
+        || !pointCloudDefinitionMatches(
+            *pointCloudDefinitionFor(kPointCloudDefinitionExHandle),
+            kPointCloudDefinitionExHandle, DRW_PointCloudDef::DefinitionEx, 2,
+            "pointcloud-ex/" + std::string(80u, 'b') + ".rcs", true, 654321u,
+            DRW_Coord(-7.0, -8.0, -9.0), DRW_Coord(10.0, 11.0, 12.0))
+        || pointCloudDefinitionFor(kPointCloudReactorHandle) == nullptr
+        || !pointCloudDefinitionMatches(
+            *pointCloudDefinitionFor(kPointCloudReactorHandle),
+            kPointCloudReactorHandle, DRW_PointCloudDef::Reactor, 3,
+            "", false, 0u, DRW_Coord(), DRW_Coord())
+        || pointCloudDefinitionFor(kPointCloudReactorExHandle) == nullptr
+        || !pointCloudDefinitionMatches(
+            *pointCloudDefinitionFor(kPointCloudReactorExHandle),
+            kPointCloudReactorExHandle, DRW_PointCloudDef::ReactorEx, 4,
+            "", false, 0u, DRW_Coord(), DRW_Coord())
         || adapter.navisworksModelDefCount != 1u
         || adapter.navisworksModelDef.handle == 0u
         || adapter.navisworksModelDef.parentHandle

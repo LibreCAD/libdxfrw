@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-pointcloud-definition-variants-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_POINTCLOUD_DEFINITION_VARIANTS_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise all four public writePointCloudDef record-kind routes within whole-operation AC1027 ASCII and Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "Two definition variants with long source paths, load state, point counts and extents, plus reactor and reactor-EX variants with distinct handles and class versions; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "21357679",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add four generated DRW_PointCloudDef objects, one for each Definition, DefinitionEx, Reactor and ReactorEx kind, to the whole-operation OBJECTS writer. Call writePointCloudDef for every variant. Compare caller handle, parent, kind, class version, file reference, load state, point count and extents after each injected allocation failure and retry. Require previous destination preservation, same-writer retry and typed callback readback for each distinct record handle."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 966/966 and Binary 946/946 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback/retry and typed-codec evidence only; no independent producer or consumer semantics are established.",
+    "The four objects are not bound to an ACAD_POINTCLOUD dictionary and are not referenced by POINTCLOUD/POINTCLOUDEX entities; graph closure remains open.",
+    "No external RCS/RCP asset loading, rendering or native consumer behavior is qualified.",
+    "This closes four direct writer variants for these generated profiles only; P6-G's public-writer inventory remains open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's writer inventory and cover another uncovered direct route with rollback, same-writer retry and typed readback."
+}
