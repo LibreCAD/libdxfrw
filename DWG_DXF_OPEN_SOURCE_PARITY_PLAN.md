@@ -4329,6 +4329,12 @@ Its focused fast CTest passes in ASCII and Binary; the earlier rollback,
 destination, child-XRECORD and typed-readback checks remain active. This is one
 generated DATATABLE profile only; P6-G's remaining writer inventory is still
 open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
+The raw OBJECTS string-override allocation control now also covers the combined
+string/Int32 override writer, with generated XRECORD group 90 readback, caller
+state, prior-destination preservation, and same-codec exact-byte retry. Both
+string-only and combined override routes pass their ASCII/Binary focused sweeps.
+This closes only these two raw-object override transaction profiles; other raw
+override variants and the P6-G writer inventory remain open ([receipt](docs/research/p6-dxf-raw-object-string-int32-override-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

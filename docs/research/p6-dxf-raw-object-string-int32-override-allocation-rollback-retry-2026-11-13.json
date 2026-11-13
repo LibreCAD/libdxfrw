@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-object-string-int32-override-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RAW_OBJECT_STRING_INT32_OVERRIDE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public combined raw-object string and Int32 override writer in addition to the existing string-only override route.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One AC1027 raw XRECORD with two string values and group 90 Int32; overrides target vector indices 3, 4, and 5. No external fixture file is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "260f4d83",
+    "files": {
+      "tests/raw_object_string_override_allocation_tests.cpp": "81ab8b3184227ec6ae07f7b28468f302220190e6ddc38c31a62316b4f6d99f5b",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ff62028e750e70cfdf2f0033bdb7347dad3fc675da3ab45ca99f55ecf8060050"
+    },
+    "method": "Run callback-local one-shot bad_alloc sweeps for the string-only and combined string/Int32 public writer routes in ASCII and Binary. Every measured offset must reject, preserve prior destination bytes and all caller source object state, then allow the same codec to produce bytes identical to an uninjected write and fresh raw XRECORD readback. Group 90 verifies the Int32 override value while source data remains unchanged."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_raw_object_string_override_allocation_tests --parallel 2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure: PASS 1/1",
+    "measuredOffsets": {
+      "stringOnlyAscii": 5,
+      "stringAndInt32Ascii": 5,
+      "stringOnlyBinary": 4,
+      "stringAndInt32Binary": 4
+    },
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and raw-object transport evidence only; no source producer prevalence, recursive graph closure, or XRECORD semantic claim is established.",
+    "This covers one raw XRECORD override profile and does not qualify other record classes or override field roles.",
+    "P6-G remains open pending the remaining public writer inventory and its uncovered transaction profiles.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue the P6-G callback-to-writer inventory and select the next public writer route without complete allocation rollback/retry/readback coverage."
+}
