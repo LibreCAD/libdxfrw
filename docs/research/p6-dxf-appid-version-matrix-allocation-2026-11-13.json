@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-appid-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_APPID_DIRECT_WRITER_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct APPID table-writer allocation rollback, same-codec retry, and typed readback across supported DXF revisions.",
+  "source": {
+    "kind": "deterministic locally-authored DRW_AppId generated during each test run",
+    "profile": "One custom APPID row with writer-allocated handle, default flags, and no XDATA or common application data.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/appid_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-appid-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "9d67cddfdeb82ca701d24b0e2af3b1a9d0c8c92d113bc162ee48cdcd65911828",
+    "testExecutableSha256": "e1f1bbb505008e00a5b1558b8f9ac42c2b2e32e25eade25a088495a25ec0133f",
+    "method": "Calibrate the direct writeAppId() callback during a staged file write, inject std::bad_alloc at each measured callback allocation, require destination-sentinel and caller-state preservation, retry with the same codec, compare exact bytes with clean output, and freshly read back the typed APPID row."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 10, "Binary": 10},
+    "AC1015": {"ASCII": 10, "Binary": 11},
+    "AC1018": {"ASCII": 10, "Binary": 11},
+    "AC1021": {"ASCII": 9, "Binary": 10},
+    "AC1024": {"ASCII": 9, "Binary": 10},
+    "AC1027": {"ASCII": 9, "Binary": 10},
+    "AC1032": {"ASCII": 9, "Binary": 10},
+    "totals": {"ASCII": 66, "Binary": 72, "all": 138}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_appid_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_appid_table_allocation$' --output-on-failure: PASS 1/1 in 0.30 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_appid_table_allocation_tests: PASS; seven revisions, both encodings, all 138 measured offsets",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated standalone writer transaction and typed readback evidence only; producer interoperability and APPID/XDATA dependency closure remain unqualified.",
+    "The profile uses a writer-allocated handle and default flags; caller-reserved handles, nondefault flags, and XDATA payload behavior require separate evidence if claimed.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The direct APPID writer passes allocation rollback, caller-state preservation, exact same-codec retry, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 ASCII and Binary.",
+    "remainingP6G": "Continue the public-writer inventory for distinct uncovered routes, overloads, and compound variants; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "215 completed slices and 35 remaining packages: 215/(215+35)=86.0%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-dxf-textstyle-version-matrix-allocation-2026-11-13.json"
+}
