@@ -4431,6 +4431,18 @@ set_tests_properties(libdxfrw_dwg_arc_angle_domain PROPERTIES
     TIMEOUT 30
 )
 
+# CIRCLE/ARC centers, thickness and extrusion directions share a finite,
+# nondegenerate geometry contract across DWG writer versions.
+add_test(
+    NAME libdxfrw_dwg_circle_arc_geometry_domain
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-circle-arc-geometry-domain
+)
+set_tests_properties(libdxfrw_dwg_circle_arc_geometry_domain PROPERTIES
+    LABELS "fast;dwg;writer;reader;circle;arc;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

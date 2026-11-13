@@ -119,6 +119,17 @@ bool hasRepresentableDwgEllipseGeometry(const DRW_Ellipse& ellipse) noexcept {
     return std::isfinite(alignment) && std::abs(alignment) <= 1.0e-6;
 }
 
+bool hasRepresentableDwgCircleGeometry(const DRW_Circle& circle) noexcept {
+    const DRW_Coord& center = circle.basePoint;
+    const DRW_Coord& normal = circle.extPoint;
+    return std::isfinite(center.x) && std::isfinite(center.y)
+        && std::isfinite(center.z) && std::isfinite(circle.thickness)
+        && std::isfinite(circle.radious) && circle.radious > 0.0
+        && std::isfinite(normal.x) && std::isfinite(normal.y)
+        && std::isfinite(normal.z)
+        && (normal.x != 0.0 || normal.y != 0.0 || normal.z != 0.0);
+}
+
 bool hasOnlyDwgRepresentableAppData(const DRW_Entity& entity) {
     if (entity.appData.empty())
         return true;
@@ -8322,10 +8333,8 @@ bool DRW_Circle::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  // Autodesk's AcDbCircle::setRadius contract requires radius > 0. Keep
-  // DWG writer admission aligned with the DXF writer so malformed geometry
-  // is refused before any staged record or handle state is published.
-  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0)
+  // Match the DXF writer's native geometry admission before staging output.
+  if (buf == nullptr || !hasRepresentableDwgCircleGeometry(*this))
     return false;
 
   dwgBufferW *const bodyTarget = buf;
@@ -9844,9 +9853,9 @@ bool DRW_Arc::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
                         dwgBufferW *strBuf, dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  // AcDbArc has the same strictly-positive radius contract as AcDbCircle.
+  // AcDbArc shares CIRCLE's center, radius, thickness and normal constraints.
   // Its two BD angular parameters must also remain finite on the wire.
-  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0
+  if (buf == nullptr || !hasRepresentableDwgCircleGeometry(*this)
       || !std::isfinite(staangle) || !std::isfinite(endangle))
     return false;
 

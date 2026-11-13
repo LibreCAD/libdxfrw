@@ -10416,6 +10416,9 @@ public:
         if (!arc_) {
             ++count_;
             radius_ = value.radious;
+            center_ = value.basePoint;
+            thickness_ = value.thickness;
+            normal_ = value.extPoint;
         }
     }
     void addArc(const DRW_Arc& value) override {
@@ -10424,11 +10427,17 @@ public:
             radius_ = value.radious;
             startAngle_ = value.staangle;
             endAngle_ = value.endangle;
+            center_ = value.basePoint;
+            thickness_ = value.thickness;
+            normal_ = value.extPoint;
         }
     }
     bool matches(double radius) const noexcept {
         return count_ == 1u && radius_ == expectedRadius_
             && radius_ == radius
+            && center_.x == 2.0 && center_.y == 3.0 && center_.z == 4.0
+            && thickness_ == 0.0 && normal_.x == 0.0
+            && normal_.y == 0.0 && normal_.z == 1.0
             && (!arc_ || (startAngle_ == expectedStart_
                           && endAngle_ == expectedEnd_));
     }
@@ -10442,6 +10451,9 @@ private:
     double endAngle_{0.0};
     double expectedStart_;
     double expectedEnd_;
+    DRW_Coord center_;
+    DRW_Coord normal_;
+    double thickness_{0.0};
 };
 
 bool runDwgCircleArcRadiusDomain(const std::filesystem::path& directory) {
@@ -10543,6 +10555,116 @@ bool runDwgArcAngleDomain(const std::filesystem::path& directory) {
                 return false;
         }
         std::filesystem::remove(path, ec);
+    }
+    return true;
+}
+
+class DwgCircleArcGeometryWriter final : public dx_iface {
+public:
+    DwgCircleArcGeometryWriter(dwgRW& writer, bool arc,
+                               std::function<void(DRW_Circle&)> mutate = {})
+        : writer_(writer), arc_(arc), mutate_(std::move(mutate)) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        if (arc_) {
+            DRW_Arc value;
+            value.basePoint = {2.0, 3.0, 4.0};
+            value.radious = 2.5;
+            value.staangle = 0.25;
+            value.endangle = 1.0;
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeArc(&value) && value.handle != 0u;
+        } else {
+            DRW_Circle value;
+            value.basePoint = {2.0, 3.0, 4.0};
+            value.radious = 2.5;
+            if (mutate_)
+                mutate_(value);
+            wrote_ = writer_.writeCircle(&value) && value.handle != 0u;
+        }
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    dwgRW& writer_;
+    bool arc_;
+    std::function<void(DRW_Circle&)> mutate_;
+    bool wrote_{false};
+};
+
+bool runDwgCircleArcGeometryDomain(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::vector<std::pair<const char*,
+        std::function<void(DRW_Circle&)>>> invalidProfiles{
+            {"nan-center", [](DRW_Circle& value) {
+                value.basePoint.x = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-thickness", [](DRW_Circle& value) {
+                value.thickness = std::numeric_limits<double>::infinity(); }},
+            {"zero-normal", [](DRW_Circle& value) {
+                value.extPoint = {0.0, 0.0, 0.0}; }},
+            {"nan-normal", [](DRW_Circle& value) {
+                value.extPoint.y = std::numeric_limits<double>::quiet_NaN(); }}
+        };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        for (const bool arc : {false, true}) {
+            const auto path = directory / (std::string("libdxfrw-")
+                + (arc ? "arc" : "circle") + "-geometry-"
+                + std::to_string(static_cast<int>(version)) + ".dwg");
+            for (const auto& invalid : invalidProfiles) {
+                {
+                    std::ofstream sentinel(path, std::ios::binary
+                                                   | std::ios::trunc);
+                    sentinel << "existing-dwg-destination";
+                }
+                dwgRW writer(path.string().c_str());
+                DwgCircleArcGeometryWriter source(writer, arc, invalid.second);
+                const std::string before = readBytes(path);
+                if (writer.write(&source, version, false)
+                    || before.empty() || readBytes(path) != before)
+                    return false;
+
+                DwgCircleArcGeometryWriter retry(writer, arc);
+                if (!writer.write(&retry, version, false))
+                    return false;
+                dwgRW reader(path.string().c_str());
+                DwgCircleArcRadiusReader capture(arc);
+                dx_data readData;
+                capture.cData = &readData;
+                if (!reader.read(&capture, false) || !capture.matches(2.5)
+                    || reader.getEntityParseFailures() != 0u
+                    || reader.getObjectParseFailures() != 0u)
+                    return false;
+            }
+            std::filesystem::remove(path, ec);
+        }
     }
     return true;
 }
@@ -41411,6 +41533,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-arc-angle-domain") {
         const bool passed = runDwgArcAngleDomain(directory);
         std::cout << "DWG ARC finite-angle rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-circle-arc-geometry-domain") {
+        const bool passed = runDwgCircleArcGeometryDomain(directory);
+        std::cout << "DWG CIRCLE/ARC geometry rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2
