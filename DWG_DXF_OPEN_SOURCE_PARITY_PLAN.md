@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **145 completed implementation slices** and **35 remaining
+The plan records **146 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`145 / (145 + 35) = 80.6%`. This is a count-based progress measure, not an
+`146 / (146 + 35) = 80.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4595,20 +4595,34 @@ failure offsets per encoding refuse the whole export, preserve the preexisting
 destination and caller TABLE, and allow same-writer byte-identical retry plus
 typed readback. Some injected failures are surfaced by the enclosing operation
 after the callback has marked the TABLE emitted; the evidence gate is atomic
-whole-file refusal and retry, not the callback flag alone. This covers a
-one-cell zero-presence mask only; the P6-G inventory and other legacy TABLE
-spellings remain open ([receipt](docs/research/p6-dxf-table-legacy-source-presence-allocation-rollback-retry-2026-11-13.json)).
+whole-file refusal and retry, not the callback flag alone. The original
+one-cell zero-presence mask remains covered; the 2x2 mixed-mask follow-up and
+other legacy TABLE spellings have separate evidence
+([receipt](docs/research/p6-dxf-table-legacy-source-presence-allocation-rollback-retry-2026-11-13.json)).
 The same generated allocation sweep now also exercises the public
 `writeTableWithLegacyZeroOverrides()` wrapper, which validates the legacy
 spelling vector before delegating to the source-presence serializer. Its
 one-cell zero-mask profile passes all 11 injected allocation offsets in both
 ASCII and Binary, with whole-file refusal, caller and destination preservation,
-same-writer byte-identical retry, and typed readback. A separate invalid-value
+same-writer byte-identical retry, and typed readback. The added 2x2 mixed-mask
+profile covers both wrappers and has its own receipt. A separate invalid-value
 control refuses mask byte `2` without changing the destination or caller TABLE,
 then succeeds on the same adapter after correction to `{0}` in both encodings.
 This proves only the zero mask and one invalid value; other invalid/nonzero
 masks and TABLE payloads remain uncovered
 ([receipt](docs/research/p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13.json)).
+**P6-G legacy TABLE 2x2 mask transaction follow-up (2026-11-13):** both
+`writeTableWithLegacySourcePresence()` and
+`writeTableWithLegacyZeroOverrides()` now also sweep a locally authored 2x2
+TABLE with mixed `{0,1,0,1}` per-cell masks. All 15 ASCII and 15 Binary
+allocation offsets per API preserve destination, caller identities and full
+TABLE body; same-writer retries reproduce clean bytes. Typed readback checks
+the four cells, and an independent wire walk proves group 177 is present with
+zero only in the two selected cells. The focused
+`libdxfrw_table_legacy_presence_allocation` CTest passes. This is generated
+transaction and wire-spelling evidence for this mask only; additional mask
+permutations, attribute-presence bits and semantic producer evidence remain
+open ([receipt](docs/research/p6-dxf-table-legacy-2x2-mask-allocation-rollback-retry-2026-11-13.json)).
 The whole-operation DXF sweep now also invokes the public `writeAttdef()` entry
 point directly for a generated model-space ATTDEF with nondefault tag, prompt,
 default text, field length, flags and insertion point; earlier coverage reached

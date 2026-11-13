@@ -440,10 +440,62 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
         bytes.assign(std::istreambuf_iterator<char>{input},{});
         return !input.bad();
     };
+    const auto expandToTwoByTwo=[](DRW_Table& table) {
+        if(table.m_content.m_columns.size()!=1u||table.m_content.m_rows.size()!=1u
+            ||table.m_content.m_rows.front().m_cells.size()!=1u)return false;
+        table.m_content.m_columns.push_back(table.m_content.m_columns.front());
+        DRW_TableRow second=table.m_content.m_rows.front();
+        second.m_cells.push_back(second.m_cells.front());
+        table.m_content.m_rows.front().m_cells.push_back(
+            table.m_content.m_rows.front().m_cells.front());
+        table.m_content.m_rows.push_back(std::move(second));
+        return true;
+    };
+    const auto readFourCellProfile=[&](bool binary) {
+        dx_iface reader;dx_data readback;
+        if(!reader.fileImport(output.string(),&readback,false)
+            ||readback.tables.size()!=1u)return false;
+        const DRW_Table& table=readback.tables.front();
+        if(table.m_content.m_rows.size()!=2u||table.m_content.m_columns.size()!=2u)
+            return false;
+        for(const auto& row:table.m_content.m_rows) {
+            if(row.m_cells.size()!=2u)return false;
+            for(const auto& cell:row.m_cells) {
+                if(cell.m_type!=1||cell.m_overrideFlags!=0u
+                    ||cell.m_contents.size()!=1u
+                    ||cell.m_contents.front().m_text!="reused-table")return false;
+            }
+        }
+        std::array<bool,4> group177Present{};
+        bool inTable=false;std::size_t cell=0u;
+        for(const auto& tag:attdefWireTags(output,binary)) {
+            if(tag.code==0) {
+                inTable=tag.text=="ACAD_TABLE";
+                continue;
+            }
+            if(!inTable)continue;
+            if(tag.code==171) {
+                if(cell>=group177Present.size())return false;
+                ++cell;
+            } else if(tag.code==177) {
+                if(cell==0u||cell>group177Present.size()
+                    ||tag.kind!=AttdefWireTag::Integer||tag.integer!=0)
+                    return false;
+                group177Present[cell-1u]=true;
+            }
+        }
+        return cell==4u&&group177Present==std::array<bool,4>{{false,true,false,true}};
+    };
+    for(const std::vector<std::uint8_t>& spellings:
+            {std::vector<std::uint8_t>{0u},
+             std::vector<std::uint8_t>{0u,1u,0u,1u}})
     for(bool useZeroOverrideApi:{false,true})for(bool binary:{false,true}) {
+        const bool multiCell=spellings.size()==4u;
         dx_data calibrationData;TableLegacyCountDirectProbe calibration;
         tableExportReuseDrawing(calibration,calibrationData,0u,false);
-        calibration.spellings={0u};
+        if(multiCell&&!expandToTwoByTwo(calibrationData.tables.front()))
+            return fail("could not create two-by-two calibration table");
+        calibration.spellings=spellings;
         calibration.useZeroOverrideApi=useZeroOverrideApi;
         DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";
         calibrationData.blockRecords.push_back(model);
@@ -453,7 +505,8 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
                                    &calibrationData,false)
             ||!calibration.emitted
             ||symbolFailedAllocations!=failedBefore
-            ||!tableExportReadback(output,binary,0u,false))
+            ||!(multiCell?readFourCellProfile(binary)
+                         :tableExportReadback(output,binary,0u,false)))
             return fail("calibration export/readback failed");
         const long allocationCount=calibration.measuredAllocations;
         if(allocationCount<=0)return fail("no callback allocations measured");
@@ -463,7 +516,9 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
         for(long offset=0;offset<allocationCount;++offset) {
             dx_data data;TableLegacyCountDirectProbe writer;
             tableExportReuseDrawing(writer,data,0u,false);
-            writer.spellings={0u};writer.useZeroOverrideApi=useZeroOverrideApi;
+            if(multiCell&&!expandToTwoByTwo(data.tables.front()))
+                return fail("could not create two-by-two failure table");
+            writer.spellings=spellings;writer.useZeroOverrideApi=useZeroOverrideApi;
             data.blockRecords.push_back(model);
             const auto identities=tableExportIdentities(data);
             const DRW_Table baseline(data.tables.front());
@@ -498,11 +553,13 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
                 return fail("same-writer retry failed caller-state check");
             std::string retryBytes;
             if(!readOutputBytes(retryBytes)||retryBytes!=expectedBytes
-                ||!tableExportReadback(output,binary,0u,false))
+                ||!(multiCell?readFourCellProfile(binary)
+                             :tableExportReadback(output,binary,0u,false)))
                 return fail("same-writer retry bytes/readback mismatch");
         }
         std::cout<<"legacy TABLE "
                  <<(useZeroOverrideApi?"zero overrides ":"source presence ")
+                 <<(multiCell?"2x2 ":"1x1 ")
                  <<(binary?"Binary":"ASCII")<<": allocation offsets="
                  <<allocationCount<<", rollback/retry/readback=PASS\n";
     }
