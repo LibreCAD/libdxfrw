@@ -9,7 +9,13 @@
       "entity": "HATCH",
       "pattern_name": "ANSI31",
       "solid": false,
-      "boundary": "closed four-vertex LWPOLYLINE",
+      "boundaries": [
+        "closed four-vertex LWPOLYLINE",
+        "LINE edge",
+        "counterclockwise ARC edge",
+        "counterclockwise ELLIPSE edge",
+        "rational degree-2 SPLINE edge with knots, control points, weights, and fit point"
+      ],
       "pattern_line": {
         "angle": 0.5,
         "base": [0.25, -0.5],
@@ -36,17 +42,17 @@
     ]
   },
   "results": [
-    {"version": "AC1014", "ascii_allocation_offsets": 91, "binary_allocation_offsets": 90, "result": "PASS"},
-    {"version": "AC1015", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
-    {"version": "AC1018", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
-    {"version": "AC1021", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
-    {"version": "AC1024", "ascii_allocation_offsets": 100, "binary_allocation_offsets": 99, "result": "PASS"},
-    {"version": "AC1027", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
-    {"version": "AC1032", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"}
+    {"version": "AC1014", "ascii_allocation_offsets": 93, "binary_allocation_offsets": 92, "result": "PASS"},
+    {"version": "AC1015", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
+    {"version": "AC1018", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
+    {"version": "AC1021", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
+    {"version": "AC1024", "ascii_allocation_offsets": 102, "binary_allocation_offsets": 101, "result": "PASS"},
+    {"version": "AC1027", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"},
+    {"version": "AC1032", "ascii_allocation_offsets": 95, "binary_allocation_offsets": 94, "result": "PASS"}
   ],
   "validation": {
     "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_version_allocation_transaction$' --output-on-failure",
-    "result": "PASS; 1/1 test, 2.74 seconds",
+    "result": "PASS; 1/1 test, 2.88 seconds",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
     "build_result": "PASS"
   },

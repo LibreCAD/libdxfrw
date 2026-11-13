@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **173 completed implementation slices** and **35 remaining
+The plan records **174 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`173 / (173 + 35) = 83.2%`. This is a count-based progress measure, not an
+`174 / (174 + 35) = 83.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
-| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND, and generated HATCH profiles for AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [legacy compound-chain allocation matrix](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json), [HATCH transaction matrix](docs/research/p6-dxf-hatch-version-allocation-rollback-retry-2026-11-13.json), and [AC1012 refusal boundary](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
+| P6-G | OPEN | Finish the public-writer inventory diff and close caller-state coverage for untested direct routes/overloads, remaining version-specific compound-record variants, and variable-size OBJECTS builders absent from the sweeps. Standard/dynamic dimension subtypes, AC1027 attributed INSERT, AC1032 embedded-MTEXT attributes, AC1014/AC1015/AC1018/AC1021/AC1024 standalone ATTRIB/SEQEND plus classic POLYLINE/VERTEX/SEQEND, and generated HATCH line/arc/ellipse/spline/polyline edge profiles for AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 now have transaction coverage; AC1012 is refused as BAD_VERSION. | Inventory must distinguish already-swept writer routes from exact missing variants; each selected gap needs rollback, same-writer retry, and fresh typed or bounded raw-group readback. See the [legacy compound-chain allocation matrix](docs/research/p6-dxf-ac1014-ac1024-compound-entities-allocation-rollback-retry-2026-11-13.json), [HATCH transaction matrix](docs/research/p6-dxf-hatch-version-allocation-rollback-retry-2026-11-13.json), and [AC1012 refusal boundary](docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json). |
 | P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
 | P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
 | P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
@@ -1521,9 +1521,10 @@ this plan. The focused transaction CTest passes in 5.55 seconds. See the
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH writes now have per-allocation rollback, same-writer retry, byte-identical
 output, and fresh typed readback coverage for AC1014, AC1015, AC1018, AC1021,
-AC1024, AC1027, and AC1032, in both ASCII and Binary. The closed polyline
-boundary, ANSI31 pattern line and dashes, and seed point are checked. The
-focused CTest passes in 2.74 seconds. AC1012 is outside this matrix because
+AC1024, AC1027, and AC1032, in both ASCII and Binary. The profile includes
+LINE, ARC, ELLIPSE, rational SPLINE, and closed polyline boundary loops, plus
+ANSI31 pattern data and a seed point. The focused CTest passes in 2.88 seconds.
+AC1012 is outside this matrix because
 `isSupportedDxfWriteVersion()` rejects that whole-file output target. This is
 generated transaction/codec consistency evidence only; it does not establish
 producer interoperability or native hatch rendering. The profile and per-

@@ -5600,6 +5600,53 @@ public:
         loop->objlist.push_back(boundary);
         loop->update();
         hatch.appendLoop(loop);
+
+        line = std::make_shared<DRW_Line>();
+        line->basePoint = DRW_Coord(1.0, 2.0, 0.0);
+        line->secPoint = DRW_Coord(4.0, 6.0, 0.0);
+        auto lineLoop = std::make_shared<DRW_HatchLoop>(0);
+        lineLoop->objlist.push_back(line);
+        lineLoop->update();
+        hatch.appendLoop(lineLoop);
+
+        arc = std::make_shared<DRW_Arc>();
+        arc->basePoint = DRW_Coord(2.0, 3.0, 0.0);
+        arc->radious = 4.0;
+        arc->staangle = 0.125;
+        arc->endangle = 1.25;
+        arc->isccw = 1;
+        auto arcLoop = std::make_shared<DRW_HatchLoop>(0);
+        arcLoop->objlist.push_back(arc);
+        arcLoop->update();
+        hatch.appendLoop(arcLoop);
+
+        ellipse = std::make_shared<DRW_Ellipse>();
+        ellipse->basePoint = DRW_Coord(5.0, 7.0, 0.0);
+        ellipse->secPoint = DRW_Coord(3.0, 0.0, 0.0);
+        ellipse->ratio = 0.5;
+        ellipse->staparam = 0.25;
+        ellipse->endparam = 1.5;
+        ellipse->isccw = 1;
+        auto ellipseLoop = std::make_shared<DRW_HatchLoop>(0);
+        ellipseLoop->objlist.push_back(ellipse);
+        ellipseLoop->update();
+        hatch.appendLoop(ellipseLoop);
+
+        spline = std::make_shared<DRW_Spline>();
+        spline->degree = 2;
+        spline->flags = 4;
+        spline->knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        spline->controllist = {
+            std::make_shared<DRW_Coord>(0.0, 0.0, 0.0),
+            std::make_shared<DRW_Coord>(1.0, 2.0, 0.0),
+            std::make_shared<DRW_Coord>(3.0, 0.0, 0.0)};
+        spline->weightlist = {1.0, 1.25, 1.0};
+        spline->fitlist = {
+            std::make_shared<DRW_Coord>(1.5, 1.0, 0.0)};
+        auto splineLoop = std::make_shared<DRW_HatchLoop>(0);
+        splineLoop->objlist.push_back(spline);
+        splineLoop->update();
+        hatch.appendLoop(splineLoop);
         hatch.seedPoints.emplace_back(0.5, 0.75, 0.0);
     }
 
@@ -5611,8 +5658,12 @@ public:
         if (hatch.handle != 0xDA50u || hatch.name != "ANSI31"
             || hatch.solid != 0 || hatch.hpattern != 0
             || hatch.angle != 0.25 || hatch.scale != 1.5
-            || hatch.looplist.size() != 1u || !hatch.looplist.front()
-            || hatch.looplist.front()->objlist.size() != 1u
+            || hatch.looplist.size() != 5u || !hatch.looplist[0]
+            || hatch.looplist[0]->objlist.size() != 1u
+            || !hatch.looplist[1] || hatch.looplist[1]->objlist.size() != 1u
+            || !hatch.looplist[2] || hatch.looplist[2]->objlist.size() != 1u
+            || !hatch.looplist[3] || hatch.looplist[3]->objlist.size() != 1u
+            || !hatch.looplist[4] || hatch.looplist[4]->objlist.size() != 1u
             || hatch.patternLines.size() != 1u
             || hatch.patternLines.front().dashList
                 != std::vector<double>{0.5, -0.25, 1.0}
@@ -5621,8 +5672,28 @@ public:
             || hatch.seedPoints.front().y != 0.75)
             return false;
         const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
-            hatch.looplist.front()->objlist.front().get());
-        return boundary != nullptr && boundary->flags == 1
+            hatch.looplist[0]->objlist.front().get());
+        const auto* lineEdge = dynamic_cast<const DRW_Line*>(
+            hatch.looplist[1]->objlist.front().get());
+        const auto* arcEdge = dynamic_cast<const DRW_Arc*>(
+            hatch.looplist[2]->objlist.front().get());
+        const auto* ellipseEdge = dynamic_cast<const DRW_Ellipse*>(
+            hatch.looplist[3]->objlist.front().get());
+        const auto* splineEdge = dynamic_cast<const DRW_Spline*>(
+            hatch.looplist[4]->objlist.front().get());
+        return boundary != nullptr && lineEdge != nullptr && arcEdge != nullptr
+            && ellipseEdge != nullptr && splineEdge != nullptr
+            && lineEdge->basePoint.x == 1.0 && lineEdge->secPoint.y == 6.0
+            && arcEdge->basePoint.x == 2.0 && arcEdge->radious == 4.0
+            && arcEdge->staangle == 0.125 && arcEdge->endangle == 1.25
+            && ellipseEdge->basePoint.x == 5.0 && ellipseEdge->secPoint.x == 3.0
+            && ellipseEdge->ratio == 0.5 && ellipseEdge->staparam == 0.25
+            && ellipseEdge->endparam == 1.5
+            && splineEdge->degree == 2
+            && splineEdge->knotslist
+                == std::vector<double>{0.0, 0.0, 0.0, 1.0, 1.0, 1.0}
+            && splineEdge->weightlist == std::vector<double>{1.0, 1.25, 1.0}
+            && boundary->flags == 1
             && boundary->vertlist.size() == 4u
             && boundary->vertlist[0]->x == 0.0
             && boundary->vertlist[1]->x == 2.0
@@ -5633,6 +5704,10 @@ public:
     dxfRW& output;
     dx_data storage;
     DRW_Hatch hatch;
+    std::shared_ptr<DRW_Line> line;
+    std::shared_ptr<DRW_Arc> arc;
+    std::shared_ptr<DRW_Ellipse> ellipse;
+    std::shared_ptr<DRW_Spline> spline;
     bool entitiesWritten = false;
 };
 
@@ -5726,9 +5801,11 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                     || readback.hatch.handle == 0u
                     || readback.hatch.angle != 0.25
                     || readback.hatch.scale != 1.5
-                    || readback.hatch.looplist.size() != 1u
-                    || !readback.hatch.looplist.front()
-                    || readback.hatch.looplist.front()->objlist.size() != 1u
+                    || readback.hatch.looplist.size() != 5u
+                    || std::any_of(readback.hatch.looplist.begin(),
+                        readback.hatch.looplist.end(), [](const auto& loop) {
+                            return !loop || loop->objlist.size() != 1u;
+                        })
                     || dynamic_cast<const DRW_LWPolyline*>(
                         readback.hatch.looplist.front()->objlist.front().get())
                         == nullptr
@@ -5746,12 +5823,35 @@ bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
                     return fail(version, binary,
                                 "retry or typed readback failed");
                 const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
-                    readback.hatch.looplist.front()->objlist.front().get());
+                    readback.hatch.looplist[0]->objlist.front().get());
+                const auto* lineEdge = dynamic_cast<const DRW_Line*>(
+                    readback.hatch.looplist[1]->objlist.front().get());
+                const auto* arcEdge = dynamic_cast<const DRW_Arc*>(
+                    readback.hatch.looplist[2]->objlist.front().get());
+                const auto* ellipseEdge = dynamic_cast<const DRW_Ellipse*>(
+                    readback.hatch.looplist[3]->objlist.front().get());
+                const auto* splineEdge = dynamic_cast<const DRW_Spline*>(
+                    readback.hatch.looplist[4]->objlist.front().get());
                 if (boundary->flags != 1 || boundary->vertlist.size() != 4u
                     || boundary->vertlist[0]->x != 0.0
                     || boundary->vertlist[1]->x != 2.0
                     || boundary->vertlist[2]->y != 3.0
-                    || boundary->vertlist[3]->x != 0.0)
+                    || boundary->vertlist[3]->x != 0.0
+                    || lineEdge == nullptr || lineEdge->basePoint.x != 1.0
+                    || lineEdge->secPoint.y != 6.0 || arcEdge == nullptr
+                    || arcEdge->basePoint.x != 2.0 || arcEdge->radious != 4.0
+                    || arcEdge->isccw != 1 || ellipseEdge == nullptr
+                    || ellipseEdge->basePoint.x != 5.0
+                    || ellipseEdge->ratio != 0.5
+                    || ellipseEdge->staparam != 0.25
+                    || ellipseEdge->endparam != 1.5 || splineEdge == nullptr
+                    || splineEdge->degree != 2
+                    || splineEdge->knotslist
+                        != std::vector<double>{0.0, 0.0, 0.0, 1.0, 1.0, 1.0}
+                    || splineEdge->weightlist
+                        != std::vector<double>{1.0, 1.25, 1.0}
+                    || splineEdge->fitlist.size() != 1u
+                    || splineEdge->fitlist.front()->x != 1.5)
                     return fail(version, binary,
                                 "typed boundary readback mismatch");
             }
