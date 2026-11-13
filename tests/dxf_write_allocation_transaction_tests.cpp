@@ -468,6 +468,15 @@ public:
         storage.views.push_back(cameraView);
         camera.handle = 0xD96Du;
         camera.m_viewHandle = cameraView.handle;
+        geoPositionMarker.handle = 0xD96Fu;
+        geoPositionMarker.m_classVersion = 1u;
+        geoPositionMarker.m_position = DRW_Coord(120.0, 121.0, 122.0);
+        geoPositionMarker.m_radius = 6.5;
+        geoPositionMarker.m_notes = "whole-operation geo marker";
+        geoPositionMarker.m_landingGap = 0.75;
+        geoPositionMarker.m_mtextVisible = true;
+        geoPositionMarker.m_textAlignment = 2u;
+        geoPositionMarker.m_enableFrameText = false;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -738,6 +747,7 @@ public:
             && check("ARCALIGNEDTEXT", output.writeArcAlignedText(&arcAlignedText))
             && check("LIGHT", output.writeLight(&light))
             && check("CAMERA", output.writeCamera(&camera))
+            && check("GEOPOSITIONMARKER", output.writeGeoPositionMarker(&geoPositionMarker))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -807,6 +817,7 @@ public:
     DRW_ArcAlignedText arcAlignedText;
     DRW_Light light;
     DRW_Camera camera;
+    DRW_GeoPositionMarker geoPositionMarker;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1024,6 +1035,10 @@ public:
         ++viewCount;
         view = value;
     }
+    void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
+        ++geoPositionMarkerCount;
+        geoPositionMarker = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1139,6 +1154,7 @@ public:
     DRW_ArcAlignedText arcAlignedText;
     DRW_Light light;
     DRW_Camera camera;
+    DRW_GeoPositionMarker geoPositionMarker;
     DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
@@ -1196,6 +1212,7 @@ public:
     unsigned lightCount = 0u;
     unsigned cameraCount = 0u;
     unsigned viewCount = 0u;
+    unsigned geoPositionMarkerCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1577,6 +1594,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.storage.views.front().name == "WHOLE_OPERATION_CAMERA_VIEW"
         && adapter.storage.views.front().size.x == 640.0
         && adapter.storage.views.front().targetPoint.z == 30.0
+        && adapter.geoPositionMarker.handle == 0xD96Fu
+        && adapter.geoPositionMarker.m_classVersion == 1u
+        && adapter.geoPositionMarker.m_position.x == 120.0
+        && adapter.geoPositionMarker.m_position.y == 121.0
+        && adapter.geoPositionMarker.m_position.z == 122.0
+        && adapter.geoPositionMarker.m_radius == 6.5
+        && adapter.geoPositionMarker.m_notes == "whole-operation geo marker"
+        && adapter.geoPositionMarker.m_landingGap == 0.75
+        && adapter.geoPositionMarker.m_mtextVisible
+        && adapter.geoPositionMarker.m_textAlignment == 2u
+        && !adapter.geoPositionMarker.m_enableFrameText
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1952,6 +1980,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.lightCount != 1u
         || adapter.cameraCount != 1u
         || adapter.viewCount != 1u
+        || adapter.geoPositionMarkerCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2241,6 +2270,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.view.targetPoint.y != 20.0
         || adapter.view.targetPoint.z != 30.0
         || adapter.camera.m_viewHandle != adapter.view.handle
+        || adapter.geoPositionMarker.handle == 0u
+        || adapter.geoPositionMarker.m_classVersion != 1u
+        || adapter.geoPositionMarker.m_position.x != 120.0
+        || adapter.geoPositionMarker.m_position.y != 121.0
+        || adapter.geoPositionMarker.m_position.z != 122.0
+        || adapter.geoPositionMarker.m_radius != 6.5
+        || adapter.geoPositionMarker.m_notes != "whole-operation geo marker"
+        || adapter.geoPositionMarker.m_landingGap != 0.75
+        || !adapter.geoPositionMarker.m_mtextVisible
+        || adapter.geoPositionMarker.m_textAlignment != 2u
+        || adapter.geoPositionMarker.m_enableFrameText
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
