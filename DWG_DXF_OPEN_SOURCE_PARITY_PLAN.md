@@ -4312,6 +4312,17 @@ promoted to errors in `dx_batch_output_names.cpp`. This closes only callback
 failure propagation; broader object-family coverage, source graph closure and
 semantic support gates remain open.
 
+**P6-G TABLECONTENT caller-state assertion (2026-11-13):** the existing
+generated standalone TABLECONTENT OBJECTS allocation sweep now compares the
+complete public table-content payload used by its fixture (table flags and
+references, grid vectors, every cell field, borders, attributes, values,
+merged ranges and subrecord ranges) after each injected failure and retry. The
+focused test passes; it reaches 14 ASCII and 12 Binary whole-file allocation
+offsets plus 34 direct DWG encoder offsets. This strengthens caller-preservation
+evidence for that generated profile only. The broader P6-G writer inventory and
+coverage of the other remaining public writers are still open; see the
+[TABLECONTENT caller-state receipt](docs/research/p6-dxf-tablecontent-caller-state-rollback-2026-11-13.json).
+
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
 app; earlier sandboxed signature failures were unreliable. The installed 27.1

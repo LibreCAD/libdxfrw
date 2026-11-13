@@ -208,19 +208,161 @@ bool verify(const std::filesystem::path& path) {
             == std::string("allocation retry");
 }
 
+bool sameValue(const DRW_CadValue& a, const DRW_CadValue& b) {
+    return a.m_formatFlags == b.m_formatFlags
+        && a.m_dataType == b.m_dataType && a.m_dataSize == b.m_dataSize
+        && a.m_unitType == b.m_unitType && a.m_value.type() == b.m_value.type()
+        && a.m_value.code() == b.m_value.code()
+        && (a.m_value.type() != DRW_Variant::STRING
+            || a.m_value.c_str() == std::string(b.m_value.c_str()))
+        && a.m_formatString == b.m_formatString
+        && a.m_valueString == b.m_valueString && a.m_handle == b.m_handle
+        && a.m_rawData == b.m_rawData;
+}
+
+bool sameCell(const DRW_TableCell& a, const DRW_TableCell& b) {
+    if (a.m_flags != b.m_flags || a.m_type != b.m_type
+        || a.m_edgeFlags != b.m_edgeFlags || a.m_isMerged != b.m_isMerged
+        || a.m_autoFit != b.m_autoFit || a.m_mergedWidth != b.m_mergedWidth
+        || a.m_mergedHeight != b.m_mergedHeight || a.m_rotation != b.m_rotation
+        || a.m_toolTip != b.m_toolTip || a.m_textStyleName != b.m_textStyleName
+        || a.m_styleId != b.m_styleId
+        || a.m_overrideStyleType != b.m_overrideStyleType
+        || a.m_virtualEdgeFlags != b.m_virtualEdgeFlags
+        || a.m_overrideFlags != b.m_overrideFlags
+        || a.m_valueHandle != b.m_valueHandle
+        || a.m_textStyleHandle != b.m_textStyleHandle
+        || a.m_textStyleOverrideHandle != b.m_textStyleOverrideHandle
+        || a.m_blockHandle != b.m_blockHandle
+        || a.m_hasLinkedData != b.m_hasLinkedData
+        || a.m_dataLinkHandle != b.m_dataLinkHandle
+        || a.m_linkedDataRowCount != b.m_linkedDataRowCount
+        || a.m_linkedDataColumnCount != b.m_linkedDataColumnCount
+        || a.m_linkedDataUnknown != b.m_linkedDataUnknown
+        || a.m_blockScale != b.m_blockScale || a.m_width != b.m_width
+        || a.m_height != b.m_height || a.m_geometryFlags != b.m_geometryFlags
+        || a.m_geometryHandle != b.m_geometryHandle
+        || a.m_geometryRecordFlags != b.m_geometryRecordFlags
+        || a.m_geometryTopLeft.x != b.m_geometryTopLeft.x
+        || a.m_geometryTopLeft.y != b.m_geometryTopLeft.y
+        || a.m_geometryTopLeft.z != b.m_geometryTopLeft.z
+        || a.m_geometryCenter.x != b.m_geometryCenter.x
+        || a.m_geometryCenter.y != b.m_geometryCenter.y
+        || a.m_geometryCenter.z != b.m_geometryCenter.z
+        || a.m_contentWidth != b.m_contentWidth
+        || a.m_contentHeight != b.m_contentHeight
+        || a.m_geometryWidth != b.m_geometryWidth
+        || a.m_geometryHeight != b.m_geometryHeight
+        || a.m_textColorRgb != b.m_textColorRgb
+        || a.m_textColorMethod != b.m_textColorMethod
+        || a.m_fillColorRgb != b.m_fillColorRgb
+        || a.m_fillColorMethod != b.m_fillColorMethod
+        || a.m_backgroundEnabled != b.m_backgroundEnabled
+        || a.m_textAlignment != b.m_textAlignment
+        || a.m_textHeight != b.m_textHeight
+        || a.m_attributes.size() != b.m_attributes.size()
+        || a.m_contents.size() != b.m_contents.size())
+        return false;
+    for (std::size_t i = 0; i < a.m_borders.size(); ++i) {
+        const auto& left = a.m_borders[i];
+        const auto& right = b.m_borders[i];
+        if (left.m_lineWeight != right.m_lineWeight
+            || left.m_visible != right.m_visible
+            || left.m_colorRgb != right.m_colorRgb
+            || left.m_colorMethod != right.m_colorMethod
+            || left.m_hasDxfVisibility != right.m_hasDxfVisibility)
+            return false;
+    }
+    for (std::size_t i = 0; i < a.m_attributes.size(); ++i) {
+        const auto& left = a.m_attributes[i];
+        const auto& right = b.m_attributes[i];
+        if (left.m_attdefHandle != right.m_attdefHandle
+            || left.m_index != right.m_index || left.m_text != right.m_text
+            || left.m_contentIndex != right.m_contentIndex)
+            return false;
+    }
+    for (std::size_t i = 0; i < a.m_contents.size(); ++i) {
+        const auto& left = a.m_contents[i];
+        const auto& right = b.m_contents[i];
+        if (left.m_type != right.m_type || left.m_text != right.m_text
+            || !sameValue(left.m_value, right.m_value)
+            || left.m_handle != right.m_handle)
+            return false;
+    }
+    return true;
+}
+
 bool sourceUnchanged(const TableContentExport& actual,
                      const TableContentExport& expected) {
     const auto& a = actual.content;
     const auto& b = expected.content;
-    return a.handle == b.handle && a.m_parseComplete == b.m_parseComplete
-        && a.m_content.m_name == b.m_content.m_name
-        && a.m_content.m_description == b.m_content.m_description
-        && a.m_content.m_columns.size() == b.m_content.m_columns.size()
-        && a.m_content.m_columns.front().m_name
-            == b.m_content.m_columns.front().m_name
-        && a.m_content.m_rows.size() == b.m_content.m_rows.size()
-        && a.m_content.m_rows.front().m_cells.front().m_contents.front().m_text
-            == b.m_content.m_rows.front().m_cells.front().m_contents.front().m_text;
+    if (a.tType != b.tType || a.handle != b.handle
+        || a.parentHandle != b.parentHandle || a.name != b.name
+        || a.flags != b.flags || a.reactorHandles != b.reactorHandles
+        || a.xDictHandle != b.xDictHandle
+        || !a.pendingAppIdResolutions.empty()
+        || !b.pendingAppIdResolutions.empty()
+        || !a.pendingLayerRefResolutions.empty()
+        || !b.pendingLayerRefResolutions.empty()
+        || a.extensionDictionaryFlag() != b.extensionDictionaryFlag()
+        || a.reactorCount() != b.reactorCount()
+        || a.hasDataStorageBinaryData() != b.hasDataStorageBinaryData()
+        || a.hasDwgCommonLinkTail() != b.hasDwgCommonLinkTail()
+        || !a.extData.empty()
+        || !b.extData.empty() || !a.appData.empty() || !b.appData.empty()
+        || a.m_parseComplete != b.m_parseComplete
+        || a.m_semanticContentComplete != b.m_semanticContentComplete
+        || a.m_dxfMetadata != b.m_dxfMetadata
+        || a.m_content.m_name != b.m_content.m_name
+        || a.m_content.m_description != b.m_content.m_description
+        || a.m_content.m_tableStyleHandle != b.m_content.m_tableStyleHandle
+        || a.m_content.m_overrideStyleType != b.m_content.m_overrideStyleType
+        || a.m_content.m_fieldHandles != b.m_content.m_fieldHandles
+        || a.m_content.m_columns.size() != b.m_content.m_columns.size()
+        || a.m_content.m_rows.size() != b.m_content.m_rows.size()
+        || a.m_content.m_mergedRanges.size() != b.m_content.m_mergedRanges.size()
+        || a.m_content.m_subrecordRanges.size() != b.m_content.m_subrecordRanges.size())
+        return false;
+    for (std::size_t i = 0; i < a.m_content.m_columns.size(); ++i) {
+        const auto& left = a.m_content.m_columns[i];
+        const auto& right = b.m_content.m_columns[i];
+        if (left.m_name != right.m_name || left.m_width != right.m_width
+            || left.m_styleId != right.m_styleId
+            || left.m_overrideStyleType != right.m_overrideStyleType)
+            return false;
+    }
+    for (std::size_t i = 0; i < a.m_content.m_rows.size(); ++i) {
+        const auto& left = a.m_content.m_rows[i];
+        const auto& right = b.m_content.m_rows[i];
+        if (left.m_height != right.m_height || left.m_styleId != right.m_styleId
+            || left.m_overrideStyleType != right.m_overrideStyleType
+            || left.m_cells.size() != right.m_cells.size())
+            return false;
+        for (std::size_t j = 0; j < left.m_cells.size(); ++j) {
+            if (!sameCell(left.m_cells[j], right.m_cells[j]))
+                return false;
+        }
+    }
+    for (std::size_t i = 0; i < a.m_content.m_mergedRanges.size(); ++i) {
+        const auto& left = a.m_content.m_mergedRanges[i];
+        const auto& right = b.m_content.m_mergedRanges[i];
+        if (left.m_topRow != right.m_topRow
+            || left.m_leftColumn != right.m_leftColumn
+            || left.m_bottomRow != right.m_bottomRow
+            || left.m_rightColumn != right.m_rightColumn)
+            return false;
+    }
+    for (std::size_t i = 0; i < a.m_content.m_subrecordRanges.size(); ++i) {
+        const auto& left = a.m_content.m_subrecordRanges[i];
+        const auto& right = b.m_content.m_subrecordRanges[i];
+        if (left.m_name != right.m_name || left.m_startBit != right.m_startBit
+            || left.m_bitSize != right.m_bitSize || left.m_version != right.m_version
+            || left.m_count != right.m_count
+            || left.m_rawHandleCode != right.m_rawHandleCode
+            || left.m_parseComplete != right.m_parseComplete)
+            return false;
+    }
+    return true;
 }
 
 bool run(const std::filesystem::path& directory) {
