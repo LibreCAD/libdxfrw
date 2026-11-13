@@ -54,7 +54,8 @@ DRW_RawDxfObject makeRawObject() {
         DRW_Variant(100, std::string("AcDbXrecord")),
         DRW_Variant(1, std::string("original first value")),
         DRW_Variant(3, std::string("original second value")),
-        DRW_Variant(90, std::int32_t{314})};
+        DRW_Variant(90, std::int32_t{314}),
+        DRW_Variant(91, std::int32_t{17})};
     return object;
 }
 
@@ -67,7 +68,8 @@ const std::vector<std::pair<std::size_t, std::string>>& stringOverrides() {
 
 const std::vector<std::pair<std::size_t, std::int32_t>>& int32Overrides() {
     static const std::vector<std::pair<std::size_t, std::int32_t>> overrides{
-        {5u, 2718}};
+        {5u, 2718},
+        {6u, -91}};
     return overrides;
 }
 
@@ -161,7 +163,7 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
                               bool expectInt32Override) {
     return object.name == "XRECORD" && object.handle == 0xD8A0u
-        && object.parentHandle == 0xCu && object.groups.size() == 6u
+        && object.parentHandle == 0xCu && object.groups.size() == 7u
         && object.groups[0].code() == 5
         && object.groups[1].code() == 330
         && object.groups[2].code() == 100
@@ -175,7 +177,10 @@ bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
         && std::string(object.groups[4].c_str()) == "replacement second value"
         && object.groups[5].code() == 90
         && object.groups[5].type() == DRW_Variant::INTEGER
-        && object.groups[5].i_val() == (expectInt32Override ? 2718 : 314);
+        && object.groups[5].i_val() == (expectInt32Override ? 2718 : 314)
+        && object.groups[6].code() == 91
+        && object.groups[6].type() == DRW_Variant::INTEGER
+        && object.groups[6].i_val() == (expectInt32Override ? -91 : 17);
 }
 
 bool readbackMatches(const std::filesystem::path& path,
