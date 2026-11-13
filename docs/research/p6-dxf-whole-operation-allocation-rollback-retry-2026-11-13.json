@@ -487,22 +487,22 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "a089eac15a736333835a063d4c2868dd58f4e3fbebd54ac75710a86983039221",
+    "testSha256": "8407f32703643631704409a84526616d3955a1760fac0b941592579cff573759",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "2750cc46a07cec4c738e43046a69dd0c56275e800de46999ca9f75b7150ff203",
-    "asanExecutableSha256": "d1f2df938c0a0f132a97dce6bea5c83a7b61d72b772315c3b0e583f8df4cbdf0",
+    "normalExecutableSha256": "bc3b8061538be1681b1900320b7821ebe92170075c9d42f90a807d9ab4b90560",
+    "asanExecutableSha256": "30ac36844f1e3f38aa2c924399d65c8c5eb33c7748b83c4c922a18d5a83c07d8",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/libdxfrw.h",
       "src/intern/dxfwriter.h"
     ],
-    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. Successful INSERT/ATTRIB handle mutations are journaled until whole-file publication; any later failure restores the caller handles.",
+    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. During whole-file writing, INSERT/ATTRIB caller handles are restored when each compound callback returns; emitted identities remain in the codec map. This avoids retaining borrowed callback records. Standalone writeInsert calls retain their existing successful handle-preserving behavior.",
     "productionSourceSha256": {
-      "src/libdxfrw.cpp": "8399ea2e63ef61f7a541c1a2eb292ecc523f77b4210f7817c1d016c1cfa003ae",
+      "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "a089eac15a736333835a063d4c2868dd58f4e3fbebd54ac75710a86983039221",
-      "src/libdxfrw.h": "da9e6130f80a3be2d37362fb2aa8469607075eeed6f0498dd8cc1ba3f835b0b5"
+      "tests/dxf_write_allocation_transaction_tests.cpp": "8407f32703643631704409a84526616d3955a1760fac0b941592579cff573759",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a"
     },
     "details": [
       "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
@@ -511,14 +511,14 @@
       "Generated LEADER output with three 3D vertices and a nondefault block offset now participates in the whole-operation allocation sweep.",
       "Generated custom BLOCK/BLOCK_RECORD output with one owned POINT and a name-resolved INSERT now participates in the whole-operation sweep.",
       "The INSERT carries one ATTRIB and synthesized SEQEND. Typed readback verifies the block body, INSERT target/name/position and ATTRIB owner/tag/text/position/height.",
-      "Whole-write rollback now restores INSERT and ATTRIB caller handles when a later operation allocation fails; generated BLOCK/ENDBLK reservations no longer persist across failed attempts and change retry bytes."
+      "Whole-file write callbacks restore INSERT/ATTRIB caller handles locally, avoiding a borrowed-pointer journal; standalone writeInsert keeps its handle-preserving behavior. The custom BLOCK/ENDBLK identities remain attempt-scoped."
     ]
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
-    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-insert-attrib-whole-operation-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-insert-attrib-borrowed-lifetime-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -526,9 +526,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.73 seconds; ASan 1/1 passed in 13.33 seconds.",
+    "ctest": "Normal 1/1 passed in 1.71 seconds; ASan 1/1 passed in 13.19 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 352,
+      "measuredAllocationOffsets": 350,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -572,10 +572,11 @@
       "generatedBlockAndBodyReadbackMatched": true,
       "insertAttribWholeOperationHandleRollback": true,
       "blockStructuralHandleRetryIdentityStable": true,
-      "callerInsertAttribAndBlockRecordsPreserved": true
+      "callerInsertAttribAndBlockRecordsPreserved": true,
+      "wholeWriteCallerHandlesUnchangedOnSuccess": true
     },
     "binary": {
-      "measuredAllocationOffsets": 345,
+      "measuredAllocationOffsets": 343,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -619,9 +620,10 @@
       "generatedBlockAndBodyReadbackMatched": true,
       "insertAttribWholeOperationHandleRollback": true,
       "blockStructuralHandleRetryIdentityStable": true,
-      "callerInsertAttribAndBlockRecordsPreserved": true
+      "callerInsertAttribAndBlockRecordsPreserved": true,
+      "wholeWriteCallerHandlesUnchangedOnSuccess": true
     },
-    "addressSanitizerCtest": "1/1 passed in 13.33 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 13.19 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -629,12 +631,12 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 352 allocation offsets; Binary 345 allocation offsets; both pass whole-write rollback, INSERT/ATTRIB/block caller-state preservation, byte-identical same-codec retry and typed readback.",
-      "normalCtest": "1/1 passed in 1.73 seconds.",
-      "asanCtest": "1/1 passed in 13.33 seconds.",
-      "insertReadback": "One generated named BLOCK containing a POINT; a name-resolved INSERT with one ATTRIB and generated SEQEND matched after ASCII and Binary readback.",
+      "normalDirectRun": "ASCII 350 allocation offsets; Binary 343 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
+      "normalCtest": "1/1 passed in 1.71 seconds.",
+      "asanCtest": "1/1 passed in 13.19 seconds.",
+      "insertReadback": "A generated named BLOCK contains a POINT; a name-resolved INSERT has one ATTRIB and generated SEQEND. ASCII/Binary readback confirms target, owner, tag, text and geometry.",
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
-      "callerHandleRollbackDefect": "Injected failure at offset 255 after successful INSERT/ATTRIB emission left newly minted caller handles visible. Whole-write attempt journal now restores their original handles unless the output commit succeeds."
+      "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics."
     },
     "additionalFailuresFoundAndFixed": [
       {
@@ -646,8 +648,8 @@
       {
         "asciiOffset": 255,
         "symptom": "An INSERT with an ATTRIB completed and exposed minted caller handles, then a later allocation failure aborted the full drawing but left those new handles in caller records.",
-        "fix": "Journal successful INSERT/ATTRIB caller handle mutations until whole-file publication; WriteAttemptScope restores them on any later failure and clears the journal after success.",
-        "regression": "All offsets check original INSERT, ATTRIB, block and point caller state after failure; retry succeeds and typed readback verifies the complete graph."
+        "fix": "For whole-file writes, restore INSERT and ATTRIB caller handles at the end of the compound callback; rely on the codec identity ledger for later references. This avoids storing borrowed entity pointers beyond callback lifetime. Standalone writeInsert calls retain prior behavior.",
+        "regression": "All offsets check original INSERT/ATTRIB and block caller state; successful calibration also confirms caller records remain unchanged. Same-codec retry reproduces exact bytes and typed readback verifies the graph."
       }
     ]
   },
@@ -656,5 +658,5 @@
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "40d14d04"
+  "baseRevision": "457814f2"
 }

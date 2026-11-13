@@ -3853,8 +3853,9 @@ was rolled back at record scope, but the enclosing DXF write lost the error bit
 and published a file with the polyline omitted. The outer operation now latches
 staged writer failures before local rollback. Generated BLOCK/ENDBLK handles
 are now attempt-scoped so failed writes do not shift retry identities, and
-INSERT/ATTRIB minted handles are journaled until atomic publication so later
-whole-write failures restore caller state. The sweep reaches 352 ASCII and
+whole-file INSERT/ATTRIB callbacks now restore caller handles locally without
+retaining borrowed record pointers; standalone writeInsert handle behavior is
+preserved. The sweep reaches 352 ASCII and
 345 Binary allocation offsets; focused CTest passes in normal and ASan builds.
 This closes only these generated whole-operation paths; other drawing families
 and platform/filesystem failure modes remain open

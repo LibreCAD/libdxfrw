@@ -992,12 +992,15 @@ bool run(const std::filesystem::path& directory) {
             const bool readback = matchesReadback(output);
             const bool bytesRead = readBytes(output, expectedBytes);
             if (!wrote || !adapter.entitiesWritten || !adapter.objectsWritten
-                || !readback || !bytesRead) {
+                || !readback || !bytesRead
+                || !callerRecordsUnchanged(adapter)) {
                 std::cerr << "calibration wrote=" << wrote
                           << " entities=" << adapter.entitiesWritten
                           << " objects=" << adapter.objectsWritten
                           << " readback=" << readback
                           << " bytes=" << bytesRead
+                          << " callerState="
+                          << callerRecordsUnchanged(adapter)
                           << " error=" << codec.getError() << '\n';
                 return fail("calibration write or readback failed");
             }
