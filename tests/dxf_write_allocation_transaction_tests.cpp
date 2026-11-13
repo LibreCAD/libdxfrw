@@ -45,6 +45,7 @@ constexpr std::uint32_t kTextHandle = 0xD92Du;
 constexpr std::uint32_t kMTextHandle = 0xD92Eu;
 constexpr std::uint32_t kRayHandle = 0xD92Fu;
 constexpr std::uint32_t kXlineHandle = 0xD930u;
+constexpr std::uint32_t kAttdefHandle = 0xD931u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -283,6 +284,15 @@ public:
         blockPoint.handle = kInsertBlockPointHandle;
         blockPoint.basePoint = DRW_Coord(6.0, 7.0, 8.0);
         addPoint(blockPoint);
+        DRW_Attdef blockAttdef;
+        blockAttdef.handle = kAttdefHandle;
+        blockAttdef.tag = "BLOCK_TAG";
+        blockAttdef.prompt = "Enter block value";
+        blockAttdef.text = "Default value";
+        blockAttdef.basePoint = DRW_Coord(2.0, 4.0, 0.0);
+        blockAttdef.height = 1.75;
+        blockAttdef.style = "STANDARD";
+        addAttDef(blockAttdef);
         endBlock();
 
         insert.handle = kInsertHandle;
@@ -545,6 +555,11 @@ public:
         ++xlineCount;
         xline = value;
     }
+    void addAttDef(const DRW_Attdef& value) override {
+        dx_iface::addAttDef(value);
+        ++attdefCount;
+        attdef = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -580,6 +595,7 @@ public:
     DRW_MText mtext;
     DRW_Ray ray;
     DRW_Xline xline;
+    DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -607,6 +623,7 @@ public:
     unsigned mtextCount = 0u;
     unsigned rayCount = 0u;
     unsigned xlineCount = 0u;
+    unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -838,9 +855,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
-        && adapter.storage.blocks.front()->ent.size() == 1u
+        && adapter.storage.blocks.front()->ent.size() == 2u
         && adapter.storage.blocks.front()->ent.front()->handle
             == kInsertBlockPointHandle
+        && adapter.storage.blocks.front()->ent.back()->handle == kAttdefHandle
+        && dynamic_cast<const DRW_Attdef*>(
+            adapter.storage.blocks.front()->ent.back()) != nullptr
+        && dynamic_cast<const DRW_Attdef*>(
+            adapter.storage.blocks.front()->ent.back())->tag == "BLOCK_TAG"
+        && dynamic_cast<const DRW_Attdef*>(
+            adapter.storage.blocks.front()->ent.back())->prompt
+            == "Enter block value"
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -1131,8 +1156,22 @@ bool matchesReadback(const std::filesystem::path& path) {
         || std::abs(adapter.xline.secPoint.y - 1.0 / std::sqrt(5.25)) > 1.0e-12
         || std::abs(adapter.xline.secPoint.z - 0.5 / std::sqrt(5.25)) > 1.0e-12
         || insertBlock == adapter.storage.blocks.end()
-        || (*insertBlock)->ent.size() != 1u
+        || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u
+        || (*insertBlock)->ent.back()->handle == 0u
+        || dynamic_cast<const DRW_Attdef*>((*insertBlock)->ent.back()) == nullptr
+        || dynamic_cast<const DRW_Attdef*>(
+            (*insertBlock)->ent.back())->tag != "BLOCK_TAG"
+        || dynamic_cast<const DRW_Attdef*>(
+            (*insertBlock)->ent.back())->prompt != "Enter block value"
+        || adapter.attdefCount != 1u
+        || adapter.attdef.handle == 0u
+        || adapter.attdef.tag != "BLOCK_TAG"
+        || adapter.attdef.prompt != "Enter block value"
+        || adapter.attdef.text != "Default value"
+        || adapter.attdef.basePoint.x != 2.0
+        || adapter.attdef.basePoint.y != 4.0
+        || adapter.attdef.height != 1.75
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
