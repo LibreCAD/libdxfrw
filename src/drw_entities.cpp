@@ -10614,6 +10614,19 @@ bool DRW_Ellipse::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
         || !std::isfinite(parsedEnd))
         return fail();
 
+    // The DWG fields define a geometric ellipse, not arbitrary finite vectors.
+    // Match the documented AutoCAD ratio and axis domain before publishing the
+    // parsed record so malformed geometry cannot escape through typed readback.
+    DRW_Ellipse parsedEllipse;
+    parsedEllipse.basePoint = parsedCenter;
+    parsedEllipse.secPoint = parsedAxis;
+    parsedEllipse.extPoint = parsedExtrusion;
+    parsedEllipse.ratio = parsedRatio;
+    parsedEllipse.staparam = parsedStart;
+    parsedEllipse.endparam = parsedEnd;
+    if (!hasRepresentableDwgEllipseGeometry(parsedEllipse))
+        return fail();
+
     std::uint64_t handleEndBit = 0;
     if (!dwgHandleStreamEndBit(*sourceBuf, version, objSize, bs,
                                handleEndBit))
