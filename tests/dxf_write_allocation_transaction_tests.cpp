@@ -58,6 +58,7 @@ constexpr std::uint32_t kNurbsSurfaceHandle = 0xD93Au;
 constexpr std::uint32_t kScaleHandle = 0xD93Bu;
 constexpr std::uint32_t kBackgroundHandle = 0xD93Cu;
 constexpr std::uint32_t kPlotSettingsHandle = 0xD93Du;
+constexpr std::uint32_t kWipeoutVariablesHandle = 0xD93Eu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -551,6 +552,10 @@ public:
         plotSettings.shadePlotMode = 1;
         plotSettings.shadePlotResLevel = 2;
         plotSettings.shadePlotCustomDPI = 150;
+        wipeoutVariables.handle = kWipeoutVariablesHandle;
+        wipeoutVariables.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        wipeoutVariables.m_classVersion = 0;
+        wipeoutVariables.m_displayFrame = 1;
     }
 
     void writeEntities() override {
@@ -597,6 +602,7 @@ public:
             && output.writeScale(&scale)
             && output.writeBackground(&background, "SOLIDBACKGROUND")
             && output.writePlotSettings(&plotSettings)
+            && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
@@ -646,6 +652,7 @@ public:
     DRW_Scale scale;
     DRW_Background background;
     DRW_PlotSettings plotSettings;
+    DRW_WipeoutVariables wipeoutVariables;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -792,6 +799,10 @@ public:
         ++plotSettingsCount;
         plotSettings = *value;
     }
+    void addWipeoutVariables(const DRW_WipeoutVariables& value) override {
+        ++wipeoutVariablesCount;
+        wipeoutVariables = value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -866,6 +877,7 @@ public:
     DRW_Scale scale;
     DRW_Background background;
     DRW_PlotSettings plotSettings;
+    DRW_WipeoutVariables wipeoutVariables;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -905,6 +917,7 @@ public:
     unsigned scaleCount = 0u;
     unsigned backgroundCount = 0u;
     unsigned plotSettingsCount = 0u;
+    unsigned wipeoutVariablesCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1357,6 +1370,10 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.plotSettings.shadePlotMode == 1
         && adapter.plotSettings.shadePlotResLevel == 2
         && adapter.plotSettings.shadePlotCustomDPI == 150
+        && adapter.wipeoutVariables.handle == kWipeoutVariablesHandle
+        && adapter.wipeoutVariables.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.wipeoutVariables.m_classVersion == 0
+        && adapter.wipeoutVariables.m_displayFrame == 1
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1852,6 +1869,11 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.plotSettings.shadePlotMode != 1
         || adapter.plotSettings.shadePlotResLevel != 2
         || adapter.plotSettings.shadePlotCustomDPI != 150
+        || adapter.wipeoutVariablesCount != 1u
+        || adapter.wipeoutVariables.handle == 0u
+        || adapter.wipeoutVariables.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.wipeoutVariables.m_classVersion != 0
+        || adapter.wipeoutVariables.m_displayFrame != 1u
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u
