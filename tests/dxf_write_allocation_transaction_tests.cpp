@@ -1646,6 +1646,85 @@ public:
     dx_data storage;
 };
 
+class PolylineTopologyExport final : public dx_iface {
+public:
+    enum class Topology { ThreeDimensional, PolygonMesh, Polyface };
+
+    PolylineTopologyExport(dxfRW& output, Topology topology) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        polyline.handle = 0xDB00u;
+        polyline.basePoint = DRW_Coord{0.0, 0.0, 2.5};
+        if (topology == Topology::ThreeDimensional) {
+            polyline.flags = 8;
+            addVertex(0xDB01u, 1.0, 2.0, 3.0,
+                      DRW_Vertex::DwgSubtype::Vertex3D, 32);
+            addVertex(0xDB02u, 4.0, 5.0, 6.0,
+                      DRW_Vertex::DwgSubtype::Vertex3D, 32);
+        } else if (topology == Topology::PolygonMesh) {
+            polyline.flags = 16 | 32;
+            polyline.vertexcount = 2;
+            polyline.facecount = 2;
+            addVertex(0xDB01u, 1.0, 2.0, 3.0,
+                      DRW_Vertex::DwgSubtype::Mesh, 64);
+            addVertex(0xDB02u, 4.0, 5.0, 6.0,
+                      DRW_Vertex::DwgSubtype::Mesh, 64);
+            addVertex(0xDB03u, 7.0, 8.0, 9.0,
+                      DRW_Vertex::DwgSubtype::Mesh, 64);
+            addVertex(0xDB04u, 10.0, 11.0, 12.0,
+                      DRW_Vertex::DwgSubtype::Mesh, 64);
+        } else {
+            polyline.flags = 64;
+            polyline.vertexcount = 4;
+            polyline.facecount = 1;
+            for (unsigned i = 0; i != 4; ++i)
+                addVertex(0xDB01u + i, 1.0 + i, 2.0 + i, 3.0 + i,
+                          DRW_Vertex::DwgSubtype::Polyface, 64);
+            DRW_Vertex face;
+            face.handle = 0xDB05u;
+            face.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+            face.vindex1 = 1;
+            face.vindex2 = 2;
+            face.vindex3 = 3;
+            face.vindex4 = 4;
+            polyline.addVertex(face);
+        }
+    }
+
+    void writeEntities() override {
+        written = dxfW != nullptr && dxfW->writePolyline(&polyline);
+    }
+    bool finalizeDxfWrite() override { return written; }
+
+    DRW_Polyline polyline;
+    bool written = false;
+    dx_data storage;
+
+private:
+    void addVertex(std::uint32_t handle, double x, double y, double z,
+                   DRW_Vertex::DwgSubtype subtype, int flags) {
+        DRW_Vertex vertex(x, y, z, 0.0);
+        vertex.handle = handle;
+        vertex.setDwgSubtype(subtype);
+        vertex.flags = flags;
+        polyline.addVertex(vertex);
+    }
+};
+
+class PolylineTopologyReadback final : public dx_iface {
+public:
+    PolylineTopologyReadback() {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+    }
+    void addPolyline(const DRW_Polyline& value) override {
+        polylines.push_back(value);
+    }
+    dx_data storage;
+    std::vector<DRW_Polyline> polylines;
+};
+
 const std::string& longMTextPayload() {
     static const std::string payload = std::string(249u, 'A') + "€"
         + std::string(300u, 'B');
@@ -6148,6 +6227,159 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runPolylineTopologySweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "POLYLINE topology allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+
+    struct Profile {
+        PolylineTopologyExport::Topology topology;
+        const char* name;
+        int parentFlags;
+        std::size_t vertexCount;
+    };
+    const std::array<Profile, 3> profiles{{
+        {PolylineTopologyExport::Topology::ThreeDimensional,
+         "3d-polyline", 8, 2u},
+        {PolylineTopologyExport::Topology::PolygonMesh,
+         "polygon-mesh", 16 | 32, 4u},
+        {PolylineTopologyExport::Topology::Polyface,
+         "polyface-mesh", 64, 5u}
+    }};
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions{{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1032, "AC1032"}
+    }};
+    const std::string sentinel = "prior POLYLINE topology drawing bytes\n";
+
+    const auto sourceUnchanged = [](const PolylineTopologyExport& adapter) {
+        if (adapter.polyline.handle != 0xDB00u)
+            return false;
+        for (std::size_t i = 0; i < adapter.polyline.vertlist.size(); ++i) {
+            const auto& vertex = adapter.polyline.vertlist[i];
+            if (!vertex || vertex->handle != 0xDB01u + i)
+                return false;
+        }
+        return true;
+    };
+
+    for (const Profile& profile : profiles) {
+      for (const auto& version : versions) {
+        const auto output = directory
+            / (std::string(version.second) + "-" + profile.name + ".dxf");
+        for (const bool binary : {false, true}) {
+            if (!clearStagedOutput(output))
+                return fail("could not clear output before calibration");
+            std::string cleanBytes;
+            long allocationCount = 0;
+            {
+                dxfRW codec(output.string().c_str());
+                PolylineTopologyExport adapter(codec, profile.topology);
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.written || !sourceUnchanged(adapter))
+                    return fail("clean whole-write baseline failed");
+                PolylineTopologyReadback readback;
+                dxfRW reader(output.string().c_str());
+                if (!reader.read(&readback, false)
+                    || readback.polylines.size() != 1u)
+                    return fail("baseline typed readback failed");
+                const auto& actual = readback.polylines.front();
+                if (actual.flags != profile.parentFlags
+                    || actual.vertlist.size() != profile.vertexCount
+                    || actual.handle == 0u)
+                    return fail("baseline topology header mismatch");
+                if (profile.topology
+                    == PolylineTopologyExport::Topology::Polyface) {
+                    const auto& face = actual.vertlist.back();
+                    if (!face || (face->flags & 128) == 0
+                        || face->vindex1 != 1 || face->vindex2 != 2
+                        || face->vindex3 != 3 || face->vindex4 != 4)
+                        return fail("polyface face topology readback mismatch");
+                } else {
+                    for (std::size_t i = 0; i < actual.vertlist.size(); ++i) {
+                        const auto& vertex = actual.vertlist[i];
+                        if (!vertex || vertex->handle == 0u
+                            || vertex->basePoint.x != 1.0 + 3.0 * i
+                            || vertex->basePoint.y != 2.0 + 3.0 * i
+                            || vertex->basePoint.z != 3.0 + 3.0 * i)
+                            return fail("coordinate-pool readback mismatch");
+                    }
+                }
+                if (!readBytes(output, cleanBytes) || cleanBytes.empty())
+                    return fail("could not capture clean baseline bytes");
+            }
+            std::error_code removeError;
+            std::filesystem::remove(output, removeError);
+
+            {
+                dxfRW codec(output.string().c_str());
+                PolylineTopologyExport adapter(codec, profile.topology);
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || !sourceUnchanged(adapter))
+                    return fail("allocation calibration write failed");
+            }
+            if (allocationCount <= 0)
+                return fail("calibration observed no allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not seed destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                PolylineTopologyExport adapter(codec, profile.topology);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const std::size_t reached = allocationAttempts;
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                if (!injected || wrote
+                    || reached != static_cast<std::size_t>(offset + 1)
+                    || !readBytes(output, afterFailure)
+                    || afterFailure != sentinel
+                    || !sourceUnchanged(adapter) || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination");
+
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.written || !sourceUnchanged(adapter))
+                    return fail("same-codec retry failed");
+                std::string retryBytes;
+                if (!readBytes(output, retryBytes) || retryBytes != cleanBytes)
+                    return fail("retry bytes differ from clean baseline");
+                PolylineTopologyReadback readback;
+                dxfRW reader(output.string().c_str());
+                if (!reader.read(&readback, false)
+                    || readback.polylines.size() != 1u
+                    || readback.polylines.front().flags != profile.parentFlags
+                    || readback.polylines.front().vertlist.size()
+                        != profile.vertexCount)
+                    return fail("retry typed readback mismatch");
+            }
+            std::cout << version.second << ' ' << profile.name << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+      }
+    }
+    return true;
+}
+
 bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "legacy compound entity allocation transaction: "
@@ -8402,7 +8634,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|hatch-mpolygon-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -8412,6 +8644,8 @@ int main(int argc, char** argv) {
             return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
         if (mode == "legacy-compound-entities")
             return runLegacyCompoundEntitiesSweep(directory) ? 0 : 1;
+        if (mode == "polyline-topologies")
+            return runPolylineTopologySweep(directory) ? 0 : 1;
         if (mode == "hatch-mpolygon-versions")
             return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
