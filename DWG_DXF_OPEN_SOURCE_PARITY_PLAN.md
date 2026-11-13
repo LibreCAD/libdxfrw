@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **149 completed implementation slices** and **35 remaining
+The plan records **150 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`149 / (149 + 35) = 81.0%`. This is a count-based progress measure, not an
+`150 / (150 + 35) = 81.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4733,6 +4733,16 @@ the ordered date/hour arrays and scalar settings. The focused CTest passes in
 normal and ASan builds. This is generated serializer transaction evidence for
 one profile; source graph ownership, independent producer semantics and native
 Sun Study behavior remain separate ([receipt](docs/research/p6-dxf-sunstudy-allocation-rollback-retry-2026-11-13.json)).
+The generated whole-operation sweep now also writes an AC1027
+`SPATIAL_FILTER` with three boundary points, nondefault normal/origin and clip
+planes, and distinct 12-value inverse/forward transforms. All 94 ASCII and 93
+Binary injected allocation failures preserve destination, caller fields,
+source-handle bindings and staging cleanup; same-codec retry reproduces clean
+output and typed readback verifies every modeled point and transform. The
+focused CTest passes in normal and ASan builds. This is generated transaction
+evidence for one profile; block-reference ownership, source-authored layouts
+and clipping behavior in consumers remain unqualified
+([receipt](docs/research/p6-dxf-spatial-filter-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

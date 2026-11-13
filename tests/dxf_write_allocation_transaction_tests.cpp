@@ -6202,6 +6202,176 @@ bool runSunStudySweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runSpatialFilterSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "SPATIAL_FILTER allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "spatial-filter-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files in test scratch");
+    const std::string sentinel = "previous complete document\n";
+    const auto makeFilter = [] {
+        DRW_SpatialFilter value;
+        value.handle = 0xDB00u;
+        value.parentHandle = 0xDB01u;
+        value.m_boundaryPoints = {{1.25, -2.5, 0.0}, {4.75, 6.5, 0.0},
+                                  {8.0, 3.25, 0.0}};
+        value.m_normal = {0.0, 0.0, 1.0};
+        value.m_origin = {3.0, -4.0, 5.0};
+        value.m_displayBoundary = true;
+        value.m_clipFrontPlane = true;
+        value.m_clipBackPlane = true;
+        value.m_frontDistance = 12.5;
+        value.m_backDistance = -7.25;
+        for (std::size_t i = 0u; i < 12u; ++i) {
+            value.m_inverseInsertTransform.push_back(100.0 + i);
+            value.m_insertTransform.push_back(200.0 + i);
+        }
+        return value;
+    };
+    const auto sameFilter = [](const DRW_SpatialFilter& a,
+                               const DRW_SpatialFilter& b) {
+        if (a.handle != b.handle || a.parentHandle != b.parentHandle
+            || a.m_boundaryPoints.size() != b.m_boundaryPoints.size()
+            || a.m_normal.x != b.m_normal.x || a.m_normal.y != b.m_normal.y
+            || a.m_normal.z != b.m_normal.z || a.m_origin.x != b.m_origin.x
+            || a.m_origin.y != b.m_origin.y || a.m_origin.z != b.m_origin.z
+            || a.m_displayBoundary != b.m_displayBoundary
+            || a.m_clipFrontPlane != b.m_clipFrontPlane
+            || a.m_clipBackPlane != b.m_clipBackPlane
+            || a.m_frontDistance != b.m_frontDistance
+            || a.m_backDistance != b.m_backDistance
+            || a.m_inverseInsertTransform != b.m_inverseInsertTransform
+            || a.m_insertTransform != b.m_insertTransform)
+            return false;
+        for (std::size_t i = 0u; i < a.m_boundaryPoints.size(); ++i) {
+            if (a.m_boundaryPoints[i].x != b.m_boundaryPoints[i].x
+                || a.m_boundaryPoints[i].y != b.m_boundaryPoints[i].y
+                || a.m_boundaryPoints[i].z != b.m_boundaryPoints[i].z)
+                return false;
+        }
+        return true;
+    };
+    class SpatialFilterExport final : public dx_iface {
+    public:
+        SpatialFilterExport(dxfRW& codec, DRW_SpatialFilter source)
+            : output(codec), filter(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override { written = output.writeSpatialFilter(&filter); }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_SpatialFilter filter;
+        bool written = false;
+    };
+    class SpatialFilterReadback final : public dx_iface {
+    public:
+        SpatialFilterReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addSpatialFilter(const DRW_SpatialFilter& value) override {
+            filter = value;
+            found = true;
+        }
+        dx_data storage;
+        DRW_SpatialFilter filter;
+        bool found = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        SpatialFilterReadback probe;
+        return reader.read(&probe, true) && probe.found
+            && sameFilter(probe.filter, makeFilter());
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            SpatialFilterExport adapter(codec, makeFilter());
+            if (!codec.write(&adapter, DRW::AC1027, binary))
+                return fail("warm-up write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            SpatialFilterExport adapter(codec, makeFilter());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            SpatialFilterExport adapter(codec, makeFilter());
+            const DRW_SpatialFilter original(adapter.filter);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !sameFilter(adapter.filter, original)
+                || !identitiesRolledBack || stageRemains) {
+                std::cerr << "offset=" << offset << " wrote=" << wrote
+                          << " injected=" << injected
+                          << " destinationPreserved=" << (afterFailure == sentinel)
+                          << " callerSame=" << sameFilter(adapter.filter, original)
+                          << " identitiesRolledBack=" << identitiesRolledBack
+                          << " stageRemains=" << stageRemains << '\n';
+                return fail("injected allocation failure changed caller or destination state");
+            }
+            const bool retried = codec.write(&adapter, DRW::AC1027, binary);
+            std::string retryBytes;
+            if (!retried || !sameFilter(adapter.filter, original)
+                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                || !readbackMatches(output) || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "SPATIAL_FILTER " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -6219,7 +6389,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -6233,6 +6403,8 @@ int main(int argc, char** argv) {
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")
             return runSunStudySweep(directory) ? 0 : 1;
+        if (mode == "spatial-filter")
+            return runSpatialFilterSweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;
