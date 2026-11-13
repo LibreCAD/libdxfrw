@@ -287,58 +287,84 @@ bool sourceUnchanged(const Export& actual, const Export& expected) {
 
 bool allocationSweep(const std::filesystem::path& path) {
     const std::string prior = "prior DATATABLE bytes\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(path.string().c_str());
-            codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
-                                  {0x116u, 0x216u}, {0x117u, 0x217u}});
-            Export exporter(codec);
-            exporter.failAt = 1000000;
-            const bool written = codec.write(&exporter, DRW::AC1024, binary);
-            if (!written || !exporter.emitted || !readbackMatches(path)
-                || !readBytes(path, expectedBytes))
-                return false;
-            allocationCount = exporter.reached;
-        }
-        if (allocationCount <= 0)
-            return false;
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    constexpr DRW::Version versions[] = {
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream output(path, std::ios::binary | std::ios::trunc);
-                output << prior;
-                if (!output)
+                dxfRW codec(path.string().c_str());
+                codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
+                                      {0x116u, 0x216u}, {0x117u, 0x217u}});
+                Export exporter(codec);
+                exporter.failAt = 1000000;
+                const bool written = codec.write(&exporter, version, binary);
+                if (!written || !exporter.emitted || !readbackMatches(path)
+                    || !readBytes(path, expectedBytes)) {
+                    std::cerr << "DATATABLE calibration failed: version="
+                              << static_cast<int>(version)
+                              << " binary=" << binary
+                              << " written=" << written
+                              << " emitted=" << exporter.emitted << '\n';
                     return false;
+                }
+                allocationCount = exporter.reached;
             }
-            dxfRW codec(path.string().c_str());
-            codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
-                                  {0x116u, 0x216u}, {0x117u, 0x217u}});
-            Export exporter(codec);
-            Export expected(codec);
-            exporter.failAt = offset;
-            const bool written = codec.write(&exporter, DRW::AC1024, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (written || exporter.emitted || exporter.reached != 1
-                || !readBytes(path, current) || current != prior
-                || !sourceUnchanged(exporter, expected)
-                || exporter.firstChild.handle != 0x116u
-                || exporter.secondChild.handle != 0x117u)
+            if (allocationCount <= 0)
                 return false;
 
-            const bool retried = codec.write(&exporter, DRW::AC1024, binary);
-            std::string retryBytes;
-            if (!retried || !exporter.emitted
-                || !readBytes(path, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(path)
-                || !sourceUnchanged(exporter, expected))
-                return false;
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+                    output << prior;
+                    if (!output)
+                        return false;
+                }
+                dxfRW codec(path.string().c_str());
+                codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
+                                      {0x116u, 0x216u}, {0x117u, 0x217u}});
+                Export exporter(codec);
+                Export expected(codec);
+                exporter.failAt = offset;
+                const bool written = codec.write(&exporter, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (written || exporter.emitted || exporter.reached != 1
+                    || !readBytes(path, current) || current != prior
+                    || !sourceUnchanged(exporter, expected)
+                    || exporter.firstChild.handle != 0x116u
+                    || exporter.secondChild.handle != 0x117u) {
+                    std::cerr << "DATATABLE rollback failed: version="
+                              << static_cast<int>(version)
+                              << " binary=" << binary
+                              << " offset=" << offset
+                              << " written=" << written
+                              << " emitted=" << exporter.emitted
+                              << " reached=" << exporter.reached << '\n';
+                    return false;
+                }
+
+                const bool retried = codec.write(&exporter, version, binary);
+                std::string retryBytes;
+                if (!retried || !exporter.emitted
+                    || !readBytes(path, retryBytes)
+                    || retryBytes != expectedBytes || !readbackMatches(path)
+                    || !sourceUnchanged(exporter, expected)) {
+                    std::cerr << "DATATABLE retry failed: version="
+                              << static_cast<int>(version)
+                              << " binary=" << binary
+                              << " offset=" << offset << '\n';
+                    return false;
+                }
+            }
+            std::cout << "DATATABLE DXF version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "DATATABLE DXF " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
     }
     return true;
 }

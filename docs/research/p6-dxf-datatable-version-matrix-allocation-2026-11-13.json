@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datatable-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DATATABLE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated DATATABLE plus row-XRECORD allocation transaction proof across six DXF writer revisions.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "Four-column, two-row DATATABLE with numeric/text cells, two ordered row XRECORD children, source-to-output handle remap, and exact owner relationships.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_datatable_read_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-datatable-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For every version and encoding, calibrate the complete file write, inject std::bad_alloc at every measured DATATABLE callback allocation, require unchanged destination sentinel and caller graph, retry on the same codec, compare exact bytes with clean output, and freshly read the typed table and both XRECORD children."
+  },
+  "allocationOffsets": {
+    "AC1015": {"ASCII": 12, "Binary": 11},
+    "AC1018": {"ASCII": 12, "Binary": 11},
+    "AC1021": {"ASCII": 12, "Binary": 11},
+    "AC1024": {"ASCII": 12, "Binary": 11},
+    "AC1027": {"ASCII": 12, "Binary": 11},
+    "AC1032": {"ASCII": 12, "Binary": 11},
+    "totals": {"ASCII": 72, "Binary": 66, "all": 138}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_datatable_read_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_datatable_read$' --output-on-failure: PASS 1/1 in 0.45 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_dxf_datatable_read_tests: PASS; six versions each cover ASCII 12 and Binary 11 allocation offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF codec transaction and typed readback evidence only; this does not qualify producer-authored DATATABLE schemas or native table behavior.",
+    "The version matrix starts at AC1015; no AC1014 profile is claimed by this receipt.",
+    "P6-C remains open for independent source profiles, physical field spans, full owner/target closure, and consumer semantics.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated DATATABLE and two child XRECORD records pass allocation rollback, exact retry, and typed readback across six DXF writer versions.",
+    "remainingP6G": "Continue the public-writer inventory diff for other exact uncovered routes and variants; keep generated transaction evidence separate from source and semantic closure.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "210 completed slices and 35 remaining packages: 210/(210+35)=85.7%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json"
+}
