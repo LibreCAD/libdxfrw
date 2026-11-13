@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **187 completed implementation slices** and **35 remaining
+The plan records **188 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`187 / (187 + 35) = 84.2%`. This is a count-based progress measure, not an
+`188 / (188 + 35) = 84.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1235,6 +1235,17 @@ matches clean bytes and passes typed readback for all seventeen links,
 ownership, dictionary membership, and each target/text reference. This adds
 generated variable-length vector transaction evidence only; it does not
 establish producer-profile breadth or native consumer semantics ([receipt](docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G DIMASSOC caller-state transaction follow-up (2026-11-13):** the
+existing AC1024 whole-file ASCII/Binary allocation sweep now passes the actual
+mutable `DRW_DimensionAssociation` to the public writer instead of a temporary
+copy. The test compares every modeled association, reactor, extended-data,
+application-data, and osnap field after clean write, each injected failure,
+and same-codec retry. Retries also match the calibrated clean bytes and retain
+fresh typed readback. All 20 ASCII and 20 Binary allocation failures preserve
+the prior destination and caller record. This is one generated transaction
+profile only; producer interoperability and native associative behavior remain
+open ([receipt](docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json)).
 
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work

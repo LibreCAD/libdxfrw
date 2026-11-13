@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DIMASSOC_CALLER_STATE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen existing AC1024 DIMASSOC whole-write allocation-failure evidence so the writer receives the caller record itself and retries are checked against clean bytes.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_DimensionAssociation generated during each test run",
+    "profile": "One AC1024 DIMASSOC with three distinct osnap reference variants: multiple main object handles, an intersection object, xref strings, reactors, parent, and dimension identity.",
+    "versions": ["AC1024"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dimassoc_physical_transport_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Pass the exporter’s mutable association directly to writeDimensionAssociation; compare the complete modeled caller record, extension-dictionary flag, and reactor count after clean write, every injected allocation failure, and same-codec retry. Preserve the destination sentinel on failure, compare retry bytes with clean bytes, and retain exact typed fileImport readback with handle remapping."
+  },
+  "allocationOffsets": {
+    "AC1024": {"ASCII": 20, "Binary": 20},
+    "total": 40
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dimassoc_physical_transport_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$' --output-on-failure: PASS 1/1 in 0.37 seconds",
+    "directControl": "build-gcc/libdxfrw_dimassoc_physical_transport_tests --allocation-rollback-retry: PASS; 20 ASCII and 20 Binary offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated AC1024 transport/transaction evidence only; source-producer breadth and native associative behavior remain unqualified.",
+    "The writer is exercised through an existing single-record generated callback; whole-document DIMASSOC graph closure remains separately gated.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The DIMASSOC writer’s actual caller record remains unchanged on clean write, injected failures, and retry; retries are byte-identical to clean output and typed readback passes in ASCII/Binary.",
+    "remainingP6G": "Continue the remaining public-writer inventory and caller-state audit; preserve source-profile, graph-closure, and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "188 completed slices and 35 remaining packages: 188/(188+35)=84.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json"
+}

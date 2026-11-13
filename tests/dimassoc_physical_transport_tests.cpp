@@ -176,8 +176,7 @@ public:
 
     void writeObjects() override {
         auto emit = [this]() {
-            auto mutableSource = source;
-            emitted = output.writeDimensionAssociation(&mutableSource);
+            emitted = output.writeDimensionAssociation(&source);
         };
         if (failAt < 0) {
             emit();
@@ -374,6 +373,15 @@ bool sameAssociation(const DimensionAssociationProbe& source,
     return true;
 }
 
+bool callerAssociationUnchanged(const DimensionAssociationProbe& actual,
+                                const DimensionAssociationProbe& expected) {
+    const std::map<std::uint32_t, std::uint32_t> noRemap;
+    return sameAssociation(actual, expected, noRemap)
+        && actual.extensionDictionaryFlag()
+            == expected.extensionDictionaryFlag()
+        && actual.reactorCount() == expected.reactorCount();
+}
+
 std::map<std::uint32_t, std::uint32_t> makeHandleRemap(
         const DRW_DimensionAssociation& association) {
     std::map<std::uint32_t, std::uint32_t> result;
@@ -545,6 +553,22 @@ bool allocationRollbackRetry(bool binary) {
                   << allocationCount << '\n';
         return false;
     }
+    if (!callerAssociationUnchanged(calibration.source, source)) {
+        std::remove(outputPathString.c_str());
+        std::cerr << "DIMASSOC clean write changed the caller record\n";
+        return false;
+    }
+    std::string cleanBytes;
+    {
+        std::ifstream input(outputPath, std::ios::binary);
+        cleanBytes.assign(std::istreambuf_iterator<char>(input),
+                          std::istreambuf_iterator<char>());
+        if (!input.good() && !input.eof()) {
+            std::remove(outputPathString.c_str());
+            std::cerr << "could not read clean DIMASSOC allocation output\n";
+            return false;
+        }
+    }
 
     std::size_t failures = 0;
     for (long offset = 0; offset < allocationCount; ++offset) {
@@ -566,6 +590,7 @@ bool allocationRollbackRetry(bool binary) {
         allocationsBeforeFailure = -1;
         if (wrote || failedAllocations == before
             || !destinationIsSentinel()
+            || !callerAssociationUnchanged(exporter.source, source)
             || codec.getWritingContext() == nullptr
             || codec.getWritingContext()->sourceHandleToWrittenObjectMap
                     .count(source.handle) != 0u) {
@@ -576,6 +601,8 @@ bool allocationRollbackRetry(bool binary) {
                       << " failedAllocations=" << failedAllocations - before
                       << " destinationPreserved="
                       << destinationIsSentinel()
+                      << " callerPreserved="
+                      << callerAssociationUnchanged(exporter.source, source)
                       << " identityRolledBack="
                       << (codec.getWritingContext() != nullptr
                           && codec.getWritingContext()
@@ -587,7 +614,9 @@ bool allocationRollbackRetry(bool binary) {
         exporter.failAt = -1;
         exporter.emitted = false;
         if (!codec.write(&exporter, DRW::AC1024, binary)
-            || !exporter.emitted || !readbackIsExact()
+            || !exporter.emitted
+            || !callerAssociationUnchanged(exporter.source, source)
+            || !readbackIsExact()
             || codec.getWritingContext() == nullptr
             || codec.getWritingContext()->sourceHandleToWrittenObjectMap
                     .count(source.handle) != 1u
@@ -597,6 +626,18 @@ bool allocationRollbackRetry(bool binary) {
             std::cerr << "DIMASSOC corrected retry/readback failed at offset "
                       << offset << '\n';
             return false;
+        }
+        std::string retryBytes;
+        {
+            std::ifstream input(outputPath, std::ios::binary);
+            retryBytes.assign(std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>());
+            if ((!input.good() && !input.eof()) || retryBytes != cleanBytes) {
+                std::remove(outputPathString.c_str());
+                std::cerr << "DIMASSOC retry bytes differ from clean output at offset "
+                          << offset << '\n';
+                return false;
+            }
         }
         ++failures;
     }
