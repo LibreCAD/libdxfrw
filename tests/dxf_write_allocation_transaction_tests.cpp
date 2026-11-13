@@ -117,6 +117,7 @@ constexpr std::uint32_t kTableStyleHandle = 0xD958u;
 constexpr std::uint32_t kCellStyleMapHandle = 0xD959u;
 constexpr std::uint32_t kDirectViewHandle = 0xD974u;
 constexpr std::uint32_t kDirectUcsHandle = 0xD975u;
+constexpr std::uint32_t kDirectAppIdHandle = 0xD976u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -626,6 +627,10 @@ public:
             {2, DRW_Coord(1.0, 2.0, 3.0)},
             {5, DRW_Coord(4.0, 5.0, 6.0)}};
         storage.ucsList.push_back(directUcs);
+        DRW_AppId directAppId;
+        directAppId.handle = kDirectAppIdHandle;
+        directAppId.name = "WHOLE_OPERATION_APPID";
+        storage.appIds.push_back(directAppId);
         camera.handle = 0xD96Du;
         camera.m_viewHandle = cameraView.handle;
         geoPositionMarker.handle = 0xD96Fu;
@@ -1610,6 +1615,13 @@ public:
         if (value.name == "WHOLE_OPERATION_DIRECT_UCS")
             directUcs = value;
     }
+    void addAppId(const DRW_AppId& value) override {
+        dx_iface::addAppId(value);
+        if (value.name == "WHOLE_OPERATION_APPID") {
+            ++directAppIdCount;
+            directAppId = value;
+        }
+    }
     void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
         ++geoPositionMarkerCount;
         if (value.m_notes == "whole-operation embedded geo marker")
@@ -1823,6 +1835,7 @@ public:
     DRW_CellStyleMap cellStyleMap;
     DRW_View directView;
     DRW_UCS directUcs;
+    DRW_AppId directAppId;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -1905,6 +1918,7 @@ public:
     unsigned cellStyleMapCount = 0u;
     unsigned directViewCount = 0u;
     unsigned ucsCount = 0u;
+    unsigned directAppIdCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -2057,6 +2071,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_UCS& value) {
             return value.handle == kDirectUcsHandle;
         });
+    const auto directAppId = std::find_if(
+        adapter.storage.appIds.begin(), adapter.storage.appIds.end(),
+        [](const DRW_AppId& value) {
+            return value.handle == kDirectAppIdHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
         && adapter.storage.views.size() == 2u
@@ -2089,6 +2108,9 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && directUcs->orthographicOptions[0].point.x == 1.0
         && directUcs->orthographicOptions[1].type == 5
         && directUcs->orthographicOptions[1].point.z == 6.0
+        && directAppId != adapter.storage.appIds.end()
+        && directAppId->name == "WHOLE_OPERATION_APPID"
+        && directAppId->flags == 0
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -3080,6 +3102,11 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_View& value) {
             return value.name == "WHOLE_OPERATION_DIRECT_VIEW";
         });
+    const auto directAppId = std::find_if(
+        adapter.storage.appIds.begin(), adapter.storage.appIds.end(),
+        [](const DRW_AppId& value) {
+            return value.name == "WHOLE_OPERATION_APPID";
+        });
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) {
@@ -3177,6 +3204,10 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.viewCount != 2u
         || adapter.directViewCount != 1u
         || adapter.ucsCount != 1u
+        || adapter.directAppIdCount != 1u
+        || directAppId == adapter.storage.appIds.end()
+        || directAppId->handle == DRW::NoHandle
+        || directAppId->flags != 0
         || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **122 completed implementation slices** and **35 remaining
+The plan records **126 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`122 / (122 + 35) = 77.7%`. This is a count-based progress measure, not an
+`126 / (126 + 35) = 78.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1540,6 +1540,17 @@ readback checks identity, axes, the compatibility orthographic origin and both
 option tuples. All 1,055 ASCII and 1,034 Binary allocation offsets pass. The
 focused CTest passes in 7.40 seconds. This does not qualify producer-specific
 orthographic restoration, UCS name collation or native view behavior. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 APPID writer transaction slice (2026-11-13):** the same generated
+whole-operation table sweep now emits one custom APPID through the public
+`writeAppId()` route. The allocation sweep preserves caller state and the
+previous destination for every injected failure; the same writer retries to
+clean output, and readback finds exactly one row with the expected name, a
+non-null remapped handle and flags. All 1,064 ASCII and 1,042 Binary allocation
+offsets pass. The focused CTest passes in 7.51 seconds. This covers one local
+APPID row only; broader name domains, extended-data dependency closure and
+consumer behavior remain open. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
