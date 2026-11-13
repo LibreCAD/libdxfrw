@@ -493,6 +493,18 @@ public:
         geoPositionMarkerEmbedded.mtext->height = 1.75;
         geoPositionMarkerEmbedded.mtext->widthscale = 5.0;
         geoPositionMarkerEmbedded.mtext->style = "STANDARD";
+        sectionObject.handle = 0xD971u;
+        sectionObject.m_state = 3u;
+        sectionObject.m_flags = 5u;
+        sectionObject.m_name = "WHOLE_OPERATION_SECTION";
+        sectionObject.m_vertDir = DRW_Coord(0.0, 0.0, 1.0);
+        sectionObject.m_topHeight = 12.0;
+        sectionObject.m_bottomHeight = -4.0;
+        sectionObject.m_indicatorAlpha = 128u;
+        sectionObject.m_indicatorColor = 6u;
+        sectionObject.m_verts = {DRW_Coord(1.0, 2.0, 3.0),
+                                 DRW_Coord(4.0, 5.0, 6.0)};
+        sectionObject.m_blVerts = {DRW_Coord(-1.0, -2.0, -3.0)};
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -765,6 +777,7 @@ public:
             && check("CAMERA", output.writeCamera(&camera))
             && check("GEOPOSITIONMARKER", output.writeGeoPositionMarker(&geoPositionMarker))
             && check("GEOPOSITIONMARKER_EMBEDDED", output.writeGeoPositionMarker(&geoPositionMarkerEmbedded))
+            && check("SECTIONOBJECT", output.writeSectionObject(&sectionObject))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -836,6 +849,7 @@ public:
     DRW_Camera camera;
     DRW_GeoPositionMarker geoPositionMarker;
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
+    DRW_SectionObject sectionObject;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1060,6 +1074,10 @@ public:
         else
             geoPositionMarker = value;
     }
+    void addSectionObject(const DRW_SectionObject& value) override {
+        ++sectionObjectCount;
+        sectionObject = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1177,6 +1195,7 @@ public:
     DRW_Camera camera;
     DRW_GeoPositionMarker geoPositionMarker;
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
+    DRW_SectionObject sectionObject;
     DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
@@ -1235,6 +1254,7 @@ public:
     unsigned cameraCount = 0u;
     unsigned viewCount = 0u;
     unsigned geoPositionMarkerCount = 0u;
+    unsigned sectionObjectCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1647,6 +1667,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.geoPositionMarkerEmbedded.mtext->height == 1.75
         && adapter.geoPositionMarkerEmbedded.mtext->widthscale == 5.0
         && adapter.geoPositionMarkerEmbedded.mtext->style == "STANDARD"
+        && adapter.sectionObject.handle == 0xD971u
+        && adapter.sectionObject.m_state == 3u
+        && adapter.sectionObject.m_flags == 5u
+        && adapter.sectionObject.m_name == "WHOLE_OPERATION_SECTION"
+        && adapter.sectionObject.m_vertDir.z == 1.0
+        && adapter.sectionObject.m_topHeight == 12.0
+        && adapter.sectionObject.m_bottomHeight == -4.0
+        && adapter.sectionObject.m_indicatorAlpha == 128u
+        && adapter.sectionObject.m_indicatorColor == 6u
+        && adapter.sectionObject.m_verts.size() == 2u
+        && adapter.sectionObject.m_verts[1].z == 6.0
+        && adapter.sectionObject.m_blVerts.size() == 1u
+        && adapter.sectionObject.m_blVerts[0].x == -1.0
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -2343,6 +2376,29 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.geoPositionMarkerEmbedded.mtext->height != 1.75
         || adapter.geoPositionMarkerEmbedded.mtext->widthscale != 5.0
         || adapter.geoPositionMarkerEmbedded.mtext->style != "STANDARD"
+        || adapter.sectionObjectCount != 1u
+        || adapter.sectionObject.handle == 0u
+        || adapter.sectionObject.m_state != 3u
+        || adapter.sectionObject.m_flags != 5u
+        || adapter.sectionObject.m_name != "WHOLE_OPERATION_SECTION"
+        || adapter.sectionObject.m_vertDir.x != 0.0
+        || adapter.sectionObject.m_vertDir.y != 0.0
+        || adapter.sectionObject.m_vertDir.z != 1.0
+        || adapter.sectionObject.m_topHeight != 12.0
+        || adapter.sectionObject.m_bottomHeight != -4.0
+        || adapter.sectionObject.m_indicatorAlpha != 128u
+        || adapter.sectionObject.m_indicatorColor != 6u
+        || adapter.sectionObject.m_verts.size() != 2u
+        || adapter.sectionObject.m_verts[0].x != 1.0
+        || adapter.sectionObject.m_verts[0].y != 2.0
+        || adapter.sectionObject.m_verts[0].z != 3.0
+        || adapter.sectionObject.m_verts[1].x != 4.0
+        || adapter.sectionObject.m_verts[1].y != 5.0
+        || adapter.sectionObject.m_verts[1].z != 6.0
+        || adapter.sectionObject.m_blVerts.size() != 1u
+        || adapter.sectionObject.m_blVerts[0].x != -1.0
+        || adapter.sectionObject.m_blVerts[0].y != -2.0
+        || adapter.sectionObject.m_blVerts[0].z != -3.0
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0

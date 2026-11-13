@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **105 completed implementation slices** and **35 remaining
+The plan records **106 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`105 / (105 + 35) = 75.0%`. This is a count-based progress measure, not an
+`106 / (106 + 35) = 75.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,16 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local SECTIONOBJECT transaction slice (2026-11-13):** the generated
+whole-file ASCII/Binary sweep writes a typed SECTIONOBJECT with two section
+vertices and one back-line vertex, plus nondefault state, flags, direction,
+heights, alpha and color. All 726 ASCII and 715 Binary failure offsets
+preserve destination, caller state and identity maps; same-writer retry
+reproduces clean bytes and typed readback verifies ordered vertices and fields.
+The focused transaction CTest passes 1/1 in 4.33 seconds. A nonzero section
+settings handle and raw-only color remain unqualified. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local GEOPOSITIONMARKER transaction slice (2026-11-13):** the same
