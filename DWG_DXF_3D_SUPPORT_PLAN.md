@@ -10741,10 +10741,25 @@ See the
 [parity-plan checkpoint](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#current-execution-checkpoint-2026-11-12)
 and [receipt](docs/research/p8-mpolygon-legacy-hatch-callback-compat-2026-11-12.json).
 
-**P8 generated DWG writer-skip continuation control (2026-11-13):** the
+**P8 generated DWG writer-skip continuation control (2026-11-13; superseded
+for malformed-reader recovery by the following slice):** the
 semantic adapter no longer assumes a DWG writer emits a non-finite LINE for
 the reader to reject. It now checks the writer's single entity skip, continued
 emission of the following valid LINE, and clean generated readback. The
 focused `libdxfrw_3d_consumer_probe` passes 1/1. Parser recovery from a
 malformed DWG entity remains open; see the [parity-plan follow-up](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#next-work-packets)
 and [receipt](docs/research/p8-dwg-partial-output-writer-skip-continued-readback-2026-11-13.json).
+
+**P8 malformed DWG LINE reader recovery (2026-11-13):** replaced the former
+writer-skip-only malformed-input assumption with `NonFiniteDwgLineWire`, a
+test-only encoder that asks the production LINE encoder for a valid body and
+then changes only its start-X bits to quiet NaN. The local generated control
+checks one entity parse failure, subsequent valid LINE delivery, finalized
+partial-frame disposition, and absence of HATCH delivery. The owning
+`libdxfrw_dwg_read_outcome_policy` and `libdxfrw_3d_consumer_probe` CTests pass
+2/2; both test targets build. The aggregate `libdxfrw_dwg_local_roundtrip`
+CTest previously reported 380 failures across unrelated profiles, so it is
+recorded as red and is not a pass for this slice. No drawing fixture was
+added. This is one generated malformed LINE recovery profile only; broader
+entity/version recovery and all support claims remain unchanged. See the
+[receipt](docs/research/p8-dwg-malformed-line-reader-recovery-2026-11-13.json).

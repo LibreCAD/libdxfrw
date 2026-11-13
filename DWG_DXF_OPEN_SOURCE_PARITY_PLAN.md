@@ -78,17 +78,15 @@ codecs, tests, and controls have been removed from the queue; their commits and
 receipts remain in Git and `docs/research/`. Resume from the linked blocker
 instead of repeating successful scans or controls.
 
-**DWG malformed-reader recovery witness.** The shared adapter's former
-non-finite LINE control was built by asking the DWG writer to serialize a
-coordinate that `DRW_Line::encodeDwg` now rejects. Its replacement proves the
-document-level writer skip count and delivery/readback of the following valid
-LINE; the focused `libdxfrw_3d_consumer_probe` now passes. That is writer-side
-omission/recovery, not parser recovery. Replace the stale writer-built
-malformed-input assumption in `tests/dwg_local_roundtrip_tests.cpp` with a
-locally generated or parser-fed bounded wire control. Preserve the exact
-reader assertion (one entity parse failure, following valid LINE delivered,
-partial frame disposition) without committing a DWG fixture; then continue to
-the next uncompleted S8.4a sample-backed read-field packet. See the [receipt](docs/research/p8-dwg-partial-output-writer-skip-continued-readback-2026-11-13.json).
+**DWG malformed-reader recovery witness — COMPLETE.** A test-only LINE
+encoder now produces a valid record through the production encoder, then
+replaces only the encoded start-X bits with a quiet NaN. The generated
+document verifies one entity parse failure, delivery of the following valid
+LINE, a finalized partial frame, and no unrelated HATCH. Both
+`libdxfrw_dwg_read_outcome_policy` and `libdxfrw_3d_consumer_probe` pass
+independently; the broader `libdxfrw_dwg_local_roundtrip` CTest remains red
+with 380 assertions across unrelated profiles and is not counted as passing
+evidence. No DWG/DXF fixture is committed. See the [receipt](docs/research/p8-dwg-malformed-line-reader-recovery-2026-11-13.json).
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now

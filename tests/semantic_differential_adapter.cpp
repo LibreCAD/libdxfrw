@@ -10,6 +10,7 @@
 #include "libdwgr.h"
 #include "libdxfrw.h"
 #include "generated_raw_dwg_object.h"
+#include "nonfinite_dwg_line_wire.h"
 
 #include <algorithm>
 #include <array>
@@ -2431,9 +2432,9 @@ void SemanticSink::writeEntities() {
             return;
         }
 
-        // The DWG encoder skips a non-finite LINE and reports one entity
-        // omission. The following valid LINE must still be emitted.
-        DRW_Line malformed;
+        // The test encoder injects a non-finite start-X into an otherwise
+        // valid LINE body. The reader must reject that record and continue.
+        NonFiniteDwgLineWire malformed;
         malformed.basePoint = DRW_Coord{
             std::numeric_limits<double>::quiet_NaN(), 12.0, 13.0};
         malformed.secPoint = DRW_Coord{21.0, 22.0, 23.0};
@@ -5196,6 +5197,30 @@ bool namedObservationIsOne(const Summary& summary,
 }
 
 template <typename Reader>
+bool verifyPartialReadbackObservation(const Reader& reader,
+                                      std::string& envelope) {
+    envelope = serializeDwgObservationEnvelope(
+        reader, "outputReadback", "AC1027");
+    if constexpr (HasDwgReadObservations<Reader>::value) {
+        const auto observations = reader.getReadObservations();
+        return observations.entityParseFailures == 1
+            && observations.objectParseFailures == 0
+            && static_cast<int>(observations.frames.status) == 3
+            && observations.frames.sourceFrames != 0
+            && observations.frames.dispositions[5] == 1
+            && envelope.find("\"entityParseFailures\":1") != std::string::npos
+            && envelope.find("\"status\":\"finalizedPartial\"")
+                != std::string::npos;
+    }
+    return envelope.find("\"availability\":\"unavailable\"")
+            != std::string::npos
+        && envelope.find("\"reason\":\"readerApiNotPresent\"")
+            != std::string::npos
+        && envelope.find("\"sourceVersion\":\"AC1027\"")
+            != std::string::npos;
+}
+
+template <typename Reader>
 bool verifyOpaqueReadbackObservation(const Reader& reader,
                                      std::string& envelope) {
     envelope = serializeDwgObservationEnvelope(
@@ -5258,13 +5283,10 @@ bool runPartialDwgReadbackControl() {
     dwgRW writer(outputName.c_str());
     producer.configureWrite(&writer);
     if (!writer.write(&producer, DRW::AC1027, true)
-        || producer.writeRecipeSucceeded()
-        || writer.getWriteSkipCounters().entityWrites != 1) {
+        || !producer.writeRecipeSucceeded()) {
         std::cerr << "partial DWG readback control generation failed; error="
                   << static_cast<int>(writer.getError())
-                  << ", recipe=" << producer.writeRecipeSucceeded()
-                  << ", skippedEntities="
-                  << writer.getWriteSkipCounters().entityWrites << '\n';
+                  << ", recipe=" << producer.writeRecipeSucceeded() << '\n';
         return false;
     }
 
@@ -5282,11 +5304,14 @@ bool runPartialDwgReadbackControl() {
         const std::size_t lines = static_cast<std::size_t>(std::count_if(
             consumer.records.begin(), consumer.records.end(),
             [](const RecordRow& row) { return row.entity == "LINE"; }));
+        const std::size_t hatches = static_cast<std::size_t>(std::count_if(
+            consumer.records.begin(), consumer.records.end(),
+            [](const RecordRow& row) { return row.entity == "HATCH"; }));
         const bool observationsMatch =
-            verifyCleanReadbackObservation(reader, observations);
-        if (lines != 1 || !observationsMatch) {
+            verifyPartialReadbackObservation(reader, observations);
+        if (lines != 1 || hatches != 0 || !observationsMatch) {
             std::cerr << "standalone partial DWG readback mismatch; lines="
-                      << lines
+                      << lines << ", hatches=" << hatches
                       << ", observationsMatch=" << observationsMatch
                       << ", observations=" << observations << '\n';
             return false;
@@ -5296,7 +5321,7 @@ bool runPartialDwgReadbackControl() {
 
     if (!operationSucceeded || reader.getError() != DRW::BAD_NONE
         || !consumer.diagnostics.empty()
-        || !verifyCleanReadbackObservation(reader, observations)) {
+        || !verifyPartialReadbackObservation(reader, observations)) {
         std::cerr << "locked-target partial DWG readback disposition changed; "
                   << "operationSucceeded=" << operationSucceeded
                   << ", error=" << static_cast<int>(reader.getError())

@@ -42,6 +42,7 @@
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter21.h"
 #include "intern/dwgwriterlayoutvalidation.h"
+#include "nonfinite_dwg_line_wire.h"
 #include "intern/dwgwriter24.h"
 #include "intern/dwgwriter27.h"
 #include "intern/dwgwriter32.h"
@@ -28379,7 +28380,7 @@ public:
             // Generated malformed-record sentinel: the writer preserves the
             // non-finite coordinate, while the bounded LINE reader rejects
             // that record and must continue to the following valid LINE.
-            DRW_Line malformed;
+            NonFiniteDwgLineWire malformed;
             malformed.basePoint = {
                 std::numeric_limits<double>::quiet_NaN(), 12, 13};
             malformed.secPoint = {21, 22, 23};
