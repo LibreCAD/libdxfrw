@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **205 completed implementation slices** and **26 remaining
+The plan records **206 completed implementation slices** and **25 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`205 / (205 + 26) = 88.7%`. This is a count-based progress measure, not an
+`206 / (206 + 25) = 89.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1266,6 +1266,17 @@ flags, offset, and scale. The focused CTest passes in 0.35 seconds; the direct
 control covers 54 allocation offsets. This is generated transaction evidence
 across these writer revisions only; producer profiles and native display
 remain open ([version-matrix receipt](docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json)).
+
+**P6-G SCALE writer version-matrix transaction follow-up (2026-11-13):** the
+rooted ACAD_SCALELIST dictionary and its `1:1` SCALE entry now pass for AC1021,
+AC1027, and AC1032 in ASCII and Binary. All fifteen measured allocation
+failures per profile preserve the destination and caller graph; same-writer
+retry reproduces the clean bytes exactly and typed readback verifies root,
+owner, dictionary entry, name, units, flags, and scale fields. The focused CTest
+passes in 0.43 seconds; the direct control covers 90 allocation offsets. This
+is generated transaction evidence across these writer revisions only; producer
+profiles and native scale-list behavior remain open
+([version-matrix receipt](docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G DIMASSOC caller-state transaction follow-up (2026-11-13):** the
 existing AC1024 whole-file ASCII/Binary allocation sweep now passes the actual

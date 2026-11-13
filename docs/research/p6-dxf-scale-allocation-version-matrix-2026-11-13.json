@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-scale-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_SCALE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated SCALE OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "source": {
+    "kind": "deterministic locally-authored graph generated during each test run",
+    "profile": "One ACAD_SCALELIST root entry targeting one SCALE object named 1:1 with unit scale and exact owner relationships.",
+    "versions": ["AC1021", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/scale_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate a complete write, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller graph, retry on the same codec, compare retry bytes with clean output, and freshly read the typed dictionary and SCALE graph."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 15, "Binary": 15},
+    "AC1027": {"ASCII": 15, "Binary": 15},
+    "AC1032": {"ASCII": 15, "Binary": 15},
+    "totals": {"ASCII": 45, "Binary": 45, "all": 90}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_scale_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.43 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_scale_objects_allocation_tests /tmp/libdxfrw-scale-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 15 and Binary 15 offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated SCALE graph and field profile are tested per version; other scale-list graph topologies and independent producer behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The rooted SCALE transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary with byte-identical retry checks.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "206 completed slices and 25 remaining packages: 206/(206+25)=89.2%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json"
+}

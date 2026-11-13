@@ -84,9 +84,9 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
 }
 
 bool write(ScaleExport& exporter, dxfRW& codec,
-           bool binary) {
+           DRW::Version version, bool binary) {
     codec.setRootDictEntries({{"ACAD_SCALELIST", "E000"}});
-    return codec.write(&exporter, DRW::AC1027, binary);
+    return codec.write(&exporter, version, binary);
 }
 
 bool verifyGraph(const std::filesystem::path& path) {
@@ -143,61 +143,78 @@ bool run(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto output = directory / "scale-objects.dxf";
     const std::string sentinel = "prior SCALE destination bytes\n";
-    dxfRW codec(output.string().c_str());
-    ScaleExport exporter(codec);
-    const DRW_Dictionary sourceDictionary = exporter.dictionary;
-    const DRW_Scale sourceScale = exporter.scale;
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("scale-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        dxfRW codec(output.string().c_str());
+        ScaleExport exporter(codec);
+        const DRW_Dictionary sourceDictionary = exporter.dictionary;
+        const DRW_Scale sourceScale = exporter.scale;
 
-    for (const bool binary : {false, true}) {
-        // Warm persistent stream/handle containers before calibration so the
-        // measured count matches later same-writer attempts.
-        if (!write(exporter, codec, binary))
-            return fail("warm-up export was refused");
-        exporter.failAt = 1000000;
-        if (!write(exporter, codec, binary)) {
-            std::cerr << "dictionaryWritten=" << exporter.dictionaryWritten
-                      << " scaleWritten=" << exporter.scaleWritten << '\n';
-            return fail("allocation calibration export was refused");
-        }
-        if (!verifyGraph(output))
-            return fail("allocation calibration output did not read back graph");
-        const long allocationCount = exporter.reached;
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-        for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+        for (const bool binary : {false, true}) {
+            // Warm persistent stream/handle containers before calibration so
+            // the measured count matches later same-writer attempts.
+            if (!write(exporter, codec, version, binary))
+                return fail("warm-up export was refused");
+            exporter.failAt = 1000000;
+            if (!write(exporter, codec, version, binary)) {
+                std::cerr << "dictionaryWritten=" << exporter.dictionaryWritten
+                          << " scaleWritten=" << exporter.scaleWritten << '\n';
+                return fail("allocation calibration export was refused");
             }
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            const bool wrote = write(exporter, codec, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached < 1
-                || !readAll(output, current) || current != sentinel) {
-                std::cerr << "binary=" << binary << " offset=" << offset
-                          << " wrote=" << wrote << " reached=" << exporter.reached
-                          << " outputMatchesSentinel=" << (current == sentinel) << '\n';
-                return fail("injected failure changed destination or was missed");
+            if (!verifyGraph(output))
+                return fail("allocation calibration output did not read back graph");
+            std::string cleanBytes;
+            if (!readAll(output, cleanBytes))
+                return fail("could not retain clean calibration bytes");
+            const long allocationCount = exporter.reached;
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                const bool wrote = write(exporter, codec, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached < 1
+                    || !readAll(output, current) || current != sentinel) {
+                    std::cerr << "version=" << static_cast<int>(version)
+                              << " binary=" << binary << " offset=" << offset
+                              << " wrote=" << wrote
+                              << " reached=" << exporter.reached
+                              << " outputMatchesSentinel=" << (current == sentinel)
+                              << '\n';
+                    return fail("injected failure changed destination or was missed");
+                }
+                if (!sourceUnchanged(exporter, sourceDictionary, sourceScale))
+                    return fail("injected failure changed the caller graph");
+                if (!write(exporter, codec, version, binary)
+                    || !verifyGraph(output))
+                    return fail("same-writer retry failed typed graph readback");
+                std::string retryBytes;
+                if (!readAll(output, retryBytes) || retryBytes != cleanBytes)
+                    return fail("same-writer retry differed from clean bytes");
+                if (!sourceUnchanged(exporter, sourceDictionary, sourceScale))
+                    return fail("same-writer retry changed the caller graph");
             }
-            if (!sourceUnchanged(exporter, sourceDictionary, sourceScale))
-                return fail("injected failure changed the caller graph");
-            if (!write(exporter, codec, binary) || !verifyGraph(output))
-                return fail("same-writer retry failed typed graph readback");
-            if (!sourceUnchanged(exporter, sourceDictionary, sourceScale))
-                return fail("same-writer retry changed the caller graph");
+            std::cout << "SCALE OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "SCALE OBJECTS " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
     }
-    std::error_code ignored;
-    std::filesystem::remove(output, ignored);
     return true;
 }
 } // namespace
