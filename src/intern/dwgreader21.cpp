@@ -1810,18 +1810,19 @@ bool dwgReader21::readDwgClasses(){
         DRW_DBGH(crcCalc); DRW_DBG(" read="); DRW_DBGH(crcRead); DRW_DBG("\n");
     }
     DRW_DBG("\nCRC: "); DRW_DBGH(crcRead);
-    if (!readDwgClassesTail(buff)) {
+    bool hasCompleteEndSentinel = false;
+    if (!readDwgClassesTail(buff, hasCompleteEndSentinel)) {
         recordFailure(DwgIntegrityCheckKind::PageRange, si.Id);
         return false;
     }
     DRW_DBG("\nclasses section end sentinel= ");
     // 1.4: this is the END sentinel — it was wrongly passed start=true, so it
     // compared the END bytes against the BEGIN sentinel (a latent bug). Fix
-    // the arg to false. Kept WARN-ONLY: AC1024 (reader24→here) valid corpus
-    // files do not carry a matching CLASSES end sentinel in libdxfrw's
-    // single-buffer model, so a hard fail regresses the corpus. The arg fix
-    // makes the diagnostic correct without changing the read outcome.
-    checkSentinel(&buff, secEnum::CLASSES, false);
+    // the arg to false. Kept WARN-ONLY: AC1024 (reader24→here) files do not
+    // always carry a complete matching CLASSES end sentinel in libdxfrw's
+    // single-buffer model. A short tail is reported and skipped above.
+    if (hasCompleteEndSentinel)
+        checkSentinel(&buff, secEnum::CLASSES, false);
     if (!buff.isGood()) {
         recordFailure(DwgIntegrityCheckKind::PageRange, si.Id);
         return false;

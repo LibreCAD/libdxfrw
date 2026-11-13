@@ -1724,10 +1724,12 @@ protected:
                                        DwgIntegrityAddressSpace::DecodedBuffer);
   bool checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection, bool start);
   //! Advance over the version-dependent bytes between the CLASSES CRC and
-  //! its closing sentinel.  Real-world R18/R2007 files use both the legacy
+  //! its closing sentinel. Real-world R18/R2007 files use both the legacy
   //! two-byte/no-tail layout and the newer eight-byte layout emitted by our
-  //! writer.
-  [[nodiscard]] bool readDwgClassesTail(dwgBuffer &buffer);
+  //! writer. A missing or incomplete sentinel is reported as a warning and
+  //! left for the caller to skip without reading beyond the decoded section.
+  [[nodiscard]] bool readDwgClassesTail(dwgBuffer &buffer,
+                                        bool &hasCompleteSentinel);
   [[nodiscard]] bool
   publishDwgClasses(std::vector<DwgStagedClass> &stagedClasses);
 

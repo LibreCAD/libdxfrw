@@ -7798,9 +7798,11 @@ bool dwgReader::checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection sec,
   return true;
 }
 
-bool dwgReader::readDwgClassesTail(dwgBuffer &buffer) {
+bool dwgReader::readDwgClassesTail(dwgBuffer &buffer,
+                                   bool &hasCompleteSentinel) {
+  hasCompleteSentinel = false;
   const std::uint64_t start = buffer.getPosition();
-  if (start > buffer.size() || buffer.size() - start < 16)
+  if (start > buffer.size())
     return false;
 
   // Prefer the current eight-byte form, then the two-byte and empirically
@@ -7823,16 +7825,22 @@ bool dwgReader::readDwgClassesTail(dwgBuffer &buffer) {
     if (!buffer.setPosition(start + tailSize))
       return false;
     buffer.setBitPos(0);
+    hasCompleteSentinel = true;
     return true;
   }
 
-  // Preserve the historical warn-only end-sentinel policy for a malformed
-  // but bounded trailer.  The caller will still inspect the sentinel; this
-  // fallback only prevents a compatibility probe from turning a warning
-  // into a hard cursor failure.
+  // Preserve the historical warn-only end-sentinel policy for a malformed or
+  // truncated but bounded trailer. The caller skips sentinel inspection when
+  // no complete sentinel was found, so a short page cannot poison the cursor.
   if (!buffer.setPosition(start))
     return false;
   buffer.setBitPos(0);
+  recordIntegrityDiagnostic(
+      DwgIntegritySeverity::Warning,
+      DwgIntegrityAddressSpace::DecodedBuffer,
+      DwgIntegrityPhase::SectionParser,
+      DwgIntegrityCheckKind::PageRange,
+      secEnum::CLASSES, -1, "AcDb:Classes");
   return true;
 }
 

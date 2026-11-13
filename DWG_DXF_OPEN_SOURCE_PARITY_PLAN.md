@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-12)
 
-The current queue has **43 completed implementation slices** and **6 remaining
-phase exit gates**, so the item-count progression is **87.8%**:
-`43 / (43 + 6)`. This is a queue-count estimate: a small implementation slice
+The current queue has **44 completed implementation slices** and **6 remaining
+phase exit gates**, so the item-count progression is **88.0%**:
+`44 / (44 + 6)`. This is a queue-count estimate: a small implementation slice
 and a broad phase gate each count as one item, so it is not effort-weighted
 completion of DWG/DXF parity. Completed actions have been removed from this
 plan; their implementation and evidence remain in Git history and
@@ -1147,16 +1147,27 @@ CLASSES CRC mismatch for all nine AC1024 DWGs currently under
 Some files still fail later strict-output gates, which are not CLASSES errors. A fresh debug run against repository HEAD `300a5f4c` and `dwg2dxf` SHA-256 `36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1` confirms all nine current files reach `dwgReader24::readDwgClasses END`, report `operationSucceeded=true` and `legacyError=0`, and have no CLASSES CRC mismatch; eight failures occur later during output qualification. See the [hash-bound trace receipt](docs/research/p6-ac1024-classes-current-corpus-trace-2026-11-12.json).
 This conflicts with the repo guidance's six-of-ten AutoCAD 2010 RTM report;
 the referenced directory currently contains only nine AC1024 paths. Keep the
-reported failure unresolved until the missing tenth input or exact failing
-hashes are identified and `BAD_READ_CLASSES` is reproduced. Do not change the
-parser or commit fixtures from this evidence. The bounded high-bit footer
-decoder and extended-prefix gate remain covered by the generated
+producer-specific report unresolved until the missing tenth input or exact
+failing hashes are identified. A distinct local AC1024 reproduction was
+confirmed on 2026-11-12: `/Users/dli/doc/dwg6/framing_AC1024.dwg`
+(SHA-256 `ede641fae16ad5b0c60d5149b66b8dea314e39f7a0fb5d459c5d26d7958e0c39`)
+decoded all four class records but failed `BAD_READ_CLASSES` because the
+decoded CLASSES page ended 14 bytes after its stored CRC and the tail helper
+required 16 bytes before it would permit warn-only sentinel handling. The
+bounded fix now reports the incomplete end sentinel as a warning and skips
+the out-of-range sentinel read; the same file proceeds through CLASSES and
+fails later at `BAD_READ_TABLES`. Its producer provenance is not established,
+so this does not resolve the AutoCAD 2010 RTM report or qualify AC1024 support.
+The sample remains outside the repository; no fixture was added. The bounded
+high-bit footer decoder and extended-prefix gate remain covered by the generated
 `libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer` control. That
 selector now also generates a complete AC1024 file in memory with three
 2048-character class strings, verifies the footer exceeds `0x7fff` bits, and
 reads all strings back through `readDwgClasses()`. No fixture was added. See the
 [2026-11-09 repository-corpus receipt](docs/research/p6-ac1024-classes-repository-corpus-recheck-2026-11-09.json)
 and [earlier recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json).
+The short-tail compatibility correction and its limits are recorded in the
+[AC1024 CLASSES tail receipt](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json).
 A further screen of the public LibreDWG `test/test-data/2010` directory found
 18 AC1024 DWGs: all reach the CLASSES end marker without a CRC mismatch, and 17
 complete the full reader operation. One fails later at TABLES; the successful

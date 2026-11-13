@@ -225,15 +225,24 @@ bool readerTails() {
         std::vector<std::uint8_t> bytes(size, 0u);
         bytes.insert(bytes.end(), sentinel.begin(), sentinel.end());
         dwgBuffer buffer(bytes.data(), bytes.size());
-        CHECK(reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == size);
+        bool hasCompleteSentinel = false;
+        CHECK(reader.readDwgClassesTail(buffer, hasCompleteSentinel)
+            && hasCompleteSentinel && buffer.isGood()
+            && buffer.getPosition() == size);
     }
     for (unsigned size = 0u; size < 16u; ++size) {
         dwgBuffer buffer(sentinel.data(), size);
-        CHECK(!reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == 0u);
+        bool hasCompleteSentinel = true;
+        CHECK(reader.readDwgClassesTail(buffer, hasCompleteSentinel)
+            && !hasCompleteSentinel && buffer.isGood()
+            && buffer.getPosition() == 0u);
     }
     const std::vector<std::uint8_t> malformed(24u, 0u);
     dwgBuffer buffer(malformed.data(), malformed.size());
-    CHECK(reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == 0u);
+    bool hasCompleteSentinel = true;
+    CHECK(reader.readDwgClassesTail(buffer, hasCompleteSentinel)
+        && !hasCompleteSentinel && buffer.isGood()
+        && buffer.getPosition() == 0u);
     return true;
 }
 
@@ -781,6 +790,8 @@ int main(int argc, char** argv) {
         std::shared_ptr<const DRW_DwgTableNameSource>>::value, "APPID source owner must be a read-only value, not an installable reference");
     static_assert(std::is_same<decltype(std::declval<const DRW_Layer&>().dwgNameSource()),
         std::shared_ptr<const DRW_DwgTableNameSource>>::value, "LAYER source owner must be a read-only value");
+    if (argc == 2 && std::string(argv[1]) == "--classes-tail-only")
+        return readerTails() ? 0 : 1;
     if (argc != 3) return 2;
     std::filesystem::create_directories(argv[2]);
     std::vector<std::uint8_t> bytes(32u);

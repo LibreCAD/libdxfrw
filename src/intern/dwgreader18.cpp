@@ -1642,17 +1642,20 @@ bool dwgReader18::readDwgClasses(){
         DRW_DBGH(crcCalc); DRW_DBG(" read="); DRW_DBGH(crcRead); DRW_DBG("\n");
     }
     DRW_DBG("\nCRC: "); DRW_DBGH(crcRead);
-    if (!readDwgClassesTail(dataBuf)) {
+    bool hasCompleteEndSentinel = false;
+    if (!readDwgClassesTail(dataBuf, hasCompleteEndSentinel)) {
         recordFailure(DwgIntegrityCheckKind::PageRange, si.Id);
         return false;
     }
     DRW_DBG("\nclasses section end sentinel= ");
-    // 1.4: the END sentinel is checked but kept WARN-ONLY here. libdxfrw's
-    // decompressed-buffer model for AC1024 (reader24→reader21) and AC1027
-    // (reader27→this) does not land a reliable CLASSES end sentinel at this
-    // position on valid files, so a hard fail here regresses the corpus.
+    // 1.4: a complete END sentinel is checked but kept WARN-ONLY here.
+    // libdxfrw's decompressed-buffer model for AC1024 (reader24→reader21)
+    // and AC1027 (reader27→this) does not land a reliable CLASSES end
+    // sentinel at this position on valid files, so a hard fail here regresses
+    // the corpus. A short tail is reported by readDwgClassesTail and skipped.
     // Only reader15 (AC1015), whose end sentinel is reliable, hard-fails.
-    checkSentinel(&dataBuf, secEnum::CLASSES, false);
+    if (hasCompleteEndSentinel)
+        checkSentinel(&dataBuf, secEnum::CLASSES, false);
 
     //Cleanup: global store for uncompressed data of all pages
     objData.reset();
