@@ -6144,6 +6144,12 @@ add_test(NAME libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction
         r2018-embedded-attribute)
 set_tests_properties(libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation" TIMEOUT 60)
+add_test(NAME libdxfrw_dxf_legacy_attributed_insert_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-legacy-attributed-insert-allocation
+        legacy-attributed-insert)
+set_tests_properties(libdxfrw_dxf_legacy_attributed_insert_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation" TIMEOUT 60)
 add_test(NAME libdxfrw_dxf_long_mtext_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-long-mtext-allocation

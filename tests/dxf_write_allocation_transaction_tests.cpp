@@ -1604,6 +1604,37 @@ public:
     dx_data storage;
 };
 
+class LegacyAttributedInsertExport final : public dx_iface {
+public:
+    explicit LegacyAttributedInsertExport(dxfRW& output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        insert.handle = 0xDA20u;
+        insert.name = "LEGACY_ATTRIBUTED_INSERT_BLOCK";
+        insert.basePoint = DRW_Coord{11.0, 12.0, 0.0};
+        for (unsigned i = 0; i < 2u; ++i) {
+            auto attribute = std::make_shared<DRW_Attrib>();
+            attribute->handle = 0xDA21u + i;
+            attribute->tag = i == 0u ? "LEGACY_TAG_A" : "LEGACY_TAG_B";
+            attribute->text = i == 0u ? "legacy value alpha" : "legacy value beta";
+            attribute->basePoint = DRW_Coord{13.0 + i, 14.0 + i, 0.0};
+            attribute->secPoint = DRW_Coord{15.0 + i, 16.0 + i, 0.0};
+            attribute->height = 2.0 + i;
+            attribute->style = "STANDARD";
+            insert.attlist.push_back(std::move(attribute));
+        }
+    }
+
+    void writeEntities() override {
+        entitiesWritten = dxfW != nullptr && dxfW->writeInsert(&insert);
+    }
+
+    DRW_Insert insert;
+    bool entitiesWritten = false;
+    dx_data storage;
+};
+
 const std::string& longMTextPayload() {
     static const std::string payload = std::string(249u, 'A') + "€"
         + std::string(300u, 'B');
@@ -5721,6 +5752,126 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "pre-R2018 attributed INSERT allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "ac1024-attributed-insert.dxf";
+    const std::string sentinel = "prior legacy attributed drawing\n";
+    const auto sourceUnchanged = [](const LegacyAttributedInsertExport& adapter) {
+        if (adapter.insert.handle != 0xDA20u
+            || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
+            || adapter.insert.attlist.size() != 2u)
+            return false;
+        for (unsigned i = 0; i < 2u; ++i) {
+            const auto& ptr = adapter.insert.attlist[i];
+            if (!ptr || ptr->handle != 0xDA21u + i
+                || ptr->tag != (i == 0u ? "LEGACY_TAG_A" : "LEGACY_TAG_B")
+                || ptr->text != (i == 0u ? "legacy value alpha" : "legacy value beta")
+                || ptr->basePoint.x != 13.0 + i
+                || ptr->basePoint.y != 14.0 + i
+                || ptr->height != 2.0 + i || ptr->style != "STANDARD"
+                || ptr->mtext)
+                return false;
+        }
+        return true;
+    };
+    const auto readbackMatches = [](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        Readback adapter;
+        if (!reader.read(&adapter, false) || adapter.insertCount != 1u
+            || adapter.insert.name != "LEGACY_ATTRIBUTED_INSERT_BLOCK"
+            || adapter.insert.attlist.size() != 2u)
+            return false;
+        for (unsigned i = 0; i < 2u; ++i) {
+            const auto& ptr = adapter.insert.attlist[i];
+            if (!ptr || ptr->tag != (i == 0u ? "LEGACY_TAG_A" : "LEGACY_TAG_B")
+                || ptr->text != (i == 0u ? "legacy value alpha" : "legacy value beta")
+                || ptr->basePoint.x != 13.0 + i
+                || ptr->basePoint.y != 14.0 + i
+                || ptr->height != 2.0 + i || ptr->style != "STANDARD"
+                || ptr->mtext)
+                return false;
+        }
+        return true;
+    };
+
+    for (const bool binary : {false, true}) {
+        if (!clearStagedOutput(output))
+            return fail("could not clear output before warm-up");
+        {
+            dxfRW codec(output.string().c_str());
+            LegacyAttributedInsertExport adapter(codec);
+            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            if (!wrote || !adapter.entitiesWritten
+                || !sourceUnchanged(adapter) || !readbackMatches(output))
+                return fail("AC1024 warm-up or typed readback failed");
+        }
+        std::error_code removeError;
+        std::filesystem::remove(output, removeError);
+
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            LegacyAttributedInsertExport adapter(codec);
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || !adapter.entitiesWritten
+                || !sourceUnchanged(adapter) || !readbackMatches(output)
+                || !readBytes(output, expectedBytes))
+                return fail("allocation calibration or readback failed");
+        }
+        if (allocationCount <= 0)
+            return fail("calibration observed no allocations");
+
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not seed destination sentinel");
+            }
+            dxfRW codec(output.string().c_str());
+            LegacyAttributedInsertExport adapter(codec);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            const std::size_t reached = allocationAttempts;
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            if (!injected || wrote
+                || reached != static_cast<std::size_t>(offset + 1)
+                || !readBytes(output, afterFailure) || afterFailure != sentinel
+                || !sourceUnchanged(adapter) || hasStagedOutput(output))
+                return fail("injected failure changed caller or destination state");
+
+            const bool retried = codec.write(&adapter, DRW::AC1024, binary);
+            std::string retryBytes;
+            if (!retried || !adapter.entitiesWritten
+                || !sourceUnchanged(adapter) || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes || !readbackMatches(output)
+                || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "AC1024 standalone ATTRIB/SEQEND "
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool runLongMTextSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "long UTF-8 MTEXT allocation transaction: "
@@ -7751,7 +7902,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-attributed-insert|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -7759,6 +7910,8 @@ int main(int argc, char** argv) {
         const std::string mode(argv[2]);
         if (mode == "r2018-embedded-attribute")
             return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
+        if (mode == "legacy-attributed-insert")
+            return runLegacyAttributedInsertSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "light-list")
