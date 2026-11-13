@@ -2,14 +2,14 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **78 completed implementation slices**. It does **not** yet
+The plan records **84 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The `78 / (78 + 6) = 92.9%`
+gates as six slices mixes unlike units. The `84 / (84 + 6) = 93.3%`
 figure is only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 92.9%**, but cannot be calculated
+actual slice-based percentage is **below 93.3%**, but cannot be calculated
 honestly until those requirements are decomposed and counted as remaining
 slices.
 
