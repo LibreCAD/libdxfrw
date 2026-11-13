@@ -4395,6 +4395,18 @@ set_tests_properties(libdxfrw_dwg_3dface_flag_domain PROPERTIES
     TIMEOUT 30
 )
 
+# Invalid CIRCLE/ARC radii must not replace an existing DWG; correcting the
+# same writer must succeed and read back in every supported output version.
+add_test(
+    NAME libdxfrw_dwg_circle_arc_radius_domain
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-circle-arc-radius-domain
+)
+set_tests_properties(libdxfrw_dwg_circle_arc_radius_domain PROPERTIES
+    LABELS "fast;dwg;writer;reader;circle;arc;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome

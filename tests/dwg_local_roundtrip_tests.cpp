@@ -10353,6 +10353,128 @@ bool runDwg3DFaceFlagDomain(const std::filesystem::path& directory) {
     return true;
 }
 
+class DwgCircleArcRadiusWriter final : public dx_iface {
+public:
+    DwgCircleArcRadiusWriter(dwgRW& writer, bool arc, double radius)
+        : writer_(writer), arc_(arc), radius_(radius) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        if (arc_) {
+            DRW_Arc value;
+            value.basePoint = {2.0, 3.0, 4.0};
+            value.radious = radius_;
+            value.staangle = 0.25;
+            value.endangle = 1.0;
+            wrote_ = writer_.writeArc(&value) && value.handle != 0u;
+        } else {
+            DRW_Circle value;
+            value.basePoint = {2.0, 3.0, 4.0};
+            value.radious = radius_;
+            wrote_ = writer_.writeCircle(&value) && value.handle != 0u;
+        }
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    dwgRW& writer_;
+    bool arc_;
+    double radius_;
+    bool wrote_{false};
+};
+
+class DwgCircleArcRadiusReader final : public dx_iface {
+public:
+    explicit DwgCircleArcRadiusReader(bool arc) : arc_(arc) {}
+    void addCircle(const DRW_Circle& value) override {
+        if (!arc_) {
+            ++count_;
+            radius_ = value.radious;
+        }
+    }
+    void addArc(const DRW_Arc& value) override {
+        if (arc_) {
+            ++count_;
+            radius_ = value.radious;
+        }
+    }
+    bool matches(double radius) const noexcept {
+        return count_ == 1u && radius_ == radius;
+    }
+
+private:
+    bool arc_;
+    std::size_t count_{0u};
+    double radius_{0.0};
+};
+
+bool runDwgCircleArcRadiusDomain(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::array<double, 4> invalidRadii{{
+        0.0, -2.5, std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity()}};
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        for (const bool arc : {false, true}) {
+            const auto path = directory / (std::string("libdxfrw-")
+                + (arc ? "arc" : "circle") + "-radius-"
+                + std::to_string(static_cast<int>(version)) + ".dwg");
+            for (const double invalidRadius : invalidRadii) {
+                {
+                    std::ofstream sentinel(path, std::ios::binary
+                                                   | std::ios::trunc);
+                    sentinel << "existing-dwg-destination";
+                }
+                dwgRW writer(path.string().c_str());
+                DwgCircleArcRadiusWriter source(writer, arc, invalidRadius);
+                const std::string before = readBytes(path);
+                if (writer.write(&source, version, false)
+                    || before.empty() || readBytes(path) != before)
+                    return false;
+
+                DwgCircleArcRadiusWriter retry(writer, arc, 2.5);
+                if (!writer.write(&retry, version, false))
+                    return false;
+                dwgRW reader(path.string().c_str());
+                DwgCircleArcRadiusReader capture(arc);
+                dx_data readData;
+                capture.cData = &readData;
+                if (!reader.read(&capture, false) || !capture.matches(2.5)
+                    || reader.getEntityParseFailures() != 0u
+                    || reader.getObjectParseFailures() != 0u)
+                    return false;
+            }
+            std::filesystem::remove(path, ec);
+        }
+    }
+    return true;
+}
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -41050,6 +41172,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-3dface-flag-domain") {
         const bool passed = runDwg3DFaceFlagDomain(directory);
         std::cout << "DWG 3DFACE flag domain rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-circle-arc-radius-domain") {
+        const bool passed = runDwgCircleArcRadiusDomain(directory);
+        std::cout << "DWG CIRCLE/ARC positive-radius rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2

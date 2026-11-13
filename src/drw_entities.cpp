@@ -8282,7 +8282,10 @@ bool DRW_Circle::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  // Autodesk's AcDbCircle::setRadius contract requires radius > 0. Keep
+  // DWG writer admission aligned with the DXF writer so malformed geometry
+  // is refused before any staged record or handle state is published.
+  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0)
     return false;
 
   dwgBufferW *const bodyTarget = buf;
@@ -9801,7 +9804,8 @@ bool DRW_Arc::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
                         dwgBufferW *strBuf, dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  // AcDbArc has the same strictly-positive radius contract as AcDbCircle.
+  if (buf == nullptr || !std::isfinite(radious) || radious <= 0.0)
     return false;
 
   dwgBufferW *const bodyTarget = buf;
