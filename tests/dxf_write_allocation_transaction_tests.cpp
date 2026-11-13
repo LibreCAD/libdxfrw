@@ -28,6 +28,7 @@ constexpr std::uint32_t kHatchHandle = 0xD91Bu;
 constexpr std::uint32_t kLeaderHandle = 0xD91Cu;
 constexpr std::uint32_t kMLineHandle = 0xD91Du;
 constexpr std::uint32_t kMLineStyleHandle = 0xD91Eu;
+constexpr std::uint32_t kPolyline3Handle = 0xD91Fu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -218,6 +219,15 @@ public:
         mline.vertlist[1].miterDir = DRW_Coord(0.0, 1.0, 0.0);
         mline.vertlist[1].segParms = {{-0.5, 0.75}};
         mline.vertlist[1].areaFillParms = {{0.125}};
+        polyline3.handle = kPolyline3Handle;
+        polyline3.flags = 0;
+        polyline3.basePoint = DRW_Coord(0.0, 0.0, 2.5);
+        DRW_Vertex polylineVertex0(1.0, 2.0, 0.0, 0.25);
+        polylineVertex0.handle = 0xD920u;
+        DRW_Vertex polylineVertex1(4.0, 6.0, 0.0, 0.0);
+        polylineVertex1.handle = 0xD921u;
+        polyline3.addVertex(polylineVertex0);
+        polyline3.addVertex(polylineVertex1);
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -259,7 +269,8 @@ public:
             && output.writeSpline(&spline)
             && output.writeHatch(&hatch)
             && output.writeLeader(&leader)
-            && output.writeMLine(&mline);
+            && output.writeMLine(&mline)
+            && output.writePolyline(&polyline3);
     }
 
     void writeObjects() override {
@@ -287,6 +298,7 @@ public:
     DRW_Leader leader;
     DRW_MLine mline;
     DRW_MLineStyle mlineStyle;
+    DRW_Polyline polyline3;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -348,6 +360,10 @@ public:
         ++mlineStyleCount;
         mlineStyle = value;
     }
+    void addPolyline(const DRW_Polyline& value) override {
+        ++polyline3Count;
+        polyline3 = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -370,6 +386,7 @@ public:
     DRW_Leader leader;
     DRW_MLine mline;
     DRW_MLineStyle mlineStyle;
+    DRW_Polyline polyline3;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -384,6 +401,7 @@ public:
     unsigned leaderCount = 0u;
     unsigned mlineCount = 0u;
     unsigned mlineStyleCount = 0u;
+    unsigned polyline3Count = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -505,6 +523,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.mlineStyle.elements.front().offset == 0.5
         && adapter.mlineStyle.elements.front().linetype.empty()
         && adapter.mlineStyle.elements.front().linetypeIndex == -1
+        && adapter.polyline3.handle == kPolyline3Handle
+        && adapter.polyline3.flags == 0
+        && adapter.polyline3.basePoint.z == 2.5
+        && adapter.polyline3.vertlist.size() == 2u
+        && adapter.polyline3.vertlist[0]
+        && adapter.polyline3.vertlist[0]->handle == 0xD920u
+        && adapter.polyline3.vertlist[0]->basePoint.x == 1.0
+        && adapter.polyline3.vertlist[0]->basePoint.y == 2.0
+        && adapter.polyline3.vertlist[0]->bulge == 0.25
+        && adapter.polyline3.vertlist[1]
+        && adapter.polyline3.vertlist[1]->handle == 0xD921u
+        && adapter.polyline3.vertlist[1]->basePoint.x == 4.0
+        && adapter.polyline3.vertlist[1]->basePoint.y == 6.0
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -668,6 +699,20 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mlineStyle.elements.size() != 1u
         || adapter.mlineStyle.elements.front().offset != 0.5
         || adapter.mlineStyle.elements.front().linetype != "BYLAYER"
+        || adapter.polyline3Count != 1u
+        || adapter.polyline3.handle == 0u
+        || adapter.polyline3.flags != 0
+        || adapter.polyline3.basePoint.z != 2.5
+        || adapter.polyline3.vertlist.size() != 2u
+        || !adapter.polyline3.vertlist[0]
+        || adapter.polyline3.vertlist[0]->handle == 0u
+        || adapter.polyline3.vertlist[0]->basePoint.x != 1.0
+        || adapter.polyline3.vertlist[0]->basePoint.y != 2.0
+        || adapter.polyline3.vertlist[0]->bulge != 0.25
+        || !adapter.polyline3.vertlist[1]
+        || adapter.polyline3.vertlist[1]->handle == 0u
+        || adapter.polyline3.vertlist[1]->basePoint.x != 4.0
+        || adapter.polyline3.vertlist[1]->basePoint.y != 6.0
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0

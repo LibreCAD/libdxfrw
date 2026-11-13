@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE compound emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -283,6 +283,27 @@
         ]
       },
       {
+        "kind": "POLYLINE",
+        "sourceHandle": "0xD91F",
+        "flags": 0,
+        "elevation": 2.5,
+        "vertices": [
+          {
+            "sourceHandle": "0xD920",
+            "x": 1.0,
+            "y": 2.0,
+            "bulge": 0.25
+          },
+          {
+            "sourceHandle": "0xD921",
+            "x": 4.0,
+            "y": 6.0,
+            "bulge": 0.0
+          }
+        ],
+        "sequenceEnd": "generated-by-writer"
+      },
+      {
         "kind": "XRECORD",
         "sourceHandle": "0xD901",
         "payload": "whole operation payload",
@@ -423,11 +444,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "8399668c2a14106889f1a1c4113be60c60f52da64adef5fdd2b00fc154c082db",
+    "testSha256": "68a2cf1ef643b09b65ec5f59e2ed17edc5abc04720d130350d7722f6642951b2",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "f9ec425996a657d7a872a7294509c22b0c3b711a99d9f381ce19a87b73bbc57c",
-    "asanExecutableSha256": "3ccce1bad4280703222b0939ebf457f8fdc86aa2c53d22f7989bb27d6e478629",
+    "normalExecutableSha256": "b726f0ac96788a8057aae76f801129b5916cee9b1d31fc8bcdbf6e0592ba4258",
+    "asanExecutableSha256": "5d7829126949c5f2331081069e6b950e1f5ebb22cba675ec8c342656415618d7",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/intern/dxfwriter.h"
@@ -449,7 +470,7 @@
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
-    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-classic-polyline-whole-operation-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -457,9 +478,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.41 seconds; ASan 1/1 passed in 10.03 seconds.",
+    "ctest": "Normal 1/1 passed in 1.51 seconds; ASan 1/1 passed in 10.93 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 271,
+      "measuredAllocationOffsets": 289,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -495,10 +516,13 @@
       "mlineStyleAndReferenceReadbackMatched": true,
       "mlineAllocationFailureAbortsWholeWrite": true,
       "callerMLineAndStylePreserved": true,
-      "destinationAndDerivedIdentitiesRolledBack": true
+      "destinationAndDerivedIdentitiesRolledBack": true,
+      "polylineParentAndVertexReadbackMatched": true,
+      "polylineAllocationFailureAbortsWholeWrite": true,
+      "callerPolylineParentAndVertexHandlesPreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 267,
+      "measuredAllocationOffsets": 284,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -534,9 +558,12 @@
       "mlineStyleAndReferenceReadbackMatched": true,
       "mlineAllocationFailureAbortsWholeWrite": true,
       "callerMLineAndStylePreserved": true,
-      "destinationAndDerivedIdentitiesRolledBack": true
+      "destinationAndDerivedIdentitiesRolledBack": true,
+      "polylineParentAndVertexReadbackMatched": true,
+      "polylineAllocationFailureAbortsWholeWrite": true,
+      "callerPolylineParentAndVertexHandlesPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 10.03 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 10.93 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -554,9 +581,9 @@
     }
   },
   "limits": [
-    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "2a3eb82f"
+  "baseRevision": "083caaa3"
 }
