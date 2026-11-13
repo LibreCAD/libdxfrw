@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **131 completed implementation slices** and **35 remaining
+The plan records **132 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`131 / (131 + 35) = 78.9%`. This is a count-based progress measure, not an
+`132 / (132 + 35) = 79.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1635,6 +1635,17 @@ and modeled values. This covers one locally generated text-only profile; it
 does not qualify leader roots/lines, block content, referenced styles or
 consumer semantics. The focused transaction CTest passes in 5.71 seconds. See
 the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 MULTILEADER nested-root transaction follow-up (2026-11-13):** the
+generated whole-operation profile now includes one leader root with a
+three-point leader line in addition to its text context. Caller-state checks
+and typed readback verify root identity fields, ordered points, segment/line
+indices, scalar color, lineweight and arrow size. The full allocation sweep
+passes at 1,121 ASCII and 1,099 Binary offsets with destination rollback and
+same-writer retry; focused CTest passes in 8.26 seconds. This does not cover
+break pairs, multiple roots/lines, block content, style-reference closure or
+native consumer semantics. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the
 whole-file allocation sweep includes a generic `DRW_Dimension` on the

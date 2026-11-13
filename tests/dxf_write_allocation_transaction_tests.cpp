@@ -1202,6 +1202,22 @@ public:
         multiLeader.context.contentBasePoint = DRW_Coord{2.0, 3.0, 4.0};
         multiLeader.context.textLocation = DRW_Coord{5.0, 6.0, 7.0};
         multiLeader.context.textHeight = 1.5;
+        DRW_MLeaderRoot multiLeaderRoot;
+        multiLeaderRoot.connectionPoint = DRW_Coord{1.0, 2.0, 3.0};
+        multiLeaderRoot.direction = DRW_Coord{0.0, 1.0, 0.0};
+        multiLeaderRoot.leaderIndex = 2;
+        multiLeaderRoot.landingDistance = 4.5;
+        DRW_MLeaderLeaderLine multiLeaderLine;
+        multiLeaderLine.points = {DRW_Coord{1.0, 2.0, 3.0},
+            DRW_Coord{4.0, 5.0, 6.0}, DRW_Coord{7.0, 8.0, 9.0}};
+        multiLeaderLine.segmentIndex = 1;
+        multiLeaderLine.leaderLineIndex = 3;
+        multiLeaderLine.leaderType = 1;
+        multiLeaderLine.color = 4;
+        multiLeaderLine.lineWeight = 25;
+        multiLeaderLine.arrowSize = 2.25;
+        multiLeaderRoot.leaderLines.push_back(multiLeaderLine);
+        multiLeader.context.roots.push_back(multiLeaderRoot);
     }
 
     void writeEntities() override {
@@ -2402,6 +2418,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.multiLeader.context.textLocation.y == 6.0
         && adapter.multiLeader.context.textLocation.z == 7.0
         && adapter.multiLeader.context.textHeight == 1.5
+        && adapter.multiLeader.context.roots.size() == 1u
+        && adapter.multiLeader.context.roots[0].leaderIndex == 2
+        && adapter.multiLeader.context.roots[0].connectionPoint.x == 1.0
+        && adapter.multiLeader.context.roots[0].direction.y == 1.0
+        && adapter.multiLeader.context.roots[0].landingDistance == 4.5
+        && adapter.multiLeader.context.roots[0].leaderLines.size() == 1u
+        && adapter.multiLeader.context.roots[0].leaderLines[0].points.size() == 3u
+        && adapter.multiLeader.context.roots[0].leaderLines[0].points[2].z == 9.0
+        && adapter.multiLeader.context.roots[0].leaderLines[0].segmentIndex == 1
+        && adapter.multiLeader.context.roots[0].leaderLines[0].leaderLineIndex == 3
+        && adapter.multiLeader.context.roots[0].leaderLines[0].color == 4
+        && adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight == 25
+        && adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize == 2.25
         && adapter.ole2Frame.handle == kOle2FrameHandle
         && adapter.ole2Frame.m_oleVersion == 2u
         && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
@@ -3569,6 +3598,22 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.multiLeader.context.textLocation.y != 6.0
         || adapter.multiLeader.context.textLocation.z != 7.0
         || adapter.multiLeader.context.textHeight != 1.5
+        || adapter.multiLeader.context.roots.size() != 1u
+        || adapter.multiLeader.context.roots[0].leaderIndex != 2
+        || adapter.multiLeader.context.roots[0].connectionPoint.x != 1.0
+        || adapter.multiLeader.context.roots[0].connectionPoint.y != 2.0
+        || adapter.multiLeader.context.roots[0].connectionPoint.z != 3.0
+        || adapter.multiLeader.context.roots[0].direction.y != 1.0
+        || adapter.multiLeader.context.roots[0].landingDistance != 4.5
+        || adapter.multiLeader.context.roots[0].leaderLines.size() != 1u
+        || adapter.multiLeader.context.roots[0].leaderLines[0].points.size() != 3u
+        || adapter.multiLeader.context.roots[0].leaderLines[0].points[0].x != 1.0
+        || adapter.multiLeader.context.roots[0].leaderLines[0].points[2].z != 9.0
+        || adapter.multiLeader.context.roots[0].leaderLines[0].segmentIndex != 1
+        || adapter.multiLeader.context.roots[0].leaderLines[0].leaderLineIndex != 3
+        || adapter.multiLeader.context.roots[0].leaderLines[0].color != 4
+        || adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight != 25
+        || adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize != 2.25
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
