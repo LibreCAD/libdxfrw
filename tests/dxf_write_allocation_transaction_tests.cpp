@@ -1676,19 +1676,25 @@ public:
                       DRW_Vertex::DwgSubtype::Mesh, 64);
         } else {
             polyline.flags = 64;
-            polyline.vertexcount = 4;
-            polyline.facecount = 1;
-            for (unsigned i = 0; i != 4; ++i)
+            polyline.vertexcount = 5;
+            polyline.facecount = 2;
+            for (unsigned i = 0; i != 5; ++i)
                 addVertex(0xDB01u + i, 1.0 + i, 2.0 + i, 3.0 + i,
                           DRW_Vertex::DwgSubtype::Polyface, 64);
-            DRW_Vertex face;
-            face.handle = 0xDB05u;
-            face.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
-            face.vindex1 = 1;
-            face.vindex2 = 2;
-            face.vindex3 = 3;
-            face.vindex4 = 4;
-            polyline.addVertex(face);
+            DRW_Vertex firstFace;
+            firstFace.handle = 0xDB06u;
+            firstFace.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+            firstFace.vindex1 = -1;
+            firstFace.vindex2 = 2;
+            firstFace.vindex3 = -3;
+            polyline.addVertex(firstFace);
+            DRW_Vertex secondFace;
+            secondFace.handle = 0xDB07u;
+            secondFace.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+            secondFace.vindex1 = 2;
+            secondFace.vindex2 = -4;
+            secondFace.vindex3 = 5;
+            polyline.addVertex(secondFace);
         }
     }
 
@@ -6250,7 +6256,7 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
         {PolylineTopologyExport::Topology::PolygonMesh,
          "polygon-mesh", 16 | 32, 4u},
         {PolylineTopologyExport::Topology::Polyface,
-         "polyface-mesh", 64, 5u}
+         "polyface-mesh", 64, 7u}
     }};
     const std::array<std::pair<DRW::Version, const char*>, 4> versions{{
         {DRW::AC1014, "AC1014"}, {DRW::AC1021, "AC1021"},
@@ -6296,11 +6302,20 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
                     return fail("baseline topology header mismatch");
                 if (profile.topology
                     == PolylineTopologyExport::Topology::Polyface) {
-                    const auto& face = actual.vertlist.back();
-                    if (!face || (face->flags & 128) == 0
-                        || face->vindex1 != 1 || face->vindex2 != 2
-                        || face->vindex3 != 3 || face->vindex4 != 4)
-                        return fail("polyface face topology readback mismatch");
+                    const auto& firstFace = actual.vertlist[5];
+                    const auto& secondFace = actual.vertlist[6];
+                    if (!firstFace || !secondFace
+                        || (firstFace->flags & 128) == 0
+                        || firstFace->vindex1 != -1
+                        || firstFace->vindex2 != 2
+                        || firstFace->vindex3 != -3
+                        || firstFace->vindex4 != 0
+                        || (secondFace->flags & 128) == 0
+                        || secondFace->vindex1 != 2
+                        || secondFace->vindex2 != -4
+                        || secondFace->vindex3 != 5
+                        || secondFace->vindex4 != 0)
+                        return fail("polyface face indices/edge visibility mismatch");
                 } else {
                     for (std::size_t i = 0; i < actual.vertlist.size(); ++i) {
                         const auto& vertex = actual.vertlist[i];
