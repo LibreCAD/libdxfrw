@@ -28,7 +28,7 @@
   },
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_dwg_class_source_tests -j4 passed; library and test adapter compiled with project warning flags.",
-    "focused_tail_control": "build-gcc/tests/libdxfrw_dwg_class_source_tests --classes-tail-only passed for 0/1/2/8-byte trailer forms, full sentinel forms, truncated sentinel lengths 0..15, and malformed bounded tails.",
+    "focused_tail_control": "CTest libdxfrw_dwg_class_source_tail passed (1/1, 0.01 seconds) for 0/1/2/8-byte trailer forms, full sentinel forms, truncated sentinel lengths 0..15, and malformed bounded tails.",
     "source_import": "A temporary import probe using the rebuilt test adapter read this exact external sample through CLASSES and returned BAD_READ_TABLES (legacyError 9), confirming the prior BAD_READ_CLASSES failure is removed. The one-off probe entry point was not retained in the repository.",
     "broader_ctest": "libdxfrw_dwg_class_source failed later in its existing native AC1015 comparison at line 457 (both adapters report a failed AC1015 import); the focused tail control passed.",
     "dwg2dxf_link": "The dwg2dxf relink was blocked by Apple SDK CoreFoundation nullability-extension diagnostics promoted to errors in dwg2dxf/dx_batch_output_names.cpp; no warning suppression was added."

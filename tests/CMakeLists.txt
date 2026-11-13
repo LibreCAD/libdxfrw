@@ -5721,6 +5721,10 @@ add_test(NAME libdxfrw_dwg_class_source
         ${CMAKE_CURRENT_BINARY_DIR}/class-source)
 set_tests_properties(libdxfrw_dwg_class_source PROPERTIES
     LABELS "dwg;classes;source;fast" TIMEOUT 30)
+add_test(NAME libdxfrw_dwg_class_source_tail
+    COMMAND libdxfrw_dwg_class_source_tests --classes-tail-only)
+set_tests_properties(libdxfrw_dwg_class_source_tail PROPERTIES
+    LABELS "dwg;classes;source;fast" TIMEOUT 10)
 
 # Keep this after every local target customization. A differing compile/link
 # context must get its own adapter, not silently reuse these object files.

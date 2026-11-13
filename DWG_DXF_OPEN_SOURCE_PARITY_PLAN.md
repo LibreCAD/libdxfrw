@@ -1177,6 +1177,9 @@ reads all strings back through `readDwgClasses()`. No fixture was added. See the
 and [earlier recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json).
 The short-tail compatibility correction and its limits are recorded in the
 [AC1024 CLASSES tail receipt](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json).
+Its truncated/complete/malformed tail controls run as the dedicated fast CTest
+`libdxfrw_dwg_class_source_tail`, independently of the broader class-source
+cohort that currently fails on an AC1015 fixture comparison.
 A further screen of the public LibreDWG `test/test-data/2010` directory found
 18 AC1024 DWGs: all reach the CLASSES end marker without a CRC mismatch, and 17
 complete the full reader operation. One fails later at TABLES; the successful
