@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **188 completed implementation slices** and **35 remaining
+The plan records **189 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`188 / (188 + 35) = 84.3%`. This is a count-based progress measure, not an
+`189 / (189 + 35) = 84.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1246,6 +1246,15 @@ fresh typed readback. All 20 ASCII and 20 Binary allocation failures preserve
 the prior destination and caller record. This is one generated transaction
 profile only; producer interoperability and native associative behavior remain
 open ([receipt](docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G MLEADERSTYLE caller-state transaction follow-up (2026-11-13):** the
+AC1027 ASCII/Binary allocation sweep now checks the full initialized style
+profile after calibration, every injected failure, and same-codec retry,
+including style version, text height, EED application/record group codes, and
+values. Every failure still preserves the prior destination; retries remain
+byte-identical and pass typed readback. All 19 ASCII and 18 Binary allocation
+offsets pass. This strengthens one generated object transaction profile only;
+producer interoperability and native leader rendering remain open ([receipt](docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json)).
 
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work

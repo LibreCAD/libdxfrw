@@ -105,6 +105,25 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
+bool callerMatches(const DRW_MLeaderStyle& style) {
+    return style.tType == DRW::MLEADERSTYLE
+        && style.handle == 0xD710u
+        && style.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && style.styleVersion == 2
+        && style.description == "allocation sweep style description"
+        && style.textDefault == "allocation sweep default text"
+        && style.textHeight == 2.75
+        && style.extData.size() == 2u
+        && style.extData[0]
+        && style.extData[0]->code() == 1001
+        && style.extData[0]->content.s
+        && *style.extData[0]->content.s == "ACAD"
+        && style.extData[1]
+        && style.extData[1]->code() == 1000
+        && style.extData[1]->content.s
+        && *style.extData[1]->content.s == "mleaderstyle-eed";
+}
+
 bool readbackMatches(const std::filesystem::path& path) {
     dxfRW codec(path.string().c_str());
     Reader reader;
@@ -138,6 +157,7 @@ bool allocationSweep(const std::filesystem::path& directory) {
             exporter.failAt = 1000000;
             const bool written = codec.write(&exporter, DRW::AC1027, binary);
             if (!written || !exporter.accepted || !readbackMatches(path)
+                || !callerMatches(exporter.style)
                 || !readBytes(path, expectedBytes))
                 return false;
             allocationCount = exporter.reached;
@@ -161,26 +181,13 @@ bool allocationSweep(const std::filesystem::path& directory) {
             if (written || exporter.accepted || exporter.reached != offset + 1
                 || !allocationFailed
                 || !readBytes(path, current) || current != prior
-                || exporter.style.handle != 0xD710u
-                || exporter.style.parentHandle
-                    != DRW::DwgNamedObjectsDictionaryHandle
-                || exporter.style.description
-                    != "allocation sweep style description"
-                || exporter.style.textDefault
-                    != "allocation sweep default text"
-                || exporter.style.extData.size() != 2u
-                || !exporter.style.extData[0]
-                || !exporter.style.extData[0]->content.s
-                || *exporter.style.extData[0]->content.s != "ACAD"
-                || !exporter.style.extData[1]
-                || !exporter.style.extData[1]->content.s
-                || *exporter.style.extData[1]->content.s
-                    != "mleaderstyle-eed")
+                || !callerMatches(exporter.style))
                 return false;
 
             const bool retried = codec.write(&exporter, DRW::AC1027, binary);
             std::string retryBytes;
             if (!retried || !exporter.accepted
+                || !callerMatches(exporter.style)
                 || !readBytes(path, retryBytes)
                 || retryBytes != expectedBytes || !readbackMatches(path))
                 return false;
