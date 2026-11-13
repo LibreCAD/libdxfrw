@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **139 completed implementation slices** and **35 remaining
+The plan records **140 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`139 / (139 + 35) = 80.3%`. This is a count-based progress measure, not an
+`140 / (140 + 35) = 80.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1813,7 +1813,13 @@ selector now also generates a complete AC1024 file in memory with three
 2048-character class strings, verifies the footer exceeds `0x7fff` bits, and
 reads all strings back through `readDwgClasses()`. No fixture was added. See the
 [2026-11-09 repository-corpus receipt](docs/research/p6-ac1024-classes-repository-corpus-recheck-2026-11-09.json)
-and [earlier recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json).
+and
+[earlier recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json).
+The existing selector is now registered as `dwg_r2007_class_string_footer` in
+CTest, so it can run without the full reader-matrix suite. The focused test
+passes 1/1 in 0.01 seconds; it exercises generated wire bounds only and does
+not resolve the RTM producer discrepancy. See the
+[fast-selector receipt](docs/research/p6-dwg-class-string-footer-fast-selector-2026-11-13.json).
 The short-tail compatibility correction and its limits are recorded in the
 [AC1024 CLASSES tail receipt](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json).
 Its truncated/complete/malformed tail controls run as the dedicated fast CTest

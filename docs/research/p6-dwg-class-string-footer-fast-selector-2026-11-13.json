@@ -1,0 +1,14 @@
+{
+  "title": "Fast CTest selector for DWG CLASSES string-footer boundaries",
+  "date": "2026-11-13",
+  "scope": "Expose the existing generated AC1024 high-bit class string-footer and extended-prefix controls as an independently runnable CTest.",
+  "test": {
+    "name": "dwg_r2007_class_string_footer",
+    "command": "ctest --test-dir build-gcc -R '^dwg_r2007_class_string_footer$' --output-on-failure",
+    "result": "PASS, 1/1 (0.01 sec)",
+    "labels": ["fast", "dwg", "classes", "AC1024", "generated"]
+  },
+  "controlCoverage": "The existing selector includes an in-memory AC1024 file with three 2048-character class strings, verifies the class string footer exceeds 0x7fff bits, reads the strings back through readDwgClasses(), and checks high-bit footer arithmetic and bounds.",
+  "claimBoundary": "Generated wire-boundary regression evidence only. The provenance-qualified AutoCAD 2010 RTM discrepancy remains unresolved; this selector does not establish producer interoperability or AC1024 support.",
+  "fixturePolicy": "No DWG/DXF fixture added. The control generates its input in memory."
+}

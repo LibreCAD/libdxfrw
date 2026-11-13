@@ -4223,6 +4223,16 @@ set_tests_properties(dwg_r2007_polyline3d_closed_flag_roundtrip PROPERTIES
 )
 
 add_test(
+    NAME dwg_r2007_class_string_footer
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+            --r2007-class-string-footer
+)
+set_tests_properties(dwg_r2007_class_string_footer PROPERTIES
+    LABELS "fast;dwg;classes;AC1024;generated"
+    TIMEOUT 30
+)
+
+add_test(
     NAME dxf_mpolygon_metadata_boundary_roundtrip
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --mpolygon-metadata
 )
