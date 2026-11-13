@@ -335,6 +335,11 @@ public:
         face.thirdPoint = DRW_Coord(3.0, 4.0, 3.0);
         face.fourPoint = DRW_Coord(0.0, 4.0, 4.0);
         face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+        dimension.handle = 0xD960u;
+        dimension.setDefPoint(DRW_Coord(-3.0, 4.0, 5.0));
+        dimension.setTextPoint(DRW_Coord(1.5, 2.5, 0.0));
+        dimension.setText("whole-operation dimension");
+        dimension.setStyle("STANDARD");
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -591,6 +596,7 @@ public:
             && check("POLYLINE", output.writePolyline(&polyline3))
             && check("INSERT", output.writeInsert(&insert))
             && check("3DFACE", output.writeLine(&face))
+            && check("DIMENSION", output.writeDimension(&dimension))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -646,6 +652,7 @@ public:
     DRW_Polyline polyline3;
     DRW_Insert insert;
     DRW_3Dface face;
+    DRW_DimAligned dimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -741,6 +748,13 @@ public:
     void add3dFace(const DRW_3Dface& value) override {
         ++faceCount;
         face = value;
+    }
+    void addDimAlign(const DRW_DimAligned* value) override {
+        if (value == nullptr)
+            return;
+        dx_iface::addDimAlign(value);
+        ++dimensionCount;
+        dimension = *value;
     }
     void addArc(const DRW_Arc& value) override {
         ++arcCount;
@@ -876,6 +890,7 @@ public:
     DRW_Polyline polyline3;
     DRW_Insert insert;
     DRW_3Dface face;
+    DRW_DimAligned dimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -917,6 +932,7 @@ public:
     unsigned polyline3Count = 0u;
     unsigned insertCount = 0u;
     unsigned faceCount = 0u;
+    unsigned dimensionCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1146,6 +1162,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.face.fourPoint.z == 4.0
         && adapter.face.invisibleflag
             == (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
+        && adapter.dimension.handle == 0xD960u
+        && adapter.dimension.getDefPoint().x == -3.0
+        && adapter.dimension.getDefPoint().y == 4.0
+        && adapter.dimension.getDefPoint().z == 5.0
+        && adapter.dimension.getTextPoint().x == 1.5
+        && adapter.dimension.getTextPoint().y == 2.5
+        && adapter.dimension.getText() == "whole-operation dimension"
+        && adapter.dimension.getStyle() == "STANDARD"
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1635,6 +1659,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.face.fourPoint.z != 4.0
         || adapter.face.invisibleflag
             != (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
+        || adapter.dimensionCount != 1u
+        || adapter.dimension.handle == 0u
+        || adapter.dimension.getDefPoint().x != -3.0
+        || adapter.dimension.getDefPoint().y != 4.0
+        || adapter.dimension.getDefPoint().z != 5.0
+        || adapter.dimension.getTextPoint().x != 1.5
+        || adapter.dimension.getTextPoint().y != 2.5
+        || adapter.dimension.getText() != "whole-operation dimension"
+        || adapter.dimension.getStyle() != "STANDARD"
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0

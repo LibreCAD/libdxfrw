@@ -2,7 +2,7 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **92 completed implementation slices**. It does **not** yet
+The plan records **93 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
 gates as six slices mixes unlike units. The `89 / (89 + 6) = 93.7%`
@@ -1244,6 +1244,17 @@ failure offsets preserve the destination and caller record, and same-codec
 retry reproduces clean output plus typed readback. The focused transaction
 CTest passes. This covers allocation rollback only; material appearance,
 textures and native rendering remain unqualified. See the [receipt](docs/research/p6-dxf-material-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local aligned DIMENSION transaction slice (2026-11-13):** the whole-file
+ASCII/Binary allocation sweep now writes a generated DIMALIGNED entity with
+WCS definition point, OCS text point, explicit text and STANDARD style. All
+558 ASCII and 551 Binary failure offsets preserve the previous destination,
+caller fields and derived identity maps; retry on the same writer reproduces
+the clean bytes and typed readback. The focused transaction CTest passes
+1/1 in 3.26 seconds. This qualifies generated rollback/retry and codec
+readback only, not native dimension rendering or producer-specific DWG
+semantics. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local LOFTEDSURFACE transaction slice (2026-11-13):** the same sweep
 now writes a generated AC1027 LOFTEDSURFACE with its modeled draft/flag and
