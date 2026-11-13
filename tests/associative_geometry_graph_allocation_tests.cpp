@@ -76,12 +76,13 @@ dx_data makeSource() {
     group.m_constraintGroupBodyParsed = true;
     group.m_constraintGroupVersion = 0;
     group.m_constraintActionsParsed = true;
-    group.m_constraintActions = {0x904u, 0x906u, 0x908u, 0x909u};
-    group.m_constraintActionCount = 4;
+    group.m_constraintActions = {
+        0x904u, 0x906u, 0x908u, 0x909u, 0x90Au, 0x90Bu};
+    group.m_constraintActionCount = 6;
     group.m_constraintNextNodeIdRead = true;
-    group.m_constraintNextNodeId = 9;
+    group.m_constraintNextNodeId = 10;
     group.m_constraintNodesParsed = true;
-    group.m_constraintNodeCount = 8;
+    group.m_constraintNodeCount = 9;
     DRW_AssociativeConstraintNode node;
     node.m_className = "AcConstrainedImplicitPoint";
     node.m_nodeId = 1;
@@ -98,6 +99,7 @@ dx_data makeSource() {
     node.m_dataKind =
         DRW_AssociativeConstraintNode::DataKind::Geometrical;
     node.m_hasGeometryDependency = false;
+    node.m_geometryDependencyCode = 0u;
     node.m_geometryDependencyHandle = 0u;
     node.m_geometryNodeId = 0;
     group.m_constraintNodes.push_back(node);
@@ -189,6 +191,22 @@ dx_data makeSource() {
     node.m_rigidSetGeometryIds = {2, 3};
     node.m_classDataParsed = true;
     group.m_constraintNodes.push_back(node);
+    node = DRW_AssociativeConstraintNode();
+    node.m_className = "AcDistanceConstraint";
+    node.m_nodeId = 9;
+    node.m_ownerId = 6;
+    node.m_dataKind = DRW_AssociativeConstraintNode::DataKind::Distance;
+    node.m_hasValueDependencyHandle = true;
+    node.m_valueDependencyCode = DRW::DwgHardPointer;
+    node.m_valueDependencyHandle = 0x90Au;
+    node.m_hasDimensionDependencyHandle = true;
+    node.m_dimensionDependencyCode = DRW::DwgHardPointer;
+    node.m_dimensionDependencyHandle = 0x90Bu;
+    node.m_directionType = 1u;
+    node.m_hasDistance = true;
+    node.m_distance = DRW_Coord(6.0, 7.0, 8.0);
+    node.m_classDataParsed = true;
+    group.m_constraintNodes.push_back(node);
     std::sort(group.m_constraintNodes.begin(), group.m_constraintNodes.end(),
         [](const DRW_AssociativeConstraintNode& left,
            const DRW_AssociativeConstraintNode& right) {
@@ -201,7 +219,7 @@ dx_data makeSource() {
     group.m_prefixStatuses.push_back({
         DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
         0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
-        10u, 8u, 8, "authored eight-node inline constraint profile"});
+        14u, 9u, 9, "authored nine-node inline constraint profile"});
 
     DRW_AssociativeObject dependency("ACDBASSOCGEOMDEPENDENCY");
     dependency.handle = 0x904u;
@@ -240,9 +258,98 @@ dx_data makeSource() {
     boundedLineDependency.handle = 0x908u;
     DRW_AssociativeObject arcDependency = dependency;
     arcDependency.handle = 0x909u;
-    source.dwgAssociativeObjects = {network, group, dependency,
-                                    circleDependency, boundedLineDependency,
-                                    arcDependency};
+    DRW_AssociativeObject valueDependency("ACDBASSOCVALUEDEPENDENCY");
+    valueDependency.handle = 0x90Au;
+    valueDependency.parentHandle = group.handle;
+    valueDependency.m_classVersion = 1u;
+    valueDependency.m_actionPrefixParsed = true;
+    valueDependency.m_dependencyFieldsParsed = true;
+    valueDependency.m_dependencyWireComplete = true;
+    valueDependency.m_dependencyIsRead = true;
+    valueDependency.m_dependencyIsAttachedToObject = true;
+    valueDependency.m_dependencyIsDelegatingToOwningAction = true;
+    valueDependency.m_dependencyHandle = 0x90Cu;
+    valueDependency.m_valueDependencyFieldsParsed = true;
+    valueDependency.m_valueDependencyClassVersion = 0;
+    valueDependency.m_valueDependencyValueCode = 40;
+    valueDependency.m_valueDependencyValueKind =
+        DRW_AssociativeObject::EvalVariantKind::Real;
+    valueDependency.m_valueDependencyValueReal = 8.0;
+    valueDependency.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+        0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        4u, 0u, 0, "authored value-dependency prefix"});
+    valueDependency.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency,
+        0u, 0u, 0u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        0u, 3u, 40, "authored value-dependency value profile"});
+
+    DRW_AssociativeObject dimensionDependency("ACDBASSOCDEPENDENCY");
+    dimensionDependency.handle = 0x90Bu;
+    dimensionDependency.parentHandle = group.handle;
+    dimensionDependency.m_classVersion = 1u;
+    dimensionDependency.m_dependencyFieldsParsed = true;
+    dimensionDependency.m_dependencyWireComplete = true;
+    dimensionDependency.m_dependencyIsWrite = true;
+    dimensionDependency.m_dependencyIsAttachedToObject = true;
+    dimensionDependency.m_dependencyIsDelegatingToOwningAction = true;
+    dimensionDependency.m_dependencyHandle = 0x90Du;
+    dimensionDependency.m_dependencyBodyHandle = 0x90Eu;
+    dimensionDependency.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+        0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        4u, 0u, 0, "authored dimension-dependency prefix"});
+    DRW_AssociativeObject dimensionBody("ACDBASSOCDIMDEPENDENCYBODY");
+    dimensionBody.handle = 0x90Eu;
+    dimensionBody.parentHandle = dimensionDependency.handle;
+    dimensionBody.m_dependencyBodyVersion = 1u;
+    dimensionBody.m_dimBaseVersion = 1u;
+    dimensionBody.m_classVersion = 1u;
+    dimensionBody.m_dimensionDependencyBodyParsed = true;
+    dimensionBody.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody,
+        0u, 30u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        0u, 4u, 0, "authored dimension-dependency body profile"});
+
+    DRW_AssociativeObject variable("ACDBASSOCVARIABLE");
+    variable.handle = 0x90Cu;
+    variable.parentHandle = network.handle;
+    variable.reactorHandles.push_back(valueDependency.handle);
+    variable.m_classVersion = 1u;
+    variable.m_owningNetworkHandle = network.handle;
+    variable.m_associativeVariableFieldsParsed = true;
+    variable.m_associativeVariableWireComplete = true;
+    variable.m_variableOwnedDependenciesParsed = true;
+    variable.m_variableClassVersion = 2;
+    variable.m_variableName = "BOLTHOLE";
+    variable.m_variableExpression = "1";
+    variable.m_variableEvaluator = "AcDbCalc:1.0";
+    variable.m_variableValueParsed = true;
+    variable.m_variableValueCode = 40;
+    variable.m_variableValueKind =
+        DRW_AssociativeObject::EvalVariantKind::Real;
+    variable.m_variableValueReal = 8.0;
+    variable.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+        0u, 0u, 1u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        2u, 0u, 0, "authored variable action profile"});
+    variable.m_prefixStatuses.push_back({
+        DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+        0u, 0u, 2u, DRW_AssociativePrefixStatus::ParseStatus::Complete,
+        0u, 10u, 0, "authored variable value profile"});
+    network.m_actions.push_back({true, variable.handle});
+    network.m_prefixStatuses[0].m_decodedHandleCount = 2u;
+    network.m_prefixStatuses[1].m_decodedHandleCount = 2u;
+    network.m_prefixStatuses[1].m_decodedCountValue = 2;
+    DRW_DimLinear* dimension = new DRW_DimLinear();
+    dimension->handle = dimensionDependency.m_dependencyHandle;
+    dimension->layer = "0";
+    dimension->reactorHandles.push_back(dimensionDependency.handle);
+    source.mBlock->ent.push_back(dimension);
+    source.dwgAssociativeObjects = {
+        network, group, dependency, circleDependency, boundedLineDependency,
+        arcDependency, valueDependency, dimensionDependency, dimensionBody,
+        variable};
     dx_associativeDwgImportReceipt& receipt = source.associativeDwgImport;
     receipt.generation = source.importGeneration;
     receipt.sourceVersion = source.sourceVersion;
@@ -292,18 +399,27 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
 bool sourceGraphUnchanged(const dx_data& source) {
     constexpr std::array<std::uint32_t, 4> dependencyHandles{
         0x904u, 0x906u, 0x908u, 0x909u};
-    if (source.dwgAssociativeObjects.size() != 6u
+    if (source.dwgAssociativeObjects.size() != 10u
         || source.dwgAssociativeObjects[0].handle != 0x902u
+        || source.dwgAssociativeObjects[0].m_actions.size() != 2u
+        || source.dwgAssociativeObjects[0].m_actions[0].m_handle != 0x903u
+        || source.dwgAssociativeObjects[0].m_actions[1].m_handle != 0x90Cu
+        || !source.dwgAssociativeObjects[0].m_actions[1].m_isOwned
         || source.dwgAssociativeObjects[1].handle != 0x903u
-        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 8
-        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 8u
-        || source.dwgAssociativeObjects[1].m_constraintNextNodeId != 9
+        || source.dwgAssociativeObjects[1].m_constraintActions
+            != std::vector<std::uint32_t>(
+                {0x904u, 0x906u, 0x908u, 0x909u, 0x90Au, 0x90Bu})
+        || source.dwgAssociativeObjects[1].m_constraintNodeCount != 9
+        || source.dwgAssociativeObjects[1].m_constraintNodes.size() != 9u
+        || source.dwgAssociativeObjects[1].m_constraintNextNodeId != 10
         || source.dwgAssociativeObjects[1].m_constraintNodes[0].m_nodeId != 1
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_nodeId != 2
         || source.dwgAssociativeObjects[1].m_constraintNodes[1].m_className
             != "AcFixedConstraint"
         || source.dwgAssociativeObjects[1].m_constraintNodes[1]
                 .m_hasGeometryDependency
+        || source.dwgAssociativeObjects[1].m_constraintNodes[1]
+                .m_geometryDependencyCode != 0u
         || source.dwgAssociativeObjects[1].m_constraintNodes[2].m_className
             != "AcHorizontalConstraint"
         || source.dwgAssociativeObjects[1].m_constraintNodes[2]
@@ -329,6 +445,14 @@ bool sourceGraphUnchanged(const dx_data& source) {
             != "AcConstrainedRigidSet"
         || source.dwgAssociativeObjects[1].m_constraintNodes[7]
                 .m_rigidSetGeometryIds != std::vector<std::int32_t>({2, 3})
+        || source.dwgAssociativeObjects[1].m_constraintNodes[8].m_className
+            != "AcDistanceConstraint"
+        || source.dwgAssociativeObjects[1].m_constraintNodes[8]
+                .m_valueDependencyHandle != 0x90Au
+        || source.dwgAssociativeObjects[1].m_constraintNodes[8]
+                .m_dimensionDependencyHandle != 0x90Bu
+        || source.dwgAssociativeObjects[1].m_constraintNodes[8]
+                .m_distance.z != 8.0
         || source.dwgAssociativeObjects[2].handle != 0x904u
         || source.dwgAssociativeObjects[2].parentHandle != 0x903u
         || source.dwgAssociativeObjects[2].m_dependencyHandle != 0x905u
@@ -336,7 +460,34 @@ bool sourceGraphUnchanged(const dx_data& source) {
             != 201
         || source.dwgAssociativeObjects[2].m_geomPersistentSubentityIndex2
             != 202
-        || source.mBlock == nullptr || source.mBlock->ent.size() != 1u)
+        || source.dwgAssociativeObjects[6].m_dependencyHandle != 0x90Cu
+        || source.dwgAssociativeObjects[6].m_recordName
+            != "ACDBASSOCVALUEDEPENDENCY"
+        || source.dwgAssociativeObjects[6].parentHandle != 0x903u
+        || !source.dwgAssociativeObjects[6].m_actionPrefixParsed
+        || !source.dwgAssociativeObjects[6].m_dependencyWireComplete
+        || source.dwgAssociativeObjects[6].m_valueDependencyValueReal != 8.0
+        || source.dwgAssociativeObjects[6].m_valueDependencyValueCode != 40
+        || source.dwgAssociativeObjects[6].m_prefixStatuses.size() != 2u
+        || source.dwgAssociativeObjects[7].m_dependencyHandle != 0x90Du
+        || source.dwgAssociativeObjects[7].parentHandle != 0x903u
+        || !source.dwgAssociativeObjects[7].m_dependencyIsWrite
+        || !source.dwgAssociativeObjects[7].m_dependencyIsAttachedToObject
+        || source.dwgAssociativeObjects[7].m_dependencyBodyHandle != 0x90Eu
+        || source.dwgAssociativeObjects[8].m_recordName
+            != "ACDBASSOCDIMDEPENDENCYBODY"
+        || source.dwgAssociativeObjects[8].parentHandle != 0x90Bu
+        || !source.dwgAssociativeObjects[8]
+                .m_dimensionDependencyBodyParsed
+        || source.dwgAssociativeObjects[8].m_prefixStatuses.size() != 1u
+        || source.dwgAssociativeObjects[8].m_prefixStatuses[0].m_bitSize
+            != 30u
+        || source.dwgAssociativeObjects[9].handle != 0x90Cu
+        || source.dwgAssociativeObjects[9].parentHandle != 0x902u
+        || source.dwgAssociativeObjects[9].m_owningNetworkHandle != 0x902u
+        || source.dwgAssociativeObjects[9].m_variableName != "BOLTHOLE"
+        || source.dwgAssociativeObjects[9].m_variableValueReal != 8.0
+        || source.mBlock == nullptr || source.mBlock->ent.size() != 2u)
         return false;
     for (std::size_t index = 0; index < dependencyHandles.size(); ++index) {
         const DRW_AssociativeObject& dependency =
@@ -348,9 +499,15 @@ bool sourceGraphUnchanged(const dx_data& source) {
     }
     const auto* line = dynamic_cast<const DRW_Line*>(
         source.mBlock->ent.front());
+    const DRW_DimLinear* dimension = nullptr;
+    for (const DRW_Entity* entity : source.mBlock->ent)
+        if (entity != nullptr && entity->eType == DRW::DIMLINEAR)
+            dimension = dynamic_cast<const DRW_DimLinear*>(entity);
     return line != nullptr && line->handle == 0x905u
         && line->reactorHandles == std::vector<std::uint32_t>(
-            dependencyHandles.begin(), dependencyHandles.end());
+            dependencyHandles.begin(), dependencyHandles.end())
+        && dimension != nullptr && dimension->handle == 0x90Du
+        && dimension->reactorHandles == std::vector<std::uint32_t>({0x90Bu});
 }
 
 bool verify(const std::filesystem::path& path) {
@@ -358,7 +515,7 @@ bool verify(const std::filesystem::path& path) {
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
         || !data.hasNamedObjectDictionary || data.mBlock == nullptr
-        || data.associativeObjects.size() != 6u)
+        || data.associativeObjects.size() != 10u)
         return false;
     const auto root = std::find_if(
         data.namedObjectDictionary.m_entries.begin(),
@@ -389,6 +546,16 @@ bool verify(const std::filesystem::path& path) {
         [](const DRW_AssociativeObject& object) {
             return object.m_recordName == "ACDBASSOCGEOMDEPENDENCY";
         });
+    const auto valueDependency = std::find_if(
+        data.associativeObjects.begin(), data.associativeObjects.end(),
+        [](const DRW_AssociativeObject& object) {
+            return object.m_recordName == "ACDBASSOCVALUEDEPENDENCY";
+        });
+    const auto variable = std::find_if(
+        data.associativeObjects.begin(), data.associativeObjects.end(),
+        [](const DRW_AssociativeObject& object) {
+            return object.m_recordName == "ACDBASSOCVARIABLE";
+        });
     const std::uint32_t circleDependencyHandle =
         group != data.associativeObjects.end()
             && group->m_constraintNodes.size() > 3u
@@ -398,16 +565,52 @@ bool verify(const std::filesystem::path& path) {
         [circleDependencyHandle](const DRW_AssociativeObject& object) {
             return object.handle == circleDependencyHandle;
         });
+    const std::uint32_t valueDependencyHandle =
+        group != data.associativeObjects.end()
+            && group->m_constraintNodes.size() > 8u
+        ? group->m_constraintNodes[8].m_valueDependencyHandle : 0u;
+    const std::uint32_t dimensionDependencyHandle =
+        group != data.associativeObjects.end()
+            && group->m_constraintNodes.size() > 8u
+        ? group->m_constraintNodes[8].m_dimensionDependencyHandle : 0u;
+    const auto dimensionDependency = std::find_if(
+        data.associativeObjects.begin(), data.associativeObjects.end(),
+        [dimensionDependencyHandle](const DRW_AssociativeObject& object) {
+            return object.handle == dimensionDependencyHandle;
+        });
+    const auto dimensionBody = dimensionDependency
+            != data.associativeObjects.end()
+        ? std::find_if(data.associativeObjects.begin(),
+                       data.associativeObjects.end(),
+            [&dimensionDependency](const DRW_AssociativeObject& object) {
+                return object.handle
+                    == dimensionDependency->m_dependencyBodyHandle;
+            })
+        : data.associativeObjects.end();
+    const auto valueTarget = valueDependency != data.associativeObjects.end()
+        ? std::find_if(data.associativeObjects.begin(),
+                       data.associativeObjects.end(),
+            [&valueDependency](const DRW_AssociativeObject& object) {
+                return object.handle == valueDependency->m_dependencyHandle;
+            })
+        : data.associativeObjects.end();
     const DRW_Line* line = nullptr;
+    const DRW_DimLinear* dimension = nullptr;
     for (const DRW_Entity* entity : data.mBlock->ent) {
         if (entity != nullptr && entity->eType == DRW::LINE) {
             line = dynamic_cast<const DRW_Line*>(entity);
             break;
         }
     }
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::DIMLINEAR) {
+            dimension = dynamic_cast<const DRW_DimLinear*>(entity);
+            break;
+        }
+    }
     std::array<std::uint32_t, 4> dependencyHandles{};
     const bool hasDependencyRefs = group != data.associativeObjects.end()
-        && group->m_constraintNodes.size() == 8u
+        && group->m_constraintNodes.size() == 9u
         && group->m_constraintNodes[0].m_hasGeometryDependency
         && group->m_constraintNodes[3].m_hasGeometryDependency
         && group->m_constraintNodes[5].m_hasGeometryDependency
@@ -471,6 +674,69 @@ bool verify(const std::filesystem::path& path) {
                 && dependency->m_geomPersistentSubentityIndex1 == 201
                 && dependency->m_geomPersistentSubentityIndex2 == 202;
         });
+    const bool dimensionDependenciesClosed =
+        group != data.associativeObjects.end()
+        && valueDependency != data.associativeObjects.end()
+        && variable != data.associativeObjects.end()
+        && dimensionDependency != data.associativeObjects.end()
+        && dimensionBody != data.associativeObjects.end()
+        && valueTarget != data.associativeObjects.end()
+        && dimension != nullptr
+        && valueDependency->handle == valueDependencyHandle
+        && valueDependency->m_classVersion == 1u
+        && valueDependency->parentHandle == group->handle
+        && valueDependency->m_dependencyWireComplete
+        && valueDependency->m_dependencyIsRead
+        && valueDependency->m_dependencyIsAttachedToObject
+        && valueDependency->m_dependencyIsDelegatingToOwningAction
+        && valueDependency->m_dependencyHandle == variable->handle
+        && valueDependency->m_valueDependencyFieldsParsed
+        && valueDependency->m_valueDependencyClassVersion == 0
+        && valueDependency->m_valueDependencyValueCode == 40
+        && valueDependency->m_valueDependencyValueKind
+            == DRW_AssociativeObject::EvalVariantKind::Real
+        && valueDependency->m_valueDependencyName.empty()
+        && valueDependency->m_valueDependencyValueReal == 8.0
+        && variable->m_variableValueParsed
+        && variable->m_variableClassVersion == 2
+        && variable->m_owningNetworkHandle == network->handle
+        && variable->parentHandle == network->handle
+        && variable->m_variableValueReal == 8.0
+        && std::count(variable->reactorHandles.begin(),
+                      variable->reactorHandles.end(),
+                      valueDependency->handle) == 1
+        && valueDependency->handle
+            == group->m_constraintNodes[8].m_valueDependencyHandle
+        && dimensionDependency->handle == dimensionDependencyHandle
+        && dimensionDependency->m_recordName == "ACDBASSOCDEPENDENCY"
+        && dimensionDependency->parentHandle == group->handle
+        && dimensionDependency->m_dependencyHandle == dimension->handle
+        && dimensionDependency->m_dependencyBodyHandle
+            == dimensionBody->handle
+        && dimensionDependency->m_dependencyIsDelegatingToOwningAction
+        && !dimensionDependency->m_dependencyIsRead
+        && dimensionDependency->m_dependencyIsWrite
+        && dimensionDependency->m_dependencyIsAttachedToObject
+        && dimensionBody->m_dimensionDependencyBodyParsed
+        && dimensionBody->parentHandle == dimensionDependency->handle
+        && dimensionBody->m_dependencyBodyVersion == 1u
+        && dimensionBody->m_dimBaseVersion == 1u
+        && dimensionBody->m_classVersion == 1u
+        && dimension->handle == dimensionDependency->m_dependencyHandle
+        && std::count(dimension->reactorHandles.begin(),
+                      dimension->reactorHandles.end(),
+                      dimensionDependency->handle) == 1
+        && group->m_constraintNodes[8].m_dataKind
+            == DRW_AssociativeConstraintNode::DataKind::Distance
+        && group->m_constraintNodes[8].m_directionType == 1u
+        && group->m_constraintNodes[8].m_hasDistance
+        && group->m_constraintNodes[8].m_distance.x == 6.0
+        && group->m_constraintNodes[8].m_distance.y == 7.0
+        && group->m_constraintNodes[8].m_distance.z == 8.0;
+    const std::vector<std::uint32_t> expectedGroupActions{
+        dependencyHandles[0], dependencyHandles[1], dependencyHandles[2],
+        dependencyHandles[3], valueDependencyHandle,
+        dimensionDependencyHandle};
     const bool matches = root != data.namedObjectDictionary.m_entries.end()
         && dictionary != data.dictionaries.end()
         && root->m_handle == dictionary->handle
@@ -479,6 +745,7 @@ bool verify(const std::filesystem::path& path) {
         && group != data.associativeObjects.end()
         && dependency != data.associativeObjects.end()
         && dependenciesClosed
+        && dimensionDependenciesClosed
         && circleDependency != data.associativeObjects.end()
         && line != nullptr
         && circleDependency->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
@@ -488,15 +755,14 @@ bool verify(const std::filesystem::path& path) {
         && circleDependency->m_geomPersistentSubentityIndex1 == 201
         && circleDependency->m_geomPersistentSubentityIndex2 == 202
         && network->parentHandle == dictionary->handle
-        && network->m_actions.size() == 1u
+        && network->m_actions.size() == 2u
         && network->m_actions.front().m_handle == group->handle
+        && network->m_actions.back().m_handle == variable->handle
         && group->parentHandle == network->handle
-        && group->m_constraintActions
-            == std::vector<std::uint32_t>(dependencyHandles.begin(),
-                                          dependencyHandles.end())
-        && group->m_constraintActionCount == 4
-        && group->m_constraintNodes.size() == 8u
-        && group->m_constraintNodeCount == 8
+        && group->m_constraintActions == expectedGroupActions
+        && group->m_constraintActionCount == 6
+        && group->m_constraintNodes.size() == 9u
+        && group->m_constraintNodeCount == 9
         && group->m_constraintNodes[0].m_nodeId == 1
         && group->m_constraintNodes.front().m_hasGeometryDependency
         && group->m_constraintNodes.front().m_geometryDependencyHandle
@@ -561,6 +827,15 @@ bool verify(const std::filesystem::path& path) {
         && group->m_constraintNodes[7].m_rigidSetTransform[15] == 1.0
         && group->m_constraintNodes[7].m_rigidSetGeometryIds
             == std::vector<std::int32_t>({2, 3})
+        && group->m_constraintNodes[8].m_nodeId == 9
+        && group->m_constraintNodes[8].m_className
+            == "AcDistanceConstraint"
+        && group->m_constraintNodes[8].m_hasValueDependencyHandle
+        && group->m_constraintNodes[8].m_valueDependencyHandle
+            == valueDependency->handle
+        && group->m_constraintNodes[8].m_hasDimensionDependencyHandle
+        && group->m_constraintNodes[8].m_dimensionDependencyHandle
+            == dimensionDependency->handle
         && dependency->parentHandle == group->handle
         && dependency->m_dependencyWireComplete
         && dependency->m_dependencyHandle == line->handle
@@ -579,10 +854,12 @@ bool verify(const std::filesystem::path& path) {
                   << " dictionary=" << (dictionary != data.dictionaries.end())
                   << " network=" << (network != data.associativeObjects.end())
                   << " group=" << (group != data.associativeObjects.end())
-                  << " dependencies=" << dependenciesClosed << " line="
+                  << " dependencies=" << dependenciesClosed
+                  << " dimensionDependencies="
+                  << dimensionDependenciesClosed << " line="
                   << (line != nullptr) << " refs=" << hasDependencyRefs;
         if (group != data.associativeObjects.end()
-            && group->m_constraintNodes.size() == 8u) {
+            && group->m_constraintNodes.size() == 9u) {
             for (const std::size_t index : {0u, 3u, 5u, 6u, 7u})
                 std::cerr << " "
                           << group->m_constraintNodes[index]
