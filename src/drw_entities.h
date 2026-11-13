@@ -975,14 +975,21 @@ public:
 
     //! first corner in WCS
     const DRW_Coord & firstCorner() { return basePoint; }
+    const DRW_Coord & firstCorner() const { return basePoint; }
     //! second corner in WCS
     const DRW_Coord & secondCorner() { return secPoint; }
+    const DRW_Coord & secondCorner() const { return secPoint; }
     //! third corner in WCS
     const DRW_Coord & thirdCorner() { return thirdPoint; }
+    const DRW_Coord & thirdCorner() const { return thirdPoint; }
     //! fourth corner in WCS
     const DRW_Coord & fourthCorner() { return fourPoint; }
+    const DRW_Coord & fourthCorner() const { return fourPoint; }
     //! edge visibility flags
     InvisibleEdgeFlags edgeFlags() { return (InvisibleEdgeFlags)invisibleflag; }
+    InvisibleEdgeFlags edgeFlags() const {
+        return (InvisibleEdgeFlags)invisibleflag;
+    }
 
 protected:
     //! interpret code in dxf reading process or dispatch to inherited class

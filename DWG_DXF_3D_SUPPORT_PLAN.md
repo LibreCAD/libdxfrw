@@ -10741,6 +10741,18 @@ See the
 [parity-plan checkpoint](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#current-execution-checkpoint-2026-11-12)
 and [receipt](docs/research/p8-mpolygon-legacy-hatch-callback-compat-2026-11-12.json).
 
+**P8/S8.3.23 legacy 3DFACE callback fallback (2026-11-13):** the default
+`DRW_Interface::add3dFace` now emits its visible, nondegenerate perimeter edges
+as WCS LINE callbacks for consumers without a typed override. It follows
+Autodesk's group-70 invisible-edge bits and corner order, copies presentation
+attributes, skips the duplicate third/fourth corner edge of a triangular face,
+and clears synthesized identity/owner handles. Generated direct-base-callback
+controls and the owning `libdxfrw_3d_consumer_probe` pass; the existing typed
+callback path remains covered. This fallback is wireframe-only and does not
+represent face surfaces, native rendering, independent interoperability, DWG
+producer behavior, or a 3DFACE support claim. No fixture was added. See the
+[receipt](docs/research/p8-3dface-default-visible-edge-fallback-2026-11-13.json).
+
 **P8 generated DWG writer-skip continuation control (2026-11-13; superseded
 for malformed-reader recovery by the following slice):** the
 semantic adapter no longer assumes a DWG writer emits a non-finite LINE for

@@ -660,6 +660,15 @@ public:
     }
     std::vector<DRW_Polyline> meshFallbackPolylines;
     std::vector<DRW_Line> meshFallbackLines;
+    std::vector<DRW_Line> faceFallbackLines;
+    void exerciseDefault3DFaceFallback(const DRW_3Dface& face) {
+        struct ResetFlag {
+            bool& flag;
+            ~ResetFlag() { flag = false; }
+        } reset{collect3DFaceFallbackLines_};
+        collect3DFaceFallbackLines_ = true;
+        DRW_Interface::add3dFace(face);
+    }
     void exerciseDefaultMeshFallback(const DRW_Mesh& mesh) {
         struct ResetFlag {
             bool& flag;
@@ -863,6 +872,8 @@ public:
     void addLine(const DRW_Line& d) override {
         if (collectMeshFallbackPolylines_)
             meshFallbackLines.push_back(d);
+        if (collect3DFaceFallbackLines_)
+            faceFallbackLines.push_back(d);
         std::vector<Field> fields = entityFields(d, "LINE", "LINE");
         fields.push_back(pointField("start", d.basePoint));
         fields.push_back(pointField("end", d.secPoint));
@@ -2415,6 +2426,7 @@ private:
     dwgRW* dwgWriter_ = nullptr;
     bool writeRecipeSucceeded_ = true;
     bool collectMeshFallbackPolylines_ = false;
+    bool collect3DFaceFallbackLines_ = false;
     bool threeDConsumerProbe_ = false;
     bool nestedMTextAttributeProbe_ = false;
     bool planeSurfaceInlinePayloadProbe_ = false;
@@ -5572,6 +5584,65 @@ int selfTest() {
         || fallbackLine.shadow != fallbackMesh.shadow
         || fallbackLine.handle != DRW::NoHandle
         || fallbackLine.parentHandle != DRW::NoHandle)
+        return fail(__LINE__);
+
+    DRW_3Dface fallbackFace;
+    fallbackFace.layer = "face-fallback-layer";
+    fallbackFace.lineType = "DASHED";
+    fallbackFace.color = 5;
+    fallbackFace.color24 = 0x2468AC;
+    fallbackFace.colorName = "face-fallback-color";
+    fallbackFace.material = 0x234u;
+    fallbackFace.transparency = 0x44000000;
+    fallbackFace.plotStyle = 0x567u;
+    fallbackFace.shadow = static_cast<DRW::ShadowMode>(2);
+    fallbackFace.lWeight = DRW_LW_Conv::width13;
+    fallbackFace.ltypeScale = 1.75;
+    fallbackFace.visible = false;
+    fallbackFace.space = DRW::PaperSpace;
+    fallbackFace.invisibleflag = DRW_3Dface::SecodEdge;
+    fallbackFace.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+    fallbackFace.secPoint = DRW_Coord{4.0, 5.0, 6.0};
+    fallbackFace.thirdPoint = DRW_Coord{7.0, 8.0, 9.0};
+    fallbackFace.fourPoint = DRW_Coord{10.0, 11.0, 12.0};
+    SemanticSink legacyFaceSink("DRW_Interface", "read");
+    legacyFaceSink.exerciseDefault3DFaceFallback(fallbackFace);
+    if (legacyFaceSink.faceFallbackLines.size() != 3u)
+        return fail(__LINE__);
+    const DRW_Line& firstFaceEdge = legacyFaceSink.faceFallbackLines[0];
+    const DRW_Line& thirdFaceEdge = legacyFaceSink.faceFallbackLines[1];
+    const DRW_Line& fourthFaceEdge = legacyFaceSink.faceFallbackLines[2];
+    if (firstFaceEdge.basePoint.x != 1.0
+        || firstFaceEdge.basePoint.y != 2.0
+        || firstFaceEdge.basePoint.z != 3.0
+        || firstFaceEdge.secPoint.x != 4.0
+        || firstFaceEdge.secPoint.y != 5.0
+        || firstFaceEdge.secPoint.z != 6.0
+        || thirdFaceEdge.basePoint.x != 7.0
+        || thirdFaceEdge.secPoint.x != 10.0
+        || fourthFaceEdge.basePoint.x != 10.0
+        || fourthFaceEdge.secPoint.x != 1.0
+        || firstFaceEdge.layer != fallbackFace.layer
+        || firstFaceEdge.lineType != fallbackFace.lineType
+        || firstFaceEdge.color != fallbackFace.color
+        || firstFaceEdge.color24 != fallbackFace.color24
+        || firstFaceEdge.colorName != fallbackFace.colorName
+        || firstFaceEdge.material != fallbackFace.material
+        || firstFaceEdge.transparency != fallbackFace.transparency
+        || firstFaceEdge.plotStyle != fallbackFace.plotStyle
+        || firstFaceEdge.shadow != fallbackFace.shadow
+        || firstFaceEdge.lWeight != fallbackFace.lWeight
+        || firstFaceEdge.ltypeScale != fallbackFace.ltypeScale
+        || firstFaceEdge.visible != fallbackFace.visible
+        || firstFaceEdge.space != fallbackFace.space
+        || firstFaceEdge.handle != DRW::NoHandle
+        || firstFaceEdge.parentHandle != DRW::NoHandle)
+        return fail(__LINE__);
+    fallbackFace.invisibleflag = DRW_3Dface::NoEdge;
+    fallbackFace.fourPoint = fallbackFace.thirdPoint;
+    legacyFaceSink.faceFallbackLines.clear();
+    legacyFaceSink.exerciseDefault3DFaceFallback(fallbackFace);
+    if (legacyFaceSink.faceFallbackLines.size() != 3u)
         return fail(__LINE__);
 
     SemanticSink dimensionSink("dxfRW", "read");

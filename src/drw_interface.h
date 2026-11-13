@@ -433,8 +433,49 @@ public:
   /** Called for every trace start */
   virtual void addTrace(const DRW_Trace &data) = 0;
 
-  /** Called for every 3dface start */
-  virtual void add3dFace(const DRW_3Dface &data) = 0;
+  /** Called for every 3DFACE.
+   *  Consumers that do not override this callback receive its visible,
+   *  nondegenerate WCS boundary edges as LINE callbacks. This fallback does
+   *  not represent the face surface or invisible-edge metadata; 3D consumers
+   *  should override it to receive the complete 3DFACE.
+   */
+  virtual void add3dFace(const DRW_3Dface &data) {
+    const DRW_Coord* corners[] = {
+        &data.firstCorner(), &data.secondCorner(),
+        &data.thirdCorner(), &data.fourthCorner()};
+    const unsigned invisible =
+        static_cast<unsigned>(data.edgeFlags());
+    const auto copyPresentation = [&data](DRW_Entity& target) {
+      target.layer = data.layer;
+      target.lineType = data.lineType;
+      target.material = data.material;
+      target.color = data.color;
+      target.color24 = data.color24;
+      target.colorName = data.colorName;
+      target.transparency = data.transparency;
+      target.plotStyle = data.plotStyle;
+      target.shadow = data.shadow;
+      target.lWeight = data.lWeight;
+      target.ltypeScale = data.ltypeScale;
+      target.visible = data.visible;
+      target.space = data.space;
+    };
+    for (unsigned edge = 0; edge < 4; ++edge) {
+      if ((invisible & (1u << edge)) != 0u)
+        continue;
+      const DRW_Coord& start = *corners[edge];
+      const DRW_Coord& end = *corners[(edge + 1u) % 4u];
+      if (start.x == end.x && start.y == end.y && start.z == end.z)
+        continue;
+      DRW_Line line;
+      line.basePoint = start;
+      line.secPoint = end;
+      line.handle = DRW::NoHandle;
+      line.parentHandle = DRW::NoHandle;
+      copyPresentation(line);
+      addLine(line);
+    }
+  }
 
   /** Called for REGION/3DSOLID/BODY opaque modeler geometry shells. */
   virtual void addModelerGeometry(const DRW_ModelerGeometry &data) {

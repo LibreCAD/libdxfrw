@@ -1,0 +1,36 @@
+{
+  "title": "3DFACE default visible-edge fallback for legacy consumers",
+  "date": "2026-11-13",
+  "scope": "Give DRW_Interface consumers that do not override add3dFace a visible wireframe outline while preserving the complete typed callback for overriding consumers.",
+  "formatEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference, 3DFACE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+    "rules": [
+      "The four 3DFACE corners are WCS points in corner order.",
+      "Group 70 bits 1, 2, 4 and 8 mark edges 1, 2, 3 and 4 invisible respectively.",
+      "A triangular 3DFACE repeats its third corner as its fourth corner."
+    ]
+  },
+  "implementation": {
+    "behavior": "DRW_Interface::add3dFace now emits visible nondegenerate perimeter edges in order through addLine, copying entity presentation attributes and assigning NoHandle to synthesized identities. Const corner accessors support the callback without changing object layout. Existing overrides continue to receive the original typed 3DFACE.",
+    "losses": [
+      "The fallback emits only edge lines; it does not represent a face surface.",
+      "The fallback does not preserve invisible-edge metadata as an entity field."
+    ],
+    "files": [
+      "src/drw_interface.h",
+      "src/drw_entities.h",
+      "tests/semantic_differential_adapter.cpp"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "buildResult": "PASS",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "testResult": "PASS, 1/1",
+    "gitDiffCheck": "PASS",
+    "coverage": "Directly exercises the base callback: visible WCS edge order, omission of an invisible edge, triangle duplicate-corner zero-length suppression, copied presentation fields, and cleared source/owner handles. The owning probe also retains its existing typed 3DFACE roundtrip checks."
+  },
+  "limits": "Generated callback compatibility evidence only. It does not qualify native drawing/rendering, independent file interoperability, DWG producer behavior, or a 3DFACE support claim.",
+  "fixturePolicy": "No DWG or DXF fixture was added."
+}
