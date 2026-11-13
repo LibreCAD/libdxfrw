@@ -411,6 +411,33 @@ public:
         rtext.style = "STANDARD";
         rtext.m_rTextFlags = 1;
         rtext.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        arcAlignedText.handle = 0xD96Bu;
+        arcAlignedText.text = "whole-operation arc-aligned text";
+        arcAlignedText.style = "STANDARD";
+        arcAlignedText.m_fontName = "SIMPLEX.SHX";
+        arcAlignedText.m_bigFontName = "BIGFONT.SHX";
+        arcAlignedText.m_center = DRW_Coord(100.0, 101.0, 0.0);
+        arcAlignedText.m_radius = 12.0;
+        arcAlignedText.m_startAngle = 0.25;
+        arcAlignedText.m_endAngle = 1.25;
+        arcAlignedText.m_xScale = "1.2";
+        arcAlignedText.m_textSize = "2.25";
+        arcAlignedText.m_charSpacing = "0.75";
+        arcAlignedText.m_offsetFromArc = "0.5";
+        arcAlignedText.m_rightOffset = "0.25";
+        arcAlignedText.m_leftOffset = "0.125";
+        arcAlignedText.m_rawColor = 0x010203;
+        arcAlignedText.m_characterSet = 1;
+        arcAlignedText.m_pitchAndFamily = 2;
+        arcAlignedText.m_isShx = 1;
+        arcAlignedText.m_isBold = 1;
+        arcAlignedText.m_isItalic = 1;
+        arcAlignedText.m_isUnderlined = 1;
+        arcAlignedText.m_alignment = 2;
+        arcAlignedText.m_isReverse = 1;
+        arcAlignedText.m_wizardFlag = 1;
+        arcAlignedText.m_textPosition = 1;
+        arcAlignedText.m_textDirection = 1;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -678,6 +705,7 @@ public:
             && check("LARGE_RADIAL_DIMENSION", output.writeDimension(&largeRadialDimension))
             && check("TOLERANCE", output.writeTolerance(&tolerance))
             && check("RTEXT", output.writeRText(&rtext))
+            && check("ARCALIGNEDTEXT", output.writeArcAlignedText(&arcAlignedText))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -744,6 +772,7 @@ public:
     DRW_DimLargeRadial largeRadialDimension;
     DRW_Tolerance tolerance;
     DRW_RText rtext;
+    DRW_ArcAlignedText arcAlignedText;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -936,7 +965,12 @@ public:
     }
     void addText(const DRW_Text& value) override {
         dx_iface::addText(value);
-        if (const auto* reactive = dynamic_cast<const DRW_RText*>(&value)) {
+        if (const auto* arcAligned =
+                dynamic_cast<const DRW_ArcAlignedText*>(&value)) {
+            ++arcAlignedTextCount;
+            arcAlignedText = *arcAligned;
+        } else if (const auto* reactive =
+                       dynamic_cast<const DRW_RText*>(&value)) {
             ++rtextCount;
             rtext = *reactive;
         } else {
@@ -1056,6 +1090,7 @@ public:
     DRW_DimLargeRadial largeRadialDimension;
     DRW_Tolerance tolerance;
     DRW_RText rtext;
+    DRW_ArcAlignedText arcAlignedText;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1108,6 +1143,7 @@ public:
     unsigned largeRadialDimensionCount = 0u;
     unsigned toleranceCount = 0u;
     unsigned rtextCount = 0u;
+    unsigned arcAlignedTextCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1430,6 +1466,34 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.rtext.style == "STANDARD"
         && adapter.rtext.m_rTextFlags == 1
         && adapter.rtext.extPoint.z == 1.0
+        && adapter.arcAlignedText.handle == 0xD96Bu
+        && adapter.arcAlignedText.text == "whole-operation arc-aligned text"
+        && adapter.arcAlignedText.style == "STANDARD"
+        && adapter.arcAlignedText.m_fontName == "SIMPLEX.SHX"
+        && adapter.arcAlignedText.m_bigFontName == "BIGFONT.SHX"
+        && adapter.arcAlignedText.m_center.x == 100.0
+        && adapter.arcAlignedText.m_center.y == 101.0
+        && adapter.arcAlignedText.m_radius == 12.0
+        && adapter.arcAlignedText.m_startAngle == 0.25
+        && adapter.arcAlignedText.m_endAngle == 1.25
+        && adapter.arcAlignedText.m_xScale == "1.2"
+        && adapter.arcAlignedText.m_textSize == "2.25"
+        && adapter.arcAlignedText.m_charSpacing == "0.75"
+        && adapter.arcAlignedText.m_offsetFromArc == "0.5"
+        && adapter.arcAlignedText.m_rightOffset == "0.25"
+        && adapter.arcAlignedText.m_leftOffset == "0.125"
+        && adapter.arcAlignedText.m_rawColor == 0x010203
+        && adapter.arcAlignedText.m_characterSet == 1
+        && adapter.arcAlignedText.m_pitchAndFamily == 2
+        && adapter.arcAlignedText.m_isShx == 1
+        && adapter.arcAlignedText.m_isBold == 1
+        && adapter.arcAlignedText.m_isItalic == 1
+        && adapter.arcAlignedText.m_isUnderlined == 1
+        && adapter.arcAlignedText.m_alignment == 2
+        && adapter.arcAlignedText.m_isReverse == 1
+        && adapter.arcAlignedText.m_wizardFlag == 1
+        && adapter.arcAlignedText.m_textPosition == 1
+        && adapter.arcAlignedText.m_textDirection == 1
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1801,6 +1865,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.largeRadialDimensionCount != 1u
         || adapter.toleranceCount != 1u
         || adapter.rtextCount != 1u
+        || adapter.arcAlignedTextCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2029,6 +2094,34 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.rtext.extPoint.x != 0.0
         || adapter.rtext.extPoint.y != 0.0
         || adapter.rtext.extPoint.z != 1.0
+        || adapter.arcAlignedText.handle == 0u
+        || adapter.arcAlignedText.text != "whole-operation arc-aligned text"
+        || adapter.arcAlignedText.style != "STANDARD"
+        || adapter.arcAlignedText.m_fontName != "SIMPLEX.SHX"
+        || adapter.arcAlignedText.m_bigFontName != "BIGFONT.SHX"
+        || adapter.arcAlignedText.m_center.x != 100.0
+        || adapter.arcAlignedText.m_center.y != 101.0
+        || adapter.arcAlignedText.m_radius != 12.0
+        || adapter.arcAlignedText.m_startAngle != 0.25
+        || adapter.arcAlignedText.m_endAngle != 1.25
+        || adapter.arcAlignedText.m_xScale != "1.2"
+        || adapter.arcAlignedText.m_textSize != "2.25"
+        || adapter.arcAlignedText.m_charSpacing != "0.75"
+        || adapter.arcAlignedText.m_offsetFromArc != "0.5"
+        || adapter.arcAlignedText.m_rightOffset != "0.25"
+        || adapter.arcAlignedText.m_leftOffset != "0.125"
+        || adapter.arcAlignedText.m_rawColor != 0x010203
+        || adapter.arcAlignedText.m_characterSet != 1
+        || adapter.arcAlignedText.m_pitchAndFamily != 2
+        || adapter.arcAlignedText.m_isShx != 1
+        || adapter.arcAlignedText.m_isBold != 1
+        || adapter.arcAlignedText.m_isItalic != 1
+        || adapter.arcAlignedText.m_isUnderlined != 1
+        || adapter.arcAlignedText.m_alignment != 2
+        || adapter.arcAlignedText.m_isReverse != 1
+        || adapter.arcAlignedText.m_wizardFlag != 1
+        || adapter.arcAlignedText.m_textPosition != 1
+        || adapter.arcAlignedText.m_textDirection != 1
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0

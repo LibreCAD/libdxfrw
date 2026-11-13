@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **98 completed implementation slices** and **35 remaining
+The plan records **99 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`98 / (98 + 35) = 73.7%`. This is a count-based progress measure, not an
+`99 / (99 + 35) = 73.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,17 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local ARCALIGNEDTEXT transaction slice (2026-11-13):** the same generated
+whole-file ASCII/Binary allocation sweep now writes typed ARCALIGNEDTEXT with
+arc center/radius/angles, both fonts, six D2T parameters, color, all modeled
+flags, and text. All 671 ASCII and 663 Binary failure offsets preserve the
+prior destination, caller fields and derived identity maps; same-writer retry
+reproduces clean bytes and typed readback verifies these fields. The focused
+transaction CTest passes 1/1 in 3.89 seconds. This is generated
+rollback/retry and codec readback only; native glyph placement and independent
+producer semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local RTEXT transaction slice (2026-11-13):** the same generated
