@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **120 completed implementation slices** and **35 remaining
+The plan records **121 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`120 / (120 + 35) = 77.4%`. This is a count-based progress measure, not an
+`121 / (121 + 35) = 77.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1551,6 +1551,16 @@ normalizes the emitted layer to `*ADSK_CONSTRAINTS` and retains the record's
 label and points. This compatibility check does not prove native constraint
 evaluation or display. The focused transaction CTest passes in 6.29 seconds.
 See the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 dynamic-constraint DSTYLE transaction slice (2026-11-13):** the current
+`*ADSK_CONSTRAINTS` profile now carries all twelve modeled DSTYLE overrides
+(tolerance limits, generation flags, scale, decimal precision, text movement,
+alignment and zero suppression). All 920 ASCII and 899 Binary injected
+failures preserve caller state and the destination; same-writer retry and
+typed readback preserve each override. This is generated DXF transaction
+evidence and does not establish native evaluation or display. The focused
+transaction CTest passes in 6.26 seconds. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no

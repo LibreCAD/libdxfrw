@@ -14,6 +14,34 @@
 #include <new>
 #include <string>
 
+class DxfDimensionDstyleTestAccess {
+public:
+    static void setOverrides(DRW_Dimension& dimension) {
+        dimension.tolPlus = 0.25;
+        dimension.tolMinus = 0.125;
+        dimension.genTol = true;
+        dimension.limGen = true;
+        dimension.tolScale = 1.5;
+        dimension.tolDecimals = 2;
+        dimension.altTolDecimals = 3;
+        dimension.textMove = 1;
+        dimension.tolAlign = 2;
+        dimension.tolZero = 4;
+        dimension.altZero = 5;
+        dimension.altTolZero = 6;
+    }
+
+    static bool matchesOverrides(const DRW_Dimension& dimension) {
+        return dimension.tolPlus == 0.25
+            && dimension.tolMinus == 0.125 && dimension.genTol
+            && dimension.limGen && dimension.tolScale == 1.5
+            && dimension.tolDecimals == 2
+            && dimension.altTolDecimals == 3 && dimension.textMove == 1
+            && dimension.tolAlign == 2 && dimension.tolZero == 4
+            && dimension.altZero == 5 && dimension.altTolZero == 6;
+    }
+};
+
 namespace {
 constexpr std::uint32_t kNodHandle = 0xD910u;
 constexpr std::uint32_t kGroupDictionaryHandle = 0xD911u;
@@ -366,6 +394,8 @@ public:
         dynamicConstraintDimension.setText(
             "whole-operation dynamic constraint");
         dynamicConstraintDimension.setStyle("STANDARD");
+        DxfDimensionDstyleTestAccess::setOverrides(
+            dynamicConstraintDimension);
         legacyDynamicConstraintDimension.handle =
             kLegacyDynamicConstraintDimensionHandle;
         legacyDynamicConstraintDimension.layer =
@@ -1907,6 +1937,8 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dynamicConstraintDimension.getTextPoint().y == 16.5
         && adapter.dynamicConstraintDimension.getText()
             == "whole-operation dynamic constraint"
+        && DxfDimensionDstyleTestAccess::matchesOverrides(
+            adapter.dynamicConstraintDimension)
         && adapter.legacyDynamicConstraintDimension.handle
             == kLegacyDynamicConstraintDimensionHandle
         && adapter.legacyDynamicConstraintDimension.layer
@@ -2797,6 +2829,8 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dynamicConstraintDimension.getText()
             != "whole-operation dynamic constraint"
         || adapter.dynamicConstraintDimension.getStyle() != "STANDARD"
+        || !DxfDimensionDstyleTestAccess::matchesOverrides(
+            adapter.dynamicConstraintDimension)
         || adapter.legacyDynamicConstraintDimension.handle == 0u
         || adapter.legacyDynamicConstraintDimension.layer
             != "*ADSK_CONSTRAINTS"
