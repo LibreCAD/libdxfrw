@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **147 completed implementation slices** and **35 remaining
+The plan records **148 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`147 / (147 + 35) = 80.8%`. This is a count-based progress measure, not an
+`148 / (148 + 35) = 80.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4714,6 +4714,16 @@ allocation offsets with destination/caller rollback and same-writer retry.
 This covers only that legacy DXF row-style profile; R24 rich-cell TABLESTYLE
 and native table presentation remain open. P6-G's public-writer inventory is
 still open ([updated receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json)).
+The generated whole-operation OBJECTS sweep now also covers a two-light
+AC1021 `LIGHTLIST` whose owner-dictionary pointer, persistent reactor, object
+owner and two named LIGHT references use explicit source-handle remaps. All 97
+ASCII and 96 Binary allocation offsets preserve the prior destination, caller
+fields, source-handle bindings and staging cleanup; same-codec retry reproduces
+the clean output and typed readback verifies ordered names and remapped roles.
+The focused CTest passes in normal and ASan builds. This closes one generated
+writer transaction profile only; source-profile provenance, ACAD_LIGHT
+dictionary membership and native consumer behavior remain unqualified
+([receipt](docs/research/p6-dxf-lightlist-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

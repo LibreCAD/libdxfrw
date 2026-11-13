@@ -6136,6 +6136,12 @@ add_test(NAME libdxfrw_dxf_long_mtext_allocation_transaction
         long-mtext)
 set_tests_properties(libdxfrw_dxf_long_mtext_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation" TIMEOUT 60)
+add_test(NAME libdxfrw_dxf_lightlist_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-lightlist-allocation
+        light-list)
+set_tests_properties(libdxfrw_dxf_lightlist_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;objects;transaction;allocation" TIMEOUT 60)
 
 add_executable(libdxfrw_tablegeometry_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/tablegeometry_objects_allocation_tests.cpp
