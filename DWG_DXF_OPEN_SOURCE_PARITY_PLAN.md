@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **96 completed implementation slices** and **35 remaining
+The plan records **97 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`96 / (96 + 35) = 73.3%`. This is a count-based progress measure, not an
+`97 / (97 + 35) = 73.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,17 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local TOLERANCE transaction slice (2026-11-13):** the same generated
+whole-file ASCII/Binary allocation sweep now writes a typed TOLERANCE with
+nondefault dimension style, text, insertion point, extrusion and X-axis
+direction. All 655 ASCII and 648 Binary failure offsets preserve the prior
+destination, caller fields and derived identity maps; same-writer retry
+reproduces clean bytes and typed readback verifies the fields. The focused
+transaction CTest passes 1/1 in 3.83 seconds. This is generated rollback/retry
+and codec readback only; native tolerance rendering and producer-specific DWG
+semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local LOFTEDSURFACE transaction slice (2026-11-13):** the same sweep

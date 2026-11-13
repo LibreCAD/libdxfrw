@@ -397,6 +397,12 @@ public:
         largeRadialDimension.overrideCenterPoint = DRW_Coord(80.0, 81.0, 82.0);
         largeRadialDimension.jogPoint = DRW_Coord(84.0, 82.0, 0.0);
         largeRadialDimension.jogAngle = 0.375;
+        tolerance.handle = 0xD969u;
+        tolerance.dimStyleName = "STANDARD";
+        tolerance.insertionPoint = DRW_Coord(90.0, 91.0, 92.0);
+        tolerance.text = "whole-operation tolerance";
+        tolerance.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        tolerance.xAxisDirectionVector = DRW_Coord(1.0, 0.0, 0.0);
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -662,6 +668,7 @@ public:
             && check("DIMORDINATE", output.writeDimension(&ordinateDimension))
             && check("ARC_DIMENSION", output.writeDimension(&arcDimension))
             && check("LARGE_RADIAL_DIMENSION", output.writeDimension(&largeRadialDimension))
+            && check("TOLERANCE", output.writeTolerance(&tolerance))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -726,6 +733,7 @@ public:
     DRW_DimOrdinate ordinateDimension;
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadialDimension;
+    DRW_Tolerance tolerance;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -848,6 +856,10 @@ public:
             ++radialDimensionCount;
             radialDimension = *value;
         }
+    }
+    void addTolerance(const DRW_Tolerance& value) override {
+        ++toleranceCount;
+        tolerance = value;
     }
     void addDimDiametric(const DRW_DimDiametric* value) override {
         if (value == nullptr)
@@ -1027,6 +1039,7 @@ public:
     DRW_DimOrdinate ordinateDimension;
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadialDimension;
+    DRW_Tolerance tolerance;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1077,6 +1090,7 @@ public:
     unsigned ordinateDimensionCount = 0u;
     unsigned arcDimensionCount = 0u;
     unsigned largeRadialDimensionCount = 0u;
+    unsigned toleranceCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1382,6 +1396,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.largeRadialDimension.overrideCenterPoint.y == 81.0
         && adapter.largeRadialDimension.jogPoint.x == 84.0
         && adapter.largeRadialDimension.jogAngle == 0.375
+        && adapter.tolerance.handle == 0xD969u
+        && adapter.tolerance.dimStyleName == "STANDARD"
+        && adapter.tolerance.insertionPoint.x == 90.0
+        && adapter.tolerance.insertionPoint.y == 91.0
+        && adapter.tolerance.insertionPoint.z == 92.0
+        && adapter.tolerance.text == "whole-operation tolerance"
+        && adapter.tolerance.extPoint.z == 1.0
+        && adapter.tolerance.xAxisDirectionVector.x == 1.0
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1751,6 +1773,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.ordinateDimensionCount != 1u
         || adapter.arcDimensionCount != 1u
         || adapter.largeRadialDimensionCount != 1u
+        || adapter.toleranceCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -1956,6 +1979,18 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.largeRadialDimension.overrideCenterPoint.y != 81.0
         || adapter.largeRadialDimension.jogPoint.x != 84.0
         || adapter.largeRadialDimension.jogAngle != 0.375
+        || adapter.tolerance.handle == 0u
+        || adapter.tolerance.dimStyleName != "STANDARD"
+        || adapter.tolerance.insertionPoint.x != 90.0
+        || adapter.tolerance.insertionPoint.y != 91.0
+        || adapter.tolerance.insertionPoint.z != 92.0
+        || adapter.tolerance.text != "whole-operation tolerance"
+        || adapter.tolerance.extPoint.x != 0.0
+        || adapter.tolerance.extPoint.y != 0.0
+        || adapter.tolerance.extPoint.z != 1.0
+        || adapter.tolerance.xAxisDirectionVector.x != 1.0
+        || adapter.tolerance.xAxisDirectionVector.y != 0.0
+        || adapter.tolerance.xAxisDirectionVector.z != 0.0
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
