@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DWG_COMPATIBILITY_XRECORD_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add whole-operation allocation rollback and same-writer retry coverage for the explicit writeXRecordDwgCompatibility() route with XRECORD groups 1070 and 1071.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory XRECORD",
+    "profile": "One XRECORD with a signed 16-bit compatibility value 12345 at group 1070 and a 32-bit value 12346 at group 1071. No external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "76290350",
+    "files": [
+      "tests/dxf_xdata_int16_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the selected whole-file XRECORD control to inject operator-new failures across the direct compatibility writer operation in ASCII and Binary. Each failure must preserve the destination sentinel, caller handle/owner/values, then the same codec retries to bytes identical to the clean baseline; fresh typed readback checks both 1070 and 1071 values. Continue offsets until an uninjected clean write succeeds."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_xdata_int16_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_xdata_int16_exact_numeric$' --output-on-failure: PASS 1/1 (0.63 sec)",
+    "directRun": "PASS; 90 ASCII and 88 Binary injected allocation offsets each preserved caller/destination state, retried through the same codec to the clean bytes, and passed typed 1070/1071 readback",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "This proves transaction behavior for one generated compatibility-code profile only; it does not establish independent producer behavior or broader XRECORD code-domain support.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer and caller-state inventory, advancing only on a distinct unqualified path."
+}

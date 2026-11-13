@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **141 completed implementation slices** and **35 remaining
+The plan records **142 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`141 / (141 + 35) = 80.1%`. This is a count-based progress measure, not an
+`142 / (142 + 35) = 80.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4544,6 +4544,14 @@ same-adapter retry passes typed readback; the raw route retains its 25/24
 offset sweeps. This closes the direct typed writer path for this bounded
 profile only; dictionary ownership variants and P6-G's wider writer inventory
 remain open ([receipt](docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json)).
+The explicit `writeXRecordDwgCompatibility()` path now has whole-operation
+ASCII/Binary allocation rollback coverage for a generated XRECORD carrying
+both group 1070 and group 1071. All 90 ASCII and 88 Binary injected offsets
+preserve destination, handle, owner and values; same-codec retries reproduce
+clean bytes and typed readback verifies both values. This closes one generated
+compatibility-code profile only; independent producer evidence and broader
+XRECORD code-domain behavior remain open
+([receipt](docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json)).
 The raw OBJECTS string-override allocation control now also covers the combined
 string/Int32 override writer, with generated XRECORD group 90 readback, caller
 state, prior-destination preservation, and same-codec exact-byte retry. Both

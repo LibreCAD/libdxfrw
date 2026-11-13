@@ -220,6 +220,7 @@ public:
         record.handle = 0xA91u;
         record.parentHandle = 0xCu;
         record.m_values.emplace_back(1070, value);
+        record.m_values.emplace_back(1071, std::int32_t{value + 1});
     }
     void writeEntities() override {
         if (!xrecord) wrote = dxfW->writeLine(&line);
@@ -257,10 +258,16 @@ public:
             if (item.code() == 1070 && item.type() == DRW_Variant::INTEGER) {
                 number = item.i_val();
                 ++count;
+            } else if (item.code() == 1071
+                       && item.type() == DRW_Variant::INTEGER) {
+                longNumber = item.i_val();
+                ++longCount;
             }
     }
     int number{0};
     unsigned count{0};
+    std::int32_t longNumber{0};
+    unsigned longCount{0};
 };
 
 bool wholeFileControls() {
@@ -321,10 +328,107 @@ bool wholeFileControls() {
     return true;
 }
 
+bool compatibilityXrecordAllocationControls() {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-xrecord-compat-allocation-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup { std::filesystem::path path; ~Cleanup() {
+            std::error_code ignored; std::filesystem::remove(path, ignored);
+        }} cleanup{path};
+
+        dxfRW baselineWriter(path.string().c_str());
+        SelectedWriter baseline(baselineWriter, true, 12345);
+        xdataAllocationFailureOffset = -1;
+        if (!baselineWriter.write(&baseline, DRW::AC1027, binary))
+            return fail("compatibility XRECORD allocation baseline failed");
+        std::ifstream baselineInput(path, std::ios::binary);
+        const std::string cleanBytes{std::istreambuf_iterator<char>{baselineInput},
+                                     std::istreambuf_iterator<char>{}};
+        if (cleanBytes.empty())
+            return fail("compatibility XRECORD baseline output was empty");
+
+        const std::string sentinel = "PRIOR_COMPAT_XRECORD_DESTINATION";
+        unsigned failures = 0u;
+        bool reachedSuccess = false;
+        for (long offset = 0; offset < 128; ++offset) {
+            { std::ofstream seed(path, std::ios::binary | std::ios::trunc);
+              seed << sentinel; }
+            dxfRW writer(path.string().c_str());
+            SelectedWriter selected(writer, true, 12345);
+            xdataAllocationFailed = false;
+            xdataAllocationFailureOffset = offset;
+            bool wrote = false;
+            try {
+                wrote = writer.write(&selected, DRW::AC1027, binary);
+            } catch (const std::bad_alloc&) {
+                wrote = false;
+            }
+            const bool injected = xdataAllocationFailed;
+            xdataAllocationFailureOffset = -1;
+
+            if (wrote) {
+                if (injected)
+                    return fail("successful compatibility write also injected failure");
+                std::ifstream output(path, std::ios::binary);
+                const std::string actual{std::istreambuf_iterator<char>{output},
+                                         std::istreambuf_iterator<char>{}};
+                if (actual != cleanBytes)
+                    return fail("clean compatibility write differs from baseline");
+                SelectedReader reader;
+                dx_data data;
+                if (!reader.fileImport(path.string(), &data, false)
+                    || reader.count != 1u || reader.number != 12345
+                    || reader.longCount != 1u || reader.longNumber != 12346)
+                    return fail("clean compatibility write lost typed readback");
+                reachedSuccess = true;
+                break;
+            }
+            if (!injected)
+                return fail("compatibility write failed without injected allocation");
+            ++failures;
+            std::ifstream failedOutput(path, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>{failedOutput},
+                std::istreambuf_iterator<char>{}};
+            if (preserved != sentinel
+                || selected.record.handle != 0xA91u
+                || selected.record.parentHandle != 0xCu
+                || selected.record.m_values.size() != 2u
+                || selected.record.m_values[0].i_val() != 12345
+                || selected.record.m_values[1].i_val() != 12346)
+                return fail("compatibility allocation failure changed caller or destination");
+
+            if (!writer.write(&selected, DRW::AC1027, binary))
+                return fail("same-writer compatibility retry failed");
+            std::ifstream retryOutput(path, std::ios::binary);
+            const std::string retryBytes{
+                std::istreambuf_iterator<char>{retryOutput},
+                std::istreambuf_iterator<char>{}};
+            SelectedReader reader;
+            dx_data data;
+            if (retryBytes != cleanBytes
+                || !reader.fileImport(path.string(), &data, false)
+                || reader.count != 1u || reader.number != 12345
+                || reader.longCount != 1u || reader.longNumber != 12346)
+                return fail("same-writer compatibility retry/readback mismatch");
+        }
+        if (!reachedSuccess || failures == 0u)
+            return fail("compatibility allocation sweep missed failure or success");
+        std::cout << "XRECORD DWG-compatibility "
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << failures
+                  << ", rollback/retry/readback=PASS\n";
+    }
+    return true;
+}
+
 } // namespace
 
 int main() {
-    if (!directTypedControls() || !wholeFileControls()) return 1;
+    if (!directTypedControls() || !wholeFileControls()
+        || !compatibilityXrecordAllocationControls()) return 1;
     if (!appIdAllocationRollbackControls()) return 1;
     std::cout << "Typed XDATA 1070 Binary exact numeric policy: PASS\n";
     return 0;
