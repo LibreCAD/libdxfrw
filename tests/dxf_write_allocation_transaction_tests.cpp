@@ -647,6 +647,47 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
+bool hasStagedOutput(const std::filesystem::path& target) {
+    const std::filesystem::path directory = target.parent_path().empty()
+        ? std::filesystem::path(".") : target.parent_path();
+    const std::string prefix = target.filename().string() + ".libdxfrw-";
+    std::error_code error;
+    std::filesystem::directory_iterator entry(directory, error);
+    if (error)
+        return true;
+    const std::filesystem::directory_iterator end;
+    while (entry != end) {
+        if (entry->path().filename().string().rfind(prefix, 0u) == 0u)
+            return true;
+        entry.increment(error);
+        if (error)
+            return true;
+    }
+    return false;
+}
+
+bool clearStagedOutput(const std::filesystem::path& target) {
+    const std::filesystem::path directory = target.parent_path().empty()
+        ? std::filesystem::path(".") : target.parent_path();
+    const std::string prefix = target.filename().string() + ".libdxfrw-";
+    std::error_code error;
+    std::filesystem::directory_iterator entry(directory, error);
+    if (error)
+        return false;
+    const std::filesystem::directory_iterator end;
+    while (entry != end) {
+        if (entry->path().filename().string().rfind(prefix, 0u) == 0u) {
+            std::filesystem::remove(entry->path(), error);
+            if (error)
+                return false;
+        }
+        entry.increment(error);
+        if (error)
+            return false;
+    }
+    return true;
+}
+
 bool callerRecordsUnchanged(const Export& adapter) {
     return adapter.line.handle == 0xD900u
         && adapter.line.basePoint.x == 1.25
@@ -1392,6 +1433,9 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
 
     const auto output = directory / "whole-operation.dxf";
+    const auto publicationTarget = directory / "publication-race-target.dxf";
+    if (!clearStagedOutput(output) || !clearStagedOutput(publicationTarget))
+        return fail("could not clear stale output staging files in test scratch");
     const std::string sentinel = "previous complete drawing\n";
     for (const bool binary : {false, true}) {
         // Flush any one-time writer/codec setup allocations before counting
@@ -1473,11 +1517,17 @@ bool run(const std::filesystem::path& directory) {
                 && context.sourceHandleToWrittenObjectMap.empty()
                 && context.writtenSourceEntityHandles.empty()
                 && context.ambiguousSourceHandles.empty();
+            const bool stagingClean = !hasStagedOutput(output);
             if (!injected || wrote || reached != static_cast<std::size_t>(offset + 1)) {
                 std::cerr << "offset=" << offset << " attempts=" << reached
                           << " fired=" << injected << " wrote=" << wrote
                           << '\n';
                 return fail("allocation refusal was not atomic or missed its calibrated offset");
+            }
+            if (!stagingClean) {
+                std::cerr << "offset=" << offset << " binary=" << binary
+                          << " left an output staging file\n";
+                return fail("failed whole-file write leaked its staged output");
             }
 
             std::string afterFailure;
@@ -1503,7 +1553,7 @@ bool run(const std::filesystem::path& directory) {
             const bool retryReadback = matchesReadback(output);
             if (!retried || !adapter.entitiesWritten || !adapter.objectsWritten
                 || !retryReadBytes || retryBytes != expectedBytes
-                || !retryReadback) {
+                || !retryReadback || hasStagedOutput(output)) {
                 std::cerr << "retry offset=" << offset << " retried=" << retried
                           << " entities=" << adapter.entitiesWritten
                           << " objects=" << adapter.objectsWritten
@@ -1536,7 +1586,6 @@ bool run(const std::filesystem::path& directory) {
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
-    const auto publicationTarget = directory / "publication-race-target.dxf";
     const auto marker = publicationTarget / "existing-destination";
     std::error_code cleanupError;
     std::filesystem::remove_all(publicationTarget, cleanupError);
@@ -1568,6 +1617,7 @@ bool run(const std::filesystem::path& directory) {
         && readBytes(marker, markerAfterRace) && markerAfterRace == markerBytes;
     if (publicationAccepted || !publicationAdapter.entitiesWritten
         || !publicationAdapter.objectsWritten || !markerPreserved
+        || hasStagedOutput(publicationTarget)
         || publicationCodec.getError() != DRW::BAD_OPEN
         || !callerRecordsUnchanged(publicationAdapter))
         return fail("publication race overwrote or damaged the concurrent destination");
@@ -1581,6 +1631,7 @@ bool run(const std::filesystem::path& directory) {
     const bool publicationRetryReadback = matchesReadback(publicationTarget);
     if (!publicationRetry || !publicationAdapter.entitiesWritten
         || !publicationAdapter.objectsWritten || !publicationRetryReadback
+        || hasStagedOutput(publicationTarget)
         || !callerRecordsUnchanged(publicationAdapter))
         return fail("whole-file publication failure did not allow corrected same-codec retry");
     std::filesystem::remove(publicationTarget, cleanupError);

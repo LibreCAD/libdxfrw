@@ -716,22 +716,24 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "85a3fe0d388a954ef6af9a08c549a2f3c94c9933105d947f2e469cfe7723a73a",
+    "testSha256": "cdca7fca3fee1f5df8cb346b8808a2d2df143cce875d83e049707787375caa27",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "a2009dc5a9af3443d11853e9ee07250a55e8ef7a29117e516cfea647e4ea75d9",
-    "asanExecutableSha256": "b3dd0f406e68e5b1b89850b50dc0da21d0789f413782c12ade9123355c3533a7",
+    "normalExecutableSha256": "dc7dd65d8c51ff4561c6f9368e22833a9a91e32c493efed3f41993cb4c04ec06",
+    "asanExecutableSha256": "3e68db34be81f3d2364c18ee8686fc77b11d321564255f71e1a73843f2a52be2",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/libdxfrw.h",
-      "src/intern/dxfwriter.h"
+      "src/intern/dxfwriter.h",
+      "src/intern/dwg_dxf_output_transaction.cpp"
     ],
-    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. During whole-file writing, INSERT/ATTRIB caller handles are restored when each compound callback returns; emitted identities remain in the codec map. This avoids retaining borrowed callback records. Standalone writeInsert calls retain their existing successful handle-preserving behavior.",
+    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. During whole-file writing, INSERT/ATTRIB caller handles are restored when each compound callback returns; emitted identities remain in the codec map. This avoids retaining borrowed callback records. Standalone writeInsert calls retain their existing successful handle-preserving behavior. POSIX temporary registration now uses a no-throw path swap after exclusive creation so allocation failure cannot leave an untracked staging file; abort closes descriptors even when failure occurred before a temporary path was registered.",
     "productionSourceSha256": {
       "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "e847a4c4d43ed72d20e932f6bb783d32b5d158cb84ca8115d3c4de203b310a9b",
-      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a"
+      "tests/dxf_write_allocation_transaction_tests.cpp": "cdca7fca3fee1f5df8cb346b8808a2d2df143cce875d83e049707787375caa27",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "src/intern/dwg_dxf_output_transaction.cpp": "5c98c2d4a634b6da8706e92fb5948f2f023aebed1f2ea57a67c843a15446a363"
     },
     "details": [
       "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
@@ -756,24 +758,25 @@
       "Generated RAY and XLINE output with non-origin 3D base points and non-axis-aligned direction vectors now participates in the whole-operation sweep. Typed readback verifies each handle, base point and normalized direction; whole-file failure and success checks preserve the caller’s original direction vectors.",
       "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style.",
       "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND.",
-      "An ASCII publication-race control creates a destination directory and marker after staged output is finalized but before commit; commit refuses with BAD_OPEN without replacing the concurrent destination, then corrected same-codec retry succeeds with typed readback."
+      "An ASCII publication-race control creates a destination directory and marker after staged output is finalized but before commit; commit refuses with BAD_OPEN without replacing the concurrent destination, then corrected same-codec retry succeeds with typed readback.",
+      "The allocation sweep checks that each failed whole-file write and corrected retry leaves no target-prefixed staging file. A fresh pre-fix run had left two zero-byte staging files; the production fix makes ownership registration non-throwing and closes setup descriptors on all abort paths. Test startup removes only stale files with this control’s generated target prefixes."
     ]
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
-    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-publication-race-control; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
-    "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
+    "validation": "cmake --build build-gcc --target libdxfrw_writer_primitives_tests libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^(libdxfrw_writer_primitives|libdxfrw_dxf_write_allocation_transaction)$ --output-on-failure; cmake --build build-asan-custom --target libdxfrw_writer_primitives_tests libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^(libdxfrw_writer_primitives|libdxfrw_dxf_write_allocation_transaction)$ --output-on-failure",
+    "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally. The operation test also asserts that no staging pathname remains after each injected refusal or same-codec retry.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
     "asanValidation": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure"
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 2.30 seconds; ASan 1/1 passed in 17.53 seconds.",
+    "ctest": "Normal writer-primitives and whole-write selectors: 2/2 passed in 2.60 seconds; ASan: 2/2 passed in 17.79 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 453,
+      "measuredAllocationOffsets": 452,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -857,10 +860,11 @@
       "callerBlockAndAttdefPreserved": true,
       "insertMultipleAttribReadbackMatched": true,
       "twoAttribAllocationFailureAbortsWholeWrite": true,
-      "callerInsertAndBothAttribsPreserved": true
+      "callerInsertAndBothAttribsPreserved": true,
+      "stagedOutputsRemovedOnEveryFailureAndRetry": true
     },
     "binary": {
-      "measuredAllocationOffsets": 447,
+      "measuredAllocationOffsets": 446,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -944,9 +948,10 @@
       "callerBlockAndAttdefPreserved": true,
       "insertMultipleAttribReadbackMatched": true,
       "twoAttribAllocationFailureAbortsWholeWrite": true,
-      "callerInsertAndBothAttribsPreserved": true
+      "callerInsertAndBothAttribsPreserved": true,
+      "stagedOutputsRemovedOnEveryFailureAndRetry": true
     },
-    "addressSanitizerCtest": "1/1 passed in 17.53 seconds.",
+    "addressSanitizerCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 17.79 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -954,9 +959,9 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 453 allocation offsets; Binary 447 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
-      "normalCtest": "1/1 passed in 2.30 seconds.",
-      "asanCtest": "1/1 passed in 17.53 seconds.",
+      "normalDirectRun": "ASCII 452 allocation offsets; Binary 446 allocation offsets; every injected failure preserves destination, caller records and staging directory, then same-codec retry matches clean bytes and typed readback.",
+      "normalCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 2.60 seconds.",
+      "asanCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 17.79 seconds.",
       "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
       "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
       "ellipseReadback": "Generated partial ELLIPSE center, major axis, ratio, parameter range, and perpendicular extrusion match typed readback.",
@@ -971,7 +976,8 @@
       "insertReadback": "A generated named BLOCK contains a POINT and ATTDEF; a name-resolved INSERT has two ATTRIB children and generated SEQEND. ASCII/Binary readback checks target, each attribute owner/tag/text/position/height, and block body records.",
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
       "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics.",
-      "publicationRace": "ASCII finalization hook creates a destination directory with marker data after staged writes; final publication refuses with BAD_OPEN, preserves marker and source records, then the same codec succeeds after clearing the destination and typed readback matches."
+      "publicationRace": "ASCII finalization hook creates a destination directory with marker data after staged writes; final publication refuses with BAD_OPEN, preserves marker and source records, then the same codec succeeds after clearing the destination and typed readback matches.",
+      "stagingCleanup": "A pre-fix direct run left two zero-byte target-prefixed staging files after one-shot allocation failures. After changing POSIX temporary registration to no-throw swap and making abort close descriptors without a registered path, the fresh ASCII/Binary sweep leaves no staging files on any failure or retry."
     },
     "additionalFailuresFoundAndFixed": [
       {
@@ -985,6 +991,11 @@
         "symptom": "An INSERT with an ATTRIB completed and exposed minted caller handles, then a later allocation failure aborted the full drawing but left those new handles in caller records.",
         "fix": "For whole-file writes, restore INSERT and ATTRIB caller handles at the end of the compound callback; rely on the codec identity ledger for later references. This avoids storing borrowed entity pointers beyond callback lifetime. Standalone writeInsert calls retain prior behavior.",
         "regression": "All offsets check original INSERT/ATTRIB and block caller state; successful calibration also confirms caller records remain unchanged. Same-codec retry reproduces exact bytes and typed readback verifies the graph."
+      },
+      {
+        "failure": "A one-shot allocation failure after POSIX O_EXCL creation but before m_temporary path registration left a zero-byte staging file; abort also skipped closing the containing-directory descriptor when the path was empty.",
+        "fix": "Register the already-created candidate with std::filesystem::path::swap (no-throw) before returning from createExclusiveTemporary, and close owned descriptors unconditionally at abort completion.",
+        "regression": "The whole-file allocation sweep checks no target-prefixed temporary exists after every failure and corrected retry in ASCII and Binary; stale test scratch artifacts with those exact prefixes are cleared at startup."
       }
     ],
     "publicationRace": {
@@ -996,14 +1007,16 @@
       "callerRecordsUnchanged": true,
       "sameCodecRetryAfterClearingDestination": true,
       "retryTypedReadbackMatched": true,
-      "scope": "Generated local filesystem publication-race transaction control; not native-format semantic or cross-platform filesystem qualification."
+      "scope": "Generated local filesystem publication-race transaction control; not native-format semantic or cross-platform filesystem qualification.",
+      "stagingFileRemovedOnFailure": true
     }
   },
   "limits": [
     "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with two ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding.",
-    "The publication-race control exercises one ASCII generated destination-directory replacement race on this macOS host; it does not establish behavior for every filesystem or platform."
+    "The publication-race control exercises one ASCII generated destination-directory replacement race on this macOS host; it does not establish behavior for every filesystem or platform.",
+    "The injected temporary-path allocation failure and staging cleanup control ran on macOS POSIX. Windows uses a separate temporary-create implementation; its behavior is not qualified by this run."
   ],
-  "baseRevision": "e23b1468"
+  "baseRevision": "547965fa"
 }

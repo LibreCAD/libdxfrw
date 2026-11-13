@@ -182,7 +182,11 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
             break;
         }
 
-        m_temporary = candidate;
+        // Publish the owned pathname into this transaction only after all
+        // allocations needed to build it are complete, but use the noexcept
+        // path swap here: the file already exists and must be tracked before
+        // any subsequent operation can throw.
+        m_temporary.swap(candidate);
         m_exclusiveDescriptor = descriptor;
         return true;
     }
@@ -685,8 +689,6 @@ void DwgDxfOutputTransaction::abort() noexcept {
             closeExclusiveDescriptor();
             std::error_code ignored;
             std::filesystem::remove(m_temporary, ignored);
-        } else {
-            closeExclusiveDescriptor();
         }
 #else
         if (owned && m_directoryDescriptor >= 0) {
@@ -696,8 +698,12 @@ void DwgDxfOutputTransaction::abort() noexcept {
                                  0);
         }
 #endif
-        closeExclusiveDescriptor();
-        closeDirectoryDescriptor();
         m_temporary.clear();
     }
+    // Setup can fail after opening the containing directory but before
+    // registering a temporary pathname. Those descriptors still belong to
+    // this transaction and must be released even when there is no pathname
+    // to unlink.
+    closeExclusiveDescriptor();
+    closeDirectoryDescriptor();
 }
