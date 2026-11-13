@@ -10306,6 +10306,7 @@ bool DRW_Circle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
         || !std::isfinite(parsedCenter.y)
         || !std::isfinite(parsedCenter.z)
         || !std::isfinite(parsedRadius)
+        || parsedRadius <= 0.0
         || !std::isfinite(parsedThickness)
         || !std::isfinite(parsedExtrusion.x)
         || !std::isfinite(parsedExtrusion.y)
@@ -10408,6 +10409,7 @@ bool DRW_Arc::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
         || !std::isfinite(parsedCenter.y)
         || !std::isfinite(parsedCenter.z)
         || !std::isfinite(parsedRadius)
+        || parsedRadius <= 0.0
         || !std::isfinite(parsedThickness)
         || !std::isfinite(parsedExtrusion.x)
         || !std::isfinite(parsedExtrusion.y)

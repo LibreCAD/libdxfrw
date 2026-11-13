@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-circle-arc-positive-radius-reader-2026-11-12",
+  "purpose": "Make DWG CIRCLE and ARC parsing reject nonpositive radii consistently with native object validity and the DXF reader.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.18 ARC (object type 17)", "20.4.20 CIRCLE (object type 18)"],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "ARC/CIRCLE radius is a BD field, group 40.",
+    "nativeContract": {
+      "source": "Autodesk ObjectARX AcDbCircle::setRadius and AcDbArc::setRadius",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbCircle__setRadius_double.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbArc__setRadius_double.html"
+      ],
+      "requirement": "Radius must be greater than zero."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "DWG CIRCLE and ARC parsers now refuse a finite radius less than or equal to zero before committing parsed geometry. Their existing failure paths invalidate the cursor and reset the destination entity state.",
+    "scope": "Malformed record handling only; record-level error softening remains with the caller."
+  },
+  "generatedControls": {
+    "version": "AC1021",
+    "method": "Encode local CIRCLE and ARC frames, replace the positive BD radius bit span with a same-width negative BD value, then invoke the typed parser directly.",
+    "assertions": [
+      "negative-radius CIRCLE and ARC parsing refuses",
+      "failed parsing resets radius, center and ARC parameters",
+      "the same typed parser instance accepts the original valid frame on retry"
+    ],
+    "fixturePolicy": "Generated frames are kept in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release PASS; cmake --build build-gcc --target libdxfrw_dwg_circle_arc_positive_radius_reader_tests -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_circle_arc_positive_radius_reader$' --output-on-failure PASS 1/1 in 0.18 seconds"
+  },
+  "limitations": [
+    "The direct generated AC1021 parser control proves one same-width negative-radius profile; it does not establish malformed-source prevalence or native recovery behavior.",
+    "The broader P6 geometry/no-loss and whole-drawing gates remain open."
+  ],
+  "supportClaimEffect": "Closes a bounded DWG CIRCLE/ARC nonpositive-radius parser inconsistency; no broad support claim is promoted."
+}
