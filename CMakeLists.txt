@@ -2948,6 +2948,10 @@ if(LIBDXFRW_BUILD_TESTS)
             --underlay-dxf-allocation-failure)
     set_tests_properties(libdxfrw_underlay_dxf_allocation_failure PROPERTIES
         LABELS "fast;dxf;reader;underlay;allocation;retry" TIMEOUT 30)
+    add_test(NAME libdxfrw_dxf_mesh_parser_allocation_retry
+        COMMAND libdxfrw_dxf_fixture_tests --mesh-dxf-allocation-failure)
+    set_tests_properties(libdxfrw_dxf_mesh_parser_allocation_retry PROPERTIES
+        LABELS "fast;dxf;reader;mesh;allocation;retry;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_dimension_ocs_extrusion
         COMMAND libdxfrw_dxf_fixture_tests --dimension-ocs-extrusion)
     set_tests_properties(libdxfrw_dxf_dimension_ocs_extrusion PROPERTIES
