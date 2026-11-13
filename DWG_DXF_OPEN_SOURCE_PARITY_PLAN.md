@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **225 completed implementation slices** and **35 remaining
+The plan records **226 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`225 / (225 + 35) = 86.5%`. This is a count-based progress measure, not an
+`226 / (226 + 35) = 86.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5098,12 +5098,13 @@ generated legacy profile (three row styles, six ordered borders per row, and
 one emitted TEXTSTYLE dependency) now sweeps callback allocation failures at
 AC1021 and AC1032 in ASCII and Binary. The R24 rich-cell profile (default Table
 style plus title/header/data styles and one TEXTSTYLE dependency) sweeps the
-same failure path at AC1024 and AC1032. All 19/17/19/17 legacy offsets and 19
-R24 offsets per encoding/revision preserve destination and caller state;
+same failure path at AC1024, AC1027, and AC1032. All 19/17/19/17 legacy offsets
+and 19 R24 offsets per encoding/revision preserve destination and caller state;
 same-codec retries reproduce clean bytes and fresh typed readback verifies the
 profile fields. This is generated transaction evidence only and does not
 qualify producer interoperability or native semantics. The focused CTest
-passes 1/1 in 1.88 seconds; no fixture was added. See the
+passes 1/1 in 2.33 seconds and covers 186 allocation offsets; no fixture was
+added. See the
 [TABLESTYLE transaction receipt](docs/research/p6-dxf-tablestyle-allocation-rollback-retry-2026-11-13.json).
 **P6-G CELLSTYLEMAP revision-matrix transaction slice (2026-11-13):** a
 generated CELLSTYLEMAP with one data-bearing style, one ordered border and a

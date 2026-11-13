@@ -339,9 +339,10 @@ bool run(const std::filesystem::path& directory) {
         DRW::Version version;
         bool rich;
     };
-    for (const Profile profile : std::array<Profile, 4>{{
+    for (const Profile profile : std::array<Profile, 5>{{
              {DRW::AC1021, false}, {DRW::AC1032, false},
-             {DRW::AC1024, true}, {DRW::AC1032, true}}}) {
+             {DRW::AC1024, true}, {DRW::AC1027, true},
+             {DRW::AC1032, true}}}) {
         const DRW::Version version = profile.version;
         const bool rich = profile.rich;
         for (const bool binary : {false, true}) {
