@@ -41,6 +41,7 @@ constexpr std::uint32_t kPointHandle = 0xD929u;
 constexpr std::uint32_t k3DLineHandle = 0xD92Au;
 constexpr std::uint32_t kSolidHandle = 0xD92Bu;
 constexpr std::uint32_t kTraceHandle = 0xD92Cu;
+constexpr std::uint32_t kTextHandle = 0xD92Du;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -328,6 +329,13 @@ public:
         trace.secPoint = DRW_Coord(3.0, 0.0, 2.0);
         trace.thirdPoint = DRW_Coord(3.0, 2.0, 2.0);
         trace.fourPoint = DRW_Coord(0.0, 2.0, 2.0);
+        text.handle = kTextHandle;
+        text.basePoint = DRW_Coord(12.0, -3.0, 1.0);
+        text.text = "whole-operation TEXT";
+        text.height = 2.0;
+        text.angle = 15.0;
+        text.widthscale = 1.2;
+        text.style = "STANDARD";
     }
 
     void writeEntities() override {
@@ -354,7 +362,8 @@ public:
             && check("POINT", output.writePoint(&point))
             && check("3DLINE", output.writeLine(&line3d))
             && check("SOLID", output.writeLine(&solid))
-            && check("TRACE", output.writeLine(&trace));
+            && check("TRACE", output.writeLine(&trace))
+            && check("TEXT", output.writeText(&text));
     }
 
     void writeObjects() override {
@@ -391,6 +400,7 @@ public:
     DRW_3DLine line3d;
     DRW_Solid solid;
     DRW_Trace trace;
+    DRW_Text text;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -492,6 +502,11 @@ public:
         ++traceCount;
         trace = value;
     }
+    void addText(const DRW_Text& value) override {
+        dx_iface::addText(value);
+        ++textCount;
+        text = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -523,6 +538,7 @@ public:
     DRW_3DLine line3d;
     DRW_Solid solid;
     DRW_Trace trace;
+    DRW_Text text;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -546,6 +562,7 @@ public:
     unsigned line3dCount = 0u;
     unsigned solidCount = 0u;
     unsigned traceCount = 0u;
+    unsigned textCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -741,6 +758,15 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.trace.secPoint.x == 3.0
         && adapter.trace.thirdPoint.y == 2.0
         && adapter.trace.fourPoint.y == 2.0
+        && adapter.text.handle == kTextHandle
+        && adapter.text.basePoint.x == 12.0
+        && adapter.text.basePoint.y == -3.0
+        && adapter.text.basePoint.z == 1.0
+        && adapter.text.text == "whole-operation TEXT"
+        && adapter.text.height == 2.0
+        && adapter.text.angle == 15.0
+        && adapter.text.widthscale == 1.2
+        && adapter.text.style == "STANDARD"
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -999,6 +1025,16 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.trace.thirdPoint.x != 3.0
         || adapter.trace.thirdPoint.y != 2.0
         || adapter.trace.fourPoint.y != 2.0
+        || adapter.textCount != 1u
+        || adapter.text.handle == 0u
+        || adapter.text.basePoint.x != 12.0
+        || adapter.text.basePoint.y != -3.0
+        || adapter.text.basePoint.z != 1.0
+        || adapter.text.text != "whole-operation TEXT"
+        || adapter.text.height != 2.0
+        || std::abs(adapter.text.angle - 15.0) > 1.0e-12
+        || adapter.text.widthscale != 1.2
+        || adapter.text.style != "STANDARD"
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
