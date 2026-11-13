@@ -4411,6 +4411,14 @@ both target handles. The focused transaction CTest passes 1/1. This proves only
 generated DXF transport and allocation safety, not crop evaluation, external
 asset loading or native point-cloud semantics
 ([receipt](docs/research/p6-dxf-pointcloudex-entity-allocation-rollback-retry-2026-11-13.json)).
+The generated NAVISWORKSMODEL entity now links to the `NAVISWORKSMODELDEF`
+record in the same OBJECTS profile. Its definition handle, flags, all 16
+transform values and unit factor survive typed readback. All 992 ASCII and 972
+Binary injected allocation failures preserve caller/destination state and allow
+same-writer retry; the focused transaction CTest passes 1/1. This verifies the
+generated DXF reference route only, not the NAVISWORKS dictionary edge, NWD
+asset loading or native consumer behavior
+([receipt](docs/research/p6-dxf-navisworks-model-entity-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

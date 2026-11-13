@@ -3,6 +3,7 @@
 #include "dx_iface.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
@@ -110,6 +111,7 @@ constexpr std::uint32_t kPointCloudReactorHandle = 0xD952u;
 constexpr std::uint32_t kPointCloudReactorExHandle = 0xD953u;
 constexpr std::uint32_t kPointCloudHandle = 0xD954u;
 constexpr std::uint32_t kPointCloudExHandle = 0xD955u;
+constexpr std::uint32_t kNavisworksModelHandle = 0xD956u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -802,6 +804,13 @@ public:
         cropping.points = {DRW_Coord(1.0, 2.0, 3.0),
             DRW_Coord(4.0, 5.0, 6.0), DRW_Coord(7.0, 8.0, 9.0)};
         pointCloudEx.croppings.push_back(cropping);
+        navisworksModel.handle = kNavisworksModelHandle;
+        navisworksModel.flags = 5u;
+        navisworksModel.definitionHandle = kNavisworksModelDefHandle;
+        navisworksModel.transform = {1.0, 0.0, 0.0, 2.0,
+            0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 1.0, 4.0,
+            5.0, 6.0, 7.0, 1.0};
+        navisworksModel.unitFactor = 0.25;
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1071,6 +1080,7 @@ public:
             && check("INSERT", output.writeInsert(&insert))
             && check("POINTCLOUD", output.writePointCloud(&pointCloud))
             && check("POINTCLOUDEX", output.writePointCloudEx(&pointCloudEx))
+            && check("NAVISWORKSMODEL", output.writeNavisworksModel(&navisworksModel))
             && check("ATTDEF", output.writeAttdef(
                 &directAttdef, DRW::DxfModelSpaceBlockRecordHandle))
             && check("3DFACE", output.writeLine(&face))
@@ -1221,6 +1231,7 @@ public:
     DRW_PointCloudDef pointCloudReactorEx;
     DRW_PointCloud pointCloud;
     DRW_PointCloudEx pointCloudEx;
+    DRW_NavisworksModel navisworksModel;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1271,6 +1282,12 @@ public:
         if (value != nullptr) {
             ++pointCloudExCount;
             pointCloudEx = *value;
+        }
+    }
+    void addNavisworksModel(const DRW_NavisworksModel* value) override {
+        if (value != nullptr) {
+            ++navisworksModelCount;
+            navisworksModel = *value;
         }
     }
     void addOle2Frame(const DRW_Ole2Frame& value) override {
@@ -1633,6 +1650,7 @@ public:
     DRW_Image image;
     DRW_PointCloud pointCloud;
     DRW_PointCloudEx pointCloudEx;
+    DRW_NavisworksModel navisworksModel;
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
@@ -1712,6 +1730,7 @@ public:
     unsigned imageCount = 0u;
     unsigned pointCloudCount = 0u;
     unsigned pointCloudExCount = 0u;
+    unsigned navisworksModelCount = 0u;
     unsigned ole2FrameCount = 0u;
     unsigned oleFrameCount = 0u;
     unsigned shapeCount = 0u;
@@ -1977,6 +1996,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.pointCloudEx.croppings[0].pointCount == 3
         && adapter.pointCloudEx.croppings[0].points.size() == 3u
         && adapter.pointCloudEx.croppings[0].points[2].z == 9.0
+        && adapter.navisworksModel.handle == kNavisworksModelHandle
+        && adapter.navisworksModel.flags == 5u
+        && adapter.navisworksModel.definitionHandle == kNavisworksModelDefHandle
+        && adapter.navisworksModel.transform
+            == std::array<double, 16>{1.0, 0.0, 0.0, 2.0,
+                0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 1.0, 4.0,
+                5.0, 6.0, 7.0, 1.0}
+        && adapter.navisworksModel.unitFactor == 0.25
         && lineType != adapter.storage.lineTypes.end()
         && lineType->handle == kLineTypeHandle
         && lineType->desc == "whole-operation line type"
@@ -2861,6 +2888,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.imageCount != 1u
         || adapter.pointCloudCount != 1u
         || adapter.pointCloudExCount != 1u
+        || adapter.navisworksModelCount != 1u
         || adapter.meshCount != 1u
         || adapter.splineCount != 1u
         || adapter.hatchCount != 1u
@@ -2973,6 +3001,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.pointCloudEx.croppings[0].points[0].x != 1.0
         || adapter.pointCloudEx.croppings[0].points[1].y != 5.0
         || adapter.pointCloudEx.croppings[0].points[2].z != 9.0
+        || adapter.navisworksModel.handle == 0u
+        || adapter.navisworksModel.flags != 5u
+        || adapter.navisworksModel.definitionHandle != kNavisworksModelDefHandle
+        || adapter.navisworksModel.transform
+            != std::array<double, 16>{1.0, 0.0, 0.0, 2.0,
+                0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 1.0, 4.0,
+                5.0, 6.0, 7.0, 1.0}
+        || adapter.navisworksModel.unitFactor != 0.25
         || lineTypeCount != 1u
         || lineType == adapter.storage.lineTypes.end()
         || lineType->handle == 0u
