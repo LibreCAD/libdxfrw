@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **109 completed implementation slices** and **35 remaining
+The plan records **110 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`109 / (109 + 35) = 75.7%`. This is a count-based progress measure, not an
+`110 / (110 + 35) = 75.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
-| P6-G | OPEN | Close caller-state coverage for remaining public writers, including dimension subtypes and variable-size/object builders absent from the current sweep. | Writer inventory diff; each selected operation has rollback, same-writer retry, and typed readback. |
+| P6-G | OPEN | Close caller-state coverage for remaining public writers, including custom/dynamic dimension subtypes and variable-size/object builders absent from the current sweep. | Writer inventory diff; each selected operation has rollback, same-writer retry, and typed readback. |
 | P7-A | OPEN | Join each admitted modeler entity to owner/key, AcDs record, SAT/SAB payload, and dependent prototype using exact handles. | Source-bound owner/key/payload census; each association is unique or explicitly refused. |
 | P7-B | OPEN | Resolve versioned AcDs framing, index, suffix, and prototype assembly in bounded profiles. | ODA/peer crosswalk and physical-span receipts for each admitted version. |
 | P7-C | OPEN | Bind the closed DWG carrier graph to exact DXF 3DSOLID/REGION/BODY records and INSERT/block context. | Same-model DWG/DXF pair with owner/block/key agreement and strict no-orphan output. |
@@ -1435,6 +1435,18 @@ the destination and tested caller surface state; corrected retries reproduce
 clean output and typed readback. The focused transaction CTest passes. This
 does not qualify DWG fields, embedded geometry, dependency closure or native
 surface semantics. See the [receipt](docs/research/p6-dxf-surface-family-allocation-rollback-retry-2026-11-13.json).
+
+**P6 variable-size writer transaction slice (2026-11-13):** the same sweep
+now calls the public OLE2FRAME and OLEFRAME writers directly with locally
+generated opaque payloads. Both codec profiles preserve OLE2 version/client,
+frame corners, mode/flags/aspect state and exact payload bytes through typed
+readback. All 759 ASCII and 747 Binary injected allocation failures preserve
+the prior destination and caller fields; same-writer retries reproduce clean
+output. The focused transaction CTest passes in 4.86 seconds. These payloads
+are transaction probes, not valid producer-authored OLE documents. This does
+not qualify OLE semantics, consumer rendering, DWG source profiles, or the
+remaining writer inventory. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no

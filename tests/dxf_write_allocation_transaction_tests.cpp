@@ -60,6 +60,8 @@ constexpr std::uint32_t kBackgroundHandle = 0xD93Cu;
 constexpr std::uint32_t kPlotSettingsHandle = 0xD93Du;
 constexpr std::uint32_t kWipeoutVariablesHandle = 0xD93Eu;
 constexpr std::uint32_t kSunHandle = 0xD93Fu;
+constexpr std::uint32_t kOle2FrameHandle = 0xD940u;
+constexpr std::uint32_t kOleFrameHandle = 0xD941u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -773,6 +775,26 @@ public:
         sun.m_shadowType = 2;
         sun.m_shadowMapSize = 1024;
         sun.m_shadowSoftness = 3;
+        ole2Frame.handle = kOle2FrameHandle;
+        ole2Frame.m_oleVersion = 2u;
+        ole2Frame.m_oleClient = "WHOLE_OPERATION_OLE2";
+        ole2Frame.m_pt1 = DRW_Coord(1.0, 2.0, 0.0);
+        ole2Frame.m_pt2 = DRW_Coord(7.0, 9.0, 0.0);
+        ole2Frame.m_flags = 3u;
+        ole2Frame.m_mode = 1u;
+        ole2Frame.m_lockAspect = 1u;
+        ole2Frame.m_payloadPresent = true;
+        ole2Frame.m_payloadBytes = {0x00u, 0x1Fu, 0x80u, 0xFFu, 0x35u};
+        ole2Frame.m_payloadByteCount = static_cast<std::uint32_t>(
+            ole2Frame.m_payloadBytes.size());
+        ole2Frame.m_declaredPayloadLength = ole2Frame.m_payloadByteCount;
+        oleFrame.handle = kOleFrameHandle;
+        oleFrame.m_flags = 2u;
+        oleFrame.m_payloadPresent = true;
+        oleFrame.m_payloadBytes = {0x80u, 0x00u, 0xFFu, 0xA5u};
+        oleFrame.m_payloadByteCount = static_cast<std::uint32_t>(
+            oleFrame.m_payloadBytes.size());
+        oleFrame.m_declaredPayloadLength = oleFrame.m_payloadByteCount;
     }
 
     void writeEntities() override {
@@ -824,6 +846,8 @@ public:
             && check("RAY", output.writeRay(&ray))
             && check("XLINE", output.writeXline(&xline))
             && check("HELIX", output.writeHelix(&helix))
+            && check("OLE2FRAME", output.writeOle2Frame(&ole2Frame))
+            && check("OLEFRAME", output.writeOleFrame(&oleFrame))
             && check("LOFTEDSURFACE", output.writeSurface(&loftedSurface))
             && check("SWEPTSURFACE", output.writeSurface(&sweptSurface))
             && check("PLANESURFACE", output.writeSurface(&planeSurface))
@@ -898,6 +922,8 @@ public:
     DRW_Ray ray;
     DRW_Xline xline;
     DRW_Helix helix;
+    DRW_Ole2Frame ole2Frame;
+    DRW_OleFrame oleFrame;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -938,6 +964,14 @@ public:
             ++imageCount;
             image = *value;
         }
+    }
+    void addOle2Frame(const DRW_Ole2Frame& value) override {
+        ++ole2FrameCount;
+        ole2Frame = value;
+    }
+    void addOleFrame(const DRW_OleFrame& value) override {
+        ++oleFrameCount;
+        oleFrame = value;
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1217,6 +1251,8 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_Ole2Frame ole2Frame;
+    DRW_OleFrame oleFrame;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1278,6 +1314,8 @@ public:
     unsigned circleCount = 0u;
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
+    unsigned ole2FrameCount = 0u;
+    unsigned oleFrameCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1432,6 +1470,26 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.basePoint.z == 4.0
         && adapter.image.sizeu == 640.0
         && adapter.image.sizev == 480.0
+        && adapter.ole2Frame.handle == kOle2FrameHandle
+        && adapter.ole2Frame.m_oleVersion == 2u
+        && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
+        && adapter.ole2Frame.m_pt1.x == 1.0
+        && adapter.ole2Frame.m_pt1.y == 2.0
+        && adapter.ole2Frame.m_pt2.x == 7.0
+        && adapter.ole2Frame.m_pt2.y == 9.0
+        && adapter.ole2Frame.m_flags == 3u
+        && adapter.ole2Frame.m_mode == 1u
+        && adapter.ole2Frame.m_lockAspect == 1u
+        && adapter.ole2Frame.m_payloadPresent
+        && adapter.ole2Frame.m_payloadBytes
+            == std::vector<std::uint8_t>{0x00u, 0x1Fu, 0x80u, 0xFFu, 0x35u}
+        && adapter.ole2Frame.m_declaredPayloadLength == 5u
+        && adapter.oleFrame.handle == kOleFrameHandle
+        && adapter.oleFrame.m_flags == 2u
+        && adapter.oleFrame.m_payloadPresent
+        && adapter.oleFrame.m_payloadBytes
+            == std::vector<std::uint8_t>{0x80u, 0x00u, 0xFFu, 0xA5u}
+        && adapter.oleFrame.m_declaredPayloadLength == 4u
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2164,6 +2222,28 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.image.basePoint.z != 4.0
         || adapter.image.sizeu != 640.0
         || adapter.image.sizev != 480.0
+        || adapter.ole2FrameCount != 1u
+        || adapter.ole2Frame.handle == 0u
+        || adapter.ole2Frame.m_oleVersion != 2u
+        || adapter.ole2Frame.m_oleClient != "WHOLE_OPERATION_OLE2"
+        || adapter.ole2Frame.m_pt1.x != 1.0
+        || adapter.ole2Frame.m_pt1.y != 2.0
+        || adapter.ole2Frame.m_pt2.x != 7.0
+        || adapter.ole2Frame.m_pt2.y != 9.0
+        || adapter.ole2Frame.m_flags != 3u
+        || adapter.ole2Frame.m_mode != 1u
+        || adapter.ole2Frame.m_lockAspect != 1u
+        || !adapter.ole2Frame.m_payloadPresent
+        || adapter.ole2Frame.m_payloadBytes
+            != std::vector<std::uint8_t>{0x00u, 0x1Fu, 0x80u, 0xFFu, 0x35u}
+        || adapter.ole2Frame.m_declaredPayloadLength != 5u
+        || adapter.oleFrameCount != 1u
+        || adapter.oleFrame.handle == 0u
+        || adapter.oleFrame.m_flags != 2u
+        || !adapter.oleFrame.m_payloadPresent
+        || adapter.oleFrame.m_payloadBytes
+            != std::vector<std::uint8_t>{0x80u, 0x00u, 0xFFu, 0xA5u}
+        || adapter.oleFrame.m_declaredPayloadLength != 4u
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
