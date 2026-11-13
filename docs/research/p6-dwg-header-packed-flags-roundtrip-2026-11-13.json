@@ -40,8 +40,8 @@
   "validation": {
     "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j 4",
-    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_(packed_flags|current_references|writer_sealing)$' --output-on-failure",
-    "result": "3/3 passed. The generated packed-flags control checks exact field mapping, inverse booleans, all six writer versions AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, undefined high-bit DWG readback, reserved-lineweight refusal/preservation, invalid-value refusal, and corrected retry.",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_packed_flags$' --output-on-failure",
+    "result": "Passed. The generated packed-flags control checks exact field mapping, inverse booleans, all six writer versions AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, undefined high-bit DWG readback, reserved-lineweight refusal/preservation, invalid-value refusal, corrected retry, and ASCII/Binary DXF refusal-before-output followed by same-writer retry after raw-flag repair.",
     "fixture_policy": "No external DWG/DXF fixture was added. All vector and writer/readback inputs are generated locally from scratch."
   },
   "limitations": [

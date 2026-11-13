@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The current plan records **56 completed implementation slices** and **6
-remaining phase exit gates**, so the count-based progression is **90.3%**:
-`56 / (56 + 6)`. This is an item-count estimate, not effort-weighted completion
+The current plan records **57 completed implementation slices** and **6
+remaining phase exit gates**, so the count-based progression is **90.5%**:
+`57 / (57 + 6)`. This is an item-count estimate, not effort-weighted completion
 of DWG/DXF parity: a small implementation slice and a broad phase gate each
 count once. Completed actions are excluded from the execution queue; their
 implementation and evidence remain in Git history and `docs/research/`.

@@ -42,6 +42,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dwgtemplate.h"
 #include "intern/dwgheadersection.h"
+#include "intern/dxfwriter.h"
 #include "intern/dwg_header_time.h"
 #include "intern/dwgobjectframe.h"
 #include "persistent_manager_test_helpers.h"
@@ -180,6 +181,9 @@ public:
     }
     static bool dxfFlagsWritable(const DRW_Header& header) {
         return header.canWriteDxfHeaderFlags();
+    }
+    static void setRawFlags(DRW_Header& header, std::uint32_t flags) {
+        header.m_dwgHeaderFlags = flags;
     }
 };
 
@@ -20165,6 +20169,26 @@ void testHeaderPackedFlags(TestContext& t) {
                  && DrwHeaderEncodeTestAccess::rawFlags(unknownReadback)
                         == 0x80000000u,
              "DWG packed HEADER rewrite preserves an undefined high bit on wire");
+
+    for (const bool binary : {false, true}) {
+        std::ostringstream output(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion("AC1024", true);
+        HeaderWriteProbe sourceHeader;
+        DrwHeaderEncodeTestAccess::decodeFlags(sourceHeader, 0x80000000u);
+        sourceHeader.write(writer, DRW::AC1024);
+        const bool refusedWithoutOutput = writer->hasWriteError()
+            && output.str().empty();
+        writer->restoreWriteError(false);
+        DrwHeaderEncodeTestAccess::setRawFlags(sourceHeader, 0u);
+        sourceHeader.write(writer, DRW::AC1024);
+        t.expect(refusedWithoutOutput && !writer->hasWriteError()
+                     && !output.str().empty(),
+                 std::string(binary ? "Binary" : "ASCII")
+                     + " DXF HEADER refuses undefined flags before output and retries after repair");
+    }
 }
 
 std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,
