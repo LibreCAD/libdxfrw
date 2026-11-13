@@ -2,10 +2,10 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **86 completed implementation slices**. It does **not** yet
+The plan records **87 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
-gates as six slices mixes unlike units. The `86 / (86 + 6) = 93.5%`
+gates as six slices mixes unlike units. The `87 / (87 + 6) = 93.5%`
 figure is only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
@@ -1210,6 +1210,15 @@ readback. The focused transaction CTest passes. This covers the generated
 SOLID profile's allocation transaction only; source semantics, other
 background kinds, image dependencies, and native rendering remain open. See
 the [receipt](docs/research/p6-dxf-solidbackground-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local PLOTSETTINGS transaction slice (2026-11-13):** the generated
+whole-operation AC1027 sweep now includes a standalone PLOTSETTINGS object
+with populated page, printer, paper, margins, window, scale and shade fields.
+All 536 ASCII and 530 Binary allocation failures preserve the destination and
+caller fields; same-codec retry reproduces clean output with typed readback.
+The focused transaction CTest passes. This is generated allocation and codec
+roundtrip evidence only; native page setup behavior and independent producer
+acceptance remain open. See the [receipt](docs/research/p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local MATERIAL transaction slice (2026-11-13):** the same generated
 whole-operation sweep now also writes one typed AC1027 MATERIAL with its

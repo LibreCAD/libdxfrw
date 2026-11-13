@@ -57,6 +57,7 @@ constexpr std::uint32_t kRevolvedSurfaceHandle = 0xD939u;
 constexpr std::uint32_t kNurbsSurfaceHandle = 0xD93Au;
 constexpr std::uint32_t kScaleHandle = 0xD93Bu;
 constexpr std::uint32_t kBackgroundHandle = 0xD93Cu;
+constexpr std::uint32_t kPlotSettingsHandle = 0xD93Du;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -520,6 +521,36 @@ public:
         background.m_kind = DRW_Background::Solid;
         background.m_classVersion = 1;
         background.m_solidColor = 0x010203;
+        plotSettings.handle = kPlotSettingsHandle;
+        plotSettings.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        plotSettings.pageSetupName = "WHOLE_OPERATION_PAGE_SETUP";
+        plotSettings.printerConfig = "WHOLE_OPERATION_PRINTER";
+        plotSettings.paperSize = "ISO_A4_(210.00_x_297.00_MM)";
+        plotSettings.paperWidth = 210.0;
+        plotSettings.paperHeight = 297.0;
+        plotSettings.marginLeft = 4.0;
+        plotSettings.marginBottom = 5.0;
+        plotSettings.marginRight = 6.0;
+        plotSettings.marginTop = 7.0;
+        plotSettings.plotOriginX = 1.0;
+        plotSettings.plotOriginY = 2.0;
+        plotSettings.paperUnits = 1;
+        plotSettings.plotRotation = 2;
+        plotSettings.plotType = 1;
+        plotSettings.windowMinX = 10.0;
+        plotSettings.windowMinY = 11.0;
+        plotSettings.windowMaxX = 20.0;
+        plotSettings.windowMaxY = 21.0;
+        plotSettings.realWorldUnits = 1.0;
+        plotSettings.drawingUnits = 2.0;
+        plotSettings.currentStyleSheet = "WHOLE_OPERATION_STYLE";
+        plotSettings.scaleType = 3;
+        plotSettings.scaleFactor = 0.5;
+        plotSettings.paperImageOriginX = 0.25;
+        plotSettings.paperImageOriginY = 0.75;
+        plotSettings.shadePlotMode = 1;
+        plotSettings.shadePlotResLevel = 2;
+        plotSettings.shadePlotCustomDPI = 150;
     }
 
     void writeEntities() override {
@@ -565,6 +596,7 @@ public:
         objectsWritten = output.writeMLineStyle(&mlineStyle)
             && output.writeScale(&scale)
             && output.writeBackground(&background, "SOLIDBACKGROUND")
+            && output.writePlotSettings(&plotSettings)
             && output.writeMaterial(&material)
             && output.writeRawDxfObject(&object)
             && output.writeDataLink(&mainDataLink)
@@ -613,6 +645,7 @@ public:
     DRW_NurbsSurface nurbsSurface;
     DRW_Scale scale;
     DRW_Background background;
+    DRW_PlotSettings plotSettings;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -753,6 +786,12 @@ public:
         ++backgroundCount;
         background = value;
     }
+    void addPlotSettings(const DRW_PlotSettings* value) override {
+        if (value == nullptr)
+            return;
+        ++plotSettingsCount;
+        plotSettings = *value;
+    }
     void addSurface(const DRW_Surface* value) override {
         if (value == nullptr)
             return;
@@ -826,6 +865,7 @@ public:
     DRW_NurbsSurface nurbsSurface;
     DRW_Scale scale;
     DRW_Background background;
+    DRW_PlotSettings plotSettings;
     DRW_Attdef attdef;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -864,6 +904,7 @@ public:
     unsigned nurbsSurfaceCount = 0u;
     unsigned scaleCount = 0u;
     unsigned backgroundCount = 0u;
+    unsigned plotSettingsCount = 0u;
     unsigned attdefCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -1286,6 +1327,36 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.background.m_kind == DRW_Background::Solid
         && adapter.background.m_classVersion == 1
         && adapter.background.m_solidColor == 0x010203
+        && adapter.plotSettings.handle == kPlotSettingsHandle
+        && adapter.plotSettings.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.plotSettings.pageSetupName == "WHOLE_OPERATION_PAGE_SETUP"
+        && adapter.plotSettings.printerConfig == "WHOLE_OPERATION_PRINTER"
+        && adapter.plotSettings.paperSize == "ISO_A4_(210.00_x_297.00_MM)"
+        && adapter.plotSettings.marginLeft == 4.0
+        && adapter.plotSettings.marginBottom == 5.0
+        && adapter.plotSettings.marginRight == 6.0
+        && adapter.plotSettings.marginTop == 7.0
+        && adapter.plotSettings.paperWidth == 210.0
+        && adapter.plotSettings.paperHeight == 297.0
+        && adapter.plotSettings.plotOriginX == 1.0
+        && adapter.plotSettings.plotOriginY == 2.0
+        && adapter.plotSettings.paperUnits == 1
+        && adapter.plotSettings.plotRotation == 2
+        && adapter.plotSettings.plotType == 1
+        && adapter.plotSettings.windowMinX == 10.0
+        && adapter.plotSettings.windowMinY == 11.0
+        && adapter.plotSettings.windowMaxX == 20.0
+        && adapter.plotSettings.windowMaxY == 21.0
+        && adapter.plotSettings.realWorldUnits == 1.0
+        && adapter.plotSettings.drawingUnits == 2.0
+        && adapter.plotSettings.currentStyleSheet == "WHOLE_OPERATION_STYLE"
+        && adapter.plotSettings.scaleType == 3
+        && adapter.plotSettings.scaleFactor == 0.5
+        && adapter.plotSettings.paperImageOriginX == 0.25
+        && adapter.plotSettings.paperImageOriginY == 0.75
+        && adapter.plotSettings.shadePlotMode == 1
+        && adapter.plotSettings.shadePlotResLevel == 2
+        && adapter.plotSettings.shadePlotCustomDPI == 150
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1750,6 +1821,37 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.background.m_kind != DRW_Background::Solid
         || adapter.background.m_classVersion != 1
         || adapter.background.m_solidColor != 0x010203
+        || adapter.plotSettingsCount != 1u
+        || adapter.plotSettings.handle == 0u
+        || adapter.plotSettings.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.plotSettings.pageSetupName != "WHOLE_OPERATION_PAGE_SETUP"
+        || adapter.plotSettings.printerConfig != "WHOLE_OPERATION_PRINTER"
+        || adapter.plotSettings.paperSize != "ISO_A4_(210.00_x_297.00_MM)"
+        || adapter.plotSettings.paperWidth != 210.0
+        || adapter.plotSettings.paperHeight != 297.0
+        || adapter.plotSettings.marginLeft != 4.0
+        || adapter.plotSettings.marginBottom != 5.0
+        || adapter.plotSettings.marginRight != 6.0
+        || adapter.plotSettings.marginTop != 7.0
+        || adapter.plotSettings.plotOriginX != 1.0
+        || adapter.plotSettings.plotOriginY != 2.0
+        || adapter.plotSettings.paperUnits != 1
+        || adapter.plotSettings.plotRotation != 2
+        || adapter.plotSettings.plotType != 1
+        || adapter.plotSettings.windowMinX != 10.0
+        || adapter.plotSettings.windowMinY != 11.0
+        || adapter.plotSettings.windowMaxX != 20.0
+        || adapter.plotSettings.windowMaxY != 21.0
+        || adapter.plotSettings.realWorldUnits != 1.0
+        || adapter.plotSettings.drawingUnits != 2.0
+        || adapter.plotSettings.currentStyleSheet != "WHOLE_OPERATION_STYLE"
+        || adapter.plotSettings.scaleType != 3
+        || adapter.plotSettings.scaleFactor != 0.5
+        || adapter.plotSettings.paperImageOriginX != 0.25
+        || adapter.plotSettings.paperImageOriginY != 0.75
+        || adapter.plotSettings.shadePlotMode != 1
+        || adapter.plotSettings.shadePlotResLevel != 2
+        || adapter.plotSettings.shadePlotCustomDPI != 150
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 2u
         || (*insertBlock)->ent.front()->handle == 0u

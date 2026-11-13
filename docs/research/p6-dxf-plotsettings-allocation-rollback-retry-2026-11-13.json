@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for a standalone OBJECTS PLOTSETTINGS record.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "fields": {
+      "pageSetupName": "WHOLE_OPERATION_PAGE_SETUP",
+      "printerConfig": "WHOLE_OPERATION_PRINTER",
+      "paperSize": "ISO_A4_(210.00_x_297.00_MM)",
+      "paperWidth": 210.0,
+      "paperHeight": 297.0,
+      "margins": [4.0, 5.0, 6.0, 7.0],
+      "plotOrigin": [1.0, 2.0],
+      "paperUnits": 1,
+      "plotRotation": 2,
+      "plotType": 1,
+      "window": [10.0, 11.0, 20.0, 21.0],
+      "realWorldUnits": 1.0,
+      "drawingUnits": 2.0,
+      "currentStyleSheet": "WHOLE_OPERATION_STYLE",
+      "scaleType": 3,
+      "scaleFactor": 0.5,
+      "paperImageOrigin": [0.25, 0.75],
+      "shadePlot": [1, 2, 150]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 536,
+      "binary": 530,
+      "eachOffset": "Injected failure refused the write, preserved the prior destination and caller PLOTSETTINGS state, and allowed same-codec retry to reproduce clean output with typed PLOTSETTINGS readback."
+    }
+  },
+  "scopeLimit": "This closes generated allocation transaction and typed roundtrip coverage for one AC1027 PLOTSETTINGS record only. It does not qualify independent producer acceptance or native page setup behavior.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}
