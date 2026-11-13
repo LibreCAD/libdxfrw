@@ -78,6 +78,32 @@ template<class T> bool guards(DRW::Version version,bool isMPolygon) {
  }
  return true;
 }
+bool mpolygonDwgAngleRoundTrip() {
+    DRW_Header header;
+    dwgWriter21 writer(nullptr, &header);
+    if (!writer.prepareDwgClassManifest() || !writer.writeFileHeaderStub()
+        || !writer.writeDwgHeader() || !writer.writeDwgClasses()
+        || !writer.writeDwgObjects())
+        return false;
+    DRW_MPolygon source;
+    source.name = "ANSI31";
+    source.solid = 0;
+    source.angle = 30.0 / ARAD;
+    source.scale = 1.0;
+    DRW_Hatch::PatternLine line;
+    line.angle = 75.0 / ARAD;
+    source.patternLines.push_back(line);
+    if (!writer.encodeEntity(&source)) return false;
+    std::vector<std::uint8_t> bytes;
+    if (!DwgBlockRecordXrefWireTestAccess::frame(writer, source.handle, bytes))
+        return false;
+    BoundaryProbe<DRW_MPolygon> parsed;
+    dwgBuffer input(bytes.data(), bytes.size());
+    return parsed.parseDwg(DRW::AC1021, &input, 0)
+        && std::fabs(parsed.angle - 30.0 / ARAD) < 1e-10
+        && parsed.patternLines.size() == 1u
+        && std::fabs(parsed.patternLines.front().angle - 75.0 / ARAD) < 1e-10;
+}
 struct DerivedReject:DRW_Hatch {bool encodeDwg(DRW::Version,dwgBufferW*,std::uint32_t,dwgBufferW*,dwgBufferW*) override{return false;}};
 struct IgnoredWriter:LC3CompatCheck {dwgRW& w;bool bad,derived,viaPoint;IgnoredWriter(dwgRW& x,bool b,bool d=false,bool point=false):w(x),bad(b),derived(d),viaPoint(point){}void writeEntities() override {DRW_Hatch hatch;DerivedReject custom;DRW_Hatch* h=derived?static_cast<DRW_Hatch*>(&custom):&hatch;h->name="ANSI31";h->solid=0;h->angle=bad?std::numeric_limits<double>::denorm_min():30./ARAD;h->scale=1.;DRW_Hatch::PatternLine p;p.angle=75./ARAD;h->patternLines.push_back(p);if(viaPoint)(void)w.writePoint(h);else (void)w.writeHatch(h);}};
 class Writer final : public LC3CompatCheck {
@@ -111,6 +137,7 @@ public:
 };
 }
 int main(){
+    if (!mpolygonDwgAngleRoundTrip()) return 33;
     {DRW_Header h;dwgWriter21 w(nullptr,&h);if(!w.prepareDwgClassManifest()||!w.writeFileHeaderStub()||!w.writeDwgHeader()||!w.writeDwgClasses()||!w.writeDwgObjects())return 8;DRW_Hatch h1;h1.name="ANSI31";h1.solid=0;h1.angle=30./ARAD;h1.scale=1.;DRW_Hatch::PatternLine p;p.angle=75./ARAD;h1.patternLines.push_back(p);if(!w.encodeEntity(&h1))return 9;std::vector<std::uint8_t> bytes;if(!DwgBlockRecordXrefWireTestAccess::frame(w,h1.handle,bytes))return 10;BoundaryProbe<DRW_Hatch> parsed;dwgBuffer structural(bytes.data(),bytes.size());if(!parsed.common(structural))return 24;for(int i=0;i<2;++i)(void)structural.getBitLong();(void)structural.getBitDouble();(void)structural.getBitDouble();(void)structural.getBitLong();(void)structural.getBitDouble();if(structural.getBitLong()!=0)return 25;(void)structural.getBitDouble();(void)structural.get3BitDouble();if(structural.getBit()!=0||structural.getBit()!=0||structural.getBitLong()!=0)return 26;(void)structural.getBitShort();(void)structural.getBitShort();const auto overallStart=structural.getPosition()*8u+structural.getBitPos();if(std::fabs(structural.getBitDouble()-30./ARAD)>1e-12||structural.getBitDouble()!=1.||structural.getBit()!=0||structural.getBitShort()!=1)return 27;const auto lineStart=structural.getPosition()*8u+structural.getBitPos();if(std::fabs(structural.getBitDouble()-75./ARAD)>1e-12)return 28;for(int i=0;i<4;++i)if(structural.getBitDouble()!=0.)return 29;if(structural.getBitShort()!=0||structural.getBitLong()!=0||!structural.isGood())return 30;for(auto start:{overallStart,lineStart}){auto corrupt=bytes;dwgBufferW encoded;encoded.putBitDouble(std::numeric_limits<double>::infinity());if(encoded.bitCount()!=66u)return 31;for(std::size_t i=0;i<encoded.bitCount();++i){const auto mask=static_cast<std::uint8_t>(0x80u>>((start+i)%8u));if((encoded.data()[i/8u]>>(7u-i%8u))&1u)corrupt[(start+i)/8u]|=mask;else corrupt[(start+i)/8u]&=static_cast<std::uint8_t>(~mask);}dwgBuffer invalid(corrupt.data(),corrupt.size());if(parsed.parseDwg(DRW::AC1021,&invalid,0)||!parsed.patternLines.empty())return 32;}dwgBuffer b1(bytes.data(),bytes.size());if(!parsed.parseDwg(DRW::AC1021,&b1,0)||std::fabs(parsed.angle-30./ARAD)>1e-10||parsed.patternLines.size()!=1||std::fabs(parsed.patternLines[0].angle-75./ARAD)>1e-10)return 11;auto truncated=bytes;truncated.pop_back();dwgBuffer shortBuf(truncated.data(),truncated.size());if(parsed.parseDwg(DRW::AC1021,&shortBuf,0)||!parsed.patternLines.empty())return 12;dwgBuffer retry(bytes.data(),bytes.size());if(!parsed.parseDwg(DRW::AC1021,&retry,0)||std::fabs(parsed.angle-30./ARAD)>1e-10||parsed.patternLines.size()!=1)return 13;}
     for(auto version:{DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         if(!checkBoundary<DRW_Hatch>(version)||!checkBoundary<DRW_MPolygon>(version)||!literal<DRW_Hatch>(version,false)||!literal<DRW_MPolygon>(version,true)||!guards<DRW_Hatch>(version,false)) {

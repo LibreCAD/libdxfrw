@@ -4035,9 +4035,10 @@ and keeps `DRW_Hatch::angle` plus pattern-line angles in radians for both HATCH
 and MPOLYGON. DXF groups 52/53 remain degrees and convert at the read/write
 boundary; DWG fields remain radians without conversion. The focused selector
 checks raw ASCII and Binary DXF group values and typed readback for both
-entities; the DWG selector checks radian wire values, malformed-input refusal
-and retry across writer revisions. Both selectors, the HATCH reference graph,
-MPOLYGON metadata and the HATCH encoder allocation rollback selector pass. The
+entities; the DWG selector checks radian wire values, HATCH retry behavior
+across writer revisions, and generated AC1021 MPOLYGON parser readback. Both
+selectors, the HATCH reference graph, MPOLYGON metadata and the HATCH encoder
+allocation rollback selector pass. The
 clean LibreCAD filter compile now passes against the overlay; it still warns
 that four newer associative-prefix enum values are not handled in LibreCAD's
 status mapper. The previous bridge receipt's degree-to-radian provider
