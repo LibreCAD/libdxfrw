@@ -21,6 +21,7 @@ constexpr std::uint32_t kCustomDictionaryHandle = 0xD914u;
 constexpr std::uint32_t kMainDataLinkHandle = 0xD915u;
 constexpr std::uint32_t kTargetAlphaHandle = 0xD916u;
 constexpr std::uint32_t kTargetBetaHandle = 0xD917u;
+constexpr std::uint32_t kPolylineHandle = 0xD918u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -121,6 +122,11 @@ public:
         line.handle = 0xD900u;
         line.basePoint = DRW_Coord(1.25, -2.5, 3.75);
         line.secPoint = DRW_Coord(4.5, 5.25, -6.0);
+        polyline.handle = kPolylineHandle;
+        polyline.flags = 1;
+        polyline.addVertex(DRW_Vertex2D(1.0, 1.5, 0.0));
+        polyline.addVertex(DRW_Vertex2D(4.0, 5.5, 0.5));
+        polyline.addVertex(DRW_Vertex2D(8.0, 9.5, 0.0));
         circle.handle = 0xD902u;
         circle.basePoint = DRW_Coord(-7.0, 8.5, 9.25);
         circle.radious = 2.75;
@@ -165,6 +171,7 @@ public:
     void writeEntities() override {
         entitiesWritten = output.writeLine(&line)
             && output.writeCircle(&circle)
+            && output.writeLWPolyline(&polyline)
             && output.writeImage(&image, "whole-operation-image.png", 7u,
                                  image.ref) != nullptr;
     }
@@ -185,6 +192,7 @@ public:
     dx_data storage;
     DRW_Line line;
     DRW_Circle circle;
+    DRW_LWPolyline polyline;
     DRW_Image image;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
@@ -204,6 +212,10 @@ public:
     void addCircle(const DRW_Circle& value) override {
         ++circleCount;
         circle = value;
+    }
+    void addLWPolyline(const DRW_LWPolyline& value) override {
+        ++polylineCount;
+        polyline = value;
     }
     void addImage(const DRW_Image* value) override {
         if (value != nullptr) {
@@ -225,6 +237,7 @@ public:
     dx_data storage;
     DRW_Line line;
     DRW_Circle circle;
+    DRW_LWPolyline polyline;
     DRW_Image image;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
@@ -232,6 +245,7 @@ public:
     std::vector<DRW_Group> groups;
     unsigned lineCount = 0u;
     unsigned circleCount = 0u;
+    unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -258,6 +272,19 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.circle.basePoint.y == 8.5
         && adapter.circle.basePoint.z == 9.25
         && adapter.circle.radious == 2.75
+        && adapter.polyline.handle == kPolylineHandle
+        && adapter.polyline.flags == 1
+        && adapter.polyline.vertlist.size() == 3u
+        && adapter.polyline.vertlist[0]
+        && adapter.polyline.vertlist[0]->x == 1.0
+        && adapter.polyline.vertlist[0]->y == 1.5
+        && adapter.polyline.vertlist[1]
+        && adapter.polyline.vertlist[1]->x == 4.0
+        && adapter.polyline.vertlist[1]->y == 5.5
+        && adapter.polyline.vertlist[1]->bulge == 0.5
+        && adapter.polyline.vertlist[2]
+        && adapter.polyline.vertlist[2]->x == 8.0
+        && adapter.polyline.vertlist[2]->y == 9.5
         && adapter.image.handle == 0xD903u
         && adapter.image.ref == kImageDefHandle
         && adapter.image.basePoint.x == 2.0
@@ -320,6 +347,7 @@ bool matchesReadback(const std::filesystem::path& path) {
     const DRW_ImageDef* imageDefinition = adapter.storage.findImageDefinition(
         adapter.storage.importGeneration, adapter.image.ref);
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
+        || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
@@ -327,6 +355,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.circle.basePoint.y != 8.5
         || adapter.circle.basePoint.z != 9.25
         || adapter.circle.radious != 2.75
+        || adapter.polyline.handle == 0u
+        || adapter.polyline.flags != 1
+        || adapter.polyline.vertlist.size() != 3u
+        || !adapter.polyline.vertlist[0]
+        || adapter.polyline.vertlist[0]->x != 1.0
+        || adapter.polyline.vertlist[0]->y != 1.5
+        || !adapter.polyline.vertlist[1]
+        || adapter.polyline.vertlist[1]->x != 4.0
+        || adapter.polyline.vertlist[1]->y != 5.5
+        || adapter.polyline.vertlist[1]->bulge != 0.5
+        || !adapter.polyline.vertlist[2]
+        || adapter.polyline.vertlist[2]->x != 8.0
+        || adapter.polyline.vertlist[2]->y != 9.5
         || adapter.image.handle == 0u || adapter.image.ref == 0u
         || adapter.image.basePoint.x != 2.0
         || adapter.image.basePoint.y != 3.0
@@ -361,6 +402,10 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << " lines=" << adapter.lineCount << " circles="
                   << adapter.circleCount << " images=" << adapter.imageCount
                   << " objects=" << adapter.objectCount
+                  << " polylines=" << adapter.polylineCount
+                  << " polylineHandle=" << adapter.polyline.handle
+                  << " polylineFlags=" << adapter.polyline.flags
+                  << " polylineVertices=" << adapter.polyline.vertlist.size()
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
                   << adapter.line.secPoint.z << " rawGroups="
@@ -570,7 +615,7 @@ bool run(const std::filesystem::path& directory) {
                 std::cerr << "offset=" << offset << " attempts=" << reached
                           << " fired=" << injected << " wrote=" << wrote
                           << '\n';
-                return fail("allocation refusal was not atomic");
+                return fail("allocation refusal was not atomic or missed its calibrated offset");
             }
 
             std::string afterFailure;

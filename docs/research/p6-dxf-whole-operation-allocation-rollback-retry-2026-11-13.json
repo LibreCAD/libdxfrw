@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across the public dxfRW::write operation, including setup, LINE/CIRCLE/IMAGE entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -14,6 +14,28 @@
       {
         "kind": "LINE",
         "sourceHandle": "0xD900"
+      },
+      {
+        "kind": "LWPOLYLINE",
+        "sourceHandle": "0xD918",
+        "closed": true,
+        "vertices": [
+          {
+            "x": 1.0,
+            "y": 1.5,
+            "bulge": 0.0
+          },
+          {
+            "x": 4.0,
+            "y": 5.5,
+            "bulge": 0.5
+          },
+          {
+            "x": 8.0,
+            "y": 9.5,
+            "bulge": 0.0
+          }
+        ]
       },
       {
         "kind": "CIRCLE",
@@ -164,19 +186,29 @@
     }
   },
   "implementation": {
-    "productionCodeChanged": false,
+    "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "db3e9238e9c71bd194abdc298b4be68bfc4ee9b6b0872b5b5aa84e234b77f412",
+    "testSha256": "af90da7fc565a80908978865dcf578a88284f82df2e5602b4e400f5f2877bd46",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "07cff459142d7b063825fcf71bc450ef0df67bb68624fd5b4e01678c393ff27a",
-    "asanExecutableSha256": "3bc0f36db3b3672c6199ab5c848e63efe81630f6e803236fa82572b1f7af03ac"
+    "normalExecutableSha256": "6fd386683a468741c40e043f527a7cbdcbf36d231c1fee89bfd2709c4aa9eca8",
+    "asanExecutableSha256": "06a49df64ab6d11c2e39bed65282ec5c884294c0a0be085e536c9408e2fc0a44",
+    "productionFiles": [
+      "src/libdxfrw.cpp",
+      "src/intern/dxfwriter.h"
+    ],
+    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes.",
+    "productionSourceSha256": {
+      "src/libdxfrw.cpp": "efc04e1eae05d931def9c8b6fca4a2b6f3d5d6876a6d39916c182d499180042e",
+      "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
+      "tests/dxf_write_allocation_transaction_tests.cpp": "af90da7fc565a80908978865dcf578a88284f82df2e5602b4e400f5f2877bd46"
+    }
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j2",
-    "validation": "ctest --test-dir build -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-op-nested-dict-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j2; ctest --test-dir build -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-whole-operation-polyline-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -184,9 +216,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 3.34 seconds; ASan 1/1 passed in 7.15 seconds",
+    "ctest": "Normal 1/1 passed in 3.41 seconds; ASan 1/1 passed in 7.48 seconds",
     "ascii": {
-      "measuredAllocationOffsets": 209,
+      "measuredAllocationOffsets": 217,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -202,10 +234,13 @@
       "groupImageAndNamedDictionaryGraphReadbackMatched": true,
       "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
       "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
-      "callerDataLinkRecordsPreserved": true
+      "callerDataLinkRecordsPreserved": true,
+      "variableLengthLwPolylineReadbackMatched": true,
+      "lWPolylineAllocationFailureAbortsWholeWrite": true,
+      "callerLwPolylinePreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 205,
+      "measuredAllocationOffsets": 213,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -221,14 +256,23 @@
       "groupImageAndNamedDictionaryGraphReadbackMatched": true,
       "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
       "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
-      "callerDataLinkRecordsPreserved": true
+      "callerDataLinkRecordsPreserved": true,
+      "variableLengthLwPolylineReadbackMatched": true,
+      "lWPolylineAllocationFailureAbortsWholeWrite": true,
+      "callerLwPolylinePreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 7.15 seconds"
+    "addressSanitizerCtest": "1/1 passed in 7.48 seconds",
+    "failureFoundAndFixed": {
+      "asciiOffset": 115,
+      "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
+      "fix": "When EntityRecordScope sees a writer-local failure, it now sets dxfRW::m_writeError before DxfWriterRecordScope cleanup restores the writer\u2019s prior local error bit. The record-scope commit path also latches exceptions during byte materialization or inspection.",
+      "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
+    }
   },
   "limits": [
-    "This generated transaction control exercises LINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "762c1d9f49bc25a6e9a4a4d00e68ada3c4911b04"
+  "baseRevision": "6a893e67"
 }

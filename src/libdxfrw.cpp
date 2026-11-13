@@ -3163,8 +3163,15 @@ public:
         if (m_finished)
             return m_succeeded;
         m_finished = true;
-        if (m_owner.m_writeError || m_writer == nullptr
-            || m_writer->hasWriteError()) {
+        if (m_owner.m_writeError || m_writer == nullptr) {
+            return false;
+        }
+        if (m_writer->hasWriteError()) {
+            // Record-scope abort restores the writer's prior local error bit.
+            // Preserve the failure on the enclosing dxfRW operation before
+            // that cleanup, or a failed staged entity could be silently
+            // omitted while the whole drawing continues to publish.
+            m_owner.m_writeError = true;
             return false;
         }
         try {

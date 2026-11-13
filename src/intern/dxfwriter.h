@@ -303,43 +303,53 @@ private:
     template <class Inspector, class AppendedVerifier>
     bool commitImpl(Inspector&& inspect, AppendedVerifier&& verifyAppended,
                     bool verifyParentRange) {
-        if (m_state != State::Open || m_parent == nullptr
-            || m_writer.hasWriteError() || !m_buffer.good()) {
+        try {
+            if (m_state != State::Open || m_parent == nullptr
+                || m_writer.hasWriteError() || !m_buffer.good()) {
+                abort();
+                return false;
+            }
+            const std::streampos start = verifyParentRange
+                ? m_parent->tellp() : std::streampos(-1);
+            if (verifyParentRange && start == std::streampos(-1)) {
+                abort();
+                return false;
+            }
+            const std::string bytes = m_buffer.str();
+            if (!inspect(std::string_view(bytes)) || m_writer.hasWriteError()) {
+                abort();
+                return false;
+            }
+            m_writer.setStream(m_parent);
+            if (!bytes.empty())
+                m_parent->write(bytes.data(),
+                                static_cast<std::streamsize>(bytes.size()));
+            if (!m_parent->good()) {
+                // A generic ostream cannot retract bytes accepted before a short
+                // write. The outer scope must discard the staged phase.
+                m_writer.markWriteError();
+                m_state = State::AppendFailed;
+                return false;
+            }
+            if (verifyParentRange
+                && !verifyAppended(static_cast<std::streamoff>(start),
+                                   std::string_view(bytes))) {
+                m_writer.markWriteError();
+                m_state = State::AppendFailed;
+                return false;
+            }
+            m_writer.restoreWriteError(m_previousError);
+            m_state = State::Committed;
+            return true;
+        } catch (...) {
+            // A failed materialization or inspector allocation must not be
+            // erased by abort() restoring the writer's prior error state. The
+            // enclosing write transaction needs a sticky failure so it cannot
+            // publish a document with this staged record silently omitted.
             abort();
-            return false;
-        }
-        const std::streampos start = verifyParentRange
-            ? m_parent->tellp() : std::streampos(-1);
-        if (verifyParentRange && start == std::streampos(-1)) {
-            abort();
-            return false;
-        }
-        const std::string bytes = m_buffer.str();
-        if (!inspect(std::string_view(bytes)) || m_writer.hasWriteError()) {
-            abort();
-            return false;
-        }
-        m_writer.setStream(m_parent);
-        if (!bytes.empty())
-            m_parent->write(bytes.data(),
-                            static_cast<std::streamsize>(bytes.size()));
-        if (!m_parent->good()) {
-            // A generic ostream cannot retract bytes accepted before a short
-            // write. The outer scope must discard the staged phase.
             m_writer.markWriteError();
-            m_state = State::AppendFailed;
             return false;
         }
-        if (verifyParentRange
-            && !verifyAppended(static_cast<std::streamoff>(start),
-                               std::string_view(bytes))) {
-            m_writer.markWriteError();
-            m_state = State::AppendFailed;
-            return false;
-        }
-        m_writer.restoreWriteError(m_previousError);
-        m_state = State::Committed;
-        return true;
     }
 
 public:
