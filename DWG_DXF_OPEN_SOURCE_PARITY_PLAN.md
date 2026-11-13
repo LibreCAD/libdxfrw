@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **118 completed implementation slices** and **35 remaining
+The plan records **119 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`118 / (118 + 35) = 77.1%`. This is a count-based progress measure, not an
+`119 / (119 + 35) = 77.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1530,6 +1530,17 @@ and modeled values. This covers one locally generated text-only profile; it
 does not qualify leader roots/lines, block content, referenced styles or
 consumer semantics. The focused transaction CTest passes in 5.71 seconds. See
 the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 dynamic-constraint DIMENSION transaction slice (2026-11-13):** the
+whole-file allocation sweep includes a generic `DRW_Dimension` on the
+`*ADSK_CONSTRAINTS` layer, with no named picture block. All 863 ASCII and 843
+Binary injected failures preserve the destination and caller record;
+same-writer retries reproduce clean bytes. Typed readback reaches the linear
+dimension callback while retaining the constraint layer, label, style and
+modeled points. This exercises the writer's constraint-specific route, but it
+does not prove native constraint evaluation or display. The focused
+transaction CTest passes in 5.79 seconds. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no

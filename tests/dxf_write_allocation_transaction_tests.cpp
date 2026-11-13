@@ -71,6 +71,7 @@ constexpr std::uint32_t kUnderlayHandle = 0xD947u;
 constexpr std::uint32_t kLineTypeHandle = 0xD948u;
 constexpr std::uint32_t kTypedXRecordHandle = 0xD949u;
 constexpr std::uint32_t kMultiLeaderHandle = 0xD94Au;
+constexpr std::uint32_t kDynamicConstraintDimensionHandle = 0xD94Bu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -356,6 +357,14 @@ public:
         dimension.setTextPoint(DRW_Coord(1.5, 2.5, 0.0));
         dimension.setText("whole-operation dimension");
         dimension.setStyle("STANDARD");
+        dynamicConstraintDimension.handle =
+            kDynamicConstraintDimensionHandle;
+        dynamicConstraintDimension.layer = "*ADSK_CONSTRAINTS";
+        dynamicConstraintDimension.setDefPoint(DRW_Coord{15.0, 16.0, 17.0});
+        dynamicConstraintDimension.setTextPoint(DRW_Coord{15.5, 16.5, 0.0});
+        dynamicConstraintDimension.setText(
+            "whole-operation dynamic constraint");
+        dynamicConstraintDimension.setStyle("STANDARD");
         const auto initDimension = [](DRW_Dimension& value,
                                       std::uint32_t handle,
                                       double coordinate) {
@@ -895,6 +904,8 @@ public:
             && check("INSERT", output.writeInsert(&insert))
             && check("3DFACE", output.writeLine(&face))
             && check("DIMENSION", output.writeDimension(&dimension))
+            && check("DYNAMIC_CONSTRAINT_DIMENSION",
+                     output.writeDimension(&dynamicConstraintDimension))
             && check("DIMLINEAR", output.writeDimension(&linearDimension))
             && check("DIMRADIAL", output.writeDimension(&radialDimension))
             && check("DIMDIAMETRIC", output.writeDimension(&diametricDimension))
@@ -979,6 +990,7 @@ public:
     DRW_Insert insert;
     DRW_3Dface face;
     DRW_DimAligned dimension;
+    DRW_Dimension dynamicConstraintDimension;
     DRW_DimLinear linearDimension;
     DRW_DimRadial radialDimension;
     DRW_DimDiametric diametricDimension;
@@ -1170,8 +1182,13 @@ public:
         if (value == nullptr)
             return;
         dx_iface::addDimLinear(value);
-        ++linearDimensionCount;
-        linearDimension = *value;
+        if (value->layer == "*ADSK_CONSTRAINTS") {
+            ++dynamicConstraintDimensionCount;
+            dynamicConstraintDimension = *value;
+        } else {
+            ++linearDimensionCount;
+            linearDimension = *value;
+        }
     }
     void addDimRadial(const DRW_DimRadial* value) override {
         if (value == nullptr)
@@ -1413,6 +1430,7 @@ public:
     DRW_Insert insert;
     DRW_3Dface face;
     DRW_DimAligned dimension;
+    DRW_DimLinear dynamicConstraintDimension;
     DRW_DimLinear linearDimension;
     DRW_DimRadial radialDimension;
     DRW_DimDiametric diametricDimension;
@@ -1485,6 +1503,7 @@ public:
     unsigned faceCount = 0u;
     unsigned dimensionCount = 0u;
     unsigned linearDimensionCount = 0u;
+    unsigned dynamicConstraintDimensionCount = 0u;
     unsigned radialDimensionCount = 0u;
     unsigned diametricDimensionCount = 0u;
     unsigned angularDimensionCount = 0u;
@@ -1857,6 +1876,16 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dimension.getTextPoint().y == 2.5
         && adapter.dimension.getText() == "whole-operation dimension"
         && adapter.dimension.getStyle() == "STANDARD"
+        && adapter.dynamicConstraintDimension.handle
+            == kDynamicConstraintDimensionHandle
+        && adapter.dynamicConstraintDimension.layer == "*ADSK_CONSTRAINTS"
+        && adapter.dynamicConstraintDimension.getDefPoint().x == 15.0
+        && adapter.dynamicConstraintDimension.getDefPoint().y == 16.0
+        && adapter.dynamicConstraintDimension.getDefPoint().z == 17.0
+        && adapter.dynamicConstraintDimension.getTextPoint().x == 15.5
+        && adapter.dynamicConstraintDimension.getTextPoint().y == 16.5
+        && adapter.dynamicConstraintDimension.getText()
+            == "whole-operation dynamic constraint"
         && unchangedSubtypeDimension(adapter.linearDimension, 0xD961u, 10.0)
         && adapter.linearDimension.getDef1Point().z == 12.0
         && adapter.linearDimension.getDef2Point().x == 13.0
@@ -2439,6 +2468,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mlineCount != 1u
         || adapter.mlineStyleCount != 1u
         || adapter.dimensionCount != 1u
+        || adapter.dynamicConstraintDimensionCount != 1u
         || adapter.linearDimensionCount != 1u
         || adapter.radialDimensionCount != 1u
         || adapter.diametricDimensionCount != 1u
@@ -2723,6 +2753,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dimension.getTextPoint().y != 2.5
         || adapter.dimension.getText() != "whole-operation dimension"
         || adapter.dimension.getStyle() != "STANDARD"
+        || adapter.dynamicConstraintDimensionCount != 1u
+        || adapter.dynamicConstraintDimension.handle == 0u
+        || adapter.dynamicConstraintDimension.layer != "*ADSK_CONSTRAINTS"
+        || adapter.dynamicConstraintDimension.getDefPoint().x != 15.0
+        || adapter.dynamicConstraintDimension.getDefPoint().y != 16.0
+        || adapter.dynamicConstraintDimension.getDefPoint().z != 17.0
+        || adapter.dynamicConstraintDimension.getTextPoint().x != 15.5
+        || adapter.dynamicConstraintDimension.getTextPoint().y != 16.5
+        || adapter.dynamicConstraintDimension.getText()
+            != "whole-operation dynamic constraint"
+        || adapter.dynamicConstraintDimension.getStyle() != "STANDARD"
         || !commonDimensionMatches(adapter.linearDimension, 10.0)
         || adapter.linearDimension.getDef1Point().z != 12.0
         || adapter.linearDimension.getDef2Point().x != 13.0
