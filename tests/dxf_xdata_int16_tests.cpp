@@ -208,8 +208,10 @@ bool appIdAllocationRollbackControls() {
 
 class SelectedWriter final : public dx_iface {
 public:
-    SelectedWriter(dxfRW& writer, bool xrecord, int value)
-        : xrecord(xrecord) {
+    SelectedWriter(dxfRW& writer, bool xrecord, int value,
+                   bool layerStateCompatibility = false)
+        : xrecord(xrecord),
+          layerStateCompatibility(layerStateCompatibility) {
         dxfW = &writer;
         cData = &storage;
         currentBlock = storage.mBlock;
@@ -219,14 +221,22 @@ public:
         line.extData.push_back(std::make_shared<DRW_Variant>(1070, value));
         record.handle = 0xA91u;
         record.parentHandle = 0xCu;
-        record.m_values.emplace_back(1070, value);
-        record.m_values.emplace_back(1071, std::int32_t{value + 1});
+        if (layerStateCompatibility) {
+            record.m_values.emplace_back(370, value);
+        } else {
+            record.m_values.emplace_back(1070, value);
+            record.m_values.emplace_back(1071, std::int32_t{value + 1});
+        }
     }
     void writeEntities() override {
         if (!xrecord) wrote = dxfW->writeLine(&line);
     }
     void writeObjects() override {
-        if (xrecord) wrote = dxfW->writeXRecordDwgCompatibility(&record);
+        if (xrecord) {
+            wrote = layerStateCompatibility
+                ? dxfW->writeXRecordLayerStateCompatibility(&record)
+                : dxfW->writeXRecordDwgCompatibility(&record);
+        }
     }
     bool finalizeDxfWrite() override { return wrote; }
     void setValue(int value) {
@@ -238,6 +248,7 @@ public:
     DRW_Line line;
     DRW_XRecord record;
     bool xrecord{false};
+    bool layerStateCompatibility{false};
     bool wrote{false};
 };
 
@@ -262,12 +273,18 @@ public:
                        && item.type() == DRW_Variant::INTEGER) {
                 longNumber = item.i_val();
                 ++longCount;
+            } else if (item.code() == 370
+                       && item.type() == DRW_Variant::INTEGER) {
+                layerStateNumber = item.i_val();
+                ++layerStateCount;
             }
     }
     int number{0};
     unsigned count{0};
     std::int32_t longNumber{0};
     unsigned longCount{0};
+    int layerStateNumber{0};
+    unsigned layerStateCount{0};
 };
 
 bool wholeFileControls() {
@@ -330,16 +347,19 @@ bool wholeFileControls() {
 
 bool compatibilityXrecordAllocationControls() {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
-    for (const bool binary : {false, true}) {
+    for (const bool layerStateCompatibility : {false, true}) {
+      for (const bool binary : {false, true}) {
         const auto path = std::filesystem::temp_directory_path()
             / ("libdxfrw-xrecord-compat-allocation-" + std::to_string(nonce)
+               + (layerStateCompatibility ? "-layerstate" : "-dwg")
                + (binary ? "-binary.dxf" : "-ascii.dxf"));
         struct Cleanup { std::filesystem::path path; ~Cleanup() {
             std::error_code ignored; std::filesystem::remove(path, ignored);
         }} cleanup{path};
 
         dxfRW baselineWriter(path.string().c_str());
-        SelectedWriter baseline(baselineWriter, true, 12345);
+        SelectedWriter baseline(baselineWriter, true, 12345,
+                                layerStateCompatibility);
         xdataAllocationFailureOffset = -1;
         if (!baselineWriter.write(&baseline, DRW::AC1027, binary))
             return fail("compatibility XRECORD allocation baseline failed");
@@ -348,6 +368,16 @@ bool compatibilityXrecordAllocationControls() {
                                      std::istreambuf_iterator<char>{}};
         if (cleanBytes.empty())
             return fail("compatibility XRECORD baseline output was empty");
+        const auto readbackMatches = [&](SelectedReader& reader) {
+            dx_data data;
+            if (!reader.fileImport(path.string(), &data, false))
+                return false;
+            if (layerStateCompatibility)
+                return reader.layerStateCount == 1u
+                    && reader.layerStateNumber == 12345;
+            return reader.count == 1u && reader.number == 12345
+                && reader.longCount == 1u && reader.longNumber == 12346;
+        };
 
         const std::string sentinel = "PRIOR_COMPAT_XRECORD_DESTINATION";
         unsigned failures = 0u;
@@ -356,7 +386,8 @@ bool compatibilityXrecordAllocationControls() {
             { std::ofstream seed(path, std::ios::binary | std::ios::trunc);
               seed << sentinel; }
             dxfRW writer(path.string().c_str());
-            SelectedWriter selected(writer, true, 12345);
+            SelectedWriter selected(writer, true, 12345,
+                                    layerStateCompatibility);
             xdataAllocationFailed = false;
             xdataAllocationFailureOffset = offset;
             bool wrote = false;
@@ -377,10 +408,7 @@ bool compatibilityXrecordAllocationControls() {
                 if (actual != cleanBytes)
                     return fail("clean compatibility write differs from baseline");
                 SelectedReader reader;
-                dx_data data;
-                if (!reader.fileImport(path.string(), &data, false)
-                    || reader.count != 1u || reader.number != 12345
-                    || reader.longCount != 1u || reader.longNumber != 12346)
+                if (!readbackMatches(reader))
                     return fail("clean compatibility write lost typed readback");
                 reachedSuccess = true;
                 break;
@@ -395,9 +423,11 @@ bool compatibilityXrecordAllocationControls() {
             if (preserved != sentinel
                 || selected.record.handle != 0xA91u
                 || selected.record.parentHandle != 0xCu
-                || selected.record.m_values.size() != 2u
+                || selected.record.m_values.size()
+                    != (layerStateCompatibility ? 1u : 2u)
                 || selected.record.m_values[0].i_val() != 12345
-                || selected.record.m_values[1].i_val() != 12346)
+                || (!layerStateCompatibility
+                    && selected.record.m_values[1].i_val() != 12346))
                 return fail("compatibility allocation failure changed caller or destination");
 
             if (!writer.write(&selected, DRW::AC1027, binary))
@@ -407,19 +437,20 @@ bool compatibilityXrecordAllocationControls() {
                 std::istreambuf_iterator<char>{retryOutput},
                 std::istreambuf_iterator<char>{}};
             SelectedReader reader;
-            dx_data data;
             if (retryBytes != cleanBytes
-                || !reader.fileImport(path.string(), &data, false)
-                || reader.count != 1u || reader.number != 12345
-                || reader.longCount != 1u || reader.longNumber != 12346)
+                || !readbackMatches(reader))
                 return fail("same-writer compatibility retry/readback mismatch");
         }
         if (!reachedSuccess || failures == 0u)
             return fail("compatibility allocation sweep missed failure or success");
-        std::cout << "XRECORD DWG-compatibility "
+        std::cout << "XRECORD "
+                  << (layerStateCompatibility
+                        ? "LayerState compatibility "
+                        : "DWG compatibility ")
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << failures
                   << ", rollback/retry/readback=PASS\n";
+      }
     }
     return true;
 }

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **142 completed implementation slices** and **35 remaining
+The plan records **143 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`142 / (142 + 35) = 80.2%`. This is a count-based progress measure, not an
+`143 / (143 + 35) = 80.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4552,6 +4552,13 @@ clean bytes and typed readback verifies both values. This closes one generated
 compatibility-code profile only; independent producer evidence and broader
 XRECORD code-domain behavior remain open
 ([receipt](docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json)).
+The separate `writeXRecordLayerStateCompatibility()` writer route now also has
+an allocation rollback sweep for a generated group-370 XRECORD: 90 ASCII and
+87 Binary failures preserve the destination and caller identity/value, then
+same-codec retry reproduces clean bytes and fresh readback preserves group 370.
+This is transaction evidence for the writer only; source-qualified LayerStates
+selection, dictionary closure and producer semantics remain separate open gates
+([receipt](docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json)).
 The raw OBJECTS string-override allocation control now also covers the combined
 string/Int32 override writer, with generated XRECORD group 90 readback, caller
 state, prior-destination preservation, and same-codec exact-byte retry. Both
