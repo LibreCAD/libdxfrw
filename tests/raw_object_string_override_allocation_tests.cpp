@@ -42,12 +42,12 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-DRW_RawDxfObject makeRawObject() {
+DRW_RawDxfObject makeRawObject(DRW::Version version) {
     DRW_RawDxfObject object;
     object.name = "XRECORD";
     object.handle = 0xD8A0u;
     object.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
-    object.m_version = DRW::AC1027;
+    object.m_version = version;
     object.groups = {
         DRW_Variant(5, std::string("D8A0")),
         DRW_Variant(330, std::string("C")),
@@ -110,8 +110,9 @@ bool rawObjectMatches(const DRW_RawDxfObject& actual,
 
 class Export final : public dx_iface {
 public:
-    explicit Export(dxfRW& codec, bool combinedOverrides)
-        : codec(codec), object(makeRawObject()),
+    explicit Export(dxfRW& codec, DRW::Version version,
+                    bool combinedOverrides)
+        : codec(codec), object(makeRawObject(version)),
           combinedOverrides(combinedOverrides) {
         cData = &storage;
         currentBlock = storage.mBlock;
@@ -247,18 +248,23 @@ bool run(const std::filesystem::path& directory) {
     (void)int32Overrides();
 
     const std::string sentinel = "prior raw XRECORD destination bytes\n";
-    for (const bool binary : {false, true}) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+      for (const bool binary : {false, true}) {
         for (const bool combinedOverrides : {false, true}) {
-            const auto output = directory / (combinedOverrides
-                ? "raw-xrecord-string-int32-overrides.dxf"
-                : "raw-xrecord-string-overrides.dxf");
+            const std::string outputName = (combinedOverrides
+                ? "raw-xrecord-string-int32-overrides-"
+                : "raw-xrecord-string-overrides-")
+                + std::to_string(static_cast<int>(version))
+                + (binary ? "-binary.dxf" : "-ascii.dxf");
+            const auto output = directory / outputName;
             long allocationCount = 0;
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, combinedOverrides);
+                Export exporter(codec, version, combinedOverrides);
                 exporter.failAt = 1000000;
-                const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
+                const bool wrote = codec.write(&exporter, version, binary);
                 if (!wrote || !exporter.accepted
                     || !readbackMatches(output, combinedOverrides))
                     return fail("calibration output did not read back");
@@ -278,10 +284,10 @@ bool run(const std::filesystem::path& directory) {
                         return fail("could not initialize destination sentinel");
                 }
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, combinedOverrides);
+                Export exporter(codec, version, combinedOverrides);
                 const DRW_RawDxfObject source = exporter.object;
                 exporter.failAt = offset;
-                const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
+                const bool wrote = codec.write(&exporter, version, binary);
                 const bool sourcePreserved = rawObjectMatches(
                     exporter.object, source);
                 if (!allocationFailed || wrote || exporter.accepted
@@ -319,7 +325,7 @@ bool run(const std::filesystem::path& directory) {
                     return fail("injected failure replaced destination");
 
                 exporter.failAt = -1;
-                const bool retried = codec.write(&exporter, DRW::AC1027, binary);
+                const bool retried = codec.write(&exporter, version, binary);
                 std::string retryBytes;
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
@@ -328,7 +334,8 @@ bool run(const std::filesystem::path& directory) {
                     || !rawObjectMatches(exporter.object, source))
                     return fail("same-codec retry failed exact bytes/readback");
             }
-            std::cout << "raw XRECORD "
+            std::cout << "raw XRECORD version="
+                      << static_cast<int>(version) << ' '
                       << (combinedOverrides ? "string+Int32" : "string")
                       << " overrides "
                       << (binary ? "Binary" : "ASCII")
@@ -337,6 +344,7 @@ bool run(const std::filesystem::path& directory) {
             std::error_code ignored;
             std::filesystem::remove(output, ignored);
         }
+      }
     }
     return true;
 }

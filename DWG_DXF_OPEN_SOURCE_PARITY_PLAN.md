@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **199 completed implementation slices** and **32 remaining
+The plan records **200 completed implementation slices** and **31 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`199 / (199 + 32) = 86.1%`. This is a count-based progress measure, not an
+`200 / (200 + 31) = 86.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4961,6 +4961,13 @@ destination, same-codec retry reproduces clean bytes, and fresh typed raw-object
 readback verifies all replacements plus the two Int32 fields. The focused
 CTest passes 1/1 in 0.89 seconds; no fixture was added. Other raw-object source
 profiles and version behavior remain open ([receipt](docs/research/p6-dxf-raw-object-string-group-code-overrides-allocation-rollback-retry-2026-11-13.json)).
+**P6-G raw-object override revision matrix follow-up (2026-11-13):** the same
+XRECORD string-only and string/Int32 override controls now sweep AC1021, AC1027,
+and AC1032 in ASCII and Binary. Each of the 6/5 measured callback allocation
+offsets per profile preserves caller and destination state, retries to exact
+clean bytes, and verifies all overridden groups through fresh typed readback.
+The focused CTest passes 1/1 in 1.01 seconds; no fixture was added. AC1024 and
+other profiles remain open ([receipt](docs/research/p6-dxf-raw-object-string-override-version-matrix-rollback-retry-2026-11-13.json)).
 The explicit AC1018 `writeTableWithLegacySourcePresence()` callback now has a
 focused generated allocation sweep in ASCII and Binary. All 11 measured
 failure offsets per encoding refuse the whole export, preserve the preexisting
