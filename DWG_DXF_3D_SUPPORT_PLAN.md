@@ -10789,3 +10789,12 @@ ASCII and 468 Binary failure offsets preserve the destination and caller
 state; same-codec retry reproduces clean bytes and typed readback. Token
 identity is not treated as dependency closure or surface semantics. See the
 [receipt](docs/research/p6-dxf-lofted-surface-allocation-rollback-retry-2026-11-13.json).
+
+**P6 SWEPTSURFACE allocation rollback/retry (2026-11-13):** generated
+AC1027 sweep/path IDs and byte carriers, reference vector, flags, scalar
+fields and selected matrices now participate in the whole-operation
+transaction control. All 486 ASCII and 478 Binary failure offsets preserve
+the destination and caller state; same-codec retry reproduces clean bytes and
+typed readback. The carrier tokens do not qualify embedded geometry or DWG
+layout. See the
+[receipt](docs/research/p6-dxf-swept-surface-allocation-rollback-retry-2026-11-13.json).

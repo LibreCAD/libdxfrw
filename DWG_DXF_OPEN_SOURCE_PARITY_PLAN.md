@@ -1210,6 +1210,14 @@ same-codec retry reproduces clean output and typed readback. The fast
 transaction CTest passes. This does not resolve token handles or qualify
 surface geometry. See the [receipt](docs/research/p6-dxf-lofted-surface-allocation-rollback-retry-2026-11-13.json).
 
+**P6 local SWEPTSURFACE transaction slice (2026-11-13):** the sweep now
+also covers a generated AC1027 SWEPTSURFACE with sweep/path IDs and byte
+carriers, reference vector, flags, scalar fields and selected matrices. All
+486 ASCII and 478 Binary allocation failures preserve destination and caller
+state; corrected same-codec retries reproduce clean output and typed
+readback. The focused CTest passes. The token vectors do not resolve embedded
+geometry or the DWG profile. See the [receipt](docs/research/p6-dxf-swept-surface-allocation-rollback-retry-2026-11-13.json).
+
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
 CLASSES CRC mismatch for all nine AC1024 DWGs currently under
