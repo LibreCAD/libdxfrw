@@ -1312,8 +1312,26 @@ public:
         blockMultiLeaderLine.segmentIndex = 2;
         blockMultiLeaderLine.leaderLineIndex = 5;
         blockMultiLeaderLine.leaderType = 1;
+        blockMultiLeaderLine.breaks.push_back({
+            DRW_Coord{30.0, 31.0, 32.0}, DRW_Coord{33.0, 34.0, 35.0}});
         blockMultiLeaderRoot.leaderLines.push_back(blockMultiLeaderLine);
+        blockMultiLeaderRoot.breaks.push_back({
+            DRW_Coord{36.0, 37.0, 38.0}, DRW_Coord{39.0, 40.0, 41.0}});
         blockMultiLeader.context.roots.push_back(blockMultiLeaderRoot);
+        DRW_MLeaderRoot blockMultiLeaderSecondRoot;
+        blockMultiLeaderSecondRoot.connectionPoint =
+            DRW_Coord{42.0, 43.0, 44.0};
+        blockMultiLeaderSecondRoot.direction = DRW_Coord{1.0, 0.0, 0.0};
+        blockMultiLeaderSecondRoot.leaderIndex = 6;
+        DRW_MLeaderLeaderLine blockMultiLeaderSecondLine;
+        blockMultiLeaderSecondLine.points = {
+            DRW_Coord{42.0, 43.0, 44.0}, DRW_Coord{45.0, 46.0, 47.0}};
+        blockMultiLeaderSecondLine.segmentIndex = 3;
+        blockMultiLeaderSecondLine.leaderLineIndex = 7;
+        blockMultiLeaderSecondLine.leaderType = 1;
+        blockMultiLeaderSecondRoot.leaderLines.push_back(
+            blockMultiLeaderSecondLine);
+        blockMultiLeader.context.roots.push_back(blockMultiLeaderSecondRoot);
     }
 
     void writeEntities() override {
@@ -2598,14 +2616,21 @@ bool callerRecordsUnchanged(const Export& adapter) {
             == std::array<double, 16>{
                 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0, 21.0, 22.0, 23.0, 1.0}
-        && adapter.blockMultiLeader.context.roots.size() == 1u
+        && adapter.blockMultiLeader.context.roots.size() == 2u
         && adapter.blockMultiLeader.context.roots[0].leaderIndex == 4
         && adapter.blockMultiLeader.context.roots[0].connectionPoint.x == 24.0
+        && adapter.blockMultiLeader.context.roots[0].breaks.size() == 1u
         && adapter.blockMultiLeader.context.roots[0].leaderLines.size() == 1u
         && adapter.blockMultiLeader.context.roots[0].leaderLines[0].points.size()
             == 2u
         && adapter.blockMultiLeader.context.roots[0].leaderLines[0]
             .points[1].z == 29.0
+        && adapter.blockMultiLeader.context.roots[0].leaderLines[0]
+            .breaks.size() == 1u
+        && adapter.blockMultiLeader.context.roots[1].leaderIndex == 6
+        && adapter.blockMultiLeader.context.roots[1].leaderLines.size() == 1u
+        && adapter.blockMultiLeader.context.roots[1].leaderLines[0]
+            .points[1].z == 47.0
         && adapter.blockMultiLeaderStyle.handle == kBlockMLeaderStyleHandle
         && adapter.blockMultiLeaderStyle.parentHandle
             == kCustomDictionaryHandle
@@ -3888,14 +3913,21 @@ bool matchesReadback(const std::filesystem::path& path) {
             != std::array<double, 16>{
                 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0, 21.0, 22.0, 23.0, 1.0}
-        || adapter.blockMultiLeader.context.roots.size() != 1u
+        || adapter.blockMultiLeader.context.roots.size() != 2u
         || adapter.blockMultiLeader.context.roots[0].leaderIndex != 4
         || adapter.blockMultiLeader.context.roots[0].connectionPoint.x != 24.0
+        || adapter.blockMultiLeader.context.roots[0].breaks.size() != 1u
         || adapter.blockMultiLeader.context.roots[0].leaderLines.size() != 1u
         || adapter.blockMultiLeader.context.roots[0].leaderLines[0].points.size()
             != 2u
         || adapter.blockMultiLeader.context.roots[0].leaderLines[0]
             .points[1].z != 29.0
+        || adapter.blockMultiLeader.context.roots[0].leaderLines[0]
+            .breaks.size() != 1u
+        || adapter.blockMultiLeader.context.roots[1].leaderIndex != 6
+        || adapter.blockMultiLeader.context.roots[1].leaderLines.size() != 1u
+        || adapter.blockMultiLeader.context.roots[1].leaderLines[0]
+            .points[1].z != 47.0
         || adapter.blockMultiLeader.context.blockColor != 4
         || adapter.multiLeaderStyleCount != 2u
         || adapter.blockMultiLeaderStyle.handle != kBlockMLeaderStyleHandle

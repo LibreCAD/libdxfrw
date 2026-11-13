@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **138 completed implementation slices** and **35 remaining
+The plan records **139 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`138 / (138 + 35) = 79.8%`. This is a count-based progress measure, not an
+`139 / (139 + 35) = 80.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1681,6 +1681,17 @@ CTest passes 1/1 in 8.91 seconds. This adds generated transaction and reference
 closure only; the generated profile also checks a 16-value transform and one
 nested root/line. Physical producer profiles, multiple roots/lines, break
 pairs and native annotation semantics remain open. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 MULTILEADER multi-root/break transaction follow-up (2026-11-13):** the
+generated block-content context now has two ordered roots, one leader line per
+root, one root break pair, and one leader-line break pair. Typed readback
+checks both root/line paths and the break counts alongside the block/style
+reference closure. All 1,184 ASCII and 1,160 Binary allocation offsets
+preserve caller/destination state; same-writer retry reproduces clean output.
+Focused CTest passes 1/1 in 8.86 seconds. This generated profile does not
+qualify other producer variants, larger leader graphs or native annotation
+semantics. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 GEODATA whole-operation transaction follow-up (2026-11-13):** the
