@@ -42,7 +42,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-DRW_ProxyEntity makeProxy() {
+DRW_ProxyEntity makeProxy(bool includeObjectIds = true) {
     DRW_ProxyEntity proxy;
     proxy.handle = 0xD7C0u;
     proxy.m_hasProxyClassId = true;
@@ -57,13 +57,15 @@ DRW_ProxyEntity makeProxy() {
     proxy.m_entityData = {0x31u, 0x32u, 0x33u};
     proxy.m_hasEntityDataBitSize = true;
     proxy.m_entityDataBitSize = 19u;
-    for (std::uint8_t index = 0; index < 8u; ++index) {
-        DRW_ProxyObjectIdRef reference;
-        reference.m_handleCode = 4u;
-        reference.m_dxfCode = 330;
-        reference.m_handle = 0xD7D0u + index;
-        reference.m_rawHandle = reference.m_handle;
-        proxy.m_objectIdRefs.push_back(reference);
+    if (includeObjectIds) {
+        for (std::uint8_t index = 0; index < 8u; ++index) {
+            DRW_ProxyObjectIdRef reference;
+            reference.m_handleCode = 4u;
+            reference.m_dxfCode = 330;
+            reference.m_handle = 0xD7D0u + index;
+            reference.m_rawHandle = reference.m_handle;
+            proxy.m_objectIdRefs.push_back(reference);
+        }
     }
     return proxy;
 }
@@ -103,7 +105,10 @@ DRW_Class makeProxyClass() {
 
 class Export final : public dx_iface {
 public:
-    explicit Export(dxfRW& codec) : codec(codec), proxy(makeProxy()) {
+    explicit Export(dxfRW& codec, bool explicitResolver = true,
+                    bool includeObjectIds = true)
+        : codec(codec), proxy(makeProxy(includeObjectIds)),
+          useExplicitResolver(explicitResolver) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &codec;
@@ -114,10 +119,12 @@ public:
             ~TrackingScope() { disarmAllocationFailure(); }
         } trackingScope;
         armAllocationFailure(failAt);
-        accepted = codec.writeProxyEntity(&proxy, 500u,
-            [](std::uint32_t source) {
-                return 0xE100u + (source - 0xD7D0u);
-            });
+        accepted = useExplicitResolver
+            ? codec.writeProxyEntity(&proxy, 500u,
+                [](std::uint32_t source) {
+                    return 0xE100u + (source - 0xD7D0u);
+                })
+            : codec.writeProxyEntity(&proxy, 500u);
         reached = static_cast<long>(allocationAttempts);
     }
 
@@ -126,6 +133,7 @@ public:
     dxfRW& codec;
     dx_data storage;
     DRW_ProxyEntity proxy;
+    bool useExplicitResolver;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -155,7 +163,8 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path,
+                     bool includeObjectIds = true) {
     dxfRW codec(path.string().c_str());
     Readback reader;
     const bool read = codec.read(&reader, false);
@@ -165,7 +174,8 @@ bool readbackMatches(const std::filesystem::path& path) {
                   << " records=" << reader.proxies.size() << '\n';
         return false;
     }
-    if (!proxyMatches(reader.proxies.front(), makeProxy(), true)) {
+    if (!proxyMatches(reader.proxies.front(), makeProxy(includeObjectIds),
+                      true)) {
         std::cerr << "PROXY_ENTITY typed readback field mismatch handle="
                   << reader.proxies.front().handle
                   << " refs=" << reader.proxies.front().m_objectIdRefs.size()
@@ -175,9 +185,11 @@ bool readbackMatches(const std::filesystem::path& path) {
     return true;
 }
 
-bool run(const std::filesystem::path& directory) {
-    const auto fail = [](const char* message) {
-        std::cerr << "PROXY_ENTITY object-ID allocation retry: "
+bool runProfile(const std::filesystem::path& directory,
+                bool explicitResolver, bool includeObjectIds,
+                const char* outputName, const char* profileName) {
+    const auto fail = [profileName](const char* message) {
+        std::cerr << "PROXY_ENTITY " << profileName << " allocation retry: "
                   << message << '\n';
         return false;
     };
@@ -185,7 +197,7 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / "proxy-entity-object-ids.dxf";
+    const auto output = directory / outputName;
     const std::string sentinel = "prior PROXY_ENTITY destination bytes\n";
     for (const bool binary : {false, true}) {
         long allocationCount = 0;
@@ -193,10 +205,11 @@ bool run(const std::filesystem::path& directory) {
         {
             dxfRW codec(output.string().c_str());
             codec.setDxfClasses(std::vector<DRW_Class>{makeProxyClass()});
-            Export exporter(codec);
+            Export exporter(codec, explicitResolver, includeObjectIds);
             exporter.failAt = 1000000;
             const bool wrote = codec.write(&exporter, DRW::AC1024, binary);
-            if (!wrote || !exporter.accepted || !readbackMatches(output))
+            if (!wrote || !exporter.accepted
+                || !readbackMatches(output, includeObjectIds))
                 return fail("calibration output did not read back");
             allocationCount = exporter.reached;
             if (!readBytes(output, expectedBytes))
@@ -215,7 +228,7 @@ bool run(const std::filesystem::path& directory) {
             }
             dxfRW codec(output.string().c_str());
             codec.setDxfClasses(std::vector<DRW_Class>{makeProxyClass()});
-            Export exporter(codec);
+            Export exporter(codec, explicitResolver, includeObjectIds);
             const DRW_ProxyEntity source = exporter.proxy;
             exporter.failAt = offset;
             const bool wrote = codec.write(&exporter, DRW::AC1024, binary);
@@ -238,11 +251,12 @@ bool run(const std::filesystem::path& directory) {
             std::string retryBytes;
             if (!retried || !exporter.accepted
                 || !readBytes(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, includeObjectIds)
                 || !proxyMatches(exporter.proxy, source, false))
                 return fail("same-codec retry failed exact bytes/readback");
         }
-        std::cout << "PROXY_ENTITY object-ID "
+        std::cout << "PROXY_ENTITY " << profileName << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
@@ -250,6 +264,14 @@ bool run(const std::filesystem::path& directory) {
         std::filesystem::remove(output, ignored);
     }
     return true;
+}
+
+bool run(const std::filesystem::path& directory) {
+    return runProfile(directory, true, true, "proxy-entity-object-ids.dxf",
+                      "object-ID")
+        && runProfile(directory, false, false,
+                      "proxy-entity-default-overload.dxf",
+                      "two-argument overload");
 }
 } // namespace
 

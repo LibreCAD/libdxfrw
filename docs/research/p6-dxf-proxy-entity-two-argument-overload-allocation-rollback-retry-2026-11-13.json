@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_PROXY_ENTITY_TWO_ARGUMENT_OVERLOAD_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise allocation failure, rollback, same-codec retry, and typed readback through the public two-argument dxfRW::writeProxyEntity overload.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_ProxyEntity",
+    "profile": "AC1024 typed AcDbProxyEntity with valid proxy class/carrier/drawing-format fields and bounded 19-bit entity data; no object-ID references and no configured reference resolver.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/proxy_entity_object_id_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Generalized the existing typed PROXY_ENTITY transaction control to run both its resolver-taking overload and the previously untested two-argument overload. The added profile has no object-ID references and uses no configured resolver.",
+    "method": "Warm and calibrate each codec; inject std::bad_alloc at every reached entity-callback allocation; require destination sentinel preservation and caller handle/payload/reference preservation; retry with the same codec and require byte-identical output plus typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_proxy_entity_object_id_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_proxy_entity_object_id_allocation$' --output-on-failure: PASS 1/1 in 0.29 seconds",
+    "resolverOverload": "ASCII 11/11 and Binary 10/10 injected callback allocation failures pass rollback/retry/readback.",
+    "twoArgumentOverload": "ASCII 9/9 and Binary 9/9 injected callback allocation failures pass rollback/retry/readback.",
+    "diffCheck": "PASS: git diff --check -- tests/proxy_entity_object_id_allocation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json"
+  },
+  "limitations": [
+    "Generated transaction and typed transport only; no physical producer prevalence, proxy object-ID graph closure, or application semantics are established.",
+    "The added two-argument profile deliberately contains no object-ID references; resolver behavior remains covered only by the existing resolver-taking profile.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "The public two-argument typed PROXY_ENTITY writer overload with an empty object-ID list, including full reached-allocation rollback and same-codec retry.",
+    "remainingP6G": "Continue the public-writer inventory for other untested overloads, field variants, compound records, and variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-proxy-entity-object-id-allocation-rollback-retry-2026-11-12.json"
+}

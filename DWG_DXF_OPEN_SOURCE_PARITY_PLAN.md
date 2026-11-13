@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **163 completed implementation slices** and **35 remaining
+The plan records **164 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`163 / (163 + 35) = 82.3%`. This is a count-based progress measure, not an
+`164 / (164 + 35) = 82.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4617,6 +4617,17 @@ Its focused fast CTest passes in ASCII and Binary; the earlier rollback,
 destination, child-XRECORD and typed-readback checks remain active. This is one
 generated DATATABLE profile only; P6-G's remaining writer inventory is still
 open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
+
+**P6-G PROXY_ENTITY two-argument writer overload transaction slice (2026-11-13):**
+the typed proxy-entity allocation control now also exercises the public
+`writeProxyEntity(entity, outputClassId)` overload with no object-ID references
+and no configured resolver. All 9 ASCII and 9 Binary injected callback
+allocation failures preserve the destination and caller handle/payload; the
+same codec retries to byte-identical output and typed readback verifies the
+emitted entity. The existing resolver-overload sweep remains at 11 ASCII and
+10 Binary offsets. The focused CTest passes in 0.29 seconds. This closes one
+overload/profile only, not proxy graph semantics or producer qualification.
+See the [follow-up receipt](docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G modeler SAT text whole-write transaction slice (2026-11-13):** a new
 AC1024 generated 3DSOLID profile carries 600 SAT text bytes in three ordered
