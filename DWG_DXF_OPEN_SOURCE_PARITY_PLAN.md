@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **127 completed implementation slices** and **35 remaining
+The plan records **128 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`127 / (127 + 35) = 78.4%`. This is a count-based progress measure, not an
+`128 / (128 + 35) = 78.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1562,6 +1562,17 @@ failures preserve caller/destination state and allow same-writer retry. The
 focused CTest passes in 7.69 seconds. This is transaction/readback evidence for
 one local profile only; VPORT group-91 type semantics, optional references and
 native viewport behavior remain open under P5-H. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 LAYER writer and entity-reference transaction slice (2026-11-13):** the
+generated whole-operation drawing now includes a custom LAYER and assigns the
+generated LINE to it. The TABLES route writes the layer; fresh typed readback
+checks the LINE's group-8 name and resolves the same name to the emitted LAYER
+row with its remapped identity, color, linetype and lineweight. All 1,084 ASCII
+and 1,062 Binary injected allocation failures preserve caller and destination
+state; same-writer retries reproduce clean output. The focused CTest passes in
+7.73 seconds. This is generated transaction/reference evidence for one layer
+profile, not source-profile or native layer-display qualification. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed

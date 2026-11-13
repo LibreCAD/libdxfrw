@@ -119,6 +119,7 @@ constexpr std::uint32_t kDirectViewHandle = 0xD974u;
 constexpr std::uint32_t kDirectUcsHandle = 0xD975u;
 constexpr std::uint32_t kDirectAppIdHandle = 0xD976u;
 constexpr std::uint32_t kDirectVportHandle = 0xD977u;
+constexpr std::uint32_t kDirectLayerHandle = 0xD978u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -223,8 +224,16 @@ public:
         currentBlock = storage.mBlock;
         dxfW = &output;
         line.handle = 0xD900u;
+        line.layer = "WHOLE_OPERATION_LAYER";
         line.basePoint = DRW_Coord(1.25, -2.5, 3.75);
         line.secPoint = DRW_Coord(4.5, 5.25, -6.0);
+        DRW_Layer directLayer;
+        directLayer.handle = kDirectLayerHandle;
+        directLayer.name = "WHOLE_OPERATION_LAYER";
+        directLayer.color = 3;
+        directLayer.lineType = "CONTINUOUS";
+        directLayer.lWeight = DRW_LW_Conv::width07;
+        storage.layers.push_back(directLayer);
         polyline.handle = kPolylineHandle;
         polyline.flags = 1;
         polyline.addVertex(DRW_Vertex2D(1.0, 1.5, 0.0));
@@ -2109,6 +2118,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_Vport& value) {
             return value.handle == kDirectVportHandle;
         });
+    const auto directLayer = std::find_if(
+        adapter.storage.layers.begin(), adapter.storage.layers.end(),
+        [](const DRW_Layer& value) {
+            return value.handle == kDirectLayerHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
         && adapter.storage.views.size() == 2u
@@ -2160,6 +2174,12 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && directVport->height == 75.0 && directVport->ratio == 1.6
         && directVport->twistAngle == 30.0
         && directVport->snap == 1 && directVport->grid == 1
+        && adapter.line.layer == "WHOLE_OPERATION_LAYER"
+        && directLayer != adapter.storage.layers.end()
+        && directLayer->name == "WHOLE_OPERATION_LAYER"
+        && directLayer->color == 3
+        && directLayer->lineType == "CONTINUOUS"
+        && directLayer->lWeight == DRW_LW_Conv::width07
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -3161,6 +3181,11 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_Vport& value) {
             return value.name == "WHOLE_OPERATION_DIRECT_VPORT";
         });
+    const auto directLayer = std::find_if(
+        adapter.storage.layers.begin(), adapter.storage.layers.end(),
+        [](const DRW_Layer& value) {
+            return value.name == "WHOLE_OPERATION_LAYER";
+        });
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) {
@@ -3278,8 +3303,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || directVport->height != 75.0 || directVport->ratio != 1.6
         || directVport->twistAngle != 30.0
         || directVport->snap != 1 || directVport->grid != 1
+        || directLayer == adapter.storage.layers.end()
+        || directLayer->handle == DRW::NoHandle
+        || directLayer->color != 3
+        || directLayer->lineType != "CONTINUOUS"
+        || directLayer->lWeight != DRW_LW_Conv::width07
         || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
+        || adapter.line.layer != "WHOLE_OPERATION_LAYER"
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
         || adapter.circle.basePoint.y != 8.5
