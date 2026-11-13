@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **129 completed implementation slices** and **35 remaining
+The plan records **130 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`129 / (129 + 35) = 78.7%`. This is a count-based progress measure, not an
+`130 / (130 + 35) = 78.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1587,6 +1587,17 @@ profile; other DIMSTYLE variable combinations, legacy downgrades, optional
 resource references, producer interoperability and native dimension rendering
 remain open. It does not implement LibreCAD PR #3269's separate adapter-side
 `LC_LineType` reconciliation. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 TEXTSTYLE/DIMSTYLE dependency transaction slice (2026-11-13):** the
+generated table sweep now adds a custom TEXTSTYLE with nondefault font, width,
+oblique angle, generation flags and last height, then points the generated
+DIMSTYLE at it. Typed readback resolves DIMSTYLE's group-340 handle to that
+emitted STYLE row and checks the style fields. The whole-operation allocation
+sweep passes at 1,113 ASCII and 1,090 Binary offsets with destination/caller
+rollback and same-writer retry; focused CTest passes in 7.99 seconds. This is
+one locally generated dependency profile, not producer interoperability,
+native font behavior or broad DIMSTYLE semantic evidence. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed

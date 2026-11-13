@@ -120,6 +120,7 @@ constexpr std::uint32_t kDirectUcsHandle = 0xD975u;
 constexpr std::uint32_t kDirectAppIdHandle = 0xD976u;
 constexpr std::uint32_t kDirectVportHandle = 0xD977u;
 constexpr std::uint32_t kDirectLayerHandle = 0xD978u;
+constexpr std::uint32_t kDirectTextstyleHandle = 0xD979u;
 constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
@@ -1152,10 +1153,21 @@ public:
         lineType.size = 2;
         lineType.length = 15.0;
         storage.lineTypes.push_back(lineType);
+        DRW_Textstyle textstyle;
+        textstyle.handle = kDirectTextstyleHandle;
+        textstyle.name = "WHOLE_OPERATION_TEXT_STYLE";
+        textstyle.font = "simplex.shx";
+        textstyle.height = 0.0;
+        textstyle.width = 0.9;
+        textstyle.oblique = 0.1;
+        textstyle.genFlag = 2;
+        textstyle.lastHeight = 2.0;
+        storage.textStyles.push_back(textstyle);
         DRW_Dimstyle dimstyle;
         dimstyle.handle = kDirectDimstyleHandle;
         dimstyle.name = "WHOLE_OPERATION_DIMSTYLE";
-        dimstyle.dimtxsty = "Standard";
+        dimstyle.dimtxsty = textstyle.name;
+        dimstyle.dimtxstyH.ref = textstyle.handle;
         dimstyle.dimpost = "<> mm";
         dimstyle.dimscale = 2.0;
         dimstyle.dimasz = 2.75;
@@ -2140,6 +2152,11 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_Dimstyle& value) {
             return value.handle == kDirectDimstyleHandle;
         });
+    const auto directTextstyle = std::find_if(
+        adapter.storage.textStyles.begin(), adapter.storage.textStyles.end(),
+        [](const DRW_Textstyle& value) {
+            return value.handle == kDirectTextstyleHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
         && adapter.storage.views.size() == 2u
@@ -2199,12 +2216,20 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && directLayer->lWeight == DRW_LW_Conv::width07
         && directDimstyle != adapter.storage.dimStyles.end()
         && directDimstyle->name == "WHOLE_OPERATION_DIMSTYLE"
+        && directDimstyle->dimtxsty == "WHOLE_OPERATION_TEXT_STYLE"
+        && directDimstyle->dimtxstyH.ref == kDirectTextstyleHandle
         && directDimstyle->dimpost == "<> mm"
         && directDimstyle->dimscale == 2.0
         && directDimstyle->dimasz == 2.75
         && directDimstyle->dimtxt == 3.5
         && directDimstyle->dimdec == 3
         && directDimstyle->dimazin == 2
+        && directTextstyle != adapter.storage.textStyles.end()
+        && directTextstyle->font == "simplex.shx"
+        && directTextstyle->width == 0.9
+        && directTextstyle->oblique == 0.1
+        && directTextstyle->genFlag == 2
+        && directTextstyle->lastHeight == 2.0
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -3216,10 +3241,10 @@ bool matchesReadback(const std::filesystem::path& path) {
         [](const DRW_Dimstyle& value) {
             return value.name == "WHOLE_OPERATION_DIMSTYLE";
         });
-    const auto standardTextStyle = std::find_if(
+    const auto customTextStyle = std::find_if(
         adapter.storage.textStyles.begin(), adapter.storage.textStyles.end(),
         [](const DRW_Textstyle& value) {
-            return value.name == "Standard";
+            return value.name == "WHOLE_OPERATION_TEXT_STYLE";
         });
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
@@ -3345,9 +3370,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || directLayer->lWeight != DRW_LW_Conv::width07
         || directDimstyle == adapter.storage.dimStyles.end()
         || directDimstyle->handle == DRW::NoHandle
-        || standardTextStyle == adapter.storage.textStyles.end()
+        || customTextStyle == adapter.storage.textStyles.end()
+        || customTextStyle->handle == DRW::NoHandle
         || directDimstyle->dimtxstyH.ref == 0u
-        || directDimstyle->dimtxstyH.ref != standardTextStyle->handle
+        || directDimstyle->dimtxstyH.ref != customTextStyle->handle
+        || customTextStyle->font != "simplex.shx"
+        || customTextStyle->width != 0.9
+        || customTextStyle->oblique != 0.1
+        || customTextStyle->genFlag != 2
+        || customTextStyle->lastHeight != 2.0
         || directDimstyle->dimpost != "<> mm"
         || directDimstyle->dimscale != 2.0
         || directDimstyle->dimasz != 2.75
