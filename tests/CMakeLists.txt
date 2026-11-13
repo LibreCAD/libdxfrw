@@ -6139,6 +6139,20 @@ add_test(NAME libdxfrw_dxf_tablestyle_allocation
 set_tests_properties(libdxfrw_dxf_tablestyle_allocation PROPERTIES
     LABELS "dxf;fast;objects;tablestyle;transaction;allocation" TIMEOUT 30)
 
+add_executable(libdxfrw_dxf_cellstylemap_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_cellstylemap_allocation_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_dxf_cellstylemap_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_cellstylemap_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_cellstylemap_allocation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_cellstylemap_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_cellstylemap_allocation
+    COMMAND libdxfrw_dxf_cellstylemap_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-cellstylemap-allocation)
+set_tests_properties(libdxfrw_dxf_cellstylemap_allocation PROPERTIES
+    LABELS "dxf;fast;objects;cellstylemap;transaction;allocation" TIMEOUT 30)
+
 add_executable(libdxfrw_dxf_write_allocation_transaction_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_write_allocation_transaction_tests.cpp
     ${_libdxfrw_test_adapter_source})
