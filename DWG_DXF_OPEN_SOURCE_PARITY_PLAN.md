@@ -2226,6 +2226,19 @@ modified profile resolves the row and geometry fields. See the [ODA SAT/SAB
 format note](https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha)
 and the [pcurve row receipt](docs/research/p7-ac1024-21500-pcurve-reference-rows-2026-11-11.json).
 
+**P7 ACIS 21500 third-header-word cross-version screen (2026-11-13):** the
+existing selected source has header `21500 0 2 24`, one body at record index 1,
+and a reference to record index 2. ODA says the ACAD R24 embedded SAB contains
+one body per DWG 3D entity, while Spatial's ACIS 7.0 SAT text specification
+calls the analogous third header integer a saved entity-list count. Those
+statements do not define the modified 21500 SAB word. CADMPEG's first-referenced
+record-index interpretation is documented for ACIS 217/218 only; ACadRust's
+`num_bodies` label is not independent semantic proof. Preserve the 21500 word
+raw and do not call it a body count or use it as an admission boundary. The
+remaining condition is a version-specific schema or a provenance-qualified
+independent 21500 decode with a complete, discriminating top-level census. See
+the [cross-version authority receipt](docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json).
+
 **P7 AC1024 multi-root sample search (2026-11-12):** a targeted public-source
 search found no new AC1024 multi-root ACIS witness. Autodesk's 2010-and-later
 visualization files are the same already-screened one-root carrier corpus;
