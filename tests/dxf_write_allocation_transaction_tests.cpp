@@ -523,6 +523,21 @@ public:
         mpolygonLoop->objlist.push_back(mpolygonBoundary);
         mpolygonLoop->update();
         mpolygon.appendLoop(mpolygonLoop);
+        viewport.handle = 0xD973u;
+        viewport.pswidth = 210.0;
+        viewport.psheight = 148.0;
+        viewport.vpstatus = 1;
+        viewport.vpID = 2;
+        viewport.centerPX = 105.0;
+        viewport.centerPY = 74.0;
+        viewport.viewDir = DRW_Coord(0.0, 0.0, 1.0);
+        viewport.viewTarget = DRW_Coord(10.0, 20.0, 30.0);
+        viewport.viewHeight = 100.0;
+        viewport.snapSpPX = 5.0;
+        viewport.snapSpPY = 6.0;
+        viewport.gridSpX = 10.0;
+        viewport.gridSpY = 12.0;
+        viewport.styleSheet = "WHOLE_OPERATION_STYLE";
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -797,6 +812,7 @@ public:
             && check("GEOPOSITIONMARKER_EMBEDDED", output.writeGeoPositionMarker(&geoPositionMarkerEmbedded))
             && check("SECTIONOBJECT", output.writeSectionObject(&sectionObject))
             && check("MPOLYGON", output.writeMPolygon(&mpolygon))
+            && check("VIEWPORT", output.writeViewport(&viewport))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -870,6 +886,7 @@ public:
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_SectionObject sectionObject;
     DRW_MPolygon mpolygon;
+    DRW_Viewport viewport;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1104,6 +1121,10 @@ public:
         ++mpolygonCount;
         mpolygon = *value;
     }
+    void addViewport(const DRW_Viewport& value) override {
+        ++viewportCount;
+        viewport = value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1223,6 +1244,7 @@ public:
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_SectionObject sectionObject;
     DRW_MPolygon mpolygon;
+    DRW_Viewport viewport;
     DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
@@ -1283,6 +1305,7 @@ public:
     unsigned geoPositionMarkerCount = 0u;
     unsigned sectionObjectCount = 0u;
     unsigned mpolygonCount = 0u;
+    unsigned viewportCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1724,6 +1747,22 @@ bool callerRecordsUnchanged(const Export& adapter) {
             adapter.mpolygon.looplist[0]->objlist[0].get()) != nullptr
         && dynamic_cast<const DRW_LWPolyline*>(
             adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist.size() == 4u
+        && adapter.viewport.handle == 0xD973u
+        && adapter.viewport.pswidth == 210.0
+        && adapter.viewport.psheight == 148.0
+        && adapter.viewport.vpstatus == 1
+        && adapter.viewport.vpID == 2
+        && adapter.viewport.centerPX == 105.0
+        && adapter.viewport.centerPY == 74.0
+        && adapter.viewport.viewTarget.x == 10.0
+        && adapter.viewport.viewTarget.y == 20.0
+        && adapter.viewport.viewTarget.z == 30.0
+        && adapter.viewport.viewHeight == 100.0
+        && adapter.viewport.snapSpPX == 5.0
+        && adapter.viewport.snapSpPY == 6.0
+        && adapter.viewport.gridSpX == 10.0
+        && adapter.viewport.gridSpY == 12.0
+        && adapter.viewport.styleSheet == "WHOLE_OPERATION_STYLE"
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -2464,6 +2503,26 @@ bool matchesReadback(const std::filesystem::path& path) {
             adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist[2]->x != 4.0
         || dynamic_cast<const DRW_LWPolyline*>(
             adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist[2]->y != 3.0
+        || adapter.viewportCount != 1u
+        || adapter.viewport.handle == 0u
+        || adapter.viewport.pswidth != 210.0
+        || adapter.viewport.psheight != 148.0
+        || adapter.viewport.vpstatus != 1
+        || adapter.viewport.vpID != 2
+        || adapter.viewport.centerPX != 105.0
+        || adapter.viewport.centerPY != 74.0
+        || adapter.viewport.viewDir.x != 0.0
+        || adapter.viewport.viewDir.y != 0.0
+        || adapter.viewport.viewDir.z != 1.0
+        || adapter.viewport.viewTarget.x != 10.0
+        || adapter.viewport.viewTarget.y != 20.0
+        || adapter.viewport.viewTarget.z != 30.0
+        || adapter.viewport.viewHeight != 100.0
+        || adapter.viewport.snapSpPX != 5.0
+        || adapter.viewport.snapSpPY != 6.0
+        || adapter.viewport.gridSpX != 10.0
+        || adapter.viewport.gridSpY != 12.0
+        || adapter.viewport.styleSheet != "WHOLE_OPERATION_STYLE"
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0

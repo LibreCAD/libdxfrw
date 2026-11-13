@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **107 completed implementation slices** and **35 remaining
+The plan records **108 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`107 / (107 + 35) = 75.4%`. This is a count-based progress measure, not an
+`108 / (108 + 35) = 75.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,15 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local VIEWPORT transaction slice (2026-11-13):** the generated whole-file
+ASCII/Binary sweep writes a VIEWPORT with nondefault paper dimensions, status,
+id, center, target, view height, snap/grid spacing and stylesheet. All 744
+ASCII and 733 Binary failure offsets preserve destination, caller state and
+identity maps; same-writer retry reproduces clean bytes and typed readback
+passes. The focused transaction CTest passes 1/1 in 4.51 seconds. Optional
+background/shade/clip/UCS/visual-style/sun reference roles remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local MPOLYGON transaction slice (2026-11-13):** the generated whole-file
