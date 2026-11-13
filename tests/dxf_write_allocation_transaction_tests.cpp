@@ -23,6 +23,7 @@ constexpr std::uint32_t kTargetAlphaHandle = 0xD916u;
 constexpr std::uint32_t kTargetBetaHandle = 0xD917u;
 constexpr std::uint32_t kPolylineHandle = 0xD918u;
 constexpr std::uint32_t kMeshHandle = 0xD919u;
+constexpr std::uint32_t kSplineHandle = 0xD91Au;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
@@ -149,6 +150,12 @@ public:
         overrideData.subEntityMarker = 7;
         overrideData.propertyTypes = {0, 2};
         mesh.propertyOverrides.push_back(overrideData);
+        spline.handle = kSplineHandle;
+        spline.degree = 1;
+        spline.controllist = {
+            std::make_shared<DRW_Coord>(DRW_Coord(-1.0, 0.0, 2.0)),
+            std::make_shared<DRW_Coord>(DRW_Coord(3.0, 4.0, 5.0))};
+        spline.knotslist = {0.0, 0.0, 1.0, 1.0};
         object.name = "XRECORD";
         object.handle = 0xD901u;
         object.parentHandle = kCustomDictionaryHandle;
@@ -186,7 +193,8 @@ public:
             && output.writeLWPolyline(&polyline)
             && output.writeImage(&image, "whole-operation-image.png", 7u,
                                  image.ref) != nullptr
-            && output.writeMesh(&mesh);
+            && output.writeMesh(&mesh)
+            && output.writeSpline(&spline);
     }
 
     void writeObjects() override {
@@ -208,6 +216,7 @@ public:
     DRW_LWPolyline polyline;
     DRW_Image image;
     DRW_Mesh mesh;
+    DRW_Spline spline;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -241,6 +250,12 @@ public:
         ++meshCount;
         mesh = value;
     }
+    void addSpline(const DRW_Spline* value) override {
+        if (value != nullptr) {
+            ++splineCount;
+            spline = *value;
+        }
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -258,6 +273,7 @@ public:
     DRW_LWPolyline polyline;
     DRW_Image image;
     DRW_Mesh mesh;
+    DRW_Spline spline;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -267,6 +283,7 @@ public:
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
     unsigned meshCount = 0u;
+    unsigned splineCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -325,6 +342,15 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.mesh.propertyOverrides.front().subEntityMarker == 7
         && adapter.mesh.propertyOverrides.front().propertyTypes
             == std::vector<std::int32_t>{0, 2}
+        && adapter.spline.handle == kSplineHandle
+        && adapter.spline.degree == 1
+        && adapter.spline.controllist.size() == 2u
+        && adapter.spline.controllist[0]
+        && adapter.spline.controllist[0]->x == -1.0
+        && adapter.spline.controllist[0]->z == 2.0
+        && adapter.spline.controllist[1]
+        && adapter.spline.controllist[1]->y == 4.0
+        && adapter.spline.knotslist == std::vector<double>{0.0, 0.0, 1.0, 1.0}
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -383,6 +409,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
         || adapter.meshCount != 1u
+        || adapter.splineCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -421,6 +448,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mesh.propertyOverrides.front().subEntityMarker != 7
         || adapter.mesh.propertyOverrides.front().propertyTypes
             != std::vector<std::int32_t>{0, 2}
+        || adapter.spline.handle == 0u
+        || adapter.spline.degree != 1
+        || adapter.spline.controllist.size() != 2u
+        || !adapter.spline.controllist[0]
+        || adapter.spline.controllist[0]->x != -1.0
+        || adapter.spline.controllist[0]->z != 2.0
+        || !adapter.spline.controllist[1]
+        || adapter.spline.controllist[1]->y != 4.0
+        || adapter.spline.knotslist != std::vector<double>{0.0, 0.0, 1.0, 1.0}
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0

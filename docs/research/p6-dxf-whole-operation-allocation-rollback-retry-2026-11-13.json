@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE entity emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -100,6 +100,30 @@
             ]
           }
         ]
+      },
+      {
+        "kind": "SPLINE",
+        "sourceHandle": "0xD91A",
+        "degree": 1,
+        "controlPoints": [
+          [
+            -1.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            4.0,
+            5.0
+          ]
+        ],
+        "knots": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        "weights": []
       },
       {
         "kind": "XRECORD",
@@ -242,11 +266,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "f1aafb21c079c88abfd331392471e79ac5dab098dac02b5f15c02d0a075ddcb8",
+    "testSha256": "a940835b01e87a6e128a189db1234b6156ec28f1dea3118aa0b5f643030d0258",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "a273e73475430eff8a0a7f30af6fed49e05549629f874f6e397504662535e609",
-    "asanExecutableSha256": "6c5426b7c78fdd6c21130fca220a482e52f7b9bf228f5d3e0828cdf1d1e7425b",
+    "normalExecutableSha256": "e0047aadaf54c5d2dae4f5c584aecb8550c388cf3c9a1f6fe7bf3280ea195359",
+    "asanExecutableSha256": "912a8be4559f84ba52430b9d9b0acc32ec1af599628010f5244ae57b8f7f5c44",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/intern/dxfwriter.h"
@@ -258,7 +282,8 @@
       "tests/dxf_write_allocation_transaction_tests.cpp": "af90da7fc565a80908978865dcf578a88284f82df2e5602b4e400f5f2877bd46"
     },
     "details": [
-      "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides."
+      "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
+      "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback."
     ]
   },
   "procedure": {
@@ -273,9 +298,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.22 seconds; ASan 1/1 passed in 8.07 seconds.",
+    "ctest": "Normal 1/1 passed in 1.20 seconds; ASan 1/1 passed in 8.04 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 225,
+      "measuredAllocationOffsets": 233,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -297,10 +322,13 @@
       "callerLwPolylinePreserved": true,
       "meshReadbackMatched": true,
       "meshAllocationFailureAbortsWholeWrite": true,
-      "callerMeshPreserved": true
+      "callerMeshPreserved": true,
+      "splineReadbackMatched": true,
+      "splineAllocationFailureAbortsWholeWrite": true,
+      "callerSplinePreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 221,
+      "measuredAllocationOffsets": 229,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -322,9 +350,12 @@
       "callerLwPolylinePreserved": true,
       "meshReadbackMatched": true,
       "meshAllocationFailureAbortsWholeWrite": true,
-      "callerMeshPreserved": true
+      "callerMeshPreserved": true,
+      "splineReadbackMatched": true,
+      "splineAllocationFailureAbortsWholeWrite": true,
+      "callerSplinePreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 8.07 seconds",
+    "addressSanitizerCtest": "1/1 passed in 8.04 seconds",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -332,13 +363,15 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 225 allocation offsets; Binary 221 allocation offsets; both pass rollback, caller-state preservation, same-codec retry, byte comparison and readback.",
-      "asanCtest": "1/1 passed in 8.07 seconds.",
-      "generatedMeshReadback": "One triangle, three edge pairs, one crease value, and one property override with two types matched after ASCII and Binary readback."
+      "normalDirectRun": "ASCII 233 allocation offsets; Binary 229 allocation offsets; both pass rollback, caller-state preservation, same-codec retry, byte comparison and typed readback.",
+      "normalCtest": "1/1 passed in 1.20 seconds.",
+      "asanCtest": "1/1 passed in 8.04 seconds.",
+      "generatedMeshReadback": "One triangle, three edge pairs, one crease value, and one property override with two types matched after ASCII and Binary readback.",
+      "generatedSplineReadback": "Degree-1 SPLINE with two 3D control points and four knots matched after ASCII and Binary readback."
     }
   },
   "limits": [
-    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
