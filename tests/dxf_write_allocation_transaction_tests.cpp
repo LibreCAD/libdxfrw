@@ -477,6 +477,22 @@ public:
         geoPositionMarker.m_mtextVisible = true;
         geoPositionMarker.m_textAlignment = 2u;
         geoPositionMarker.m_enableFrameText = false;
+        geoPositionMarkerEmbedded.handle = 0xD970u;
+        geoPositionMarkerEmbedded.m_classVersion = 1u;
+        geoPositionMarkerEmbedded.m_position = DRW_Coord(123.0, 124.0, 125.0);
+        geoPositionMarkerEmbedded.m_radius = 8.5;
+        geoPositionMarkerEmbedded.m_notes = "whole-operation embedded geo marker";
+        geoPositionMarkerEmbedded.m_landingGap = 1.25;
+        geoPositionMarkerEmbedded.m_mtextVisible = true;
+        geoPositionMarkerEmbedded.m_textAlignment = 1u;
+        geoPositionMarkerEmbedded.m_enableFrameText = true;
+        geoPositionMarkerEmbedded.mtext = std::make_unique<DRW_MText>();
+        geoPositionMarkerEmbedded.mtext->text = "whole-operation embedded frame";
+        geoPositionMarkerEmbedded.mtext->basePoint =
+            DRW_Coord(123.0, 124.0, 125.0);
+        geoPositionMarkerEmbedded.mtext->height = 1.75;
+        geoPositionMarkerEmbedded.mtext->widthscale = 5.0;
+        geoPositionMarkerEmbedded.mtext->style = "STANDARD";
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -748,6 +764,7 @@ public:
             && check("LIGHT", output.writeLight(&light))
             && check("CAMERA", output.writeCamera(&camera))
             && check("GEOPOSITIONMARKER", output.writeGeoPositionMarker(&geoPositionMarker))
+            && check("GEOPOSITIONMARKER_EMBEDDED", output.writeGeoPositionMarker(&geoPositionMarkerEmbedded))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -818,6 +835,7 @@ public:
     DRW_Light light;
     DRW_Camera camera;
     DRW_GeoPositionMarker geoPositionMarker;
+    DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1037,7 +1055,10 @@ public:
     }
     void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
         ++geoPositionMarkerCount;
-        geoPositionMarker = value;
+        if (value.m_notes == "whole-operation embedded geo marker")
+            geoPositionMarkerEmbedded = value;
+        else
+            geoPositionMarker = value;
     }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
@@ -1155,6 +1176,7 @@ public:
     DRW_Light light;
     DRW_Camera camera;
     DRW_GeoPositionMarker geoPositionMarker;
+    DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
@@ -1605,6 +1627,26 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.geoPositionMarker.m_mtextVisible
         && adapter.geoPositionMarker.m_textAlignment == 2u
         && !adapter.geoPositionMarker.m_enableFrameText
+        && adapter.geoPositionMarkerEmbedded.handle == 0xD970u
+        && adapter.geoPositionMarkerEmbedded.m_classVersion == 1u
+        && adapter.geoPositionMarkerEmbedded.m_position.x == 123.0
+        && adapter.geoPositionMarkerEmbedded.m_position.y == 124.0
+        && adapter.geoPositionMarkerEmbedded.m_position.z == 125.0
+        && adapter.geoPositionMarkerEmbedded.m_radius == 8.5
+        && adapter.geoPositionMarkerEmbedded.m_notes == "whole-operation embedded geo marker"
+        && adapter.geoPositionMarkerEmbedded.m_landingGap == 1.25
+        && adapter.geoPositionMarkerEmbedded.m_mtextVisible
+        && adapter.geoPositionMarkerEmbedded.m_textAlignment == 1u
+        && adapter.geoPositionMarkerEmbedded.m_enableFrameText
+        && adapter.geoPositionMarkerEmbedded.mtext
+        && adapter.geoPositionMarkerEmbedded.mtext->text
+            == "whole-operation embedded frame"
+        && adapter.geoPositionMarkerEmbedded.mtext->basePoint.x == 123.0
+        && adapter.geoPositionMarkerEmbedded.mtext->basePoint.y == 124.0
+        && adapter.geoPositionMarkerEmbedded.mtext->basePoint.z == 125.0
+        && adapter.geoPositionMarkerEmbedded.mtext->height == 1.75
+        && adapter.geoPositionMarkerEmbedded.mtext->widthscale == 5.0
+        && adapter.geoPositionMarkerEmbedded.mtext->style == "STANDARD"
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1980,7 +2022,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.lightCount != 1u
         || adapter.cameraCount != 1u
         || adapter.viewCount != 1u
-        || adapter.geoPositionMarkerCount != 1u
+        || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -2281,6 +2323,26 @@ bool matchesReadback(const std::filesystem::path& path) {
         || !adapter.geoPositionMarker.m_mtextVisible
         || adapter.geoPositionMarker.m_textAlignment != 2u
         || adapter.geoPositionMarker.m_enableFrameText
+        || adapter.geoPositionMarkerEmbedded.handle == 0u
+        || adapter.geoPositionMarkerEmbedded.m_classVersion != 1u
+        || adapter.geoPositionMarkerEmbedded.m_position.x != 123.0
+        || adapter.geoPositionMarkerEmbedded.m_position.y != 124.0
+        || adapter.geoPositionMarkerEmbedded.m_position.z != 125.0
+        || adapter.geoPositionMarkerEmbedded.m_radius != 8.5
+        || adapter.geoPositionMarkerEmbedded.m_notes != "whole-operation embedded geo marker"
+        || adapter.geoPositionMarkerEmbedded.m_landingGap != 1.25
+        || !adapter.geoPositionMarkerEmbedded.m_mtextVisible
+        || adapter.geoPositionMarkerEmbedded.m_textAlignment != 1u
+        || !adapter.geoPositionMarkerEmbedded.m_enableFrameText
+        || !adapter.geoPositionMarkerEmbedded.mtext
+        || adapter.geoPositionMarkerEmbedded.mtext->text
+            != "whole-operation embedded frame"
+        || adapter.geoPositionMarkerEmbedded.mtext->basePoint.x != 123.0
+        || adapter.geoPositionMarkerEmbedded.mtext->basePoint.y != 124.0
+        || adapter.geoPositionMarkerEmbedded.mtext->basePoint.z != 125.0
+        || adapter.geoPositionMarkerEmbedded.mtext->height != 1.75
+        || adapter.geoPositionMarkerEmbedded.mtext->widthscale != 5.0
+        || adapter.geoPositionMarkerEmbedded.mtext->style != "STANDARD"
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
@@ -2697,6 +2759,29 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << adapter.largeRadialDimension.jogPoint.y << ','
                   << adapter.largeRadialDimension.jogPoint.z << ','
                   << adapter.largeRadialDimension.jogAngle << '\n';
+        std::cerr << " geoposition markers: count="
+                  << adapter.geoPositionMarkerCount << " plain="
+                  << adapter.geoPositionMarker.handle << ','
+                  << adapter.geoPositionMarker.m_notes << ','
+                  << adapter.geoPositionMarker.m_enableFrameText
+                  << " embedded=" << adapter.geoPositionMarkerEmbedded.handle
+                  << ',' << adapter.geoPositionMarkerEmbedded.m_notes << ','
+                  << adapter.geoPositionMarkerEmbedded.m_enableFrameText;
+        if (adapter.geoPositionMarkerEmbedded.mtext != nullptr) {
+            std::cerr << " mtext="
+                      << adapter.geoPositionMarkerEmbedded.mtext->text << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->basePoint.x
+                      << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->basePoint.y
+                      << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->basePoint.z
+                      << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->height << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->widthscale
+                      << ','
+                      << adapter.geoPositionMarkerEmbedded.mtext->style;
+        }
+        std::cerr << '\n';
         if (rawXrecord != adapter.objects.end()
             && rawXrecord->groups.size() > 3u
             && rawXrecord->groups[3].c_str() != nullptr)
