@@ -6532,6 +6532,239 @@ bool runSectionManagerSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runSectionSettingsSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "SECTIONSETTINGS allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "section-settings-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files in test scratch");
+    const std::string sentinel = "previous complete document\n";
+    const std::map<std::uint32_t, std::uint32_t> remap = {
+        {0xDD00u, 0xEDD00u}, {0xDD01u, 0xEDD01u},
+        {0xDD02u, 0xEDD02u}, {0xDD03u, 0xEDD03u},
+        {0xDD04u, 0xEDD04u}};
+    const auto makeSettings = [] {
+        DRW_Section value;
+        value.handle = 0xDD00u;
+        value.parentHandle = 0xDD01u;
+        value.m_kind = DRW_Section::Settings;
+        value.m_currentType = 1;
+        value.m_typeCount = 1;
+        DRW_SectionTypeSettings type;
+        type.m_type = 2;
+        type.m_generation = 3;
+        type.m_numSources = 2;
+        type.m_sourceHandles = {0xDD02u, 0xDD03u};
+        type.m_destinationBlockHandle = 0xDD04u;
+        type.m_destinationFile = "section-output.dwg";
+        type.m_numGeometrySettings = 2;
+        DRW_SectionGeometrySettings first;
+        first.m_numGeometries = 4;
+        first.m_hexIndex = 5;
+        first.m_flags = 1;
+        first.m_color = 42;
+        first.m_layer = "A-WALL";
+        first.m_lineType = "DASHED";
+        first.m_lineTypeScale = 1.25;
+        first.m_plotStyle = "Normal";
+        first.m_lineWeight = 25;
+        first.m_faceTransparency = 20;
+        first.m_edgeTransparency = 30;
+        first.m_hatchType = 1;
+        first.m_hatchPattern = "ANSI31";
+        first.m_hatchAngle = 0.25;
+        first.m_hatchSpacing = 2.0;
+        first.m_hatchScale = 0.75;
+        DRW_SectionGeometrySettings second;
+        second.m_numGeometries = 2;
+        second.m_hexIndex = 9;
+        second.m_flags = 2;
+        second.m_color = 7;
+        second.m_layer = "A-GLAZ";
+        second.m_lineType = "CONTINUOUS";
+        second.m_lineTypeScale = 0.5;
+        second.m_plotStyle = "Hidden";
+        second.m_lineWeight = 13;
+        second.m_faceTransparency = 5;
+        second.m_edgeTransparency = 10;
+        second.m_hatchType = 2;
+        second.m_hatchPattern = "ANSI32";
+        second.m_hatchAngle = 0.5;
+        second.m_hatchSpacing = 1.5;
+        second.m_hatchScale = 1.25;
+        type.m_geometry = {first, second};
+        value.m_types.push_back(std::move(type));
+        return value;
+    };
+    const auto sameSettings = [](const DRW_Section& a, const DRW_Section& b) {
+        if (a.handle != b.handle || a.parentHandle != b.parentHandle
+            || a.m_kind != b.m_kind || a.m_currentType != b.m_currentType
+            || a.m_typeCount != b.m_typeCount || a.m_types.size() != b.m_types.size())
+            return false;
+        for (std::size_t i = 0; i < a.m_types.size(); ++i) {
+            const DRW_SectionTypeSettings& x = a.m_types[i];
+            const DRW_SectionTypeSettings& y = b.m_types[i];
+            if (x.m_type != y.m_type || x.m_generation != y.m_generation
+                || x.m_numSources != y.m_numSources
+                || x.m_sourceHandles != y.m_sourceHandles
+                || x.m_destinationBlockHandle != y.m_destinationBlockHandle
+                || x.m_destinationFile != y.m_destinationFile
+                || x.m_geometry.size() != y.m_geometry.size())
+                return false;
+            for (std::size_t j = 0; j < x.m_geometry.size(); ++j) {
+                const DRW_SectionGeometrySettings& p = x.m_geometry[j];
+                const DRW_SectionGeometrySettings& q = y.m_geometry[j];
+                if (p.m_numGeometries != q.m_numGeometries
+                    || p.m_hexIndex != q.m_hexIndex || p.m_flags != q.m_flags
+                    || p.m_color != q.m_color || p.m_layer != q.m_layer
+                    || p.m_lineType != q.m_lineType
+                    || p.m_lineTypeScale != q.m_lineTypeScale
+                    || p.m_plotStyle != q.m_plotStyle
+                    || p.m_lineWeight != q.m_lineWeight
+                    || p.m_faceTransparency != q.m_faceTransparency
+                    || p.m_edgeTransparency != q.m_edgeTransparency
+                    || p.m_hatchType != q.m_hatchType
+                    || p.m_hatchPattern != q.m_hatchPattern
+                    || p.m_hatchAngle != q.m_hatchAngle
+                    || p.m_hatchSpacing != q.m_hatchSpacing
+                    || p.m_hatchScale != q.m_hatchScale)
+                    return false;
+            }
+        }
+        return true;
+    };
+    class SectionSettingsExport final : public dx_iface {
+    public:
+        SectionSettingsExport(dxfRW& codec, DRW_Section source)
+            : output(codec), settings(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override {
+            written = output.writeSection(&settings, "SECTIONSETTINGS");
+        }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Section settings;
+        bool written = false;
+    };
+    class SectionSettingsReadback final : public dx_iface {
+    public:
+        SectionSettingsReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addSection(const DRW_Section& value) override {
+            settings = value;
+            found = true;
+        }
+        dx_data storage;
+        DRW_Section settings;
+        bool found = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        SectionSettingsReadback probe;
+        if (!reader.read(&probe, true) || !probe.found)
+            return false;
+        DRW_Section expected = makeSettings();
+        expected.handle = 0xEDD00u;
+        expected.parentHandle = 0xEDD01u;
+        expected.m_types[0].m_sourceHandles = {0xEDD02u, 0xEDD03u};
+        expected.m_types[0].m_destinationBlockHandle = 0xEDD04u;
+        return sameSettings(probe.settings, expected);
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionSettingsExport adapter(codec, makeSettings());
+            if (!codec.write(&adapter, DRW::AC1032, binary))
+                return fail("warm-up write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionSettingsExport adapter(codec, makeSettings());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            codec.setHandleRemap(remap);
+            SectionSettingsExport adapter(codec, makeSettings());
+            const DRW_Section original(adapter.settings);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !sameSettings(adapter.settings, original)
+                || !identitiesRolledBack || stageRemains) {
+                std::cerr << "offset=" << offset << " wrote=" << wrote
+                          << " injected=" << injected
+                          << " destinationPreserved=" << (afterFailure == sentinel)
+                          << " callerSame=" << sameSettings(adapter.settings, original)
+                          << " identitiesRolledBack=" << identitiesRolledBack
+                          << " stageRemains=" << stageRemains << '\n';
+                return fail("injected allocation failure changed caller or destination state");
+            }
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            if (!retried || !sameSettings(adapter.settings, original)
+                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                || !readbackMatches(output) || hasStagedOutput(output))
+                return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "SECTIONSETTINGS " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -6549,7 +6782,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -6567,6 +6800,8 @@ int main(int argc, char** argv) {
             return runSpatialFilterSweep(directory) ? 0 : 1;
         if (mode == "section-manager")
             return runSectionManagerSweep(directory) ? 0 : 1;
+        if (mode == "section-settings")
+            return runSectionSettingsSweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;

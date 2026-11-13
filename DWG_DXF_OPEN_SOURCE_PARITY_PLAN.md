@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **151 completed implementation slices** and **35 remaining
+The plan records **152 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`151 / (151 + 35) = 81.2%`. This is a count-based progress measure, not an
+`152 / (152 + 35) = 81.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4752,6 +4752,17 @@ manager identity, owner, live flag and remapped handle order. The focused CTest
 passes in normal and ASan builds. This is generated transaction evidence for a
 manager profile only; SECTION_SETTINGS geometry variants and source/native
 graph semantics remain open ([receipt](docs/research/p6-dxf-section-manager-allocation-rollback-retry-2026-11-13.json)).
+The whole-operation sweep now also covers the AC1032
+`writeSection(..., "SECTIONSETTINGS")` variant with one type, two remapped
+source handles, a remapped destination block, a destination filename and two
+nested geometry settings. All 102 ASCII and 100 Binary injected allocation
+failures preserve the complete nested caller model, destination, handle maps
+and staging cleanup; same-codec retry reproduces clean bytes and typed readback
+checks the ordered references, filename and modeled geometry fields. The
+focused CTest passes in normal and ASan builds. This closes one generated
+SECTION_SETTINGS transaction profile only; other type/geometry combinations,
+producer semantics and graph closure remain open
+([receipt](docs/research/p6-dxf-section-settings-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
