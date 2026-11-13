@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **126 completed implementation slices** and **35 remaining
+The plan records **127 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`126 / (126 + 35) = 78.3%`. This is a count-based progress measure, not an
+`127 / (127 + 35) = 78.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1551,6 +1551,17 @@ non-null remapped handle and flags. All 1,064 ASCII and 1,042 Binary allocation
 offsets pass. The focused CTest passes in 7.51 seconds. This covers one local
 APPID row only; broader name domains, extended-data dependency closure and
 consumer behavior remain open. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 VPORT writer transaction slice (2026-11-13):** the generated TABLES
+sweep now writes a `*ACTIVE` row followed by one named VPORT through the public
+`writeVport()` route. The second record exercises named-row serialization;
+fresh readback checks its remapped identity, center, snap/grid basis, target,
+height, ratio and twist. All 1,076 ASCII and 1,054 Binary injected allocation
+failures preserve caller/destination state and allow same-writer retry. The
+focused CTest passes in 7.69 seconds. This is transaction/readback evidence for
+one local profile only; VPORT group-91 type semantics, optional references and
+native viewport behavior remain open under P5-H. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
