@@ -42,6 +42,7 @@ constexpr std::uint32_t k3DLineHandle = 0xD92Au;
 constexpr std::uint32_t kSolidHandle = 0xD92Bu;
 constexpr std::uint32_t kTraceHandle = 0xD92Cu;
 constexpr std::uint32_t kTextHandle = 0xD92Du;
+constexpr std::uint32_t kMTextHandle = 0xD92Eu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -336,6 +337,14 @@ public:
         text.angle = 15.0;
         text.widthscale = 1.2;
         text.style = "STANDARD";
+        mtext.handle = kMTextHandle;
+        mtext.basePoint = DRW_Coord(4.0, 5.0, 6.0);
+        mtext.text = "whole-operation MTEXT";
+        mtext.height = 1.5;
+        mtext.widthscale = 12.0;
+        mtext.style = "STANDARD";
+        mtext.m_definedHeight = 2.25;
+        mtext.m_definedHeightPresent = true;
     }
 
     void writeEntities() override {
@@ -363,7 +372,8 @@ public:
             && check("3DLINE", output.writeLine(&line3d))
             && check("SOLID", output.writeLine(&solid))
             && check("TRACE", output.writeLine(&trace))
-            && check("TEXT", output.writeText(&text));
+            && check("TEXT", output.writeText(&text))
+            && check("MTEXT", output.writeMText(&mtext));
     }
 
     void writeObjects() override {
@@ -401,6 +411,7 @@ public:
     DRW_Solid solid;
     DRW_Trace trace;
     DRW_Text text;
+    DRW_MText mtext;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -507,6 +518,11 @@ public:
         ++textCount;
         text = value;
     }
+    void addMText(const DRW_MText& value) override {
+        dx_iface::addMText(value);
+        ++mtextCount;
+        mtext = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -539,6 +555,7 @@ public:
     DRW_Solid solid;
     DRW_Trace trace;
     DRW_Text text;
+    DRW_MText mtext;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -563,6 +580,7 @@ public:
     unsigned solidCount = 0u;
     unsigned traceCount = 0u;
     unsigned textCount = 0u;
+    unsigned mtextCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -767,6 +785,16 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.text.angle == 15.0
         && adapter.text.widthscale == 1.2
         && adapter.text.style == "STANDARD"
+        && adapter.mtext.handle == kMTextHandle
+        && adapter.mtext.basePoint.x == 4.0
+        && adapter.mtext.basePoint.y == 5.0
+        && adapter.mtext.basePoint.z == 6.0
+        && adapter.mtext.text == "whole-operation MTEXT"
+        && adapter.mtext.height == 1.5
+        && adapter.mtext.widthscale == 12.0
+        && adapter.mtext.style == "STANDARD"
+        && adapter.mtext.m_definedHeight == 2.25
+        && adapter.mtext.m_definedHeightPresent
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -1035,6 +1063,17 @@ bool matchesReadback(const std::filesystem::path& path) {
         || std::abs(adapter.text.angle - 15.0) > 1.0e-12
         || adapter.text.widthscale != 1.2
         || adapter.text.style != "STANDARD"
+        || adapter.mtextCount != 1u
+        || adapter.mtext.handle == 0u
+        || adapter.mtext.basePoint.x != 4.0
+        || adapter.mtext.basePoint.y != 5.0
+        || adapter.mtext.basePoint.z != 6.0
+        || adapter.mtext.text != "whole-operation MTEXT"
+        || adapter.mtext.height != 1.5
+        || adapter.mtext.widthscale != 12.0
+        || adapter.mtext.style != "STANDARD"
+        || adapter.mtext.m_definedHeight != 2.25
+        || !adapter.mtext.m_definedHeightPresent
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
