@@ -109,6 +109,7 @@ constexpr std::uint32_t kPointCloudDefinitionExHandle = 0xD951u;
 constexpr std::uint32_t kPointCloudReactorHandle = 0xD952u;
 constexpr std::uint32_t kPointCloudReactorExHandle = 0xD953u;
 constexpr std::uint32_t kPointCloudHandle = 0xD954u;
+constexpr std::uint32_t kPointCloudExHandle = 0xD955u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -762,6 +763,45 @@ public:
         pointCloud.ucsZDirection = DRW_Coord(0.0, 0.0, 1.0);
         pointCloud.definitionHandle = kPointCloudDefinitionHandle;
         pointCloud.reactorHandle = kPointCloudReactorHandle;
+        pointCloudEx.handle = kPointCloudExHandle;
+        pointCloudEx.classVersion = 3u;
+        pointCloudEx.extentsMin = DRW_Coord(-100.0, -200.0, -300.0);
+        pointCloudEx.extentsMax = DRW_Coord(400.0, 500.0, 600.0);
+        pointCloudEx.ucsOrigin = DRW_Coord(7.0, 8.0, 9.0);
+        pointCloudEx.ucsXDirection = DRW_Coord(0.0, 1.0, 0.0);
+        pointCloudEx.ucsYDirection = DRW_Coord(-1.0, 0.0, 0.0);
+        pointCloudEx.ucsZDirection = DRW_Coord(0.0, 0.0, 1.0);
+        pointCloudEx.isLocked = true;
+        pointCloudEx.definitionHandle = kPointCloudDefinitionExHandle;
+        pointCloudEx.reactorHandle = kPointCloudReactorExHandle;
+        pointCloudEx.name = "whole-operation pointcloud-ex";
+        pointCloudEx.showIntensity = true;
+        pointCloudEx.showCropping = true;
+        pointCloudEx.croppingCount = 1;
+        pointCloudEx.stylizationType = 2;
+        pointCloudEx.intensityColorScheme = "intensity";
+        pointCloudEx.currentColorScheme = "current";
+        pointCloudEx.classificationColorScheme = "classification";
+        pointCloudEx.elevationMin = -5.5;
+        pointCloudEx.elevationMax = 25.5;
+        pointCloudEx.intensityMin = 0.0;
+        pointCloudEx.intensityMax = 65535.0;
+        pointCloudEx.intensityOutOfRangeBehavior = 1;
+        pointCloudEx.elevationOutOfRangeBehavior = 2;
+        pointCloudEx.elevationApplyToFixedRange = true;
+        pointCloudEx.intensityAsGradient = true;
+        pointCloudEx.elevationAsGradient = true;
+        DRW_PointCloudExCropping cropping;
+        cropping.type = 1;
+        cropping.isInside = true;
+        cropping.isInverted = false;
+        cropping.cropPlane = DRW_Coord(1.0, 2.0, 3.0);
+        cropping.cropXDirection = DRW_Coord(1.0, 0.0, 0.0);
+        cropping.cropYDirection = DRW_Coord(0.0, 1.0, 0.0);
+        cropping.pointCount = 3;
+        cropping.points = {DRW_Coord(1.0, 2.0, 3.0),
+            DRW_Coord(4.0, 5.0, 6.0), DRW_Coord(7.0, 8.0, 9.0)};
+        pointCloudEx.croppings.push_back(cropping);
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1030,6 +1070,7 @@ public:
             && check("POLYLINE", output.writePolyline(&polyline3))
             && check("INSERT", output.writeInsert(&insert))
             && check("POINTCLOUD", output.writePointCloud(&pointCloud))
+            && check("POINTCLOUDEX", output.writePointCloudEx(&pointCloudEx))
             && check("ATTDEF", output.writeAttdef(
                 &directAttdef, DRW::DxfModelSpaceBlockRecordHandle))
             && check("3DFACE", output.writeLine(&face))
@@ -1179,6 +1220,7 @@ public:
     DRW_PointCloudDef pointCloudReactor;
     DRW_PointCloudDef pointCloudReactorEx;
     DRW_PointCloud pointCloud;
+    DRW_PointCloudEx pointCloudEx;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1223,6 +1265,12 @@ public:
         if (value != nullptr) {
             ++pointCloudCount;
             pointCloud = *value;
+        }
+    }
+    void addPointCloudEx(const DRW_PointCloudEx* value) override {
+        if (value != nullptr) {
+            ++pointCloudExCount;
+            pointCloudEx = *value;
         }
     }
     void addOle2Frame(const DRW_Ole2Frame& value) override {
@@ -1584,6 +1632,7 @@ public:
     DRW_LWPolyline polyline;
     DRW_Image image;
     DRW_PointCloud pointCloud;
+    DRW_PointCloudEx pointCloudEx;
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
@@ -1662,6 +1711,7 @@ public:
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
     unsigned pointCloudCount = 0u;
+    unsigned pointCloudExCount = 0u;
     unsigned ole2FrameCount = 0u;
     unsigned oleFrameCount = 0u;
     unsigned shapeCount = 0u;
@@ -1897,6 +1947,36 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.pointCloud.ucsZDirection.z == 1.0
         && adapter.pointCloud.definitionHandle == kPointCloudDefinitionHandle
         && adapter.pointCloud.reactorHandle == kPointCloudReactorHandle
+        && adapter.pointCloudEx.handle == kPointCloudExHandle
+        && adapter.pointCloudEx.classVersion == 3u
+        && adapter.pointCloudEx.extentsMin.x == -100.0
+        && adapter.pointCloudEx.extentsMax.z == 600.0
+        && adapter.pointCloudEx.ucsOrigin.x == 7.0
+        && adapter.pointCloudEx.ucsYDirection.x == -1.0
+        && adapter.pointCloudEx.isLocked
+        && adapter.pointCloudEx.definitionHandle == kPointCloudDefinitionExHandle
+        && adapter.pointCloudEx.reactorHandle == kPointCloudReactorExHandle
+        && adapter.pointCloudEx.name == "whole-operation pointcloud-ex"
+        && adapter.pointCloudEx.showIntensity
+        && adapter.pointCloudEx.showCropping
+        && adapter.pointCloudEx.croppingCount == 1
+        && adapter.pointCloudEx.stylizationType == 2
+        && adapter.pointCloudEx.intensityColorScheme == "intensity"
+        && adapter.pointCloudEx.currentColorScheme == "current"
+        && adapter.pointCloudEx.classificationColorScheme == "classification"
+        && adapter.pointCloudEx.elevationMin == -5.5
+        && adapter.pointCloudEx.elevationMax == 25.5
+        && adapter.pointCloudEx.intensityMin == 0.0
+        && adapter.pointCloudEx.intensityMax == 65535.0
+        && adapter.pointCloudEx.intensityOutOfRangeBehavior == 1
+        && adapter.pointCloudEx.elevationOutOfRangeBehavior == 2
+        && adapter.pointCloudEx.elevationApplyToFixedRange
+        && adapter.pointCloudEx.intensityAsGradient
+        && adapter.pointCloudEx.elevationAsGradient
+        && adapter.pointCloudEx.croppings.size() == 1u
+        && adapter.pointCloudEx.croppings[0].pointCount == 3
+        && adapter.pointCloudEx.croppings[0].points.size() == 3u
+        && adapter.pointCloudEx.croppings[0].points[2].z == 9.0
         && lineType != adapter.storage.lineTypes.end()
         && lineType->handle == kLineTypeHandle
         && lineType->desc == "whole-operation line type"
@@ -2780,6 +2860,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
         || adapter.pointCloudCount != 1u
+        || adapter.pointCloudExCount != 1u
         || adapter.meshCount != 1u
         || adapter.splineCount != 1u
         || adapter.hatchCount != 1u
@@ -2854,6 +2935,44 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.pointCloud.ucsZDirection.z != 1.0
         || adapter.pointCloud.definitionHandle != kPointCloudDefinitionHandle
         || adapter.pointCloud.reactorHandle != kPointCloudReactorHandle
+        || adapter.pointCloudEx.handle == 0u
+        || adapter.pointCloudEx.classVersion != 3u
+        || adapter.pointCloudEx.extentsMin.x != -100.0
+        || adapter.pointCloudEx.extentsMax.z != 600.0
+        || adapter.pointCloudEx.ucsOrigin.x != 7.0
+        || adapter.pointCloudEx.ucsYDirection.x != -1.0
+        || !adapter.pointCloudEx.isLocked
+        || adapter.pointCloudEx.definitionHandle != kPointCloudDefinitionExHandle
+        || adapter.pointCloudEx.reactorHandle != kPointCloudReactorExHandle
+        || adapter.pointCloudEx.name != "whole-operation pointcloud-ex"
+        || !adapter.pointCloudEx.showIntensity
+        || !adapter.pointCloudEx.showCropping
+        || adapter.pointCloudEx.croppingCount != 1
+        || adapter.pointCloudEx.stylizationType != 2
+        || adapter.pointCloudEx.intensityColorScheme != "intensity"
+        || adapter.pointCloudEx.currentColorScheme != "current"
+        || adapter.pointCloudEx.classificationColorScheme != "classification"
+        || adapter.pointCloudEx.elevationMin != -5.5
+        || adapter.pointCloudEx.elevationMax != 25.5
+        || adapter.pointCloudEx.intensityMin != 0.0
+        || adapter.pointCloudEx.intensityMax != 65535.0
+        || adapter.pointCloudEx.intensityOutOfRangeBehavior != 1
+        || adapter.pointCloudEx.elevationOutOfRangeBehavior != 2
+        || !adapter.pointCloudEx.elevationApplyToFixedRange
+        || !adapter.pointCloudEx.intensityAsGradient
+        || !adapter.pointCloudEx.elevationAsGradient
+        || adapter.pointCloudEx.croppings.size() != 1u
+        || adapter.pointCloudEx.croppings[0].type != 1
+        || !adapter.pointCloudEx.croppings[0].isInside
+        || adapter.pointCloudEx.croppings[0].isInverted
+        || adapter.pointCloudEx.croppings[0].cropPlane.x != 1.0
+        || adapter.pointCloudEx.croppings[0].cropXDirection.x != 1.0
+        || adapter.pointCloudEx.croppings[0].cropYDirection.y != 1.0
+        || adapter.pointCloudEx.croppings[0].pointCount != 3
+        || adapter.pointCloudEx.croppings[0].points.size() != 3u
+        || adapter.pointCloudEx.croppings[0].points[0].x != 1.0
+        || adapter.pointCloudEx.croppings[0].points[1].y != 5.0
+        || adapter.pointCloudEx.croppings[0].points[2].z != 9.0
         || lineTypeCount != 1u
         || lineType == adapter.storage.lineTypes.end()
         || lineType->handle == 0u

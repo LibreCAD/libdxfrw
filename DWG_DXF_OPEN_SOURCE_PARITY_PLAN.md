@@ -4401,6 +4401,16 @@ caller and destination state, then pass same-writer retry; the focused
 transaction CTest passes 1/1. This closes only the generated DXF carrier edges
 for this profile, not dictionary membership, RCS asset loading, point display
 or native consumer semantics ([receipt](docs/research/p6-dxf-pointcloud-entity-allocation-rollback-retry-2026-11-13.json)).
+The `POINTCLOUDEX` path now has a corresponding whole-operation generated
+profile linked to the `POINTCLOUDDEFINITIONEX` and `POINTCLOUDDEFREACTOREX`
+records. It includes one three-point crop boundary plus intensity/elevation
+range, scheme, display and direction fields. All 984 ASCII and 964 Binary
+injected allocation failures preserve the entity and destination; same-writer
+retry and typed readback verify the ordered crop geometry, modeled fields and
+both target handles. The focused transaction CTest passes 1/1. This proves only
+generated DXF transport and allocation safety, not crop evaluation, external
+asset loading or native point-cloud semantics
+([receipt](docs/research/p6-dxf-pointcloudex-entity-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

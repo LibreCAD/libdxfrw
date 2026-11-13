@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-pointcloudex-entity-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_POINTCLOUDEX_ENTITY_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public writePointCloudEx entry point, its variable crop-boundary payload and definition/reactor references within whole-operation AC1027 ASCII and Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One POINTCLOUDEX with one three-point crop boundary, nondefault intensity/elevation and scheme fields, and references to generated POINTCLOUDDEFINITIONEX and POINTCLOUDDEFREACTOREX records; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "08cec7b5",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add a generated DRW_PointCloudEx to the whole-operation ENTITIES writer and call writePointCloudEx directly. Its definitionHandle and reactorHandle point to emitted DefinitionEx and ReactorEx objects. Compare caller identity, crop count/type/flags/plane/directions/ordered points, references, schemes, ranges, display flags and UCS fields after each injected allocation failure and retry. Require prior destination preservation, same-writer retry and typed callback readback of those fields and target handles."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 984/984 and Binary 964/964 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and typed-codec evidence only; no independent producer or consumer semantics are established.",
+    "The two object handles resolve to generated typed records, but ACAD_POINTCLOUD dictionary membership and broader ownership graph closure are not qualified.",
+    "No RCS asset is loaded; crop evaluation, external asset resolution, rendering and native consumer behavior remain unqualified.",
+    "This is one generated crop profile; multiple cropping regions and alternate clipping modes remain outside this transaction control.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with remaining unqualified writer routes and profiles."
+}
