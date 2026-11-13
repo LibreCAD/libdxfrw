@@ -45,16 +45,17 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-DRW_CellStyleMap makeCellStyleMap() {
+DRW_CellStyleMap makeCellStyleMap(int styleId) {
     DRW_CellStyleMap map;
     map.handle = 0xE510u;
     map.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
     DRW_TableStyleCellStyle style;
     style.m_type = 5;
     style.m_hasData = true;
-    style.m_id = 101;
+    style.m_id = styleId;
     style.m_styleClass = 2;
-    style.m_name = "GENERATED_CELLSTYLEMAP_DATA";
+    style.m_name = styleId == 4 ? "GENERATED_CELLSTYLEMAP_TABLE"
+                                : "GENERATED_CELLSTYLEMAP_DATA";
     style.m_contentFormat.m_cellAlignment = 1;
     style.m_contentFormat.m_textHeight = 1.75;
     style.m_contentFormat.m_textStyleHandle = kTextStyleHandle;
@@ -70,8 +71,8 @@ DRW_CellStyleMap makeCellStyleMap() {
 
 class Export final : public dx_iface {
 public:
-    Export(dxfRW& codec, long failAt)
-        : codec(codec), map(makeCellStyleMap()), failAt(failAt) {
+    Export(dxfRW& codec, long failAt, int styleId)
+        : codec(codec), map(makeCellStyleMap(styleId)), failAt(failAt) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &codec;
@@ -150,7 +151,7 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path, int expectedStyleId) {
     dx_data data;
     dx_iface reader;
     const bool imported = reader.fileImport(path.string(), &data, false);
@@ -173,9 +174,12 @@ bool readbackMatches(const std::filesystem::path& path) {
                     == style.m_contentFormat.m_textStyleHandle
                 && textStyle.name == "GENERATED_CELLSTYLEMAP_TEXT";
         });
-    const bool matches = style.m_type == 5 && style.m_hasData && style.m_id == 101
+    const bool matches = style.m_type == 5 && style.m_hasData
+        && style.m_id == expectedStyleId
         && style.m_styleClass == 2
-        && style.m_name == "GENERATED_CELLSTYLEMAP_DATA"
+        && style.m_name == (expectedStyleId == 4
+            ? "GENERATED_CELLSTYLEMAP_TABLE"
+            : "GENERATED_CELLSTYLEMAP_DATA")
         && style.m_contentFormat.m_cellAlignment == 1
         && style.m_contentFormat.m_textHeight == 1.75
         && textStyleResolved
@@ -205,7 +209,10 @@ bool run(const std::filesystem::path& directory) {
     const std::string sentinel = "prior CELLSTYLEMAP destination\n";
     const std::array<DRW::Version, 3> versions{{
         DRW::AC1021, DRW::AC1024, DRW::AC1032}};
-    for (const DRW::Version version : versions) {
+    for (const int styleId : {101, 4}) {
+      for (const DRW::Version version : versions) {
+        if (styleId == 4 && version < DRW::AC1024)
+            continue;
         for (const bool binary : {false, true}) {
             const auto output = directory
                 / (std::string("cellstylemap-")
@@ -215,10 +222,10 @@ bool run(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, 1000000);
+                Export exporter(codec, 1000000, styleId);
                 const bool wrote = codec.write(&exporter, version, binary);
                 const bool readback = wrote && exporter.accepted
-                    && readbackMatches(output);
+                    && readbackMatches(output, styleId);
                 if (!readback) {
                     std::cerr << "CELLSTYLEMAP calibration version="
                               << static_cast<int>(version)
@@ -245,7 +252,7 @@ bool run(const std::filesystem::path& directory) {
                         return false;
                 }
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, offset);
+                Export exporter(codec, offset, styleId);
                 const DRW_CellStyleMap source = exporter.map;
                 const bool wrote = codec.write(&exporter, version, binary);
                 if (!allocationFailed || wrote || exporter.accepted
@@ -268,7 +275,7 @@ bool run(const std::filesystem::path& directory) {
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
                     || !sameMap(exporter.map, source)
-                    || !readbackMatches(output))
+                    || !readbackMatches(output, styleId))
                     return false;
             }
             std::cout << "CELLSTYLEMAP version="
@@ -279,7 +286,39 @@ bool run(const std::filesystem::path& directory) {
             std::error_code ignored;
             std::filesystem::remove(output, ignored);
         }
+      }
     }
+
+    const auto boundaryOutput = directory / "cellstylemap-id4-ac1021.dxf";
+    const std::string boundarySentinel = "prior ID-4 boundary destination\n";
+    {
+        std::ofstream prior(boundaryOutput,
+                            std::ios::binary | std::ios::trunc);
+        prior << boundarySentinel;
+        if (!prior)
+            return false;
+    }
+    dxfRW boundaryCodec(boundaryOutput.string().c_str());
+    Export boundaryExporter(boundaryCodec, -1, 4);
+    const DRW_CellStyleMap originalId4 = boundaryExporter.map;
+    if (boundaryCodec.write(&boundaryExporter, DRW::AC1021, false)
+        || boundaryExporter.accepted
+        || !sameMap(boundaryExporter.map, originalId4))
+        return false;
+    std::string boundaryBytes;
+    if (!readBytes(boundaryOutput, boundaryBytes)
+        || boundaryBytes != boundarySentinel)
+        return false;
+    boundaryExporter.map.m_cellStyles.front().m_id = 101;
+    boundaryExporter.map.m_cellStyles.front().m_name =
+        "GENERATED_CELLSTYLEMAP_DATA";
+    const DRW_CellStyleMap correctedId101 = boundaryExporter.map;
+    if (!boundaryCodec.write(&boundaryExporter, DRW::AC1021, false)
+        || !boundaryExporter.accepted
+        || !sameMap(boundaryExporter.map, correctedId101)
+        || !readbackMatches(boundaryOutput, 101))
+        return false;
+    std::cout << "CELLSTYLEMAP ID-4 AC1021 refusal/correction/retry=PASS\n";
     return true;
 }
 } // namespace

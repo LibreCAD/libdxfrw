@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **201 completed implementation slices** and **30 remaining
+The plan records **202 completed implementation slices** and **29 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`201 / (201 + 30) = 87.0%`. This is a count-based progress measure, not an
+`202 / (202 + 29) = 87.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4939,6 +4939,13 @@ matches clean bytes, and typed readback resolves the style's remapped text
 handle to the emitted TABLES record. The focused CTest passes 1/1 in 1.02
 seconds; no fixture was added. This does not qualify real extension-dictionary
 membership, producer semantics, or native TABLE display ([receipt](docs/research/p6-dxf-cellstylemap-allocation-version-matrix-rollback-retry-2026-11-13.json)).
+**P6-G CELLSTYLEMAP ID-4 version-gate follow-up (2026-11-13):** the writer's
+special ID-4 profile is now swept at AC1024 and AC1032 in ASCII and Binary,
+with all 12 allocation offsets per profile preserving caller/destination state
+and passing same-codec retry/readback. ID 4 refuses atomically at AC1021; after
+correcting the caller style ID to 101, the same codec writes and reads back the
+corrected record. The focused CTest passes 1/1 in 1.01 seconds; no fixture was
+added ([receipt](docs/research/p6-dxf-cellstylemap-id4-version-boundary-rollback-retry-2026-11-13.json)).
 **P6-G long UTF-8 MTEXT chunk transaction slice (2026-11-13):** a separate
 AC1027 generated whole-write selector now sweeps a 552-byte MTEXT payload whose
 three-byte euro sign crosses the 250-byte chunk boundary. All 101 ASCII and
