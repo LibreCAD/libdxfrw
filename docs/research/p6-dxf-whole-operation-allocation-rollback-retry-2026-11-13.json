@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-13",
   "topic": "Whole-operation DXF write allocation rollback and retry",
-  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE compound emission, OBJECTS emission, finalization, generated NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE/INSERT-ATTRIB compound emission, OBJECTS emission, finalization, generated custom BLOCK/BLOCK_RECORD/INSERT/ATTRIB/SEQEND plus NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
   "source": {
     "kind": "locally-authored-generated-control",
     "targetVersion": "AC1027",
@@ -304,6 +304,49 @@
         "sequenceEnd": "generated-by-writer"
       },
       {
+        "kind": "BLOCK",
+        "sourceHandle": "0xD925",
+        "name": "WHOLE_OPERATION_INSERT_BLOCK",
+        "blockRecord": "generated",
+        "entities": [
+          {
+            "kind": "POINT",
+            "sourceHandle": "0xD923",
+            "position": [
+              6.0,
+              7.0,
+              8.0
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "INSERT",
+        "sourceHandle": "0xD922",
+        "blockName": "WHOLE_OPERATION_INSERT_BLOCK",
+        "position": [
+          10.0,
+          20.0,
+          0.0
+        ],
+        "attributes": [
+          {
+            "kind": "ATTRIB",
+            "sourceHandle": "0xD924",
+            "ownerSourceHandle": "0xD922",
+            "tag": "WHOLE_OPERATION_TAG",
+            "text": "whole operation attribute",
+            "position": [
+              11.0,
+              21.0,
+              0.0
+            ],
+            "height": 2.5
+          }
+        ],
+        "sequenceEnd": "generated-by-writer"
+      },
+      {
         "kind": "XRECORD",
         "sourceHandle": "0xD901",
         "payload": "whole operation payload",
@@ -444,33 +487,38 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "68a2cf1ef643b09b65ec5f59e2ed17edc5abc04720d130350d7722f6642951b2",
+    "testSha256": "a089eac15a736333835a063d4c2868dd58f4e3fbebd54ac75710a86983039221",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "b726f0ac96788a8057aae76f801129b5916cee9b1d31fc8bcdbf6e0592ba4258",
-    "asanExecutableSha256": "5d7829126949c5f2331081069e6b950e1f5ebb22cba675ec8c342656415618d7",
+    "normalExecutableSha256": "2750cc46a07cec4c738e43046a69dd0c56275e800de46999ca9f75b7150ff203",
+    "asanExecutableSha256": "d1f2df938c0a0f132a97dce6bea5c83a7b61d72b772315c3b0e583f8df4cbdf0",
     "productionFiles": [
       "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
       "src/intern/dxfwriter.h"
     ],
-    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes.",
+    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. Successful INSERT/ATTRIB handle mutations are journaled until whole-file publication; any later failure restores the caller handles.",
     "productionSourceSha256": {
-      "src/libdxfrw.cpp": "efc04e1eae05d931def9c8b6fca4a2b6f3d5d6876a6d39916c182d499180042e",
+      "src/libdxfrw.cpp": "8399ea2e63ef61f7a541c1a2eb292ecc523f77b4210f7817c1d016c1cfa003ae",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "af90da7fc565a80908978865dcf578a88284f82df2e5602b4e400f5f2877bd46"
+      "tests/dxf_write_allocation_transaction_tests.cpp": "a089eac15a736333835a063d4c2868dd58f4e3fbebd54ac75710a86983039221",
+      "src/libdxfrw.h": "da9e6130f80a3be2d37362fb2aa8469607075eeed6f0498dd8cc1ba3f835b0b5"
     },
     "details": [
       "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
       "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback.",
       "Generated patterned HATCH output now participates in the whole-operation sweep with a closed polyline boundary, pattern dash vector and seed point.",
-      "Generated LEADER output with three 3D vertices and a nondefault block offset now participates in the whole-operation allocation sweep."
+      "Generated LEADER output with three 3D vertices and a nondefault block offset now participates in the whole-operation allocation sweep.",
+      "Generated custom BLOCK/BLOCK_RECORD output with one owned POINT and a name-resolved INSERT now participates in the whole-operation sweep.",
+      "The INSERT carries one ATTRIB and synthesized SEQEND. Typed readback verifies the block body, INSERT target/name/position and ATTRIB owner/tag/text/position/height.",
+      "Whole-write rollback now restores INSERT and ATTRIB caller handles when a later operation allocation fails; generated BLOCK/ENDBLK reservations no longer persist across failed attempts and change retry bytes."
     ]
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
-    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-classic-polyline-whole-operation-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
+    "validation": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure; build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /private/tmp/libdxfrw-insert-attrib-whole-operation-control; cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure",
     "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
     "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
     "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
@@ -478,9 +526,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 1.51 seconds; ASan 1/1 passed in 10.93 seconds.",
+    "ctest": "Normal 1/1 passed in 1.73 seconds; ASan 1/1 passed in 13.33 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 289,
+      "measuredAllocationOffsets": 352,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -519,10 +567,15 @@
       "destinationAndDerivedIdentitiesRolledBack": true,
       "polylineParentAndVertexReadbackMatched": true,
       "polylineAllocationFailureAbortsWholeWrite": true,
-      "callerPolylineParentAndVertexHandlesPreserved": true
+      "callerPolylineParentAndVertexHandlesPreserved": true,
+      "insertAttributeReadbackMatched": true,
+      "generatedBlockAndBodyReadbackMatched": true,
+      "insertAttribWholeOperationHandleRollback": true,
+      "blockStructuralHandleRetryIdentityStable": true,
+      "callerInsertAttribAndBlockRecordsPreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 284,
+      "measuredAllocationOffsets": 345,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -561,9 +614,14 @@
       "destinationAndDerivedIdentitiesRolledBack": true,
       "polylineParentAndVertexReadbackMatched": true,
       "polylineAllocationFailureAbortsWholeWrite": true,
-      "callerPolylineParentAndVertexHandlesPreserved": true
+      "callerPolylineParentAndVertexHandlesPreserved": true,
+      "insertAttributeReadbackMatched": true,
+      "generatedBlockAndBodyReadbackMatched": true,
+      "insertAttribWholeOperationHandleRollback": true,
+      "blockStructuralHandleRetryIdentityStable": true,
+      "callerInsertAttribAndBlockRecordsPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 10.93 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 13.33 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -571,19 +629,32 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 250 allocation offsets; Binary 246 allocation offsets; both pass rollback, caller-state preservation, same-codec retry, byte comparison and typed readback.",
-      "normalCtest": "1/1 passed in 1.34 seconds.",
-      "asanCtest": "1/1 passed in 9.51 seconds.",
-      "generatedMeshReadback": "One triangle, three edge pairs, one crease value, and one property override with two types matched after ASCII and Binary readback.",
-      "generatedSplineReadback": "Degree-1 SPLINE with two 3D control points and four knots matched after ASCII and Binary readback.",
-      "generatedHatchReadback": "Patterned ANSI31 HATCH with a closed four-vertex polyline boundary, one pattern line containing three dash values, and one seed point matched after ASCII and Binary readback.",
-      "generatedLeaderReadback": "LEADER with STANDARD style, three 3D vertices, and a nondefault block offset matched after ASCII and Binary readback."
-    }
+      "normalDirectRun": "ASCII 352 allocation offsets; Binary 345 allocation offsets; both pass whole-write rollback, INSERT/ATTRIB/block caller-state preservation, byte-identical same-codec retry and typed readback.",
+      "normalCtest": "1/1 passed in 1.73 seconds.",
+      "asanCtest": "1/1 passed in 13.33 seconds.",
+      "insertReadback": "One generated named BLOCK containing a POINT; a name-resolved INSERT with one ATTRIB and generated SEQEND matched after ASCII and Binary readback.",
+      "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
+      "callerHandleRollbackDefect": "Injected failure at offset 255 after successful INSERT/ATTRIB emission left newly minted caller handles visible. Whole-write attempt journal now restores their original handles unless the output commit succeeds."
+    },
+    "additionalFailuresFoundAndFixed": [
+      {
+        "asciiOffset": 43,
+        "symptom": "Failed custom BLOCK output left its derived BLOCK and ENDBLK handles in the persistent explicit-reservation set; same-codec retry shifted a later VPORT handle and differed from clean output.",
+        "fix": "Reserve generated BLOCK/ENDBLK handles with reserveForWrite(), which scopes them to the current attempt.",
+        "regression": "All offsets now require same-codec retry bytes to match the clean output exactly."
+      },
+      {
+        "asciiOffset": 255,
+        "symptom": "An INSERT with an ATTRIB completed and exposed minted caller handles, then a later allocation failure aborted the full drawing but left those new handles in caller records.",
+        "fix": "Journal successful INSERT/ATTRIB caller handle mutations until whole-file publication; WriteAttemptScope restores them on any later failure and clears the journal after success.",
+        "regression": "All offsets check original INSERT, ATTRIB, block and point caller state after failure; retry succeeds and typed readback verifies the complete graph."
+      }
+    ]
   },
   "limits": [
-    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT, name-resolved INSERT with ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "083caaa3"
+  "baseRevision": "40d14d04"
 }

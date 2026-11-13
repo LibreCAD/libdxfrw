@@ -29,8 +29,13 @@ constexpr std::uint32_t kLeaderHandle = 0xD91Cu;
 constexpr std::uint32_t kMLineHandle = 0xD91Du;
 constexpr std::uint32_t kMLineStyleHandle = 0xD91Eu;
 constexpr std::uint32_t kPolyline3Handle = 0xD91Fu;
+constexpr std::uint32_t kInsertHandle = 0xD922u;
+constexpr std::uint32_t kInsertBlockPointHandle = 0xD923u;
+constexpr std::uint32_t kInsertAttribHandle = 0xD924u;
+constexpr std::uint32_t kInsertBlockHandle = 0xD925u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
+const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
 const std::string kNestedXrecordName = "NESTED_XRECORD";
 using DictionaryEdge = DRW_Dictionary::Entry::DxfHandleCode;
 
@@ -257,6 +262,28 @@ public:
         targetBeta.parentHandle = kCustomDictionaryHandle;
         targetBeta.m_dataAdapter = "EXCEL";
         targetBeta.m_description = "beta target";
+
+        DRW_Block block;
+        block.handle = kInsertBlockHandle;
+        block.name = kInsertBlockName;
+        addBlock(block);
+        DRW_Point blockPoint;
+        blockPoint.handle = kInsertBlockPointHandle;
+        blockPoint.basePoint = DRW_Coord(6.0, 7.0, 8.0);
+        addPoint(blockPoint);
+        endBlock();
+
+        insert.handle = kInsertHandle;
+        insert.name = kInsertBlockName;
+        insert.basePoint = DRW_Coord(10.0, 20.0, 0.0);
+        auto attribute = std::make_shared<DRW_Attrib>();
+        attribute->handle = kInsertAttribHandle;
+        attribute->tag = "WHOLE_OPERATION_TAG";
+        attribute->text = "whole operation attribute";
+        attribute->basePoint = DRW_Coord(11.0, 21.0, 0.0);
+        attribute->height = 2.5;
+        attribute->style = "STANDARD";
+        insert.attlist.push_back(std::move(attribute));
     }
 
     void writeEntities() override {
@@ -270,7 +297,8 @@ public:
             && output.writeHatch(&hatch)
             && output.writeLeader(&leader)
             && output.writeMLine(&mline)
-            && output.writePolyline(&polyline3);
+            && output.writePolyline(&polyline3)
+            && output.writeInsert(&insert);
     }
 
     void writeObjects() override {
@@ -299,6 +327,7 @@ public:
     DRW_MLine mline;
     DRW_MLineStyle mlineStyle;
     DRW_Polyline polyline3;
+    DRW_Insert insert;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -364,6 +393,10 @@ public:
         ++polyline3Count;
         polyline3 = value;
     }
+    void addInsert(const DRW_Insert& value) override {
+        ++insertCount;
+        insert = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -387,6 +420,7 @@ public:
     DRW_MLine mline;
     DRW_MLineStyle mlineStyle;
     DRW_Polyline polyline3;
+    DRW_Insert insert;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -402,6 +436,7 @@ public:
     unsigned mlineCount = 0u;
     unsigned mlineStyleCount = 0u;
     unsigned polyline3Count = 0u;
+    unsigned insertCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -536,6 +571,23 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.polyline3.vertlist[1]->handle == 0xD921u
         && adapter.polyline3.vertlist[1]->basePoint.x == 4.0
         && adapter.polyline3.vertlist[1]->basePoint.y == 6.0
+        && adapter.insert.handle == kInsertHandle
+        && adapter.insert.name == kInsertBlockName
+        && adapter.insert.basePoint.x == 10.0
+        && adapter.insert.basePoint.y == 20.0
+        && adapter.insert.attlist.size() == 1u
+        && adapter.insert.attlist.front()
+        && adapter.insert.attlist.front()->handle == kInsertAttribHandle
+        && adapter.insert.attlist.front()->tag == "WHOLE_OPERATION_TAG"
+        && adapter.insert.attlist.front()->text == "whole operation attribute"
+        && adapter.insert.attlist.front()->basePoint.x == 11.0
+        && adapter.insert.attlist.front()->height == 2.5
+        && adapter.storage.blocks.size() == 1u
+        && adapter.storage.blocks.front()->handle == kInsertBlockHandle
+        && adapter.storage.blocks.front()->name == kInsertBlockName
+        && adapter.storage.blocks.front()->ent.size() == 1u
+        && adapter.storage.blocks.front()->ent.front()->handle
+            == kInsertBlockPointHandle
         && adapter.object.name == "XRECORD"
         && adapter.object.handle == 0xD901u
         && adapter.object.parentHandle == kCustomDictionaryHandle
@@ -587,6 +639,11 @@ bool matchesReadback(const std::filesystem::path& path) {
         adapter.dataLinks.begin(), adapter.dataLinks.end(),
         [](const DRW_DataLink& value) {
             return value.handle == kTargetBetaHandle;
+        });
+    const auto insertBlock = std::find_if(
+        adapter.storage.blocks.begin(), adapter.storage.blocks.end(),
+        [](const dx_ifaceBlock* value) {
+            return value != nullptr && value->name == kInsertBlockName;
         });
     const DRW_ImageDef* imageDefinition = adapter.storage.findImageDefinition(
         adapter.storage.importGeneration, adapter.image.ref);
@@ -713,6 +770,21 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.polyline3.vertlist[1]->handle == 0u
         || adapter.polyline3.vertlist[1]->basePoint.x != 4.0
         || adapter.polyline3.vertlist[1]->basePoint.y != 6.0
+        || adapter.insertCount != 1u
+        || adapter.insert.handle == 0u
+        || adapter.insert.name != kInsertBlockName
+        || adapter.insert.basePoint.x != 10.0
+        || adapter.insert.basePoint.y != 20.0
+        || adapter.insert.attlist.size() != 1u
+        || !adapter.insert.attlist.front()
+        || adapter.insert.attlist.front()->handle == 0u
+        || adapter.insert.attlist.front()->tag != "WHOLE_OPERATION_TAG"
+        || adapter.insert.attlist.front()->text != "whole operation attribute"
+        || adapter.insert.attlist.front()->basePoint.x != 11.0
+        || adapter.insert.attlist.front()->height != 2.5
+        || insertBlock == adapter.storage.blocks.end()
+        || (*insertBlock)->ent.size() != 1u
+        || (*insertBlock)->ent.front()->handle == 0u
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
@@ -745,6 +817,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << " polylineHandle=" << adapter.polyline.handle
                   << " polylineFlags=" << adapter.polyline.flags
                   << " polylineVertices=" << adapter.polyline.vertlist.size()
+                  << " insertCount=" << adapter.insertCount
+                  << " insertName=" << adapter.insert.name
+                  << " insertHandle=" << adapter.insert.handle
+                  << " attribs=" << adapter.insert.attlist.size()
+                  << " blocks=" << adapter.storage.blocks.size()
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
                   << adapter.line.secPoint.z << " rawGroups="
@@ -970,16 +1047,47 @@ bool run(const std::filesystem::path& directory) {
                           << " identities=" << identitiesRolledBack
                           << " destination=" << (afterFailure == sentinel)
                           << " caller=" << callerRecordsUnchanged(adapter)
+                          << " insert/attrib/block/point handles="
+                          << adapter.insert.handle << '/'
+                          << adapter.insert.attlist.front()->handle << '/'
+                          << adapter.storage.blocks.front()->handle << '/'
+                          << adapter.storage.blocks.front()->ent.front()->handle
                           << '\n';
                 return fail("failure published identities or changed destination/caller records");
             }
 
             const bool retried = codec.write(&adapter, DRW::AC1027, binary);
             std::string retryBytes;
+            const bool retryReadBytes = readBytes(output, retryBytes);
+            const bool retryReadback = matchesReadback(output);
             if (!retried || !adapter.entitiesWritten || !adapter.objectsWritten
-                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
-                || !matchesReadback(output))
+                || !retryReadBytes || retryBytes != expectedBytes
+                || !retryReadback) {
+                std::cerr << "retry offset=" << offset << " retried=" << retried
+                          << " entities=" << adapter.entitiesWritten
+                          << " objects=" << adapter.objectsWritten
+                          << " bytesRead=" << retryReadBytes
+                          << " bytesMatch=" << (retryBytes == expectedBytes)
+                          << " readback=" << retryReadback
+                          << " error=" << codec.getError() << '\n';
+                const std::size_t mismatch = std::mismatch(
+                    expectedBytes.begin(), expectedBytes.end(), retryBytes.begin(),
+                    retryBytes.end()).first - expectedBytes.begin();
+                std::cerr << "first byte mismatch=" << mismatch
+                          << " expected size=" << expectedBytes.size()
+                          << " actual size=" << retryBytes.size()
+                          << " blockHandle=" << adapter.storage.blocks.front()->handle
+                          << " pointHandle="
+                          << adapter.storage.blocks.front()->ent.front()->handle
+                          << " insertHandle=" << adapter.insert.handle
+                          << " attribHandle=" << adapter.insert.attlist.front()->handle
+                          << '\n';
+                const std::size_t left = mismatch > 80u ? mismatch - 80u : 0u;
+                std::cerr << "expected slice=["
+                          << expectedBytes.substr(left, 240u) << "]\nactual slice=["
+                          << retryBytes.substr(left, 240u) << "]\n";
                 return fail("same-codec retry did not reproduce clean output");
+            }
         }
         std::cout << "whole DXF write " << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount

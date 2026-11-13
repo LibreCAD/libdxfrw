@@ -3070,6 +3070,7 @@ public:
     explicit WholeOperationScope(dxfRW& owner) noexcept
         : m_owner(owner), m_admitted(!owner.m_wholeOperationActive) {
         if (m_admitted) {
+            m_owner.m_dxfWriteCallerEntityHandleJournal.clear();
             m_owner.m_wholeOperationActive = true;
             m_owner.m_readTokenBudgetActive = false;
             m_owner.m_readInputByteBudgetActive = false;
@@ -3119,6 +3120,12 @@ public:
     }
     ~WriteAttemptScope() noexcept {
         if (!m_committed) {
+            for (auto saved = m_owner.m_dxfWriteCallerEntityHandleJournal.rbegin();
+                 saved != m_owner.m_dxfWriteCallerEntityHandleJournal.rend();
+                 ++saved) {
+                if (saved->first != nullptr)
+                    saved->first->handle = saved->second;
+            }
             // Constructed before any record scope: their journals and borrowed
             // records have already unwound. Dispose the writer before deleting
             // session-owned definitions; never retain caller pointers here.
@@ -3126,6 +3133,7 @@ public:
             m_owner.m_writeError = true;
             m_owner.discardDxfWriteResults();
         }
+        m_owner.m_dxfWriteCallerEntityHandleJournal.clear();
         m_owner.m_dxfNoRawSectionsSelected = false;
         m_owner.m_dxfNoRawSectionsObserved = false;
         m_owner.m_dxfWriteAttemptActive = false;
@@ -11881,6 +11889,27 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
     const bool hasAttribs = !ent->attlist.empty();
     const bool hasSequenceEnd = hasAttribs || ent->seqEndEntity != nullptr;
     const bool isMInsert = ent->isMInsert();
+    std::vector<std::pair<DRW_Entity*, std::uint32_t>> callerHandleSnapshot;
+    if (hasAttribs && m_dxfWriteAttemptActive) {
+        if (ent->attlist.size()
+                >= callerHandleSnapshot.max_size()
+            || m_dxfWriteCallerEntityHandleJournal.size()
+                > m_dxfWriteCallerEntityHandleJournal.max_size()
+                    - ent->attlist.size() - 1u)
+            return failDxfWrite();
+        try {
+            callerHandleSnapshot.reserve(ent->attlist.size() + 1u);
+            callerHandleSnapshot.emplace_back(ent, ent->handle);
+            for (const auto& attribute : ent->attlist)
+                callerHandleSnapshot.emplace_back(
+                    attribute.get(), attribute->handle);
+            m_dxfWriteCallerEntityHandleJournal.reserve(
+                m_dxfWriteCallerEntityHandleJournal.size()
+                + callerHandleSnapshot.size());
+        } catch (...) {
+            return failDxfWrite();
+        }
+    }
     // DXF represents a multiple insert as an INSERT record with the
     // AcDbMInsertBlock subclass and grid groups.  MINSERT is the distinct DWG
     // object type, not the standard DXF group-0 entity name.
@@ -11936,6 +11965,9 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
     }
     // The compound INSERT/ATTRIB sequence exposes these minted identities as
     // caller state so its child owner links remain usable after emission.
+    m_dxfWriteCallerEntityHandleJournal.insert(
+        m_dxfWriteCallerEntityHandleJournal.end(),
+        callerHandleSnapshot.begin(), callerHandleSnapshot.end());
     state.commit(hasAttribs);
     attributeState.committed = true;
     return true;
@@ -17310,8 +17342,11 @@ bool dxfRW::writeBlockRecord(
                                             endBlockHandle)) {
                 throw std::overflow_error("DXF block handle range exhausted");
             }
-            m_handleAllocator->reserve(blockHandle);  // BLOCK
-            m_handleAllocator->reserve(endBlockHandle);  // ENDBLK
+            // These structural identities belong only to this write attempt.
+            // Persisting them as caller reservations makes an allocation
+            // failure advance the next same-codec retry's minted-handle set.
+            m_handleAllocator->reserveForWrite(blockHandle);  // BLOCK
+            m_handleAllocator->reserveForWrite(endBlockHandle);  // ENDBLK
         } catch (...) {
             m_writeError = true;
             return false;

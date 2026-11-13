@@ -2133,6 +2133,11 @@ private:
     // Mutations made while a RecordStateScope is active. Entries are appended
     // before a map/set mutation and removed in reverse order on rollback.
     std::vector<DxfWriteMutation> m_dxfWriteMutations;
+    // INSERT writes publish their parent/ATTRIB handles on success so owned
+    // references remain usable. Defer their visibility across the whole
+    // drawing transaction until the final output commit succeeds.
+    std::vector<std::pair<DRW_Entity*, std::uint32_t>>
+        m_dxfWriteCallerEntityHandleJournal;
     std::size_t m_recordStateScopeDepth {0};
 
     std::uint32_t currHandle {DRW::NoHandle};
