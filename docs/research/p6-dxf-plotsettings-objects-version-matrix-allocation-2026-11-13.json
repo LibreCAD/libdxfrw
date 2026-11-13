@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-plotsettings-objects-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_PLOTSETTINGS_OBJECTS_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Allocation rollback, same-adapter retry, and typed graph readback for one generated PLOTSETTINGS OBJECTS profile exported at AC1024, AC1027, and AC1032.",
+  "source": {
+    "kind": "locally authored ASCII DXF graph parsed at AC1027 during each test run",
+    "profile": "One named ACAD_PLOTSETTINGS dictionary entry targeting one PLOTSETTINGS record with printer, paper, margin, layout flag, paper-unit, and plot-type fields.",
+    "sourceVersion": "AC1027",
+    "targetVersions": ["AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/plotsettings_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-plotsettings-objects-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "87d5fe3f06870ed5fde3c55769afe860af52904eff62f9d036c326fc842c3d48",
+    "testExecutableSha256": "94485524b6c0d1e799239d68eebb1d955dcebb5c8e87b13fa57a554615b5e43b",
+    "method": "For each target version and encoding, calibrate the complete file export, inject std::bad_alloc at each measured OBJECTS callback allocation, verify prior destination bytes and source graph preservation, retry through the same adapter, and validate dictionary ownership and typed PLOTSETTINGS readback."
+  },
+  "allocationOffsets": {
+    "AC1024": {"ASCII": 22, "Binary": 21},
+    "AC1027": {"ASCII": 22, "Binary": 21},
+    "AC1032": {"ASCII": 22, "Binary": 21},
+    "totals": {"ASCII": 66, "Binary": 63, "all": 129}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_plotsettings_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_plotsettings_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 2.38 seconds",
+    "directControl": "build/tests/libdxfrw_plotsettings_objects_allocation_tests build/plotsettings-scratch: PASS; three target versions, both encodings, 129 injected OBJECTS allocations",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "The source graph is locally authored at AC1027 and reused across target versions; this is writer compatibility evidence, not producer-authored source-profile evidence.",
+    "The allocation injection is scoped to the OBJECTS callback, distinct from the separate whole-operation PLOTSETTINGS receipt.",
+    "Independent producer acceptance, complete optional PlotSettings references, native page setup behavior, and platform qualification remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated rooted PLOTSETTINGS graph passes callback allocation rollback, caller preservation, same-adapter retry, and typed readback across AC1024/AC1027/AC1032 ASCII and Binary.",
+    "remainingP6G": "Continue the public-writer inventory and keep producer, reference-closure, native, and platform gates open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "228 completed slices and 35 remaining packages: 228/(228+35)=86.7%; count-based activity proxy only."
+  },
+  "wholeOperationReceipt": "docs/research/p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13.json"
+}

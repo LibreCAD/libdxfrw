@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **227 completed implementation slices** and **35 remaining
+The plan records **228 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`227 / (227 + 35) = 86.6%`. This is a count-based progress measure, not an
+`228 / (228 + 35) = 86.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1539,6 +1539,16 @@ caller fields; same-codec retry reproduces clean output with typed readback.
 The focused transaction CTest passes. This is generated allocation and codec
 roundtrip evidence only; native page setup behavior and independent producer
 acceptance remain open. See the [receipt](docs/research/p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13.json).
+
+**P6-G PLOTSETTINGS OBJECTS version matrix (2026-11-13):** the existing
+generated AC1027 input graph now exports at AC1024, AC1027, and AC1032 in both
+encodings. Each target lane passes all 22 ASCII or 21 Binary injected OBJECTS
+callback allocation failures with destination/source rollback, same-adapter
+retry, dictionary-owner checks, and typed readback. The focused CTest passes
+1/1 in 2.38 seconds (129 offsets total). This supplements, but is distinct
+from, the whole-operation allocation sweep above; producer acceptance, optional
+reference closure, and native page setup remain open
+([receipt](docs/research/p6-dxf-plotsettings-objects-version-matrix-allocation-2026-11-13.json)).
 
 **P6 local WIPEOUTVARIABLES transaction slice (2026-11-13):** the generated
 whole-operation AC1027 sweep now includes WIPEOUTVARIABLES with display-frame

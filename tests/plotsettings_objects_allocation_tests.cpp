@@ -205,15 +205,18 @@ bool run(const std::filesystem::path& directory) {
     if (!makeData(data))
         return fail("generated PLOTSETTINGS graph did not initialize");
     const DRW_PlotSettings source = data.plotSettings.front();
-    PlotSettingsExport exporter;
-    const auto output = directory / "plotsettings-objects.dxf";
     const std::string sentinel = "prior PLOTSETTINGS destination bytes\n";
-    const auto write = [&exporter, &data, &output](bool binary) {
-        return exporter.fileExport(output.string(), DRW::AC1027, binary,
-            &data, false);
-    };
-
-    for (const bool binary : {false, true}) {
+    for (const DRW::Version version : {
+             DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+      PlotSettingsExport exporter;
+      const auto output = directory
+          / ("plotsettings-objects-"
+             + std::to_string(static_cast<int>(version)) + ".dxf");
+      const auto write = [&exporter, &data, &output, version](bool binary) {
+          return exporter.fileExport(output.string(), version, binary,
+              &data, false);
+      };
+      for (const bool binary : {false, true}) {
         exporter.failAt = 1000000;
         if (!write(binary) || !verifyGraph(output))
             return fail("allocation calibration did not read back graph");
@@ -241,12 +244,14 @@ bool run(const std::filesystem::path& directory) {
                 return fail("same-adapter retry failed typed graph readback");
         }
         std::cout << "PLOTSETTINGS OBJECTS "
+                  << static_cast<int>(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
+      }
+      std::error_code ignored;
+      std::filesystem::remove(output, ignored);
     }
-    std::error_code ignored;
-    std::filesystem::remove(output, ignored);
     return true;
 }
 } // namespace
