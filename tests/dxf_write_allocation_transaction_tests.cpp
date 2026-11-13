@@ -388,6 +388,15 @@ public:
         arcDimension.arcEndAngle = 1.75;
         arcDimension.isPartial = true;
         arcDimension.hasLeader = true;
+        largeRadialDimension.handle = 0xD968u;
+        largeRadialDimension.setCenterPoint(DRW_Coord(80.0, 81.0, 82.0));
+        largeRadialDimension.setTextPoint(DRW_Coord(80.5, 81.5, 0.0));
+        largeRadialDimension.setText("whole-operation large radial");
+        largeRadialDimension.setStyle("STANDARD");
+        largeRadialDimension.setChordPoint(DRW_Coord(83.0, 80.0, 82.0));
+        largeRadialDimension.overrideCenterPoint = DRW_Coord(80.0, 81.0, 82.0);
+        largeRadialDimension.jogPoint = DRW_Coord(84.0, 82.0, 0.0);
+        largeRadialDimension.jogAngle = 0.375;
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -652,6 +661,7 @@ public:
             && check("DIMANGULAR3P", output.writeDimension(&angular3pDimension))
             && check("DIMORDINATE", output.writeDimension(&ordinateDimension))
             && check("ARC_DIMENSION", output.writeDimension(&arcDimension))
+            && check("LARGE_RADIAL_DIMENSION", output.writeDimension(&largeRadialDimension))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -715,6 +725,7 @@ public:
     DRW_DimAngular3p angular3pDimension;
     DRW_DimOrdinate ordinateDimension;
     DRW_DimArc arcDimension;
+    DRW_DimLargeRadial largeRadialDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -829,8 +840,14 @@ public:
         if (value == nullptr)
             return;
         dx_iface::addDimRadial(value);
-        ++radialDimensionCount;
-        radialDimension = *value;
+        if (const auto* large =
+                dynamic_cast<const DRW_DimLargeRadial*>(value)) {
+            ++largeRadialDimensionCount;
+            largeRadialDimension = *large;
+        } else {
+            ++radialDimensionCount;
+            radialDimension = *value;
+        }
     }
     void addDimDiametric(const DRW_DimDiametric* value) override {
         if (value == nullptr)
@@ -1009,6 +1026,7 @@ public:
     DRW_DimAngular3p angular3pDimension;
     DRW_DimOrdinate ordinateDimension;
     DRW_DimArc arcDimension;
+    DRW_DimLargeRadial largeRadialDimension;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1058,6 +1076,7 @@ public:
     unsigned angular3pDimensionCount = 0u;
     unsigned ordinateDimensionCount = 0u;
     unsigned arcDimensionCount = 0u;
+    unsigned largeRadialDimensionCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1354,6 +1373,15 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.arcDimension.arcEndAngle == 1.75
         && adapter.arcDimension.isPartial
         && adapter.arcDimension.hasLeader
+        && adapter.largeRadialDimension.handle == 0xD968u
+        && adapter.largeRadialDimension.getCenterPoint().x == 80.0
+        && adapter.largeRadialDimension.getCenterPoint().y == 81.0
+        && adapter.largeRadialDimension.getCenterPoint().z == 82.0
+        && adapter.largeRadialDimension.getTextPoint().x == 80.5
+        && adapter.largeRadialDimension.getChordPoint().x == 83.0
+        && adapter.largeRadialDimension.overrideCenterPoint.y == 81.0
+        && adapter.largeRadialDimension.jogPoint.x == 84.0
+        && adapter.largeRadialDimension.jogAngle == 0.375
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -1722,6 +1750,7 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.angular3pDimensionCount != 1u
         || adapter.ordinateDimensionCount != 1u
         || adapter.arcDimensionCount != 1u
+        || adapter.largeRadialDimensionCount != 1u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
         || adapter.circle.basePoint.x != -7.0
@@ -1918,6 +1947,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.arcDimension.arcEndAngle != 1.75
         || !adapter.arcDimension.isPartial
         || !adapter.arcDimension.hasLeader
+        || adapter.largeRadialDimension.handle == 0u
+        || adapter.largeRadialDimension.getCenterPoint().x != 80.0
+        || adapter.largeRadialDimension.getCenterPoint().y != 81.0
+        || adapter.largeRadialDimension.getCenterPoint().z != 82.0
+        || adapter.largeRadialDimension.getTextPoint().x != 80.5
+        || adapter.largeRadialDimension.getChordPoint().x != 83.0
+        || adapter.largeRadialDimension.overrideCenterPoint.y != 81.0
+        || adapter.largeRadialDimension.jogPoint.x != 84.0
+        || adapter.largeRadialDimension.jogAngle != 0.375
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
@@ -2295,7 +2333,9 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << adapter.diametricDimensionCount << '/'
                   << adapter.angularDimensionCount << '/'
                   << adapter.angular3pDimensionCount << '/'
-                  << adapter.ordinateDimensionCount;
+                  << adapter.ordinateDimensionCount << "/arc="
+                  << adapter.arcDimensionCount << "/largeRadial="
+                  << adapter.largeRadialDimensionCount;
         const auto printDimension = [](const char* name,
                                        const DRW_Dimension& value) {
             const DRW_Coord definition = value.getDefPoint();
@@ -2315,6 +2355,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         printDimension("angular", adapter.angularDimension);
         printDimension("angular3p", adapter.angular3pDimension);
         printDimension("ordinate", adapter.ordinateDimension);
+        std::cerr << " large radial fields: handle="
+                  << adapter.largeRadialDimension.handle << ", center="
+                  << adapter.largeRadialDimension.getCenterPoint().x << ','
+                  << adapter.largeRadialDimension.getCenterPoint().y << ','
+                  << adapter.largeRadialDimension.getCenterPoint().z
+                  << ", chord="
+                  << adapter.largeRadialDimension.getChordPoint().x << ','
+                  << adapter.largeRadialDimension.getChordPoint().y << ','
+                  << adapter.largeRadialDimension.getChordPoint().z
+                  << ", override="
+                  << adapter.largeRadialDimension.overrideCenterPoint.x << ','
+                  << adapter.largeRadialDimension.overrideCenterPoint.y << ','
+                  << adapter.largeRadialDimension.overrideCenterPoint.z
+                  << ", jog=" << adapter.largeRadialDimension.jogPoint.x << ','
+                  << adapter.largeRadialDimension.jogPoint.y << ','
+                  << adapter.largeRadialDimension.jogPoint.z << ','
+                  << adapter.largeRadialDimension.jogAngle << '\n';
         if (rawXrecord != adapter.objects.end()
             && rawXrecord->groups.size() > 3u
             && rawXrecord->groups[3].c_str() != nullptr)

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **95 completed implementation slices** and **35 remaining
+The plan records **96 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`95 / (95 + 35) = 73.1%`. This is a count-based progress measure, not an
+`96 / (96 + 35) = 73.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1291,14 +1291,14 @@ textures and native rendering remain unqualified. See the [receipt](docs/researc
 **P6 local DIMENSION transaction slice (2026-11-13):** the whole-file
 ASCII/Binary allocation sweep writes all seven standard typed subtypes
 (aligned, linear, radial, diametric, two-line angular, three-point angular,
-ordinate) and the separate ARC_DIMENSION path, including partial-arc and
-leader state. All 636 ASCII and 629 Binary failure offsets preserve the prior
+ordinate), the separate ARC_DIMENSION path (including partial-arc and leader
+state), and LARGE_RADIAL_DIMENSION (including chord, overridden center, jog
+point and jog angle). All 647 ASCII and 640 Binary failure offsets preserve the prior
 destination, caller fields and derived identity maps; same-writer retry
 reproduces clean bytes and typed readback checks each callback and modeled
-field. The focused transaction CTest passes 1/1 in 3.91 seconds. This is
+field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
-profiles, LARGE_RADIAL_DIMENSION, native rendering and producer-specific DWG
-semantics remain open. See the
+profiles, native rendering and producer-specific DWG semantics remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local LOFTEDSURFACE transaction slice (2026-11-13):** the same sweep
