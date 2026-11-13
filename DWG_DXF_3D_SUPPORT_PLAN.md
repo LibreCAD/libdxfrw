@@ -10753,6 +10753,20 @@ represent face surfaces, native rendering, independent interoperability, DWG
 producer behavior, or a 3DFACE support claim. No fixture was added. See the
 [receipt](docs/research/p8-3dface-default-visible-edge-fallback-2026-11-13.json).
 
+**P8/S8.3.24 legacy SOLID/TRACE callback fallback (2026-11-13):** default
+`DRW_Interface::addSolid` and `addTrace` callbacks now project a planar
+boundary to nondegenerate LINE callbacks for the canonical +Z extrusion,
+where OCS and WCS coordinates coincide. The raw corner slots are reordered
+as `0-1-3-2`; a repeated fourth corner suppresses the duplicate triangle
+edge. Presentation fields are copied and synthesized handles cleared. Other
+extrusion directions remain on the typed callback path because this fallback
+does not guess an OCS-to-WCS transform. The focused
+`libdxfrw_3d_consumer_probe` passes, and `lc3_compat_check` builds. This
+wireframe does not preserve fill or thickness and does not establish native
+rendering, independent interoperability, DWG producer behavior, or a
+SOLID/TRACE support claim. No fixture was added. See the
+[receipt](docs/research/p8-solid-trace-default-z-wireframe-fallback-2026-11-13.json).
+
 **P8 generated DWG writer-skip continuation control (2026-11-13; superseded
 for malformed-reader recovery by the following slice):** the
 semantic adapter no longer assumes a DWG writer emits a non-finite LINE for

@@ -661,6 +661,7 @@ public:
     std::vector<DRW_Polyline> meshFallbackPolylines;
     std::vector<DRW_Line> meshFallbackLines;
     std::vector<DRW_Line> faceFallbackLines;
+    std::vector<DRW_Line> traceFallbackLines;
     void exerciseDefault3DFaceFallback(const DRW_3Dface& face) {
         struct ResetFlag {
             bool& flag;
@@ -668,6 +669,22 @@ public:
         } reset{collect3DFaceFallbackLines_};
         collect3DFaceFallbackLines_ = true;
         DRW_Interface::add3dFace(face);
+    }
+    void exerciseDefaultTraceFallback(const DRW_Trace& trace) {
+        struct ResetFlag {
+            bool& flag;
+            ~ResetFlag() { flag = false; }
+        } reset{collectTraceFallbackLines_};
+        collectTraceFallbackLines_ = true;
+        DRW_Interface::addTrace(trace);
+    }
+    void exerciseDefaultSolidFallback(const DRW_Solid& solid) {
+        struct ResetFlag {
+            bool& flag;
+            ~ResetFlag() { flag = false; }
+        } reset{collectTraceFallbackLines_};
+        collectTraceFallbackLines_ = true;
+        DRW_Interface::addSolid(solid);
     }
     void exerciseDefaultMeshFallback(const DRW_Mesh& mesh) {
         struct ResetFlag {
@@ -874,6 +891,8 @@ public:
             meshFallbackLines.push_back(d);
         if (collect3DFaceFallbackLines_)
             faceFallbackLines.push_back(d);
+        if (collectTraceFallbackLines_)
+            traceFallbackLines.push_back(d);
         std::vector<Field> fields = entityFields(d, "LINE", "LINE");
         fields.push_back(pointField("start", d.basePoint));
         fields.push_back(pointField("end", d.secPoint));
@@ -2427,6 +2446,7 @@ private:
     bool writeRecipeSucceeded_ = true;
     bool collectMeshFallbackPolylines_ = false;
     bool collect3DFaceFallbackLines_ = false;
+    bool collectTraceFallbackLines_ = false;
     bool threeDConsumerProbe_ = false;
     bool nestedMTextAttributeProbe_ = false;
     bool planeSurfaceInlinePayloadProbe_ = false;
@@ -5643,6 +5663,55 @@ int selfTest() {
     legacyFaceSink.faceFallbackLines.clear();
     legacyFaceSink.exerciseDefault3DFaceFallback(fallbackFace);
     if (legacyFaceSink.faceFallbackLines.size() != 3u)
+        return fail(__LINE__);
+
+    // SOLID/TRACE store the last two raw OCS slots in reverse perimeter
+    // order. The legacy fallback is intentionally limited to +Z, where OCS
+    // and WCS coordinates coincide and no inferred transform is needed.
+    DRW_Trace fallbackTrace;
+    fallbackTrace.layer = "trace-fallback-layer";
+    fallbackTrace.lineType = "DASHED";
+    fallbackTrace.color = 6;
+    fallbackTrace.color24 = 0x13579B;
+    fallbackTrace.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+    fallbackTrace.secPoint = DRW_Coord{4.0, 5.0, 3.0};
+    fallbackTrace.thirdPoint = DRW_Coord{7.0, 8.0, 3.0};
+    fallbackTrace.fourPoint = DRW_Coord{10.0, 11.0, 3.0};
+    SemanticSink legacyTraceSink("DRW_Interface", "read");
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (legacyTraceSink.traceFallbackLines.size() != 4u)
+        return fail(__LINE__);
+    const auto& traceEdges = legacyTraceSink.traceFallbackLines;
+    if (traceEdges[0].basePoint.x != 1.0
+        || traceEdges[0].secPoint.x != 4.0
+        || traceEdges[1].basePoint.x != 4.0
+        || traceEdges[1].secPoint.x != 10.0
+        || traceEdges[2].basePoint.x != 10.0
+        || traceEdges[2].secPoint.x != 7.0
+        || traceEdges[3].basePoint.x != 7.0
+        || traceEdges[3].secPoint.x != 1.0
+        || traceEdges[0].layer != fallbackTrace.layer
+        || traceEdges[0].lineType != fallbackTrace.lineType
+        || traceEdges[0].color != fallbackTrace.color
+        || traceEdges[0].color24 != fallbackTrace.color24
+        || traceEdges[0].handle != DRW::NoHandle
+        || traceEdges[0].parentHandle != DRW::NoHandle)
+        return fail(__LINE__);
+
+    DRW_Solid fallbackSolid;
+    fallbackSolid.basePoint = DRW_Coord{0.0, 0.0, 2.0};
+    fallbackSolid.secPoint = DRW_Coord{3.0, 0.0, 2.0};
+    fallbackSolid.thirdPoint = DRW_Coord{3.0, 2.0, 2.0};
+    fallbackSolid.fourPoint = fallbackSolid.thirdPoint;
+    SemanticSink legacySolidSink("DRW_Interface", "read");
+    legacySolidSink.exerciseDefaultSolidFallback(fallbackSolid);
+    if (legacySolidSink.traceFallbackLines.size() != 3u)
+        return fail(__LINE__);
+
+    fallbackTrace.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    legacyTraceSink.traceFallbackLines.clear();
+    legacyTraceSink.exerciseDefaultTraceFallback(fallbackTrace);
+    if (!legacyTraceSink.traceFallbackLines.empty())
         return fail(__LINE__);
 
     SemanticSink dimensionSink("dxfRW", "read");

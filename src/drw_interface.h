@@ -25,6 +25,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <memory>
@@ -430,8 +431,15 @@ public:
   /** Called for every ACAD_TABLE entity. Defaults to INSERT rendering. */
   virtual void addTable(const DRW_Table &data) { addInsert(data); }
 
-  /** Called for every trace start */
-  virtual void addTrace(const DRW_Trace &data) = 0;
+  /** Called for every TRACE entity. Consumers without a typed callback receive
+   *  its boundary as LINE callbacks when it uses the default +Z extrusion.
+   *  Other extrusion directions stay on the typed callback path so an OCS
+   *  point is never mislabeled as WCS. This wireframe does not represent fill
+   *  or thickness; 3D consumers should override this callback.
+   */
+  virtual void addTrace(const DRW_Trace &data) {
+    addPlanarTraceWireframe(data);
+  }
 
   /** Called for every 3DFACE.
    *  Consumers that do not override this callback receive its visible,
@@ -496,8 +504,11 @@ public:
   /** Called for SECTIONOBJECT (AcDbSection) live-section plane metadata. */
   virtual void addSectionObject(const DRW_SectionObject &data) { (void)data; }
 
-  /** Called for every solid start */
-  virtual void addSolid(const DRW_Solid &data) = 0;
+  /** Called for every SOLID entity. The default follows addTrace's bounded
+   *  +Z-only wireframe fallback. */
+  virtual void addSolid(const DRW_Solid &data) {
+    addPlanarTraceWireframe(data);
+  }
 
   /** Called for every Multi Text entity. */
   virtual void addMText(const DRW_MText &data) = 0;
@@ -845,6 +856,51 @@ public:
     return false;
   }
 
+private:
+  void addPlanarTraceWireframe(const DRW_Trace& data) {
+    // OCS and WCS coincide only for the canonical positive-Z normal. Leave
+    // tilted or malformed normals to a consumer that understands the source
+    // entity's coordinate-space contract.
+    if (data.extPoint.x != 0.0 || data.extPoint.y != 0.0
+        || data.extPoint.z != 1.0)
+      return;
+
+    const DRW_Coord* corners[] = {
+        &data.basePoint, &data.secPoint, &data.fourPoint, &data.thirdPoint};
+    const auto finite = [](const DRW_Coord& point) {
+      return std::isfinite(point.x) && std::isfinite(point.y)
+          && std::isfinite(point.z);
+    };
+    const auto copyPresentation = [&data](DRW_Entity& target) {
+      target.layer = data.layer;
+      target.lineType = data.lineType;
+      target.material = data.material;
+      target.color = data.color;
+      target.color24 = data.color24;
+      target.colorName = data.colorName;
+      target.transparency = data.transparency;
+      target.plotStyle = data.plotStyle;
+      target.shadow = data.shadow;
+      target.lWeight = data.lWeight;
+      target.ltypeScale = data.ltypeScale;
+      target.visible = data.visible;
+      target.space = data.space;
+    };
+    for (std::size_t edge = 0; edge < 4u; ++edge) {
+      const DRW_Coord& start = *corners[edge];
+      const DRW_Coord& end = *corners[(edge + 1u) % 4u];
+      if (!finite(start) || !finite(end)
+          || (start.x == end.x && start.y == end.y && start.z == end.z))
+        continue;
+      DRW_Line line;
+      line.basePoint = start;
+      line.secPoint = end;
+      line.handle = DRW::NoHandle;
+      line.parentHandle = DRW::NoHandle;
+      copyPresentation(line);
+      addLine(line);
+    }
+  }
 };
 
 /** One entity in an explicitly predeclared AC1015 model-space chain. */

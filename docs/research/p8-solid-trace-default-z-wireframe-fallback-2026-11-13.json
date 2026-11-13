@@ -1,0 +1,43 @@
+{
+  "title": "SOLID and TRACE default +Z wireframe fallback",
+  "date": "2026-11-13",
+  "scope": "Provide perimeter LINE callbacks to legacy consumers for SOLID/TRACE using the canonical +Z extrusion, without changing typed callbacks or guessing a transform for other OCS normals.",
+  "formatEvidence": {
+    "autodesk": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+      "facts": [
+        "SOLID stores four OCS corner points in groups 10-13, optional thickness, and an extrusion direction.",
+        "If the third and fourth corners are the same, the record represents a triangular SOLID."
+      ]
+    },
+    "independentDxfImplementationDocumentation": {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfentities/trace.html",
+      "facts": [
+        "TRACE/SOLID raw vertex slots use the unusual perimeter sequence 0-1-3-2.",
+        "A triangular record repeats the third corner in the fourth slot, and corrected vertex access omits that duplicate."
+      ],
+      "limit": "Peer format documentation guides wire-slot ordering; it is not an independent native rendering result."
+    }
+  },
+  "implementation": {
+    "behavior": "Default DRW_Interface::addTrace and addSolid callbacks emit nondegenerate perimeter edges through addLine only when extPoint is exactly (0,0,1), where OCS coordinates equal WCS. Edges follow raw slots 0-1-3-2-0. Presentation attributes are copied; synthesized handles are cleared. Tilted and malformed normals emit nothing through the fallback. Typed overrides are unchanged.",
+    "losses": [
+      "Boundary lines do not represent filled faces or SOLID/TRACE thickness.",
+      "Nondefault extrusion normals require the typed callback or a consumer with an explicit OCS transform path.",
+      "No independent native application or file interoperability claim is made."
+    ],
+    "files": [
+      "src/drw_interface.h",
+      "tests/semantic_differential_adapter.cpp"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe lc3_compat_check --parallel 2",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1",
+    "gitDiffCheck": "PASS",
+    "coverage": "Direct base-callback controls verify quadrilateral 0-1-3-2 edge order, triangle duplicate-edge suppression, presentation fields, NoHandle identities, and fail-closed behavior for a tilted extrusion."
+  },
+  "fixturePolicy": "No DWG or DXF fixture was added."
+}
