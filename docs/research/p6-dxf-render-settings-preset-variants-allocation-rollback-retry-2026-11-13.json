@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-render-settings-preset-variants-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_MENTALRAY_PRESET_VARIANT_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the whole-operation AC1032 RENDERSETTINGS ASCII/Binary allocation sweep with Legacy and Modern MentalRay preset layouts and verify rollback, same-codec retry and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW objects",
+    "profile": "One generated Legacy MentalRay profile with 16 longs, 3 strings, 12 booleans, 7 shorts and 11 doubles, plus one Modern MentalRay profile with 16 longs, 4 strings, 14 booleans, 7 shorts and 11 doubles. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "460fecad",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-render-settings-preset-variants-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add Legacy and Modern MentalRay profiles to the existing whole-operation transaction mode. Inject one-shot allocation failures at every calibrated offset in ASCII and Binary, checking destination and full caller state, handle-binding rollback and staging cleanup. Retry each failed operation on the same codec and require clean byte identity and typed readback of positional and finalized named fields."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_render_settings_allocation_transaction$' --output-on-failure: PASS 1/1 (0.59 sec)",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_render_settings_allocation_transaction$' --output-on-failure: PASS 1/1 (4.99 sec)",
+    "directRun": "PASS; expanded sweep reaches 137 ASCII and 132 Binary allocation offsets; caller/destination rollback, handle-binding rollback, staging cleanup, same-codec retry and typed readback pass.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction evidence for these two AC1032 layouts does not establish producer-authored wire semantics or version-wide interoperability.",
+    "Other per-version profiles, source-producer breadth, dictionary dependency closure and native rendering remain unqualified.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with another exact uncovered route or version-specific compound-record variant."
+}

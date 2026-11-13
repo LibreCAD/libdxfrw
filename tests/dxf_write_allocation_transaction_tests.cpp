@@ -6875,6 +6875,48 @@ bool runRenderSettingsSweep(const std::filesystem::path& directory) {
         mental.m_fogEnabled = true;
         mental.m_backfacesEnabled = true;
         result.push_back(mental);
+
+        DRW_RenderSettings legacyMental;
+        legacyMental.parentHandle = 0xCu;
+        legacyMental.m_kind = DRW_RenderSettings::MentalRay;
+        legacyMental.m_classVersion = 1;
+        legacyMental.m_name = "LOCAL_MENTAL_LEGACY";
+        legacyMental.m_strings = {"LOCAL_MENTAL_LEGACY", "",
+                                  "LEGACY_UNPROJECTED_DESCRIPTION"};
+        legacyMental.m_longs = {1, 0, 1, 4, 5, 6, 7, 8,
+                                9, 10, 11, 12, 13, 14, 15, 16};
+        legacyMental.m_shorts = {1, 2, 3, 4, 5, 6, 7};
+        legacyMental.m_bools = {true, false, true, false, true, false,
+                                true, false, true, false, true, false};
+        legacyMental.m_doubles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+                                  0.7, 0.8, 0.9, 1.0, 1.1};
+        legacyMental.m_fogEnabled = true;
+        legacyMental.m_backfacesEnabled = false;
+        legacyMental.m_environmentImageEnabled = true;
+        result.push_back(legacyMental);
+
+        DRW_RenderSettings modernMental;
+        modernMental.parentHandle = 0xCu;
+        modernMental.m_kind = DRW_RenderSettings::MentalRay;
+        modernMental.m_classVersion = 1;
+        modernMental.m_name = "LOCAL_MENTAL_MODERN";
+        modernMental.m_strings = {"LOCAL_MENTAL_MODERN", "LOCAL_MAP",
+                                  "LOCAL_MODERN_DESC", "LOCAL_MODERN_EXTRA"};
+        modernMental.m_environmentImageFilename = "LOCAL_MAP";
+        modernMental.m_longs = {1, 3, 1, 4, 5, 6, 7, 8,
+                                9, 10, 11, 12, 13, 14, 15, 16};
+        modernMental.m_shorts = {1, 2, 3, 4, 5, 6, 7};
+        modernMental.m_bools = {true, false, true, false, true, false, true,
+                                false, true, false, true, false, true, false};
+        modernMental.m_doubles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+                                  0.7, 0.8, 0.9, 1.0, 1.1};
+        modernMental.m_hasPredefined = true;
+        modernMental.m_hasPredefinedPresent = true;
+        modernMental.m_description = "LOCAL_MODERN_DESC";
+        modernMental.m_displayIndex = 3;
+        modernMental.m_fogEnabled = true;
+        modernMental.m_backfacesEnabled = true;
+        result.push_back(modernMental);
         return result;
     };
     const auto samePayload = [](const DRW_RenderSettings& a,
@@ -6917,6 +6959,10 @@ bool runRenderSettingsSweep(const std::filesystem::path& directory) {
             for (DRW_RenderSettings& value : settings) {
                 const char* name = renderRecordName(value.m_kind);
                 if (name == nullptr || !output.writeRenderSettings(&value, name)) {
+                    if (!allocationTracking)
+                        std::cerr << "RENDERSETTINGS write failed kind="
+                                  << static_cast<int>(value.m_kind)
+                                  << " name=" << value.m_name << '\n';
                     written = false;
                     break;
                 }
