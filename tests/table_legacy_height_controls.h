@@ -506,6 +506,30 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
                  <<(binary?"Binary":"ASCII")<<": allocation offsets="
                  <<allocationCount<<", rollback/retry/readback=PASS\n";
     }
+    for(bool binary:{false,true}) {
+        dx_data data;TableLegacyCountDirectProbe writer;
+        tableExportReuseDrawing(writer,data,0u,false);
+        writer.spellings={2u};writer.useZeroOverrideApi=true;
+        DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";
+        data.blockRecords.push_back(model);
+        const auto identities=tableExportIdentities(data);
+        const DRW_Table baseline(data.tables.front());
+        if(!tableExportSentinel(output,true))
+            return fail("cannot seed invalid-mask destination sentinel");
+        if(writer.fileExport(output.string(),DRW::AC1018,binary,&data,false)
+            ||!tableExportSentinel(output)||identities!=tableExportIdentities(data)
+            ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,data.tables.front()))
+            return fail("invalid zero-override value was not refused atomically");
+        writer.spellings={0u};
+        if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false)
+            ||!writer.emitted||identities!=tableExportIdentities(data)
+            ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,data.tables.front())
+            ||!tableExportReadback(output,binary,0u,false))
+            return fail("corrected zero-override same-writer retry failed");
+        std::cout<<"legacy TABLE zero overrides "
+                 <<(binary?"Binary":"ASCII")
+                 <<": invalid-value refusal and corrected retry/readback=PASS\n";
+    }
     std::error_code ignored;std::filesystem::remove(output,ignored);
     return true;
 }

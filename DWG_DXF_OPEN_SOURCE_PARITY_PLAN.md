@@ -4349,9 +4349,12 @@ The same generated allocation sweep now also exercises the public
 spelling vector before delegating to the source-presence serializer. Its
 one-cell zero-mask profile passes all 11 injected allocation offsets in both
 ASCII and Binary, with whole-file refusal, caller and destination preservation,
-same-writer byte-identical retry, and typed readback. This proves the wrapper
-route for that mask only; invalid masks, nonzero masks, and other TABLE payloads
-remain uncovered ([receipt](docs/research/p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13.json)).
+same-writer byte-identical retry, and typed readback. A separate invalid-value
+control refuses mask byte `2` without changing the destination or caller TABLE,
+then succeeds on the same adapter after correction to `{0}` in both encodings.
+This proves only the zero mask and one invalid value; other invalid/nonzero
+masks and TABLE payloads remain uncovered
+([receipt](docs/research/p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted
