@@ -123,6 +123,7 @@ constexpr std::uint32_t kDirectLayerHandle = 0xD978u;
 constexpr std::uint32_t kDirectTextstyleHandle = 0xD979u;
 constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
 constexpr std::uint32_t kDirectWipeoutHandle = 0xD97Bu;
+constexpr std::uint32_t kDirectPlaceholderHandle = 0xD97Cu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -1161,6 +1162,8 @@ public:
             DRW_Coord(56.0, 8.0), DRW_Coord(56.0, 40.0),
             DRW_Coord(8.0, 40.0)};
         underlay.flags = static_cast<std::uint8_t>(underlay.flags | 0x10u);
+        placeholder.handle = kDirectPlaceholderHandle;
+        placeholder.parentHandle = kCustomDictionaryHandle;
         lineType.handle = kLineTypeHandle;
         lineType.name = "WHOLE_OPERATION_LTYPE";
         lineType.desc = "whole-operation line type";
@@ -1320,7 +1323,8 @@ public:
             && output.writeTableStyle(&tableStyle, storage.textStyles);
         const bool cellStyleMapWritten = tableStyleWritten
             && output.writeCellStyleMap(&cellStyleMap);
-        objectsWritten = cellStyleMapWritten;
+        objectsWritten = cellStyleMapWritten
+            && output.writeAcDbPlaceholder(&placeholder);
     }
 
     bool finalizeDxfWrite() override {
@@ -1336,6 +1340,7 @@ public:
     DRW_LWPolyline polyline;
     DRW_Image image;
     DRW_Wipeout wipeout;
+    DRW_AcDbPlaceholder placeholder;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -2431,6 +2436,8 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.multiLeader.context.roots[0].leaderLines[0].color == 4
         && adapter.multiLeader.context.roots[0].leaderLines[0].lineWeight == 25
         && adapter.multiLeader.context.roots[0].leaderLines[0].arrowSize == 2.25
+        && adapter.placeholder.handle == kDirectPlaceholderHandle
+        && adapter.placeholder.parentHandle == kCustomDictionaryHandle
         && adapter.ole2Frame.handle == kOle2FrameHandle
         && adapter.ole2Frame.m_oleVersion == 2u
         && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
@@ -3321,6 +3328,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                     [](const DRW_Variant& group) {
                         return group.stringEquals("whole operation payload");
                     });
+        });
+    const auto rawPlaceholder = std::find_if(
+        adapter.objects.begin(), adapter.objects.end(),
+        [](const DRW_RawDxfObject& value) {
+            return value.name == "ACDBPLACEHOLDER";
         });
     const auto mainDataLink = std::find_if(
         adapter.dataLinks.begin(), adapter.dataLinks.end(),
@@ -4503,6 +4515,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.cellStyleMapCount != 1u
         || !cellStyleMapReadbackMatches(adapter.cellStyleMap,
                                         adapter.storage)
+        || rawPlaceholder == adapter.objects.end()
+        || rawPlaceholder->parentHandle != kCustomDictionaryHandle
+        || rawPlaceholder->groups.size() != 2u
+        || rawPlaceholder->groups[0].code() != 5
+        || rawPlaceholder->groups[0].c_str() == nullptr
+        || std::string(rawPlaceholder->groups[0].c_str()) != "D97C"
+        || rawPlaceholder->groups[1].code() != 330
+        || rawPlaceholder->groups[1].c_str() == nullptr
+        || std::string(rawPlaceholder->groups[1].c_str()) != "D914"
         || imageDefinition == nullptr
         || imageDefinition->name != "whole-operation-image.png"
         || imageDefinition->u != 640.0 || imageDefinition->v != 480.0
