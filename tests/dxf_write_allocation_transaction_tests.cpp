@@ -6782,7 +6782,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
     const std::vector<std::uint8_t> preview = {
         0x89u, 0x50u, 0x4Eu, 0x47u, 0x0Du, 0x0Au, 0x1Au, 0x0Au,
         0x10u, 0x20u, 0x30u, 0x40u};
-    const std::vector<std::uint32_t> insertHandles = {0xA100u};
+    const std::vector<std::uint32_t> insertHandles = {0xA100u, 0xA200u};
     class BlockRecordExport final : public dx_iface {
     public:
         BlockRecordExport(dxfRW& codec, const std::string& name,
@@ -6799,10 +6799,16 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             appIdRecord.name = "LOCAL_BLOCK_RECORD_APP";
             storage.appIds.push_back(appIdRecord);
             xdata = {&appId, &xdataText};
-            insert.handle = 0xA100u;
-            insert.parentHandle = DRW::DxfModelSpaceBlockRecordHandle;
-            insert.name = blockName;
-            insert.basePoint = DRW_Coord{12.0, 34.0, 0.0};
+            for (std::size_t index = 0; index < inserts.size(); ++index) {
+                DRW_Insert insert;
+                insert.handle = inserts[index];
+                insert.parentHandle = DRW::DxfModelSpaceBlockRecordHandle;
+                insert.name = blockName;
+                insert.basePoint = DRW_Coord{
+                    12.0 + static_cast<double>(index) * 10.0,
+                    34.0 + static_cast<double>(index) * 20.0, 0.0};
+                this->inserts.push_back(std::move(insert));
+            }
         }
         void writeBlockRecords() override {
             blockRecordWritten = output.writeBlockRecord(
@@ -6811,7 +6817,9 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                 std::cerr << "BLOCK_RECORD writer rejected staged rich record\n";
         }
         void writeEntities() override {
-            insertWritten = output.writeInsert(&insert);
+            insertWritten = true;
+            for (DRW_Insert& insert : inserts)
+                insertWritten = output.writeInsert(&insert) && insertWritten;
             if (!insertWritten && !allocationTracking)
                 std::cerr << "BLOCK_RECORD profile INSERT write failed\n";
         }
@@ -6826,7 +6834,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         DRW_Variant appId;
         DRW_Variant xdataText;
         std::vector<DRW_Variant*> xdata;
-        DRW_Insert insert;
+        std::vector<DRW_Insert> inserts;
         bool blockRecordWritten = false;
         bool insertWritten = false;
     };
@@ -6878,26 +6886,33 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         BlockRecordReadback probe(blockName);
         const bool read = reader.read(&probe, true);
         if (!read || probe.records.size() != 1u
-            || probe.inserts.size() != 1u) {
+            || probe.inserts.size() != insertHandles.size()) {
             std::cerr << "BLOCK_RECORD readback read=" << read
                       << " records=" << probe.records.size()
                       << " inserts=" << probe.inserts.size() << '\n';
             return false;
         }
         const BlockRecordReadback::Record& record = probe.records.front();
-        const DRW_Insert& inserted = probe.inserts.front();
+        std::vector<std::uint32_t> emittedInsertHandles;
+        emittedInsertHandles.reserve(probe.inserts.size());
+        bool insertsMatch = true;
+        for (std::size_t index = 0; index < probe.inserts.size(); ++index) {
+            const DRW_Insert& inserted = probe.inserts[index];
+            emittedInsertHandles.push_back(inserted.handle);
+            insertsMatch = insertsMatch
+                && inserted.handle != 0u && inserted.handle != DRW::NoHandle
+                && inserted.name == blockName
+                && inserted.basePoint.x == 12.0 + static_cast<double>(index) * 10.0
+                && inserted.basePoint.y == 34.0 + static_cast<double>(index) * 20.0;
+        }
         const bool matches = record.handle != 0u && record.handle != DRW::NoHandle
             && record.insUnits == 4 && record.name == blockName
             && record.previewData == preview
-            && inserted.handle != 0u && inserted.handle != DRW::NoHandle
-            && record.insertHandles
-                == std::vector<std::uint32_t>{inserted.handle}
+            && insertsMatch && record.insertHandles == emittedInsertHandles
             && record.xdata
                 == std::vector<std::pair<int, std::string>>{
                     {1001, "LOCAL_BLOCK_RECORD_APP"},
-                    {1000, "block-record metadata"}}
-            && inserted.name == blockName
-            && inserted.basePoint.x == 12.0 && inserted.basePoint.y == 34.0;
+                    {1000, "block-record metadata"}};
         if (!matches) {
             std::cerr << "BLOCK_RECORD mismatch handle=" << record.handle
                       << " insUnits=" << record.insUnits
@@ -6907,22 +6922,33 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             for (std::uint32_t handle : record.insertHandles)
                 std::cerr << ' ' << handle;
             std::cerr << " xdata=" << record.xdata.size()
-                      << " insert=" << inserted.handle << ',' << inserted.name
-                      << ',' << inserted.basePoint.x << ','
-                      << inserted.basePoint.y << '\n';
+                      << " insert-count=" << probe.inserts.size();
+            for (const DRW_Insert& inserted : probe.inserts)
+                std::cerr << " [" << inserted.handle << ',' << inserted.name
+                          << ',' << inserted.basePoint.x << ','
+                          << inserted.basePoint.y << ']';
+            std::cerr << '\n';
         }
         return matches;
     };
     const auto sameCaller = [&](const BlockRecordExport& adapter,
-                                const DRW_Insert& original) {
-        return adapter.previewData == preview
-            && adapter.sourceInsertHandles == insertHandles
-            && adapter.insert.handle == original.handle
-            && adapter.insert.parentHandle == original.parentHandle
-            && adapter.insert.name == original.name
-            && adapter.insert.basePoint.x == original.basePoint.x
-            && adapter.insert.basePoint.y == original.basePoint.y
-            && adapter.insert.basePoint.z == original.basePoint.z;
+                                const std::vector<DRW_Insert>& original) {
+        if (adapter.previewData != preview
+            || adapter.sourceInsertHandles != insertHandles
+            || adapter.inserts.size() != original.size())
+            return false;
+        for (std::size_t index = 0; index < original.size(); ++index) {
+            const DRW_Insert& current = adapter.inserts[index];
+            const DRW_Insert& before = original[index];
+            if (current.handle != before.handle
+                || current.parentHandle != before.parentHandle
+                || current.name != before.name
+                || current.basePoint.x != before.basePoint.x
+                || current.basePoint.y != before.basePoint.y
+                || current.basePoint.z != before.basePoint.z)
+                return false;
+        }
+        return true;
     };
     for (const bool binary : {false, true}) {
         {
@@ -6971,7 +6997,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             }
             dxfRW codec(output.string().c_str());
             BlockRecordExport adapter(codec, blockName, preview, insertHandles);
-            const DRW_Insert originalInsert = adapter.insert;
+            const std::vector<DRW_Insert> originalInserts = adapter.inserts;
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
             const bool injected = allocationFailed;
@@ -6986,7 +7012,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                 && context.ambiguousSourceHandles.empty();
             const bool stageRemains = hasStagedOutput(output);
             if (wrote || !injected || !bytesRead || afterFailure != sentinel
-                || !sameCaller(adapter, originalInsert)
+                || !sameCaller(adapter, originalInserts)
                 || !identitiesRolledBack || stageRemains)
                 return fail("injected failure changed caller/destination state");
             const bool retried = codec.write(&adapter, DRW::AC1032, binary);

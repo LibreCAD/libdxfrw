@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **157 completed implementation slices** and **35 remaining
+The plan records **158 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`157 / (157 + 35) = 81.8%`. This is a count-based progress measure, not an
+`158 / (158 + 35) = 81.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1681,6 +1681,16 @@ typed readback checks the preview, units, APPID/XDATA, and BLKREFS handle
 against the emitted INSERT identity. The focused CTest passes in normal and
 ASan builds. This covers one locally generated rich overload profile, not
 producer-authored preview semantics or broader BLOCK_RECORD variants ([receipt](docs/research/p6-dxf-block-record-rich-overload-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G ordered BLOCK_RECORD reference transaction follow-up (2026-11-13):**
+the same generated profile now emits two INSERTs with distinct handles and
+positions. Readback checks that the two BLKREFS identities match the emitted
+INSERT handles in order. All 142 ASCII and 139 Binary injected allocation
+failures preserve both caller INSERTs and the prior destination; same-codec
+retry reproduces clean bytes, removes staging files, and passes typed readback.
+Focused normal and ASan CTests pass. This verifies generated multi-reference
+transaction and identity ordering only; producer-authored preview semantics and
+broader BLOCK_RECORD variants remain open ([receipt](docs/research/p6-dxf-block-record-multiple-insert-references-allocation-rollback-retry-2026-11-13.json)).
 
 **P6 RENDERSETTINGS MentalRay preset follow-up (2026-11-13):** the same
 whole-file sweep now also includes generated Legacy and Modern MentalRay
