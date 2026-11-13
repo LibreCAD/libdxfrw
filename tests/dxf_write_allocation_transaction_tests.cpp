@@ -6244,11 +6244,13 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
 
     for (const DRW::Version version : {
              DRW::AC1014, DRW::AC1015, DRW::AC1018,
-             DRW::AC1021, DRW::AC1024}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
       const char* versionName = version == DRW::AC1014 ? "AC1014"
           : version == DRW::AC1015 ? "AC1015"
           : version == DRW::AC1018 ? "AC1018"
-          : version == DRW::AC1021 ? "AC1021" : "AC1024";
+          : version == DRW::AC1021 ? "AC1021"
+          : version == DRW::AC1024 ? "AC1024"
+          : version == DRW::AC1027 ? "AC1027" : "AC1032";
       const auto output = directory
           / (std::string(versionName) + "-attributed-insert.dxf");
       for (const bool binary : {false, true}) {
