@@ -6097,6 +6097,20 @@ add_test(NAME libdxfrw_proxy_entity_object_id_allocation
 set_tests_properties(libdxfrw_proxy_entity_object_id_allocation PROPERTIES
     LABELS "dxf;fast;entity;transaction;allocation" TIMEOUT 30)
 
+add_executable(libdxfrw_sun_owner_override_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_sun_owner_override_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_sun_owner_override_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_sun_owner_override_allocation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_sun_owner_override_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_sun_owner_override_allocation
+    COMMAND libdxfrw_sun_owner_override_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/sun-owner-override-allocation)
+set_tests_properties(libdxfrw_sun_owner_override_allocation PROPERTIES
+    LABELS "dxf;fast;objects;transaction;allocation" TIMEOUT 30)
+
 add_executable(libdxfrw_raw_object_string_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/raw_object_string_override_allocation_tests.cpp
     ${_libdxfrw_test_adapter_source})

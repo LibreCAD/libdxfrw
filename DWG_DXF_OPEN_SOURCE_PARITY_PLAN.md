@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **164 completed implementation slices** and **35 remaining
+The plan records **165 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`164 / (164 + 35) = 82.4%`. This is a count-based progress measure, not an
+`165 / (165 + 35) = 82.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4628,6 +4628,17 @@ emitted entity. The existing resolver-overload sweep remains at 11 ASCII and
 10 Binary offsets. The focused CTest passes in 0.29 seconds. This closes one
 overload/profile only, not proxy graph semantics or producer qualification.
 See the [follow-up receipt](docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json).
+
+**P6-G retained SUN raw-owner overload transaction slice (2026-11-13):** a
+generated AC1027 VPORT/SUN pair now exercises
+`writeRawDxfObject(rawSun, ownerOverride)` with the owner handle admitted by the
+preplanned VPORT graph. All five reached ASCII callback allocations are swept;
+each failure preserves the prior destination and caller raw record, then the
+same adapter retries to byte-identical output and typed readback confirms the
+remapped VPORT/SUN owner relationship. The focused CTest passes in 0.23 seconds.
+This is one generated owner route only and does not establish physical producer
+prevalence or SUN semantics. See the
+[transaction receipt](docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G modeler SAT text whole-write transaction slice (2026-11-13):** a new
 AC1024 generated 3DSOLID profile carries 600 SAT text bytes in three ordered
