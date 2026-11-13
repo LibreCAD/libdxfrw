@@ -37,6 +37,9 @@ constexpr std::uint32_t kInsertBlockHandle = 0xD925u;
 constexpr std::uint32_t kFaceHandle = 0xD926u;
 constexpr std::uint32_t kArcHandle = 0xD927u;
 constexpr std::uint32_t kEllipseHandle = 0xD928u;
+constexpr std::uint32_t kPointHandle = 0xD929u;
+constexpr std::uint32_t k3DLineHandle = 0xD92Au;
+constexpr std::uint32_t kSolidHandle = 0xD92Bu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -308,6 +311,17 @@ public:
         ellipse.staparam = 0.2;
         ellipse.endparam = 2.4;
         ellipse.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        point.handle = kPointHandle;
+        point.basePoint = DRW_Coord(-2.0, 3.0, 4.0);
+        point.xAxisAngle = 0.75;
+        line3d.handle = k3DLineHandle;
+        line3d.basePoint = DRW_Coord(1.0, 2.0, 3.0);
+        line3d.secPoint = DRW_Coord(4.0, 5.0, 6.0);
+        solid.handle = kSolidHandle;
+        solid.basePoint = DRW_Coord(0.0, 0.0, 1.5);
+        solid.secPoint = DRW_Coord(3.0, 0.0, 1.5);
+        solid.thirdPoint = DRW_Coord(3.0, 2.0, 1.5);
+        solid.fourPoint = DRW_Coord(0.0, 2.0, 1.5);
     }
 
     void writeEntities() override {
@@ -330,7 +344,10 @@ public:
             && check("INSERT", output.writeInsert(&insert))
             && check("3DFACE", output.writeLine(&face))
             && check("ARC", output.writeArc(&arc))
-            && check("ELLIPSE", output.writeEllipse(&ellipse));
+            && check("ELLIPSE", output.writeEllipse(&ellipse))
+            && check("POINT", output.writePoint(&point))
+            && check("3DLINE", output.writeLine(&line3d))
+            && check("SOLID", output.writeLine(&solid));
     }
 
     void writeObjects() override {
@@ -363,6 +380,9 @@ public:
     DRW_3Dface face;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
+    DRW_Point point;
+    DRW_3DLine line3d;
+    DRW_Solid solid;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -444,6 +464,21 @@ public:
         ++ellipseCount;
         ellipse = value;
     }
+    void addPoint(const DRW_Point& value) override {
+        dx_iface::addPoint(value);
+        ++pointCount;
+        point = value;
+    }
+    void add3DLine(const DRW_3DLine& value) override {
+        dx_iface::add3DLine(value);
+        ++line3dCount;
+        line3d = value;
+    }
+    void addSolid(const DRW_Solid& value) override {
+        dx_iface::addSolid(value);
+        ++solidCount;
+        solid = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -471,6 +506,9 @@ public:
     DRW_3Dface face;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
+    DRW_Point point;
+    DRW_3DLine line3d;
+    DRW_Solid solid;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -490,6 +528,9 @@ public:
     unsigned faceCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
+    unsigned pointCount = 0u;
+    unsigned line3dCount = 0u;
+    unsigned solidCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -665,6 +706,21 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.ellipse.ratio == 0.5
         && adapter.ellipse.staparam == 0.2
         && adapter.ellipse.endparam == 2.4
+        && adapter.point.handle == kPointHandle
+        && adapter.point.basePoint.x == -2.0
+        && adapter.point.basePoint.y == 3.0
+        && adapter.point.basePoint.z == 4.0
+        && adapter.point.xAxisAngle == 0.75
+        && adapter.line3d.handle == k3DLineHandle
+        && adapter.line3d.basePoint.x == 1.0
+        && adapter.line3d.basePoint.z == 3.0
+        && adapter.line3d.secPoint.x == 4.0
+        && adapter.line3d.secPoint.z == 6.0
+        && adapter.solid.handle == kSolidHandle
+        && adapter.solid.basePoint.z == 1.5
+        && adapter.solid.secPoint.x == 3.0
+        && adapter.solid.thirdPoint.y == 2.0
+        && adapter.solid.fourPoint.y == 2.0
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -896,6 +952,26 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.ellipse.ratio != 0.5
         || std::abs(adapter.ellipse.staparam - 0.2) > 1.0e-12
         || std::abs(adapter.ellipse.endparam - 2.4) > 1.0e-12
+        || adapter.pointCount != 2u
+        || adapter.point.handle == 0u
+        || adapter.point.basePoint.x != -2.0
+        || adapter.point.basePoint.y != 3.0
+        || adapter.point.basePoint.z != 4.0
+        || std::abs(adapter.point.xAxisAngle - 0.75) > 1.0e-12
+        || adapter.line3dCount != 1u
+        || adapter.line3d.handle == 0u
+        || adapter.line3d.basePoint.x != 1.0
+        || adapter.line3d.basePoint.y != 2.0
+        || adapter.line3d.basePoint.z != 3.0
+        || adapter.line3d.secPoint.x != 4.0
+        || adapter.line3d.secPoint.y != 5.0
+        || adapter.line3d.secPoint.z != 6.0
+        || adapter.solidCount != 1u
+        || adapter.solid.handle == 0u
+        || adapter.solid.basePoint.z != 1.5
+        || adapter.solid.secPoint.x != 3.0
+        || adapter.solid.thirdPoint.y != 2.0
+        || adapter.solid.fourPoint.y != 2.0
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
@@ -944,7 +1020,11 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << adapter.ellipse.handle << " ellipseRatio="
                   << adapter.ellipse.ratio << " ellipseStart="
                   << adapter.ellipse.staparam << " ellipseEnd="
-                  << adapter.ellipse.endparam
+                  << adapter.ellipse.endparam << " points="
+                  << adapter.pointCount << " pointHandle=" << adapter.point.handle
+                  << " point=" << adapter.point.basePoint.x << ','
+                  << adapter.point.basePoint.y << ',' << adapter.point.basePoint.z
+                  << " angle=" << adapter.point.xAxisAngle
                   << " blocks=" << adapter.storage.blocks.size()
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
