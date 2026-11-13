@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **159 completed implementation slices** and **35 remaining
+The plan records **160 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`159 / (159 + 35) = 82.0%`. This is a count-based progress measure, not an
+`160 / (160 + 35) = 82.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4579,10 +4579,14 @@ signal. An incomplete-callback scope guard now signals failure through the
 existing null-raw-object refusal path, covering every early return while
 preserving successful completion. The `dxfrw` library and focused adapter test
 target compile; the whole-write allocation rollback/retry CTest passes 1/1.
-Building the full CLI target remains blocked by macOS SDK `_Nullable` warnings
-promoted to errors in `dx_batch_output_names.cpp`. This closes only callback
-failure propagation; broader object-family coverage, source graph closure and
-semantic support gates remain open.
+The earlier macOS SDK `_Nullable` warning is no longer reproducible: a forced
+recompile of `dx_batch_output_names.cpp` and full `dwg2dxf` target build pass
+with Apple Clang 21 on macOS ARM64; the focused batch output-name test also
+passes. This clears the local build blocker for this configuration only; other
+platform/build-matrix gates remain. This closes only callback failure
+propagation and the current local CLI build issue; broader object-family
+coverage, source graph closure and semantic support gates remain open ([CLI
+rebuild receipt](docs/research/p6-dwg2dxf-forced-cli-rebuild-2026-11-13.json)).
 
 **P6-G TABLECONTENT caller-state assertion (2026-11-13):** the existing
 generated standalone TABLECONTENT OBJECTS allocation sweep now compares the
