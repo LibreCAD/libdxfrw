@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1014_STANDALONE_ATTRIB_SEQEND_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the P6-G standalone ATTRIB/SEQEND whole-write transaction matrix to the oldest DXF writer target accepted by dxfRW::write.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during the test",
+    "profile": "One INSERT with two non-MTEXT ATTRIB children, distinct handles, tags, text and geometry; AC1014 ASCII and Binary DXF output.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ac1014-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Extended the transaction selector to AC1014 and retained the already-qualified AC1015, AC1018, AC1021 and AC1024 profiles.",
+    "method": "Inject std::bad_alloc at every allocation reached by a successful whole dxfRW::write. Verify failure, prior destination preservation, unchanged caller INSERT/ATTRIB fields, no staged output, same-codec byte-identical retry, and fresh typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_legacy_attributed_insert_allocation_transaction$' --output-on-failure: PASS 1/1 in 6.88 seconds across AC1014, AC1015, AC1018, AC1021 and AC1024.",
+    "ac1014Ascii": "112/112 allocation failures pass rollback/retry/typed-readback.",
+    "ac1014Binary": "111/111 allocation failures pass rollback/retry/typed-readback.",
+    "diffCheck": "PASS: git diff --check on implementation, plan and receipt paths"
+  },
+  "observations": [
+    "AC1012 was probed but dxfRW::write refused the target with DRW::BAD_VERSION (error index 3) before the entity callback; AC1012 is not included in this writer transaction matrix."
+  ],
+  "limitations": [
+    "Generated AC1014 transport/transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
+    "Only one INSERT with two standalone ATTRIB children is covered; other compound-record field profiles remain in P6-G inventory.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1014 standalone ATTRIB/SEQEND ASCII and Binary allocation rollback, same-codec retry and typed readback.",
+    "remainingP6G": "Continue with distinct public-writer overloads, other compound-record variants, variable-size OBJECTS builders, and uncovered caller-state combinations.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-ac1018-ac1021-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+}

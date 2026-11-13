@@ -5802,8 +5802,10 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
     };
 
     for (const DRW::Version version : {
-             DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024}) {
-      const char* versionName = version == DRW::AC1015 ? "AC1015"
+             DRW::AC1014, DRW::AC1015, DRW::AC1018,
+             DRW::AC1021, DRW::AC1024}) {
+      const char* versionName = version == DRW::AC1014 ? "AC1014"
+          : version == DRW::AC1015 ? "AC1015"
           : version == DRW::AC1018 ? "AC1018"
           : version == DRW::AC1021 ? "AC1021" : "AC1024";
       const auto output = directory
@@ -5815,9 +5817,17 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
             dxfRW codec(output.string().c_str());
             LegacyAttributedInsertExport adapter(codec);
             const bool wrote = codec.write(&adapter, version, binary);
-            if (!wrote || !adapter.entitiesWritten
-                || !sourceUnchanged(adapter) || !readbackMatches(output))
-                return fail("AC1024 warm-up or typed readback failed");
+            const bool unchanged = sourceUnchanged(adapter);
+            const bool readback = wrote && readbackMatches(output);
+            if (!wrote || !adapter.entitiesWritten || !unchanged || !readback) {
+                std::cerr << versionName << " warm-up binary=" << binary
+                          << " wrote=" << wrote
+                          << " entities=" << adapter.entitiesWritten
+                          << " unchanged=" << unchanged
+                          << " readback=" << readback
+                          << " error=" << codec.getError() << '\n';
+                return fail("version warm-up or typed readback failed");
+            }
         }
         std::error_code removeError;
         std::filesystem::remove(output, removeError);
