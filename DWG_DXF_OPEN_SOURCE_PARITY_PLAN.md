@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **196 completed implementation slices** and **35 remaining
+The plan records **197 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`196 / (196 + 35) = 84.9%`. This is a count-based progress measure, not an
+`197 / (197 + 34) = 85.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4918,6 +4918,16 @@ clean bytes, and fresh typed readback resolves every entry to the correct
 remapped entity handle and extent. This qualifies one generated three-entry
 graph; producer semantics and native viewing behavior remain open
 ([receipt](docs/research/p6-dxf-partial-viewing-index-multi-entry-allocation-rollback-retry-2026-11-13.json)).
+**P6-G legacy TABLESTYLE transaction slice (2026-11-13):** a generated legacy
+TABLESTYLE with three row styles, six ordered borders per row, and one emitted
+TEXTSTYLE dependency now sweeps its callback allocation failures at AC1021 and
+AC1032 in ASCII and Binary. The 19/17/19/17 offsets preserve destination and
+caller state, then same-codec retry reproduces clean bytes and fresh typed
+readback verifies the rows. This adds transaction coverage for the legacy
+TABLESTYLE profile at both version boundaries; it does not qualify producer or
+native semantics and does not extend the R24 rich-cell profile. The focused
+CTest passes 1/1 in 1.05 seconds; no fixture was added. See the
+[legacy TABLESTYLE transaction receipt](docs/research/p6-dxf-tablestyle-legacy-allocation-rollback-retry-2026-11-13.json).
 **P6-G long UTF-8 MTEXT chunk transaction slice (2026-11-13):** a separate
 AC1027 generated whole-write selector now sweeps a 552-byte MTEXT payload whose
 three-byte euro sign crosses the 250-byte chunk boundary. All 101 ASCII and

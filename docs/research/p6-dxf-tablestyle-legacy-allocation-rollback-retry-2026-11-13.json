@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-tablestyle-legacy-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LEGACY_TABLESTYLE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep callback allocation failures through the legacy TABLESTYLE DXF writer at the oldest admitted revision and the current writer revision.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory TABLESTYLE/TEXTSTYLE profile",
+    "profile": "One legacy TABLESTYLE with three row styles, six ordered borders per row, and one emitted TEXTSTYLE dependency.",
+    "versions": ["AC1021", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_dxf_tablestyle_legacy_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 1.05,
+    "allocationOffsets": {
+      "AC1021_ASCII": 19,
+      "AC1021_Binary": 17,
+      "AC1032_ASCII": 19,
+      "AC1032_Binary": 17
+    },
+    "checks": [
+      "Every measured callback allocation failure is reached and refuses the write",
+      "The existing destination sentinel is unchanged after each refusal",
+      "The caller TABLESTYLE remains unchanged after each refusal",
+      "Same-codec retry reproduces the calibrated clean bytes",
+      "Fresh typed readback validates the TABLESTYLE identity, owner, name, row count, row heights, and border vector"
+    ]
+  },
+  "limitations": [
+    "Generated transaction evidence only; no producer interoperability or native TABLESTYLE semantics are established.",
+    "The R24 rich-cell TABLESTYLE profile remains covered by its existing AC1027 whole-operation control; this receipt does not expand that profile."
+  ]
+}
