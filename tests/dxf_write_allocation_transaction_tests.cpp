@@ -3,6 +3,7 @@
 #include "dx_iface.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -34,6 +35,8 @@ constexpr std::uint32_t kInsertBlockPointHandle = 0xD923u;
 constexpr std::uint32_t kInsertAttribHandle = 0xD924u;
 constexpr std::uint32_t kInsertBlockHandle = 0xD925u;
 constexpr std::uint32_t kFaceHandle = 0xD926u;
+constexpr std::uint32_t kArcHandle = 0xD927u;
+constexpr std::uint32_t kEllipseHandle = 0xD928u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -292,22 +295,42 @@ public:
         face.thirdPoint = DRW_Coord(3.0, 4.0, 3.0);
         face.fourPoint = DRW_Coord(0.0, 4.0, 4.0);
         face.invisibleflag = DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge;
+        arc.handle = kArcHandle;
+        arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
+        arc.radious = 6.5;
+        arc.staangle = 0.25;
+        arc.endangle = 2.75;
+        arc.thickness = 1.25;
+        ellipse.handle = kEllipseHandle;
+        ellipse.basePoint = DRW_Coord(7.0, -4.0, 2.0);
+        ellipse.secPoint = DRW_Coord(4.0, 1.0, 0.0);
+        ellipse.ratio = 0.5;
+        ellipse.staparam = 0.2;
+        ellipse.endparam = 2.4;
+        ellipse.extPoint = DRW_Coord(0.0, 0.0, 1.0);
     }
 
     void writeEntities() override {
-        entitiesWritten = output.writeLine(&line)
-            && output.writeCircle(&circle)
-            && output.writeLWPolyline(&polyline)
-            && output.writeImage(&image, "whole-operation-image.png", 7u,
-                                 image.ref) != nullptr
-            && output.writeMesh(&mesh)
-            && output.writeSpline(&spline)
-            && output.writeHatch(&hatch)
-            && output.writeLeader(&leader)
-            && output.writeMLine(&mline)
-            && output.writePolyline(&polyline3)
-            && output.writeInsert(&insert)
-            && output.writeLine(&face);
+        const auto check = [](const char* name, bool result) {
+            if (!result && !allocationTracking)
+                std::cerr << "whole-write entity failed: " << name << '\n';
+            return result;
+        };
+        entitiesWritten = check("LINE", output.writeLine(&line))
+            && check("CIRCLE", output.writeCircle(&circle))
+            && check("LWPOLYLINE", output.writeLWPolyline(&polyline))
+            && check("IMAGE", output.writeImage(
+                &image, "whole-operation-image.png", 7u, image.ref) != nullptr)
+            && check("MESH", output.writeMesh(&mesh))
+            && check("SPLINE", output.writeSpline(&spline))
+            && check("HATCH", output.writeHatch(&hatch))
+            && check("LEADER", output.writeLeader(&leader))
+            && check("MLINE", output.writeMLine(&mline))
+            && check("POLYLINE", output.writePolyline(&polyline3))
+            && check("INSERT", output.writeInsert(&insert))
+            && check("3DFACE", output.writeLine(&face))
+            && check("ARC", output.writeArc(&arc))
+            && check("ELLIPSE", output.writeEllipse(&ellipse));
     }
 
     void writeObjects() override {
@@ -338,6 +361,8 @@ public:
     DRW_Polyline polyline3;
     DRW_Insert insert;
     DRW_3Dface face;
+    DRW_Arc arc;
+    DRW_Ellipse ellipse;
     DRW_RawDxfObject object;
     DRW_DataLink mainDataLink;
     DRW_DataLink targetAlpha;
@@ -411,6 +436,14 @@ public:
         ++faceCount;
         face = value;
     }
+    void addArc(const DRW_Arc& value) override {
+        ++arcCount;
+        arc = value;
+    }
+    void addEllipse(const DRW_Ellipse& value) override {
+        ++ellipseCount;
+        ellipse = value;
+    }
     void addDictionary(const DRW_Dictionary& value) override {
         dictionaries.push_back(value);
     }
@@ -436,6 +469,8 @@ public:
     DRW_Polyline polyline3;
     DRW_Insert insert;
     DRW_3Dface face;
+    DRW_Arc arc;
+    DRW_Ellipse ellipse;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -453,6 +488,8 @@ public:
     unsigned polyline3Count = 0u;
     unsigned insertCount = 0u;
     unsigned faceCount = 0u;
+    unsigned arcCount = 0u;
+    unsigned ellipseCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -610,6 +647,24 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.face.fourPoint.z == 4.0
         && adapter.face.invisibleflag
             == (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
+        && adapter.arc.handle == kArcHandle
+        && adapter.arc.basePoint.x == -3.0
+        && adapter.arc.basePoint.y == 2.0
+        && adapter.arc.basePoint.z == 5.0
+        && adapter.arc.radious == 6.5
+        && adapter.arc.staangle == 0.25
+        && adapter.arc.endangle == 2.75
+        && adapter.arc.thickness == 1.25
+        && adapter.ellipse.handle == kEllipseHandle
+        && adapter.ellipse.basePoint.x == 7.0
+        && adapter.ellipse.basePoint.y == -4.0
+        && adapter.ellipse.basePoint.z == 2.0
+        && adapter.ellipse.secPoint.x == 4.0
+        && adapter.ellipse.secPoint.y == 1.0
+        && adapter.ellipse.secPoint.z == 0.0
+        && adapter.ellipse.ratio == 0.5
+        && adapter.ellipse.staparam == 0.2
+        && adapter.ellipse.endparam == 2.4
         && adapter.storage.blocks.size() == 1u
         && adapter.storage.blocks.front()->handle == kInsertBlockHandle
         && adapter.storage.blocks.front()->name == kInsertBlockName
@@ -821,6 +876,26 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.face.fourPoint.z != 4.0
         || adapter.face.invisibleflag
             != (DRW_3Dface::FirstEdge | DRW_3Dface::ThirdEdge)
+        || adapter.arcCount != 1u
+        || adapter.arc.handle == 0u
+        || adapter.arc.basePoint.x != -3.0
+        || adapter.arc.basePoint.y != 2.0
+        || adapter.arc.basePoint.z != 5.0
+        || adapter.arc.radious != 6.5
+        || std::abs(adapter.arc.staangle - 0.25) > 1.0e-12
+        || std::abs(adapter.arc.endangle - 2.75) > 1.0e-12
+        || adapter.arc.thickness != 1.25
+        || adapter.ellipseCount != 1u
+        || adapter.ellipse.handle == 0u
+        || adapter.ellipse.basePoint.x != 7.0
+        || adapter.ellipse.basePoint.y != -4.0
+        || adapter.ellipse.basePoint.z != 2.0
+        || adapter.ellipse.secPoint.x != 4.0
+        || adapter.ellipse.secPoint.y != 1.0
+        || adapter.ellipse.secPoint.z != 0.0
+        || adapter.ellipse.ratio != 0.5
+        || std::abs(adapter.ellipse.staparam - 0.2) > 1.0e-12
+        || std::abs(adapter.ellipse.endparam - 2.4) > 1.0e-12
         || insertBlock == adapter.storage.blocks.end()
         || (*insertBlock)->ent.size() != 1u
         || (*insertBlock)->ent.front()->handle == 0u
@@ -860,6 +935,16 @@ bool matchesReadback(const std::filesystem::path& path) {
                   << " insertName=" << adapter.insert.name
                   << " insertHandle=" << adapter.insert.handle
                   << " attribs=" << adapter.insert.attlist.size()
+                  << " arcs=" << adapter.arcCount << " arcHandle="
+                  << adapter.arc.handle << " arcRadius=" << adapter.arc.radious
+                  << " arcStart=" << adapter.arc.staangle << " arcEnd="
+                  << adapter.arc.endangle << " arcThickness="
+                  << adapter.arc.thickness << " ellipses="
+                  << adapter.ellipseCount << " ellipseHandle="
+                  << adapter.ellipse.handle << " ellipseRatio="
+                  << adapter.ellipse.ratio << " ellipseStart="
+                  << adapter.ellipse.staparam << " ellipseEnd="
+                  << adapter.ellipse.endparam
                   << " blocks=" << adapter.storage.blocks.size()
                   << " lineHandle=" << adapter.line.handle
                   << " firstX=" << adapter.line.basePoint.x << " secondZ="
