@@ -1506,6 +1506,18 @@ adapter-side reconciliation of an edited `LC_LineType` against its archived
 this plan. The focused transaction CTest passes in 5.55 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
+**P6 CELLSTYLEMAP writer transaction slice (2026-11-13):** the generated
+whole-file ASCII/Binary allocation sweep now calls `writeCellStyleMap()` with a
+single rich cell-style entry. The profile includes its required text-style
+dependency; fresh typed readback verifies that the remapped text-style handle
+resolves to the expected named TEXTSTYLE, alongside the map identity, cell
+style fields and border. All 1,037 ASCII and 1,015 Binary injected allocation
+failures preserve the prior destination and caller records; same-writer retries
+reproduce clean output. This is generated serializer/transaction/readback
+evidence only, not independent source-profile, table presentation, producer
+interoperability or consumer semantic evidence. The focused CTest passes in
+7.26 seconds. See the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
 XRECORD with group 1 text and group 90 integer is now part of the custom
 dictionary graph and whole-operation ASCII/Binary allocation sweep. All 842
