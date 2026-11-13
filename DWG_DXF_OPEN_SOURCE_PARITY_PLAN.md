@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **198 completed implementation slices** and **33 remaining
+The plan records **199 completed implementation slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`198 / (198 + 33) = 85.7%`. This is a count-based progress measure, not an
+`199 / (199 + 32) = 86.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4953,6 +4953,14 @@ ASCII/Binary profiles preserve the source object and prior destination; retry
 matches clean bytes and typed readback verifies both values. Focused normal and
 ASan CTests pass. This covers a generated multi-value override shape only;
 other raw override variants remain open ([receipt](docs/research/p6-dxf-raw-object-multi-int32-override-allocation-rollback-retry-2026-11-13.json)).
+**P6-G raw-object string group-code override follow-up (2026-11-13):** the
+string-only and combined string/Int32 routes now override XRECORD groups 1, 3,
+2, 6, and 300, covering every public string-override code family. In ASCII and
+Binary, all 6/5 offsets preserve the entire caller record and prior
+destination, same-codec retry reproduces clean bytes, and fresh typed raw-object
+readback verifies all replacements plus the two Int32 fields. The focused
+CTest passes 1/1 in 0.89 seconds; no fixture was added. Other raw-object source
+profiles and version behavior remain open ([receipt](docs/research/p6-dxf-raw-object-string-group-code-overrides-allocation-rollback-retry-2026-11-13.json)).
 The explicit AC1018 `writeTableWithLegacySourcePresence()` callback now has a
 focused generated allocation sweep in ASCII and Binary. All 11 measured
 failure offsets per encoding refuse the whole export, preserve the preexisting

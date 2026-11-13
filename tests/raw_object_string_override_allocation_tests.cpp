@@ -54,6 +54,9 @@ DRW_RawDxfObject makeRawObject() {
         DRW_Variant(100, std::string("AcDbXrecord")),
         DRW_Variant(1, std::string("original first value")),
         DRW_Variant(3, std::string("original second value")),
+        DRW_Variant(2, std::string("original symbol name")),
+        DRW_Variant(6, std::string("original linetype")),
+        DRW_Variant(300, std::string("original extended string")),
         DRW_Variant(90, std::int32_t{314}),
         DRW_Variant(91, std::int32_t{17})};
     return object;
@@ -62,14 +65,17 @@ DRW_RawDxfObject makeRawObject() {
 const std::vector<std::pair<std::size_t, std::string>>& stringOverrides() {
     static const std::vector<std::pair<std::size_t, std::string>> overrides{
         {3u, "replacement first value"},
-        {4u, "replacement second value"}};
+        {4u, "replacement second value"},
+        {5u, "replacement symbol name"},
+        {6u, "replacement linetype"},
+        {7u, "replacement extended string"}};
     return overrides;
 }
 
 const std::vector<std::pair<std::size_t, std::int32_t>>& int32Overrides() {
     static const std::vector<std::pair<std::size_t, std::int32_t>> overrides{
-        {5u, 2718},
-        {6u, -91}};
+        {8u, 2718},
+        {9u, -91}};
     return overrides;
 }
 
@@ -163,7 +169,7 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
                               bool expectInt32Override) {
     return object.name == "XRECORD" && object.handle == 0xD8A0u
-        && object.parentHandle == 0xCu && object.groups.size() == 7u
+        && object.parentHandle == 0xCu && object.groups.size() == 10u
         && object.groups[0].code() == 5
         && object.groups[1].code() == 330
         && object.groups[2].code() == 100
@@ -175,12 +181,25 @@ bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
         && object.groups[4].type() == DRW_Variant::STRING
         && object.groups[4].c_str() != nullptr
         && std::string(object.groups[4].c_str()) == "replacement second value"
-        && object.groups[5].code() == 90
-        && object.groups[5].type() == DRW_Variant::INTEGER
-        && object.groups[5].i_val() == (expectInt32Override ? 2718 : 314)
-        && object.groups[6].code() == 91
-        && object.groups[6].type() == DRW_Variant::INTEGER
-        && object.groups[6].i_val() == (expectInt32Override ? -91 : 17);
+        && object.groups[5].code() == 2
+        && object.groups[5].type() == DRW_Variant::STRING
+        && object.groups[5].c_str() != nullptr
+        && std::string(object.groups[5].c_str()) == "replacement symbol name"
+        && object.groups[6].code() == 6
+        && object.groups[6].type() == DRW_Variant::STRING
+        && object.groups[6].c_str() != nullptr
+        && std::string(object.groups[6].c_str()) == "replacement linetype"
+        && object.groups[7].code() == 300
+        && object.groups[7].type() == DRW_Variant::STRING
+        && object.groups[7].c_str() != nullptr
+        && std::string(object.groups[7].c_str())
+            == "replacement extended string"
+        && object.groups[8].code() == 90
+        && object.groups[8].type() == DRW_Variant::INTEGER
+        && object.groups[8].i_val() == (expectInt32Override ? 2718 : 314)
+        && object.groups[9].code() == 91
+        && object.groups[9].type() == DRW_Variant::INTEGER
+        && object.groups[9].i_val() == (expectInt32Override ? -91 : 17);
 }
 
 bool readbackMatches(const std::filesystem::path& path,
