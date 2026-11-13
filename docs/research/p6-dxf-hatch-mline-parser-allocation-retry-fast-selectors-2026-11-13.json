@@ -1,0 +1,29 @@
+{
+  "title": "Generated HATCH and MLINE DXF parser allocation rollback/retry fast selectors",
+  "date": "2026-11-13",
+  "status": "focused_parser_controls_passed",
+  "scope": "Register existing generated HATCH and MLINE DXF parser allocation rollback/retry controls as independently runnable fast CTests.",
+  "selectors": [
+    {
+      "ctest": "libdxfrw_dxf_hatch_parser_allocation_retry",
+      "argument": "--hatch-dxf-allocation-failure",
+      "profiles": "Loop, pattern-dash, gradient-stop, seed-point, polyline-vertex, and edge-count reservation failures preserve parser state and allow corrected retry."
+    },
+    {
+      "ctest": "libdxfrw_dxf_mline_parser_allocation_retry",
+      "argument": "--mline-dxf-allocation-failure",
+      "profiles": "Vertex/style count and nested vertex allocation failures preserve parser phase and support retry."
+    }
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 4",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_(hatch|mline)_parser_allocation_retry$' --output-on-failure",
+    "result": "2/2 passed; generated parser controls run without fixture files."
+  },
+  "limitations": [
+    "These selectors expose parser controls only; they do not provide HATCH or MLINE writer allocation-failure coverage.",
+    "This is local generated transaction evidence, not producer, semantic, native, graph-closure, or platform qualification.",
+    "The P6 safety and caller-state audit remains open; no support claim is promoted."
+  ]
+}

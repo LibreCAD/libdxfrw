@@ -2952,6 +2952,14 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --mesh-dxf-allocation-failure)
     set_tests_properties(libdxfrw_dxf_mesh_parser_allocation_retry PROPERTIES
         LABELS "fast;dxf;reader;mesh;allocation;retry;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_dxf_hatch_parser_allocation_retry
+        COMMAND libdxfrw_dxf_fixture_tests --hatch-dxf-allocation-failure)
+    set_tests_properties(libdxfrw_dxf_hatch_parser_allocation_retry PROPERTIES
+        LABELS "fast;dxf;reader;hatch;allocation;retry;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_dxf_mline_parser_allocation_retry
+        COMMAND libdxfrw_dxf_fixture_tests --mline-dxf-allocation-failure)
+    set_tests_properties(libdxfrw_dxf_mline_parser_allocation_retry PROPERTIES
+        LABELS "fast;dxf;reader;mline;allocation;retry;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_dimension_ocs_extrusion
         COMMAND libdxfrw_dxf_fixture_tests --dimension-ocs-extrusion)
     set_tests_properties(libdxfrw_dxf_dimension_ocs_extrusion PROPERTIES
