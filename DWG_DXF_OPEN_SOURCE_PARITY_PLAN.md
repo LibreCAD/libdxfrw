@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **106 completed implementation slices** and **35 remaining
+The plan records **107 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`106 / (106 + 35) = 75.2%`. This is a count-based progress measure, not an
+`107 / (107 + 35) = 75.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,6 +1299,16 @@ reproduces clean bytes and typed readback checks each callback and modeled
 field. The focused transaction CTest passes 1/1 in 3.81 seconds. This is
 generated rollback/retry and codec readback only; custom/dynamic dimension
 profiles, native rendering and producer-specific DWG semantics remain open. See the
+[receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 local MPOLYGON transaction slice (2026-11-13):** the generated whole-file
+ASCII/Binary sweep writes one typed MPOLYGON solid profile with a closed
+four-vertex polyline boundary and nondefault elevation, fill color, annotation
+flag and offset vector. All 734 ASCII and 723 Binary failure offsets preserve
+destination, caller state and identity maps; same-writer retry reproduces clean
+bytes and typed readback verifies the boundary. The focused transaction CTest
+passes 1/1 in 4.41 seconds. Associative boundary handles and edge/spline paths
+remain open. See the
 [receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 local SECTIONOBJECT transaction slice (2026-11-13):** the generated

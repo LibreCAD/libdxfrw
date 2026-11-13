@@ -505,6 +505,24 @@ public:
         sectionObject.m_verts = {DRW_Coord(1.0, 2.0, 3.0),
                                  DRW_Coord(4.0, 5.0, 6.0)};
         sectionObject.m_blVerts = {DRW_Coord(-1.0, -2.0, -3.0)};
+        mpolygon.handle = 0xD972u;
+        mpolygon.dxfVersion = 1;
+        mpolygon.name = "SOLID";
+        mpolygon.solid = 1;
+        mpolygon.basePoint.z = 2.0;
+        mpolygon.fillColorAci = 5;
+        mpolygon.annotatedBoundary = 1;
+        mpolygon.xDirX = 1.0;
+        auto mpolygonLoop = std::make_shared<DRW_HatchLoop>(2);
+        auto mpolygonBoundary = std::make_shared<DRW_LWPolyline>();
+        mpolygonBoundary->flags = 1;
+        mpolygonBoundary->addVertex(DRW_Vertex2D(1.0, 1.0, 0.0));
+        mpolygonBoundary->addVertex(DRW_Vertex2D(4.0, 1.0, 0.0));
+        mpolygonBoundary->addVertex(DRW_Vertex2D(4.0, 3.0, 0.0));
+        mpolygonBoundary->addVertex(DRW_Vertex2D(1.0, 3.0, 0.0));
+        mpolygonLoop->objlist.push_back(mpolygonBoundary);
+        mpolygonLoop->update();
+        mpolygon.appendLoop(mpolygonLoop);
         arc.handle = kArcHandle;
         arc.basePoint = DRW_Coord(-3.0, 2.0, 5.0);
         arc.radious = 6.5;
@@ -778,6 +796,7 @@ public:
             && check("GEOPOSITIONMARKER", output.writeGeoPositionMarker(&geoPositionMarker))
             && check("GEOPOSITIONMARKER_EMBEDDED", output.writeGeoPositionMarker(&geoPositionMarkerEmbedded))
             && check("SECTIONOBJECT", output.writeSectionObject(&sectionObject))
+            && check("MPOLYGON", output.writeMPolygon(&mpolygon))
             && check("ARC", output.writeArc(&arc))
             && check("ELLIPSE", output.writeEllipse(&ellipse))
             && check("POINT", output.writePoint(&point))
@@ -850,6 +869,7 @@ public:
     DRW_GeoPositionMarker geoPositionMarker;
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_SectionObject sectionObject;
+    DRW_MPolygon mpolygon;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
     DRW_Point point;
@@ -1078,6 +1098,12 @@ public:
         ++sectionObjectCount;
         sectionObject = value;
     }
+    void addMPolygon(const DRW_MPolygon* value) override {
+        if (value == nullptr)
+            return;
+        ++mpolygonCount;
+        mpolygon = *value;
+    }
     void addMText(const DRW_MText& value) override {
         dx_iface::addMText(value);
         ++mtextCount;
@@ -1196,6 +1222,7 @@ public:
     DRW_GeoPositionMarker geoPositionMarker;
     DRW_GeoPositionMarker geoPositionMarkerEmbedded;
     DRW_SectionObject sectionObject;
+    DRW_MPolygon mpolygon;
     DRW_View view;
     DRW_Arc arc;
     DRW_Ellipse ellipse;
@@ -1255,6 +1282,7 @@ public:
     unsigned viewCount = 0u;
     unsigned geoPositionMarkerCount = 0u;
     unsigned sectionObjectCount = 0u;
+    unsigned mpolygonCount = 0u;
     unsigned arcCount = 0u;
     unsigned ellipseCount = 0u;
     unsigned pointCount = 0u;
@@ -1680,6 +1708,22 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.sectionObject.m_verts[1].z == 6.0
         && adapter.sectionObject.m_blVerts.size() == 1u
         && adapter.sectionObject.m_blVerts[0].x == -1.0
+        && adapter.mpolygon.handle == 0xD972u
+        && adapter.mpolygon.dxfVersion == 1
+        && adapter.mpolygon.name == "SOLID"
+        && adapter.mpolygon.solid == 1
+        && adapter.mpolygon.basePoint.z == 2.0
+        && adapter.mpolygon.fillColorAci == 5
+        && adapter.mpolygon.annotatedBoundary == 1
+        && adapter.mpolygon.xDirX == 1.0
+        && adapter.mpolygon.looplist.size() == 1u
+        && adapter.mpolygon.looplist[0]
+        && adapter.mpolygon.looplist[0]->objlist.size() == 1u
+        && adapter.mpolygon.looplist[0]->objlist[0]
+        && dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get()) != nullptr
+        && dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist.size() == 4u
         && adapter.arc.handle == kArcHandle
         && adapter.arc.basePoint.x == -3.0
         && adapter.arc.basePoint.y == 2.0
@@ -2399,6 +2443,27 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.sectionObject.m_blVerts[0].x != -1.0
         || adapter.sectionObject.m_blVerts[0].y != -2.0
         || adapter.sectionObject.m_blVerts[0].z != -3.0
+        || adapter.mpolygonCount != 1u
+        || adapter.mpolygon.handle == 0u
+        || adapter.mpolygon.dxfVersion != 1
+        || adapter.mpolygon.name != "SOLID"
+        || adapter.mpolygon.solid != 1
+        || adapter.mpolygon.basePoint.z != 2.0
+        || adapter.mpolygon.fillColorAci != 5
+        || adapter.mpolygon.annotatedBoundary != 1
+        || adapter.mpolygon.xDirX != 1.0
+        || adapter.mpolygon.looplist.size() != 1u
+        || !adapter.mpolygon.looplist[0]
+        || adapter.mpolygon.looplist[0]->objlist.size() != 1u
+        || !adapter.mpolygon.looplist[0]->objlist[0]
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get()) == nullptr
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist.size() != 4u
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist[2]->x != 4.0
+        || dynamic_cast<const DRW_LWPolyline*>(
+            adapter.mpolygon.looplist[0]->objlist[0].get())->vertlist[2]->y != 3.0
         || adapter.arcCount != 1u
         || adapter.arc.handle == 0u
         || adapter.arc.basePoint.x != -3.0
