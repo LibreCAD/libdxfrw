@@ -5570,6 +5570,202 @@ bool run(const std::filesystem::path& directory) {
     return true;
 }
 
+class HatchOnlyExport final : public dx_iface {
+public:
+    explicit HatchOnlyExport(dxfRW& output) : output(output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        hatch.handle = 0xDA50u;
+        hatch.name = "ANSI31";
+        hatch.solid = 0;
+        hatch.hpattern = 0;
+        hatch.angle = 0.25;
+        hatch.scale = 1.5;
+        DRW_Hatch::PatternLine pattern;
+        pattern.angle = 0.5;
+        pattern.baseX = 0.25;
+        pattern.baseY = -0.5;
+        pattern.offsetX = 0.0;
+        pattern.offsetY = 1.25;
+        pattern.dashList = {0.5, -0.25, 1.0};
+        hatch.patternLines.push_back(pattern);
+        auto loop = std::make_shared<DRW_HatchLoop>(2);
+        auto boundary = std::make_shared<DRW_LWPolyline>();
+        boundary->flags = 1;
+        boundary->addVertex(DRW_Vertex2D(0.0, 0.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(2.0, 0.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(2.0, 3.0, 0.0));
+        boundary->addVertex(DRW_Vertex2D(0.0, 3.0, 0.0));
+        loop->objlist.push_back(boundary);
+        loop->update();
+        hatch.appendLoop(loop);
+        hatch.seedPoints.emplace_back(0.5, 0.75, 0.0);
+    }
+
+    void writeEntities() override {
+        entitiesWritten = output.writeHatch(&hatch);
+    }
+
+    bool sourceUnchanged() const {
+        if (hatch.handle != 0xDA50u || hatch.name != "ANSI31"
+            || hatch.solid != 0 || hatch.hpattern != 0
+            || hatch.angle != 0.25 || hatch.scale != 1.5
+            || hatch.looplist.size() != 1u || !hatch.looplist.front()
+            || hatch.looplist.front()->objlist.size() != 1u
+            || hatch.patternLines.size() != 1u
+            || hatch.patternLines.front().dashList
+                != std::vector<double>{0.5, -0.25, 1.0}
+            || hatch.seedPoints.size() != 1u
+            || hatch.seedPoints.front().x != 0.5
+            || hatch.seedPoints.front().y != 0.75)
+            return false;
+        const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
+            hatch.looplist.front()->objlist.front().get());
+        return boundary != nullptr && boundary->flags == 1
+            && boundary->vertlist.size() == 4u
+            && boundary->vertlist[0]->x == 0.0
+            && boundary->vertlist[1]->x == 2.0
+            && boundary->vertlist[2]->y == 3.0
+            && boundary->vertlist[3]->x == 0.0;
+    }
+
+    dxfRW& output;
+    dx_data storage;
+    DRW_Hatch hatch;
+    bool entitiesWritten = false;
+};
+
+bool runHatchVersionTransactionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](DRW::Version version, bool binary,
+                         const char* message) {
+        std::cerr << "HATCH transaction " << static_cast<int>(version)
+                  << (binary ? " Binary: " : " ASCII: ") << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory)) {
+        std::cerr << "HATCH transaction: could not create scratch directory\n";
+        return false;
+    }
+    const auto output = directory / "hatch-version-transaction.dxf";
+    const std::string sentinel = "prior HATCH drawing\n";
+    const std::vector<DRW::Version> versions = {
+        DRW::AC1014, DRW::AC1015, DRW::AC1018,
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            {
+                dxfRW codec(output.string().c_str());
+                HatchOnlyExport adapter(codec);
+                const bool wrote = codec.write(&adapter, version, binary);
+                if (!wrote || !adapter.entitiesWritten
+                    || !adapter.sourceUnchanged()) {
+                    std::cerr << "warm-up wrote=" << wrote
+                              << " callback=" << adapter.entitiesWritten
+                              << " source=" << adapter.sourceUnchanged()
+                              << " error=" << codec.getError() << '\n';
+                    return fail(version, binary, "warm-up write failed");
+                }
+            }
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                HatchOnlyExport adapter(codec);
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.entitiesWritten
+                    || !adapter.sourceUnchanged()
+                    || !readBytes(output, expectedBytes))
+                    return fail(version, binary, "calibration failed");
+            }
+            if (allocationCount <= 0)
+                return fail(version, binary, "calibration observed no allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                       std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail(version, binary,
+                                    "could not seed destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                HatchOnlyExport adapter(codec);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version, binary);
+                const std::size_t reached = allocationAttempts;
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                if (wrote || !injected
+                    || reached != static_cast<std::size_t>(offset + 1)
+                    || !readBytes(output, afterFailure)
+                    || afterFailure != sentinel || !adapter.sourceUnchanged()
+                    || hasStagedOutput(output))
+                    return fail(version, binary,
+                                "failure changed caller or destination state");
+
+                const bool retried = codec.write(&adapter, version, binary);
+                std::string retryBytes;
+                Readback readback;
+                dxfRW reader(output.string().c_str());
+                const bool read = reader.read(&readback, false);
+                if (!retried || !adapter.entitiesWritten
+                    || !adapter.sourceUnchanged()
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes || !read
+                    || readback.hatchCount != 1u
+                    || readback.hatch.name != "ANSI31"
+                    || readback.hatch.solid != 0
+                    || readback.hatch.handle == 0u
+                    || readback.hatch.angle != 0.25
+                    || readback.hatch.scale != 1.5
+                    || readback.hatch.looplist.size() != 1u
+                    || !readback.hatch.looplist.front()
+                    || readback.hatch.looplist.front()->objlist.size() != 1u
+                    || dynamic_cast<const DRW_LWPolyline*>(
+                        readback.hatch.looplist.front()->objlist.front().get())
+                        == nullptr
+                    || readback.hatch.patternLines.size() != 1u
+                    || readback.hatch.patternLines.front().angle != 0.5
+                    || readback.hatch.patternLines.front().baseX != 0.25
+                    || readback.hatch.patternLines.front().baseY != -0.5
+                    || readback.hatch.patternLines.front().offsetY != 1.25
+                    || readback.hatch.patternLines.front().dashList
+                        != std::vector<double>{0.5, -0.25, 1.0}
+                    || readback.hatch.seedPoints.size() != 1u
+                    || readback.hatch.seedPoints.front().x != 0.5
+                    || readback.hatch.seedPoints.front().y != 0.75
+                    || hasStagedOutput(output))
+                    return fail(version, binary,
+                                "retry or typed readback failed");
+                const auto* boundary = dynamic_cast<const DRW_LWPolyline*>(
+                    readback.hatch.looplist.front()->objlist.front().get());
+                if (boundary->flags != 1 || boundary->vertlist.size() != 4u
+                    || boundary->vertlist[0]->x != 0.0
+                    || boundary->vertlist[1]->x != 2.0
+                    || boundary->vertlist[2]->y != 3.0
+                    || boundary->vertlist[3]->x != 0.0)
+                    return fail(version, binary,
+                                "typed boundary readback mismatch");
+            }
+            std::cout << "HATCH " << static_cast<int>(version)
+                      << (binary ? " Binary" : " ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    std::error_code ignored;
+    std::filesystem::remove(output, ignored);
+    return true;
+}
+
 bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "R2018 embedded ATTRIB/MTEXT allocation transaction: "
@@ -7975,7 +8171,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|hatch-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -7985,6 +8181,8 @@ int main(int argc, char** argv) {
             return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
         if (mode == "legacy-compound-entities")
             return runLegacyCompoundEntitiesSweep(directory) ? 0 : 1;
+        if (mode == "hatch-versions")
+            return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "light-list")
