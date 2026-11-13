@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **221 completed implementation slices** and **35 remaining
+The plan records **222 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`221 / (221 + 35) = 86.3%`. This is a count-based progress measure, not an
+`222 / (222 + 35) = 86.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1285,13 +1285,14 @@ georeferencing semantics remain open
 ([version-matrix receipt](docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G DBCOLOR writer version-matrix transaction follow-up (2026-11-13):**
-the generated DBCOLOR record now passes for AC1021, AC1027, and AC1032 in
-ASCII and Binary. All eight measured allocation failures per profile preserve
-the destination and caller record; same-codec retry reproduces clean bytes and
-typed readback verifies the handle, owner, RGB, method, entry name, and book
-name. The focused CTest passes in 0.40 seconds; the direct control covers 48
-allocation offsets. This is generated transaction evidence across these writer
-revisions only; producer profiles and native consumer meaning remain open
+the generated DBCOLOR record now passes for AC1021, AC1024, AC1027, and AC1032
+in ASCII and Binary. All eight measured allocation failures per profile
+preserve the destination and caller record; same-codec retry reproduces clean
+bytes and typed readback verifies the handle, owner, RGB, method, entry name,
+and book name. The expanded focused CTest passes in 0.97 seconds; the direct
+control covers 64 allocation offsets. This is generated transaction evidence
+across these writer revisions only; producer profiles and native consumer
+meaning remain open
 ([version-matrix receipt](docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G IMAGEBACKGROUND writer version-matrix transaction follow-up

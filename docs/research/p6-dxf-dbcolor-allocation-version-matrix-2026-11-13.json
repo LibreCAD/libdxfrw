@@ -4,11 +4,11 @@
   "date": "2026-11-13",
   "status": "GENERATED_DBCOLOR_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Extend generated DBCOLOR OBJECTS allocation transaction evidence across AC1021, AC1027, and AC1032 writer versions.",
+  "scope": "Extend generated DBCOLOR OBJECTS allocation transaction evidence across AC1021, AC1024, AC1027, and AC1032 writer versions.",
   "source": {
     "kind": "deterministic locally-authored record generated during each test run",
     "profile": "One rooted ACAD_COLOR dictionary and one DBCOLOR record with explicit owner, RGB, color method, entry name, and book name.",
-    "versions": ["AC1021", "AC1027", "AC1032"],
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
   },
@@ -23,15 +23,18 @@
   },
   "allocationOffsets": {
     "AC1021": {"ASCII": 8, "Binary": 8},
+    "AC1024": {"ASCII": 8, "Binary": 8},
     "AC1027": {"ASCII": 8, "Binary": 8},
     "AC1032": {"ASCII": 8, "Binary": 8},
-    "totals": {"ASCII": 24, "Binary": 24, "all": 48}
+    "totals": {"ASCII": 32, "Binary": 32, "all": 64}
   },
   "validation": {
-    "build": "cmake --build build-gcc --target libdxfrw_dbcolor_objects_allocation_tests --parallel 4: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.40 seconds",
-    "directControl": "build-gcc/tests/libdxfrw_dbcolor_objects_allocation_tests /tmp/libdxfrw-dbcolor-version-matrix-2026-11-13: PASS; AC1021, AC1027, and AC1032 each cover ASCII 8 and Binary 8 offsets",
-    "diffCheck": "PASS"
+    "build": "cmake --build build --target libdxfrw_dbcolor_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.97 seconds",
+    "directControl": "build/tests/libdxfrw_dbcolor_objects_allocation_tests build/dbcolor-scratch: PASS; AC1021, AC1024, AC1027, and AC1032 each cover ASCII 8 and Binary 8 offsets",
+    "testSourceSha256": "2afc701fb0ddf862ba2f173691604b00f3ee1503430500d1710f28be3c982cae",
+    "testExecutableSha256": "c9ec90abbbaaad39f085c2d59c5268724c2c82efd289a640b9ab695ffb4d23c1",
+    "diffCheck": "git diff --check: PASS"
   },
   "limitations": [
     "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
@@ -39,10 +42,10 @@
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "The generated DBCOLOR transaction proof now passes across AC1021, AC1027, and AC1032 in ASCII and Binary.",
+    "completedSlice": "The generated DBCOLOR transaction proof now passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary.",
     "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "204 completed slices and 35 remaining packages: 204/(204+35)=85.4%; count-based, not effort-weighted."
+    "progressEstimate": "222 completed slices and 35 remaining packages: 222/(222+35)=86.4%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json"
 }
