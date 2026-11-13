@@ -122,6 +122,7 @@ constexpr std::uint32_t kDirectVportHandle = 0xD977u;
 constexpr std::uint32_t kDirectLayerHandle = 0xD978u;
 constexpr std::uint32_t kDirectTextstyleHandle = 0xD979u;
 constexpr std::uint32_t kDirectDimstyleHandle = 0xD97Au;
+constexpr std::uint32_t kDirectWipeoutHandle = 0xD97Bu;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -251,6 +252,20 @@ public:
         image.vVector = DRW_Coord(0.0, 1.0, 0.0);
         image.sizeu = 640.0;
         image.sizev = 480.0;
+        wipeout.handle = kDirectWipeoutHandle;
+        wipeout.basePoint = DRW_Coord(21.0, 22.0, 23.0);
+        wipeout.secPoint = DRW_Coord(4.0, 0.0, 0.0);
+        wipeout.vVector = DRW_Coord(0.0, 3.0, 0.0);
+        wipeout.sizeu = 320.0;
+        wipeout.sizev = 240.0;
+        wipeout.clip = 1;
+        wipeout.brightness = 60;
+        wipeout.contrast = 70;
+        wipeout.fade = 10;
+        wipeout.m_clipBoundaryType = 2;
+        wipeout.clipPath = {DRW_Coord(0.0, 0.0), DRW_Coord(32.0, 0.0),
+            DRW_Coord(24.0, 18.0), DRW_Coord(0.0, 16.0)};
+        wipeout.clipMode = true;
         mesh.handle = kMeshHandle;
         mesh.vertices = {DRW_Coord(0.0, 0.0, 0.0),
                          DRW_Coord(2.0, 0.0, 0.0),
@@ -1200,6 +1215,7 @@ public:
             && check("LWPOLYLINE", output.writeLWPolyline(&polyline))
             && check("IMAGE", output.writeImage(
                 &image, "whole-operation-image.png", 7u, image.ref) != nullptr)
+            && check("WIPEOUT", output.writeWipeout(&wipeout))
             && check("MESH", output.writeMesh(&mesh))
             && check("SPLINE", output.writeSpline(&spline))
             && check("HATCH", output.writeHatch(&hatch))
@@ -1303,6 +1319,7 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_Wipeout wipeout;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1406,6 +1423,12 @@ public:
         if (value != nullptr) {
             ++imageCount;
             image = *value;
+        }
+    }
+    void addWipeout(const DRW_Wipeout* value) override {
+        if (value != nullptr) {
+            ++wipeoutCount;
+            wipeout = *value;
         }
     }
     void addPointCloud(const DRW_PointCloud* value) override {
@@ -1818,6 +1841,7 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_Wipeout wipeout;
     DRW_PointCloud pointCloud;
     DRW_PointCloudEx pointCloudEx;
     DRW_NavisworksModel navisworksModel;
@@ -1904,6 +1928,7 @@ public:
     unsigned circleCount = 0u;
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
+    unsigned wipeoutCount = 0u;
     unsigned pointCloudCount = 0u;
     unsigned pointCloudExCount = 0u;
     unsigned navisworksModelCount = 0u;
@@ -2275,6 +2300,18 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.basePoint.z == 4.0
         && adapter.image.sizeu == 640.0
         && adapter.image.sizev == 480.0
+        && adapter.wipeout.handle == kDirectWipeoutHandle
+        && adapter.wipeout.clip == 1
+        && adapter.wipeout.basePoint.x == 21.0
+        && adapter.wipeout.basePoint.y == 22.0
+        && adapter.wipeout.basePoint.z == 23.0
+        && adapter.wipeout.clipPath.size() == 4u
+        && adapter.wipeout.clipPath[2].x == 24.0
+        && adapter.wipeout.clipPath[2].y == 18.0
+        && adapter.wipeout.clipMode
+        && adapter.wipeout.brightness == 60
+        && adapter.wipeout.contrast == 70
+        && adapter.wipeout.fade == 10
         && adapter.pointCloud.handle == kPointCloudHandle
         && adapter.pointCloud.classVersion == 2u
         && adapter.pointCloud.origin.x == 11.0
@@ -3315,6 +3352,7 @@ bool matchesReadback(const std::filesystem::path& path) {
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
+        || adapter.wipeoutCount != 1u
         || adapter.pointCloudCount != 1u
         || adapter.pointCloudExCount != 1u
         || adapter.navisworksModelCount != 1u
@@ -3412,6 +3450,23 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.image.basePoint.z != 4.0
         || adapter.image.sizeu != 640.0
         || adapter.image.sizev != 480.0
+        || adapter.wipeout.handle == 0u
+        || adapter.wipeout.basePoint.x != 21.0
+        || adapter.wipeout.basePoint.y != 22.0
+        || adapter.wipeout.basePoint.z != 23.0
+        || adapter.wipeout.secPoint.x != 4.0
+        || adapter.wipeout.vVector.y != 3.0
+        || adapter.wipeout.sizeu != 320.0
+        || adapter.wipeout.sizev != 240.0
+        || adapter.wipeout.clip != 1
+        || adapter.wipeout.brightness != 60
+        || adapter.wipeout.contrast != 70
+        || adapter.wipeout.fade != 10
+        || adapter.wipeout.m_clipBoundaryType != 2
+        || adapter.wipeout.clipPath.size() != 4u
+        || adapter.wipeout.clipPath[2].x != 24.0
+        || adapter.wipeout.clipPath[2].y != 18.0
+        || !adapter.wipeout.clipMode
         || adapter.pointCloud.handle == 0u
         || adapter.pointCloud.classVersion != 2u
         || adapter.pointCloud.origin.x != 11.0
@@ -4540,7 +4595,14 @@ bool matchesReadback(const std::filesystem::path& path) {
             std::cerr << " rawPayloadMatches="
                       << rawXrecord->groups[3].stringEquals(
                              "whole operation payload");
-        std::cerr << " typed-xrecord=" << adapter.typedXRecordCount << '/'
+        std::cerr << " wipeouts=" << adapter.wipeoutCount
+                  << " wipeoutHandle=" << adapter.wipeout.handle
+                  << " wipeoutBoundary=" << adapter.wipeout.clipPath.size()
+                  << ':' << adapter.wipeout.m_clipBoundaryType
+                  << " wipeoutClip=" << adapter.wipeout.clip
+                  << " wipeoutMode=" << adapter.wipeout.clipMode
+                  << " wipeoutBrightness=" << adapter.wipeout.brightness
+                  << " typed-xrecord=" << adapter.typedXRecordCount << '/'
                   << adapter.typedXRecord.handle << '/'
                   << adapter.typedXRecord.parentHandle << '/'
                   << adapter.typedXRecord.m_values.size();

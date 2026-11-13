@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **130 completed implementation slices** and **35 remaining
+The plan records **131 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`130 / (130 + 35) = 78.8%`. This is a count-based progress measure, not an
+`131 / (131 + 35) = 78.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1598,6 +1598,17 @@ sweep passes at 1,113 ASCII and 1,090 Binary offsets with destination/caller
 rollback and same-writer retry; focused CTest passes in 7.99 seconds. This is
 one locally generated dependency profile, not producer interoperability,
 native font behavior or broad DIMSTYLE semantic evidence. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 WIPEOUT writer transaction slice (2026-11-13):** the whole-operation
+ASCII/Binary sweep now calls `writeWipeout()` for a generated polygon-masked
+WIPEOUT with nondefault image-plane geometry, brightness, contrast and fade.
+All 1,121 ASCII and 1,098 Binary injected allocation failures preserve caller
+state and the previous destination; same-writer retry reproduces clean output.
+Typed readback verifies the remapped entity handle, geometry, four-vertex clip
+boundary and R2010+ clip mode. The focused CTest passes in 8.19 seconds. This
+does not qualify optional IMAGEDEF/reactor references or native masking
+behavior. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
