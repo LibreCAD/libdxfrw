@@ -2,14 +2,14 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **75 completed implementation slices**. It does **not** yet
+The plan records **76 completed implementation slices**. It does **not** yet
 enumerate the remaining work as implementation slices: P4–P8 are broad phase
 exit gates and P9 is an external-evidence disposition, so counting those six
 gates as six slices mixes unlike units. The earlier `63 / (63 + 6) = 91.3%`
 figure is therefore only an **upper-bound proxy** obtained by pretending each
 gate is one remaining slice; it is not a reliable point estimate of plan
 progress. Since each open gate contains multiple unresolved requirements, the
-actual slice-based percentage is **below 92.6%** (`75 / (75 + 6)` is the
+actual slice-based percentage is **below 92.8%** (`76 / (76 + 6)` is the
 rounded six-gate upper-bound proxy), but cannot be calculated
 honestly until those requirements are decomposed and counted as remaining
 slices.
@@ -3832,19 +3832,20 @@ refused, and advance to a different implementation-ready packet.
 | CLI and oracle contracts | Single-file output/input filesystem-alias refusal is implemented for positional and FreeCAD `-o` routes; the fast CLI selector covers same-path, symlink and hard-link aliases and verifies source preservation (see the [alias guard receipt](docs/research/p6-cli-single-file-input-output-alias-guard-2026-11-02.json)). Generated source-DXF FreeCAD `-o` controls now bind default target selection for all nine supported revision headers in ASCII and Binary, including AC1012→AC1014. Locally authored DWGs now cover every DWG-writer version (AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032). The generated sources succeed at their default targets in ASCII/Binary, with binary readback at the same revision. The bounded AC1018 minimal root/empty-group source also succeeds at explicit AC1024 ([receipt](docs/research/p4-ac1018-minimal-root-group-output-2026-11-04.json)); broader AC1018 graphs remain open. A debug-only preflight projection now exposes source format/revision, selected target revision, implicit-versus-explicit selection, encoding and input-appropriate read-completeness mode before writer setup. Generated AC1012 DXF input verifies its AC1014 default; AC1006 input verifies a fail-closed unavailable default; generated AC1021 and AC1018 default/explicit successes verify the projection before output preflight. An external AC1014 sample also selects AC1014 but is refused because two source objects fail parsing and the frame disposition is incomplete; this is diagnostic evidence only, and the sample is not committed. See the [default target-version receipt](docs/research/p6-cli-freecad-default-target-version-matrix-2026-11-02.json). Remaining contracts: eligible AC1012/AC1014 DWG-source output/readback; other partial-read failure profiles (the six-writer-version generated control covers ASCII and Binary strict refusal, opt-in output and readback; the original ASCII control is recorded in the [all-version receipt](docs/research/p6-cli-partial-dwg-read-all-writer-versions-2026-11-02.json)); and broader CLI projections: broader HEADER structure/repairability profiles beyond generated duplicate `$ACADVER`/`$LTSCALE` variables and repeated group 10 in `$INSBASE`/`$EXTMIN`; the API repair workflow for duplicate variables/repeated group codes is covered by the ASCII/Binary same-adapter replacement/retry control in [the HEADER receipt](docs/research/par27-header-repeated-group-refusal-fast-slice-2026-10-22.json); broader malformed structures remain open; `$REQUIREDVERSIONS` malformed/repeated diagnostic controls now cover duplicate variable, repeated group 160, and wrong group code with AC1032 atomic refusal; feature semantics/native acceptance beyond one generated bit preserved through AC1032 typed DXF output/readback plus AC1024 refusal remain open; decoder issue-mask projection now exercises all 15 defined `DxfTextIssue` flags across 14 locally authored profiles with exact-mask and atomic-refusal checks; see the [CLI issue-mask matrix receipt](docs/research/p6-cli-text-decoder-issue-mask-matrix-2026-11-02.json); skipped-record projections cover one and three same-class instances plus three distinct AC1027 custom class names; and the source-disposition projection now also exposes DWG entity/object parse-failure counts and all seven HANDLE-frame dispositions, checked against generated partial-read sources across AC1015–AC1032. See the [frame-projection receipt](docs/research/p6-cli-source-disposition-frame-projection-2026-11-07.json). Named skipped-record totals remain separate from frame/parse counters and are not combined into semantic-loss counts. Other skip/recovery categories, revisions, broader HEADER structures, and native/feature semantics remain open. The CLI applies no repair; these projections diagnose only. See the [source-disposition projection receipt](docs/research/p6-cli-source-disposition-projection-2026-11-02.json).
 
 **P6 whole-operation DXF allocation rollback/retry (2026-11-13):** a generated
-ASCII/Binary full `dxfRW::write` control sweeps 444/438 measured global
+ASCII/Binary full `dxfRW::write` control sweeps 453/447 measured global
 allocation offsets across LINE, nonplanar 3DFACE with selected invisible edges,
 partial ARC and ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT,
 MTEXT, RAY and XLINE, variable-length
 LWPOLYLINE, CIRCLE, IMAGE,
 MESH, SPLINE, HATCH, LEADER, MLINE with MLINESTYLE, IMAGEDEF, raw XRECORD,
-a custom BLOCK/BLOCK_RECORD with POINT, INSERT/ATTRIB/SEQEND, three DATALINK
+a custom BLOCK/BLOCK_RECORD with POINT and ATTDEF, INSERT/two-ATTRIB/SEQEND, three DATALINK
 records with two custom-target references, and rooted NOD/GROUP,
 ACAD_IMAGE_DICT, and nested named-DICTIONARY graphs. The MLINE profile carries
 two vertices, one style line, and per-vertex segment and area-fill parameters;
 readback confirms the MLINESTYLE handle/name and nested parameter arrays. The
-INSERT references its emitted custom block by name and carries one ATTRIB;
-readback confirms the block POINT, attribute owner and text. A classic POLYLINE adds two owned VERTEX records and a SEQEND; each injected
+INSERT references its emitted custom block by name and carries two ATTRIB
+children; readback confirms the block POINT and ATTDEF, plus both attribute
+owners, tags, text and geometry. A classic POLYLINE adds two owned VERTEX records and a SEQEND; each injected
 failure restores the parent and child handles, and readback confirms both
 vertices and their bulge values. Every injected failure preserves prior destination bytes, caller records and derived identity maps;
 same-codec retry reproduces clean bytes, remapped GROUP membership, IMAGE
@@ -3856,9 +3857,9 @@ was rolled back at record scope, but the enclosing DXF write lost the error bit
 and published a file with the polyline omitted. The outer operation now latches
 staged writer failures before local rollback. Generated BLOCK/ENDBLK handles
 are now attempt-scoped so failed writes do not shift retry identities, and
-whole-file INSERT/ATTRIB callbacks now restore caller handles locally without
-retaining borrowed record pointers; standalone writeInsert handle behavior is
-preserved. The 3DFACE control uses four distinct WCS corners; typed readback verifies
+whole-file INSERT/ATTRIB callbacks now restore parent and both child handles
+locally without retaining borrowed record pointers; standalone writeInsert
+handle behavior is preserved. The 3DFACE control uses four distinct WCS corners; typed readback verifies
 all coordinates and FirstEdge/ThirdEdge invisibility flags. ARC readback checks
 center, radius, partial angular span and thickness; ELLIPSE readback checks its
 partial parameter span, major axis and perpendicular extrusion. POINT readback
@@ -3870,9 +3871,10 @@ checks its insertion point, content, height, rotation, width factor and style.
 The adapter delegates TEXT callbacks to `dx_iface` to retain its normal storage.
 MTEXT checks insertion, content, height, box width, style and explicitly present
 R2007+ defined height; its callback also delegates to `dx_iface`. RAY/XLINE readback checks unit-normalized direction vectors while whole-write
-caller-state checks preserve the original vectors. The sweep reaches 432 ASCII
-and 425 Binary allocation offsets; focused CTest passes in normal (2.10 s) and
-ASan (16.73 s) builds.
+caller-state checks preserve the original vectors. The custom block readback verifies both POINT and ATTDEF children, including
+ATTDEF tag, prompt, default text and block ownership. The sweep reaches 453 ASCII
+and 447 Binary allocation offsets; focused CTest passes in normal (2.28 s) and
+ASan (17.24 s) builds.
 This closes only these generated whole-operation paths; other drawing families
 and platform/filesystem failure modes remain open
 ([receipt](docs/research/p6-dxf-whole-operation-allocation-rollback-retry-2026-11-13.json)).

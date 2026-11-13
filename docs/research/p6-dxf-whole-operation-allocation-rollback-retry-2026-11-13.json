@@ -342,6 +342,19 @@
               0.0
             ],
             "height": 2.5
+          },
+          {
+            "kind": "ATTRIB",
+            "sourceHandle": "0xD932",
+            "ownerSourceHandle": "0xD922",
+            "tag": "WHOLE_OPERATION_TAG2",
+            "text": "second whole operation attribute",
+            "position": [
+              12.0,
+              22.0,
+              1.0
+            ],
+            "height": 1.25
           }
         ],
         "sequenceEnd": "generated-by-writer"
@@ -601,33 +614,6 @@
         ]
       },
       {
-        "kind": "TRACE",
-        "sourceHandle": "0xD92C",
-        "elevation": 2.0,
-        "corners": [
-          [
-            0.0,
-            0.0,
-            2.0
-          ],
-          [
-            3.0,
-            0.0,
-            2.0
-          ],
-          [
-            3.0,
-            2.0,
-            2.0
-          ],
-          [
-            0.0,
-            2.0,
-            2.0
-          ]
-        ]
-      },
-      {
         "kind": "TEXT",
         "sourceHandle": "0xD92D",
         "insertionPoint": [
@@ -730,11 +716,11 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "fbd4e50bf81d87965697fca3020e713f79acbf06ef3995339f45e842a5d08a8a",
+    "testSha256": "e847a4c4d43ed72d20e932f6bb783d32b5d158cb84ca8115d3c4de203b310a9b",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "0aea2d618fe13d1dea583b44ff7a142bdc0e48bf066b92984588dda055e1a7e4",
-    "asanExecutableSha256": "e6b9f8d8a1fa834f56abbde7d8068b0cd70aab3447cc7e07aa77899e13a920aa",
+    "normalExecutableSha256": "ff02b4fdaec9eb2599f60125dc9e41fa47eda93b61b00e1ccdedfd960fc82442",
+    "asanExecutableSha256": "5bdd49781ebe4e1ec727625f8f07f540d9a914f4b9c641b9ac49ce86bab33eca",
     "productionFiles": [
       "src/libdxfrw.cpp",
       "src/libdxfrw.h",
@@ -744,7 +730,7 @@
     "productionSourceSha256": {
       "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "fbd4e50bf81d87965697fca3020e713f79acbf06ef3995339f45e842a5d08a8a",
+      "tests/dxf_write_allocation_transaction_tests.cpp": "e847a4c4d43ed72d20e932f6bb783d32b5d158cb84ca8115d3c4de203b310a9b",
       "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a"
     },
     "details": [
@@ -753,7 +739,7 @@
       "Generated patterned HATCH output now participates in the whole-operation sweep with a closed polyline boundary, pattern dash vector and seed point.",
       "Generated LEADER output with three 3D vertices and a nondefault block offset now participates in the whole-operation allocation sweep.",
       "Generated custom BLOCK/BLOCK_RECORD output with one owned POINT and a name-resolved INSERT now participates in the whole-operation sweep.",
-      "The INSERT carries one ATTRIB and synthesized SEQEND. Typed readback verifies the block body, INSERT target/name/position and ATTRIB owner/tag/text/position/height.",
+      "The INSERT carries two ATTRIB children and synthesized SEQEND. Typed readback verifies the block body, target/name/position, and both attribute owners, tags, text, positions and heights.",
       "Whole-file write callbacks restore INSERT/ATTRIB caller handles locally, avoiding a borrowed-pointer journal; standalone writeInsert keeps its handle-preserving behavior. The custom BLOCK/ENDBLK identities remain attempt-scoped.",
       "Generated nonplanar 3DFACE output with four distinct WCS corners and FirstEdge/ThirdEdge invisibility flags now participates in the whole-operation sweep; typed readback verifies all corners and edge flags.",
       "The 3DFACE caller record remains unchanged on failed and successful whole-file writes; same-codec retry reproduces the clean bytes in ASCII and Binary.",
@@ -769,7 +755,8 @@
       "Generated TEXT output with a non-origin 3D insertion point, simple content, height, rotation, width factor and STANDARD style now participates in the whole-operation sweep; typed readback checks every field.",
       "Generated MTEXT output with a non-origin insertion point, simple content, box width, height, STANDARD style and explicitly present R2007+ defined height now participates in the whole-operation sweep; typed readback checks these fields.",
       "Generated RAY and XLINE output with non-origin 3D base points and non-axis-aligned direction vectors now participates in the whole-operation sweep. Typed readback verifies each handle, base point and normalized direction; whole-file failure and success checks preserve the caller\u2019s original direction vectors.",
-      "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style."
+      "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style.",
+      "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND."
     ]
   },
   "procedure": {
@@ -784,9 +771,9 @@
   },
   "result": {
     "testExitCode": 0,
-    "ctest": "Normal 1/1 passed in 2.13 seconds; ASan 1/1 passed in 16.87 seconds.",
+    "ctest": "Normal 1/1 passed in 2.28 seconds; ASan 1/1 passed in 17.24 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 444,
+      "measuredAllocationOffsets": 453,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -867,10 +854,13 @@
       "callerXlinePreserved": true,
       "attdefBlockReadbackMatched": true,
       "attdefAllocationFailureAbortsWholeWrite": true,
-      "callerBlockAndAttdefPreserved": true
+      "callerBlockAndAttdefPreserved": true,
+      "insertMultipleAttribReadbackMatched": true,
+      "twoAttribAllocationFailureAbortsWholeWrite": true,
+      "callerInsertAndBothAttribsPreserved": true
     },
     "binary": {
-      "measuredAllocationOffsets": 438,
+      "measuredAllocationOffsets": 447,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -951,9 +941,12 @@
       "callerXlinePreserved": true,
       "attdefBlockReadbackMatched": true,
       "attdefAllocationFailureAbortsWholeWrite": true,
-      "callerBlockAndAttdefPreserved": true
+      "callerBlockAndAttdefPreserved": true,
+      "insertMultipleAttribReadbackMatched": true,
+      "twoAttribAllocationFailureAbortsWholeWrite": true,
+      "callerInsertAndBothAttribsPreserved": true
     },
-    "addressSanitizerCtest": "1/1 passed in 16.87 seconds.",
+    "addressSanitizerCtest": "1/1 passed in 17.24 seconds.",
     "failureFoundAndFixed": {
       "asciiOffset": 115,
       "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
@@ -961,9 +954,9 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 444 allocation offsets; Binary 438 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
-      "normalCtest": "1/1 passed in 2.13 seconds.",
-      "asanCtest": "1/1 passed in 16.87 seconds.",
+      "normalDirectRun": "ASCII 453 allocation offsets; Binary 447 allocation offsets; all injected failures preserve destination and caller records, then same-codec retry matches clean bytes and typed readback.",
+      "normalCtest": "1/1 passed in 2.28 seconds.",
+      "asanCtest": "1/1 passed in 17.24 seconds.",
       "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
       "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
       "ellipseReadback": "Generated partial ELLIPSE center, major axis, ratio, parameter range, and perpendicular extrusion match typed readback.",
@@ -975,7 +968,7 @@
       "mtextReadback": "Generated MTEXT insertion point, content, height, box width, style and explicitly present defined height match typed readback. The adapter delegates to dx_iface to retain normal text storage.",
       "rayXlineReadback": "Generated RAY/XLINE handles, base points, and unit-normalized direction vectors match typed readback; the source caller records retain the original vector magnitudes.",
       "attdefReadback": "Generated BLOCK body contains POINT plus ATTDEF. Typed readback checks ATTDEF owner block, tag, prompt, default text, insertion point, height and style.",
-      "insertReadback": "A generated named BLOCK contains a POINT; a name-resolved INSERT has one ATTRIB and generated SEQEND. ASCII/Binary readback confirms target, owner, tag, text and geometry.",
+      "insertReadback": "A generated named BLOCK contains a POINT and ATTDEF; a name-resolved INSERT has two ATTRIB children and generated SEQEND. ASCII/Binary readback checks target, each attribute owner/tag/text/position/height, and block body records.",
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
       "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics."
     },
@@ -995,9 +988,9 @@
     ]
   },
   "limits": [
-    "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with two ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
     "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
     "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
   ],
-  "baseRevision": "7f6ebd40"
+  "baseRevision": "e23b1468"
 }

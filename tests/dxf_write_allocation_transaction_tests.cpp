@@ -306,6 +306,14 @@ public:
         attribute->height = 2.5;
         attribute->style = "STANDARD";
         insert.attlist.push_back(std::move(attribute));
+        auto secondAttribute = std::make_shared<DRW_Attrib>();
+        secondAttribute->handle = 0xD932u;
+        secondAttribute->tag = "WHOLE_OPERATION_TAG2";
+        secondAttribute->text = "second whole operation attribute";
+        secondAttribute->basePoint = DRW_Coord(12.0, 22.0, 1.0);
+        secondAttribute->height = 1.25;
+        secondAttribute->style = "STANDARD";
+        insert.attlist.push_back(std::move(secondAttribute));
 
         face.handle = kFaceHandle;
         face.basePoint = DRW_Coord(0.0, 0.0, 1.0);
@@ -762,13 +770,20 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.insert.name == kInsertBlockName
         && adapter.insert.basePoint.x == 10.0
         && adapter.insert.basePoint.y == 20.0
-        && adapter.insert.attlist.size() == 1u
+        && adapter.insert.attlist.size() == 2u
         && adapter.insert.attlist.front()
         && adapter.insert.attlist.front()->handle == kInsertAttribHandle
         && adapter.insert.attlist.front()->tag == "WHOLE_OPERATION_TAG"
         && adapter.insert.attlist.front()->text == "whole operation attribute"
         && adapter.insert.attlist.front()->basePoint.x == 11.0
         && adapter.insert.attlist.front()->height == 2.5
+        && adapter.insert.attlist.back()
+        && adapter.insert.attlist.back()->handle == 0xD932u
+        && adapter.insert.attlist.back()->tag == "WHOLE_OPERATION_TAG2"
+        && adapter.insert.attlist.back()->text
+            == "second whole operation attribute"
+        && adapter.insert.attlist.back()->basePoint.x == 12.0
+        && adapter.insert.attlist.back()->height == 1.25
         && adapter.face.handle == kFaceHandle
         && adapter.face.basePoint.x == 0.0
         && adapter.face.basePoint.y == 0.0
@@ -1053,13 +1068,20 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.insert.name != kInsertBlockName
         || adapter.insert.basePoint.x != 10.0
         || adapter.insert.basePoint.y != 20.0
-        || adapter.insert.attlist.size() != 1u
+        || adapter.insert.attlist.size() != 2u
         || !adapter.insert.attlist.front()
         || adapter.insert.attlist.front()->handle == 0u
         || adapter.insert.attlist.front()->tag != "WHOLE_OPERATION_TAG"
         || adapter.insert.attlist.front()->text != "whole operation attribute"
         || adapter.insert.attlist.front()->basePoint.x != 11.0
         || adapter.insert.attlist.front()->height != 2.5
+        || !adapter.insert.attlist.back()
+        || adapter.insert.attlist.back()->handle == 0u
+        || adapter.insert.attlist.back()->tag != "WHOLE_OPERATION_TAG2"
+        || adapter.insert.attlist.back()->text
+            != "second whole operation attribute"
+        || adapter.insert.attlist.back()->basePoint.x != 12.0
+        || adapter.insert.attlist.back()->height != 1.25
         || adapter.faceCount != 1u
         || adapter.face.handle == 0u
         || adapter.face.basePoint.z != 1.0
