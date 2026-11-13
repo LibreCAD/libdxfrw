@@ -1,0 +1,48 @@
+{
+  "title": "Generated BLOCKREPRESENTATION_DATA DXF OBJECTS allocation rollback and retry",
+  "date": "2026-11-12",
+  "scope": "One locally authored AC1024 ACDB_BLOCKREPRESENTATION_DATA record written through the public OBJECTS callback in ASCII and Binary DXF.",
+  "source": {
+    "kind": "generated-from-scratch-in-test",
+    "fixtureCommitted": false,
+    "temporaryOutputRemoved": true,
+    "testSource": "tests/blockrepresentation_objects_allocation_tests.cpp",
+    "testSourceSha256": "1851766a7814890271ffb7f6c916bae3f9ff11d0d3c333f559452494e402bc72",
+    "cmakeSource": "tests/CMakeLists.txt",
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175"
+  },
+  "checks": {
+    "record": {
+      "handle": "0xE803",
+      "parentHandle": "0xE802",
+      "reactorHandles": [
+        "0xE802"
+      ],
+      "flag": 1,
+      "blockHandle": "0xE804",
+      "bodyFullyDecoded": true
+    },
+    "asciiAllocationFailureOffsets": 9,
+    "binaryAllocationFailureOffsets": 9,
+    "eachFailurePreservesPreexistingDestination": true,
+    "eachFailurePreservesCallerObjectFields": true,
+    "sameCodecRetryAfterEachFailure": true,
+    "retryBytesMatchCleanCalibrationExactly": true,
+    "freshTypedReadbackChecksRecordIdentityAndFields": true,
+    "onlyGeneratedScratchFilesUsed": true
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_blockrepresentation_objects_allocation_tests -j6",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_blockrepresentation_objects_allocation$' --output-on-failure",
+    "testResult": "passed 1/1",
+    "directSelectorResult": "ASCII and Binary each passed all 9 allocation-failure offsets, rollback, exact-byte retry, and typed readback",
+    "cmakeVersion": "4.4.5",
+    "diffCheck": "git diff --check passed",
+    "testExecutableSha256": "45a5248d3eb7394fd7fea583feac39240977c77f301e6c6684b17ef43673ab6b"
+  },
+  "limitations": [
+    "Generated transaction evidence only; no physical producer or independent semantic evidence.",
+    "Does not establish source graph closure, whole-source output, native behavior, or BLOCKREPRESENTATION_DATA feature support."
+  ]
+}
