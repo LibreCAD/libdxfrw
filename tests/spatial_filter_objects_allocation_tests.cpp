@@ -138,63 +138,69 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / "spatial-filter-objects.dxf";
     const std::string sentinel = "prior SPATIAL_FILTER destination bytes\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            const std::string outputName = output.string();
-            dxfRW codec(outputName.c_str());
-            SpatialFilterExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            exporter.failAt = 1000000;
-            if (!codec.write(&exporter, DRW::AC1027, binary)
-                || !exporter.wrote
-                || !readbackMatches(output, exporter.filter))
-                return fail("allocation calibration output did not read back");
-            allocationCount = exporter.reached;
-            if (!readAll(output, expectedBytes))
-                return fail("could not retain calibration output bytes");
-        }
-        if (allocationCount <= 0)
-            return fail("calibration observed no callback allocations");
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+        const auto output = directory
+            / (std::string("spatial-filter-objects-")
+               + std::to_string(static_cast<int>(version)) + ".dxf");
+        for (const bool binary : {false, true}) {
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+                const std::string outputName = output.string();
+                dxfRW codec(outputName.c_str());
+                SpatialFilterExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                exporter.failAt = 1000000;
+                if (!codec.write(&exporter, version, binary)
+                    || !exporter.wrote
+                    || !readbackMatches(output, exporter.filter))
+                    return fail("allocation calibration output did not read back");
+                allocationCount = exporter.reached;
+                if (!readAll(output, expectedBytes))
+                    return fail("could not retain calibration output bytes");
             }
-            const std::string outputName = output.string();
-            dxfRW codec(outputName.c_str());
-            SpatialFilterExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            const DRW_SpatialFilter source = exporter.filter;
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.wrote = false;
-            const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached != 1
-                || !readAll(output, current) || current != sentinel)
-                return fail("injected failure changed destination or missed allocation");
-            if (!matches(exporter.filter, source))
-                return fail("injected failure changed caller SPATIAL_FILTER state");
-            const bool retry = codec.write(&exporter, DRW::AC1027, binary);
-            std::string retryBytes;
-            if (!retry || !exporter.wrote || !readAll(output, retryBytes)
-                || retryBytes != expectedBytes
-                || !readbackMatches(output, source)
-                || !matches(exporter.filter, source))
-                return fail("same-codec retry failed exact bytes or typed readback");
+            if (allocationCount <= 0)
+                return fail("calibration observed no callback allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                const std::string outputName = output.string();
+                dxfRW codec(outputName.c_str());
+                SpatialFilterExport exporter(codec);
+                codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+                const DRW_SpatialFilter source = exporter.filter;
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                exporter.wrote = false;
+                const bool wrote = codec.write(&exporter, version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached != 1
+                    || !readAll(output, current) || current != sentinel)
+                    return fail("injected failure changed destination or missed allocation");
+                if (!matches(exporter.filter, source))
+                    return fail("injected failure changed caller SPATIAL_FILTER state");
+                const bool retry = codec.write(&exporter, version, binary);
+                std::string retryBytes;
+                if (!retry || !exporter.wrote || !readAll(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, source)
+                    || !matches(exporter.filter, source))
+                    return fail("same-codec retry failed exact bytes or typed readback");
+            }
+            std::cout << "SPATIAL_FILTER OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "SPATIAL_FILTER OBJECTS "
-                  << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
