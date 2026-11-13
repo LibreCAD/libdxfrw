@@ -70,6 +70,7 @@ constexpr std::uint32_t kUnderlayDefinitionHandle = 0xD946u;
 constexpr std::uint32_t kUnderlayHandle = 0xD947u;
 constexpr std::uint32_t kLineTypeHandle = 0xD948u;
 constexpr std::uint32_t kTypedXRecordHandle = 0xD949u;
+constexpr std::uint32_t kMultiLeaderHandle = 0xD94Au;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -865,6 +866,13 @@ public:
         typedXRecord.m_values.emplace_back(
             1, UTF8STRING("whole-operation typed XRECORD"));
         typedXRecord.m_values.emplace_back(90, std::int32_t{42});
+        multiLeader.handle = kMultiLeaderHandle;
+        multiLeader.styleContentType = 2u;
+        multiLeader.context.hasTextContents = true;
+        multiLeader.context.textLabel = "whole-operation multi-leader text";
+        multiLeader.context.contentBasePoint = DRW_Coord{2.0, 3.0, 4.0};
+        multiLeader.context.textLocation = DRW_Coord{5.0, 6.0, 7.0};
+        multiLeader.context.textHeight = 1.5;
     }
 
     void writeEntities() override {
@@ -916,6 +924,7 @@ public:
             && check("RAY", output.writeRay(&ray))
             && check("XLINE", output.writeXline(&xline))
             && check("HELIX", output.writeHelix(&helix))
+            && check("MULTILEADER", output.writeMultiLeader(&multiLeader))
             && check("OLE2FRAME", output.writeOle2Frame(&ole2Frame))
             && check("OLEFRAME", output.writeOleFrame(&oleFrame))
             && check("SHAPE", output.writeShape(&shape))
@@ -1009,6 +1018,7 @@ public:
     DRW_Underlay underlay;
     DRW_LType lineType;
     DRW_XRecord typedXRecord;
+    DRW_MLeader multiLeader;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1073,6 +1083,13 @@ public:
     void addDbColor(const DRW_DbColor& value) override {
         ++dbColorCount;
         dbColor = value;
+    }
+    void addMLeader(const DRW_MLeader* value) override {
+        dx_iface::addMLeader(value);
+        if (value != nullptr) {
+            ++multiLeaderCount;
+            multiLeader = *value;
+        }
     }
     void addXRecord(const DRW_XRecord& value) override {
         dx_iface::addXRecord(value);
@@ -1383,6 +1400,7 @@ public:
     DRW_DictionaryVar dictionaryVar;
     DRW_DbColor dbColor;
     DRW_XRecord typedXRecord;
+    DRW_MLeader multiLeader;
     DRW_UnderlayDefinition underlayDefinition;
     DRW_Underlay underlay;
     DRW_Mesh mesh;
@@ -1453,6 +1471,7 @@ public:
     unsigned dictionaryVarCount = 0u;
     unsigned dbColorCount = 0u;
     unsigned typedXRecordCount = 0u;
+    unsigned multiLeaderCount = 0u;
     unsigned underlayDefinitionCount = 0u;
     unsigned underlayCount = 0u;
     unsigned meshCount = 0u;
@@ -1636,6 +1655,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.typedXRecord.m_values[1].code() == 90
         && adapter.typedXRecord.m_values[1].type() == DRW_Variant::INTEGER
         && adapter.typedXRecord.m_values[1].i_val() == 42
+        && adapter.multiLeader.handle == kMultiLeaderHandle
+        && adapter.multiLeader.context.hasTextContents
+        && adapter.multiLeader.context.textLabel
+            == "whole-operation multi-leader text"
+        && adapter.multiLeader.context.contentBasePoint.x == 2.0
+        && adapter.multiLeader.context.contentBasePoint.y == 3.0
+        && adapter.multiLeader.context.contentBasePoint.z == 4.0
+        && adapter.multiLeader.context.textLocation.x == 5.0
+        && adapter.multiLeader.context.textLocation.y == 6.0
+        && adapter.multiLeader.context.textLocation.z == 7.0
+        && adapter.multiLeader.context.textHeight == 1.5
         && adapter.ole2Frame.handle == kOle2FrameHandle
         && adapter.ole2Frame.m_oleVersion == 2u
         && adapter.ole2Frame.m_oleClient == "WHOLE_OPERATION_OLE2"
@@ -2467,6 +2497,19 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.typedXRecord.m_values[1].code() != 90
         || adapter.typedXRecord.m_values[1].type() != DRW_Variant::INTEGER
         || adapter.typedXRecord.m_values[1].i_val() != 42
+        || adapter.multiLeaderCount != 1u
+        || adapter.multiLeader.handle == 0u
+        || !adapter.multiLeader.isDxfContextClosed()
+        || !adapter.multiLeader.context.hasTextContents
+        || adapter.multiLeader.context.textLabel
+            != "whole-operation multi-leader text"
+        || adapter.multiLeader.context.contentBasePoint.x != 2.0
+        || adapter.multiLeader.context.contentBasePoint.y != 3.0
+        || adapter.multiLeader.context.contentBasePoint.z != 4.0
+        || adapter.multiLeader.context.textLocation.x != 5.0
+        || adapter.multiLeader.context.textLocation.y != 6.0
+        || adapter.multiLeader.context.textLocation.z != 7.0
+        || adapter.multiLeader.context.textHeight != 1.5
         || adapter.ole2FrameCount != 1u
         || adapter.ole2Frame.handle == 0u
         || adapter.ole2Frame.m_oleVersion != 2u
