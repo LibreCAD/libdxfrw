@@ -4392,6 +4392,15 @@ checks kind, identity, parent, version and all modeled variant fields. The
 focused transaction CTest passes 1/1. This does not prove point-cloud entity to
 definition/reactor graph closure, dictionary membership or external point-cloud
 behavior ([receipt](docs/research/p6-dxf-pointcloud-definition-variants-allocation-rollback-retry-2026-11-13.json)).
+The whole-operation sweep now also emits one generated AC1027 `POINTCLOUD`
+entity whose definition/reactor handles target the corresponding typed
+definition and reactor records from that four-variant set. Its two source-file
+names, saved filename, origin, extents, point count, UCS basis and references
+survive typed readback. All 975 ASCII and 955 Binary injected failures preserve
+caller and destination state, then pass same-writer retry; the focused
+transaction CTest passes 1/1. This closes only the generated DXF carrier edges
+for this profile, not dictionary membership, RCS asset loading, point display
+or native consumer semantics ([receipt](docs/research/p6-dxf-pointcloud-entity-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

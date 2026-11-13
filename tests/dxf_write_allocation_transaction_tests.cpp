@@ -108,6 +108,7 @@ constexpr std::uint32_t kPointCloudDefinitionHandle = 0xD950u;
 constexpr std::uint32_t kPointCloudDefinitionExHandle = 0xD951u;
 constexpr std::uint32_t kPointCloudReactorHandle = 0xD952u;
 constexpr std::uint32_t kPointCloudReactorExHandle = 0xD953u;
+constexpr std::uint32_t kPointCloudHandle = 0xD954u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -745,6 +746,22 @@ public:
         pointCloudReactorEx.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         pointCloudReactorEx.m_kind = DRW_PointCloudDef::ReactorEx;
         pointCloudReactorEx.m_classVersion = 4;
+        pointCloud.handle = kPointCloudHandle;
+        pointCloud.classVersion = 2u;
+        pointCloud.origin = DRW_Coord(11.0, 12.0, 13.0);
+        pointCloud.savedFilename = "clouds/whole-operation.rcs";
+        pointCloud.sourceFileCount = 2;
+        pointCloud.sourceFiles = {"clouds/part-a.rcs", "clouds/part-b.rcs"};
+        pointCloud.extentsMin = DRW_Coord(-10.0, -20.0, -30.0);
+        pointCloud.extentsMax = DRW_Coord(40.0, 50.0, 60.0);
+        pointCloud.pointCount = 987654u;
+        pointCloud.ucsName = "WHOLE_OPERATION_POINTCLOUD_UCS";
+        pointCloud.ucsOrigin = DRW_Coord(1.0, 2.0, 3.0);
+        pointCloud.ucsXDirection = DRW_Coord(0.0, 1.0, 0.0);
+        pointCloud.ucsYDirection = DRW_Coord(-1.0, 0.0, 0.0);
+        pointCloud.ucsZDirection = DRW_Coord(0.0, 0.0, 1.0);
+        pointCloud.definitionHandle = kPointCloudDefinitionHandle;
+        pointCloud.reactorHandle = kPointCloudReactorHandle;
         loftedSurface.handle = kLoftedSurfaceHandle;
         loftedSurface.modelerFormatVersion = 1;
         loftedSurface.uIsolines = 10;
@@ -1012,6 +1029,7 @@ public:
             && check("MLINE", output.writeMLine(&mline))
             && check("POLYLINE", output.writePolyline(&polyline3))
             && check("INSERT", output.writeInsert(&insert))
+            && check("POINTCLOUD", output.writePointCloud(&pointCloud))
             && check("ATTDEF", output.writeAttdef(
                 &directAttdef, DRW::DxfModelSpaceBlockRecordHandle))
             && check("3DFACE", output.writeLine(&face))
@@ -1160,6 +1178,7 @@ public:
     DRW_PointCloudDef pointCloudDefinitionEx;
     DRW_PointCloudDef pointCloudReactor;
     DRW_PointCloudDef pointCloudReactorEx;
+    DRW_PointCloud pointCloud;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
     DRW_PlaneSurface planeSurface;
@@ -1198,6 +1217,12 @@ public:
         if (value != nullptr) {
             ++imageCount;
             image = *value;
+        }
+    }
+    void addPointCloud(const DRW_PointCloud* value) override {
+        if (value != nullptr) {
+            ++pointCloudCount;
+            pointCloud = *value;
         }
     }
     void addOle2Frame(const DRW_Ole2Frame& value) override {
@@ -1558,6 +1583,7 @@ public:
     DRW_Circle circle;
     DRW_LWPolyline polyline;
     DRW_Image image;
+    DRW_PointCloud pointCloud;
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
     DRW_Shape shape;
@@ -1635,6 +1661,7 @@ public:
     unsigned circleCount = 0u;
     unsigned polylineCount = 0u;
     unsigned imageCount = 0u;
+    unsigned pointCloudCount = 0u;
     unsigned ole2FrameCount = 0u;
     unsigned oleFrameCount = 0u;
     unsigned shapeCount = 0u;
@@ -1845,6 +1872,31 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.image.basePoint.z == 4.0
         && adapter.image.sizeu == 640.0
         && adapter.image.sizev == 480.0
+        && adapter.pointCloud.handle == kPointCloudHandle
+        && adapter.pointCloud.classVersion == 2u
+        && adapter.pointCloud.origin.x == 11.0
+        && adapter.pointCloud.origin.y == 12.0
+        && adapter.pointCloud.origin.z == 13.0
+        && adapter.pointCloud.savedFilename == "clouds/whole-operation.rcs"
+        && adapter.pointCloud.sourceFileCount == 2
+        && adapter.pointCloud.sourceFiles
+            == std::vector<UTF8STRING>{"clouds/part-a.rcs", "clouds/part-b.rcs"}
+        && adapter.pointCloud.extentsMin.x == -10.0
+        && adapter.pointCloud.extentsMin.y == -20.0
+        && adapter.pointCloud.extentsMin.z == -30.0
+        && adapter.pointCloud.extentsMax.x == 40.0
+        && adapter.pointCloud.extentsMax.y == 50.0
+        && adapter.pointCloud.extentsMax.z == 60.0
+        && adapter.pointCloud.pointCount == 987654u
+        && adapter.pointCloud.ucsName == "WHOLE_OPERATION_POINTCLOUD_UCS"
+        && adapter.pointCloud.ucsOrigin.x == 1.0
+        && adapter.pointCloud.ucsOrigin.y == 2.0
+        && adapter.pointCloud.ucsOrigin.z == 3.0
+        && adapter.pointCloud.ucsXDirection.y == 1.0
+        && adapter.pointCloud.ucsYDirection.x == -1.0
+        && adapter.pointCloud.ucsZDirection.z == 1.0
+        && adapter.pointCloud.definitionHandle == kPointCloudDefinitionHandle
+        && adapter.pointCloud.reactorHandle == kPointCloudReactorHandle
         && lineType != adapter.storage.lineTypes.end()
         && lineType->handle == kLineTypeHandle
         && lineType->desc == "whole-operation line type"
@@ -2727,6 +2779,7 @@ bool matchesReadback(const std::filesystem::path& path) {
     if (!read || adapter.lineCount != 1u || adapter.circleCount != 1u
         || adapter.polylineCount != 1u
         || adapter.imageCount != 1u
+        || adapter.pointCloudCount != 1u
         || adapter.meshCount != 1u
         || adapter.splineCount != 1u
         || adapter.hatchCount != 1u
@@ -2776,6 +2829,31 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.image.basePoint.z != 4.0
         || adapter.image.sizeu != 640.0
         || adapter.image.sizev != 480.0
+        || adapter.pointCloud.handle == 0u
+        || adapter.pointCloud.classVersion != 2u
+        || adapter.pointCloud.origin.x != 11.0
+        || adapter.pointCloud.origin.y != 12.0
+        || adapter.pointCloud.origin.z != 13.0
+        || adapter.pointCloud.savedFilename != "clouds/whole-operation.rcs"
+        || adapter.pointCloud.sourceFileCount != 2
+        || adapter.pointCloud.sourceFiles
+            != std::vector<UTF8STRING>{"clouds/part-a.rcs", "clouds/part-b.rcs"}
+        || adapter.pointCloud.extentsMin.x != -10.0
+        || adapter.pointCloud.extentsMin.y != -20.0
+        || adapter.pointCloud.extentsMin.z != -30.0
+        || adapter.pointCloud.extentsMax.x != 40.0
+        || adapter.pointCloud.extentsMax.y != 50.0
+        || adapter.pointCloud.extentsMax.z != 60.0
+        || adapter.pointCloud.pointCount != 987654u
+        || adapter.pointCloud.ucsName != "WHOLE_OPERATION_POINTCLOUD_UCS"
+        || adapter.pointCloud.ucsOrigin.x != 1.0
+        || adapter.pointCloud.ucsOrigin.y != 2.0
+        || adapter.pointCloud.ucsOrigin.z != 3.0
+        || adapter.pointCloud.ucsXDirection.y != 1.0
+        || adapter.pointCloud.ucsYDirection.x != -1.0
+        || adapter.pointCloud.ucsZDirection.z != 1.0
+        || adapter.pointCloud.definitionHandle != kPointCloudDefinitionHandle
+        || adapter.pointCloud.reactorHandle != kPointCloudReactorHandle
         || lineTypeCount != 1u
         || lineType == adapter.storage.lineTypes.end()
         || lineType->handle == 0u
