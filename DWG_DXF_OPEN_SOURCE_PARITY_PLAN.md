@@ -1518,6 +1518,19 @@ evidence only, not independent source-profile, table presentation, producer
 interoperability or consumer semantic evidence. The focused CTest passes in
 7.26 seconds. See the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
+**P6 direct VIEW writer transaction slice (2026-11-13):** the whole-operation
+ASCII/Binary sweep now serializes an independent generated VIEW through the
+public `writeView()` table route, in addition to the existing CAMERA-linked
+VIEW. Fresh readback checks the direct view's remapped non-null identity, name,
+size, center, target, lens, twist, mode and camera-plottable flag; injected
+allocation failures preserve caller and destination state, and same-writer
+retry reproduces clean output. All 1,048 ASCII and 1,027 Binary allocation
+offsets pass. The focused CTest passes in 7.29 seconds. This is generated
+writer/readback evidence for one no-reference VIEW profile; optional UCS,
+background, visual-style, sun and live-section references and native view
+semantics remain outside this slice. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
 **P6 typed XRECORD transaction slice (2026-11-13):** one generated typed
 XRECORD with group 1 text and group 90 integer is now part of the custom
 dictionary graph and whole-operation ASCII/Binary allocation sweep. All 842

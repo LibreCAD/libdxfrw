@@ -115,6 +115,7 @@ constexpr std::uint32_t kNavisworksModelHandle = 0xD956u;
 constexpr std::uint32_t kTableStyleTextHandle = 0xD957u;
 constexpr std::uint32_t kTableStyleHandle = 0xD958u;
 constexpr std::uint32_t kCellStyleMapHandle = 0xD959u;
+constexpr std::uint32_t kDirectViewHandle = 0xD974u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -599,6 +600,19 @@ public:
         cameraView.viewDirectionFromTarget = DRW_Coord(0.0, 0.0, 1.0);
         cameraView.targetPoint = DRW_Coord(10.0, 20.0, 30.0);
         storage.views.push_back(cameraView);
+        DRW_View directView;
+        directView.handle = kDirectViewHandle;
+        directView.name = "WHOLE_OPERATION_DIRECT_VIEW";
+        directView.size = DRW_Coord(320.0, 200.0, 0.0);
+        directView.center = DRW_Coord(12.0, 18.0, 0.0);
+        directView.viewDirectionFromTarget = DRW_Coord(0.0, 0.0, 1.0);
+        directView.targetPoint = DRW_Coord(-4.0, 8.0, 12.0);
+        directView.lensLen = 42.0;
+        directView.twistAngle = 15.0;
+        directView.viewMode = 1;
+        directView.renderMode = 2;
+        directView.cameraPlottable = true;
+        storage.views.push_back(directView);
         camera.handle = 0xD96Du;
         camera.m_viewHandle = cameraView.handle;
         geoPositionMarker.handle = 0xD96Fu;
@@ -1568,8 +1582,14 @@ public:
         camera = value;
     }
     void addView(const DRW_View& value) override {
+        dx_iface::addView(value);
         ++viewCount;
-        view = value;
+        if (value.name == "WHOLE_OPERATION_CAMERA_VIEW")
+            view = value;
+        else if (value.name == "WHOLE_OPERATION_DIRECT_VIEW") {
+            ++directViewCount;
+            directView = value;
+        }
     }
     void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
         ++geoPositionMarkerCount;
@@ -1782,6 +1802,7 @@ public:
     DRW_Attdef directAttdef;
     DRW_TableStyle tableStyle;
     DRW_CellStyleMap cellStyleMap;
+    DRW_View directView;
     std::vector<DRW_RawDxfObject> objects;
     std::vector<DRW_DataLink> dataLinks;
     std::vector<DRW_Dictionary> dictionaries;
@@ -1862,6 +1883,7 @@ public:
     unsigned directAttdefCount = 0u;
     unsigned tableStyleCount = 0u;
     unsigned cellStyleMapCount = 0u;
+    unsigned directViewCount = 0u;
     unsigned objectCount = 0u;
 };
 
@@ -2004,8 +2026,25 @@ bool callerRecordsUnchanged(const Export& adapter) {
         [](const DRW_LType& value) {
             return value.name == "WHOLE_OPERATION_LTYPE";
         }));
+    const auto directView = std::find_if(
+        adapter.storage.views.begin(), adapter.storage.views.end(),
+        [](const DRW_View& value) {
+            return value.handle == kDirectViewHandle;
+        });
     return unchangedTableStyle(adapter.tableStyle)
         && unchangedCellStyleMap(adapter.cellStyleMap)
+        && adapter.storage.views.size() == 2u
+        && directView != adapter.storage.views.end()
+        && directView->name == "WHOLE_OPERATION_DIRECT_VIEW"
+        && directView->size.x == 320.0 && directView->size.y == 200.0
+        && directView->center.x == 12.0 && directView->center.y == 18.0
+        && directView->targetPoint.x == -4.0
+        && directView->targetPoint.y == 8.0
+        && directView->targetPoint.z == 12.0
+        && directView->lensLen == 42.0
+        && directView->twistAngle == 15.0
+        && directView->viewMode == 1 && directView->renderMode == 2u
+        && directView->cameraPlottable
         && adapter.line.handle == 0xD900u
         && lineTypeCount == 1u
         && adapter.line.basePoint.x == 1.25
@@ -2478,11 +2517,22 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.light.m_shadowMapSoftness == 2u
         && adapter.camera.handle == 0xD96Du
         && adapter.camera.m_viewHandle == 0xD96Eu
-        && adapter.storage.views.size() == 1u
+        && adapter.storage.views.size() == 2u
         && adapter.storage.views.front().handle == 0xD96Eu
         && adapter.storage.views.front().name == "WHOLE_OPERATION_CAMERA_VIEW"
         && adapter.storage.views.front().size.x == 640.0
         && adapter.storage.views.front().targetPoint.z == 30.0
+        && directView != adapter.storage.views.end()
+        && directView->name == "WHOLE_OPERATION_DIRECT_VIEW"
+        && directView->size.x == 320.0 && directView->size.y == 200.0
+        && directView->center.x == 12.0 && directView->center.y == 18.0
+        && directView->targetPoint.x == -4.0
+        && directView->targetPoint.y == 8.0
+        && directView->targetPoint.z == 12.0
+        && directView->lensLen == 42.0
+        && directView->twistAngle == 15.0
+        && directView->viewMode == 1 && directView->renderMode == 2u
+        && directView->cameraPlottable
         && adapter.geoPositionMarker.handle == 0xD96Fu
         && adapter.geoPositionMarker.m_classVersion == 1u
         && adapter.geoPositionMarker.m_position.x == 120.0
@@ -2981,6 +3031,11 @@ bool matchesReadback(const std::filesystem::path& path) {
     dxfRW reader(path.string().c_str());
     Readback adapter;
     const bool read = reader.read(&adapter, false);
+    const auto directView = std::find_if(
+        adapter.storage.views.begin(), adapter.storage.views.end(),
+        [](const DRW_View& value) {
+            return value.name == "WHOLE_OPERATION_DIRECT_VIEW";
+        });
     const auto rawXrecord = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) {
@@ -3075,7 +3130,8 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.arcAlignedTextCount != 1u
         || adapter.lightCount != 1u
         || adapter.cameraCount != 1u
-        || adapter.viewCount != 1u
+        || adapter.viewCount != 2u
+        || adapter.directViewCount != 1u
         || adapter.geoPositionMarkerCount != 2u
         || adapter.line.basePoint.x != 1.25
         || adapter.line.secPoint.z != -6.0
@@ -3577,6 +3633,18 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.view.targetPoint.y != 20.0
         || adapter.view.targetPoint.z != 30.0
         || adapter.camera.m_viewHandle != adapter.view.handle
+        || adapter.storage.views.size() != 2u
+        || directView == adapter.storage.views.end()
+        || directView->handle == DRW::NoHandle
+        || directView->size.x != 320.0 || directView->size.y != 200.0
+        || directView->center.x != 12.0 || directView->center.y != 18.0
+        || directView->targetPoint.x != -4.0
+        || directView->targetPoint.y != 8.0
+        || directView->targetPoint.z != 12.0
+        || directView->lensLen != 42.0
+        || directView->twistAngle != 15.0
+        || directView->viewMode != 1 || directView->renderMode != 2u
+        || !directView->cameraPlottable
         || adapter.geoPositionMarker.handle == 0u
         || adapter.geoPositionMarker.m_classVersion != 1u
         || adapter.geoPositionMarker.m_position.x != 120.0
