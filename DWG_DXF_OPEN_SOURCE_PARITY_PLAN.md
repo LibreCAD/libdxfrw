@@ -4322,6 +4322,13 @@ offsets plus 34 direct DWG encoder offsets. This strengthens caller-preservation
 evidence for that generated profile only. The broader P6-G writer inventory and
 coverage of the other remaining public writers are still open; see the
 [TABLECONTENT caller-state receipt](docs/research/p6-dxf-tablecontent-caller-state-rollback-2026-11-13.json).
+The existing generated DATATABLE sweep received the same caller-state tightening:
+each injected failure and retry now compares every column and row value along
+with table identity, owner, flags, references, handles, and base-object state.
+Its focused fast CTest passes in ASCII and Binary; the earlier rollback,
+destination, child-XRECORD and typed-readback checks remain active. This is one
+generated DATATABLE profile only; P6-G's remaining writer inventory is still
+open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

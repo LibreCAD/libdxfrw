@@ -247,6 +247,44 @@ bool readbackMatches(const std::filesystem::path& path) {
         && readback.xrecords[1].parentHandle == 0x215u;
 }
 
+bool sourceUnchanged(const Export& actual, const Export& expected) {
+    const auto& a = actual.table;
+    const auto& b = expected.table;
+    if (a.tType != b.tType || a.handle != b.handle
+        || a.parentHandle != b.parentHandle || a.name != b.name
+        || a.flags != b.flags || a.reactorHandles != b.reactorHandles
+        || a.xDictHandle != b.xDictHandle || !a.extData.empty()
+        || !b.extData.empty() || !a.appData.empty() || !b.appData.empty()
+        || !a.pendingAppIdResolutions.empty()
+        || !b.pendingAppIdResolutions.empty()
+        || !a.pendingLayerRefResolutions.empty()
+        || !b.pendingLayerRefResolutions.empty()
+        || a.extensionDictionaryFlag() != b.extensionDictionaryFlag()
+        || a.reactorCount() != b.reactorCount()
+        || a.hasDataStorageBinaryData() != b.hasDataStorageBinaryData()
+        || a.hasDwgCommonLinkTail() != b.hasDwgCommonLinkTail()
+        || a.columnCount != b.columnCount || a.rowCount != b.rowCount
+        || a.tableName != b.tableName || a.rowHandles != b.rowHandles
+        || a.columns.size() != b.columns.size())
+        return false;
+    for (std::size_t column = 0; column < a.columns.size(); ++column) {
+        const auto& left = a.columns[column];
+        const auto& right = b.columns[column];
+        if (left.type != right.type || left.text != right.text
+            || left.rows.size() != right.rows.size())
+            return false;
+        for (std::size_t row = 0; row < left.rows.size(); ++row) {
+            const auto& leftValue = left.rows[row];
+            const auto& rightValue = right.rows[row];
+            if (leftValue.dataLong != rightValue.dataLong
+                || leftValue.dataDouble != rightValue.dataDouble
+                || leftValue.dataString != rightValue.dataString)
+                return false;
+        }
+    }
+    return true;
+}
+
 bool allocationSweep(const std::filesystem::path& path) {
     const std::string prior = "prior DATATABLE bytes\n";
     for (const bool binary : {false, true}) {
@@ -278,18 +316,14 @@ bool allocationSweep(const std::filesystem::path& path) {
             codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
                                   {0x116u, 0x216u}, {0x117u, 0x217u}});
             Export exporter(codec);
+            Export expected(codec);
             exporter.failAt = offset;
             const bool written = codec.write(&exporter, DRW::AC1024, binary);
             exporter.failAt = -1;
             std::string current;
             if (written || exporter.emitted || exporter.reached != 1
                 || !readBytes(path, current) || current != prior
-                || exporter.table.handle != 0x115u
-                || exporter.table.parentHandle != 0x114u
-                || exporter.table.tableName != "TABLE_NAME"
-                || exporter.table.columns.size() != 4u
-                || exporter.table.rowHandles
-                    != std::vector<std::uint32_t>{0x116u, 0x117u}
+                || !sourceUnchanged(exporter, expected)
                 || exporter.firstChild.handle != 0x116u
                 || exporter.secondChild.handle != 0x117u)
                 return false;
@@ -298,7 +332,8 @@ bool allocationSweep(const std::filesystem::path& path) {
             std::string retryBytes;
             if (!retried || !exporter.emitted
                 || !readBytes(path, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(path))
+                || retryBytes != expectedBytes || !readbackMatches(path)
+                || !sourceUnchanged(exporter, expected))
                 return false;
         }
         std::cout << "DATATABLE DXF " << (binary ? "Binary" : "ASCII")
