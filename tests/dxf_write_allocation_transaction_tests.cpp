@@ -5762,7 +5762,6 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory, directoryError)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto output = directory / "ac1024-attributed-insert.dxf";
     const std::string sentinel = "prior legacy attributed drawing\n";
     const auto sourceUnchanged = [](const LegacyAttributedInsertExport& adapter) {
         if (adapter.insert.handle != 0xDA20u
@@ -5802,13 +5801,17 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
         return true;
     };
 
-    for (const bool binary : {false, true}) {
+    for (const DRW::Version version : {DRW::AC1015, DRW::AC1024}) {
+      const auto output = directory
+          / (version == DRW::AC1015 ? "ac1015-attributed-insert.dxf"
+                                    : "ac1024-attributed-insert.dxf");
+      for (const bool binary : {false, true}) {
         if (!clearStagedOutput(output))
             return fail("could not clear output before warm-up");
         {
             dxfRW codec(output.string().c_str());
             LegacyAttributedInsertExport adapter(codec);
-            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            const bool wrote = codec.write(&adapter, version, binary);
             if (!wrote || !adapter.entitiesWritten
                 || !sourceUnchanged(adapter) || !readbackMatches(output))
                 return fail("AC1024 warm-up or typed readback failed");
@@ -5822,7 +5825,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
             dxfRW codec(output.string().c_str());
             LegacyAttributedInsertExport adapter(codec);
             armAllocationFailure(1000000000L);
-            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            const bool wrote = codec.write(&adapter, version, binary);
             allocationCount = static_cast<long>(allocationAttempts);
             disarmAllocationFailure();
             if (!wrote || !adapter.entitiesWritten
@@ -5843,7 +5846,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
             dxfRW codec(output.string().c_str());
             LegacyAttributedInsertExport adapter(codec);
             armAllocationFailure(offset);
-            const bool wrote = codec.write(&adapter, DRW::AC1024, binary);
+            const bool wrote = codec.write(&adapter, version, binary);
             const std::size_t reached = allocationAttempts;
             const bool injected = allocationFailed;
             disarmAllocationFailure();
@@ -5854,7 +5857,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
                 || !sourceUnchanged(adapter) || hasStagedOutput(output))
                 return fail("injected failure changed caller or destination state");
 
-            const bool retried = codec.write(&adapter, DRW::AC1024, binary);
+            const bool retried = codec.write(&adapter, version, binary);
             std::string retryBytes;
             if (!retried || !adapter.entitiesWritten
                 || !sourceUnchanged(adapter) || !readBytes(output, retryBytes)
@@ -5862,12 +5865,14 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
                 || hasStagedOutput(output))
                 return fail("same-codec retry or typed readback failed");
         }
-        std::cout << "AC1024 standalone ATTRIB/SEQEND "
+        std::cout << (version == DRW::AC1015 ? "AC1015" : "AC1024")
+                  << " standalone ATTRIB/SEQEND "
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", caller/destination rollback, retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }
