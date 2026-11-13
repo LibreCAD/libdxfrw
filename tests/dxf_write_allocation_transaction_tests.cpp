@@ -5801,10 +5801,13 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
         return true;
     };
 
-    for (const DRW::Version version : {DRW::AC1015, DRW::AC1024}) {
+    for (const DRW::Version version : {
+             DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024}) {
+      const char* versionName = version == DRW::AC1015 ? "AC1015"
+          : version == DRW::AC1018 ? "AC1018"
+          : version == DRW::AC1021 ? "AC1021" : "AC1024";
       const auto output = directory
-          / (version == DRW::AC1015 ? "ac1015-attributed-insert.dxf"
-                                    : "ac1024-attributed-insert.dxf");
+          / (std::string(versionName) + "-attributed-insert.dxf");
       for (const bool binary : {false, true}) {
         if (!clearStagedOutput(output))
             return fail("could not clear output before warm-up");
@@ -5865,8 +5868,7 @@ bool runLegacyAttributedInsertSweep(const std::filesystem::path& directory) {
                 || hasStagedOutput(output))
                 return fail("same-codec retry or typed readback failed");
         }
-        std::cout << (version == DRW::AC1015 ? "AC1015" : "AC1024")
-                  << " standalone ATTRIB/SEQEND "
+        std::cout << versionName << " standalone ATTRIB/SEQEND "
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", caller/destination rollback, retry/readback=PASS\n";

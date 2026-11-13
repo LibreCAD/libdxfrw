@@ -31,7 +31,7 @@
     "ac1024Binary": "119/119 allocation failures pass rollback/retry/typed-readback."
   },
   "limitations": [
-    "Generated AC1024 transport and transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
+    "Generated AC1015 and AC1024 transport/transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
     "Only one INSERT with two standalone ATTRIB children is covered; other version/field variants remain in P6-G inventory.",
     "No support claim is promoted."
   ],
