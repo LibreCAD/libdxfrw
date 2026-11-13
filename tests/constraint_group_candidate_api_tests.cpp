@@ -218,6 +218,17 @@ bool physical(const char* path) {
     const auto& arc = sink.result.m_registeredNodes[5];
     const std::array<int, 13> classes{{1, 2, 3, 2, 3, 4, 2, 3, 2, 3, 2, 5, 6}};
     const std::array<int, 13> statuses{{1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0}};
+    const std::array<std::vector<std::int32_t>, 13> connections{{
+        {3, 5, 13}, {3}, {2, 1}, {5}, {4, 1}, {8, 10, 12, 13}, {8},
+        {7, 6}, {10}, {9, 6}, {12}, {11, 6}, {1, 6}}};
+    const std::array<const char*, 6> classNames{{
+        "AcConstrainedBoundedLine", "AcConstrainedImplicitPoint",
+        "AcPointCurveConstraint", "AcConstrainedArc",
+        "AcCenterPointConstraint", "AcTangentConstraint"}};
+    for (std::size_t i = 0; i < classNames.size(); ++i) {
+        if (sink.result.m_classNames[i] != classNames[i])
+            return false;
+    }
     const std::array<std::uint64_t, 13> starts{{429, 1026, 1118, 1170, 1262,
         1314, 1934, 2026, 2078, 2170, 2222, 2314, 2366}};
     const std::array<std::uint64_t, 13> ends{{1026, 1118, 1170, 1262, 1314,
@@ -226,17 +237,68 @@ bool physical(const char* path) {
         const auto& node = sink.result.m_registeredNodes[i];
         if (node.m_fields.m_nodeId != static_cast<std::int32_t>(i + 1)
             || node.m_classIndex != classes[i] || node.m_statusRaw != statuses[i]
+            || node.m_fields.m_connections != connections[i]
             || node.m_registryFlag || node.m_bodyStartBit != starts[i]
             || node.m_bodyEndBit != ends[i] || node.m_fields.m_classDataParsed)
             return false;
     }
+    const auto& firstImplicit = sink.result.m_registeredNodes[1].m_fields;
+    const auto& firstPointCurve = sink.result.m_registeredNodes[2].m_fields;
+    const auto& secondImplicit = sink.result.m_registeredNodes[3].m_fields;
+    const auto& secondPointCurve = sink.result.m_registeredNodes[4].m_fields;
+    const auto& arcImplicit = sink.result.m_registeredNodes[6].m_fields;
+    const auto& arcPointCurve = sink.result.m_registeredNodes[7].m_fields;
+    const auto& thirdArcImplicit = sink.result.m_registeredNodes[8].m_fields;
+    const auto& thirdPointCurve = sink.result.m_registeredNodes[9].m_fields;
+    const auto& fourthArcImplicit = sink.result.m_registeredNodes[10].m_fields;
+    const auto& centerConstraint = sink.result.m_registeredNodes[11].m_fields;
+    const auto& tangentConstraint = sink.result.m_registeredNodes[12].m_fields;
     return line.m_fields.m_nodeId == 1 && line.m_statusRaw == 1
+        && line.m_fields.m_className == classNames[0]
         && line.m_bodyStartBit == 429 && line.m_bodyEndBit == 1026
         && line.m_fields.m_geometryDependencyHandle == 0x2A9u
+        && line.m_fields.m_geometryNodeId == 0
+        && line.m_fields.m_isRay == false
+        && std::fabs(line.m_fields.m_point.x - 1223.6079238755863) < 1e-9
+        && std::fabs(line.m_fields.m_point.y - 1574.7905199791435) < 1e-9
+        && std::fabs(line.m_fields.m_direction.x - 0.9211473736090738) < 1e-12
+        && std::fabs(line.m_fields.m_direction.y - 0.38921397211947806) < 1e-12
+        && std::fabs(line.m_fields.m_startPoint.x - 1223.6079238755592) < 1e-9
+        && std::fabs(line.m_fields.m_endPoint.x - 2717.1980837635074) < 1e-9
+        && firstImplicit.m_geometryDependencyHandle == 0u
+        && firstImplicit.m_geometryNodeId == 0
+        && firstImplicit.m_pointType == 0u
+        && firstImplicit.m_pointIndex == -1
+        && firstImplicit.m_curveNodeId == 1
+        && secondImplicit.m_pointType == 1u
+        && secondImplicit.m_curveNodeId == 1
+        && firstPointCurve.m_ownerId == 0
+        && firstPointCurve.m_isImplied && firstPointCurve.m_isActive
+        && secondPointCurve.m_ownerId == 0
+        && secondPointCurve.m_isImplied && secondPointCurve.m_isActive
         && arc.m_fields.m_nodeId == 6 && arc.m_bodyStartBit == 1314
         && arc.m_bodyEndBit == 1934 && arc.m_fields.m_geometryDependencyHandle == 0x2AAu
+        && arc.m_fields.m_className == classNames[3]
+        && arc.m_fields.m_geometryNodeId == 0
+        && std::fabs(arc.m_fields.m_center.x - 2054.8988985670894) < 1e-9
+        && std::fabs(arc.m_fields.m_center.y - 1081.7260399142574) < 1e-9
+        && std::fabs(arc.m_fields.m_normal.z - 1.0) < 1e-12
         && std::fabs(arc.m_fields.m_endParameter - 2 * 3.14159265358979323846) < 1e-12
-        && std::fabs(arc.m_fields.m_radius - 777.7351130784532) < 1e-8;
+        && std::fabs(arc.m_fields.m_radius - 777.7351130784532) < 1e-8
+        && std::fabs(arc.m_fields.m_startPoint.x - 2611.1592886840135) < 1e-9
+        && std::fabs(arc.m_fields.m_endPoint.x - 1368.438090213127) < 1e-9
+        && arcImplicit.m_geometryDependencyHandle == 0u
+        && arcImplicit.m_curveNodeId == 6
+        && arcPointCurve.m_isImplied && arcPointCurve.m_isActive
+        && thirdArcImplicit.m_pointType == 1u
+        && thirdArcImplicit.m_curveNodeId == 6
+        && thirdPointCurve.m_isImplied && thirdPointCurve.m_isActive
+        && fourthArcImplicit.m_pointType == 3u
+        && fourthArcImplicit.m_curveNodeId == 6
+        && centerConstraint.m_ownerId == 0
+        && centerConstraint.m_isImplied && centerConstraint.m_isActive
+        && tangentConstraint.m_ownerId == 0
+        && !tangentConstraint.m_isImplied && tangentConstraint.m_isActive;
 }
 } // namespace
 

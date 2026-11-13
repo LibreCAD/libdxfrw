@@ -90,13 +90,31 @@ NOD/dictionary path, network action list, action owning-network edge, physical
 hard owner, and dependency targets as separate graph roles ([ownership
 semantics receipt](docs/research/p4-ac1032-assocnetwork-autodesk-ownership-semantics-2026-11-09.json)).
 These API semantics do not resolve the AC1032 class-version-2 byte layout.
-LibreDWG's stable `src/dwg2.spec` now independently supports the per-action
-owned-flag/handle-role rule, which the bounded parser enforces, but this
-implementation grammar is not the ODA specification or producer proof.
+LibreDWG's stable `src/dwg2.spec` independently supports the per-action
+owned-flag/handle-role rule, which the bounded parser enforces. The separate
+Rust `acadrust` 0.6.8 reader also parses both existing hash-bound AC1032
+drawings into typed network objects and agrees on the two networks' class
+version, base/network indexes, network version, action list, ownership flags,
+and handles ([peer-reader receipt](docs/research/p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13.json)).
+This adds independent decoding evidence for these source records, but neither
+the peer grammar nor the files' unverified producer provenance establishes a
+normative class-version-2 schema or native constraint behavior.
+On the forum source, acadrust also returns typed data for constraint group
+`0x2A8`, including its 13 registered nodes plus the root. libdxfrw currently
+retains bounded candidate rows and exact spans for those 13 records but keeps
+their `m_classDataParsed` flags false. Next compare every candidate node's
+class, status, connections and bit spans plus key geometry/constraint values
+are now checked by `libdxfrw_constraint_group_candidate_api`; its focused CTest
+and the hash-bound physical selector pass. A full value/handle-role differential
+remains before any read-only typed callback promotion. The
+[peer-reader receipt](docs/research/p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13.json)
+records the bounded agreement; it does not establish native solver semantics.
+If the remaining exact profile closes, expose it read-only while keeping
+AC1032 output refused.
 Current graph/writer admission remains AC1024-only and physical output stays
-refused. Next obtain eligible producer/schema evidence for class version 2,
-then close the exact owner/action dependencies before enabling any AC1032
-writer route. Do not prune `ACAD_ASSOCNETWORK` or DIMASSOC edges to
+refused. Before enabling any AC1032 writer route, obtain eligible
+producer/schema evidence for class version 2 and close the exact owner/action
+dependencies. Do not prune `ACAD_ASSOCNETWORK` or DIMASSOC edges to
 claim MLINESTYLE output. Once qualified, run exact physical
 DIMASSOC→MLINESTYLE output, staged identity inspection, and fresh
 ASCII/Binary readback. The generated DIMASSOC graph admission/refusal/retry
