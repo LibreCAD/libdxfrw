@@ -4262,7 +4262,7 @@ dependency. The normal `dwg2dxf` target builds, and a generated filesystem
 control passes exact-duplicate refusal, distinct-name admission, actual
 case-folding behavior, and scratch cleanup (1/1 CTest). This qualifies the
 local macOS preflight path only; Linux/Windows hosted builds and native consumer
-gates remain open.
+gates remain open ([receipt](docs/research/p8-macos-batch-output-name-capabilities-2026-11-13.json)).
 
 **P8 native platform workflow pin refresh (2026-11-12):** the dispatch workflow
 and generated-consumer expected revision now target the official FreeCAD 1.1.4

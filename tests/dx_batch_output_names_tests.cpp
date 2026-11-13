@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -48,12 +49,37 @@ bool run() {
         return false;
     }
 
+    const auto caseProbe = directory / "CaseProbe";
+    {
+        std::ofstream output(caseProbe);
+        output << "probe";
+        if (!output) {
+            std::cerr << "could not create case-sensitivity probe\n";
+            std::error_code ignored;
+            std::filesystem::remove_all(directory, ignored);
+            return false;
+        }
+    }
+    const bool filesystemCaseInsensitive =
+        std::filesystem::exists(directory / "caseprobe");
+    std::error_code probeRemovalError;
+    if (!std::filesystem::remove(caseProbe, probeRemovalError)
+        || probeRemovalError) {
+        std::cerr << "could not remove case-sensitivity probe: "
+                  << probeRemovalError.message() << '\n';
+        std::error_code ignored;
+        std::filesystem::remove_all(directory, ignored);
+        return false;
+    }
+
     const auto folded = dwg2dxfCli::checkBatchOutputNameCollisions(
         directory, {"Case.dwg", "case.dwg"}, error);
-    if ((folded != dwg2dxfCli::BatchOutputNameCheck::Collision
-            && folded != dwg2dxfCli::BatchOutputNameCheck::Clear)
+    const auto expectedFolded = filesystemCaseInsensitive
+        ? dwg2dxfCli::BatchOutputNameCheck::Collision
+        : dwg2dxfCli::BatchOutputNameCheck::Clear;
+    if (folded != expectedFolded
         || !error.empty() || !directoryIsEmpty(directory)) {
-        std::cerr << "case-folded result or cleanup was invalid: "
+        std::cerr << "case-folded result disagreed with filesystem behavior: "
                   << error << '\n';
         std::error_code ignored;
         std::filesystem::remove_all(directory, ignored);
@@ -67,7 +93,8 @@ bool run() {
         return false;
     }
     std::cout << "batch output names: duplicate refusal, distinct admission, "
-                 "filesystem case behavior and scratch cleanup passed\n";
+              << (filesystemCaseInsensitive ? "case-insensitive" : "case-sensitive")
+              << " filesystem behavior, and scratch cleanup passed\n";
     return true;
 }
 
