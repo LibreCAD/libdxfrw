@@ -144,6 +144,17 @@ Running it on the ACadSharp AEC candidate returns before inventory because the
 reader refuses its handle map; the selector does not bypass that gate.
 See the [ACadSharp candidate screen receipt](docs/research/p4-ac1032-assocnetwork-acadsharp-aec-sample-screen-2026-11-10.json).
 
+**External corpus candidate screen (2026-11-13):** the public `dwg-rs`
+pre-alpha README lists five associative-network classes in four
+`kurema/BookViewerApp3` drawings, but says those records have no DXF twins and
+do not settle field layouts. Its clean-room corpus record identifies those
+files as four MIT-licensed AC1014 drawings, not AC1032 witnesses. This may be a
+source candidate for a separately scoped R14 boundary audit; it does not
+resolve the AC1032 class-version-2 schema or native semantics. Keep the P4 gate
+unchanged; see the [corpus screen receipt](docs/research/p4-ac1032-assocnetwork-dwg-rs-corpus-screen-2026-11-13.json),
+[dwg-rs README](https://github.com/DrunkOnJava/dwg-rs), and
+[dwg-rs clean-room corpus record](https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md).
+
 **Distinct AC1032 source and field spans (2026-11-10):** a public Autodesk
 ObjectARX forum attachment contains two class-version-2 associative networks,
 and its contributor publishes the native owner path from constraint group
