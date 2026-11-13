@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-12)
 
-The current queue has **31 completed implementation slices** and **6 remaining
-phase exit gates**, so the item-count progression is **83.8%**:
-`31 / (31 + 6)`. This is a queue-count estimate: a small implementation slice
+The current queue has **32 completed implementation slices** and **6 remaining
+phase exit gates**, so the item-count progression is **84.2%**:
+`32 / (32 + 6)`. This is a queue-count estimate: a small implementation slice
 and a broad phase gate each count as one item, so it is not effort-weighted
 completion of DWG/DXF parity. Completed actions have been removed from this
 plan; their implementation and evidence remain in Git history and

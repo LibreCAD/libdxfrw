@@ -79,6 +79,46 @@ bool readDwgRepresentableAppDataHandle(const DRW_Variant& value,
     return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
 }
 
+bool hasRepresentableDwgEllipseGeometry(const DRW_Ellipse& ellipse) noexcept {
+    const auto finiteCoord = [](const DRW_Coord& point) {
+        return std::isfinite(point.x) && std::isfinite(point.y)
+            && std::isfinite(point.z);
+    };
+    if (!finiteCoord(ellipse.basePoint) || !finiteCoord(ellipse.secPoint)
+        || !finiteCoord(ellipse.extPoint) || !std::isfinite(ellipse.ratio)
+        || ellipse.ratio < 1.0e-6 || ellipse.ratio > 1.0
+        || !std::isfinite(ellipse.staparam)
+        || !std::isfinite(ellipse.endparam))
+        return false;
+
+    // Scale before normalizing so large finite WCS vectors do not overflow
+    // and subnormal vectors do not collapse while checking the plane axes.
+    const auto unitVector = [](const DRW_Coord& value,
+                               DRW_Coord& unit) {
+        const double scale = std::max({std::abs(value.x), std::abs(value.y),
+                                       std::abs(value.z)});
+        if (!std::isfinite(scale) || scale == 0.0)
+            return false;
+        const double x = value.x / scale;
+        const double y = value.y / scale;
+        const double z = value.z / scale;
+        const double length = std::hypot(std::hypot(x, y), z);
+        if (!std::isfinite(length) || length == 0.0
+            || scale <= 1.0e-6 / length)
+            return false;
+        unit = DRW_Coord(x / length, y / length, z / length);
+        return true;
+    };
+    DRW_Coord majorUnit;
+    DRW_Coord normalUnit;
+    if (!unitVector(ellipse.secPoint, majorUnit)
+        || !unitVector(ellipse.extPoint, normalUnit))
+        return false;
+    const double alignment = majorUnit.x * normalUnit.x
+        + majorUnit.y * normalUnit.y + majorUnit.z * normalUnit.z;
+    return std::isfinite(alignment) && std::abs(alignment) <= 1.0e-6;
+}
+
 bool hasOnlyDwgRepresentableAppData(const DRW_Entity& entity) {
     if (entity.appData.empty())
         return true;
@@ -9736,7 +9776,7 @@ bool DRW_Ellipse::encodeDwg(DRW::Version version, dwgBufferW *buf,
                             dwgBufferW *handleBuf) {
   (void)bs;
   (void)strBuf;
-  if (buf == nullptr)
+  if (buf == nullptr || !hasRepresentableDwgEllipseGeometry(*this))
     return false;
 
   dwgBufferW *const bodyTarget = buf;

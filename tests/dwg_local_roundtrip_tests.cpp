@@ -10475,6 +10475,155 @@ bool runDwgCircleArcRadiusDomain(const std::filesystem::path& directory) {
     return true;
 }
 
+class DwgEllipseGeometryWriter final : public dx_iface {
+public:
+    DwgEllipseGeometryWriter(dwgRW& writer,
+                             std::function<void(DRW_Ellipse&)> mutate = {})
+        : writer_(writer), mutate_(std::move(mutate)) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        wrote_ = false;
+        DRW_Ellipse value;
+        value.basePoint = {1.0, 2.0, 3.0};
+        value.secPoint = {4.0, 0.0, 0.0};
+        value.extPoint = {0.0, 0.0, 1.0};
+        value.ratio = 0.5;
+        value.staparam = 0.25;
+        value.endparam = 1.0;
+        if (mutate_)
+            mutate_(value);
+        wrote_ = writer_.writeEllipse(&value) && value.handle != 0u;
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wrote_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+private:
+    dwgRW& writer_;
+    std::function<void(DRW_Ellipse&)> mutate_;
+    bool wrote_{false};
+};
+
+class DwgEllipseGeometryReader final : public dx_iface {
+public:
+    explicit DwgEllipseGeometryReader(double expectedRatio)
+        : expectedRatio_(expectedRatio) {}
+    void addEllipse(const DRW_Ellipse& value) override {
+        ++count_;
+        value_ = value;
+    }
+    bool matches() const noexcept {
+        return count_ == 1u && value_.basePoint.x == 1.0
+            && value_.basePoint.y == 2.0 && value_.basePoint.z == 3.0
+            && value_.secPoint.x == 4.0 && value_.secPoint.y == 0.0
+            && value_.secPoint.z == 0.0 && value_.extPoint.x == 0.0
+            && value_.extPoint.y == 0.0 && value_.extPoint.z == 1.0
+            && value_.ratio == expectedRatio_ && value_.staparam == 0.25
+            && value_.endparam == 1.0;
+    }
+
+private:
+    std::size_t count_{0u};
+    DRW_Ellipse value_;
+    double expectedRatio_;
+};
+
+bool runDwgEllipseGeometryAdmission(const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    constexpr std::array<double, 2> validBoundaryRatios{{1.0e-6, 1.0}};
+    const std::vector<std::pair<const char*, std::function<void(DRW_Ellipse&)>>>
+        invalidProfiles{
+            {"zero-ratio", [](DRW_Ellipse& value) { value.ratio = 0.0; }},
+            {"tiny-ratio", [](DRW_Ellipse& value) { value.ratio = 1.0e-7; }},
+            {"ratio-over-one", [](DRW_Ellipse& value) { value.ratio = 1.01; }},
+            {"nan-ratio", [](DRW_Ellipse& value) {
+                value.ratio = std::numeric_limits<double>::quiet_NaN(); }},
+            {"infinite-center", [](DRW_Ellipse& value) {
+                value.basePoint.x = std::numeric_limits<double>::infinity(); }},
+            {"zero-major-axis", [](DRW_Ellipse& value) {
+                value.secPoint = {0.0, 0.0, 0.0}; }},
+            {"parallel-axis", [](DRW_Ellipse& value) {
+                value.secPoint = {0.0, 0.0, 4.0}; }},
+            {"tiny-major-axis", [](DRW_Ellipse& value) {
+                value.secPoint = {1.0e-7, 0.0, 0.0}; }},
+            {"zero-normal", [](DRW_Ellipse& value) {
+                value.extPoint = {0.0, 0.0, 0.0}; }},
+            {"nan-parameter", [](DRW_Ellipse& value) {
+                value.staparam = std::numeric_limits<double>::quiet_NaN(); }}
+        };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return std::string{};
+        return std::string(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    };
+
+    std::error_code ec;
+    for (const DRW::Version version : versions) {
+        const auto path = directory / ("libdxfrw-ellipse-geometry-"
+            + std::to_string(static_cast<int>(version)) + ".dwg");
+        for (const auto& invalid : invalidProfiles) {
+            {
+                std::ofstream sentinel(path, std::ios::binary
+                                               | std::ios::trunc);
+                sentinel << "existing-dwg-destination";
+            }
+            dwgRW writer(path.string().c_str());
+            DwgEllipseGeometryWriter source(writer, invalid.second);
+            const std::string before = readBytes(path);
+            if (writer.write(&source, version, false)
+                || before.empty() || readBytes(path) != before)
+                return false;
+
+            DwgEllipseGeometryWriter retry(writer);
+            if (!writer.write(&retry, version, false))
+                return false;
+            dwgRW reader(path.string().c_str());
+            DwgEllipseGeometryReader capture(0.5);
+            dx_data readData;
+            capture.cData = &readData;
+            if (!reader.read(&capture, false) || !capture.matches()
+                || reader.getEntityParseFailures() != 0u
+                || reader.getObjectParseFailures() != 0u)
+                return false;
+        }
+        for (const double ratio : validBoundaryRatios) {
+            dwgRW writer(path.string().c_str());
+            DwgEllipseGeometryWriter source(writer, [ratio](DRW_Ellipse& value) {
+                value.ratio = ratio;
+            });
+            if (!writer.write(&source, version, false))
+                return false;
+            dwgRW reader(path.string().c_str());
+            DwgEllipseGeometryReader capture(ratio);
+            dx_data readData;
+            capture.cData = &readData;
+            if (!reader.read(&capture, false) || !capture.matches()
+                || reader.getEntityParseFailures() != 0u
+                || reader.getObjectParseFailures() != 0u)
+                return false;
+        }
+        std::filesystem::remove(path, ec);
+    }
+    return true;
+}
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -41178,6 +41327,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--dwg-circle-arc-radius-domain") {
         const bool passed = runDwgCircleArcRadiusDomain(directory);
         std::cout << "DWG CIRCLE/ARC positive-radius rollback/retry and version matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--dwg-ellipse-geometry-admission") {
+        const bool passed = runDwgEllipseGeometryAdmission(directory);
+        std::cout << "DWG ELLIPSE geometry admission rollback/retry and version matrix: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     } else if (argc == 2

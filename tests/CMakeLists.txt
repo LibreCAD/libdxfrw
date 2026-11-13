@@ -4407,6 +4407,18 @@ set_tests_properties(libdxfrw_dwg_circle_arc_radius_domain PROPERTIES
     TIMEOUT 30
 )
 
+# Keep DWG ELLIPSE output within the AutoCAD ratio and axis-geometry domain;
+# each refused profile must preserve output and allow corrected same-writer retry.
+add_test(
+    NAME libdxfrw_dwg_ellipse_geometry_admission
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-ellipse-geometry-admission
+)
+set_tests_properties(libdxfrw_dwg_ellipse_geometry_admission PROPERTIES
+    LABELS "fast;dwg;writer;reader;ellipse;rollback;generated"
+    TIMEOUT 30
+)
+
 add_test(
     NAME libdxfrw_dwg_read_outcome_policy
     COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome
