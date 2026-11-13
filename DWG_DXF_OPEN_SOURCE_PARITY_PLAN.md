@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **110 completed implementation slices** and **35 remaining
+The plan records **111 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`110 / (110 + 35) = 75.9%`. This is a count-based progress measure, not an
+`111 / (111 + 35) = 76.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1446,6 +1446,16 @@ output. The focused transaction CTest passes in 4.86 seconds. These payloads
 are transaction probes, not valid producer-authored OLE documents. This does
 not qualify OLE semantics, consumer rendering, DWG source profiles, or the
 remaining writer inventory. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 SHAPE writer transaction slice (2026-11-13):** the sweep now exercises
+the direct public SHAPE writer using locally generated geometry and the
+`STANDARD` style name. All 767 ASCII and 754 Binary allocation failures
+preserve the destination and caller state; same-writer retries reproduce
+clean output and typed readback checks the DXF-visible style and geometry.
+This profile does not represent the DWG glyph index or SHAPEFILE relationship,
+and it does not qualify native presentation. The focused transaction CTest
+passes in 4.84 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-

@@ -62,6 +62,7 @@ constexpr std::uint32_t kWipeoutVariablesHandle = 0xD93Eu;
 constexpr std::uint32_t kSunHandle = 0xD93Fu;
 constexpr std::uint32_t kOle2FrameHandle = 0xD940u;
 constexpr std::uint32_t kOleFrameHandle = 0xD941u;
+constexpr std::uint32_t kShapeHandle = 0xD942u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -795,6 +796,15 @@ public:
         oleFrame.m_payloadByteCount = static_cast<std::uint32_t>(
             oleFrame.m_payloadBytes.size());
         oleFrame.m_declaredPayloadLength = oleFrame.m_payloadByteCount;
+        shape.handle = kShapeHandle;
+        shape.m_insertionPoint = DRW_Coord(8.0, 9.0, 10.0);
+        shape.m_scale = 1.75;
+        shape.m_rotation = 0.5;
+        shape.m_widthFactor = 0.8;
+        shape.m_oblique = 0.1;
+        shape.m_thickness = 0.25;
+        shape.m_extrusion = DRW_Coord(0.0, 0.0, 1.0);
+        shape.m_styleName = "STANDARD";
     }
 
     void writeEntities() override {
@@ -848,6 +858,7 @@ public:
             && check("HELIX", output.writeHelix(&helix))
             && check("OLE2FRAME", output.writeOle2Frame(&ole2Frame))
             && check("OLEFRAME", output.writeOleFrame(&oleFrame))
+            && check("SHAPE", output.writeShape(&shape))
             && check("LOFTEDSURFACE", output.writeSurface(&loftedSurface))
             && check("SWEPTSURFACE", output.writeSurface(&sweptSurface))
             && check("PLANESURFACE", output.writeSurface(&planeSurface))
@@ -924,6 +935,7 @@ public:
     DRW_Helix helix;
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
+    DRW_Shape shape;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -972,6 +984,10 @@ public:
     void addOleFrame(const DRW_OleFrame& value) override {
         ++oleFrameCount;
         oleFrame = value;
+    }
+    void addShape(const DRW_Shape& value) override {
+        ++shapeCount;
+        shape = value;
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1253,6 +1269,7 @@ public:
     DRW_Image image;
     DRW_Ole2Frame ole2Frame;
     DRW_OleFrame oleFrame;
+    DRW_Shape shape;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1316,6 +1333,7 @@ public:
     unsigned imageCount = 0u;
     unsigned ole2FrameCount = 0u;
     unsigned oleFrameCount = 0u;
+    unsigned shapeCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1490,6 +1508,17 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.oleFrame.m_payloadBytes
             == std::vector<std::uint8_t>{0x80u, 0x00u, 0xFFu, 0xA5u}
         && adapter.oleFrame.m_declaredPayloadLength == 4u
+        && adapter.shape.handle == kShapeHandle
+        && adapter.shape.m_styleName == "STANDARD"
+        && adapter.shape.m_insertionPoint.x == 8.0
+        && adapter.shape.m_insertionPoint.y == 9.0
+        && adapter.shape.m_insertionPoint.z == 10.0
+        && adapter.shape.m_scale == 1.75
+        && adapter.shape.m_rotation == 0.5
+        && adapter.shape.m_widthFactor == 0.8
+        && adapter.shape.m_oblique == 0.1
+        && adapter.shape.m_thickness == 0.25
+        && adapter.shape.m_extrusion.z == 1.0
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2244,6 +2273,18 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.oleFrame.m_payloadBytes
             != std::vector<std::uint8_t>{0x80u, 0x00u, 0xFFu, 0xA5u}
         || adapter.oleFrame.m_declaredPayloadLength != 4u
+        || adapter.shapeCount != 1u
+        || adapter.shape.handle == 0u
+        || adapter.shape.m_styleName != "STANDARD"
+        || adapter.shape.m_insertionPoint.x != 8.0
+        || adapter.shape.m_insertionPoint.y != 9.0
+        || adapter.shape.m_insertionPoint.z != 10.0
+        || adapter.shape.m_scale != 1.75
+        || std::abs(adapter.shape.m_rotation - 0.5) > 1.0e-12
+        || adapter.shape.m_widthFactor != 0.8
+        || std::abs(adapter.shape.m_oblique - 0.1) > 1.0e-12
+        || adapter.shape.m_thickness != 0.25
+        || adapter.shape.m_extrusion.z != 1.0
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
