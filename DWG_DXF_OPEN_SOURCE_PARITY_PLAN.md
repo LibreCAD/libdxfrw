@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **208 completed implementation slices** and **23 remaining
+The plan records **209 completed implementation slices** and **22 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`208 / (208 + 23) = 90.0%`. This is a count-based progress measure, not an
+`209 / (209 + 22) = 90.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1235,6 +1235,17 @@ matches clean bytes and passes typed readback for all seventeen links,
 ownership, dictionary membership, and each target/text reference. This adds
 generated variable-length vector transaction evidence only; it does not
 establish producer-profile breadth or native consumer semantics ([receipt](docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G RASTERVARIABLES source-version transaction follow-up (2026-11-13):**
+the from-scratch DWG source is now generated separately for AC1021 and AC1027,
+then exported to matching ASCII and Binary DXF versions. The AC1021 profiles
+cover 12 ASCII and 11 Binary allocation failures; AC1027 covers the same
+counts. Each failure preserves the source record and prior destination, then
+same-adapter retry matches clean bytes and typed readback. The focused CTest
+passes in 0.39 seconds. AC1032 is not included: its generated source fails the
+current reader's class-integrity qualification and the adapter refuses export.
+This local transaction evidence does not resolve that reader gate or establish
+producer semantics ([source-version receipt](docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json)).
 
 **P6-G DATALINK version-matrix transaction follow-up (2026-11-13):** the same
 sixteen-target graph now passes for AC1021, AC1027, and AC1032, each in ASCII

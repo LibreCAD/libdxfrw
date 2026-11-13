@@ -148,103 +148,119 @@ bool run(const std::filesystem::path& directory) {
                   << message << '\n';
         return false;
     };
-    const auto source = directory / "rastervariables-source.dwg";
     const std::string sentinel = "prior destination bytes\n";
-    std::array<std::filesystem::path, 2> destinations{{
-        directory / "rastervariables-ascii.dxf",
-        directory / "rastervariables-binary.dxf"}};
+    std::vector<std::filesystem::path> scratchFiles;
     struct Cleanup {
-        std::filesystem::path source;
-        std::array<std::filesystem::path, 2> destinations;
+        std::vector<std::filesystem::path>& files;
         ~Cleanup() {
             std::error_code ignored;
-            std::filesystem::remove(source, ignored);
-            for (const auto& path : destinations)
+            for (const auto& path : files)
                 std::filesystem::remove(path, ignored);
         }
-    } cleanup{source, destinations};
-    if (std::filesystem::exists(source)
-        || std::filesystem::exists(destinations[0])
-        || std::filesystem::exists(destinations[1]))
-        return fail("scratch input/output path already exists");
+    } cleanup{scratchFiles};
 
-    {
-        dwgRW sourceWriter(source.string().c_str());
-        RasterAuthor author(sourceWriter);
-        if (!sourceWriter.write(&author, DRW::AC1027, false))
-            return fail("from-scratch AC1027 source generation failed");
-    }
-
-    dx_data data;
-    dx_iface importer;
-    if (!importer.fileImport(source.string(), &data, false)
-        || data.sourceFormat != dx_source_format::DWG
-        || data.sourceVersion != DRW::AC1027
-        || data.rasterVariablesCaptureFailed
-        || data.dwgRasterVariables.size() != 1u
-        || data.rasterVariablesRetainedRecords != 1u)
-        return fail("generated source did not import one typed raster graph");
-    const DRW_RasterVariables sourceRecord =
-        data.dwgRasterVariables.begin()->second;
-
-    RasterExport exporter;
-    exporter.cData = &data;
-    const auto write = [&](std::size_t index, bool binary) {
-        return exporter.fileExport(destinations[index].string(), DRW::AC1027,
-            binary, &data, false, false, dx_dxfSourceTextPolicy::Compatible,
-            DRW::DxfTextWritePolicy::Compatible,
-            dx_dxfProxyGraphicsPolicy::Compatible,
-            dx_dwgReadCompletenessPolicy::Legacy);
-    };
-
-    for (std::size_t index = 0; index < destinations.size(); ++index) {
-        const bool binary = index == 1u;
+    for (const DRW::Version version : {DRW::AC1021, DRW::AC1027}) {
+        const auto source = directory
+            / ("rastervariables-source-"
+               + std::to_string(static_cast<int>(version)) + ".dwg");
+        const std::array<std::filesystem::path, 2> versionDestinations{{
+            directory / ("rastervariables-"
+                + std::to_string(static_cast<int>(version)) + "-ascii.dxf"),
+            directory / ("rastervariables-"
+                + std::to_string(static_cast<int>(version)) + "-binary.dxf")}};
+        if (std::filesystem::exists(source))
+            return fail("scratch input path already exists");
+        scratchFiles.push_back(source);
+        for (const auto& destination : versionDestinations) {
+            if (std::filesystem::exists(destination))
+                return fail("scratch output path already exists");
+            scratchFiles.push_back(destination);
+        }
         {
-            std::ofstream output(destinations[index],
-                std::ios::binary | std::ios::trunc);
-            output.write(sentinel.data(),
-                         static_cast<std::streamsize>(sentinel.size()));
-            if (!output)
-                return fail("could not initialize destination sentinel");
-        }
-        exporter.failAt = 1000000;
-        if (!write(index, binary))
-            return fail("allocation calibration export failed");
-        const long allocationCount = exporter.reached;
-        if (allocationCount <= 0 || !verifyGraph(destinations[index]))
-            return fail("calibration did not emit the typed raster graph");
-
-        unsigned offsets = 0u;
-        for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream output(destinations[index],
-                    std::ios::binary | std::ios::trunc);
-                output.write(sentinel.data(),
-                             static_cast<std::streamsize>(sentinel.size()));
-                if (!output)
-                    return fail("could not reset destination sentinel");
+            dwgRW sourceWriter(source.string().c_str());
+            RasterAuthor author(sourceWriter);
+            if (!sourceWriter.write(&author, version, false)) {
+                std::cerr << "from-scratch source generation refused version="
+                          << static_cast<int>(version) << '\n';
+                return fail("from-scratch DWG source generation failed");
             }
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            const bool wrote = write(index, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached < 1
-                || !readAll(destinations[index], current)
-                || current != sentinel
-                || !sourceRecordUnchanged(data, sourceRecord))
-                return fail("injected failure changed destination or caller record");
-            if (!write(index, binary) || !verifyGraph(destinations[index])
-                || !sourceRecordUnchanged(data, sourceRecord))
-                return fail("same-adapter retry failed typed graph readback");
-            ++offsets;
         }
-        if (offsets != static_cast<unsigned>(allocationCount))
-            return fail("not every calibrated callback allocation was injected");
-        std::cout << "RASTERVARIABLES OBJECTS "
-                  << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=" << offsets << '\n';
+        dx_data data;
+        dx_iface importer;
+        if (!importer.fileImport(source.string(), &data, false)
+            || data.sourceFormat != dx_source_format::DWG
+            || data.sourceVersion != version
+            || data.rasterVariablesCaptureFailed
+            || data.dwgRasterVariables.size() != 1u
+            || data.rasterVariablesRetainedRecords != 1u)
+            return fail("generated source did not import one typed raster graph");
+        const DRW_RasterVariables sourceRecord =
+            data.dwgRasterVariables.begin()->second;
+
+        RasterExport exporter;
+        exporter.cData = &data;
+        const auto write = [&](const std::filesystem::path& destination,
+                               bool binary) {
+            return exporter.fileExport(destination.string(), version,
+                binary, &data, false, false, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::Legacy);
+        };
+        for (std::size_t index = 0; index < versionDestinations.size(); ++index) {
+            const auto& destination = versionDestinations[index];
+            const bool binary = index == 1u;
+            exporter.failAt = 1000000;
+            if (!write(destination, binary)) {
+                std::cerr << "calibration refused version="
+                          << static_cast<int>(version)
+                          << " binary=" << binary << '\n';
+                return fail("allocation calibration export failed");
+            }
+            const long allocationCount = exporter.reached;
+            if (allocationCount <= 0 || !verifyGraph(destination))
+                return fail("calibration did not emit the typed raster graph");
+            std::string cleanBytes;
+            if (!readAll(destination, cleanBytes))
+                return fail("could not retain calibration output bytes");
+
+            unsigned offsets = 0u;
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream output(destination,
+                        std::ios::binary | std::ios::trunc);
+                    output.write(sentinel.data(),
+                                 static_cast<std::streamsize>(sentinel.size()));
+                    if (!output)
+                        return fail("could not reset destination sentinel");
+                }
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                const bool wrote = write(destination, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached < 1
+                    || !readAll(destination, current)
+                    || current != sentinel
+                    || !sourceRecordUnchanged(data, sourceRecord))
+                    return fail("injected failure changed destination or caller record");
+                if (!write(destination, binary)
+                    || !verifyGraph(destination)
+                    || !sourceRecordUnchanged(data, sourceRecord))
+                    return fail("same-adapter retry failed typed graph readback");
+                std::string retryBytes;
+                if (!readAll(destination, retryBytes) || retryBytes != cleanBytes)
+                    return fail("same-adapter retry differed from clean bytes");
+                ++offsets;
+            }
+            if (offsets != static_cast<unsigned>(allocationCount))
+                return fail("not every calibrated callback allocation was injected");
+            std::cout << "RASTERVARIABLES OBJECTS version="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=" << offsets << '\n';
+        }
     }
     return true;
 }
