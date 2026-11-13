@@ -1604,6 +1604,34 @@ public:
     dx_data storage;
 };
 
+const std::string& longMTextPayload() {
+    static const std::string payload = std::string(249u, 'A') + "€"
+        + std::string(300u, 'B');
+    return payload;
+}
+
+class LongMTextExport final : public dx_iface {
+public:
+    explicit LongMTextExport(dxfRW& output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        mtext.handle = 0xDA10u;
+        mtext.text = longMTextPayload();
+        mtext.basePoint = DRW_Coord{12.0, -4.0, 3.0};
+        mtext.height = 2.25;
+        mtext.style = "STANDARD";
+    }
+
+    void writeEntities() override {
+        entityWritten = dxfW != nullptr && dxfW->writeMText(&mtext);
+    }
+
+    DRW_MText mtext;
+    bool entityWritten = false;
+    dx_data storage;
+};
+
 class Readback final : public dx_iface {
 public:
     Readback() {
@@ -5686,6 +5714,108 @@ bool runEmbeddedAttributeMTextSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runLongMTextSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "long UTF-8 MTEXT allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "long-utf8-mtext.dxf";
+    const std::string sentinel = "prior long MTEXT drawing bytes\n";
+    const auto sourceUnchanged = [](const LongMTextExport& adapter) {
+        return adapter.mtext.handle == 0xDA10u
+            && adapter.mtext.text == longMTextPayload()
+            && adapter.mtext.basePoint.x == 12.0
+            && adapter.mtext.basePoint.y == -4.0
+            && adapter.mtext.basePoint.z == 3.0
+            && adapter.mtext.height == 2.25
+            && adapter.mtext.style == "STANDARD";
+    };
+    const auto readbackMatches = [](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        Readback adapter;
+        return reader.read(&adapter, false) && adapter.mtextCount == 1u
+            && adapter.mtext.handle != 0u
+            && adapter.mtext.text == longMTextPayload()
+            && adapter.mtext.basePoint.x == 12.0
+            && adapter.mtext.basePoint.y == -4.0
+            && adapter.mtext.basePoint.z == 3.0
+            && adapter.mtext.height == 2.25
+            && adapter.mtext.style == "STANDARD";
+    };
+
+    for (const bool binary : {false, true}) {
+        if (!clearStagedOutput(output))
+            return fail("could not clear output before warm-up");
+        {
+            dxfRW codec(output.string().c_str());
+            LongMTextExport adapter(codec);
+            if (!codec.write(&adapter, DRW::AC1027, binary)
+                || !adapter.entityWritten || !sourceUnchanged(adapter)
+                || !readbackMatches(output))
+                return fail("warm-up or typed readback failed");
+        }
+        std::error_code removeError;
+        std::filesystem::remove(output, removeError);
+
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            LongMTextExport adapter(codec);
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || !adapter.entityWritten || !sourceUnchanged(adapter)
+                || !readbackMatches(output) || !readBytes(output, expectedBytes))
+                return fail("allocation calibration or readback failed");
+        }
+        if (allocationCount <= 0)
+            return fail("calibration observed no allocations");
+
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output,
+                                   std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not seed destination sentinel");
+            }
+            dxfRW codec(output.string().c_str());
+            LongMTextExport adapter(codec);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            const std::size_t reached = allocationAttempts;
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            if (!injected || wrote
+                || reached != static_cast<std::size_t>(offset + 1)
+                || !readBytes(output, afterFailure) || afterFailure != sentinel
+                || !sourceUnchanged(adapter) || hasStagedOutput(output))
+                return fail("injected failure changed caller or destination state");
+
+            const bool retried = codec.write(&adapter, DRW::AC1027, binary);
+            std::string retryBytes;
+            if (!retried || !adapter.entityWritten || !sourceUnchanged(adapter)
+                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                || !readbackMatches(output) || hasStagedOutput(output))
+                return fail("same-codec retry did not reproduce typed output");
+        }
+        std::cout << "long UTF-8 MTEXT " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -5703,14 +5833,17 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
     if (argc == 3) {
-        if (std::string(argv[2]) != "r2018-embedded-attribute")
-            return 2;
-        return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
+        const std::string mode(argv[2]);
+        if (mode == "r2018-embedded-attribute")
+            return runEmbeddedAttributeMTextSweep(directory) ? 0 : 1;
+        if (mode == "long-mtext")
+            return runLongMTextSweep(directory) ? 0 : 1;
+        return 2;
     }
     return run(directory) ? 0 : 1;
 }
