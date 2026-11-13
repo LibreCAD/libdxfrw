@@ -2,13 +2,45 @@
 // Generated whole-operation DXF write allocation rollback/retry control.
 #include "dx_iface.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <new>
 #include <string>
+
+namespace {
+constexpr std::uint32_t kNodHandle = 0xD910u;
+constexpr std::uint32_t kGroupDictionaryHandle = 0xD911u;
+constexpr std::uint32_t kGroupHandle = 0xD912u;
+const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
+using DictionaryEdge = DRW_Dictionary::Entry::DxfHandleCode;
+
+bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t memberHandle) {
+    DRW_Group group;
+    group.handle = kGroupHandle;
+    group.name = kGroupName;
+    group.m_entityHandles = {memberHandle};
+    writer.setGroups({group});
+    writer.setHandleRemap({{kNodHandle, 0xCu},
+                           {kGroupDictionaryHandle, 0xDu}});
+
+    auto nod = std::make_unique<DRW_Dictionary>();
+    nod->handle = kNodHandle;
+    nod->m_entries.push_back(
+        {"ACAD_GROUP", kGroupDictionaryHandle, DictionaryEdge::SoftOwner});
+    auto groupDictionary = std::make_unique<DRW_Dictionary>();
+    groupDictionary->handle = kGroupDictionaryHandle;
+    groupDictionary->parentHandle = kNodHandle;
+    groupDictionary->m_entries.push_back(
+        {kGroupName, kGroupHandle, DictionaryEdge::SoftOwner});
+    return writer.setGeneratedDictionarySourceRecords(
+        std::move(nod), std::move(groupDictionary));
+}
+} // namespace
 
 namespace {
 long allocationsBeforeFailure = -1;
@@ -65,6 +97,7 @@ public:
     }
 
     void writeObjects() override {
+        dx_iface::writeObjects();
         objectsWritten = output.writeRawDxfObject(&object);
     }
 
@@ -87,6 +120,10 @@ public:
         currentBlock = storage.mBlock;
     }
     void addLine(const DRW_Line& value) override { ++lineCount; line = value; }
+    void addDictionary(const DRW_Dictionary& value) override {
+        dictionaries.push_back(value);
+    }
+    void addGroup(const DRW_Group& value) override { groups.push_back(value); }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
         ++objectCount;
         object = value;
@@ -94,6 +131,8 @@ public:
     dx_data storage;
     DRW_Line line;
     DRW_RawDxfObject object;
+    std::vector<DRW_Dictionary> dictionaries;
+    std::vector<DRW_Group> groups;
     unsigned lineCount = 0u;
     unsigned objectCount = 0u;
 };
@@ -153,7 +192,45 @@ bool matchesReadback(const std::filesystem::path& path) {
         std::cerr << '\n';
         return false;
     }
-    return true;
+    const DRW_Dictionary& root = adapter.storage.namedObjectDictionary;
+    const bool rootMatches = adapter.storage.hasNamedObjectDictionary
+        && root.handle == 0xCu && root.m_entries.size() == 1u
+        && root.m_entries.front().m_name == "ACAD_GROUP"
+        && root.m_entries.front().m_handle == 0xDu;
+    const auto child = std::find_if(
+        adapter.dictionaries.begin(), adapter.dictionaries.end(),
+        [](const DRW_Dictionary& value) {
+            return value.handle == 0xDu && value.parentHandle == 0xCu
+                && value.m_entries.size() == 1u
+                && value.m_entries.front().m_name == kGroupName;
+        });
+    const auto group = std::find_if(
+        adapter.groups.begin(), adapter.groups.end(),
+        [](const DRW_Group& value) {
+            return value.handle != 0u && value.handle != DRW::NoHandle
+                && value.m_entityHandles.size() == 1u;
+        });
+    const bool graphMatches = rootMatches
+        && child != adapter.dictionaries.end()
+        && group != adapter.groups.end()
+        && child->m_entries.front().m_handle == group->handle
+        && group->m_entityHandles.front() == adapter.line.handle;
+    if (!graphMatches) {
+        std::cerr << "graph dictionaries=" << adapter.dictionaries.size()
+                  << " groups=" << adapter.groups.size()
+                  << " root=" << rootMatches
+                  << " child=" << (child != adapter.dictionaries.end())
+                  << " group=" << (group != adapter.groups.end());
+        std::cerr << " rootHandle=" << root.handle;
+        if (child != adapter.dictionaries.end())
+            std::cerr << " childHandle=" << child->handle << " groupRef="
+                      << child->m_entries.front().m_handle;
+        if (group != adapter.groups.end())
+            std::cerr << " groupHandle=" << group->handle << " member="
+                      << group->m_entityHandles.front();
+        std::cerr << " lineHandle=" << adapter.line.handle << '\n';
+    }
+    return graphMatches;
 }
 
 bool run(const std::filesystem::path& directory) {
@@ -174,7 +251,8 @@ bool run(const std::filesystem::path& directory) {
         {
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
-            if (!codec.write(&adapter, DRW::AC1027, binary))
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle)
+                || !codec.write(&adapter, DRW::AC1027, binary))
                 return fail("warm-up write failed");
         }
         std::error_code warmupError;
@@ -185,6 +263,8 @@ bool run(const std::filesystem::path& directory) {
         {
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle))
+                return fail("could not install generated graph before calibration");
             armAllocationFailure(1000000000L);
             const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
             allocationCount = static_cast<long>(allocationAttempts);
@@ -216,11 +296,19 @@ bool run(const std::filesystem::path& directory) {
 
             dxfRW codec(output.string().c_str());
             Export adapter(codec);
+            if (!installGeneratedGroupGraph(codec, adapter.line.handle))
+                return fail("could not install generated graph before injection");
             armAllocationFailure(offset);
             const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
             const std::size_t reached = allocationAttempts;
             const bool injected = allocationFailed;
             disarmAllocationFailure();
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
             if (!injected || wrote || reached != static_cast<std::size_t>(offset + 1)) {
                 std::cerr << "offset=" << offset << " attempts=" << reached
                           << " fired=" << injected << " wrote=" << wrote
@@ -229,9 +317,10 @@ bool run(const std::filesystem::path& directory) {
             }
 
             std::string afterFailure;
-            if (!readBytes(output, afterFailure) || afterFailure != sentinel
+            if (!identitiesRolledBack || !readBytes(output, afterFailure)
+                || afterFailure != sentinel
                 || !callerRecordsUnchanged(adapter))
-                return fail("failure changed destination or caller records");
+                return fail("failure published identities or changed destination/caller records");
 
             const bool retried = codec.write(&adapter, DRW::AC1027, binary);
             std::string retryBytes;

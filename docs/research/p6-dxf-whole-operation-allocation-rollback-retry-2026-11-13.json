@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-13",
+  "topic": "Whole-operation DXF write allocation rollback and retry",
+  "purpose": "Sweep one-shot allocation failures across the public dxfRW::write operation, including setup, entity and OBJECTS emission, finalization, generated NOD/GROUP dependencies, and output publication.",
+  "source": {
+    "kind": "locally-authored-generated-control",
+    "targetVersion": "AC1027",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "records": [
+      {
+        "kind": "LINE",
+        "sourceHandle": "0xD900"
+      },
+      {
+        "kind": "XRECORD",
+        "sourceHandle": "0xD901",
+        "payload": "whole operation payload"
+      },
+      {
+        "kind": "GROUP",
+        "sourceHandle": "0xD912",
+        "memberSourceHandle": "0xD900",
+        "dictionaryPath": "NOD[ACAD_GROUP] -> GROUP dictionary[WHOLE_OPERATION_ALLOCATION_GROUP] -> GROUP"
+      }
+    ],
+    "fixtureFilesCommitted": false,
+    "generatedObjectGraph": {
+      "namedObjectDictionarySourceHandle": "0xD910",
+      "namedObjectDictionaryOutputHandle": "0xC",
+      "groupDictionarySourceHandle": "0xD911",
+      "groupDictionaryOutputHandle": "0xD",
+      "groupOutputHandle": "remapped and verified through dictionary edge",
+      "memberOutputHandle": "remapped LINE handle verified in GROUP membership"
+    }
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "test": "tests/dxf_write_allocation_transaction_tests.cpp",
+    "testSha256": "04c2df3357c9a4548b455060b83160344d1a99dba9f914c91ad225074037f405",
+    "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
+    "ctestName": "libdxfrw_dxf_write_allocation_transaction",
+    "normalExecutableSha256": "c19222c13217704463ae225b568be783d8b44dc2f4671fa22a995055dc5b98e2",
+    "asanExecutableSha256": "eef2eb97774dcf7f65b8d11dc3676ea5380945438697d35be26e650a26a15bda"
+  },
+  "procedure": {
+    "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "validation": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally.",
+    "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "asanValidation": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure"
+  },
+  "result": {
+    "testExitCode": 0,
+    "ctest": "1/1 passed in 0.66 seconds",
+    "ascii": {
+      "measuredAllocationOffsets": 123,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true,
+      "derivedIdentityMappingsRolledBack": true,
+      "generatedNodGroupGraphReadbackMatched": true
+    },
+    "binary": {
+      "measuredAllocationOffsets": 122,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true,
+      "derivedIdentityMappingsRolledBack": true,
+      "generatedNodGroupGraphReadbackMatched": true
+    },
+    "addressSanitizerCtest": "1/1 passed in 3.61 seconds"
+  },
+  "limits": [
+    "This generated transaction control exercises one LINE, one raw XRECORD, and one NOD/GROUP dictionary graph; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
+    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
+  ],
+  "baseRevision": "60447770838ea7863505541e2f6bab0adbc0f8ac"
+}
