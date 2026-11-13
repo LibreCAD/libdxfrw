@@ -169,6 +169,18 @@ public:
         header.dimstyleCtrl = 0xa9u;
         header.vpEntHeaderCtrl = 0xaau;
     }
+    static void decodeFlags(DRW_Header& header, std::uint32_t flags) {
+        header.decodeDwgHeaderFlags(flags);
+    }
+    static bool encodeFlags(const DRW_Header& header, std::uint32_t& flags) {
+        return header.encodeDwgHeaderFlags(flags);
+    }
+    static std::uint32_t rawFlags(const DRW_Header& header) {
+        return header.m_dwgHeaderFlags;
+    }
+    static bool dxfFlagsWritable(const DRW_Header& header) {
+        return header.canWriteDxfHeaderFlags();
+    }
 };
 
 class DwgBlockOwnershipTestAccess {
@@ -19916,7 +19928,10 @@ void testLegacySyntheticTableNullRoles(TestContext& t) {
     }
 }
 
+void testHeaderPackedFlags(TestContext& t);
+
 void testHeaderWriters(TestContext& t) {
+    testHeaderPackedFlags(t);
     testLegacySyntheticTableNullRoles(t);
     testSyntheticRootDictionaryNullRoles(t);
     testStandardDimstyleDefaults<dwgWriter15>(t, DRW::AC1015, "AC1015");
@@ -19961,6 +19976,154 @@ void testHeaderWriters(TestContext& t) {
     testHeaderWriterSealing<dwgWriter24>(t, "AC1024");
     testHeaderWriterSealing<dwgWriter27>(t, "AC1027");
     testHeaderWriterSealing<dwgWriter32>(t, "AC1032");
+}
+
+void testHeaderPackedFlags(TestContext& t) {
+    constexpr std::uint32_t expected = 0x80000000u | 0x4000u | 0x800u
+        | 0x200u | 0x100u | 0x60u | 0x1fu;
+    HeaderWriteProbe source;
+    DrwHeaderEncodeTestAccess::decodeFlags(source, expected);
+    const auto value = [&source](const char* key, int groupCode) {
+        const auto item = source.vars.find(key);
+        return item != source.vars.end() && item->second != nullptr
+            && item->second->type() == DRW_Variant::INTEGER
+            && item->second->code() == groupCode
+            ? item->second->content.i : std::numeric_limits<int>::min();
+    };
+    t.expect(value("$CELWEIGHT", 370) == -3
+                 && value("$ENDCAPS", 280) == 3
+                 && value("$JOINSTYLE", 280) == 2
+                 && value("$LWDISPLAY", 290) == 0
+                 && value("$XEDIT", 290) == 1
+                 && value("$EXTNAMES", 70) == 1
+                 && value("$PSTYLEMODE", 70) == 0
+                 && value("$OLESTARTUP", 70) == 1,
+             "DWG packed HEADER flags decode all documented fields and inversions");
+    t.expect(DrwHeaderEncodeTestAccess::rawFlags(source) == expected,
+             "DWG packed HEADER flags retain the complete source word");
+
+    std::uint32_t encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(source, encoded)
+                 && encoded == expected,
+             "DWG packed HEADER flags compose to their exact source word");
+    DRW_Header copied(source);
+    encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(copied, encoded)
+                 && encoded == expected,
+             "copying HEADER retains raw packed flags and mapped values");
+    t.expect(!DrwHeaderEncodeTestAccess::dxfFlagsWritable(source),
+             "DXF projection refuses undefined packed HEADER flag bits");
+
+    HeaderWriteProbe modeled;
+    modeled.addInt("$CELWEIGHT", -3, 370);
+    modeled.addInt("$ENDCAPS", 3, 280);
+    modeled.addInt("$JOINSTYLE", 2, 280);
+    modeled.addInt("$LWDISPLAY", 0, 290);
+    modeled.addInt("$XEDIT", 1, 290);
+    modeled.addInt("$EXTNAMES", 1, 70);
+    modeled.addInt("$PSTYLEMODE", 0, 70);
+    modeled.addInt("$OLESTARTUP", 1, 70);
+    encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(modeled, encoded)
+                 && encoded == (expected & 0x7fffu)
+                 && DrwHeaderEncodeTestAccess::dxfFlagsWritable(modeled),
+             "modeled HEADER values encode without undefined bits");
+
+    modeled.addInt("$ENDCAPS", 4, 280);
+    encoded = 0u;
+    t.expect(!DrwHeaderEncodeTestAccess::encodeFlags(modeled, encoded),
+             "unsupported packed HEADER value is refused");
+    modeled.addInt("$ENDCAPS", 1, 280);
+    encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(modeled, encoded)
+                 && ((encoded & 0x0060u) >> 5u) == 1u,
+             "corrected packed HEADER value retries successfully");
+
+    HeaderWriteProbe reserved;
+    DrwHeaderEncodeTestAccess::decodeFlags(reserved, 24u);
+    t.expect(!DrwHeaderEncodeTestAccess::dxfFlagsWritable(reserved),
+             "DXF projection refuses reserved five-bit DWG lineweight codes");
+    encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(reserved, encoded)
+                 && (encoded & 0x001fu) == 24u,
+             "DWG rewrite preserves a reserved lineweight source code");
+
+    constexpr int celweight = 211;
+    constexpr int endcaps = 2;
+    constexpr int joinstyle = 1;
+    constexpr int lwdisplay = 1;
+    constexpr int xedit = 0;
+    constexpr int extnames = 1;
+    constexpr int pstylemode = 1;
+    constexpr int olestartup = 0;
+    const auto addValues = [=](DRW_Header& header) {
+        header.addInt("$CELWEIGHT", celweight, 370);
+        header.addInt("$ENDCAPS", endcaps, 280);
+        header.addInt("$JOINSTYLE", joinstyle, 280);
+        header.addInt("$LWDISPLAY", lwdisplay, 290);
+        header.addInt("$XEDIT", xedit, 290);
+        header.addInt("$EXTNAMES", extnames, 70);
+        header.addInt("$PSTYLEMODE", pstylemode, 70);
+        header.addInt("$OLESTARTUP", olestartup, 70);
+    };
+    const auto checkReadback = [&t](const DRW_Header& header,
+                                   const std::string& label) {
+        const auto read = [&header](const char* key, int code) {
+            const auto item = header.vars.find(key);
+            return item != header.vars.end() && item->second != nullptr
+                && item->second->type() == DRW_Variant::INTEGER
+                && item->second->code() == code
+                ? item->second->content.i : std::numeric_limits<int>::min();
+        };
+        t.expect(read("$CELWEIGHT", 370) == celweight
+                     && read("$ENDCAPS", 280) == endcaps
+                     && read("$JOINSTYLE", 280) == joinstyle
+                     && read("$LWDISPLAY", 290) == lwdisplay
+                     && read("$XEDIT", 290) == xedit
+                     && read("$EXTNAMES", 70) == extnames
+                     && read("$PSTYLEMODE", 70) == pstylemode
+                     && read("$OLESTARTUP", 70) == olestartup,
+                 "DWG packed HEADER field readback: " + label);
+    };
+    const auto roundTrip = [&t, &addValues, &checkReadback](auto writerTag,
+            DRW::Version version, std::uint8_t maintenance,
+            const std::string& label) {
+        using Writer = decltype(writerTag);
+        DRW_Header sourceValues;
+        addValues(sourceValues);
+        Writer writer(nullptr, &sourceValues);
+        if (!writer.writeDwgHeader()) {
+            t.expect(false, "DWG packed HEADER encode: " + label);
+            return;
+        }
+        auto bytes = writer.buffer();
+        HeaderSectionReader reader(bytes, 0u, version, maintenance);
+        DRW_Header output;
+        if (!reader.readDwgHeader(output)) {
+            t.expect(false, "DWG packed HEADER parse: " + label);
+            return;
+        }
+        checkReadback(output, label);
+    };
+    roundTrip(dwgWriter15(nullptr, nullptr), DRW::AC1015, 0u, "AC1015");
+    roundTrip(dwgWriter18(nullptr, nullptr), DRW::AC1018, 0u, "AC1018");
+    roundTrip(dwgWriter21(nullptr, nullptr), DRW::AC1021, 0u, "AC1021");
+    roundTrip(dwgWriter24(nullptr, nullptr), DRW::AC1024, 3u, "AC1024");
+    roundTrip(dwgWriter27(nullptr, nullptr), DRW::AC1027, 6u, "AC1027");
+    roundTrip(dwgWriter32(nullptr, nullptr), DRW::AC1032, 0u, "AC1032");
+
+    HeaderWriteProbe unknownBits;
+    DrwHeaderEncodeTestAccess::decodeFlags(unknownBits, 0x80000000u);
+    dwgWriter24 unknownWriter(nullptr, &unknownBits);
+    auto unknownBytesWritten = unknownWriter.writeDwgHeader();
+    auto unknownBytes = unknownWriter.buffer();
+    HeaderSectionReader unknownReader(unknownBytes, 0u, DRW::AC1024, 3u);
+    DRW_Header unknownReadback;
+    t.expect(unknownBytesWritten
+                 && unknownReader.readDwgHeader(unknownReadback)
+                 && DrwHeaderEncodeTestAccess::rawFlags(unknownReadback)
+                        == 0x80000000u,
+             "DWG packed HEADER rewrite preserves an undefined high bit on wire");
 }
 
 std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,
@@ -22811,6 +22974,12 @@ int runAssociativeRawCarrierRetention(const std::string& path) {
 }  // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--header-packed-flags") {
+        TestContext focused;
+        testHeaderPackedFlags(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 3 && std::string(argv[1]) == "--header-current-mechanical") {
         TestContext focused;
         testPhysicalMechanicalHeaderCurrentReferences(focused, argv[2]);

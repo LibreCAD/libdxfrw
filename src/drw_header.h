@@ -160,7 +160,8 @@ public:
           vpEntHeaderCtrl(h.vpEntHeaderCtrl),
           handSeed(h.handSeed),
           m_dwgHandseedBitOffset(h.m_dwgHandseedBitOffset),
-          m_dwgNamedObjectDictionaryReference(h.m_dwgNamedObjectDictionaryReference) {
+          m_dwgNamedObjectDictionaryReference(h.m_dwgNamedObjectDictionaryReference),
+          m_dwgHeaderFlags(h.m_dwgHeaderFlags) {
         h.curr = nullptr;
         h.m_dxfHeaderFinalized = false;
         h.m_dxfSourceVersion = DRW::UNKNOWNV;
@@ -174,6 +175,7 @@ public:
         h.m_customPropertyFieldValueSeen = false;
         h.clearDxfDimunitAliasProvenance();
         h.m_dwgNamedObjectDictionaryReference.reset();
+        h.m_dwgHeaderFlags = 0u;
     }
 
     DRW_Header& operator=(const DRW_Header &h) {
@@ -403,6 +405,13 @@ protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
                    dwgBufferW *strBuf = nullptr);
 private:
+    /// The DXF HEADER variables carry the documented flag fields, but not
+    /// undefined bits from a parsed DWG flags word.
+    bool canWriteDxfHeaderFlags() const noexcept;
+    /// Validate and compose the documented R2000+ flag fields while
+    /// retaining unmodeled bits for lossless DWG-to-DWG rewriting.
+    bool encodeDwgHeaderFlags(std::uint32_t& flags) const noexcept;
+    void decodeDwgHeaderFlags(std::uint32_t flags);
     /// Internal source-reference capture used by dwgReader; the public
     /// HEADER layout and the legacy protected parser signature stay intact.
     [[nodiscard]] bool parseDwgForReader(
@@ -498,6 +507,7 @@ private:
         vportCtrl = h.vportCtrl;
         vpEntHeaderCtrl = h.vpEntHeaderCtrl;
         m_dwgNamedObjectDictionaryReference = h.m_dwgNamedObjectDictionaryReference;
+        m_dwgHeaderFlags = h.m_dwgHeaderFlags;
     }
 
     void swap(DRW_Header& other) noexcept {
@@ -545,6 +555,7 @@ private:
         swap(handSeed, other.handSeed);
         swap(m_dwgHandseedBitOffset, other.m_dwgHandseedBitOffset);
         swap(m_dwgNamedObjectDictionaryReference, other.m_dwgNamedObjectDictionaryReference);
+        swap(m_dwgHeaderFlags, other.m_dwgHeaderFlags);
     }
 
     bool getDouble(std::string key, double *varDouble);
@@ -572,6 +583,7 @@ private:
         clearDxfCodePageDeclaration();
         clearDxfDimunitAliasProvenance();
         m_dwgNamedObjectDictionaryReference.reset();
+        m_dwgHeaderFlags = 0u;
     }
     /// Store v under key in vars, freeing any previously-stored variant
     /// (avoids a leak when a header variable appears more than once).
@@ -661,6 +673,9 @@ private:
     /// persisted.
     std::uint32_t m_dwgHandseedBitOffset {kInvalidDwgHandseedBitOffset};
     std::optional<dwgHandle> m_dwgNamedObjectDictionaryReference;
+    /// Raw R2000+ header flags word. Known fields are mirrored into vars;
+    /// unknown bits survive DWG rewrites and block lossy DXF conversion.
+    std::uint32_t m_dwgHeaderFlags {0u};
 
 
 };

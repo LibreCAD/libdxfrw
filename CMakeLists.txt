@@ -1581,6 +1581,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_reader_matrix_tests --header-reference-roles)
     set_tests_properties(libdxfrw_dwg_header_reference_roles PROPERTIES
         LABELS "fast;dwg;header;generated;handles" TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_header_packed_flags
+        COMMAND libdxfrw_dwg_reader_matrix_tests --header-packed-flags)
+    set_tests_properties(libdxfrw_dwg_header_packed_flags PROPERTIES
+        LABELS "fast;dwg;header;generated;roundtrip" TIMEOUT 30)
     add_test(NAME libdxfrw_dwg_header_current_references
         COMMAND libdxfrw_dwg_reader_matrix_tests --header-current-references)
     set_tests_properties(libdxfrw_dwg_header_current_references PROPERTIES

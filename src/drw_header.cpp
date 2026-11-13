@@ -18,6 +18,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <iterator>
 #include <limits>
 #include <optional>
@@ -38,6 +39,23 @@ constexpr const char* kDxfCustomPropertyTag = "$CUSTOMPROPERTYTAG";
 constexpr const char* kDxfCustomPropertyValue = "$CUSTOMPROPERTY";
 constexpr const char* kDxfRequiredVersions = "$REQUIREDVERSIONS";
 constexpr const char* kDxfPlotStyleId = "$CEPSNID";
+constexpr std::uint32_t kDwgHeaderFlagsKnownMask = 0x00006fffu;
+constexpr std::array<int, 32> kDwgLineweights{{
+    0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80,
+    90, 100, 106, 120, 140, 158, 200, 211, 0, 0, 0, 0, 0, -1, -2, -3
+}};
+
+bool dwgLineweightIndex(int lineweight, std::uint32_t& index) noexcept {
+    for (std::size_t i = 0; i < kDwgLineweights.size(); ++i) {
+        if (i >= 24u && i <= 28u)
+            continue;
+        if (kDwgLineweights[i] == lineweight) {
+            index = static_cast<std::uint32_t>(i);
+            return true;
+        }
+    }
+    return false;
+}
 
 bool isDxfPlotStyleIdVariable(const std::string& name) {
     return name == kDxfPlotStyleId || name == "CEPSNID";
@@ -900,6 +918,10 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         || !canWriteDxfJoinstyle()
         || !canWriteDxfLwdisplay()
         || !canWriteDxfXedit()
+        || !canWriteDxfHeaderFlags()
+        || !canWriteDxfHeaderIntegerRange("$EXTNAMES", 70, 0, 1)
+        || !canWriteDxfHeaderIntegerRange("$PSTYLEMODE", 70, 0, 1)
+        || !canWriteDxfHeaderIntegerRange("$OLESTARTUP", 70, 0, 1)
         || !canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
         || !canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
         || !canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
@@ -2918,6 +2940,91 @@ bool DRW_Header::canWriteDxfXedit() const noexcept {
     return canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1);
 }
 
+bool DRW_Header::canWriteDxfHeaderFlags() const noexcept {
+    const std::uint32_t unknownFlags =
+        m_dwgHeaderFlags & ~kDwgHeaderFlagsKnownMask;
+    const std::uint32_t lineweightIndex = m_dwgHeaderFlags & 0x001fu;
+    // 24-28 are reserved in the five-bit DWG lineweight code. The DXF
+    // projection cannot distinguish those codes from a true zero weight.
+    return unknownFlags == 0u
+        && !(lineweightIndex >= 24u && lineweightIndex <= 28u);
+}
+
+bool DRW_Header::encodeDwgHeaderFlags(std::uint32_t& flags) const noexcept {
+    const auto read = [this](const char* name, int groupCode, int minimum,
+                             int maximum, int& value, bool& present) {
+        return getDxfHeaderIntegerValue(name, groupCode, value, present)
+            && (!present || (value >= minimum && value <= maximum));
+    };
+    flags = m_dwgHeaderFlags;
+    int value = 0;
+    bool present = false;
+    if (!read("$CELWEIGHT", 370, -3, 211, value, present))
+        return false;
+    if (present) {
+        std::uint32_t index = 0u;
+        if (value == 0 && (flags & 0x001fu) >= 24u
+            && (flags & 0x001fu) <= 28u) {
+            // Retain an invalid/reserved source code until a caller changes
+            // CELWEIGHT to a nonzero supported value.
+        } else if (!dwgLineweightIndex(value, index)) {
+            return false;
+        } else {
+            flags = (flags & ~0x001fu) | index;
+        }
+    }
+
+    const auto update = [&](const char* name, int groupCode, int maximum,
+                            std::uint32_t mask, unsigned shift,
+                            bool inverted) {
+        int field = 0;
+        bool found = false;
+        if (!read(name, groupCode, 0, maximum, field, found))
+            return false;
+        if (found) {
+            flags &= ~mask;
+            if (maximum == 1) {
+                const bool enabled = (field != 0) != inverted;
+                if (enabled)
+                    flags |= mask;
+            } else {
+                flags |= (static_cast<std::uint32_t>(field) << shift) & mask;
+            }
+        }
+        return true;
+    };
+    if (!update("$ENDCAPS", 280, 3, 0x0060u, 5u, false)
+        || !update("$JOINSTYLE", 280, 3, 0x0180u, 7u, false)
+        || !update("$LWDISPLAY", 290, 1, 0x0200u, 9u, true)
+        || !update("$XEDIT", 290, 1, 0x0400u, 10u, true)
+        || !update("$EXTNAMES", 70, 1, 0x0800u, 11u, false)
+        || !update("$PSTYLEMODE", 70, 1, 0x2000u, 13u, false)
+        || !update("$OLESTARTUP", 70, 1, 0x4000u, 14u, false))
+        return false;
+    return true;
+}
+
+void DRW_Header::decodeDwgHeaderFlags(std::uint32_t flags) {
+    m_dwgHeaderFlags = flags;
+    const std::uint32_t lineweightIndex = flags & 0x001fu;
+    storeVar("$CELWEIGHT", new DRW_Variant(370,
+        kDwgLineweights[lineweightIndex]));
+    storeVar("$ENDCAPS", new DRW_Variant(280,
+        static_cast<int>((flags & 0x0060u) >> 5u)));
+    storeVar("$JOINSTYLE", new DRW_Variant(280,
+        static_cast<int>((flags & 0x0180u) >> 7u)));
+    storeVar("$LWDISPLAY", new DRW_Variant(290,
+        (flags & 0x0200u) == 0u ? 1 : 0));
+    storeVar("$XEDIT", new DRW_Variant(290,
+        (flags & 0x0400u) == 0u ? 1 : 0));
+    storeVar("$EXTNAMES", new DRW_Variant(70,
+        (flags & 0x0800u) != 0u ? 1 : 0));
+    storeVar("$PSTYLEMODE", new DRW_Variant(70,
+        (flags & 0x2000u) != 0u ? 1 : 0));
+    storeVar("$OLESTARTUP", new DRW_Variant(70,
+        (flags & 0x4000u) != 0u ? 1 : 0));
+}
+
 bool DRW_Header::canWriteDxfVisualStyleReferences(DRW::Version target) const {
     for (const DxfHeaderVisualStyleReference& reference :
          dxfHeaderVisualStyleReferences) {
@@ -3781,7 +3888,9 @@ bool DRW_Header::parseDwgBodyForReader(
         DRW_DBG("\nUNKNOWN HANDLE: "); DRW_DBGHL(CONTROL.code, CONTROL.size, CONTROL.ref);
     }
     if (version > DRW::AC1014) {//2000+
-        DRW_DBG("\nFlags: "); DRW_DBGH(buf->getBitLong());//RLZ TODO change to 8 vars
+        const std::uint32_t flags = buf->getBitLong();
+        DRW_DBG("\nFlags: "); DRW_DBGH(flags);
+        decodeDwgHeaderFlags(flags);
         storeVar("INSUNITS", new DRW_Variant(70, buf->getBitShort()));
         std::uint16_t cepsntype = buf->getBitShort();
         storeVar("CEPSNTYPE", new DRW_Variant(70, cepsntype));
@@ -4193,7 +4302,9 @@ bool DRW_Header::encodeDwgForWriterMaterial(
         version != DRW::AC1021 && version != DRW::AC1024 &&
         version != DRW::AC1027 &&
         version != DRW::AC1032) return false;
-    if (buf == nullptr || !canWriteDwgInsunits())
+    std::uint32_t encodedHeaderFlags = 0u;
+    if (buf == nullptr || !canWriteDwgInsunits()
+        || !encodeDwgHeaderFlags(encodedHeaderFlags))
         return false;
 
     struct EncodedTime {
@@ -4621,7 +4732,12 @@ bool DRW_Header::encodeDwgForWriterMaterial(
     }
 
     // -------- Flags (BL) + INSUNITS (BS) + CEPSNTYPE (BS) -------------------
-    buf->putBitLong(0);  // Flags — 8 sub-fields per parseDwg comment; defaults to 0
+    std::int32_t signedHeaderFlags = 0;
+    static_assert(sizeof(signedHeaderFlags) == sizeof(encodedHeaderFlags),
+                  "DWG header flags require a 32-bit BL payload");
+    std::memcpy(&signedHeaderFlags, &encodedHeaderFlags,
+                sizeof(signedHeaderFlags));
+    buf->putBitLong(signedHeaderFlags);
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "INSUNITS")));
     std::uint16_t cepsntype = static_cast<std::uint16_t>(intVar(*this, "CEPSNTYPE"));
     buf->putBitShort(cepsntype);
