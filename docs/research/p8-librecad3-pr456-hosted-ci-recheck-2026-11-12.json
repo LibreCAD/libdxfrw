@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-pr456-hosted-ci-recheck-2026-11-12",
+  "date": "2026-11-12",
+  "title": "LibreCAD_3 PR #456 current hosted workflow recheck",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "state": "open",
+    "merged": false,
+    "base": "LibreCAD/LibreCAD_3:master",
+    "baseSha": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "head": "dxli/LibreCAD_3:codex/libdxfrw-upstream-compat",
+    "headSha": "7e81275b71038d4a42fa580842e661ddcee7adbf",
+    "reviewComments": 0
+  },
+  "workflowRun": {
+    "name": "Python binding macOS",
+    "runId": 42573888467,
+    "revision": "95f64d41fcf0d669c1c727e37b764e458e4275f9",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "Python / Lua / app bundle (x86_64)",
+        "jobId": 129017172588,
+        "conclusion": "failure",
+        "failedStep": "Install native dependencies",
+        "failure": "Homebrew force-bottle reinstall cannot proceed on macOS 15 Intel because current formulae such as icu4c@79 have no Intel bottles. The arm-independent consumer code is not compiled in this job."
+      },
+      {
+        "name": "Python / Lua / app bundle (arm64)",
+        "jobId": 129017172754,
+        "conclusion": "failure",
+        "passedSteps": [
+          "Configure Python-enabled LibreCAD",
+          "Build application and tests",
+          "Require Python binding regression suites",
+          "Require persistence parity and settings regressions"
+        ],
+        "testResult": "179 tests from 21 suites passed",
+        "failedStep": "Install LibreCAD",
+        "failure": "Python runtime staging rejected ambiguous cached Homebrew bottle metadata for zstd 1.5.7_1; dependency receipt details for lz4 differ across candidate bottle records. The failure occurred after the application and required suites passed."
+      }
+    ]
+  },
+  "otherChecks": [
+    {"name": "Librecad3 Builders", "runId": 42573888375, "conclusion": "success"},
+    {"name": "CodeQL", "runId": 42573888513, "conclusion": "success"},
+    {"name": "Python Binding Plan Sync", "runId": 42573888469, "conclusion": "success"}
+  ],
+  "externalSource": {
+    "title": "Homebrew Support Tiers",
+    "url": "https://docs.brew.sh/Support-Tiers",
+    "relevantFact": "As of September 2026, Homebrew classifies Intel macOS as Tier 3 and states it has stopped building new Intel bottles."
+  },
+  "interpretation": "The PR's consumer source and focused tests are not implicated by the observed CI failures: the x86 job fails before configuring the consumer, while the arm64 job completes build and required tests before package staging fails. The x86 failure is consistent with Homebrew's announced end of new Intel bottle production. The arm64 failure is in Homebrew receipt selection/staging. These remain real red checks and block a clean hosted package qualification; do not describe the PR as CI-green or merge-ready from these observations.",
+  "limits": [
+    "No PR source code or workflow was modified by this recheck.",
+    "The successful builder, CodeQL, and plan-sync jobs do not replace the failed macOS package workflow.",
+    "The local 64/64 focused persistence tests and clean consumer build remain macOS-only evidence.",
+    "No DWG/DXF fixture was added and no format support claim changed."
+  ],
+  "next": "Repair the macOS package workflow with an explicit supported dependency source for Intel or remove that package qualification lane only after recording a platform support decision. Correct ARM64 package staging against unambiguous bottle metadata, then require a fresh hosted run before claiming the consumer PR passes CI."
+}

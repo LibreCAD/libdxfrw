@@ -1099,16 +1099,24 @@ repeat the corpus census or alter the aggregate strict guard from this audit.
    qualified, failed capture remains fail-closed, and ASCII/Binary output plus
    fresh typed readback pass. The Cover HEADER suffix is an independent blocker;
    these inventories do not qualify output or support claims.
-5. **P7/P8/P9 / qualification gates.** P7 needs independent ACIS/ACDS semantic
+   5. **P7/P8/P9 / qualification gates.** P7 needs independent ACIS/ACDS semantic
    evidence. P8 now has a clean `origin/master` compile and focused
    64-test export/round-trip pass only after the scratch consumer's
    version-aware `$INSUNITS` callback and malformed root-DICTIONARY fixtures
    were corrected. Those changes are applied in clean-master branch
    `codex/libdxfrw-upstream-compat` (`36082e71`); follow-up `93354846` covers
-   both R12 and R14 unit-loss behavior with a focused regression. Next review
-   and propose that consumer patch, then qualify native Linux/Windows FreeCAD
-   and LibreCAD/LibreCAD_3 runs. Keep the dirty-checkout build as integration
-   evidence only. P9 remains
+   both R12 and R14 unit-loss behavior with a focused regression. LibreCAD_3
+   PR #456 is open at head `7e81275b`; its current CI was rechecked on
+   2026-11-12. The builders, CodeQL and plan-sync workflows pass, and the
+   macOS ARM64 job builds the application and passes its 179 required tests,
+   but install-time Python runtime staging fails on ambiguous Homebrew bottle
+   receipts. The macOS Intel job fails before consumer configuration because
+   current Homebrew formulae have no Intel bottles. Treat these as real red
+   package checks, not consumer-code failures; repair the package workflow or
+   make an explicit supported-platform decision before calling the consumer
+   PR CI-green. See the [hosted CI recheck receipt](docs/research/p8-librecad3-pr456-hosted-ci-recheck-2026-11-12.json).
+   Then qualify native Linux/Windows FreeCAD and LibreCAD/LibreCAD_3 runs.
+   Keep the dirty-checkout build as integration evidence only. P9 remains
    `DEFERRED_EXTERNAL` for J256, J260, J268,
    J284, J293 and J295. These do not block independent local slices and cannot
    be promoted by generated controls, advisory reports, or transport-only
