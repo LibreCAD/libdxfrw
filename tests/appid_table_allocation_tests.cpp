@@ -27,10 +27,10 @@ void disarmAllocationFailure() noexcept { allocationsBeforeFailure = -1; }
 
 DRW_AppId makeAppId() {
     DRW_AppId app;
-    app.handle = 0u;
+    app.handle = 0xD750u;
     app.name = "GENERATED_ALLOCATION_RETRY_APP";
-    app.flags = 0;
-    app.unknown71 = 0u;
+    app.flags = 0x10;
+    app.unknown71 = 2u;
     return app;
 }
 

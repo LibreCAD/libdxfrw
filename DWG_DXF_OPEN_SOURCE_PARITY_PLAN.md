@@ -1796,12 +1796,12 @@ semantics. See the
 [TEXTSTYLE matrix receipt](docs/research/p6-dxf-textstyle-version-matrix-allocation-2026-11-13.json).
 
 **P6-G APPID direct-writer revision matrix (2026-11-13):** a generated custom
-APPID row now passes direct `writeAppId()` allocation rollback, caller-state
-preservation, same-codec byte-identical retry and typed readback across AC1014,
-AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. All 138
-measured failure offsets pass; focused CTest runtime is 0.30 seconds. The
-profile uses writer-allocated handles and does not qualify XDATA dependency
-closure or producer semantics. See the
+APPID row with explicit handle, valid xref-dependent flag and group-71 value
+now passes direct `writeAppId()` allocation rollback, caller-state preservation,
+same-codec byte-identical retry and typed readback across AC1014, AC1015, AC1018,
+AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. All 208 measured failure
+offsets pass; focused CTest runtime is 0.58 seconds. The profile does not
+qualify XDATA dependency closure or producer semantics. See the
 [APPID matrix receipt](docs/research/p6-dxf-appid-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
