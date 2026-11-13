@@ -65,6 +65,7 @@ constexpr std::uint32_t kOleFrameHandle = 0xD941u;
 constexpr std::uint32_t kShapeHandle = 0xD942u;
 constexpr std::uint32_t kRasterVariablesHandle = 0xD943u;
 constexpr std::uint32_t kDictionaryVarHandle = 0xD944u;
+constexpr std::uint32_t kDbColorHandle = 0xD945u;
 const std::string kGroupName = "WHOLE_OPERATION_ALLOCATION_GROUP";
 const std::string kCustomDictionaryName = "WHOLE_OPERATION_CUSTOM";
 const std::string kInsertBlockName = "WHOLE_OPERATION_INSERT_BLOCK";
@@ -96,7 +97,8 @@ bool installGeneratedGroupGraph(dxfRW& writer, std::uint32_t lineHandle,
 
     writer.setRootDictEntries(
         {{kCustomDictionaryName, "D914"},
-         {"WHOLE_OPERATION_DICTIONARYVAR", "D944"}});
+         {"WHOLE_OPERATION_DICTIONARYVAR", "D944"},
+         {"WHOLE_OPERATION_DBCOLOR", "D945"}});
     DRW_Dictionary custom;
     custom.handle = kCustomDictionaryHandle;
     custom.parentHandle = kNodHandle;
@@ -818,6 +820,12 @@ public:
         dictionaryVar.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         dictionaryVar.m_schema = 1;
         dictionaryVar.m_value = "whole-operation dictionary value";
+        dbColor.handle = kDbColorHandle;
+        dbColor.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        dbColor.rgb = 0x123456;
+        dbColor.setDxfColorIndex(7u);
+        dbColor.bookName = "WHOLE_OPERATION_BOOK";
+        dbColor.name = "ACCENT";
     }
 
     void writeEntities() override {
@@ -888,6 +896,7 @@ public:
             && output.writePlotSettings(&plotSettings)
             && output.writeRasterVariables(&rasterVariables)
             && output.writeDictionaryVar(&dictionaryVar)
+            && output.writeDbColor(&dbColor)
             && output.writeWipeoutVariables(&wipeoutVariables)
             && output.writeSun(&sun)
             && output.writeMaterial(&material)
@@ -953,6 +962,7 @@ public:
     DRW_Shape shape;
     DRW_RasterVariables rasterVariables;
     DRW_DictionaryVar dictionaryVar;
+    DRW_DbColor dbColor;
     DRW_Material material;
     DRW_LoftedSurface loftedSurface;
     DRW_SweptSurface sweptSurface;
@@ -1013,6 +1023,10 @@ public:
     void addDictionaryVar(const DRW_DictionaryVar& value) override {
         ++dictionaryVarCount;
         dictionaryVar = value;
+    }
+    void addDbColor(const DRW_DbColor& value) override {
+        ++dbColorCount;
+        dbColor = value;
     }
     void addMesh(const DRW_Mesh& value) override {
         ++meshCount;
@@ -1297,6 +1311,7 @@ public:
     DRW_Shape shape;
     DRW_RasterVariables rasterVariables;
     DRW_DictionaryVar dictionaryVar;
+    DRW_DbColor dbColor;
     DRW_Mesh mesh;
     DRW_Spline spline;
     DRW_Hatch hatch;
@@ -1363,6 +1378,7 @@ public:
     unsigned shapeCount = 0u;
     unsigned rasterVariablesCount = 0u;
     unsigned dictionaryVarCount = 0u;
+    unsigned dbColorCount = 0u;
     unsigned meshCount = 0u;
     unsigned splineCount = 0u;
     unsigned hatchCount = 0u;
@@ -1561,6 +1577,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.dictionaryVar.m_schema == 1
         && adapter.dictionaryVar.m_value
             == "whole-operation dictionary value"
+        && adapter.dbColor.handle == kDbColorHandle
+        && adapter.dbColor.parentHandle
+            == DRW::DwgNamedObjectsDictionaryHandle
+        && adapter.dbColor.rgb == 0x123456
+        && adapter.dbColor.hasDxfColorIndex()
+        && adapter.dbColor.colorIndex == 7u
+        && adapter.dbColor.bookName == "WHOLE_OPERATION_BOOK"
+        && adapter.dbColor.name == "ACCENT"
         && adapter.mesh.handle == kMeshHandle
         && adapter.mesh.vertices.size() == 3u
         && adapter.mesh.vertices[0].x == 0.0
@@ -2342,6 +2366,15 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.dictionaryVar.m_schema != 1
         || adapter.dictionaryVar.m_value
             != "whole-operation dictionary value"
+        || adapter.dbColorCount != 1u
+        || adapter.dbColor.handle != kDbColorHandle
+        || adapter.dbColor.parentHandle
+            != DRW::DwgNamedObjectsDictionaryHandle
+        || adapter.dbColor.rgb != 0x123456
+        || !adapter.dbColor.hasDxfColorIndex()
+        || adapter.dbColor.colorIndex != 7u
+        || adapter.dbColor.bookName != "WHOLE_OPERATION_BOOK"
+        || adapter.dbColor.name != "ACCENT"
         || adapter.mesh.handle == 0u
         || adapter.mesh.vertices.size() != 3u
         || adapter.mesh.vertices[0].x != 0.0
@@ -3170,12 +3203,19 @@ bool matchesReadback(const std::filesystem::path& path) {
             return entry.m_name == "WHOLE_OPERATION_DICTIONARYVAR"
                 && entry.m_handle == kDictionaryVarHandle;
         });
+    const auto dbColorRootEntry = std::find_if(
+        root.m_entries.begin(), root.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "WHOLE_OPERATION_DBCOLOR"
+                && entry.m_handle == kDbColorHandle;
+        });
     const bool rootMatches = adapter.storage.hasNamedObjectDictionary
-        && root.handle == 0xCu && root.m_entries.size() == 4u
+        && root.handle == 0xCu && root.m_entries.size() == 5u
         && groupRootEntry != root.m_entries.end()
         && imageRootEntry != root.m_entries.end()
         && customRootEntry != root.m_entries.end()
-        && dictionaryVarRootEntry != root.m_entries.end();
+        && dictionaryVarRootEntry != root.m_entries.end()
+        && dbColorRootEntry != root.m_entries.end();
     const auto child = std::find_if(
         adapter.dictionaries.begin(), adapter.dictionaries.end(),
         [](const DRW_Dictionary& value) {

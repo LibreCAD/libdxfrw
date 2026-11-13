@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **113 completed implementation slices** and **35 remaining
+The plan records **114 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`113 / (113 + 35) = 76.4%`. This is a count-based progress measure, not an
+`114 / (114 + 35) = 76.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1474,6 +1474,15 @@ preserve the destination and caller fields; same-writer retries reproduce
 clean output, and typed readback verifies the schema, value, parent and root
 membership. The encoded handle role is not independently inspected here. The
 focused transaction CTest passes in 5.02 seconds. See the
+[transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 DBCOLOR writer transaction slice (2026-11-13):** the sweep now writes a
+generated DBCOLOR with a named root entry, RGB and explicit ACI fallback, and
+book/name metadata. All 804 ASCII and 788 Binary allocation failures preserve
+the destination and caller fields; same-writer retries reproduce clean output
+and typed readback checks the color payload, parent and root membership. The
+encoded owner role is not independently inspected. The focused transaction
+CTest passes in 5.25 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
