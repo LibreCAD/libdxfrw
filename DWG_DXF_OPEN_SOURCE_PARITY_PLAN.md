@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **220 completed implementation slices** and **35 remaining
+The plan records **221 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`220 / (220 + 35) = 86.3%`. This is a count-based progress measure, not an
+`221 / (221 + 35) = 86.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1296,13 +1296,14 @@ revisions only; producer profiles and native consumer meaning remain open
 
 **P6-G IMAGEBACKGROUND writer version-matrix transaction follow-up
 (2026-11-13):** the generated image background record now passes for AC1021,
-AC1027, and AC1032 in ASCII and Binary. All nine measured allocation failures
-per profile preserve the destination and caller record; same-codec retry
-reproduces clean bytes and typed readback verifies the kind, version, path,
-flags, offset, and scale. The focused CTest passes in 0.35 seconds; the direct
-control covers 54 allocation offsets. This is generated transaction evidence
-across these writer revisions only; producer profiles and native display
-remain open ([version-matrix receipt](docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json)).
+AC1024, AC1027, and AC1032 in ASCII and Binary. All nine measured allocation
+failures per profile preserve the destination and caller record; same-codec
+retry reproduces clean bytes and typed readback verifies the kind, version,
+path, flags, offset, and scale. The expanded focused CTest passes in 1.35
+seconds; the direct control covers 72 allocation offsets. This is generated
+transaction evidence across these writer revisions only; producer profiles
+and native display remain open
+([version-matrix receipt](docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G SCALE writer version-matrix transaction follow-up (2026-11-13):** the
 rooted ACAD_SCALELIST dictionary and its `1:1` SCALE entry now pass for AC1021,
