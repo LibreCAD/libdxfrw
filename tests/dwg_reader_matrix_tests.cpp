@@ -12003,6 +12003,14 @@ void excludeHeaderHighSizeWordFromCount(std::vector<std::uint8_t>& bytes) {
     bytes.at(crcOffset + 1u) = static_cast<std::uint8_t>(crc >> 8u);
 }
 
+void removeExcludedHeaderHighSizeWord(std::vector<std::uint8_t>& bytes) {
+    bytes.erase(bytes.begin() + 20, bytes.begin() + 24);
+    const std::size_t crcOffset = bytes.size() - 18u;
+    const std::uint16_t crc = headerTestCrc(bytes, 16u, crcOffset);
+    bytes.at(crcOffset) = static_cast<std::uint8_t>(crc);
+    bytes.at(crcOffset + 1u) = static_cast<std::uint8_t>(crc >> 8u);
+}
+
 template<class Writer>
 std::vector<std::uint8_t> makeHeaderSection(TestContext& t,
                                              const std::string& label) {
@@ -18027,7 +18035,8 @@ void testDwgNodReference(TestContext& t) {
 void checkHeaderVersionProfile(TestContext& t,
                                std::vector<std::uint8_t> bytes,
                                DRW::Version version, std::uint8_t maintenance,
-                               bool highSizePresent, const std::string& label) {
+                               bool highSizePresent, const std::string& label,
+                               bool expectExcludedHighSize = false) {
     dwgBuffer view(bytes.data(), bytes.size());
     const bool positioned = view.setPosition(16u);
     const auto envelope = positioned
@@ -18042,34 +18051,68 @@ void checkHeaderVersionProfile(TestContext& t,
     HeaderSectionReader reader(bytes, 0u, version, maintenance);
     DRW_Header parsed;
     parsed.addInt("stale", 99, 70);
-    t.expect(reader.readDwgHeader(parsed) && parsed.vars.count("LUNITS") == 1u
-                 && reader.diagnostics().empty(),
+    const bool read = reader.readDwgHeader(parsed);
+    const bool compatibility = expectExcludedHighSize
+        && reader.diagnostics().size() == 1u
+        && reader.diagnostics()[0].kind
+            == DwgIntegrityCheckKind::HeaderSectionCompatibility
+        && reader.diagnostics()[0].severity == DwgIntegritySeverity::Warning;
+    t.expect(read && parsed.vars.count("LUNITS") == 1u
+                 && (expectExcludedHighSize ? compatibility
+                                            : reader.diagnostics().empty()),
              "versioned HEADER variables and CRC are accepted: " + label);
 
     auto trailing = bytes;
     trailing.push_back(0u);
     HeaderSectionReader trailingReader(trailing, 0u, version, maintenance);
     DRW_Header trailingHeader;
-    trailingHeader.addInt("stale", 99, 70);
-    t.expect(!trailingReader.readDwgHeader(trailingHeader)
-                 && trailingHeader.vars.empty()
-                 && trailingReader.diagnostics().size() == 1u
-                 && trailingReader.diagnostics()[0].kind
-                        == DwgIntegrityCheckKind::HeaderSectionBounds,
-             "canonical HEADER profile cannot claim trailing bytes: " + label);
+    if (expectExcludedHighSize) {
+        t.expect(trailingReader.readDwgHeader(trailingHeader)
+                     && trailingHeader.vars.count("LUNITS") == 1u
+                     && trailingReader.diagnostics().size() == 2u
+                     && trailingReader.diagnostics()[0].kind
+                            == DwgIntegrityCheckKind::HeaderSectionCompatibility
+                     && trailingReader.diagnostics()[1].kind
+                            == DwgIntegrityCheckKind::HeaderSectionUnclaimedData
+                     && trailingReader.diagnostics()[1].observed == trailing.size(),
+                 "excluded-high-size profile diagnoses trailing bytes: " + label);
+    } else {
+        trailingHeader.addInt("stale", 99, 70);
+        t.expect(!trailingReader.readDwgHeader(trailingHeader)
+                     && trailingHeader.vars.empty()
+                     && trailingReader.diagnostics().size() == 1u
+                     && trailingReader.diagnostics()[0].kind
+                            == DwgIntegrityCheckKind::HeaderSectionBounds,
+                 "canonical HEADER profile cannot claim trailing bytes: " + label);
+    }
 
     auto crcMutation = bytes;
     const auto crcOffset = static_cast<std::size_t>(envelope.payloadEnd);
     crcMutation[crcOffset] ^= 1u;
     HeaderSectionReader crcReader(crcMutation, 0u, version, maintenance);
     DRW_Header crcHeader;
-    t.expect(crcReader.readDwgHeader(crcHeader)
-                 && crcReader.diagnostics().size() == 1u
-                 && crcReader.diagnostics()[0].kind
-                        == DwgIntegrityCheckKind::HeaderSectionCrc
-                 && crcReader.diagnostics()[0].severity
-                        == DwgIntegritySeverity::Warning,
-             "versioned HEADER CRC mismatch remains warning-only: " + label);
+    const bool crcRead = crcReader.readDwgHeader(crcHeader);
+    const bool crcDiagnostics = expectExcludedHighSize
+        ? crcReader.diagnostics().size() == 2u
+            && crcReader.diagnostics()[0].kind
+                == DwgIntegrityCheckKind::HeaderSectionCompatibility
+            && crcReader.diagnostics()[1].kind
+                == DwgIntegrityCheckKind::HeaderSectionCrc
+        : crcReader.diagnostics().size() == 1u
+            && crcReader.diagnostics()[0].kind
+                == DwgIntegrityCheckKind::HeaderSectionCrc;
+    if (expectExcludedHighSize) {
+        t.expect(!crcRead && crcHeader.vars.empty()
+                     && crcReader.diagnostics().size() == 1u
+                     && crcReader.diagnostics()[0].kind
+                            == DwgIntegrityCheckKind::HeaderSectionBounds,
+                 "excluded-high-size profile requires a valid CRC: " + label);
+    } else {
+        t.expect(crcRead && crcDiagnostics
+                     && crcReader.diagnostics().back().severity
+                            == DwgIntegritySeverity::Warning,
+                 "versioned HEADER CRC mismatch remains warning-only: " + label);
+    }
 
     auto endMutation = bytes;
     endMutation[static_cast<std::size_t>(envelope.payloadEnd) + 2u] ^= 1u;
@@ -18438,7 +18481,6 @@ void testHeaderVersionEnvelopes(TestContext& t) {
 
     auto ac1027Excluded = makeHeaderSection<dwgWriter27>(
         t, "AC1027 excluded-word exact profile");
-    excludeHeaderHighSizeWordFromCount(ac1027Excluded);
     dwgBuffer ac1027ExcludedView(
         ac1027Excluded.data(), ac1027Excluded.size());
     const bool ac1027ExcludedPositioned =
@@ -18487,9 +18529,8 @@ void testHeaderVersionEnvelopes(TestContext& t) {
 
     auto ac1027High = makeHeaderSection<dwgWriter27>(t, "AC1027 MV>3");
     checkHeaderVersionProfile(t, ac1027High, DRW::AC1027, 6u,
-                                           true, "AC1027 MV>3");
+                              true, "AC1027 MV>3", true);
     auto ac1027WithUnclaimedSuffix = ac1027High;
-    excludeHeaderHighSizeWordFromCount(ac1027WithUnclaimedSuffix);
     std::vector<std::uint8_t> ac1027Suffix(735u);
     for (std::size_t index = 0; index < ac1027Suffix.size(); ++index)
         ac1027Suffix[index] = static_cast<std::uint8_t>(index * 37u + 0x31u);
@@ -18523,7 +18564,7 @@ void testHeaderVersionEnvelopes(TestContext& t) {
                         == ac1027WithUnclaimedSuffixOriginal,
              "AC1027 app-maintenance-4 admits parsed HEADER plus explicit suffix warning without mutating source bytes");
     auto ac1027Low = ac1027High;
-    setHeaderHighSizeWord(ac1027Low, false);
+    removeExcludedHeaderHighSizeWord(ac1027Low);
     checkHeaderVersionProfile(t, ac1027Low, DRW::AC1027, 3u,
                                            false, "AC1027 MV<=3");
     auto ac1027LowWithSuffix = ac1027Low;
@@ -18549,7 +18590,7 @@ void testHeaderVersionEnvelopes(TestContext& t) {
 
     const auto ac1032 = makeHeaderSection<dwgWriter32>(t, "AC1032");
     checkHeaderVersionProfile(t, ac1032, DRW::AC1032, 0u,
-                                           true, "AC1032 always");
+                              true, "AC1032 always", true);
 
     // R13/R14 are separate reader15 admission profiles. This envelope-only
     // partner checks their shared on-disk sentinels/RL/CRC layout without

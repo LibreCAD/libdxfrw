@@ -1,0 +1,27 @@
+{
+  "title": "Generated DWG HEADER excluded-high-size profiles and diagnostic control",
+  "date": "2026-11-13",
+  "status": "focused_envelope_control_passed",
+  "scope": "Correct generated AC1027/AC1032 HEADER controls to model the writer's excluded-high-size profile, and preserve precise sentinel diagnostics when the compatible profile is malformed.",
+  "observations": {
+    "writer_profile": "dwgWriter24 emits a zero high-size word for AC1027/AC1032 and sets the low HEADER size to exclude that word. The generated test input is made locally from scratch; no drawing fixture is added.",
+    "control_corrections": [
+      "The AC1027 excluded-word vector is already emitted in the excluded-size form; the test no longer subtracts four from its size a second time.",
+      "The AC1027 low-maintenance vector removes the high-size word while keeping the writer's excluded byte count and recomputes the CRC at the shifted trailer.",
+      "AC1027/AC1032 compatibility-warning, suffix, CRC-refusal and sentinel cases now state the expected behavior of the selected profile."
+    ],
+    "diagnostic_behavior": "When the compatible high-size-excluded candidate reaches a begin/end sentinel mismatch, inspectDwgHeaderEnvelope returns that candidate's sentinel error instead of replacing it with the canonical candidate's less-specific bounds error. The malformed file remains refused. CRC-invalid candidates do not gain fallback admission."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j 4",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_version_envelopes$' --output-on-failure",
+    "result": "1/1 passed. The selector covers AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 generated profiles, high-size maintenance gates, exact CRC/sentinel handling, suffix refusal/admission and the excluded-size compatibility diagnostic.",
+    "fixture_policy": "No external DWG/DXF fixtures were added; generated controls are constructed from scratch."
+  },
+  "limitations": [
+    "This validates generated envelope profiles and error classification, not producer diversity or platform behavior.",
+    "The excluded-high-size profile remains a compatibility diagnostic and does not establish whole-file DWG support.",
+    "P6 HEADER suffix and producer qualification remain open; no support claim is promoted."
+  ]
+}

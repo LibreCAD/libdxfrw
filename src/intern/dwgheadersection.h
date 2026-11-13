@@ -170,6 +170,9 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelope(
         input, version, appMaintenanceVersion, true);
     const bool suffixAllowed = dwgHeaderMayHaveUnclaimedSuffix(
         version, appMaintenanceVersion, true);
+    if (compatible.error == DwgHeaderEnvelopeError::BeginSentinel
+        || compatible.error == DwgHeaderEnvelopeError::EndSentinel)
+        return compatible;
     if (version == DRW::AC1027 && appMaintenanceVersion > 3u) {
         return compatible.error == DwgHeaderEnvelopeError::None
                 && suffixAllowed
