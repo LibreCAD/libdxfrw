@@ -207,8 +207,8 @@ bool run(const std::filesystem::path& directory) {
         return false;
     }
     const std::string sentinel = "prior CELLSTYLEMAP destination\n";
-    const std::array<DRW::Version, 3> versions{{
-        DRW::AC1021, DRW::AC1024, DRW::AC1032}};
+    const std::array<DRW::Version, 4> versions{{
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}};
     for (const int styleId : {101, 4}) {
       for (const DRW::Version version : versions) {
         if (styleId == 4 && version < DRW::AC1024)
