@@ -1549,6 +1549,16 @@ profile only; named-block records remain unsupported and the result does not
 establish producer-wide behavior. See the [physical adapter receipt](docs/research/p6-ac1024-sortents-owner-scope-adapter-filter-2026-11-12.json).
 
 **Open external semantic gate — native dynamic-block evaluation.**
+The locally available AC1024 `visualization_-_sun_and_sky_demo.dwg` was
+screened as a possible source witness. Its current reader publishes 395/395
+frames with zero entity/object parse failures, but the graph census finds 16
+evaluation graphs and only one dictionary with an `ACAD_ENHANCEDBLOCK` entry;
+strict output correctly stops at the closed graph-set gate. Producer provenance
+is not established, and the census does not show that the other graphs are
+dynamic-block graphs or that their semantics are closed. Do not weaken the gate
+or repeat this candidate screen without new evidence. See the
+[source-screen receipt](docs/research/p5-dynamic-block-sun-sky-graph-screen-2026-11-13.json).
+
 The AC1024 source has `EvalExpr.parentId=0xFFFFFFFF` for `BLOCKLINEARGRIP`
 handle `0x1111`, while the current DXF readback model reports default `0`.
 The updated consumer-admission [receipt](docs/research/p5-dynamic-block-consumer-admission-2026-10-31.json)
