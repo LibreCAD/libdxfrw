@@ -2806,6 +2806,10 @@ set_tests_properties(libdxfrw_table_row_alignment_override_parse PROPERTIES
 add_test(NAME libdxfrw_table_legacy_text_height
     COMMAND libdxfrw_table_content_dxf_tests --legacy-table-height)
 set_tests_properties(libdxfrw_table_legacy_text_height PROPERTIES LABELS "dxf;table")
+add_test(NAME libdxfrw_table_legacy_presence_allocation
+    COMMAND libdxfrw_table_content_dxf_tests --legacy-table-presence-allocation)
+set_tests_properties(libdxfrw_table_legacy_presence_allocation PROPERTIES
+    LABELS "fast;dxf;table;transaction;allocation;generated" TIMEOUT 60)
 add_test(NAME libdxfrw_table_legacy_merge
     COMMAND libdxfrw_table_content_dxf_tests --legacy-table-merge)
 set_tests_properties(libdxfrw_table_legacy_merge PROPERTIES LABELS "fast;dxf;table;generated" TIMEOUT 60)

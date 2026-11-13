@@ -4335,6 +4335,15 @@ state, prior-destination preservation, and same-codec exact-byte retry. Both
 string-only and combined override routes pass their ASCII/Binary focused sweeps.
 This closes only these two raw-object override transaction profiles; other raw
 override variants and the P6-G writer inventory remain open ([receipt](docs/research/p6-dxf-raw-object-string-int32-override-allocation-rollback-retry-2026-11-13.json)).
+The explicit AC1018 `writeTableWithLegacySourcePresence()` callback now has a
+focused generated allocation sweep in ASCII and Binary. All 11 measured
+failure offsets per encoding refuse the whole export, preserve the preexisting
+destination and caller TABLE, and allow same-writer byte-identical retry plus
+typed readback. Some injected failures are surfaced by the enclosing operation
+after the callback has marked the TABLE emitted; the evidence gate is atomic
+whole-file refusal and retry, not the callback flag alone. This covers a
+one-cell zero-presence mask only; the P6-G inventory and other legacy TABLE
+spellings remain open ([receipt](docs/research/p6-dxf-table-legacy-source-presence-allocation-rollback-retry-2026-11-13.json)).
 
 **ODA ARM64 package integrity recheck:** Native verification outside the sandbox
 passes for the installed 27.1 app and the downloaded 27.9 package and extracted

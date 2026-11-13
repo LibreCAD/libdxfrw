@@ -392,12 +392,115 @@ struct TableLegacyCountLateProbe final:dx_iface {
 };
 struct TableLegacyCountDirectProbe final:dx_iface {
     std::vector<std::uint8_t> spellings;
+    long allocation=-1;
+    long measuredAllocations=0;
+    bool allocationReached=false;
+    bool emitted=false;
     void writeEntities() override {
         auto& table=cData->tables.front();const auto sourceHandle=table.handle;
-        if(dxfW->writeTableWithLegacySourcePresence(&table,spellings))
+        const auto failedBefore=symbolFailedAllocations;
+        bool written=false;
+        if(allocation<0) {
+            written=dxfW->writeTableWithLegacySourcePresence(&table,spellings);
+        } else {
+            try {
+                SymbolAllocationFailure fault(allocation);
+                written=dxfW->writeTableWithLegacySourcePresence(
+                    &table,spellings);
+                allocationReached=symbolFailedAllocations!=failedBefore;
+                measuredAllocations=allocationReached
+                    ? allocation+1
+                    : allocation-symbolAllocationsBeforeFailure;
+            } catch(const std::bad_alloc&) {
+                allocationReached=symbolFailedAllocations!=failedBefore;
+                measuredAllocations=allocationReached?allocation+1:0;
+            }
+        }
+        emitted=written;
+        if(written)
             DxIfaceTableSourceTestAccess::markTableEmitted(*this,sourceHandle);
     }
+    bool finalizeDxfWrite() override { return emitted; }
 };
+
+bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
+    const auto fail=[](const char* message) {
+        std::cerr<<"legacy TABLE source-presence allocation: "<<message<<'\n';
+        return false;
+    };
+    const auto output=dir/"legacy-presence-allocation.dxf";
+    const auto readOutputBytes=[&](std::string& bytes) {
+        std::ifstream input(output,std::ios::binary);
+        if(!input)return false;
+        bytes.assign(std::istreambuf_iterator<char>{input},{});
+        return !input.bad();
+    };
+    for(bool binary:{false,true}) {
+        dx_data calibrationData;TableLegacyCountDirectProbe calibration;
+        tableExportReuseDrawing(calibration,calibrationData,0u,false);
+        calibration.spellings={0u};
+        DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";
+        calibrationData.blockRecords.push_back(model);
+        calibration.allocation=1000000;
+        const auto failedBefore=symbolFailedAllocations;
+        if(!calibration.fileExport(output.string(),DRW::AC1018,binary,
+                                   &calibrationData,false)
+            ||!calibration.emitted
+            ||symbolFailedAllocations!=failedBefore
+            ||!tableExportReadback(output,binary,0u,false))
+            return fail("calibration export/readback failed");
+        const long allocationCount=calibration.measuredAllocations;
+        if(allocationCount<=0)return fail("no callback allocations measured");
+        std::string expectedBytes;
+        if(!readOutputBytes(expectedBytes))return fail("cannot retain clean bytes");
+
+        for(long offset=0;offset<allocationCount;++offset) {
+            dx_data data;TableLegacyCountDirectProbe writer;
+            tableExportReuseDrawing(writer,data,0u,false);
+            writer.spellings={0u};data.blockRecords.push_back(model);
+            const auto identities=tableExportIdentities(data);
+            const DRW_Table baseline(data.tables.front());
+            if(!tableExportSentinel(output,true))
+                return fail("cannot seed destination sentinel");
+            writer.allocation=offset;
+            const auto failedBefore=symbolFailedAllocations;
+            const bool written=writer.fileExport(output.string(),DRW::AC1018,
+                                                  binary,&data,false);
+            writer.allocation=-1;
+            const bool identitiesPreserved=identities==tableExportIdentities(data);
+            const bool bodyPreserved=DxIfaceTableSourceTestAccess::sameTableBody(
+                baseline,data.tables.front());
+            const bool destinationPreserved=tableExportSentinel(output);
+            if(written||!writer.allocationReached
+                ||symbolFailedAllocations==failedBefore
+                ||!identitiesPreserved||!bodyPreserved||!destinationPreserved) {
+                std::cerr<<"offset="<<offset<<" wrote="<<written
+                         <<" emitted="<<writer.emitted
+                         <<" fault="<<writer.allocationReached
+                         <<" failures="<<symbolFailedAllocations-failedBefore
+                         <<" identities="<<identitiesPreserved
+                         <<" body="<<bodyPreserved
+                         <<" destination="<<destinationPreserved<<'\n';
+                return fail("injected failure changed caller or destination state");
+            }
+            writer.allocationReached=false;writer.emitted=false;
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false)
+                ||!writer.emitted||identities!=tableExportIdentities(data)
+                ||!DxIfaceTableSourceTestAccess::sameTableBody(
+                    baseline,data.tables.front()))
+                return fail("same-writer retry failed caller-state check");
+            std::string retryBytes;
+            if(!readOutputBytes(retryBytes)||retryBytes!=expectedBytes
+                ||!tableExportReadback(output,binary,0u,false))
+                return fail("same-writer retry bytes/readback mismatch");
+        }
+        std::cout<<"legacy TABLE source presence "
+                 <<(binary?"Binary":"ASCII")<<": allocation offsets="
+                 <<allocationCount<<", rollback/retry/readback=PASS\n";
+    }
+    std::error_code ignored;std::filesystem::remove(output,ignored);
+    return true;
+}
 bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
     const auto source=dir/"legacy-block-count-source.dxf",output=dir/"legacy-block-count-output.dxf";
     const auto fail=[](const std::string& why){std::cerr<<"legacy TABLE block count presence: "<<why<<'\n';return false;};
