@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **190 completed implementation slices** and **35 remaining
+The plan records **191 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`190 / (190 + 35) = 84.4%`. This is a count-based progress measure, not an
+`191 / (191 + 35) = 84.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1255,6 +1255,17 @@ values. Every failure still preserves the prior destination; retries remain
 byte-identical and pass typed readback. All 19 ASCII and 18 Binary allocation
 offsets pass. This strengthens one generated object transaction profile only;
 producer interoperability and native leader rendering remain open ([receipt](docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G MLEADERSTYLE revision-boundary transaction follow-up (2026-11-13):**
+the generated allocation/readback profile now runs at AC1021, AC1024, AC1027,
+and AC1032 in ASCII and Binary. It checks the R2010 attachment-direction and
+top/bottom fields at AC1024+, plus the R2013 text-extended field at AC1027+;
+each lane injects failure at every measured allocation and verifies destination
+rollback, complete caller state, same-codec clean-byte retry, and typed
+readback. The AC1018 refusal boundary also preserves caller data and destination.
+All 148 supported-lane failure offsets pass. This qualifies generated writer
+revision behavior only, not producer interoperability or native leader
+rendering ([receipt](docs/research/p6-dxf-mleaderstyle-version-matrix-allocation-rollback-retry-2026-11-13.json)).
 
 **P6-G UNDERLAY graph caller-state transaction follow-up (2026-11-13):** the
 generated three-kind AC1027 PDF/DGN/DWF OBJECTS sweep now compares the full
