@@ -1,7 +1,7 @@
 {
   "title": "Whole-operation annotation writer allocation rollback and retry",
   "date": "2026-11-13",
-  "scope": "Add all seven standard typed DIMENSION subtypes, the separate ARC_DIMENSION writer path, LARGE_RADIAL_DIMENSION, TOLERANCE, RTEXT and ARCALIGNEDTEXT to the existing whole-operation ASCII/Binary allocation failure sweep.",
+  "scope": "Exercise direct public writer entry points for the generated SOLID and TRACE profiles alongside all seven standard typed DIMENSION subtypes, ARC_DIMENSION, LARGE_RADIAL_DIMENSION, TOLERANCE, RTEXT and ARCALIGNEDTEXT in the whole-operation ASCII/Binary allocation failure sweep.",
   "generatedProfiles": [
     {"type":"DIMALIGNED","handle":"0xD960","definitionPointWcs":[-3.0,4.0,5.0],"textPointOcs":[1.5,2.5,0.0]},
     {"type":"DIMLINEAR","handle":"0xD961","definitionPointWcs":[10.0,11.0,12.0],"textPointOcs":[10.5,11.5,0.0],"extensionPointsWcs":[[10.0,11.0,12.0],[13.0,14.0,15.0]]},
@@ -14,19 +14,21 @@
     {"type":"LARGE_RADIAL_DIMENSION","handle":"0xD968","centerWcs":[80.0,81.0,82.0],"textPointOcs":[80.5,81.5,0.0],"chordPointWcs":[83.0,80.0,82.0],"overrideCenterWcs":[80.0,81.0,82.0],"jogPointOcs":[84.0,82.0,0.0],"jogAngle":0.375,"text":"whole-operation large radial dimension"},
     {"type":"TOLERANCE","handle":"0xD969","dimensionStyle":"STANDARD","insertionPointWcs":[90.0,91.0,92.0],"text":"whole-operation tolerance","extrusionWcs":[0.0,0.0,1.0],"xAxisDirectionWcs":[1.0,0.0,0.0]},
     {"type":"RTEXT","handle":"0xD96A","positionWcs":[95.0,96.0,0.0],"height":2.5,"rotationDegrees":30.0,"text":"whole-operation RTEXT","style":"STANDARD","flags":1,"extrusionWcs":[0.0,0.0,1.0]},
-    {"type":"ARCALIGNEDTEXT","handle":"0xD96B","centerWcs":[100.0,101.0,0.0],"radius":12.0,"anglesRadians":[0.25,1.25],"d2t":{"xScale":"1.2","textSize":"2.25","charSpacing":"0.75","offsetFromArc":"0.5","rightOffset":"0.25","leftOffset":"0.125"},"font":"SIMPLEX.SHX","bigFont":"BIGFONT.SHX","color":66051,"flags":{"characterSet":1,"pitchAndFamily":2,"shx":1,"bold":1,"italic":1,"underlined":1,"alignment":2,"reverse":1,"wizard":1,"textPosition":1,"textDirection":1},"text":"whole-operation arc-aligned text"}
+    {"type":"ARCALIGNEDTEXT","handle":"0xD96B","centerWcs":[100.0,101.0,0.0],"radius":12.0,"anglesRadians":[0.25,1.25],"d2t":{"xScale":"1.2","textSize":"2.25","charSpacing":"0.75","offsetFromArc":"0.5","rightOffset":"0.25","leftOffset":"0.125"},"font":"SIMPLEX.SHX","bigFont":"BIGFONT.SHX","color":66051,"flags":{"characterSet":1,"pitchAndFamily":2,"shx":1,"bold":1,"italic":1,"underlined":1,"alignment":2,"reverse":1,"wizard":1,"textPosition":1,"textDirection":1},"text":"whole-operation arc-aligned text"},
+    {"type":"SOLID","handle":"0xD92B","cornersWcs":[[0.0,0.0,1.5],[3.0,0.0,1.5],[3.0,2.0,1.5],[0.0,2.0,1.5]],"entryPoint":"writeSolid"},
+    {"type":"TRACE","handle":"0xD92C","cornersWcs":[[0.0,0.0,2.0],[3.0,0.0,2.0],[3.0,2.0,2.0],[0.0,2.0,2.0]],"entryPoint":"writeTrace"}
   ],
   "commonFields": {"textPointOcs":"subtype-specific finite point","text":"whole-operation subtype dimension","dimensionStyle":"STANDARD","construction":"Typed DRW_* dimension records serialized in the existing generated whole-operation drawing"},
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
     "buildResult": "PASS",
     "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
-    "ctestResult": "PASS, 1/1 (3.89 sec)",
+    "ctestResult": "PASS, 1/1 (3.90 sec)",
     "allocationSweep": {
       "ascii": "671/671 offsets injected; previous destination, caller fields, and derived identity maps preserved; same-writer retry reproduced clean output and typed readback passed.",
       "binary": "663/663 offsets injected; previous destination, caller fields, and derived identity maps preserved; same-writer retry reproduced clean output and typed readback passed."
     },
-    "readback": "Exactly one callback was delivered for each of the seven standard subtypes, ARC_DIMENSION, LARGE_RADIAL_DIMENSION, TOLERANCE, RTEXT and ARCALIGNEDTEXT. Common text/style fields and subtype-specific WCS/OCS geometry match typed profiles; large radial chord, overridden center, jog point and group-40 jog angle match; tolerance style, text, insertion, extrusion and axis match; RTEXT style, position, height, rotation, flags, text and extrusion match; arc-aligned text geometry, font names, D2T fields, color, flags and text match; generated handles are nonzero and remapped.",
+    "readback": "Exactly one callback was delivered for each of the seven standard subtypes, ARC_DIMENSION, LARGE_RADIAL_DIMENSION, TOLERANCE, RTEXT and ARCALIGNEDTEXT, plus SOLID and TRACE. Common text/style fields and subtype-specific WCS/OCS geometry match typed profiles; large radial chord, overridden center, jog point and group-40 jog angle match; tolerance style, text, insertion, extrusion and axis match; RTEXT style, position, height, rotation, flags, text and extrusion match; arc-aligned text geometry, font names, D2T fields, color, flags and text match; the direct SOLID and TRACE entry points preserve four corners; generated handles are nonzero and remapped.",
     "gitDiffCheck": "PASS",
     "jsonParse": "PASS"
   },
