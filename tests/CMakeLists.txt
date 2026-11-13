@@ -6166,6 +6166,12 @@ add_test(NAME libdxfrw_dxf_section_settings_allocation_transaction
         section-settings)
 set_tests_properties(libdxfrw_dxf_section_settings_allocation_transaction PROPERTIES
     LABELS "dxf;fast;objects;transaction;allocation" TIMEOUT 60)
+add_test(NAME libdxfrw_dxf_render_settings_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-render-settings-allocation
+        render-settings)
+set_tests_properties(libdxfrw_dxf_render_settings_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;objects;transaction;allocation" TIMEOUT 60)
 
 add_executable(libdxfrw_tablegeometry_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/tablegeometry_objects_allocation_tests.cpp

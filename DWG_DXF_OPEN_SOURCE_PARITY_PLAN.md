@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **152 completed implementation slices** and **35 remaining
+The plan records **153 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`152 / (152 + 35) = 81.3%`. This is a count-based progress measure, not an
+`153 / (153 + 35) = 81.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1635,6 +1635,19 @@ consumer semantic proof. It also does not implement LibreCAD PR
 reconciliation of edited `LC_LineType` definitions against archived
 `DRW_LType` records. The focused transaction CTest passes in 5.41 seconds. See
 the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6 RENDERSETTINGS-family transaction slice (2026-11-13):** the whole-file
+ASCII/Binary allocation sweep now writes six generated AC1032 records through
+the public `writeRenderSettings()` route: base settings, environment, global,
+entry, RapidRT preset and extended MentalRay preset. All 122 ASCII and 117
+Binary injected allocation failures preserve the destination and caller
+payload/identity state; same-codec retry reproduces clean bytes, staging is
+removed, and typed readback checks the six modeled payloads and allocated
+identities. The focused CTest passes in normal and ASan builds. This covers
+these generated profiles only; other preset layouts, source-producer
+interoperability, dictionary dependency closure and native rendering remain
+open. No support claim is promoted. See the
+[transaction receipt](docs/research/p6-dxf-render-settings-allocation-rollback-retry-2026-11-13.json).
 
 **P6 MULTILEADER transaction slice (2026-11-13):** the generated whole-file
 ASCII/Binary sweep now calls `writeMultiLeader()` with a text context, label,

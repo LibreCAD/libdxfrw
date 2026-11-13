@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-render-settings-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RENDER_SETTINGS_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures through whole-operation AC1032 DXF writes containing six RENDERSETTINGS-family record profiles, then verify rollback, same-codec retry and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW objects",
+    "profile": "Six generated records: base RENDERSETTINGS, RENDERENVIRONMENT, RENDERGLOBAL, RENDERENTRY, RapidRT preset, and extended MentalRay preset. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "3bf54848",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-render-settings-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add a focused mode to the whole-operation allocation harness. Warm the writer, calibrate allocations with an existing destination, inject one-shot allocation failures at every measured offset, and verify caller payload/identity state, destination bytes, source-handle binding rollback and staging cleanup. Retry on the same codec and require byte-identical output plus fresh typed readback of each record payload and allocated identity."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_render_settings_allocation_transaction$' --output-on-failure: PASS 1/1 (0.53 sec)",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_render_settings_allocation_transaction$' --output-on-failure: PASS 1/1 (4.55 sec)",
+    "directRun": "PASS; ASCII 122 and Binary 117 allocation offsets injected; caller/destination/identity rollback, staging cleanup, same-codec retry and typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction evidence for six AC1032 profiles does not establish producer-authored wire semantics or version-wide interoperability.",
+    "Other accepted RapidRT/MentalRay preset layouts, dictionary dependency closure, producer breadth and native rendering remain unqualified.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with another exact uncovered route or version-specific compound-record variant."
+}

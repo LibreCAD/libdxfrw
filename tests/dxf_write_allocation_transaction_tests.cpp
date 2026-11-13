@@ -6765,6 +6765,359 @@ bool runSectionSettingsSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool runRenderSettingsSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "RENDERSETTINGS allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto output = directory / "render-settings-allocation-transaction.dxf";
+    if (!clearStagedOutput(output))
+        return fail("could not clear stale output staging files in test scratch");
+    const std::string sentinel = "previous complete document\n";
+    const auto makeSettings = [] {
+        std::vector<DRW_RenderSettings> result;
+        DRW_RenderSettings settings;
+        settings.parentHandle = 0xCu;
+        settings.m_kind = DRW_RenderSettings::Settings;
+        settings.m_classVersion = 1;
+        settings.m_name = "LOCAL_RENDERSETTINGS";
+        settings.m_strings = {"LOCAL_RENDERSETTINGS", "", "LOCAL_RENDER_DESC"};
+        settings.m_longs = {1, 2};
+        settings.m_bools = {true, false, true, false};
+        settings.m_description = "LOCAL_RENDER_DESC";
+        settings.m_displayIndex = 2;
+        settings.m_fogEnabled = true;
+        settings.m_backfacesEnabled = true;
+        result.push_back(settings);
+
+        DRW_RenderSettings environment;
+        environment.parentHandle = 0xCu;
+        environment.m_kind = DRW_RenderSettings::Environment;
+        environment.m_name = "LOCAL_RENDER_ENVIRONMENT";
+        environment.m_strings = {"LOCAL_RENDER_ENVIRONMENT"};
+        environment.m_environmentImageFilename = "LOCAL_RENDER_ENVIRONMENT";
+        environment.m_bools = {true, false, true};
+        environment.m_bytes = {10, 20, 30};
+        environment.m_doubles = {0.1, 0.9, 2.0, 3.0};
+        environment.m_fogEnabled = true;
+        environment.m_environmentImageEnabled = true;
+        environment.m_fogColorR = 10;
+        environment.m_fogColorG = 20;
+        environment.m_fogColorB = 30;
+        environment.m_fogDensityNear = 0.1;
+        environment.m_fogDensityFar = 0.9;
+        environment.m_fogDistanceNear = 2.0;
+        environment.m_fogDistanceFar = 3.0;
+        result.push_back(environment);
+
+        DRW_RenderSettings global;
+        global.parentHandle = 0xCu;
+        global.m_kind = DRW_RenderSettings::Global;
+        global.m_classVersion = 1;
+        global.m_name = "LOCAL_RENDER_GLOBAL";
+        global.m_strings = {"LOCAL_RENDER_GLOBAL"};
+        global.m_longs = {1, 7, 8};
+        global.m_procedure = 7;
+        global.m_destination = 8;
+        result.push_back(global);
+
+        DRW_RenderSettings entry;
+        entry.parentHandle = 0xCu;
+        entry.m_kind = DRW_RenderSettings::Entry;
+        entry.m_classVersion = 1;
+        entry.m_name = "LOCAL_RENDER_ENTRY";
+        entry.m_strings = {"LOCAL_RENDER_ENTRY", "", ""};
+        entry.m_longs = {1, 11, 12, 13, 14, 15, 16, 17};
+        entry.m_shorts = {1, 2, 3, 4, 5, 6};
+        entry.m_doubles = {1.5};
+        result.push_back(entry);
+
+        DRW_RenderSettings rapid;
+        rapid.parentHandle = 0xCu;
+        rapid.m_kind = DRW_RenderSettings::RapidRT;
+        rapid.m_classVersion = 1;
+        rapid.m_name = "LOCAL_RENDER_RAPIDRT";
+        rapid.m_strings = {"LOCAL_RENDER_RAPIDRT", "", "LOCAL_RAPID_DESC"};
+        rapid.m_longs = {1, 9, 2, 3, 4};
+        rapid.m_bools = {true, false, true, false, true};
+        rapid.m_shorts = {1, 2, 3};
+        rapid.m_doubles = {0.25, 0.75};
+        rapid.m_hasPredefined = true;
+        rapid.m_hasPredefinedPresent = true;
+        rapid.m_description = "LOCAL_RAPID_DESC";
+        rapid.m_displayIndex = 9;
+        rapid.m_fogEnabled = true;
+        rapid.m_backfacesEnabled = true;
+        result.push_back(rapid);
+
+        DRW_RenderSettings mental;
+        mental.parentHandle = 0xCu;
+        mental.m_kind = DRW_RenderSettings::MentalRay;
+        mental.m_classVersion = 1;
+        mental.m_name = "LOCAL_RENDER_MENTALRAY";
+        mental.m_strings = {"LOCAL_RENDER_MENTALRAY", "", "LOCAL_MENTAL_DESC",
+                            "LOCAL_MENTAL_EXTRA"};
+        mental.m_longs = {1, 2, 2, 4, 5, 6, 7, 8,
+                          9, 10, 11, 12, 13, 14, 15, 16};
+        mental.m_shorts = {1, 2, 3, 4, 5, 6, 7};
+        mental.m_bools = {true, false, true, false, true, false, true, false,
+                          true, false, true, false, true, false, true};
+        mental.m_doubles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+                            0.7, 0.8, 0.9, 1.0, 1.1, 1.2};
+        mental.m_hasPredefined = true;
+        mental.m_hasPredefinedPresent = true;
+        mental.m_description = "LOCAL_MENTAL_DESC";
+        mental.m_displayIndex = 2;
+        mental.m_fogEnabled = true;
+        mental.m_backfacesEnabled = true;
+        result.push_back(mental);
+        return result;
+    };
+    const auto samePayload = [](const DRW_RenderSettings& a,
+                                const DRW_RenderSettings& b) {
+        return a.parentHandle == b.parentHandle
+            && a.m_kind == b.m_kind && a.m_classVersion == b.m_classVersion
+            && a.m_name == b.m_name && a.m_strings == b.m_strings
+            && a.m_longs == b.m_longs && a.m_bools == b.m_bools
+            && a.m_shorts == b.m_shorts && a.m_bytes == b.m_bytes
+            && a.m_doubles == b.m_doubles
+            && a.m_hasPredefined == b.m_hasPredefined
+            && a.m_hasPredefinedPresent == b.m_hasPredefinedPresent
+            && a.m_fogEnabled == b.m_fogEnabled
+            && a.m_fogBackgroundEnabled == b.m_fogBackgroundEnabled
+            && a.m_backfacesEnabled == b.m_backfacesEnabled
+            && a.m_environmentImageEnabled == b.m_environmentImageEnabled
+            && a.m_environmentImageFilename == b.m_environmentImageFilename
+            && a.m_description == b.m_description
+            && a.m_displayIndex == b.m_displayIndex
+            && a.m_fogColorR == b.m_fogColorR
+            && a.m_fogColorG == b.m_fogColorG
+            && a.m_fogColorB == b.m_fogColorB
+            && a.m_fogDensityNear == b.m_fogDensityNear
+            && a.m_fogDensityFar == b.m_fogDensityFar
+            && a.m_fogDistanceNear == b.m_fogDistanceNear
+            && a.m_fogDistanceFar == b.m_fogDistanceFar
+            && a.m_procedure == b.m_procedure
+            && a.m_destination == b.m_destination;
+    };
+    class RenderSettingsExport final : public dx_iface {
+    public:
+        RenderSettingsExport(dxfRW& codec, std::vector<DRW_RenderSettings> source)
+            : output(codec), settings(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeObjects() override {
+            written = true;
+            for (DRW_RenderSettings& value : settings) {
+                const char* name = renderRecordName(value.m_kind);
+                if (name == nullptr || !output.writeRenderSettings(&value, name)) {
+                    written = false;
+                    break;
+                }
+            }
+        }
+        bool finalizeDxfWrite() override { return written; }
+        static const char* renderRecordName(DRW_RenderSettings::Kind kind) {
+            switch (kind) {
+            case DRW_RenderSettings::Settings: return "RENDERSETTINGS";
+            case DRW_RenderSettings::Global: return "RENDERGLOBAL";
+            case DRW_RenderSettings::Environment: return "RENDERENVIRONMENT";
+            case DRW_RenderSettings::Entry: return "RENDERENTRY";
+            case DRW_RenderSettings::RapidRT: return "RAPIDRTRENDERSETTINGS";
+            case DRW_RenderSettings::MentalRay: return "MENTALRAYRENDERSETTINGS";
+            }
+            return nullptr;
+        }
+        dxfRW& output;
+        dx_data storage;
+        std::vector<DRW_RenderSettings> settings;
+        bool written = false;
+    };
+    class RenderSettingsReadback final : public dx_iface {
+    public:
+        RenderSettingsReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addRenderSettings(const DRW_RenderSettings& value) override {
+            settings.push_back(value);
+        }
+        dx_data storage;
+        std::vector<DRW_RenderSettings> settings;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        RenderSettingsReadback probe;
+        const std::vector<DRW_RenderSettings> expected = makeSettings();
+        if (!reader.read(&probe, true) || probe.settings.size() != expected.size()) {
+            std::cerr << "render readback count=" << probe.settings.size()
+                      << " expected=" << expected.size() << '\n';
+            return false;
+        }
+        for (std::size_t i = 0u; i < expected.size(); ++i) {
+            if (!samePayload(probe.settings[i], expected[i])
+                || probe.settings[i].handle == 0u
+                || probe.settings[i].handle == DRW::NoHandle) {
+                std::cerr << "render readback mismatch index=" << i
+                          << " actualKind=" << static_cast<int>(probe.settings[i].m_kind)
+                          << " expectedKind=" << static_cast<int>(expected[i].m_kind)
+                          << " actualName=" << probe.settings[i].m_name
+                          << " expectedName=" << expected[i].m_name
+                          << " actualCounts=" << probe.settings[i].m_longs.size()
+                          << ',' << probe.settings[i].m_strings.size() << ','
+                          << probe.settings[i].m_bools.size() << ','
+                          << probe.settings[i].m_shorts.size() << ','
+                          << probe.settings[i].m_bytes.size() << ','
+                          << probe.settings[i].m_doubles.size()
+                          << " expectedCounts=" << expected[i].m_longs.size()
+                          << ',' << expected[i].m_strings.size() << ','
+                          << expected[i].m_bools.size() << ','
+                          << expected[i].m_shorts.size() << ','
+                          << expected[i].m_bytes.size() << ','
+                          << expected[i].m_doubles.size() << '\n';
+                std::cerr << "classVersion=" << probe.settings[i].m_classVersion
+                          << '/' << expected[i].m_classVersion
+                          << " hasPredefined=" << probe.settings[i].m_hasPredefined
+                          << '/' << expected[i].m_hasPredefined
+                          << " present=" << probe.settings[i].m_hasPredefinedPresent
+                          << '/' << expected[i].m_hasPredefinedPresent
+                          << " bytesEqual="
+                          << (probe.settings[i].m_bytes == expected[i].m_bytes)
+                          << " doublesEqual="
+                          << (probe.settings[i].m_doubles == expected[i].m_doubles)
+                          << " longsEqual="
+                          << (probe.settings[i].m_longs == expected[i].m_longs)
+                          << " stringsEqual="
+                          << (probe.settings[i].m_strings == expected[i].m_strings)
+                          << " boolsEqual="
+                          << (probe.settings[i].m_bools == expected[i].m_bools)
+                          << " shortsEqual="
+                          << (probe.settings[i].m_shorts == expected[i].m_shorts)
+                          << '\n';
+                std::cerr << "named fog=" << probe.settings[i].m_fogEnabled
+                          << '/' << expected[i].m_fogEnabled
+                          << " bg=" << probe.settings[i].m_fogBackgroundEnabled
+                          << '/' << expected[i].m_fogBackgroundEnabled
+                          << " backfaces=" << probe.settings[i].m_backfacesEnabled
+                          << '/' << expected[i].m_backfacesEnabled
+                          << " image=" << probe.settings[i].m_environmentImageEnabled
+                          << '/' << expected[i].m_environmentImageEnabled
+                          << " filename=" << probe.settings[i].m_environmentImageFilename
+                          << '/' << expected[i].m_environmentImageFilename
+                          << " desc=" << probe.settings[i].m_description
+                          << '/' << expected[i].m_description
+                          << " display=" << probe.settings[i].m_displayIndex
+                          << '/' << expected[i].m_displayIndex
+                          << " rgb=" << probe.settings[i].m_fogColorR << ','
+                          << probe.settings[i].m_fogColorG << ','
+                          << probe.settings[i].m_fogColorB << '/'
+                          << expected[i].m_fogColorR << ','
+                          << expected[i].m_fogColorG << ','
+                          << expected[i].m_fogColorB << " proc/dest="
+                          << probe.settings[i].m_procedure << ','
+                          << probe.settings[i].m_destination << '/'
+                          << expected[i].m_procedure << ','
+                          << expected[i].m_destination << '\n';
+                return false;
+            }
+        }
+        return true;
+    };
+
+    for (const bool binary : {false, true}) {
+        {
+            dxfRW codec(output.string().c_str());
+            RenderSettingsExport adapter(codec, makeSettings());
+            if (!codec.write(&adapter, DRW::AC1032, binary))
+                return fail("warm-up write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed calibration destination");
+        }
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+            dxfRW codec(output.string().c_str());
+            RenderSettingsExport adapter(codec, makeSettings());
+            armAllocationFailure(1000000000L);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            allocationCount = static_cast<long>(allocationAttempts);
+            disarmAllocationFailure();
+            if (!wrote || allocationFailed || allocationCount <= 0
+                || !readBytes(output, expectedBytes))
+                return fail("calibration write failed");
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail("could not seed prior destination");
+            }
+            dxfRW codec(output.string().c_str());
+            RenderSettingsExport adapter(codec, makeSettings());
+            const std::vector<DRW_RenderSettings> original(adapter.settings);
+            armAllocationFailure(offset);
+            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool injected = allocationFailed;
+            disarmAllocationFailure();
+            std::string afterFailure;
+            const bool bytesRead = readBytes(output, afterFailure);
+            const auto& context = *codec.getWritingContext();
+            const bool identitiesRolledBack =
+                context.sourceHandleToMintedMap.empty()
+                && context.sourceHandleToWrittenObjectMap.empty()
+                && context.writtenSourceEntityHandles.empty()
+                && context.ambiguousSourceHandles.empty();
+            const bool stageRemains = hasStagedOutput(output);
+            bool callerSame = adapter.settings.size() == original.size();
+            for (std::size_t i = 0u; callerSame && i < original.size(); ++i)
+                callerSame = samePayload(adapter.settings[i], original[i])
+                    && adapter.settings[i].handle == original[i].handle;
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                || !callerSame || !identitiesRolledBack || stageRemains) {
+                std::cerr << "offset=" << offset << " wrote=" << wrote
+                          << " injected=" << injected
+                          << " destinationPreserved=" << (afterFailure == sentinel)
+                          << " callerSame=" << callerSame
+                          << " identitiesRolledBack=" << identitiesRolledBack
+                          << " stageRemains=" << stageRemains << '\n';
+                return fail("injected allocation failure changed caller or destination state");
+            }
+            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            std::string retryBytes;
+            const bool retryRead = readBytes(output, retryBytes);
+            const bool sameBytes = retryRead && retryBytes == expectedBytes;
+            const bool readback = retryRead && readbackMatches(output);
+            const bool staged = hasStagedOutput(output);
+            if (!retried || !retryRead || !sameBytes || !readback || staged) {
+                std::cerr << "retry=" << retried << " read=" << retryRead
+                          << " sameBytes=" << sameBytes << " readback="
+                          << readback << " stageRemains=" << staged << '\n';
+                return fail("same-codec retry or typed readback failed");
+            }
+        }
+        std::cout << "RENDERSETTINGS variants " << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -6782,7 +7135,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -6802,6 +7155,8 @@ int main(int argc, char** argv) {
             return runSectionManagerSweep(directory) ? 0 : 1;
         if (mode == "section-settings")
             return runSectionSettingsSweep(directory) ? 0 : 1;
+        if (mode == "render-settings")
+            return runRenderSettingsSweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;
