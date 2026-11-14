@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-long-utf8-mtext-all-version-matrix-2026-11-14",
+  "date": "2026-11-14",
+  "title": "Long UTF-8 MTEXT transaction coverage across all supported DXF writer revisions",
+  "status": "GENERATED_ALL_REVISION_ASCII_BINARY_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": {
+    "source": {
+      "kind": "deterministic locally authored in-memory MTEXT entity",
+      "profile": "552 UTF-8 bytes: 249 ASCII A bytes, a three-byte euro sign, and 300 ASCII B bytes; multibyte character crosses the 250-byte MTEXT chunk boundary.",
+      "fixtureFilesAdded": 0
+    },
+    "targets": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "checks": [
+      "Calibrate all whole-operation allocation offsets for each target/encoding.",
+      "At every injected failure, confirm the prior destination sentinel and complete source MTEXT state remain unchanged and no staged output remains.",
+      "Retry on the same codec and require byte-identical output plus fresh typed MTEXT text/geometry/style readback."
+    ]
+  },
+  "observations": {
+    "allocationOffsets": {
+      "AC1014": {"ASCII": 101, "Binary": 100},
+      "AC1015": {"ASCII": 103, "Binary": 102},
+      "AC1018": {"ASCII": 103, "Binary": 102},
+      "AC1021": {"ASCII": 103, "Binary": 102},
+      "AC1024": {"ASCII": 110, "Binary": 109},
+      "AC1027": {"ASCII": 103, "Binary": 102},
+      "AC1032": {"ASCII": 103, "Binary": 102},
+      "total": 1442
+    },
+    "allInjectedFailuresRolledBack": true,
+    "sameCodecByteIdenticalRetry": true,
+    "typedReadbackAllTargetsAndEncodings": true,
+    "sourceStatePreserved": true,
+    "destinationSentinelPreserved": true
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_long_mtext_allocation_transaction$' --output-on-failure: PASS 1/1 (3.12 seconds)",
+    "directSelector": "build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests /tmp/libdxfrw-long-mtext-version-matrix long-mtext: PASS for all 14 target/encoding pairs",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limits": [
+    "This is generated transaction, UTF-8 chunk-boundary, and same-library typed-readback evidence only; it does not establish producer prevalence, native line layout, font behavior, or rendering semantics.",
+    "No support claim is promoted and no DWG/DXF fixture was added.",
+    "P6-G's full public-writer inventory remains open."
+  ]
+}

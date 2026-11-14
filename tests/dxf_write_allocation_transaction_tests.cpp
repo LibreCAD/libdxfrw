@@ -14,6 +14,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <utility>
 
 class DxfDimensionDstyleTestAccess {
 public:
@@ -6817,8 +6818,12 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory, directoryError)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto output = directory / "long-utf8-mtext.dxf";
     const std::string sentinel = "prior long MTEXT drawing bytes\n";
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions{{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
     const auto sourceUnchanged = [](const LongMTextExport& adapter) {
         return adapter.mtext.handle == 0xDA10u
             && adapter.mtext.text == longMTextPayload()
@@ -6841,16 +6846,20 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
             && adapter.mtext.style == "STANDARD";
     };
 
-    for (const bool binary : {false, true}) {
+    for (const auto& versionProfile : versions) {
+      const DRW::Version version = versionProfile.first;
+      const std::string versionName = versionProfile.second;
+      const auto output = directory / ("long-utf8-mtext-" + versionName + ".dxf");
+      for (const bool binary : {false, true}) {
         if (!clearStagedOutput(output))
             return fail("could not clear output before warm-up");
         {
             dxfRW codec(output.string().c_str());
             LongMTextExport adapter(codec);
-            if (!codec.write(&adapter, DRW::AC1027, binary)
+            if (!codec.write(&adapter, version, binary)
                 || !adapter.entityWritten || !sourceUnchanged(adapter)
                 || !readbackMatches(output))
-                return fail("warm-up or typed readback failed");
+                return fail((versionName + " warm-up or typed readback failed").c_str());
         }
         std::error_code removeError;
         std::filesystem::remove(output, removeError);
@@ -6861,12 +6870,12 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
             dxfRW codec(output.string().c_str());
             LongMTextExport adapter(codec);
             armAllocationFailure(1000000000L);
-            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            const bool wrote = codec.write(&adapter, version, binary);
             allocationCount = static_cast<long>(allocationAttempts);
             disarmAllocationFailure();
             if (!wrote || !adapter.entityWritten || !sourceUnchanged(adapter)
                 || !readbackMatches(output) || !readBytes(output, expectedBytes))
-                return fail("allocation calibration or readback failed");
+                return fail((versionName + " allocation calibration or readback failed").c_str());
         }
         if (allocationCount <= 0)
             return fail("calibration observed no allocations");
@@ -6882,7 +6891,7 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
             dxfRW codec(output.string().c_str());
             LongMTextExport adapter(codec);
             armAllocationFailure(offset);
-            const bool wrote = codec.write(&adapter, DRW::AC1027, binary);
+            const bool wrote = codec.write(&adapter, version, binary);
             const std::size_t reached = allocationAttempts;
             const bool injected = allocationFailed;
             disarmAllocationFailure();
@@ -6891,20 +6900,22 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
                 || reached != static_cast<std::size_t>(offset + 1)
                 || !readBytes(output, afterFailure) || afterFailure != sentinel
                 || !sourceUnchanged(adapter) || hasStagedOutput(output))
-                return fail("injected failure changed caller or destination state");
+                return fail((versionName + " injected failure changed caller or destination state").c_str());
 
-            const bool retried = codec.write(&adapter, DRW::AC1027, binary);
+            const bool retried = codec.write(&adapter, version, binary);
             std::string retryBytes;
             if (!retried || !adapter.entityWritten || !sourceUnchanged(adapter)
                 || !readBytes(output, retryBytes) || retryBytes != expectedBytes
                 || !readbackMatches(output) || hasStagedOutput(output))
-                return fail("same-codec retry did not reproduce typed output");
+                return fail((versionName + " same-codec retry did not reproduce typed output").c_str());
         }
-        std::cout << "long UTF-8 MTEXT " << (binary ? "Binary" : "ASCII")
+        std::cout << versionName << " long UTF-8 MTEXT "
+                  << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", caller/destination rollback, retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }
