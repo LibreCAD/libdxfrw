@@ -1037,6 +1037,36 @@ def check_partial_dwg_read_cli(converter, root, writer):
     if writer is None:
         raise AssertionError("partial-read CLI control requires the local DWG writer")
     checked = 0
+
+    def has_exact_partial_projection(result):
+        projection = next((line for line in result.stderr.splitlines()
+                           if line.startswith(
+                               b"CLI source disposition projection:")), b"")
+        fields = {field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+                  for field in projection.split() if b"=" in field}
+        expected = {
+            b"sourceDwgEntityParseFailures": b"1",
+            b"sourceDwgObjectParseFailures": b"0",
+            b"sourceDwgFrameCoverage": b"partial",
+            b"sourceDwgFramesFailed": b"1",
+            b"sourceDwgFramesUnresolved": b"0",
+            b"sourceDwgFramesUnrecognized": b"0",
+        }
+        if any(fields.get(key) != value for key, value in expected.items()):
+            return False
+        try:
+            source_frames = int(fields[b"sourceDwgSourceFrames"])
+            published = int(fields[b"sourceDwgFramesPublished"])
+            disposition_total = sum(int(fields[key]) for key in (
+                b"sourceDwgFramesPending", b"sourceDwgFramesDeferred",
+                b"sourceDwgFramesStaged", b"sourceDwgFramesPublished",
+                b"sourceDwgFramesQuarantined", b"sourceDwgFramesFailed",
+                b"sourceDwgFramesUnresolved"))
+        except (KeyError, ValueError):
+            return False
+        return source_frames > 1 and published == source_frames - 1 \
+            and disposition_total == source_frames
+
     for revision, version in ((b"AC1015", "AC1015"),
                               (b"AC1018", "AC1018"),
                               (b"AC1021", "AC1021"),
@@ -1119,10 +1149,21 @@ def check_partial_dwg_read_cli(converter, root, writer):
             checked += 1
             continue
 
+        # The generated AC1015/AC1018 source carries VPORT state that cannot
+        # be represented by those legacy DXF revisions. Preserve that state by
+        # selecting the first admitting R2007 target instead of relying on a
+        # same-revision default that correctly refuses the downgrade.
+        partial_target_revision = (b"AC1021"
+                                   if revision in (b"AC1015", b"AC1018")
+                                   else revision)
+        partial_target_option = (
+            ("-v2007",)
+            if partial_target_revision == b"AC1021" and revision < b"AC1021"
+            else ())
         partial_output = root / f"partial-read admitted result {version}.dxf"
         partial = run_bounded(
             [str(converter), str(source), "-o", str(partial_output),
-             "--allow-partial-dwg-read", "-d"],
+             *partial_target_option, "--allow-partial-dwg-read", "-d"],
             10, 2 * 1024 * 1024, cwd=root)
         partial_required = (
             b"WARNING: explicit partial DWG read mode",
@@ -1134,23 +1175,21 @@ def check_partial_dwg_read_cli(converter, root, writer):
         line_count = sum(1 for line in payload.splitlines() if line.strip() == b"LINE")
         if (partial.returncode != 0 or b"Success:" not in partial.stdout
                 or any(item not in partial.stderr for item in partial_required)
-                or not output_has_revision(payload, revision, False)
+                or not has_exact_partial_projection(partial)
+                or not output_has_revision(payload, partial_target_revision, False)
                 or line_count != 1 or source.read_bytes() != original):
             raise AssertionError(
                 f"explicit {version} partial-read route did not warn and publish only "
                 f"retained data: {partial!r}")
         checked += 1
 
-        readback = root / f"partial-read readback {version}.dxf"
         reopened = run_bounded(
-            [str(converter), str(partial_output), "-o", str(readback)],
+            [str(writer), "--count-dxf-lines", str(partial_output)],
             10, 131072, cwd=root)
-        readback_payload = readback.read_bytes() if readback.is_file() else b""
-        if (reopened.returncode != 0 or not output_has_revision(
-                readback_payload, revision, False)
-                or sum(1 for line in readback_payload.splitlines()
-                       if line.strip() == b"LINE") != 1
-                or partial_output.read_bytes() != payload or source.read_bytes() != original):
+        if (reopened.returncode != 0 or b"lineCount=1" not in reopened.stdout
+                or b"vportCount=1" not in reopened.stdout
+                or partial_output.read_bytes() != payload
+                or source.read_bytes() != original):
             raise AssertionError(
                 f"{version} partial output did not reopen with the retained LINE only: "
                 f"{reopened!r}")
@@ -1175,27 +1214,24 @@ def check_partial_dwg_read_cli(converter, root, writer):
 
         binary_partial = run_bounded(
             [str(converter), str(source), "-o", str(binary_output), "-b", "-y",
-             "--allow-partial-dwg-read", "-d"],
+             *partial_target_option, "--allow-partial-dwg-read", "-d"],
             10, 2 * 1024 * 1024, cwd=root)
         binary_payload = binary_output.read_bytes()
         if (binary_partial.returncode != 0
                 or any(item not in binary_partial.stderr for item in partial_required)
-                or not output_has_revision(binary_payload, revision, True)
+                or not has_exact_partial_projection(binary_partial)
+                or not output_has_revision(binary_payload, partial_target_revision, True)
                 or source.read_bytes() != original):
             raise AssertionError(
                 f"explicit {version} Binary partial-read output failed: {binary_partial!r}")
         checked += 1
 
-        binary_readback = root / f"partial-read binary readback {version}.dxf"
         binary_reopened = run_bounded(
-            [str(converter), str(binary_output), "-o", str(binary_readback)],
+            [str(writer), "--count-dxf-lines", str(binary_output)],
             10, 2 * 1024 * 1024, cwd=root)
-        binary_readback_payload = (binary_readback.read_bytes()
-                                   if binary_readback.is_file() else b"")
         if (binary_reopened.returncode != 0
-                or not output_has_revision(binary_readback_payload, revision, False)
-                or sum(1 for line in binary_readback_payload.splitlines()
-                       if line.strip() == b"LINE") != 1
+                or b"lineCount=1" not in binary_reopened.stdout
+                or b"vportCount=1" not in binary_reopened.stdout
                 or binary_output.read_bytes() != binary_payload
                 or source.read_bytes() != original):
             raise AssertionError(

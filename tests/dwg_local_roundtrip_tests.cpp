@@ -28402,6 +28402,10 @@ public:
     }
     void addLine(const DRW_Line& line) override { ++lines; dx_iface::addLine(line); }
     void addHatch(const DRW_Hatch* hatch) override { ++hatches; dx_iface::addHatch(hatch); }
+    void addVport(const DRW_Vport& vport) override {
+        ++vports;
+        dx_iface::addVport(vport);
+    }
     void addDwgFramePublication(const DRW_DwgFramePublication& frame) override {
         dx_iface::addDwgFramePublication(frame);
         if (reader_ != nullptr) {
@@ -28413,7 +28417,7 @@ public:
     }
     bool wrote{true};
     bool liveObserved{false};
-    std::size_t lines{0}, hatches{0};
+    std::size_t lines{0}, hatches{0}, vports{0};
 private:
     dwgRW* writer_;
     dwgRW* reader_;
@@ -41775,6 +41779,17 @@ int main(int argc, char** argv) {
         std::cout << "Generated PlotSettings NOD graph round trips: "
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--count-dxf-lines") {
+        dxfRW reader(argv[2]);
+        ReadOutcomeControl capture(nullptr, 0);
+        if (!reader.read(&capture, false)) {
+            std::cerr << "Could not read DXF line-count source\n";
+            return 1;
+        }
+        std::cout << "lineCount=" << capture.lines
+                  << " vportCount=" << capture.vports << '\n';
+        return 0;
     }
     if ((argc == 3 || argc == 4)
         && std::string(argv[1]) == "--generate-cli-partial-read-source") {
