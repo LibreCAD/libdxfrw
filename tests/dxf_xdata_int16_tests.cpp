@@ -347,10 +347,13 @@ bool wholeFileControls() {
 
 bool compatibilityXrecordAllocationControls() {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
-    for (const bool layerStateCompatibility : {false, true}) {
-      for (const bool binary : {false, true}) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+      for (const bool layerStateCompatibility : {false, true}) {
+       for (const bool binary : {false, true}) {
         const auto path = std::filesystem::temp_directory_path()
             / ("libdxfrw-xrecord-compat-allocation-" + std::to_string(nonce)
+               + "-" + std::to_string(static_cast<int>(version))
                + (layerStateCompatibility ? "-layerstate" : "-dwg")
                + (binary ? "-binary.dxf" : "-ascii.dxf"));
         struct Cleanup { std::filesystem::path path; ~Cleanup() {
@@ -361,7 +364,7 @@ bool compatibilityXrecordAllocationControls() {
         SelectedWriter baseline(baselineWriter, true, 12345,
                                 layerStateCompatibility);
         xdataAllocationFailureOffset = -1;
-        if (!baselineWriter.write(&baseline, DRW::AC1027, binary))
+        if (!baselineWriter.write(&baseline, version, binary))
             return fail("compatibility XRECORD allocation baseline failed");
         std::ifstream baselineInput(path, std::ios::binary);
         const std::string cleanBytes{std::istreambuf_iterator<char>{baselineInput},
@@ -370,7 +373,8 @@ bool compatibilityXrecordAllocationControls() {
             return fail("compatibility XRECORD baseline output was empty");
         const auto readbackMatches = [&](SelectedReader& reader) {
             dx_data data;
-            if (!reader.fileImport(path.string(), &data, false))
+            if (!reader.fileImport(path.string(), &data, false)
+                || data.sourceVersion != version)
                 return false;
             if (layerStateCompatibility)
                 return reader.layerStateCount == 1u
@@ -392,7 +396,7 @@ bool compatibilityXrecordAllocationControls() {
             xdataAllocationFailureOffset = offset;
             bool wrote = false;
             try {
-                wrote = writer.write(&selected, DRW::AC1027, binary);
+                wrote = writer.write(&selected, version, binary);
             } catch (const std::bad_alloc&) {
                 wrote = false;
             }
@@ -430,7 +434,7 @@ bool compatibilityXrecordAllocationControls() {
                     && selected.record.m_values[1].i_val() != 12346))
                 return fail("compatibility allocation failure changed caller or destination");
 
-            if (!writer.write(&selected, DRW::AC1027, binary))
+            if (!writer.write(&selected, version, binary))
                 return fail("same-writer compatibility retry failed");
             std::ifstream retryOutput(path, std::ios::binary);
             const std::string retryBytes{
@@ -447,10 +451,12 @@ bool compatibilityXrecordAllocationControls() {
                   << (layerStateCompatibility
                         ? "LayerState compatibility "
                         : "DWG compatibility ")
+                  << static_cast<int>(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << failures
                   << ", rollback/retry/readback=PASS\n";
       }
+       }
     }
     return true;
 }

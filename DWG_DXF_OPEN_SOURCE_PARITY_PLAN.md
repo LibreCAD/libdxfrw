@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **268 completed implementation slices** and **35 remaining
+The plan records **269 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`268 / (268 + 35) = 88.4%`. This is a count-based progress measure, not an
+`269 / (269 + 35) = 88.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -2138,6 +2138,15 @@ consumer semantic proof. It also does not implement LibreCAD PR
 reconciliation of edited `LC_LineType` definitions against archived
 `DRW_LType` records. The focused transaction CTest passes in 5.41 seconds. See
 the [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
+
+**P6-G XRECORD compatibility-writer revision matrix (2026-11-13):** the
+generated DWG-code (1070/1071) and LayerStates (370) compatibility routes now
+have whole-file allocation rollback, unchanged caller state, same-codec
+byte-identical retry, and typed readback across AC1021, AC1024, AC1027 and
+AC1032 in ASCII and Binary. All 1,448 measured offsets pass; readback also
+checks the target revision. This is generated writer transaction evidence only;
+the synthetic group-370 route does not qualify source-bound LayerStates
+admission or native semantics ([receipt](docs/research/p6-dxf-xrecord-compatibility-version-matrix-allocation-2026-11-13.json)).
 
 **P6 RENDERSETTINGS-family transaction slice (2026-11-13):** the whole-file
 ASCII/Binary allocation sweep now writes six generated AC1032 records through
