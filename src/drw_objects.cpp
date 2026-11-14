@@ -5579,7 +5579,8 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     std::vector<DRW_DwgSubrecordRange> parsedHandleFieldSpans;
     const auto readBodyHandle = [version, baseHandle = handle, hBuf, handleEndBit,
                                  &parsedHandleFieldSpans](
-        const char *name, dwgHandle& value) {
+        const char *name, dwgHandle& value,
+        bool allowLegacySoftPointer = false) {
         std::uint64_t startBit = 0u;
         if (!objectCurrentBit(*hBuf, startBit))
             return false;
@@ -5592,6 +5593,9 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
             return false;
         if (version >= DRW::AC1018
             && parsed.rawCode != DRW::DwgHardPointer
+            && !(allowLegacySoftPointer
+                 && parsed.rawCode == DRW::DwgSoftPointer
+                 && parsed.ref != 0u)
             && !(parsed.ref == 0u
                  && parsed.rawCode == DRW::DwgNullReference)) {
             DRW_DBG("LAYER body hard-pointer role mismatch for ");
@@ -5623,7 +5627,12 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         && !readBodyHandle("material", parsedMaterial))
         return fail();
     dwgHandle parsedLineType;
-    if (!readBodyHandle("lineType", parsedLineType))
+    // The tracked LibreCAD AC1021 ENC regression source uses code-4 soft
+    // pointers for this field. Preserve tolerant import and the physical role
+    // in its span; resolveLayerLineTypeReference records the ODA-role mismatch
+    // as an integrity error, so strict output remains refused.
+    if (!readBodyHandle("lineType", parsedLineType,
+                        version == DRW::AC1021))
         return fail();
     dwgHandle parsedUnknownHandle;
     if (version >= DRW::AC1027) {
@@ -5909,7 +5918,8 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     const auto readBodyHandle = [version, &handleBuffer, &readHandle,
                                  &parsedHandleFieldSpans](
         const char *name, std::uint8_t expectedRole, bool offset,
-        dwgHandle& value) {
+        dwgHandle& value, bool allowLegacySoftPointer = false,
+        bool allowLegacyHardOwnershipNull = false) {
         std::uint64_t startBit = 0u;
         if (!objectCurrentBit(handleBuffer, startBit))
             return false;
@@ -5924,6 +5934,10 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
             && (parsed.rawCode == 0x06u || parsed.rawCode == 0x08u
                 || parsed.rawCode == 0x0Au || parsed.rawCode == 0x0Cu);
         if (parsed.rawCode != expectedRole && !relativeSoftPointer
+            && !(allowLegacySoftPointer
+                 && parsed.rawCode == DRW::DwgSoftPointer)
+            && !(allowLegacyHardOwnershipNull && parsed.ref == 0u
+                 && parsed.rawCode == DRW::DwgHardOwnership)
             && !(parsed.ref == 0u
                  && parsed.rawCode == DRW::DwgNullReference)) {
             DRW_DBG("BLOCK_HEADER body handle role mismatch for ");
@@ -5972,7 +5986,12 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
                         parsedXrefBlockHandle))
         return fail();
     dwgHandle blockH;
-    if (!readBodyHandle("block", DRW::DwgHardOwnership, true, blockH))
+    // The tracked LibreCAD AC1021 ENC writer used soft pointers for selected
+    // BLOCK_HEADER-to-BLOCK/owned-entity/ENDBLK links. Retain those exact
+    // source roles for tolerant import; the table reader records each as an
+    // integrity error before strict output.
+    if (!readBodyHandle("block", DRW::DwgHardOwnership, true, blockH,
+                        version == DRW::AC1021))
         return fail();
     parsedBlock = blockH.ref;
 
@@ -5983,7 +6002,8 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         for (std::uint32_t i = 0; i < objectCount; ++i) {
             dwgHandle entityH;
             if (!readBodyHandle("ownedEntity", DRW::DwgHardOwnership,
-                                false, entityH))
+                                false, entityH,
+                                version == DRW::AC1021))
                 return fail();
             parsedEntMap.push_back(entityH.ref);
         }
@@ -6002,7 +6022,7 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     }
     dwgHandle endBlockH;
     if (!readBodyHandle("endBlock", DRW::DwgHardOwnership, true,
-                        endBlockH))
+                        endBlockH, version == DRW::AC1021))
         return fail();
     parsedEndBlock = endBlockH.ref;
 
@@ -6024,7 +6044,8 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
                 parsedInsertHandles.push_back(insertH.ref);
         }
         dwgHandle layoutH;
-        if (!readBodyHandle("layout", DRW::DwgHardPointer, false, layoutH))
+        if (!readBodyHandle("layout", DRW::DwgHardPointer, false, layoutH,
+                            false, version == DRW::AC1021))
             return fail();
         parsedLayoutHandle = layoutH.ref;  // hard pointer to owning LAYOUT (DXF 340)
     }

@@ -1260,6 +1260,44 @@ def check_skipped_record_projection(converter, root, writer):
     return checked
 
 
+def check_historical_ac1021_role_refusal(converter, root):
+    """Keep the known AC1021 ENC role defects visible and fail closed."""
+    source = (Path(__file__).resolve().parents[1] / "tests" / "fixtures"
+              / "dwg" / "ordinary_enc_AC1021.dwg")
+    output = root / "historical AC1021 strict destination.dxf"
+    output.write_bytes(SENTINEL)
+    original = source.read_bytes()
+    result = run_bounded(
+        [str(converter), str(source), "-o", str(output), "-v2010", "-y", "-d"],
+        10, 2 * 1024 * 1024, cwd=root)
+    role_rows = [line for line in result.stderr.splitlines()
+                 if b"kind=42" in line]
+    if (result.returncode != 1 or output.read_bytes() != SENTINEL
+            or source.read_bytes() != original
+            or b"sourceDwgFrameCoverage=complete" not in result.stderr
+            or b"sourceDwgSourceFrames=26" not in result.stderr
+            or b"sourceDwgEntityParseFailures=0" not in result.stderr
+            or b"sourceDwgIntegrityRetainedRows=16" not in result.stderr
+            or b"sourceDwgIntegrityErrorsAmongRetained=7" not in result.stderr
+            or b"sourceDwgIntegrityWarningsAmongRetained=9" not in result.stderr
+            or b"sourceDwgIntegrityExtractionOmitted=9" not in result.stderr
+            or b"sourceDwgIntegrityUpstreamDroppedLowerBound=0" not in result.stderr
+            or b"sourceDwgIntegrityAggregateSaturated=false" not in result.stderr
+            or len(role_rows) != 4
+            or any(b"logicalHandle=23" not in line
+                   or b"expected=3 hasObserved=1 observed=4" not in line
+                   for line in role_rows)
+            or b"kind=39 offsetSpace=0" not in result.stderr
+            or b"logicalHandle=18 hasExpected=1 expected=5 hasObserved=1 observed=4"
+               not in result.stderr
+            or b"strict-complete conversion requires successful, complete DWG read disposition"
+            not in result.stderr):
+        raise AssertionError(
+            "historical AC1021 role defects were not retained while strict output "
+            f"remained atomic: {result!r}")
+    return 1
+
+
 def check_source_disposition_projection(converter, root, writer):
     """Expose repair, skip, decoder-issue and required-version decisions."""
     checked = 0
@@ -1285,33 +1323,7 @@ def check_source_disposition_projection(converter, root, writer):
             f"malformed HEADER was not projected as repair-required: {malformed!r}")
     checked += 1
 
-    historical_ltype_source = (Path(__file__).resolve().parents[1] / "tests"
-                               / "fixtures" / "dwg" / "ordinary_enc_AC1021.dwg")
-    historical_output = root / "historical AC1021 strict destination.dxf"
-    historical_output.write_bytes(SENTINEL)
-    historical_bytes = historical_ltype_source.read_bytes()
-    historical = run_bounded(
-        [str(converter), str(historical_ltype_source), "-o",
-         str(historical_output), "-v2010", "-y", "-d"],
-        10, 2 * 1024 * 1024, cwd=root)
-    if (historical.returncode != 1
-            or historical_output.read_bytes() != SENTINEL
-            or historical_ltype_source.read_bytes() != historical_bytes
-            or b"sourceDwgFrameCoverage=complete" not in historical.stderr
-            or b"sourceDwgSourceFrames=26" not in historical.stderr
-            or b"sourceDwgEntityParseFailures=0" not in historical.stderr
-            or b"sourceDwgIntegrityRetainedRows=16" not in historical.stderr
-            or b"sourceDwgIntegrityErrorsAmongRetained=7" not in historical.stderr
-            or b"sourceDwgIntegrityWarningsAmongRetained=9" not in historical.stderr
-            or b"sourceDwgIntegrityExtractionOmitted=0" not in historical.stderr
-            or b"sourceDwgIntegrityUpstreamDroppedLowerBound=0" not in historical.stderr
-            or b"sourceDwgIntegrityAggregateSaturated=false" not in historical.stderr
-            or b"strict-complete conversion requires successful, complete DWG read disposition"
-            not in historical.stderr):
-        raise AssertionError(
-            "historical AC1021 integrity summary did not preserve the strict refusal: "
-            f"{historical!r}")
-    checked += 1
+    checked += check_historical_ac1021_role_refusal(converter, root)
 
     repeated_group_header = root / "repeated HEADER group code.dxf"
     repeated_group_output = root / "repeated HEADER group destination.dxf"
@@ -2195,6 +2207,8 @@ def main():
                         help="run only the strict/explicit-partial DWG CLI controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
+    parser.add_argument("--historical-ac1021-only", action="store_true",
+                        help="run only the tracked historical AC1021 role/refusal check")
     parser.add_argument("--skipped-record-only", action="store_true",
                         help="run only generated skipped-record disposition controls")
     parser.add_argument("--sunstudy-observation-only", action="store_true",
@@ -2207,6 +2221,10 @@ def main():
         args.writer = args.writer.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="libdxfrw-cli-contract-") as directory:
         root = Path(directory)
+        if args.historical_ac1021_only:
+            checked = check_historical_ac1021_role_refusal(converter, root)
+            print(f"CLI historical AC1021 roles: PASS ({checked} strict-refusal control)")
+            return
         if args.sunstudy_observation_only:
             checked = check_sunstudy_observation_cli(converter, root)
             print(f"SUNSTUDY observation CLI: PASS ({checked} route/refusal controls)")

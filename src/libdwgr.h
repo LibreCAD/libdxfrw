@@ -196,7 +196,11 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// A non-null LTYPE_CONTROL member does not use its source ownership role.
     TableControlHandleRole,
     /// A declared table-control slot has no referenced table-record target.
-    TableControlNullMember
+    TableControlNullMember,
+    /// A legacy AC1021 BLOCK_HEADER-to-BLOCK handle uses a soft pointer where
+    /// the ODA role is hard ownership. It is retained for tolerant reading but
+    /// remains a strict-output integrity error.
+    BlockRecordBodyHandleRole
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

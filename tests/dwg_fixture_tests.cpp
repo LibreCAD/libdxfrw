@@ -144,6 +144,36 @@ bool hasControlRoleDiagnostic(const dx_data& data, const char* controlName) {
     return false;
 }
 
+bool hasHistoricalAc1021BlockBodyRoles(const dx_data& data) {
+    const DRW_Block_Record* source = nullptr;
+    for (const DRW_Block_Record& record : data.blockRecords) {
+        if (record.handle != 0x17u)
+            continue;
+        if (source != nullptr)
+            return false;
+        source = &record;
+    }
+    if (source == nullptr)
+        return false;
+    std::size_t blockSoftPointers = 0u;
+    std::size_t ownedEntitySoftPointers = 0u;
+    bool legacyNullLayout = false;
+    for (const DRW_DwgSubrecordRange& span : source->dwgHandleFieldSpans()) {
+        if (span.m_name == "layout"
+            && span.m_rawHandleCode == DRW::DwgHardOwnership
+            && source->layoutHandle == 0u)
+            legacyNullLayout = true;
+        if (span.m_rawHandleCode == DRW::DwgSoftPointer
+            && span.m_name == "block")
+            ++blockSoftPointers;
+        else if (span.m_rawHandleCode == DRW::DwgSoftPointer
+                 && span.m_name == "ownedEntity")
+            ++ownedEntitySoftPointers;
+    }
+    return blockSoftPointers == 1u && ownedEntitySoftPointers == 3u
+        && legacyNullLayout;
+}
+
 void testOrdinaryEncoding(TestContext& t, const char* name,
                           bool extended, const char* expectedBookName,
                           const char* expectedCodePage) {
@@ -164,6 +194,10 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
                  "historical ENC LTYPE member roles remain diagnostic");
         t.expect(hasControlRoleDiagnostic(data, "BLOCK_CONTROL"),
                  "historical ENC BLOCK member roles remain diagnostic");
+    }
+    if (data.sourceVersion == DRW::AC1021) {
+        t.expect(hasHistoricalAc1021BlockBodyRoles(data),
+                 "historical AC1021 BLOCK_HEADER spans retain soft pointers and a null hard-owned LAYOUT handle");
     }
     const std::vector<const DRW_Line*> lines = linesIn(data);
     t.expect(lines.size() == 3u,
@@ -888,6 +922,16 @@ int testPhysicalInactiveGradientHatch(const char* sourcePath) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2
+        && std::string(argv[1]) == "--ordinary-enc-ac1021-only") {
+        TestContext context;
+        testOrdinaryEncoding(context, "ordinary_enc_AC1021.dwg", true,
+                             "Book$Entry", "ANSI_1252");
+        if (context.failures != 0)
+            return 1;
+        std::cout << "Historical AC1021 ENC role profile: PASS\n";
+        return 0;
+    }
     if (argc == 2
         && std::string(argv[1]) == "--hatch-mpolygon-inactive-gradient-guard") {
         TestContext context;

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **275 completed implementation slices** and **35 remaining
+The plan records **276 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`275 / (275 + 35) = 88.7%`. This is a count-based progress measure, not an
+`276 / (276 + 35) = 88.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1167,6 +1167,20 @@ repeat the corpus census or alter the aggregate strict guard from this audit.
    J284, J293 and J295. These do not block independent local slices and cannot
    be promoted by generated controls, advisory reports, or transport-only
    evidence.
+
+**P6-F historical AC1021 LibreCAD ENC role follow-up (2026-11-13):** the
+existing hash-pinned `ordinary_enc_AC1021.dwg` source now parses its historical
+LAYER LTYPE and BLOCK_HEADER body-role variants without losing the 26 observed
+source frames. The reader records the LAYER and BLOCK_HEADER role diagnostics.
+Parsed BLOCK_HEADER spans identify the mismatching `block` and
+`ownedEntity` fields, and `layout` retains the observed null code-3
+hard-ownership role. The source's integrity projection reports 25 recorded
+rows, 16 retained rows and 9 extraction omissions. Strict-complete
+DXF output still refuses before replacing the destination sentinel. Focused
+layer-role, BLOCK_HEADER-role, tracked-fixture adapter import and
+historical-source refusal CTests pass 4/4 in 0.33 seconds. This is tolerant read compatibility for the tracked historical
+writer profile, not ODA role conformance or support/output qualification; no
+fixture was added. See the [AC1021 role receipt](docs/research/p6-ac1021-historical-block-header-body-roles-2026-11-13.json).
 
 After every slice: run its focused fast checks; update this queue and the
 relevant receipt; commit code, plan and receipt together; report the commit and

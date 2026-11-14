@@ -334,7 +334,6 @@ std::vector<std::uint8_t> makeGeneratedR2000NonXrefBlockRecord(
     output.putRawChar8(0u); // INSERT count terminator.
     output.putVariableText(version, "generated BLOCK_HEADER handle test");
     output.putBitLong(0); // Preview size.
-
     putBodyHandle(DRW::DwgSoftPointer, 0x10u); // BLOCK_CONTROL
     output.putHandle(makeHandle(DRW::DwgHardOwnership, 0x203u)); // XDictionary
     putBodyHandle(DRW::DwgHardPointer, 0u); // XREF pointer
@@ -858,6 +857,8 @@ static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TableControlHandleRol
               "table-control role observations append without renumbering prior categories");
 static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TableControlNullMember) == 41u,
               "table-control null-member observations append without renumbering prior categories");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::BlockRecordBodyHandleRole) == 42u,
+              "legacy BLOCK_HEADER role diagnostics append without renumbering prior categories");
 static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::EntityLayerHandleRole) == 37u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::EntityLineTypeHandleRole) == 38u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::LayerLineTypeHandleRole) == 39u,

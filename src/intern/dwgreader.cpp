@@ -9027,6 +9027,33 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
         ret2 = parseTableRecord(oc, kBlockTable, br);
         ret = ret && ret2;
         if (ret2) {
+          if (version == DRW::AC1021) {
+            for (const DRW_DwgSubrecordRange& span :
+                 br->dwgHandleFieldSpans()) {
+              if ((span.m_name == "block"
+                   || span.m_name == "ownedEntity"
+                   || span.m_name == "endBlock")
+                      && span.m_rawHandleCode == DRW::DwgSoftPointer) {
+                recordIntegrityDiagnostic(
+                    DwgIntegritySeverity::Error, offsetSpace,
+                    DwgIntegrityPhase::SectionParser,
+                    DwgIntegrityCheckKind::BlockRecordBodyHandleRole,
+                    -1, -1, nullptr, 0u, false, oc.loc, true, br->handle,
+                    br->handle != DRW::NoHandle, DRW::DwgHardOwnership,
+                    span.m_rawHandleCode, true);
+              } else if (span.m_name == "layout"
+                         && span.m_rawHandleCode
+                             == DRW::DwgHardOwnership) {
+                recordIntegrityDiagnostic(
+                    DwgIntegritySeverity::Error, offsetSpace,
+                    DwgIntegrityPhase::SectionParser,
+                    DwgIntegrityCheckKind::BlockRecordBodyHandleRole,
+                    -1, -1, nullptr, 0u, false, oc.loc, true, br->handle,
+                    br->handle != DRW::NoHandle, DRW::DwgHardPointer,
+                    span.m_rawHandleCode, true);
+              }
+            }
+          }
           insertTableRecord(blockRecordmap, std::move(br), "block record",
                             oc.handle, kBlockTable.recordType);
         } else {

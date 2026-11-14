@@ -270,6 +270,13 @@ if(LIBDXFRW_BUILD_TESTS)
                 --skipped-record-only)
         set_tests_properties(dwg2dxf_skipped_record_disposition PROPERTIES
             LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
+        add_test(NAME dwg2dxf_historical_ac1021_role_refusal
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --historical-ac1021-only)
+        set_tests_properties(dwg2dxf_historical_ac1021_role_refusal PROPERTIES
+            LABELS "fast;cli;dwg;compatibility;disposition" TIMEOUT 15)
     endif()
     add_test(NAME libdxfrw_independent_dxf_selftest
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
@@ -3279,6 +3286,10 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_fixtures
         COMMAND libdxfrw_dwg_fixture_tests)
+    add_test(NAME libdxfrw_ac1021_historical_enc_role_profile
+        COMMAND libdxfrw_dwg_fixture_tests --ordinary-enc-ac1021-only)
+    set_tests_properties(libdxfrw_ac1021_historical_enc_role_profile PROPERTIES
+        LABELS "fast;dwg;AC1021;compatibility;handles" TIMEOUT 15)
 
     add_test(NAME libdxfrw_hatch_mpolygon_inactive_gradient_guard
         COMMAND libdxfrw_dwg_fixture_tests --hatch-mpolygon-inactive-gradient-guard)

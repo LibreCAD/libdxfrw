@@ -19605,13 +19605,26 @@ void testAc1018PlusLayerBodyHandleRoles(TestContext& t) {
                             DRW::DwgSoftPointer);
 
             LayerHandleRoleProbe retryable;
-            const bool rejected = !parse(version, retryable, invalidBytes,
-                                         validFrame.handleBits);
-            t.expect(rejected && retryable.handle == 0u
-                         && retryable.name.empty()
-                         && retryable.dwgHandleFieldSpans().empty(),
-                     "wrong LAYER " + roles[index] + " role rejects atomically in "
-                         + versionName(version));
+            const bool legacyLayerLtype = version == DRW::AC1021
+                && roles[index] == "lineType";
+            const bool wrongRoleParsed = parse(
+                version, retryable, invalidBytes, validFrame.handleBits);
+            if (legacyLayerLtype) {
+                const auto& spans = retryable.dwgHandleFieldSpans();
+                t.expect(wrongRoleParsed && retryable.handle == 0x100u
+                             && retryable.lTypeH.rawCode == DRW::DwgSoftPointer
+                             && spans.size() == roles.size()
+                             && spans[index].m_name == "lineType"
+                             && spans[index].m_rawHandleCode == DRW::DwgSoftPointer,
+                         "tracked LibreCAD AC1021 LAYER LTYPE soft pointer stays "
+                         "readable and its role is retained");
+            } else {
+                t.expect(!wrongRoleParsed && retryable.handle == 0u
+                             && retryable.name.empty()
+                             && retryable.dwgHandleFieldSpans().empty(),
+                         "wrong LAYER " + roles[index]
+                             + " role rejects atomically in " + versionName(version));
+            }
             t.expect(parse(version, retryable, validFrame.bytes,
                            validFrame.handleBits)
                          && retryable.handle == 0x100u

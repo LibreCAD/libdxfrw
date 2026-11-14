@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-historical-block-header-body-roles-2026-11-13",
+  "date": "2026-11-13",
+  "title": "Bounded tolerant import of historical LibreCAD AC1021 table-body handle roles",
+  "status": "BOUNDED_TOLERANT_READ; STRICT_OUTPUT_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": {
+    "source": {
+      "repository": "LibreCAD/libdxfrw",
+      "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+      "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8"
+    },
+    "historicalWriter": "LibreCAD bundled libdxfrw ENC writer profile, as recorded in p4-libreCAD-historical-control-read-profile-2026-11-05.json",
+    "changes": [
+      "AC1021 LAYER lineType accepts the observed code-4 soft pointer for tolerant parsing and retains the original field span/role.",
+      "AC1021 BLOCK_HEADER block, ownedEntity, and endBlock fields accept observed code-4 soft pointers for tolerant parsing and retain each field span/role.",
+      "AC1021 BLOCK_HEADER layout accepts the observed null code-3 hard-ownership form; non-null code-3 targets remain rejected.",
+      "Integrity diagnostics preserve the object handle and expected/observed role; the parsed BLOCK_HEADER spans retain field names and raw role codes."
+    ],
+    "strictOutput": "All observed role mismatches remain integrity errors; strict-complete conversion refuses before replacing the caller destination."
+  },
+  "observations": {
+    "read": {
+      "operationSucceeded": true,
+      "sourceVersion": "AC1021",
+      "sourceFrames": 26,
+      "publishedFrames": 26,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0
+    },
+    "historicalRoles": {
+      "layerLineType": {
+        "objectHandle": 18,
+        "expected": "DwgHardPointer",
+        "observed": "DwgSoftPointer",
+        "diagnosticKind": "LayerLineTypeHandleRole"
+      },
+      "blockHeader": {
+        "objectHandle": 23,
+        "expected": "DwgHardOwnership",
+        "observed": "DwgSoftPointer",
+        "fieldCounts": {
+          "block": 1,
+          "ownedEntity": 3
+        },
+        "diagnosticKind": "BlockRecordBodyHandleRole"
+      },
+      "blockHeaderLayout": {
+        "objectHandle": 23,
+        "expected": "DwgHardPointer",
+        "observed": "DwgHardOwnership",
+        "target": 0,
+        "disposition": "tolerated as the observed null historical form"
+      }
+    },
+    "integrityProjection": {
+      "sourceRecorded": 25,
+      "retainedRows": 16,
+      "errorsAmongRetained": 7,
+      "warningsAmongRetained": 9,
+      "extractionOmitted": 9,
+      "upstreamDroppedLowerBound": 0,
+      "aggregateSaturated": false
+    },
+    "outputRefusal": {
+      "exitCode": 1,
+      "reason": "strict-complete conversion requires successful, complete DWG read disposition",
+      "destinationSentinelPreserved": true,
+      "sourceBytesUnchanged": true
+    }
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_fixture_tests -j4",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_historical_ac1021_role_refusal|libdxfrw_ac1021_historical_enc_role_profile|libdxfrw_block_record_body_handle_roles|libdxfrw_ac1018plus_layer_body_handle_roles)$' --output-on-failure",
+      "result": "PASS: 4/4 tests, 0.33 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "relatedBroaderChecks": [
+      "The general AC1021/AC1024/AC1027 DWG fixture executable remains red on its pre-existing non-AC1021 profiles; the targeted AC1021 CLI refusal control passes.",
+      "The broader --source-disposition-only CLI selector reaches a separate generated AC1032 HEADER-emission readback failure after the historical AC1021 case passes; this slice has its own isolated fast CTest."
+    ]
+  },
+  "limits": [
+    "Role relaxation is version-gated to AC1021 and field-gated to the observed slots; it does not claim ODA-conforming handle roles.",
+    "The integrity projection itself is bounded to 16 rows and reports its nine-row omission count; strict output remains refused.",
+    "No testing DWG/DXF fixture was added or modified.",
+    "This change establishes bounded read compatibility only. It does not establish complete source-to-DXF graph closure, independent semantics, consumer qualification, or format support parity."
+  ]
+}
