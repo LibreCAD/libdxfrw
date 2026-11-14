@@ -1206,11 +1206,12 @@ def check_partial_dwg_read_cli(converter, root, writer):
 
 
 def check_skipped_record_projection(converter, root, writer):
-    """Check skipped custom-class disposition at admitted raw-writer revisions."""
+    """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
         raise AssertionError("skip projection control requires the local DWG writer")
     checked = 0
-    for version in ("AC1024", "AC1027", "AC1032"):
+    for version in ("AC1015", "AC1018", "AC1021",
+                    "AC1024", "AC1027", "AC1032"):
         version_bytes = version.encode("ascii")
         strict_guard = (b"AC1027 DWG source references are not fully qualified"
                         if version == "AC1027" else

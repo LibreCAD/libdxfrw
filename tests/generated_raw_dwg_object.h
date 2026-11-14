@@ -19,9 +19,9 @@ inline dwgHandle rawObjectHandle(std::uint8_t code, std::uint32_t reference) {
     return handle;
 }
 
-// Generated-only AC1027 custom OBJECT used to exercise opaque readback.
-// The common header, string stream, detached handle stream and outer frame
-// follow the existing local round-trip control and ODA §§10.2/20.1 layout.
+// Generated-only custom OBJECT profiles exercise opaque readback across the
+// older interleaved and modern detached streams. The common header and
+// versioned string/handle layout follow ODA §§10.2/20.1.
 inline DRW_UnsupportedObject makeRawCustomObject(
     DRW::Version version, std::uint16_t classNumber, std::uint32_t handle,
     const std::string& recordName, const std::string& className,
@@ -31,24 +31,42 @@ inline DRW_UnsupportedObject makeRawCustomObject(
 
     dwgBufferW body;
     dwgBufferW handles;
+    std::uint64_t objectSizeBit = 0;
+    const bool hasExplicitObjectSize =
+        version > DRW::AC1014 && version < DRW::AC1024;
     body.putObjType(version, classNumber);
+    if (hasExplicitObjectSize) {
+        objectSizeBit = body.bitCount();
+        body.putRawLong32(0); // pre-R2010 object-data end bit
+    }
     body.putHandle(rawObjectHandle(4, encodedHandle));
     body.putBitShort(0); // EED size
     body.putBitLong(0);  // reactor count
-    body.putBit(0);      // no extension dictionary
-    body.putBit(0);      // no DataStorage payload
+    if (version > DRW::AC1015)
+        body.putBit(0); // R2004+: XDictionary handle follows
+    if (version > DRW::AC1024)
+        body.putBit(0); // R2013+: no DataStorage payload
     body.putRawLong32(0x12345678u);
     body.putRawShort16(0xABCDu);
     body.putRawChar8(0x5Au);
-    body.alignToByte();
-    for (int bit = 0; bit < 7; ++bit)
-        body.putBit(0); // empty R2007+ string stream
-    body.putRawShort16(0);
-    body.putBit(0);
-    body.alignToByte();
 
-    handles.putHandle(rawObjectHandle(4, 0)); // owner
-    handles.putHandle(rawObjectHandle(0, 0)); // xdictionary
+    // R2007+ strings live at the end of the object data and are indexed by
+    // the bounded string-stream footer. This generated class has no strings;
+    // an empty, seven-bit stream keeps the string-presence encoding valid.
+    if (version > DRW::AC1018) {
+        body.alignToByte();
+        for (int bit = 0; bit < 7; ++bit)
+            body.putBit(0);
+        body.putRawShort16(7);
+        body.putBit(1);
+    }
+    body.alignToByte();
+    if (hasExplicitObjectSize)
+        body.patchRawLong32AtBit(
+            objectSizeBit, static_cast<std::uint32_t>(body.bitCount()));
+
+    handles.putHandle(rawObjectHandle(4, 0)); // parent
+    handles.putHandle(rawObjectHandle(0, 0)); // XDictionary
     handles.alignToByte();
 
     DRW_UnsupportedObject object;
@@ -57,7 +75,7 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     object.m_handle = handle;
     object.m_parentHandle = DRW::NoHandle;
     object.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::ValidatedAbsent);
-    object.m_bodyBitSize = static_cast<std::uint32_t>(handles.size() * 8u);
+    object.m_bodyBitSize = static_cast<std::uint32_t>(handles.bitCount());
     object.m_isEntity = false;
     object.m_isCustomClass = true;
     object.m_recordName = recordName;
