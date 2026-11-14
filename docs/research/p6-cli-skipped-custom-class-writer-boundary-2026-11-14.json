@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-14",
+  "objective": "Bound the local generated custom-class CLI skip projection to revisions for which the raw custom-class generator emits a usable source.",
+  "sourceRevision": "f5d40d1dcd22a6d523f439479505cf9b5b69d73d",
+  "generator": {
+    "path": "build/libdxfrw_dwg_local_roundtrip",
+    "sha256": "477216f6dba41724bdf867ab909019cef76a63d4353f33a0c09d558ca3dfc7fc",
+    "arguments": [
+      "--generate-cli-skip-source",
+      "<new-temporary-file>",
+      "<version>"
+    ]
+  },
+  "sourceCode": {
+    "path": "tests/dwg_local_roundtrip_tests.cpp",
+    "sha256": "5bb15937a36301e9aa99eedcfdfbacf8ebc6b2f406b0ac20d47c93a7199bc516",
+    "locations": [
+      "makeCliSkippedObject",
+      "ReadOutcomeControl::writeDwgClasses",
+      "ReadOutcomeControl::writeObjects",
+      "--generate-cli-skip-source dispatch"
+    ]
+  },
+  "attempts": [
+    {
+      "version": "AC1015",
+      "exitCode": 1,
+      "stderr": "Could not generate CLI skip DWG source:  — ",
+      "disposition": "No valid generated DWG witness; do not treat as CLI reader evidence."
+    },
+    {
+      "version": "AC1018",
+      "exitCode": 1,
+      "stderr": "Could not generate CLI skip DWG source:  — ",
+      "disposition": "No valid generated DWG witness; do not treat as CLI reader evidence."
+    },
+    {
+      "version": "AC1021",
+      "exitCode": 1,
+      "stderr": "Could not generate CLI skip DWG source:  — ",
+      "disposition": "No valid generated DWG witness; do not treat as CLI reader evidence."
+    }
+  ],
+  "currentAdmittedGeneratedMatrix": [
+    "AC1024",
+    "AC1027",
+    "AC1032"
+  ],
+  "validation": {
+    "command": "ctest --test-dir build -R '^dwg2dxf_skipped_record_disposition$' --output-on-failure",
+    "result": "passed",
+    "summary": "1/1 CTest passed; the existing 3-version x 3-profile generated matrix completed in 1.48 seconds after reverting the unsupported older-version extension.",
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip dwg2dxf -j 4",
+    "buildResult": "passed"
+  },
+  "limitations": [
+    "This probes writer eligibility only; it does not qualify CLI handling for AC1015, AC1018, or AC1021.",
+    "The temporary probe files were removed and no DWG/DXF fixture was added.",
+    "The modern generated CLI matrix remains bounded to its existing source profile and does not promote support claims."
+  ]
+}
