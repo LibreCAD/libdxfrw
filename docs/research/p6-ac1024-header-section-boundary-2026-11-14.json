@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound AC1024 physical HEADER page and decoded envelope accounting for one external local sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["R2010 section/page map", "AcDb:Header"],
+    "rules": [
+      "The section map identifies the HEADER section and its physical page references.",
+      "The decoded AcDb:Header envelope contains a begin sentinel, size fields, CRC, and end sentinel; compare the validated trailer end to the decoded logical-section size when accounting for suffix bytes."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1024.dwg",
+    "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "size": 1122389,
+    "version": "AC1024",
+    "provenanceLimit": "The file is from a local ACadSharp sample checkout; its producer and source-generation provenance were not established. It is not a repository fixture."
+  },
+  "physicalHeaderPage": {
+    "pageNumber": 65,
+    "fileOffset": 1119808,
+    "pageBytes": 992,
+    "pageSha256": "0d5afc02fea7c1157f3edec4e6fbd5dd10cd22661f2f4126ec542d46f1e895dc",
+    "compressedDataBytes": 945,
+    "decompressedDataBytes": 869
+  },
+  "decodedHeaderEnvelope": {
+    "logicalSectionId": 1,
+    "inputBytes": 869,
+    "beginSentinelOffset": 0,
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 827,
+    "highSizeWordOffset": 20,
+    "highSizeWord": 0,
+    "dataOffset": 24,
+    "payloadEndOffset": 851,
+    "crcOffset": 851,
+    "storedCrc": "0xbedc",
+    "calculatedCrc": "0xbedc",
+    "endSentinelOffset": 853,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 869,
+    "unclaimedSuffixBytes": 0,
+    "compatibilityDiagnostic": "The reader reports HeaderSectionCompatibility expected=847, observed=851 while admitting the zero high-size-word profile. Preserve this observed diagnostic; this receipt does not assert whether it is the correct producer-facing severity."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/p6-e-ac1024-crc-probe.dxf",
+    "executableSha256": "0c3038724b39b95ac57062fee287be3de5e819d6a90d2ed38da12d105a4eb3f6",
+    "traceSha256": "5d253f619d1c5f63a6522d5394f682bcd8478d9fdda34f5ae575c3c9c24fe6fe",
+    "exitCode": 1,
+    "observation": "The reader parsed the HEADER envelope with zero unclaimed bytes and matching traced CRC values. It published all 923 observed source frames with no entity/object parse failures. Strict DXF export later refused a standalone OBJECTCONTEXTDATA record with no qualified replay path; this is not a HEADER failure."
+  },
+  "limitations": [
+    "One local sample with unknown producer provenance does not qualify an AC1024 producer profile.",
+    "This exact-envelope sample does not classify the unclaimed suffix in the distinct AC1024 ODA maintenance-55 witness documented in p6-ac1024-header-unclaimed-suffix-diagnostic-2026-11-04.json.",
+    "CRC is computed by the instrumented libdxfrw reader itself, not by an independent implementation; no output or support claim is promoted."
+  ]
+}
