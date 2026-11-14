@@ -6946,6 +6946,7 @@ bool runLightListSweep(const std::filesystem::path& directory) {
     };
     const auto readbackMatches = [](const std::filesystem::path& path,
                                     const char* expectedVersion,
+                                    DRW::Version expectedSourceVersion,
                                     bool binary) {
         std::ifstream input(path, std::ios::binary);
         if (!input)
@@ -6972,7 +6973,9 @@ bool runLightListSweep(const std::filesystem::path& directory) {
         const std::string pathString = path.string();
         dxfRW reader(pathString.c_str());
         LightListReadback probe;
-        return reader.read(&probe, true) && probe.found
+        return reader.read(&probe, true)
+            && reader.getSourceVersion() == expectedSourceVersion
+            && probe.found
             && probe.captured.handle == 0xAD00u
             && probe.captured.parentHandle == 0xAA02u
             && probe.captured.m_classVersion == 1u
@@ -7070,7 +7073,8 @@ bool runLightListSweep(const std::filesystem::path& directory) {
                 std::string retryBytes;
                 const bool retryRead = readBytes(output, retryBytes);
                 const bool readback = retryRead
-                    && readbackMatches(output, version.second, binary);
+                    && readbackMatches(output, version.second, version.first,
+                                       binary);
                 const bool stagedAfterRetry = hasStagedOutput(output);
                 if (!retried || !retryRead || retryBytes != expectedBytes
                     || !readback || stagedAfterRetry) {

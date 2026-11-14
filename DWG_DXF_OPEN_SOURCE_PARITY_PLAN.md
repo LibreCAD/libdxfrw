@@ -5489,9 +5489,11 @@ The generated whole-operation OBJECTS sweep now covers a two-light `LIGHTLIST`
 at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. The 782 measured
 allocation offsets preserve the prior destination, caller fields,
 source-handle bindings and staging cleanup; same-codec retry reproduces clean
-bytes, raw header inspection confirms the exact `$ACADVER`, and typed readback
-verifies ordered names and remapped owner/reactor/light roles. The focused CTest
-passes in 1.83 seconds. This closes generated transaction coverage for this
+bytes, raw header inspection confirms the exact `$ACADVER`, `getSourceVersion()`
+confirms the source revision, and typed readback verifies ordered names and
+remapped owner/reactor/light roles. The ordinary codec version normalizes these
+four modern revisions to the shared AC1021 text-codec profile by design. The
+focused CTest passes in 1.83 seconds. This closes generated transaction coverage for this
 profile across the four revisions only; source-profile provenance, ACAD_LIGHT
 dictionary membership and native consumer behavior remain unqualified
 ([version-matrix receipt](docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json)).

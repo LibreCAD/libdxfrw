@@ -4,7 +4,7 @@
   "date": "2026-11-13",
   "status": "GENERATED_LIGHTLIST_VERSION_MATRIX_TRANSACTION_PASS",
   "supportClaimEffect": "none",
-  "scope": "Sweep allocation failures through whole-operation LIGHTLIST DXF writes at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary; verify rollback, same-codec retry, exact serialized version header and typed readback.",
+  "scope": "Sweep allocation failures through whole-operation LIGHTLIST DXF writes at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary; verify rollback, same-codec retry, exact serialized version header, parsed source revision and typed readback.",
   "source": {
     "kind": "deterministic locally-authored in-memory DRW graph",
     "profile": "One LIGHTLIST with two named LIGHT references, an ACAD_LIGHT dictionary pointer, one persistent reactor and an object owner. All source handles are remapped explicitly. No external DWG/DXF fixture is used or added.",
@@ -16,7 +16,7 @@
       "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
       "docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json"
     ],
-    "method": "For each revision and encoding, warm the writer, calibrate the allocation count, inject one-shot failures at every measured offset, and verify prior destination bytes, caller fields, source-handle binding rollback and staging cleanup. Retry on the same codec and require byte-identical output, raw $ACADVER group-1 verification, and typed LIGHTLIST readback of ordered names plus remapped owner/reactor/light handles.",
+    "method": "For each revision and encoding, warm the writer, calibrate the allocation count, inject one-shot failures at every measured offset, and verify prior destination bytes, caller fields, source-handle binding rollback and staging cleanup. Retry on the same codec and require byte-identical output, raw $ACADVER group-1 verification, getSourceVersion() agreement, and typed LIGHTLIST readback of ordered names plus remapped owner/reactor/light handles.",
     "revisions": ["AC1021", "AC1024", "AC1027", "AC1032"],
     "allocationOffsets": {
       "AC1021_ASCII": 96,
