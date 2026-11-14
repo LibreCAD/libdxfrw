@@ -87,9 +87,9 @@
       "result": "The merged DWG changed-LTYPE save/readback case passes (9 assertions) with the adapter overload corrected. This isolates a LibreCAD consumer bug; no coercion was added to libdxfrw's strict writer."
     },
     {
-      "scope": "Disposable test source only; added an LTYPE table entry for the MLINESTYLE's VENDOR_MLS reference, then separately removed the unrelated MLINESTYLE OBJECTS section.",
-      "finding": "Adding the missing LTYPE target does not remove the OBJECTS-emission failure, which is caused by the fixture's MLINESTYLE route rather than the edited LTYPE itself. Removing that object lets export complete and its output contains the nested LTYPE application group 310=CAFE before the name/subclass fields. The test helper only collects LTYPE fields after group 2, so its final assertion is order-sensitive and misses preserved application data.",
-      "result": "No LTYPE binary application-data loss was observed in this experiment. The fixture still needs to isolate the LTYPE regression from the MLINESTYLE object, or independently qualify that object route; the helper must account for valid group ordering. All changes were confined to the disposable checkout."
+      "scope": "Disposable LibreCAD checkout only: changed the default `$DIMSTYLE` insertion to `QStringLiteral(\"Standard\")`; removed the unrelated MLINESTYLE OBJECTS section from the complex-LTYPE-only fixture; and changed its group-value helper to collect record fields regardless of whether they precede or follow group-2 name.",
+      "finding": "The original fixture's MLINESTYLE OBJECTS emission fails independently of the edited LTYPE; adding an LTYPE row did not cure it. With MLINESTYLE isolated, the output contains nested group 102 `{LTYPE_APP`, group 310 `CAFE`, then the LTYPE subclass/name. The corrected helper recognizes that valid ordering.",
+      "result": "All five merged PR #3269 named-LTYPE cases pass against the upstream libdxfrw overlay: 49 assertions total (15, 9, 5, 14, 6). This is a temporary integration reproduction only. No LibreCAD source/test change was copied into either repository."
     }
   ],
   "fixturePolicy": {
@@ -98,9 +98,9 @@
   },
   "limitations": [
     "The clean LibreCAD fast-test target links its bundled libdxfrw; the upstream overlay was tested with a temporary focused target.",
-    "Only three of the five merged PR #3269 regression cases pass with this upstream checkout; the two failures need isolated investigation and resolution before P8-D can close.",
+    "In the unmodified disposable LibreCAD checkout only three of five PR #3269 cases pass against upstream. Five of five pass only after the temporary adapter/test changes recorded above; those downstream changes have not been committed or merged.",
     "The DWG failure is currently traced to a wrong-typed HEADER variable; no coercion was added because it would weaken strict output validation.",
-    "The complex-LTYPE failure is entangled with a separate MLINESTYLE OBJECTS route in the test input; adding its missing LTYPE target did not cure export. Removing that object allowed the LTYPE edit and nested 310 application data to emit, while the consumer test helper missed the pre-name application group due to its scan order.",
+    "The complex-LTYPE regression test needs a permanent fixture/helper correction to isolate MLINESTYLE OBJECTS emission and recognize valid pre-name application groups; the separate MLINESTYLE route remains unqualified.",
     "LibreCAD_3 clean linked tests, ABI comparison, Linux/Windows qualification, and native application behavior remain unqualified."
   ]
 }
