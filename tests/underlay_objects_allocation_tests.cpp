@@ -72,12 +72,12 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
     return !input.bad();
 }
 
-bool verifyGraph(const std::filesystem::path& path) {
+bool verifyGraph(const std::filesystem::path& path, std::size_t expectedCount) {
     dx_data data;
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
-        || data.underlayDefinitions.size() != 3u
-        || data.underlays.size() != 3u)
+        || data.underlayDefinitions.size() != expectedCount
+        || data.underlays.size() != expectedCount)
         return false;
     for (const DRW_Underlay* underlay : data.underlays) {
         if (underlay == nullptr)
@@ -94,13 +94,14 @@ bool verifyGraph(const std::filesystem::path& path) {
     return true;
 }
 
-bool callerGraphMatches(const dx_data& data) {
+bool callerGraphMatches(const dx_data& data, std::size_t expectedCount,
+                        bool dwfOnly) {
     if (!data.hasNamedObjectDictionary
         || data.namedObjectDictionary.handle != 0xC700u
-        || data.namedObjectDictionary.m_entries.size() != 3u
-        || data.dictionaries.size() != 3u
-        || data.underlayDefinitions.size() != 3u
-        || data.underlays.size() != 3u
+        || data.namedObjectDictionary.m_entries.size() != expectedCount
+        || data.dictionaries.size() != expectedCount
+        || data.underlayDefinitions.size() != expectedCount
+        || data.underlays.size() != expectedCount
         || data.underlayDefinitionCaptureFailed)
         return false;
     constexpr std::array<DRW_Underlay::Kind, 3> kinds{{
@@ -109,13 +110,14 @@ bool callerGraphMatches(const dx_data& data) {
         "ACAD_PDFDEFINITIONS", "ACAD_DGNDEFINITIONS",
         "ACAD_DWFDEFINITIONS"}};
     auto underlayIt = data.underlays.begin();
-    for (std::size_t index = 0; index < kinds.size(); ++index) {
+    for (std::size_t index = 0; index < expectedCount; ++index) {
+        const std::size_t kindIndex = dwfOnly ? 2u : index;
         const auto dictionaryHandle = static_cast<std::uint32_t>(0xC701u + index);
         const auto definitionHandle = static_cast<std::uint32_t>(0xC710u + index);
         const auto underlayHandle = static_cast<std::uint32_t>(0xC720u + index);
         const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),
             data.namedObjectDictionary.m_entries.end(), [&](const auto& entry) {
-                return entry.m_name == rootNames[index]
+                return entry.m_name == rootNames[kindIndex]
                     && entry.m_handle == dictionaryHandle;
             });
         const auto dictionary = std::find_if(data.dictionaries.begin(),
@@ -135,7 +137,7 @@ bool callerGraphMatches(const dx_data& data) {
             || definition->second.handle != definitionHandle
             || definition->second.parentHandle != dictionaryHandle
             || static_cast<int>(definition->second.kind)
-                != static_cast<int>(kinds[index])
+                != static_cast<int>(kinds[kindIndex])
             || definition->second.filename
                 != "underlay-" + std::to_string(index) + ".source"
             || definition->second.sheetName
@@ -144,7 +146,8 @@ bool callerGraphMatches(const dx_data& data) {
         const dx_ifaceUnderlay* underlay = *underlayIt++;
         if (underlay == nullptr || underlay->handle != underlayHandle
             || underlay->sourceImportGeneration != data.importGeneration
-            || static_cast<int>(underlay->kind) != static_cast<int>(kinds[index])
+            || static_cast<int>(underlay->kind)
+                != static_cast<int>(kinds[kindIndex])
             || underlay->definitionHandle != definitionHandle
             || underlay->position.x != 10.0 + index
             || underlay->position.y != 20.0 + index
@@ -180,11 +183,14 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
     constexpr std::array<const char*, 3> rootNames{{
         "ACAD_PDFDEFINITIONS", "ACAD_DGNDEFINITIONS",
         "ACAD_DWFDEFINITIONS"}};
-    for (std::size_t index = 0; index < kinds.size(); ++index) {
+    const bool dwfOnly = version == DRW::AC1021;
+    const std::size_t profileCount = dwfOnly ? 1u : kinds.size();
+    for (std::size_t index = 0; index < profileCount; ++index) {
+        const std::size_t kindIndex = dwfOnly ? 2u : index;
         const auto dictionaryHandle = static_cast<std::uint32_t>(0xC701u + index);
         const auto definitionHandle = static_cast<std::uint32_t>(0xC710u + index);
         data.namedObjectDictionary.m_entries.push_back(
-            {rootNames[index], dictionaryHandle});
+            {rootNames[kindIndex], dictionaryHandle});
 
         DRW_Dictionary dictionary;
         dictionary.handle = dictionaryHandle;
@@ -197,7 +203,8 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
         DRW_UnderlayDefinition definition;
         definition.handle = definitionHandle;
         definition.parentHandle = dictionaryHandle;
-        definition.kind = static_cast<DRW_UnderlayDefinition::Kind>(kinds[index]);
+        definition.kind = static_cast<DRW_UnderlayDefinition::Kind>(
+            kinds[kindIndex]);
         definition.filename = std::string("underlay-")
             + std::to_string(index) + ".source";
         definition.sheetName = std::string("Sheet") + std::to_string(index + 1u);
@@ -205,7 +212,7 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
 
         DRW_Underlay underlay;
         underlay.handle = static_cast<std::uint32_t>(0xC720u + index);
-        underlay.kind = kinds[index];
+        underlay.kind = kinds[kindIndex];
         underlay.definitionHandle = definition.handle;
         underlay.position = DRW_Coord(10.0 + index, 20.0 + index, 0.0);
         underlay.scale = DRW_Coord(1.0, 1.0, 1.0);
@@ -230,10 +237,10 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
                                    &data, false, true);
     };
     exporter.failAt = 1000000;
-    if (!write() || !callerGraphMatches(data))
+    if (!write() || !callerGraphMatches(data, profileCount, dwfOnly))
         return fail("allocation calibration export failed");
     const long allocationCount = exporter.reached;
-    if (allocationCount <= 0 || !verifyGraph(destination))
+    if (allocationCount <= 0 || !verifyGraph(destination, profileCount))
         return fail("calibration did not produce the expected graph");
     std::string expectedBytes;
     if (!readAll(destination, expectedBytes))
@@ -253,7 +260,7 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
         exporter.failAt = -1;
         std::string current;
         if (wrote || exporter.reached != offset + 1 || !allocationFailed
-            || !callerGraphMatches(data)
+            || !callerGraphMatches(data, profileCount, dwfOnly)
             || !readAll(destination, current) || current != sentinel) {
             std::cerr << "offset=" << offset << " wrote=" << wrote
                       << " reached=" << exporter.reached
@@ -263,7 +270,8 @@ bool run(const std::filesystem::path& directory, DRW::Version version,
                       << " attempts=" << allocationAttempts << '\n';
             return fail("injected failure did not preserve the prior destination");
         }
-        if (!write() || !callerGraphMatches(data) || !verifyGraph(destination))
+        if (!write() || !callerGraphMatches(data, profileCount, dwfOnly)
+            || !verifyGraph(destination, profileCount))
             return fail("same-adapter retry failed typed graph readback");
         std::string retryBytes;
         if (!readAll(destination, retryBytes) || retryBytes != expectedBytes)
@@ -306,8 +314,9 @@ int main(int argc, char** argv) {
         std::cerr << "could not create scratch directory: " << error.message() << '\n';
         return 2;
     }
-    constexpr std::array<std::pair<DRW::Version, const char*>, 3> versions{{
-        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+    constexpr std::array<std::pair<DRW::Version, const char*>, 4> versions{{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}}};
     for (const auto& version : versions) {
         if (!run(directory, version.first, version.second, false)
