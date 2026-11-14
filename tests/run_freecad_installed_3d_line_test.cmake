@@ -316,6 +316,10 @@ if(DEFINED EXPECT_3DFACE)
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_3DFACE=${EXPECT_3DFACE}")
 endif()
+if(DEFINED EXPECTED_FREECAD_POLYFACE)
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_POLYFACE=${EXPECTED_FREECAD_POLYFACE}")
+endif()
 if(DEFINED EXPECTED_FREECAD_REVISION)
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_REVISION=${EXPECTED_FREECAD_REVISION}")
@@ -342,6 +346,10 @@ if(DEFINED EXPECTED_PRIMITIVE_COUNTS
 else()
     set(_geometry_assertion_key "\"expected_line_bounds\"")
 endif()
+set(_polyface_assertion_key "")
+if(DEFINED EXPECTED_FREECAD_POLYFACE)
+    set(_polyface_assertion_key "\"expected_polyface_triangles\"")
+endif()
 foreach(_expected IN ITEMS
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
         "${_installed_converter}"
@@ -349,7 +357,11 @@ foreach(_expected IN ITEMS
         "\"operation\": \"${OPERATION}\""
         "\"discovery\": \"path\""
         "\"dwg_conversion\": ${DWG_CONVERSION_MODE}"
+        "${_polyface_assertion_key}"
         "${_geometry_assertion_key}")
+    if(NOT _expected)
+        continue()
+    endif()
     string(FIND "${_freecad_stdout}" "${_expected}" _found)
     if(_found EQUAL -1)
         message(FATAL_ERROR

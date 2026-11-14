@@ -132,7 +132,8 @@ def line_pass_json(result):
 
 def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
                               expected_spline_samples, expected_polyline_points,
-                              expected_closed_2d_polyline_points):
+                              expected_closed_2d_polyline_points,
+                              excluded_object_names=()):
     """Check authored primitive geometry after native DXF import."""
     counts = stats.get("entityCounts", {})
     for entity, expected in expected_counts.items():
@@ -144,7 +145,8 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
             )
     features = [obj for obj in document.Objects
                 if getattr(obj, "Shape", None) is not None
-                and not obj.Shape.isNull()]
+                and not obj.Shape.isNull()
+                and obj.Name not in excluded_object_names]
     if len(features) != len(expected_shapes):
         raise AssertionError(
             "expected %d shaped primitive imports, observed %d"
@@ -287,6 +289,113 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
             "spline_samples": verified_spline_samples,
             "polyline_points": verified_polyline_points,
             "closed_2d_polyline_points": verified_closed_2d_polylines}
+
+
+def assert_polyface_geometry(document, expected_mesh):
+    """Check FreeCAD's semantic outcome for the authored POLYFACE."""
+    expected_points = [tuple(float(value) for value in point)
+                       for point in expected_mesh["points"]]
+    expected_bounds = finite_values(
+        expected_mesh["bounds"], 6, "expected POLYFACE bounds")
+    candidates = []
+    wireframe_candidates = []
+    shape_inventory = []
+    for obj in document.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is None or shape.isNull():
+            continue
+        box = shape.BoundBox
+        bounds = (box.XMin, box.YMin, box.ZMin,
+                  box.XMax, box.YMax, box.ZMax)
+        shape_inventory.append((obj.Name, obj.TypeId, bounds,
+                                len(shape.Faces), len(shape.Edges),
+                                len(shape.Vertexes)))
+        if coordinates_match(bounds, expected_bounds):
+            candidates.append((obj, shape))
+        if (len(shape.Faces) == 0 and len(shape.Edges) == 4
+                and len(shape.Vertexes) == 5
+                and coordinates_match(
+                    (bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]),
+                    (0.0, 0.0, 0.0, expected_bounds[3], expected_bounds[4], expected_bounds[5]))):
+            wireframe_candidates.append((obj, shape, bounds))
+    if len(candidates) == 1:
+        obj, shape = candidates[0]
+    elif len(candidates) == 0 and len(wireframe_candidates) == 1:
+        obj, shape, bounds = wireframe_candidates[0]
+        actual_version = list(App.Version())
+        expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
+        if (not expected_revision or len(actual_version) < 8
+                or actual_version[7] != expected_revision):
+            raise RuntimeError(
+                "known POLYFACE wireframe boundary requires the pinned FreeCAD revision")
+        observed_points = sorted(
+            (float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+            for vertex in shape.Vertexes)
+        expected_wire_points = sorted(expected_points + [(0.0, 0.0, 0.0)])
+        if (len(observed_points) != len(expected_wire_points)
+                or any(not coordinates_match(actual, wanted)
+                       for actual, wanted in zip(observed_points, expected_wire_points))):
+            raise AssertionError(
+                "pinned FreeCAD POLYFACE wireframe vertex sequence changed: %r"
+                % observed_points)
+        return {"outcome": "wireframe_includes_parent_basepoint",
+                "pinned_freecad_revision": expected_revision,
+                "object_type": obj.TypeId, "shape_type": shape.ShapeType,
+                "face_count": 0, "edge_count": len(shape.Edges),
+                "vertex_count": len(shape.Vertexes), "bounds": bounds,
+                "vertices": observed_points, "object_name": obj.Name}
+    else:
+        raise AssertionError(
+            "expected one supported POLYFACE or the pinned wireframe boundary; "
+            "supported=%d, boundary=%d, inventory=%r"
+            % (len(candidates), len(wireframe_candidates), shape_inventory))
+    if shape.isValid() is not True or len(shape.Faces) != 2:
+        raise AssertionError(
+            "POLYFACE must produce a valid two-triangle surface; object=%s, "
+            "valid=%r, faces=%d"
+            % (obj.Name, shape.isValid(), len(shape.Faces)))
+    observed_triangles = []
+    observed_points = set()
+    for face in shape.Faces:
+        points = [(float(vertex.Point.x), float(vertex.Point.y),
+                   float(vertex.Point.z)) for vertex in face.Vertexes]
+        if len(points) != 3 or not math.isfinite(float(face.Area)) or face.Area <= 0:
+            raise AssertionError("POLYFACE surface contains a degenerate/non-triangle face")
+        observed_triangles.append(tuple(sorted(points)))
+        observed_points.update(points)
+    expected_triangles = [
+        tuple(sorted((expected_points[0], expected_points[1], expected_points[2]))),
+        tuple(sorted((expected_points[0], expected_points[2], expected_points[3]))),
+    ]
+    alternate_triangles = [
+        tuple(sorted((expected_points[0], expected_points[1], expected_points[3]))),
+        tuple(sorted((expected_points[1], expected_points[2], expected_points[3]))),
+    ]
+
+    def triangles_match(actual, wanted):
+        actual_sorted = sorted(actual)
+        wanted_sorted = sorted(wanted)
+        return len(actual_sorted) == len(wanted_sorted) and all(
+            len(actual_triangle) == len(wanted_triangle)
+            and all(coordinates_match(a, b) for a, b in zip(
+                actual_triangle, wanted_triangle))
+            for actual_triangle, wanted_triangle in zip(actual_sorted, wanted_sorted))
+
+    if not (triangles_match(observed_triangles, expected_triangles)
+            or triangles_match(observed_triangles, alternate_triangles)):
+        raise AssertionError(
+            "POLYFACE triangle vertices differ from either valid quad split: %r"
+            % observed_triangles)
+    sorted_points = sorted(observed_points)
+    if (len(sorted_points) != len(expected_points)
+            or any(not coordinates_match(actual, wanted)
+                   for actual, wanted in zip(sorted_points, sorted(expected_points)))):
+        raise AssertionError("POLYFACE vertex set differs from authored vertices")
+    return {"outcome": "triangulated_surface",
+            "object_type": obj.TypeId, "shape_type": shape.ShapeType,
+            "face_count": len(shape.Faces), "bounds": expected_bounds,
+            "vertices": sorted_points, "triangle_points": observed_triangles,
+            "object_name": obj.Name}
 
 
 def line_predicate_self_test():
@@ -789,8 +898,12 @@ def assert_3dface_unsupported(document, stats, unsupported,
             or shaped_count != expected_shaped_count
             or other_unsupported):
         raise AssertionError(
-            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes, other unsupported %r"
-            % (unsupported_3dface_count, shaped_count, other_unsupported)
+            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes "
+            "(expected %d), objects %r, other unsupported %r"
+            % (unsupported_3dface_count, shaped_count, expected_shaped_count,
+               [(obj.Name, obj.TypeId, hasattr(obj, "Mesh"),
+                 getattr(obj, "Shape", None) is not None)
+                for obj in document.Objects], other_unsupported)
         )
     return {
         "pinned_freecad_revision": expected_revision,
@@ -889,6 +1002,30 @@ def modeler_document_inventory(document):
 
 expected_bounds_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS")
 expected_primitives = None
+expected_polyface_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_POLYFACE")
+expected_polyface = None
+if expected_polyface_json:
+    try:
+        expected_polyface = json.loads(expected_polyface_json)
+        if (set(expected_polyface) != {"triangles", "bounds", "points"}
+                or type(expected_polyface["triangles"]) is not int
+                or expected_polyface["triangles"] <= 0
+                or not isinstance(expected_polyface["bounds"], list)
+                or len(expected_polyface["bounds"]) != 6
+                or not isinstance(expected_polyface["points"], list)
+                or len(expected_polyface["points"]) < 3
+                or any(not isinstance(point, list) or len(point) != 3
+                       or any(isinstance(value, bool)
+                              or not isinstance(value, (int, float))
+                              or not math.isfinite(value) for value in point)
+                       for point in expected_polyface["points"])
+                or any(isinstance(value, bool)
+                       or not isinstance(value, (int, float))
+                       or not math.isfinite(value)
+                       for value in expected_polyface["bounds"])):
+            raise ValueError("invalid facet, bounds, or point profile")
+    except Exception as error:
+        raise RuntimeError("invalid FreeCAD mesh expectation: %s" % error)
 expected_primitive_counts = os.environ.get(
     "LIBDXFRW_FREECAD_EXPECT_PRIMITIVE_COUNTS")
 expected_primitive_shapes = os.environ.get(
@@ -1165,7 +1302,8 @@ try:
         face_outcome = assert_3dface_unsupported(
             doc, stats, unsupported,
             0 if expected_primitives is None
-            else len(expected_primitives["shapes"]))
+            else len(expected_primitives["shapes"])
+            + (1 if expected_polyface is not None else 0))
         result = dict(common_result)
         result.update(
             {
@@ -1175,20 +1313,31 @@ try:
             }
         )
         if expected_primitives is not None:
+            polyface_geometry = (assert_polyface_geometry(doc, expected_polyface)
+                                 if expected_polyface is not None else None)
             geometry = assert_primitive_geometry(
                 doc, stats, expected_primitives["counts"],
                 expected_primitives["shapes"], expected_spline_samples,
-                expected_polyline_points, expected_closed_2d_polyline_points)
+                expected_polyline_points, expected_closed_2d_polyline_points,
+                () if polyface_geometry is None
+                else (polyface_geometry["object_name"],))
             result.update({
                 "expected_entity_counts": expected_primitives["counts"],
                 "expected_primitive_shapes": expected_primitives["shapes"],
                 "primitive_geometry": geometry,
             })
+            if polyface_geometry is not None:
+                result["expected_polyface_triangles"] = expected_polyface["triangles"]
+                result["polyface_geometry"] = polyface_geometry
     elif expected_primitives is not None:
+        polyface_geometry = (assert_polyface_geometry(doc, expected_polyface)
+                             if expected_polyface is not None else None)
         geometry = assert_primitive_geometry(
             doc, stats, expected_primitives["counts"],
             expected_primitives["shapes"], expected_spline_samples,
-            expected_polyline_points, expected_closed_2d_polyline_points)
+            expected_polyline_points, expected_closed_2d_polyline_points,
+            () if polyface_geometry is None
+            else (polyface_geometry["object_name"],))
         if unsupported:
             raise AssertionError(
                 "FreeCAD reported unsupported features: %r" % unsupported
@@ -1199,6 +1348,9 @@ try:
             "expected_primitive_shapes": expected_primitives["shapes"],
             "primitive_geometry": geometry,
         })
+        if polyface_geometry is not None:
+            result["expected_polyface_triangles"] = expected_polyface["triangles"]
+            result["polyface_geometry"] = polyface_geometry
     else:
         import Part
 

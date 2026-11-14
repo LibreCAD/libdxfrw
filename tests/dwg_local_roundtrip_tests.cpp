@@ -10148,6 +10148,30 @@ public:
         wrote3dPolyline_ = writer_->writePolyline(&spatialPolyline)
             && spatialPolyline.handle != 0u;
 
+        // A single planar polyface quad exercises the mesh consumer route
+        // independently of the wireframe 3D POLYLINE above.
+        DRW_Polyline polyface;
+        polyface.flags = 64;
+        polyface.vertexcount = 4;
+        polyface.facecount = 1;
+        const std::array<DRW_Coord, 4> polyfacePoints {{
+            {121.0, 122.0, 1.0}, {124.0, 122.0, 4.0},
+            {124.0, 126.0, 8.0}, {121.0, 126.0, 5.0}}};
+        for (const DRW_Coord& point : polyfacePoints) {
+            DRW_Vertex vertex(point.x, point.y, point.z, 0.0);
+            vertex.setDwgSubtype(DRW_Vertex::DwgSubtype::Polyface);
+            polyface.addVertex(vertex);
+        }
+        DRW_Vertex polyfaceFace;
+        polyfaceFace.setDwgSubtype(DRW_Vertex::DwgSubtype::PolyfaceFace);
+        polyfaceFace.vindex1 = 1;
+        polyfaceFace.vindex2 = 2;
+        polyfaceFace.vindex3 = 3;
+        polyfaceFace.vindex4 = 4;
+        polyface.addVertex(polyfaceFace);
+        wrotePolyface_ = writer_->writePolyline(&polyface)
+            && polyface.handle != 0u;
+
         // A tilted planar face checks actual 3D surface transport through
         // DWG, DXF, and the native consumer, beyond wire-level entity counts.
         DRW_3Dface face;
@@ -10199,7 +10223,8 @@ public:
     bool finalizeDwgWrite() override {
         return wrotePoint_ && wroteLine_ && wroteCircle_ && wroteArc_
             && wroteEllipse_ && wrotePolyline_ && wrote3dPolyline_
-            && wrote3dFace_ && wroteClosed2dPolyline_ && wroteSpline_;
+            && wrotePolyface_ && wrote3dFace_ && wroteClosed2dPolyline_
+            && wroteSpline_;
     }
     bool finalizeDwgWriteStructure() override { return true; }
 
@@ -10212,6 +10237,7 @@ private:
     bool wroteEllipse_ {false};
     bool wrotePolyline_ {false};
     bool wrote3dPolyline_ {false};
+    bool wrotePolyface_ {false};
     bool wrote3dFace_ {false};
     bool wroteClosed2dPolyline_ {false};
     bool wroteSpline_ {false};
