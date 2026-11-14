@@ -7,21 +7,40 @@
   "mutation": "Start from a locally generated supported MLINESTYLE object with an intact common object prologue and handle. Flip candidate bits after the common prologue until the supported body parser rejects the object; emit the isolated raw frame in a fresh generated DWG.",
   "profiles": [
     {
+      "version": "AC1015",
+      "sha256": "23a35bcd6a1ab3d0957e5af0ff3d47684a70a6251c3bc3dffc7ca2d6d3fa6e64",
+      "object_frames": 28,
+      "cli_output_target": "AC1021"
+    },
+    {
+      "version": "AC1018",
+      "sha256": "137708060c3a11e2c37d75f391eaa673595983f193f40fa2beb1d6d338c5b496",
+      "object_frames": 27,
+      "cli_output_target": "AC1021"
+    },
+    {
       "version": "AC1021",
-      "sha256": "873bc627e9e2a42a28dc1b6ce793b230de0196f419aa3a55b1301439bcf77c8c"
+      "sha256": "873bc627e9e2a42a28dc1b6ce793b230de0196f419aa3a55b1301439bcf77c8c",
+      "object_frames": 27,
+      "cli_output_target": "AC1021"
     },
     {
       "version": "AC1024",
-      "sha256": "3b83d2f77cff8a989b123fe5d1e4aee757cdec78cd2ac6fcf3bfaae9f94505c2"
+      "sha256": "3b83d2f77cff8a989b123fe5d1e4aee757cdec78cd2ac6fcf3bfaae9f94505c2",
+      "object_frames": 27,
+      "cli_output_target": "AC1024"
     },
     {
       "version": "AC1027",
       "sha256": "8941a6f5ce8d11b3a7f74ca6ef04fd47b9d2b82d7a8813f8bf997b68428053c2",
+      "object_frames": 27,
       "qualification": "reader-only; source-reference closure masks CLI output"
     },
     {
       "version": "AC1032",
-      "sha256": "a7833966093cac8bf1ee3fad85f717d97d64659ac5d6b3223ce7231157a1d5d3"
+      "sha256": "a7833966093cac8bf1ee3fad85f717d97d64659ac5d6b3223ce7231157a1d5d3",
+      "object_frames": 27,
+      "cli_output_target": "AC1032"
     }
   ],
   "per_profile_observation": {
@@ -29,21 +48,27 @@
     "retained_line_count": 1,
     "entity_parse_failures": 0,
     "object_parse_failures": 1,
-    "object_frames": 27,
-    "published_frames": 26,
     "failed_frames": 1,
     "frame_accounting": "source = published + failed"
+  },
+  "frame_counts": {
+    "AC1015": {"source": 28, "published": 27, "failed": 1},
+    "AC1018": {"source": 27, "published": 26, "failed": 1},
+    "AC1021": {"source": 27, "published": 26, "failed": 1},
+    "AC1024": {"source": 27, "published": 26, "failed": 1},
+    "AC1027": {"source": 27, "published": 26, "failed": 1},
+    "AC1032": {"source": 27, "published": 26, "failed": 1}
   },
   "cli_policy": {
     "strict": "Refuses before replacing the destination; source and sentinel destination are unchanged.",
     "explicit_partial": "Succeeds with the partial-output warning; reopened DXF contains exactly the retained LINE and VPORT; source is unchanged.",
     "retained_integrity_errors": 0,
-    "profiles": ["AC1021", "AC1024", "AC1032"],
+    "profiles": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1032"],
     "reader_only_profile": "AC1027"
   },
   "validation": {
     "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
-    "result": "PASS: CLI partial DWG read (65 strict/partial/readback controls)"
+    "result": "PASS: CLI partial DWG read (71 strict/partial/readback controls)"
   },
   "limitations": [
     "Controls are generated locally and are not committed as DWG/DXF fixture files.",
