@@ -7936,8 +7936,10 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
     if (version > DRW::AC1015 && !ent->colorName.empty()) {
         write(writer->writeUtf8String(430, ent->colorName));
     }
+    const UTF8STRING outputLineType = (ent->flags & 0x10u) != 0u
+        ? UTF8STRING("CONTINUOUS") : ent->lineType;
     if (version > DRW::AC1009) {
-        write(writer->writeUtf8String(6, ent->lineType));
+        write(writer->writeUtf8String(6, outputLineType));
         // plot (290), lineweight (370) and plotstyle handle (390) are R2000+
         // LAYER fields (ezdxf acdb_symbol_table_record: all DXF2000); they did
         // not exist in R13/R14, so emitting them there is non-conformant.
@@ -7995,7 +7997,7 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
             }
         }
     } else
-        write(writer->writeUtf8Caps(6, ent->lineType));
+        write(writer->writeUtf8Caps(6, outputLineType));
     if (!ent->extData.empty()){
         write(writeExtData(ent->extData));
     }

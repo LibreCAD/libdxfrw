@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.dxf.versioned-field-normalization-receipt.v1",
+  "slice": "P6-D xref-dependent LAYER linetype normalization",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "authority": {
+    "autodeskLayerSchema": {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+      "finding": "Group 70 bit 16 marks an xref-dependent layer, bit 32 records a successfully resolved dependency, and Autodesk specifies the DXF linetype for xref-dependent layers as CONTINUOUS."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/layer_table_allocation_tests.cpp"
+    ],
+    "change": "writeLayer emits CONTINUOUS for group 6 when layer flag bit 16 is set, for both pre-R13 uppercase output and later UTF-8 output. The caller's DRW_Layer remains unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_layer_table_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.52 seconds)",
+      "coverage": "Generated xref-dependent LAYER records with a non-CONTINUOUS input linetype pass ASCII and Binary write/readback at AC1009, AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. Readback checks group-70 flag 16 and group-6 CONTINUOUS."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The generated profile and libdxfrw self-readback establish codec output only; no independent DXF reader or native application was run.",
+    "The source layer xrefBlockHandle and external block graph are not resolved or emitted by this bounded normalization.",
+    "No assertion is made about native xref load, display, or save behavior."
+  ]
+}

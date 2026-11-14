@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **340 completed implementation slices** and **34 remaining
+The plan records **341 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`340 / (340 + 34) = 90.9%`. This is a count-based progress measure, not an
+`341 / (341 + 34) = 90.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -29,6 +29,14 @@ same-writer retry, and fresh DXF readback of the mapped handle in ASCII and
 Binary. This is bounded writer behavior only; the resolver's target graph and
 native plot-style semantics remain outside the evidence
 ([receipt](docs/research/p6-dxf-layer-plotstyle-reference-mapping-2026-11-14.json)).
+
+**P6-D LAYER xref linetype normalization (2026-11-14):** Autodesk's LAYER
+reference says xref-dependent records must be emitted with linetype
+`CONTINUOUS`. `writeLayer()` now applies that rule for both legacy and modern
+DXF output without mutating the caller's `DRW_Layer`. Generated ASCII/Binary
+write/readback controls pass from AC1009 through AC1032. This establishes only
+the bounded serialized LTYPE normalization, not xref target graph closure or
+native xref display behavior ([receipt](docs/research/p6-dxf-xref-layer-linetype-normalization-2026-11-14.json)).
 
 **Newest local P6-G slice (2026-11-14):** generated AC1021 DIMSTYLE records
 with nondefault typed and dynamic `$DIMTFILLCLR` values now pass

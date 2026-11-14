@@ -93,7 +93,9 @@ public:
 class Reader final : public LC3CompatCheck {
 public:
     void addLayer(const DRW_Layer& value) override {
-        if (value.name == "Generated allocation retry LAYER")
+        if (value.name == "Generated allocation retry LAYER"
+            || value.name == "XREF|External"
+            || value.name == "XREF|EXTERNAL")
             layers.push_back(value);
     }
     std::vector<DRW_Layer> layers;
@@ -208,6 +210,43 @@ bool plotStyleReferenceMapping(const std::filesystem::path& directory) {
         }
     }
     std::cout << "LAYER PlotStyleName resolver mapping and null passed\n";
+    return true;
+}
+
+bool xrefLayerLinetypeNormalization(
+    const std::filesystem::path& directory) {
+    constexpr std::array<DRW::Version, 8> versions{{
+        DRW::AC1009, DRW::AC1014, DRW::AC1015, DRW::AC1018,
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const auto path = directory / "xref-layer-linetype.dxf";
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec, version);
+            exporter.layer.name = "XREF|External";
+            exporter.layer.flags = 16u;
+            exporter.layer.lineType = "DASHED";
+            if (!codec.write(&exporter, version, binary)
+                || !exporter.accepted) {
+                std::cerr << "xref-dependent LAYER write failed: version="
+                          << versionCode(version) << " binary=" << binary
+                          << '\n';
+                return false;
+            }
+            dxfRW readerCodec(path.string().c_str());
+            Reader reader;
+            if (!readerCodec.read(&reader, false) || reader.layers.size() != 1u
+                || reader.layers.front().flags != 16u
+                || reader.layers.front().lineType != "CONTINUOUS") {
+                std::cerr << "xref-dependent LAYER linetype normalization "
+                             "readback failed: version="
+                          << versionCode(version) << " binary=" << binary
+                          << '\n';
+                return false;
+            }
+        }
+    }
+    std::cout << "xref-dependent LAYER linetype normalization passed\n";
     return true;
 }
 
@@ -422,5 +461,6 @@ int main() {
             && preR2000LayerLossRefusalAndRetry(directory)
             && preR2000PlotStyleRefusalAndRetry(directory)
             && plotStyleReferenceMapping(directory)
+            && xrefLayerLinetypeNormalization(directory)
         ? 0 : 2;
 }
