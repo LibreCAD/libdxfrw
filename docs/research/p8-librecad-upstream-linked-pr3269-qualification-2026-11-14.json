@@ -11,6 +11,7 @@
     "head": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
     "changedLTypePrMergeCommit": "4060fb6bb6319034fb391485bb1a4d07f6a3ab6e",
     "changedLTypePrIsAncestorOfHead": true,
+    "libdxfrwHead": "9bcf4fd56fd5a2d31aab46e622cfc1b1a135d42f",
     "libdxfrwLink": "workspace source overlay at /Users/dli/dev/libdxfrw",
     "testSource": "librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp",
     "adapterSource": "librecad/src/lib/filters/rs_filterdxfrw.cpp"
@@ -79,6 +80,18 @@
     },
     "fullConsumerFastTarget": "NOT BUILT: unrelated LibreCAD test translation units fail against upstream headers/types (including dxf_object_tests.cpp and entity_metadata_tests.cpp); the disposable single-TU PR regression target compiles and links successfully."
   },
+  "followupExperiments": [
+    {
+      "scope": "Disposable LibreCAD checkout only; changed the default `$DIMSTYLE` insertion from a C string to `QStringLiteral(\"Standard\")`.",
+      "finding": "The C string selected RS_Graphic::addVariable's bool overload via standard pointer-to-bool conversion, so the string variable was stored as an integer.",
+      "result": "The merged DWG changed-LTYPE save/readback case passes (9 assertions) with the adapter overload corrected. This isolates a LibreCAD consumer bug; no coercion was added to libdxfrw's strict writer."
+    },
+    {
+      "scope": "Disposable test source only; added an LTYPE table entry for the MLINESTYLE's VENDOR_MLS reference, then separately removed the unrelated MLINESTYLE OBJECTS section.",
+      "finding": "Adding the missing LTYPE target does not remove the OBJECTS-emission failure. Removing the MLINESTYLE OBJECTS section lets export complete, after which the test reaches a separate failed assertion: the edited LTYPE output lacks expected preview group 310 value CAFE.",
+      "result": "The complex-LTYPE failure contains independent fixture/output issues and is not yet resolved. These edits were not copied into either repository."
+    }
+  ],
   "fixturePolicy": {
     "committedDwgOrDxfFixturesAdded": false,
     "generatedTestData": "The consumer tests generate temporary files and remove them. No repository fixture files were added or changed."
