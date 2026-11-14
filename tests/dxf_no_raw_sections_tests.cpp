@@ -247,6 +247,13 @@ int main() {
     return 8;
   c.setDxfClasses({generatedClass});
   for (bool binary : {false, true}) {
+    sentinel(path);
+    if (c.write(&b, DRW::AC1009, binary)
+        || read(path) != "sentinel"
+        || c.getError() != DRW::BAD_VERSION
+        || c.getLastDiagnostic().code != "dxf-class-target-version")
+      return 13;
+    ++checks;
     if (!c.write(&b, DRW::AC1027, binary)) {
       const auto diagnostic = c.getLastDiagnostic();
       std::cerr << "staged output authentication failed for binary=" << binary

@@ -5678,6 +5678,14 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             "DXF CLASS metadata exceeded the bounded setter limits");
         return setError(DRW::BAD_OPEN);
     }
+    if (version <= DRW::AC1009 && !m_dxfClasses.empty()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure,
+            "dxf-class-target-version",
+            "the selected DXF revision has no CLASSES section");
+        return setError(DRW::BAD_VERSION);
+    }
     if (m_dxfRootDictEntriesInputRejected) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Validation,

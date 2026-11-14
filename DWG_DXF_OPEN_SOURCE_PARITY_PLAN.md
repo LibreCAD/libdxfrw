@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **344 completed implementation slices** and **34 remaining
+The plan records **345 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`344 / (344 + 34) = 91.0%`. This is a count-based progress measure, not an
+`345 / (345 + 34) = 91.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -18,7 +18,7 @@ activity proxy, not as the percentage of package gates completed. Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
 
-**Newest local P6-D slice (2026-11-14):** LAYER group 390 is now handled as a
+**P6-D LAYER PlotStyleName output slice (2026-11-14):** LAYER group 390 is now handled as a
 PlotStyleName graph edge. An explicit nondefault handle must resolve through
 the caller's reference resolver; otherwise the table write fails atomically
 instead of silently replacing the source style with `F`. Pre-R2000 output
@@ -29,6 +29,15 @@ same-writer retry, and fresh DXF readback of the mapped handle in ASCII and
 Binary. This is bounded writer behavior only; the resolver's target graph and
 native plot-style semantics remain outside the evidence
 ([receipt](docs/research/p6-dxf-layer-plotstyle-reference-mapping-2026-11-14.json)).
+
+**P6-D AC1009 CLASSES downgrade refusal (2026-11-14):** DXF R12 has no
+CLASSES section. A write that has caller-supplied custom `DRW_Class` records
+now fails with `BAD_VERSION` before opening/replacing the destination instead
+of silently omitting the metadata. The generated ASCII/Binary control verifies
+sentinel preservation and retries the same codec successfully at AC1027, where
+fresh readback sees the CLASS record. Empty class metadata is unaffected. This
+closes this one DXF version-loss path only; it does not qualify custom-class
+objects or other R12 downgrade fields ([receipt](docs/research/p6-dxf-class-r12-version-loss-refusal-2026-11-14.json)).
 
 **P6-D bound LAYER PlotStyleName alias consistency (2026-11-14):** the private
 AC1027 adapter layer carries a source-bound plot-style handle separately from
