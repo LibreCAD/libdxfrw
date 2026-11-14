@@ -1310,13 +1310,13 @@ def check_skipped_record_projection(converter, root, writer):
         raise AssertionError("raw-only TABLECONTENT generator emitted another revision")
 
     raw_only_projection = (
-        b"sourceDwgSkippedCustomClassInstances=1",
-        b"sourceDwgSkippedUnsupportedObjectInstances=1",
+        b"sourceDwgSkippedCustomClassInstances=2",
+        b"sourceDwgSkippedUnsupportedObjectInstances=2",
         b"sourceDwgEntityParseFailures=0",
         b"sourceDwgObjectParseFailures=0",
         b"sourceDwgFrameCoverage=complete",
-        b"sourceDwgSourceFrames=27",
-        b"sourceDwgFramesPublished=27",
+        b"sourceDwgSourceFrames=28",
+        b"sourceDwgFramesPublished=28",
         b"sourceDwgFramesFailed=0",
         b"sourceDwgFramesUnresolved=0",
         b"sourceDwgFramesUnrecognized=0",

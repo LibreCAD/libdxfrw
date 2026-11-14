@@ -28357,7 +28357,11 @@ public:
                     sourceVersion, 700u, 0x700u, "TABLECONTENT",
                     "AcDbTableContent", "ACAD_TABLE")
               : makeCliSkippedObject(kind, 0, sourceVersion)),
-          opaqueSecond_(makeCliSkippedObject(kind, 1, sourceVersion)),
+          opaqueSecond_(kind == 5
+              ? libdxfrw_test::makeRawCustomObject(
+                    sourceVersion, 700u, 0x702u, "TABLECONTENT",
+                    "AcDbTableContent", "ACAD_TABLE")
+              : makeCliSkippedObject(kind, 1, sourceVersion)),
           opaqueThird_(makeCliSkippedObject(kind, 2, sourceVersion)) {
         cData = &owned_;
         currentBlock = owned_.mBlock;
@@ -28374,8 +28378,10 @@ public:
     void writeDwgClasses() override {
         if (kind_ >= 2) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
-            if (kind_ == 3 || kind_ == 4) {
+            if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
+            }
+            if (kind_ == 3 || kind_ == 4) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueThird_) && wrote;
             }
         }
@@ -28383,8 +28389,10 @@ public:
     void writeObjects() override {
         if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
-            if (kind_ == 3 || kind_ == 4) {
+            if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->writeRawDwgObject(&opaqueSecond_) && wrote;
+            }
+            if (kind_ == 3 || kind_ == 4) {
                 wrote = writer_->writeRawDwgObject(&opaqueThird_) && wrote;
             }
         }
