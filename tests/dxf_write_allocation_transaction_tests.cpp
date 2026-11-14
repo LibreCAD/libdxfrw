@@ -6944,7 +6944,31 @@ bool runLightListSweep(const std::filesystem::path& directory) {
         DRW_LightList captured;
         bool found = false;
     };
-    const auto readbackMatches = [](const std::filesystem::path& path) {
+    const auto readbackMatches = [](const std::filesystem::path& path,
+                                    const char* expectedVersion,
+                                    bool binary) {
+        std::ifstream input(path, std::ios::binary);
+        if (!input)
+            return false;
+        if (binary)
+            input.seekg(22, std::ios::beg);
+        std::unique_ptr<dxfReader> rawReader = binary
+            ? std::unique_ptr<dxfReader>(
+                  std::make_unique<dxfReaderBinary>(&input))
+            : std::unique_ptr<dxfReader>(
+                  std::make_unique<dxfReaderAscii>(&input));
+        int code = 0;
+        bool versionMatches = false;
+        while (rawReader->readRec(&code)) {
+            if (code == 9 && rawReader->getStringView() == "$ACADVER") {
+                versionMatches = rawReader->readRec(&code) && code == 1
+                    && rawReader->getStringView() == expectedVersion;
+                break;
+            }
+        }
+        if (!versionMatches)
+            return false;
+
         const std::string pathString = path.string();
         dxfRW reader(pathString.c_str());
         LightListReadback probe;
@@ -6960,94 +6984,112 @@ bool runLightListSweep(const std::filesystem::path& directory) {
             && probe.captured.m_lights[1].m_handle == 0xAB01u
             && probe.captured.m_lights[1].m_name == "fill-light";
     };
-    const auto output = directory / "light-list-allocation-transaction.dxf";
-    if (!clearStagedOutput(output))
-        return fail("could not clear stale output staging files in test scratch");
     const std::string sentinel = "previous complete document\n";
-    for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(output.string().c_str());
-            codec.setHandleRemap(remap);
-            LightListExport adapter(codec, makeLightList());
-            if (!codec.write(&adapter, DRW::AC1021, binary))
-                return fail("warm-up write failed");
-            std::error_code ignored;
-            std::filesystem::remove(output, ignored);
-        }
-        {
-            dxfRW codec(output.string().c_str());
-            codec.setHandleRemap(remap);
-            LightListExport adapter(codec, makeLightList());
-            armAllocationFailure(1000000000L);
-            const bool wrote = codec.write(&adapter, DRW::AC1021, binary);
-            allocationCount = static_cast<long>(allocationAttempts);
-            disarmAllocationFailure();
-            if (!wrote || allocationFailed || allocationCount <= 0
-                || !readBytes(output, expectedBytes))
-                return fail("calibration write failed");
-            std::error_code ignored;
-            std::filesystem::remove(output, ignored);
-        }
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("light-list-allocation-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files in test scratch");
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior.good())
-                    return fail("could not seed prior destination");
+                dxfRW codec(output.string().c_str());
+                codec.setHandleRemap(remap);
+                LightListExport adapter(codec, makeLightList());
+                if (!codec.write(&adapter, version.first, binary))
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
             }
-            dxfRW codec(output.string().c_str());
-            codec.setHandleRemap(remap);
-            LightListExport adapter(codec, makeLightList());
-            const DRW_LightList original(adapter.list);
-            armAllocationFailure(offset);
-            const bool wrote = codec.write(&adapter, DRW::AC1021, binary);
-            const bool injected = allocationFailed;
-            disarmAllocationFailure();
-            std::string afterFailure;
-            const bool bytesRead = readBytes(output, afterFailure);
-            const auto& context = *codec.getWritingContext();
-            const bool identitiesRolledBack =
-                context.sourceHandleToMintedMap.empty()
-                && context.sourceHandleToWrittenObjectMap.empty()
-                && context.writtenSourceEntityHandles.empty()
-                && context.ambiguousSourceHandles.empty();
-            const bool callerSame = adapter.list.handle == original.handle
-                && adapter.list.parentHandle == original.parentHandle
-                && adapter.list.m_lights.size() == original.m_lights.size()
-                && adapter.list.m_lights[0].m_handle == original.m_lights[0].m_handle
-                && adapter.list.m_lights[0].m_name == original.m_lights[0].m_name
-                && adapter.list.m_lights[1].m_handle == original.m_lights[1].m_handle
-                && adapter.list.m_lights[1].m_name == original.m_lights[1].m_name
-                && adapter.list.reactorHandles == original.reactorHandles
-                && adapter.list.m_classVersion == original.m_classVersion
-                && adapter.list.m_lightCount == original.m_lightCount;
-            const bool stageRemains = hasStagedOutput(output);
-            if (wrote || !injected || !bytesRead || afterFailure != sentinel
-                || !identitiesRolledBack || !callerSame || stageRemains) {
-                std::cerr << "offset=" << offset << " wrote=" << wrote
-                          << " injected=" << injected << " bytesRead=" << bytesRead
-                          << " destinationPreserved=" << (afterFailure == sentinel)
-                          << " identitiesRolledBack=" << identitiesRolledBack
-                          << " callerSame=" << callerSame
-                          << " stageRemains=" << stageRemains << '\n';
-                return fail("injected allocation failure changed bytes or caller fields");
+            {
+                dxfRW codec(output.string().c_str());
+                codec.setHandleRemap(remap);
+                LightListExport adapter(codec, makeLightList());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || allocationFailed || allocationCount <= 0
+                    || !readBytes(output, expectedBytes))
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
             }
 
-            const bool retried = codec.write(&adapter, DRW::AC1021, binary);
-            std::string retryBytes;
-            if (!retried || !readBytes(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
-                || hasStagedOutput(output))
-                return fail("same-codec retry or bounded readback failed");
-            std::error_code ignored;
-            std::filesystem::remove(output, ignored);
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                codec.setHandleRemap(remap);
+                LightListExport adapter(codec, makeLightList());
+                const DRW_LightList original(adapter.list);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                const bool callerSame = adapter.list.handle == original.handle
+                    && adapter.list.parentHandle == original.parentHandle
+                    && adapter.list.m_lights.size() == original.m_lights.size()
+                    && adapter.list.m_lights[0].m_handle == original.m_lights[0].m_handle
+                    && adapter.list.m_lights[0].m_name == original.m_lights[0].m_name
+                    && adapter.list.m_lights[1].m_handle == original.m_lights[1].m_handle
+                    && adapter.list.m_lights[1].m_name == original.m_lights[1].m_name
+                    && adapter.list.reactorHandles == original.reactorHandles
+                    && adapter.list.m_classVersion == original.m_classVersion
+                    && adapter.list.m_lightCount == original.m_lightCount;
+                const bool stageRemains = hasStagedOutput(output);
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !identitiesRolledBack || !callerSame || stageRemains) {
+                    std::cerr << "offset=" << offset << " wrote=" << wrote
+                              << " injected=" << injected << " bytesRead=" << bytesRead
+                              << " destinationPreserved=" << (afterFailure == sentinel)
+                              << " identitiesRolledBack=" << identitiesRolledBack
+                              << " callerSame=" << callerSame
+                              << " stageRemains=" << stageRemains << '\n';
+                    return fail("injected allocation failure changed bytes or caller fields");
+                }
+
+                const bool retried = codec.write(&adapter, version.first, binary);
+                std::string retryBytes;
+                const bool retryRead = readBytes(output, retryBytes);
+                const bool readback = retryRead
+                    && readbackMatches(output, version.second, binary);
+                const bool stagedAfterRetry = hasStagedOutput(output);
+                if (!retried || !retryRead || retryBytes != expectedBytes
+                    || !readback || stagedAfterRetry) {
+                    std::cerr << "version=" << version.second << " binary="
+                              << binary << " retried=" << retried
+                              << " retryRead=" << retryRead
+                              << " bytesMatch=" << (retryBytes == expectedBytes)
+                              << " readback=" << readback
+                              << " staged=" << stagedAfterRetry << '\n';
+                    return fail("same-codec retry or bounded readback failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "LIGHTLIST " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", caller/destination rollback, retry/readback=PASS\n";
         }
-        std::cout << "LIGHTLIST " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", caller/destination rollback, retry/readback=PASS\n";
     }
     return true;
 }

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **256 completed implementation slices** and **35 remaining
+The plan records **257 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`256 / (256 + 35) = 88.0%`. This is a count-based progress measure, not an
+`257 / (257 + 35) = 88.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5485,16 +5485,16 @@ allocation offsets with destination/caller rollback and same-writer retry.
 This covers only that legacy DXF row-style profile; R24 rich-cell TABLESTYLE
 and native table presentation remain open. P6-G's public-writer inventory is
 still open ([updated receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json)).
-The generated whole-operation OBJECTS sweep now also covers a two-light
-AC1021 `LIGHTLIST` whose owner-dictionary pointer, persistent reactor, object
-owner and two named LIGHT references use explicit source-handle remaps. All 97
-ASCII and 96 Binary allocation offsets preserve the prior destination, caller
-fields, source-handle bindings and staging cleanup; same-codec retry reproduces
-the clean output and typed readback verifies ordered names and remapped roles.
-The focused CTest passes in normal and ASan builds. This closes one generated
-writer transaction profile only; source-profile provenance, ACAD_LIGHT
+The generated whole-operation OBJECTS sweep now covers a two-light `LIGHTLIST`
+at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. The 782 measured
+allocation offsets preserve the prior destination, caller fields,
+source-handle bindings and staging cleanup; same-codec retry reproduces clean
+bytes, raw header inspection confirms the exact `$ACADVER`, and typed readback
+verifies ordered names and remapped owner/reactor/light roles. The focused CTest
+passes in 1.83 seconds. This closes generated transaction coverage for this
+profile across the four revisions only; source-profile provenance, ACAD_LIGHT
 dictionary membership and native consumer behavior remain unqualified
-([receipt](docs/research/p6-dxf-lightlist-allocation-rollback-retry-2026-11-13.json)).
+([version-matrix receipt](docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json)).
 The same whole-operation sweep now writes a generated AC1032 `SUNSTUDY` with
 two date entries, three modeled hours, subset/range selection and nondefault
 viewport settings. All 93 ASCII and 91 Binary injected allocation failures
