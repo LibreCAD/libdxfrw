@@ -7855,7 +7855,10 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         || !ent->getDxfMaterialHandle(material, hasMaterial)
         || (hasMaterial && version < DRW::AC1021)
         || (ent->color24 >= 0 && version <= DRW::AC1015)
-        || (!ent->colorName.empty() && version <= DRW::AC1015)) {
+        || (!ent->colorName.empty() && version <= DRW::AC1015)
+        || (version <= DRW::AC1014
+            && (!ent->plotF
+                || ent->lWeight != DRW_LW_Conv::widthDefault))) {
         m_writeError = true;
         return false;
     }

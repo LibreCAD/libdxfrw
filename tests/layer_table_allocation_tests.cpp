@@ -31,10 +31,11 @@ DRW_Layer makeLayer(DRW::Version version) {
     layer.name = "Generated allocation retry LAYER";
     layer.flags = 4;
     layer.color = 3;
-    layer.color24 = 0x336699;
+    layer.color24 = version <= DRW::AC1015 ? -1 : 0x336699;
     layer.lineType = "CONTINUOUS";
-    layer.plotF = false;
-    layer.lWeight = DRW_LW_Conv::width11;
+    layer.plotF = version <= DRW::AC1014;
+    layer.lWeight = version <= DRW::AC1014
+        ? DRW_LW_Conv::widthDefault : DRW_LW_Conv::width11;
     if (version >= DRW::AC1021)
         layer.colorName = "generated-layer-color";
     return layer;
@@ -49,10 +50,9 @@ bool sameLayer(const DRW_Layer& actual, DRW::Version version,
         && actual.flags == expected.flags
         && actual.color == expected.color
         && actual.lineType == expected.lineType
-        && (version <= DRW::AC1015 || actual.color24 == expected.color24)
-        && (version <= DRW::AC1014
-            || (actual.plotF == expected.plotF
-                && actual.lWeight == expected.lWeight))
+        && actual.color24 == expected.color24
+        && actual.plotF == expected.plotF
+        && actual.lWeight == expected.lWeight
         && actual.colorName == expected.colorName;
 }
 
@@ -144,6 +144,16 @@ bool readbackMatches(const std::filesystem::path& path,
     return true;
 }
 
+bool readbackPlotAndLineweightMatch(
+    const std::filesystem::path& path, bool plot,
+    DRW_LW_Conv::lineWidth lineweight) {
+    dxfRW codec(path.string().c_str());
+    Reader reader;
+    return codec.read(&reader, false) && reader.layers.size() == 1u
+        && reader.layers.front().plotF == plot
+        && reader.layers.front().lWeight == lineweight;
+}
+
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "layer-table-allocation.dxf";
     const std::string prior = "prior LAYER destination bytes\n";
@@ -222,6 +232,59 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool preR2000LayerLossRefusalAndRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "layer-r13-loss-refusal.dxf";
+    const std::string prior = "prior LAYER destination bytes\n";
+    for (const bool binary : {false, true}) {
+        for (const bool nondefaultPlot : {false, true}) {
+            {
+                std::ofstream output(path, std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec, DRW::AC1014);
+            if (nondefaultPlot) {
+                exporter.layer.plotF = false;
+                exporter.layer.lWeight = DRW_LW_Conv::widthDefault;
+            } else {
+                exporter.layer.plotF = true;
+                exporter.layer.lWeight = DRW_LW_Conv::width11;
+            }
+            const bool inputPlot = exporter.layer.plotF;
+            const auto inputLineweight = exporter.layer.lWeight;
+            const bool wroteLegacy = codec.write(
+                &exporter, DRW::AC1014, binary);
+            std::string afterRefusal;
+            if (wroteLegacy || exporter.accepted
+                || exporter.layer.plotF != inputPlot
+                || exporter.layer.lWeight != inputLineweight
+                || !readBytes(path, afterRefusal) || afterRefusal != prior) {
+                std::cerr << "pre-R2000 LAYER loss refusal failed: binary="
+                          << binary << " plot=" << nondefaultPlot
+                          << " written=" << wroteLegacy
+                          << " accepted=" << exporter.accepted << '\n';
+                return false;
+            }
+
+            exporter.version = DRW::AC1015;
+            const bool retried = codec.write(
+                &exporter, DRW::AC1015, binary);
+            if (!retried || !exporter.accepted
+                || !readbackPlotAndLineweightMatch(
+                    path, inputPlot, inputLineweight)) {
+                std::cerr << "R2000 LAYER corrected retry failed: binary="
+                          << binary << " plot=" << nondefaultPlot << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -261,5 +324,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory)
+            && preR2000LayerLossRefusalAndRetry(directory)
+        ? 0 : 2;
 }
