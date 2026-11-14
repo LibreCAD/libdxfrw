@@ -31,7 +31,11 @@ The `lc3_compat_check` target builds and the existing 3D consumer probe passes
 probe checks, not native LibreCAD/LibreCAD_3 application qualification.
 Autodesk's published DIMSTYLE schema still lists only the flags field, so the
 color mapping remains an explicitly unofficial ezdxf compatibility profile;
-RGB/book colors and native producer/consumer behavior remain unqualified. See
+RGB/book colors and native producer/consumer behavior remain unqualified. A
+read-only review of LibreCAD source at `078aac8922874eddd7fa46590b5f306e3aee6423`
+confirms its adapter consumes the exact `$DIMTFILLCLR` integer key as group 70;
+this confirms the callback-key contract only, not a clean build or roundtrip.
+See
 [receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
 
 ## Authority and completion gates

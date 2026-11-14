@@ -55,6 +55,12 @@
       "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3269",
       "state": "merged",
       "finding": "The LibreCAD adapter fix is outside this libdxfrw repository. P8-D now explicitly requires clean-consumer coverage for modified LTYPE definitions, archived DXF/DWG records, preserved table-entry metadata, untouched complex records, and fresh save/readback."
+    },
+    "libreCadDimstyleAdapter": {
+      "repositoryRevision": "078aac8922874eddd7fa46590b5f306e3aee6423",
+      "file": "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "finding": "The committed LibreCAD adapter registers $DIMTFILLCLR as an integer DIMSTYLE variable and maps it to setExplicitBackgroundFillColor() through DIMSTYLE group 70. libdxfrw now publishes that exact key for the second group-70 peer profile.",
+      "evidenceLevel": "read-only source contract review; not a clean adapter build, runtime import, save/readback, or native color rendering result"
     }
   },
   "validation": {
