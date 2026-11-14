@@ -6089,12 +6089,17 @@ DWG placement/history remain unqualified. Obtain independent-kernel and
 source-native evidence before support claims; see the [CAD Assistant
 observation](docs/research/p7-ac1027-source-sab-cad-assistant-observation-2026-11-04.json).
 
-For the next complete-boundary-topology probe, a current local inventory found
-no CAD Assistant app or DMG; the official vendor page lists its 1.6.0 ARM64
-artifact, but DNS resolution failed before any bytes were downloaded. No reader
-was launched and no new evidence was obtained. Do not retry unchanged
-acquisition until DNS/network state changes or a local verified artifact
-appears ([availability receipt](docs/research/p7-cad-assistant-arm64-acquisition-2026-11-11.json)).
+**CAD Assistant ARM64 re-acquisition (2026-11-14):** the previous DNS blocker
+changed. The official 1.6.0 Apple-silicon DMG was downloaded to `/private/tmp`;
+its SHA-256 matches the previously checked artifact, `hdiutil verify` passes,
+and a native read-only mount passes strict code-signature and Gatekeeper
+notarization checks. Launching with a scratch ACIS 700 SAB through Launch
+Services produced an application dialog, "Error occurred transferring SAT
+file," before import. No shape or measurements were observed. The app was quit
+and the mount detached. The Launch Services route is ruled out for this file
+selection; a genuinely different in-app open route remains a semantic-evidence
+follow-up, while local modeler implementation continues. This does not alter
+any P7 claim ([acquisition receipt](docs/research/p7-cad-assistant-arm64-acquisition-2026-11-11.json)).
 
 A BRL-CAD STEPcode/openNURBS/librt probe independently checks selected
 topology and eight rays on the source-associated 2E1 solid. Its STEP bridge
