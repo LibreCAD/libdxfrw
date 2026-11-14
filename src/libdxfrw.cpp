@@ -15296,6 +15296,68 @@ bool dxfRW::writeViewport(DRW_Viewport *ent) {
         m_writeError = true;
         return false;
     }
+    // Refuse a target revision when it has no DXF groups for caller-provided
+    // viewport state. The previous code silently omitted these fields below,
+    // turning an otherwise successful write into data loss.
+    const DRW_Viewport r12Defaults;
+    const auto sameCoord = [](const DRW_Coord& first,
+                              const DRW_Coord& second) {
+        return first.x == second.x && first.y == second.y
+            && first.z == second.z;
+    };
+    const bool losesPostR12State = version <= DRW::AC1009
+        && (ent->snapPX != r12Defaults.snapPX
+            || ent->snapPY != r12Defaults.snapPY
+            || ent->snapSpPX != r12Defaults.snapSpPX
+            || ent->snapSpPY != r12Defaults.snapSpPY
+            || ent->gridSpX != r12Defaults.gridSpX
+            || ent->gridSpY != r12Defaults.gridSpY
+            || !sameCoord(ent->viewDir, r12Defaults.viewDir)
+            || !sameCoord(ent->viewTarget, r12Defaults.viewTarget)
+            || ent->viewLength != r12Defaults.viewLength
+            || ent->frontClip != r12Defaults.frontClip
+            || ent->backClip != r12Defaults.backClip
+            || ent->viewHeight != r12Defaults.viewHeight
+            || ent->snapAngle != r12Defaults.snapAngle
+            || ent->twistAngle != r12Defaults.twistAngle
+            || ent->circleZoom != r12Defaults.circleZoom
+            || ent->majorGridLines != r12Defaults.majorGridLines
+            || ent->statusFlags != r12Defaults.statusFlags
+            || ent->styleSheet != r12Defaults.styleSheet
+            || ent->renderMode != r12Defaults.renderMode
+            || ent->ucsPerViewport != r12Defaults.ucsPerViewport
+            || ent->ucsAtOrigin != r12Defaults.ucsAtOrigin
+            || !sameCoord(ent->ucsOrigin, r12Defaults.ucsOrigin)
+            || !sameCoord(ent->ucsXAxis, r12Defaults.ucsXAxis)
+            || !sameCoord(ent->ucsYAxis, r12Defaults.ucsYAxis)
+            || ent->ucsElevation != r12Defaults.ucsElevation
+            || ent->ucsOrthographicType != r12Defaults.ucsOrthographicType
+            || ent->shadePlotMode != r12Defaults.shadePlotMode
+            || ent->useDefaultLighting != r12Defaults.useDefaultLighting
+            || ent->defaultLightingType != r12Defaults.defaultLightingType
+            || ent->brightness != r12Defaults.brightness
+            || ent->contrast != r12Defaults.contrast
+            || ent->ambientColor != r12Defaults.ambientColor
+            || ent->ambientColorRgb != r12Defaults.ambientColorRgb
+            || ent->ambientColorName != r12Defaults.ambientColorName);
+    const bool losesPreR2007State = version <= DRW::AC1018
+        && (!ent->useDefaultLighting || ent->defaultLightingType != 1
+            || ent->brightness != 0.0 || ent->contrast != 0.0
+            || ent->ambientColor != 250u || ent->ambientColorRgb >= 0
+            || !ent->ambientColorName.empty()
+            || ent->backgroundHandle != 0u || ent->shadePlotHandle != 0u
+            || ent->visualStyleHandle != 0u || ent->m_sunHandle != 0u);
+    if (losesPostR12State
+        || (version <= DRW::AC1018 && ent->majorGridLines != 0)
+        || (version <= DRW::AC1015 && ent->shadePlotMode != 0)
+        || losesPreR2007State
+        || (version <= DRW::AC1014
+            && (ent->clipBoundaryHandle != 0u
+                || ent->namedUcsHandle != 0u || ent->baseUcsHandle != 0u))
+        || (version <= DRW::AC1009 && !ent->frozenLayerHandles.empty())) {
+        m_writeError = true;
+        return false;
+    }
     const std::uint32_t emittedBackgroundHandle =
         version > DRW::AC1018 && ent->backgroundHandle != 0u
             ? emittedReference(ent->backgroundHandle) : 0u;

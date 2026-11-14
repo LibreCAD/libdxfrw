@@ -8535,7 +8535,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto makeViewport = [] {
+    const auto makeViewport = [](DRW::Version targetVersion) {
         DRW_Viewport value;
         value.handle = 0xDA60u;
         value.space = DRW::PaperSpace;
@@ -8561,7 +8561,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
         value.snapAngle = 30.0;
         value.twistAngle = 45.0;
         value.circleZoom = 137.0;
-        value.majorGridLines = 5;
+        value.majorGridLines = targetVersion > DRW::AC1018 ? 5 : 0;
         value.statusFlags = 0xA51;
         value.styleSheet = "viewport-style-sheet";
         value.renderMode = 2;
@@ -8572,14 +8572,53 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
         value.ucsYAxis = DRW_Coord(-1.0, 0.0, 0.0);
         value.ucsElevation = 11.0;
         value.ucsOrthographicType = 4;
-        value.shadePlotMode = 3;
-        value.useDefaultLighting = false;
-        value.defaultLightingType = 0;
-        value.brightness = 0.4;
-        value.contrast = 0.6;
-        value.ambientColor = 42u;
-        value.ambientColorRgb = 0x123456;
-        value.ambientColorName = "Named Ambient";
+        value.shadePlotMode = targetVersion > DRW::AC1015 ? 3 : 0;
+        if (targetVersion > DRW::AC1018) {
+            value.useDefaultLighting = false;
+            value.defaultLightingType = 0;
+            value.brightness = 0.4;
+            value.contrast = 0.6;
+            value.ambientColor = 42u;
+            value.ambientColorRgb = 0x123456;
+            value.ambientColorName = "Named Ambient";
+        }
+        if (targetVersion <= DRW::AC1009) {
+            const DRW_Viewport defaults;
+            value.snapPX = defaults.snapPX;
+            value.snapPY = defaults.snapPY;
+            value.snapSpPX = defaults.snapSpPX;
+            value.snapSpPY = defaults.snapSpPY;
+            value.gridSpX = defaults.gridSpX;
+            value.gridSpY = defaults.gridSpY;
+            value.viewDir = defaults.viewDir;
+            value.viewTarget = defaults.viewTarget;
+            value.viewLength = defaults.viewLength;
+            value.frontClip = defaults.frontClip;
+            value.backClip = defaults.backClip;
+            value.viewHeight = defaults.viewHeight;
+            value.snapAngle = defaults.snapAngle;
+            value.twistAngle = defaults.twistAngle;
+            value.circleZoom = defaults.circleZoom;
+            value.majorGridLines = defaults.majorGridLines;
+            value.statusFlags = defaults.statusFlags;
+            value.styleSheet = defaults.styleSheet;
+            value.renderMode = defaults.renderMode;
+            value.ucsPerViewport = defaults.ucsPerViewport;
+            value.ucsAtOrigin = defaults.ucsAtOrigin;
+            value.ucsOrigin = defaults.ucsOrigin;
+            value.ucsXAxis = defaults.ucsXAxis;
+            value.ucsYAxis = defaults.ucsYAxis;
+            value.ucsElevation = defaults.ucsElevation;
+            value.ucsOrthographicType = defaults.ucsOrthographicType;
+            value.shadePlotMode = defaults.shadePlotMode;
+            value.useDefaultLighting = defaults.useDefaultLighting;
+            value.defaultLightingType = defaults.defaultLightingType;
+            value.brightness = defaults.brightness;
+            value.contrast = defaults.contrast;
+            value.ambientColor = defaults.ambientColor;
+            value.ambientColorRgb = defaults.ambientColorRgb;
+            value.ambientColorName = defaults.ambientColorName;
+        }
         return value;
     };
     const auto sameViewport = [](const DRW_Viewport& a,
@@ -8657,24 +8696,12 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
         DRW_Viewport viewport;
         unsigned count = 0u;
     };
-    const auto readbackMatches = [&](const std::filesystem::path& path,
-                                     DRW::Version version) {
+    const auto readbackMatchesProfile = [&](
+        const std::filesystem::path& path, DRW::Version version,
+        const DRW_Viewport& source) {
         dxfRW reader(path.string().c_str());
         ViewportReadback probe;
-        DRW_Viewport expected = makeViewport();
-        if (version <= DRW::AC1018)
-            expected.majorGridLines = 0;
-        if (version <= DRW::AC1015)
-            expected.shadePlotMode = 0;
-        if (version <= DRW::AC1018) {
-            expected.useDefaultLighting = true;
-            expected.defaultLightingType = 1;
-            expected.brightness = 0.0;
-            expected.contrast = 0.0;
-            expected.ambientColor = 250u;
-            expected.ambientColorRgb = -1;
-            expected.ambientColorName.clear();
-        }
+        DRW_Viewport expected(source);
         const bool read = reader.read(&probe, true);
         if (probe.count == 1u)
             expected.handle = probe.viewport.handle;
@@ -8682,12 +8709,142 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
             && probe.count == 1u && probe.viewport.handle != 0u
             && sameViewport(probe.viewport, expected);
     };
-    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
-        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version version) {
+        return readbackMatchesProfile(path, version, makeViewport(version));
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 8> versions = {{
+        {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
+        {DRW::AC1015, "AC1015"},
         {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
         {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}}};
     const std::string sentinel = "prior viewport destination\n";
+    const auto refusalThenUpgrade = [&](const char* label,
+                                        DRW::Version refusedVersion,
+                                        DRW::Version supportedVersion,
+                                        const auto& mutate) {
+        for (const bool binary : {false, true}) {
+            const std::string stem = std::string("viewport-loss-") + label
+                + (binary ? "-binary" : "-ascii");
+            const auto output = directory / (stem + ".dxf");
+            const auto expectedPath = directory / (stem + "-expected.dxf");
+            if (!clearStagedOutput(output) || !clearStagedOutput(expectedPath))
+                return false;
+            DRW_Viewport source = makeViewport(supportedVersion);
+            mutate(source);
+            {
+                dxfRW expectedCodec(expectedPath.string().c_str());
+                ViewportExport expectedAdapter(expectedCodec, source);
+                if (!expectedCodec.write(&expectedAdapter, supportedVersion, binary)
+                    || !expectedAdapter.written)
+                    return false;
+            }
+            std::string expectedBytes;
+            if (!readBytes(expectedPath, expectedBytes))
+                return false;
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return false;
+            }
+            dxfRW codec(output.string().c_str());
+            ViewportExport adapter(codec, source);
+            const DRW_Viewport original(adapter.viewport);
+            if (codec.write(&adapter, refusedVersion, binary)
+                || adapter.written || !sameViewport(adapter.viewport, original)
+                || adapter.viewport.handle != original.handle)
+                return false;
+            std::string afterRefusal;
+            if (!readBytes(output, afterRefusal) || afterRefusal != sentinel
+                || hasStagedOutput(output))
+                return false;
+            if (!codec.write(&adapter, supportedVersion, binary)
+                || !adapter.written || !sameViewport(adapter.viewport, original)
+                || adapter.viewport.handle != original.handle)
+                return false;
+            std::string retryBytes;
+            const bool passed = readBytes(output, retryBytes)
+                && retryBytes == expectedBytes
+                && readbackMatchesProfile(output, supportedVersion, source)
+                && !hasStagedOutput(output);
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            std::filesystem::remove(expectedPath, ignored);
+            if (!passed)
+                return false;
+        }
+        return true;
+    };
+    const auto refuseUnrepresentable = [&](const char* label,
+                                           DRW::Version target,
+                                           const auto& mutate,
+                                           const auto& inspect) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("viewport-unrepresentable-") + label
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return false;
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return false;
+            }
+            dxfRW codec(output.string().c_str());
+            ViewportExport adapter(codec, makeViewport(target));
+            mutate(adapter.viewport);
+            const auto originalValue = inspect(adapter.viewport);
+            const DRW_Viewport original(adapter.viewport);
+            const bool wrote = codec.write(&adapter, target, binary);
+            std::string afterRefusal;
+            const bool passed = !wrote && !adapter.written
+                && inspect(adapter.viewport) == originalValue
+                && sameViewport(adapter.viewport, original)
+                && adapter.viewport.handle == original.handle
+                && readBytes(output, afterRefusal)
+                && afterRefusal == sentinel && !hasStagedOutput(output);
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            if (!passed)
+                return false;
+        }
+        return true;
+    };
+    if (!refusalThenUpgrade("r12-fields", DRW::AC1009, DRW::AC1014,
+            [](DRW_Viewport&) {}))
+        return fail("R12 target silently accepted nondefault post-R12 state");
+    if (!refusalThenUpgrade("major-grid", DRW::AC1018, DRW::AC1021,
+            [](DRW_Viewport& value) { value.majorGridLines = 7; }))
+        return fail("older target silently accepted nondefault major-grid count");
+    if (!refusalThenUpgrade("shade-plot", DRW::AC1015, DRW::AC1018,
+            [](DRW_Viewport& value) { value.shadePlotMode = 2; }))
+        return fail("older target silently accepted nondefault shade-plot mode");
+    if (!refusalThenUpgrade("lighting", DRW::AC1018, DRW::AC1021,
+            [](DRW_Viewport& value) { value.ambientColorName = "Newer book color"; }))
+        return fail("older target silently accepted nondefault ambient-light state");
+    if (!refuseUnrepresentable("clip-boundary", DRW::AC1014,
+            [](DRW_Viewport& value) { value.clipBoundaryHandle = 0xDA71u; },
+            [](const DRW_Viewport& value) { return value.clipBoundaryHandle; })
+        || !refuseUnrepresentable("named-ucs", DRW::AC1014,
+            [](DRW_Viewport& value) { value.namedUcsHandle = 0xDA72u; },
+            [](const DRW_Viewport& value) { return value.namedUcsHandle; })
+        || !refuseUnrepresentable("base-ucs", DRW::AC1014,
+            [](DRW_Viewport& value) { value.baseUcsHandle = 0xDA73u; },
+            [](const DRW_Viewport& value) { return value.baseUcsHandle; })
+        || !refuseUnrepresentable("visual-style", DRW::AC1018,
+            [](DRW_Viewport& value) { value.visualStyleHandle = 0xDA74u; },
+            [](const DRW_Viewport& value) { return value.visualStyleHandle; })
+        || !refuseUnrepresentable("frozen-layer", DRW::AC1009,
+            [](DRW_Viewport& value) {
+                value.frozenLayerHandles = {0xDA75u};
+            },
+            [](const DRW_Viewport& value) {
+                return value.frozenLayerHandles;
+            }))
+        return fail("older target silently accepted an unrepresentable reference");
     for (const bool binary : {false, true}) {
         const auto output = directory
             / (binary ? "viewport-refusal-binary.dxf"
@@ -8699,7 +8856,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
             return fail("could not clear refusal/retry staging files");
         {
             dxfRW codec(expectedPath.string().c_str());
-            ViewportExport adapter(codec, makeViewport());
+            ViewportExport adapter(codec, makeViewport(DRW::AC1014));
             if (!codec.write(&adapter, DRW::AC1014, binary) || !adapter.written)
                 return fail("could not create refusal/retry reference output");
         }
@@ -8713,7 +8870,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
                 return fail("could not seed refused destination");
         }
         dxfRW codec(output.string().c_str());
-        ViewportExport adapter(codec, makeViewport());
+        ViewportExport adapter(codec, makeViewport(DRW::AC1014));
         const DRW_Viewport original(adapter.viewport);
         if (codec.write(&adapter, DRW::AC1012, binary) || adapter.written
             || !sameViewport(adapter.viewport, original)
@@ -8747,7 +8904,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                ViewportExport adapter(codec, makeViewport());
+                ViewportExport adapter(codec, makeViewport(version.first));
                 if (!codec.write(&adapter, version.first, binary)
                     || !adapter.written)
                     return fail("calibration write failed");
@@ -8756,7 +8913,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
             }
             {
                 dxfRW codec(output.string().c_str());
-                ViewportExport adapter(codec, makeViewport());
+                ViewportExport adapter(codec, makeViewport(version.first));
                 armAllocationFailure(1000000000L);
                 const bool wrote = codec.write(&adapter, version.first, binary);
                 allocationCount = static_cast<long>(allocationAttempts);
@@ -8777,7 +8934,7 @@ bool runViewportVersionSweep(const std::filesystem::path& directory) {
                         return fail("could not seed prior destination");
                 }
                 dxfRW codec(output.string().c_str());
-                ViewportExport adapter(codec, makeViewport());
+                ViewportExport adapter(codec, makeViewport(version.first));
                 const DRW_Viewport original(adapter.viewport);
                 armAllocationFailure(offset);
                 const bool wrote = codec.write(&adapter, version.first, binary);
