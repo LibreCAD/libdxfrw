@@ -8368,6 +8368,11 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         m_writeError = true;
         return false;
     }
+    if (!std::isfinite(ent->dimjogang)
+        || (ent->dimjogang != 0.0
+            && (ent->dimjogang < 5.0 || ent->dimjogang > 90.0))) {
+        return failDxfWrite();
+    }
     const auto dimstyleTextFillColorIsDefault = [&]() {
         return ent->dimtfillclr == 0 && ent->dimtfillclrRgb == -1
             && ent->dimtfillclrMethod == 0 && ent->dimtfillclrFlags == 0
@@ -8385,7 +8390,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     }
     if (version < DRW::AC1021
         && ((ent->dimtfill != 0 && !ent->get("$DIMTFILL"))
-            || (ent->dimarcsym != 0 && !ent->get("$DIMARCSYM")))) {
+            || (ent->dimarcsym != 0 && !ent->get("$DIMARCSYM"))
+            || (ent->dimjogang != 0.0 && !ent->get("$DIMJOGANG")))) {
         return failDxfWrite();
     }
 
@@ -8439,6 +8445,30 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             // have no established equivalent direction field.
             return failDxfWrite();
         }
+        if ((value->code() == 69 || value->code() == 90)
+            && (value->type() != DRW_Variant::INTEGER
+                || value->i_val() < 0 || value->i_val() > 2)) {
+            m_writeError = true;
+            return false;
+        }
+        if (version < DRW::AC1021
+            && ((value->code() == 69 || value->code() == 90)
+                && value->i_val() != 0)) {
+            // DIMTFILL and DIMARCSYM are R2007-era DIMSTYLE variables.
+            return failDxfWrite();
+        }
+        if (value->code() == 50
+            && (value->type() != DRW_Variant::DOUBLE
+                || !std::isfinite(value->d_val())
+                || (value->d_val() != 0.0
+                    && (value->d_val() < 5.0 || value->d_val() > 90.0)))) {
+            m_writeError = true;
+            return false;
+        }
+        if (version < DRW::AC1021 && value->code() == 50
+            && value->d_val() != 0.0) {
+            return failDxfWrite();
+        }
         if (version < spec->minimumVersion)
             continue;
         if (value->type() != spec->type
@@ -8453,18 +8483,6 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             && value->i_val() != 0 && value->i_val() != 1) {
             m_writeError = true;
             return false;
-        }
-        if ((value->code() == 69 || value->code() == 90)
-            && (value->type() != DRW_Variant::INTEGER
-                || value->i_val() < 0 || value->i_val() > 2)) {
-            m_writeError = true;
-            return false;
-        }
-        if (version < DRW::AC1021
-            && ((value->code() == 69 || value->code() == 90)
-                && value->i_val() != 0)) {
-            // DIMTFILL and DIMARCSYM are R2007-era DIMSTYLE variables.
-            return failDxfWrite();
         }
         if (version >= spec->minimumVersion) {
             dimVarCodes.insert(value->code());
@@ -8871,6 +8889,9 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     wD(48, ent->dimtm);
     if (version >= DRW::AC1021)
         wD(49, ent->dimfxl);
+    if (version >= DRW::AC1021 && !dimVarCodes.count(50)
+        && ent->dimjogang != 0.0)
+        writer->writeDouble(50, ent->dimjogang);
     wD(140, ent->dimtxt);
     wD(141, ent->dimcen);
     wD(142, ent->dimtsz);
@@ -8993,6 +9014,9 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     for (auto& kv : ent->vars) {
         DRW_Variant* v = kv.second;
         if (v == nullptr)
+            continue;
+        if (v->code() == 50 && v->type() == DRW_Variant::DOUBLE
+            && v->d_val() == 0.0)
             continue;
         const DxfDimstyleVariableSpec* spec =
             findDxfDimstyleVariableSpec(v->code());

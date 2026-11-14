@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <new>
 #include <sstream>
 #include <string>
@@ -77,7 +78,8 @@ bool sameDimstyle(const DRW_Dimstyle& a, const DRW_Dimstyle& b,
         && a.dimfxl == b.dimfxl && a.dimaltrnd == b.dimaltrnd
         && a.dimfxlon == b.dimfxlon
         && a.dimtxtdirection == b.dimtxtdirection
-        && a.dimtfill == b.dimtfill && a.dimarcsym == b.dimarcsym;
+        && a.dimtfill == b.dimtfill && a.dimarcsym == b.dimarcsym
+        && a.dimjogang == b.dimjogang;
 }
 
 std::string handleHex(std::uint32_t handle) {
@@ -704,6 +706,142 @@ bool dimstyleTextFillColorRefusalRetry(
     }
     return true;
 }
+
+bool dimstyleJogAngleTypedOutput(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-jog-angle.dxf";
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimjogang = 45.0;
+        if (!codec.write(&exporter, DRW::AC1021, binary)
+            || !exporter.accepted) {
+            std::cerr << "AC1021 DIMJOGANG typed write failed: binary="
+                      << binary << " error=" << codec.getError() << '\n';
+            return false;
+        }
+        std::string bytes;
+        if (!readBytes(path, bytes)
+            || (!binary && !asciiDimstyleHasGroup(bytes, 50)))
+            return false;
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
+        if (!readerCodec.read(&reader, false)
+            || reader.dimstyles.size() != 1u
+            || reader.dimstyles.front().dimjogang != 45.0) {
+            std::cerr << "AC1021 DIMJOGANG typed readback failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+    }
+    return true;
+}
+
+bool dimstyleJogAngleDowngradeRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-jog-angle-old.dxf";
+    const auto cleanPath = directory / "dimstyle-jog-angle-old-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1018, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expectedBytes;
+        if (!readBytes(cleanPath, expectedBytes)
+            || (!binary && asciiDimstyleHasGroup(expectedBytes, 50)))
+            return false;
+
+        for (const bool useOverride : {false, true}) {
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            if (useOverride)
+                exporter.dimstyle.add("$DIMJOGANG", 50, 45.0);
+            else
+                exporter.dimstyle.dimjogang = 45.0;
+            if (codec.write(&exporter, DRW::AC1018, binary)
+                || exporter.accepted) {
+                std::cerr << "pre-2007 DIMJOGANG downgrade accepted: binary="
+                          << binary << " override=" << useOverride << '\n';
+                return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
+
+            if (useOverride)
+                exporter.dimstyle.add("$DIMJOGANG", 50, 0.0);
+            else
+                exporter.dimstyle.dimjogang = 0.0;
+            if (!codec.write(&exporter, DRW::AC1018, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes || !readbackMatches(path)) {
+                std::cerr << "pre-2007 DIMJOGANG retry failed: binary="
+                          << binary << " override=" << useOverride << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool dimstyleJogAngleDomainRefusalRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-jog-angle-domain.dxf";
+    const auto cleanPath = directory / "dimstyle-jog-angle-domain-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        cleanExporter.dimstyle.dimjogang = 45.0;
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expectedBytes;
+        if (!readBytes(cleanPath, expectedBytes))
+            return false;
+
+        const std::array<double, 3> invalidValues{{
+            4.0, 91.0, std::numeric_limits<double>::quiet_NaN()}};
+        for (const double invalid : invalidValues) {
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            exporter.dimstyle.dimjogang = invalid;
+            if (codec.write(&exporter, DRW::AC1021, binary)
+                || exporter.accepted) {
+                std::cerr << "invalid DIMJOGANG was accepted: binary="
+                          << binary << '\n';
+                return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
+            exporter.dimstyle.dimjogang = 45.0;
+            if (!codec.write(&exporter, DRW::AC1021, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes) {
+                std::cerr << "invalid DIMJOGANG same-writer retry failed: binary="
+                          << binary << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -751,5 +889,8 @@ int main() {
         && dimtxtdirectionTypedOutput(directory)
         && dimstyleTextFillAndArcSymbolTypedOutput(directory)
         && dimstyleTextFillAndArcSymbolDowngradeRetry(directory)
-        && dimstyleTextFillColorRefusalRetry(directory) ? 0 : 2;
+        && dimstyleTextFillColorRefusalRetry(directory)
+        && dimstyleJogAngleTypedOutput(directory)
+        && dimstyleJogAngleDowngradeRetry(directory)
+        && dimstyleJogAngleDomainRefusalRetry(directory) ? 0 : 2;
 }
