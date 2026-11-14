@@ -1382,6 +1382,9 @@ def check_partial_dwg_read_cli(converter, root, writer):
     malformed_body_profiles = {
         "AC1021": "2007",
         "AC1024": "2010",
+        # The independent source-reference closure gate prevents output
+        # qualification for AC1027; retain this profile as reader-only.
+        "AC1027": None,
         "AC1032": "2018",
     }
     for revision, target_year in malformed_body_profiles.items():
@@ -1421,6 +1424,9 @@ def check_partial_dwg_read_cli(converter, root, writer):
                 f"{revision} malformed object body stopped later OBJECTS records: "
                 f"{counted!r}")
         checked += 1
+
+        if target_year is None:
+            continue
 
         for partial_mode in (False, True):
             mode = "partial" if partial_mode else "strict"
