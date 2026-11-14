@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **231 completed implementation slices** and **35 remaining
+The plan records **232 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`231 / (231 + 35) = 86.8%`. This is a count-based progress measure, not an
+`232 / (232 + 35) = 86.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1570,6 +1570,15 @@ destination and caller fields; same-codec retry reproduces clean output with
 typed readback. The focused transaction CTest passes. This is transaction
 coverage for one generated object profile only; native wipeout display and
 independent producer behavior remain open. See the [receipt](docs/research/p6-dxf-wipeoutvariables-allocation-rollback-retry-2026-11-13.json).
+
+**P6-F WIPEOUTVARIABLES same-revision refusal control (2026-11-13):** the
+generated AC1027 source now also checks that AC1021 and AC1024 output targets
+are refused without changing pre-existing destination bytes or the retained
+source record. The matching AC1027 ASCII/Binary allocation retry controls
+still pass (12/11 offsets in this focused test; the separate whole-operation
+sweep remains 541/535). This follows the adapter's explicit same-revision
+output gate; it does not qualify cross-revision serialization or producer
+behavior. See the [refusal-gate receipt](docs/research/p6-dxf-wipeoutvariables-same-revision-output-gate-2026-11-13.json).
 
 **P6 local SUN transaction slice (2026-11-13):** the generated whole-operation
 AC1027 sweep now includes a SUN object with nondefault state, ACI color,

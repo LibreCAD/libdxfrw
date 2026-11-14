@@ -183,16 +183,41 @@ bool run(const std::filesystem::path& directory) {
 
     WipeoutExport exporter;
     exporter.cData = &data;
-    const auto write = [&](std::size_t index, bool binary) {
-        return exporter.fileExport(destinations[index].string(), DRW::AC1027,
+    const auto write = [&](const std::filesystem::path& path,
+                           DRW::Version targetVersion, bool binary) {
+        return exporter.fileExport(path.string(), targetVersion,
             binary, &data, false, false, dx_dxfSourceTextPolicy::Compatible,
             DRW::DxfTextWritePolicy::Compatible,
             dx_dxfProxyGraphicsPolicy::Compatible,
             dx_dwgReadCompletenessPolicy::Legacy);
     };
 
+    for (const DRW::Version rejectedTarget : {DRW::AC1021, DRW::AC1024}) {
+        const auto rejectedPath = directory
+            / (std::string("wipeoutvariables-cross-version-")
+               + std::to_string(static_cast<int>(rejectedTarget)) + ".dxf");
+        const std::string rejectedSentinel = "cross-version destination bytes\n";
+        {
+            std::ofstream output(rejectedPath,
+                std::ios::binary | std::ios::trunc);
+            output.write(rejectedSentinel.data(),
+                         static_cast<std::streamsize>(rejectedSentinel.size()));
+            if (!output)
+                return fail("could not initialize cross-version sentinel");
+        }
+        const bool wrote = write(rejectedPath, rejectedTarget, false);
+        std::string current;
+        const bool preserved = !wrote && readAll(rejectedPath, current)
+            && current == rejectedSentinel
+            && sourceRecordUnchanged(data, sourceRecord);
+        std::error_code ignored;
+        std::filesystem::remove(rejectedPath, ignored);
+        if (!preserved)
+            return fail("cross-revision target was not refused atomically");
+    }
+
     for (std::size_t index = 0; index < destinations.size(); ++index) {
-        const bool binary = index == 1u;
+        const bool binary = index % 2u != 0u;
         {
             std::ofstream output(destinations[index],
                 std::ios::binary | std::ios::trunc);
@@ -202,8 +227,9 @@ bool run(const std::filesystem::path& directory) {
                 return fail("could not initialize destination sentinel");
         }
         exporter.failAt = 1000000;
-        if (!write(index, binary))
+        if (!write(destinations[index], DRW::AC1027, binary)) {
             return fail("allocation calibration export failed");
+        }
         const long allocationCount = exporter.reached;
         if (allocationCount <= 0 || !verifyGraph(destinations[index]))
             return fail("calibration did not emit the typed wipeout graph");
@@ -220,7 +246,7 @@ bool run(const std::filesystem::path& directory) {
             }
             exporter.failAt = offset;
             exporter.reached = 0;
-            const bool wrote = write(index, binary);
+            const bool wrote = write(destinations[index], DRW::AC1027, binary);
             exporter.failAt = -1;
             std::string current;
             if (wrote || exporter.reached < 1
@@ -228,7 +254,8 @@ bool run(const std::filesystem::path& directory) {
                 || current != sentinel
                 || !sourceRecordUnchanged(data, sourceRecord))
                 return fail("injected failure changed destination or caller record");
-            if (!write(index, binary) || !verifyGraph(destinations[index])
+            if (!write(destinations[index], DRW::AC1027, binary)
+                || !verifyGraph(destinations[index])
                 || !sourceRecordUnchanged(data, sourceRecord))
                 return fail("same-adapter retry failed typed graph readback");
             ++offsets;
