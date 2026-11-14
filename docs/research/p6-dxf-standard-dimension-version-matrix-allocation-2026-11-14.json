@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-standard-dimension-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_STANDARD_DIMENSION_SUBTYPE_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend whole-operation transaction coverage for the seven standard concrete DIMENSION subtypes across all seven target revisions and both DXF encodings.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "aligned DIMENSION",
+      "linear DIMENSION",
+      "radial DIMENSION with diameter point and leader length",
+      "diametric DIMENSION with diameter point and leader length",
+      "two-line angular DIMENSION with all four extension-line points and dimension point",
+      "three-point angular DIMENSION with both lines, vertex, and dimension point",
+      "ordinate DIMENSION with origin, feature, and leader-end points",
+      "generated TEXTSTYLE and DIMSTYLE dependencies"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-standard-dimension-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Prime each version and encoding with an untracked write to initialize lazy writer state, measure allocations in a clean write, inject std::bad_alloc at every measured offset, require failure plus unchanged destination sentinel and caller records, retry with the same codec, compare exact output bytes with the clean baseline, and freshly read all seven typed callbacks and their subtype-specific modeled fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 179,
+      "Binary": 177
+    },
+    "AC1015": {
+      "ASCII": 181,
+      "Binary": 179
+    },
+    "AC1018": {
+      "ASCII": 181,
+      "Binary": 179
+    },
+    "AC1021": {
+      "ASCII": 178,
+      "Binary": 176
+    },
+    "AC1024": {
+      "ASCII": 187,
+      "Binary": 185
+    },
+    "AC1027": {
+      "ASCII": 178,
+      "Binary": 176
+    },
+    "AC1032": {
+      "ASCII": 178,
+      "Binary": 176
+    }
+  },
+  "allocationOffsetTotal": 2510,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_dimension_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 16.92 seconds",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native consumer behavior are not qualified.",
+    "This matrix covers the seven standard concrete subtypes only; generic/dynamic constraint dimensions, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION remain in their separately bounded AC1027 coverage.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "All seven standard concrete DIMENSION subtypes now have generated whole-operation ASCII/Binary allocation rollback, same-codec retry, byte-identical output, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "P6-G remains open for public-writer inventory reconciliation, remaining direct routes and compound variants, and uncovered variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "297 completed slices and 34 remaining packages: 297/(297+34)=89.7%; equal-weight count, not effort-weighted."
+  }
+}

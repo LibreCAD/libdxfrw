@@ -1798,11 +1798,52 @@ public:
         linear.setDef2Point(DRW_Coord{14.0, 16.0, 18.0});
         linear.setTextPoint(DRW_Coord{12.0, 13.0, 0.0});
         linear.setText("version matrix linear");
+
+        const auto initDimension = [](DRW_Dimension& value,
+                                      std::uint32_t handle,
+                                      double coordinate,
+                                      const char* text) {
+            value.handle = handle;
+            value.setStyle("DIM_MATRIX_STYLE");
+            value.setDefPoint(DRW_Coord{coordinate, coordinate + 1.0,
+                                        coordinate + 2.0});
+            value.setTextPoint(DRW_Coord{coordinate + 0.5,
+                                         coordinate + 1.5, 0.0});
+            value.setText(text);
+        };
+        initDimension(radial, 0xDC12u, 20.0, "version matrix radial");
+        radial.setDiameterPoint(DRW_Coord{22.0, 20.0, 20.0});
+        radial.setLeaderLength(3.0);
+        initDimension(diametric, 0xDC13u, 30.0,
+                      "version matrix diametric");
+        diametric.setDiameter1Point(DRW_Coord{32.0, 30.0, 30.0});
+        diametric.setLeaderLength(4.0);
+        initDimension(angular, 0xDC14u, 40.0, "version matrix angular");
+        angular.setFirstLine1(DRW_Coord{40.0, 40.0, 0.0});
+        angular.setFirstLine2(DRW_Coord{41.0, 40.0, 0.0});
+        angular.setSecondLine1(DRW_Coord{40.0, 41.0, 0.0});
+        angular.setSecondLine2(DRW_Coord{41.0, 41.0, 0.0});
+        angular.setDimPoint(DRW_Coord{40.5, 40.5, 0.0});
+        initDimension(angular3p, 0xDC15u, 50.0,
+                      "version matrix angular 3p");
+        angular3p.setFirstLine(DRW_Coord{50.0, 50.0, 0.0});
+        angular3p.setSecondLine(DRW_Coord{51.0, 50.0, 0.0});
+        angular3p.SetVertexPoint(DRW_Coord{50.0, 51.0, 0.0});
+        angular3p.setDimPoint(DRW_Coord{50.5, 50.5, 0.0});
+        initDimension(ordinate, 0xDC16u, 60.0,
+                      "version matrix ordinate");
+        ordinate.setFirstLine(DRW_Coord{61.0, 62.0, 63.0});
+        ordinate.setSecondLine(DRW_Coord{64.0, 65.0, 66.0});
     }
 
     void writeEntities() override {
         written = dxfW != nullptr && dxfW->writeDimension(&aligned)
-            && dxfW->writeDimension(&linear);
+            && dxfW->writeDimension(&linear)
+            && dxfW->writeDimension(&radial)
+            && dxfW->writeDimension(&diametric)
+            && dxfW->writeDimension(&angular)
+            && dxfW->writeDimension(&angular3p)
+            && dxfW->writeDimension(&ordinate);
     }
     bool finalizeDxfWrite() override { return written; }
 
@@ -1818,14 +1859,55 @@ public:
             && linear.handle == 0xDC11u
             && linear.getStyle() == "DIM_MATRIX_STYLE"
             && linear.getDefPoint().x == 10.0
+            && linear.getDefPoint().y == 11.0
+            && linear.getDefPoint().z == 12.0
             && linear.getDef1Point().x == 10.0
+            && linear.getDef1Point().y == 11.0
+            && linear.getDef1Point().z == 12.0
             && linear.getDef2Point().x == 14.0
+            && linear.getDef2Point().y == 16.0
+            && linear.getDef2Point().z == 18.0
             && linear.getTextPoint().x == 12.0
-            && linear.getText() == "version matrix linear";
+            && linear.getTextPoint().y == 13.0
+            && linear.getText() == "version matrix linear"
+            && radial.handle == 0xDC12u
+            && radial.getDefPoint().x == 20.0
+            && radial.getDefPoint().y == 21.0
+            && radial.getDefPoint().z == 22.0
+            && radial.getDiameterPoint().x == 22.0
+            && radial.getLeaderLength() == 3.0
+            && radial.getText() == "version matrix radial"
+            && diametric.handle == 0xDC13u
+            && diametric.getDefPoint().x == 30.0
+            && diametric.getDiameter1Point().x == 32.0
+            && diametric.getLeaderLength() == 4.0
+            && diametric.getText() == "version matrix diametric"
+            && angular.handle == 0xDC14u
+            && angular.getFirstLine1().x == 40.0
+            && angular.getFirstLine2().x == 41.0
+            && angular.getSecondLine1().y == 41.0
+            && angular.getSecondLine2().y == 41.0
+            && angular.getDimPoint().x == 40.5
+            && angular.getText() == "version matrix angular"
+            && angular3p.handle == 0xDC15u
+            && angular3p.getFirstLine().x == 50.0
+            && angular3p.getSecondLine().x == 51.0
+            && angular3p.getVertexPoint().y == 51.0
+            && angular3p.getDimPoint().x == 50.5
+            && angular3p.getText() == "version matrix angular 3p"
+            && ordinate.handle == 0xDC16u
+            && ordinate.getFirstLine().x == 61.0
+            && ordinate.getSecondLine().x == 64.0
+            && ordinate.getText() == "version matrix ordinate";
     }
 
     DRW_DimAligned aligned;
     DRW_DimLinear linear;
+    DRW_DimRadial radial;
+    DRW_DimDiametric diametric;
+    DRW_DimAngular angular;
+    DRW_DimAngular3p angular3p;
+    DRW_DimOrdinate ordinate;
     bool written = false;
     dx_data storage;
 };
@@ -1848,11 +1930,51 @@ public:
             linear = *value;
         }
     }
+    void addDimRadial(const DRW_DimRadial* value) override {
+        if (value != nullptr) {
+            ++radialCount;
+            radial = *value;
+        }
+    }
+    void addDimDiametric(const DRW_DimDiametric* value) override {
+        if (value != nullptr) {
+            ++diametricCount;
+            diametric = *value;
+        }
+    }
+    void addDimAngular(const DRW_DimAngular* value) override {
+        if (value != nullptr) {
+            ++angularCount;
+            angular = *value;
+        }
+    }
+    void addDimAngular3P(const DRW_DimAngular3p* value) override {
+        if (value != nullptr) {
+            ++angular3pCount;
+            angular3p = *value;
+        }
+    }
+    void addDimOrdinate(const DRW_DimOrdinate* value) override {
+        if (value != nullptr) {
+            ++ordinateCount;
+            ordinate = *value;
+        }
+    }
 
     unsigned alignedCount{0};
     unsigned linearCount{0};
+    unsigned radialCount{0};
+    unsigned diametricCount{0};
+    unsigned angularCount{0};
+    unsigned angular3pCount{0};
+    unsigned ordinateCount{0};
     DRW_DimAligned aligned;
     DRW_DimLinear linear;
+    DRW_DimRadial radial;
+    DRW_DimDiametric diametric;
+    DRW_DimAngular angular;
+    DRW_DimAngular3p angular3p;
+    DRW_DimOrdinate ordinate;
     dx_data storage;
 };
 
@@ -6906,7 +7028,7 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
 
 bool runDimensionVersionSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
-        std::cerr << "DIMENSION version-matrix allocation transaction: "
+        std::cerr << "standard DIMENSION version-matrix allocation transaction: "
                   << message << '\n';
         return false;
     };
@@ -6921,6 +7043,9 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
         const bool read = reader.read(&adapter, false);
         const bool matches = read
             && adapter.alignedCount == 1u && adapter.linearCount == 1u
+            && adapter.radialCount == 1u && adapter.diametricCount == 1u
+            && adapter.angularCount == 1u && adapter.angular3pCount == 1u
+            && adapter.ordinateCount == 1u
             && adapter.aligned.handle != 0u
             && adapter.aligned.getStyle() == "DIM_MATRIX_STYLE"
             && adapter.aligned.getDefPoint().x == 1.25
@@ -6934,16 +7059,61 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.linear.getStyle() == "DIM_MATRIX_STYLE"
             && adapter.linear.getDef1Point().x == 10.0
             && adapter.linear.getDef1Point().y == 11.0
+            && adapter.linear.getDef1Point().z == 12.0
             && adapter.linear.getDef2Point().x == 14.0
             && adapter.linear.getDef2Point().y == 16.0
+            && adapter.linear.getDef2Point().z == 18.0
             && adapter.linear.getTextPoint().x == 12.0
             && adapter.linear.getTextPoint().y == 13.0
-            && adapter.linear.getText() == "version matrix linear";
+            && adapter.linear.getText() == "version matrix linear"
+            && adapter.radial.handle != 0u
+            && adapter.radial.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.radial.getDefPoint().x == 20.0
+            && adapter.radial.getDefPoint().y == 21.0
+            && adapter.radial.getDefPoint().z == 22.0
+            && adapter.radial.getDiameterPoint().x == 22.0
+            && adapter.radial.getLeaderLength() == 3.0
+            && adapter.radial.getText() == "version matrix radial"
+            && adapter.diametric.handle != 0u
+            && adapter.diametric.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.diametric.getDefPoint().x == 30.0
+            && adapter.diametric.getDiameter1Point().x == 32.0
+            && adapter.diametric.getLeaderLength() == 4.0
+            && adapter.diametric.getText() == "version matrix diametric"
+            && adapter.angular.handle != 0u
+            && adapter.angular.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.angular.getDefPoint().x == 41.0
+            && adapter.angular.getFirstLine1().x == 40.0
+            && adapter.angular.getFirstLine2().x == 41.0
+            && adapter.angular.getSecondLine1().y == 41.0
+            && adapter.angular.getSecondLine2().y == 41.0
+            && adapter.angular.getDimPoint().x == 40.5
+            && adapter.angular.getText() == "version matrix angular"
+            && adapter.angular3p.handle != 0u
+            && adapter.angular3p.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.angular3p.getDefPoint().x == 50.5
+            && adapter.angular3p.getFirstLine().x == 50.0
+            && adapter.angular3p.getSecondLine().x == 51.0
+            && adapter.angular3p.getVertexPoint().y == 51.0
+            && adapter.angular3p.getText() == "version matrix angular 3p"
+            && adapter.ordinate.handle != 0u
+            && adapter.ordinate.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.ordinate.getDefPoint().x == 60.0
+            && adapter.ordinate.getDefPoint().y == 61.0
+            && adapter.ordinate.getDefPoint().z == 62.0
+            && adapter.ordinate.getFirstLine().x == 61.0
+            && adapter.ordinate.getSecondLine().x == 64.0
+            && adapter.ordinate.getText() == "version matrix ordinate";
         if (!matches) {
             std::cerr << "DIMENSION readback diagnostic read=" << read
                       << " error=" << reader.getError()
                       << " aligned=" << adapter.alignedCount
                       << " linear=" << adapter.linearCount
+                      << " radial=" << adapter.radialCount
+                      << " diametric=" << adapter.diametricCount
+                      << " angular=" << adapter.angularCount
+                      << " angular3p=" << adapter.angular3pCount
+                      << " ordinate=" << adapter.ordinateCount
                       << " alignedHandle=" << adapter.aligned.handle
                       << " alignedStyle=" << adapter.aligned.getStyle()
                       << " alignedDef=" << adapter.aligned.getDefPoint().x
@@ -7059,7 +7229,7 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                     || hasStagedOutput(output))
                     return fail("same-codec retry or typed readback failed");
             }
-            std::cout << target.second << " DIMENSION aligned/linear "
+            std::cout << target.second << " standard DIMENSION subtypes "
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", caller/destination rollback, retry/readback=PASS\n";
