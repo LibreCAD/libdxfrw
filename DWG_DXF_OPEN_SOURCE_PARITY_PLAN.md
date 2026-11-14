@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **350 completed implementation slices** and **34 remaining
+The plan records **351 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`350 / (350 + 34) = 91.1%`. This is a count-based progress measure, not an
+`351 / (351 + 34) = 91.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -51,17 +51,20 @@ VPORT. The fast selector passes 33 strict/partial/readback controls. This
 corrects a stale same-revision expectation and does not broaden down-version
 support ([receipt](docs/research/p6-cli-partial-read-target-profile-correction-2026-11-14.json)).
 
-**P6-F generated raw-only TABLECONTENT disposition slice (2026-11-14):** a
-from-scratch AC1032 source exercises the validated common-shell/raw-only
-TABLECONTENT route through the CLI. Its two same-class objects are both
-counted; all 28 source frames publish with no parser failures. Strict ASCII
-and Binary output refuse atomically. Explicit partial mode succeeds only with
-its omission warning; direct ASCII/Binary readback contains one retained LINE
-and VPORT and no TABLECONTENT record. The focused skipped-record selector
-passes 24 version/profile controls in under one second. This is synthetic
-disposition evidence only and does not qualify TABLECONTENT semantics or
-support ([initial single-object receipt](docs/research/p6-cli-raw-only-tablecontent-cli-disposition-2026-11-14.json),
-[two-object follow-up](docs/research/p6-cli-raw-only-tablecontent-two-object-followup-2026-11-14.json)).
+**P6-F generated raw-only TABLECONTENT disposition slice (2026-11-14):**
+from-scratch two-object sources now exercise AC1018→AC1021, AC1021, AC1024,
+and AC1032 source/target profiles through the CLI. Each source publishes all
+28 frames without parser failures while both raw-only objects are counted.
+Strict ASCII/Binary conversion refuses atomically; explicit partial mode
+succeeds with its omission warning; direct readback finds one LINE and one
+VPORT and no TABLECONTENT. The selector passes 42 controls in under two
+seconds. AC1018 uses the AC1021 target because the generated VPORT state is
+not representable at AC1018. AC1027 remains outside this isolated matrix: its
+independent source-reference closure gate refuses before the raw-only output
+disposition can be exercised. This synthetic evidence does not qualify
+TABLECONTENT semantics or support ([initial single-object receipt](docs/research/p6-cli-raw-only-tablecontent-cli-disposition-2026-11-14.json),
+[two-object follow-up](docs/research/p6-cli-raw-only-tablecontent-two-object-followup-2026-11-14.json),
+[four-revision follow-up](docs/research/p6-cli-raw-only-tablecontent-four-revision-followup-2026-11-14.json)).
 
 **P6-D LAYER PlotStyleName output slice (2026-11-14):** LAYER group 390 is now handled as a
 PlotStyleName graph edge. An explicit nondefault handle must resolve through

@@ -41840,15 +41840,32 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
-    if (argc == 3
+    if ((argc == 3 || argc == 4)
         && std::string(argv[1]) == "--generate-cli-raw-only-source") {
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing raw-only CLI source\n";
             return 1;
         }
+        DRW::Version version = DRW::AC1032;
+        if (argc == 4) {
+            const std::string token(argv[3]);
+            if (token == "AC1018")
+                version = DRW::AC1018;
+            else if (token == "AC1021")
+                version = DRW::AC1021;
+            else if (token == "AC1024")
+                version = DRW::AC1024;
+            else if (token == "AC1027")
+                version = DRW::AC1027;
+            else if (token != "AC1032") {
+                std::cerr << "Unsupported CLI raw-only source version: "
+                          << token << '\n';
+                return 1;
+            }
+        }
         dwgRW writer(argv[2]);
-        ReadOutcomeControl source(&writer, 5, nullptr, DRW::AC1032);
-        if (!writer.write(&source, DRW::AC1032, true) || !source.wrote) {
+        ReadOutcomeControl source(&writer, 5, nullptr, version);
+        if (!writer.write(&source, version, true) || !source.wrote) {
             const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
             std::cerr << "Could not generate raw-only CLI source: "
                       << diagnostic.code << " — " << diagnostic.message << '\n';

@@ -1298,84 +1298,113 @@ def check_skipped_record_projection(converter, root, writer):
     # A source TABLECONTENT can have a valid common object shell while its
     # body remains raw-only. Strict conversion must refuse it; explicit
     # partial mode may omit it only with a clear warning and exact frame
-    # disposition. This source is generated locally and never checked in.
-    raw_source = root / "generated raw-only TABLECONTENT AC1032.dwg"
-    generated = run_bounded(
-        [str(writer), "--generate-cli-raw-only-source", str(raw_source)],
-        10, 131072, cwd=root)
-    if generated.returncode != 0 or not raw_source.is_file():
-        raise AssertionError(f"could not author raw-only TABLECONTENT source: {generated!r}")
-    raw_source_bytes = raw_source.read_bytes()
-    if raw_source_bytes[:6] != b"AC1032":
-        raise AssertionError("raw-only TABLECONTENT generator emitted another revision")
-
+    # disposition. Generate locally for every admitted source revision whose
+    # output preflight permits this isolated raw-only control; never check
+    # these sources in as fixtures.
     raw_only_projection = (
         b"sourceDwgSkippedCustomClassInstances=2",
         b"sourceDwgSkippedUnsupportedObjectInstances=2",
         b"sourceDwgEntityParseFailures=0",
         b"sourceDwgObjectParseFailures=0",
         b"sourceDwgFrameCoverage=complete",
-        b"sourceDwgSourceFrames=28",
-        b"sourceDwgFramesPublished=28",
         b"sourceDwgFramesFailed=0",
         b"sourceDwgFramesUnresolved=0",
         b"sourceDwgFramesUnrecognized=0",
     )
-    for binary in (False, True):
-        encoding = "Binary" if binary else "ASCII"
-        strict_output = root / f"raw-only TABLECONTENT strict {encoding}.dxf"
-        strict_output.write_bytes(SENTINEL)
-        strict_args = [str(converter), str(raw_source), "-o", str(strict_output),
-                       "-v2018", "-y", "-d"]
-        if binary:
-            strict_args.append("-b")
-        strict = run_bounded(strict_args, 10, 2 * 1024 * 1024, cwd=root)
-        projection = next((line for line in strict.stderr.splitlines()
-                           if line.startswith(
-                               b"CLI source disposition projection:")), b"")
-        if (strict.returncode != 1 or strict_output.read_bytes() != SENTINEL
-                or raw_source.read_bytes() != raw_source_bytes
-                or any(field not in projection for field in raw_only_projection)
-                or b"strict-complete conversion requires successful, complete DWG read disposition"
-                   not in strict.stderr):
+    raw_only_versions = {
+        # AC1018 uses the already-qualified AC1021 target because the
+        # generated VPORT state is not representable in an AC1018 DXF.
+        "AC1018": (b"AC1018", b"AC1021", "2007"),
+        "AC1021": (b"AC1021", b"AC1021", "2007"),
+        "AC1024": (b"AC1024", b"AC1024", "2010"),
+        "AC1032": (b"AC1032", b"AC1032", "2018"),
+    }
+    import re
+    for source_version, (revision, target_revision, target_year) in raw_only_versions.items():
+        raw_source = root / f"generated raw-only TABLECONTENT {source_version}.dwg"
+        generated = run_bounded(
+            [str(writer), "--generate-cli-raw-only-source", str(raw_source),
+             source_version], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not raw_source.is_file():
             raise AssertionError(
-                f"strict {encoding} output did not refuse raw-only TABLECONTENT "
-                f"atomically: {strict!r}")
-        checked += 1
+                f"could not author {source_version} raw-only TABLECONTENT source: "
+                f"{generated!r}")
+        raw_source_bytes = raw_source.read_bytes()
+        if raw_source_bytes[:6] != revision:
+            raise AssertionError(
+                f"raw-only TABLECONTENT generator emitted the wrong revision "
+                f"for {source_version}")
 
-        partial_output = root / f"raw-only TABLECONTENT partial {encoding}.dxf"
-        partial_args = [str(converter), str(raw_source), "-o", str(partial_output),
-                        "-v2018", "-y", "-d", "--allow-partial-dwg-read"]
-        if binary:
-            partial_args.append("-b")
-        partial = run_bounded(partial_args, 10, 2 * 1024 * 1024, cwd=root)
-        payload = partial_output.read_bytes() if partial_output.is_file() else b""
-        projection = next((line for line in partial.stderr.splitlines()
-                           if line.startswith(
-                               b"CLI source disposition projection:")), b"")
-        if (partial.returncode != 0 or b"Success:" not in partial.stdout
-                or b"WARNING: explicit partial DWG read mode" not in partial.stderr
-                or b"is not a completeness/support claim" not in partial.stderr
-                or any(field not in projection for field in raw_only_projection)
-                or not output_has_revision(payload, b"AC1032", binary)
-                or b"TABLECONTENT" in payload
-                or raw_source.read_bytes() != raw_source_bytes):
-            raise AssertionError(
-                f"explicit {encoding} partial mode did not diagnose and omit the "
-                f"raw-only object: {partial!r}")
-        checked += 1
+        for binary in (False, True):
+            encoding = "Binary" if binary else "ASCII"
+            strict_output = root / (
+                f"raw-only TABLECONTENT strict {source_version} {encoding}.dxf")
+            strict_output.write_bytes(SENTINEL)
+            strict_args = [str(converter), str(raw_source), "-o", str(strict_output),
+                           f"-v{target_year}", "-y", "-d"]
+            if binary:
+                strict_args.append("-b")
+            strict = run_bounded(strict_args, 10, 2 * 1024 * 1024, cwd=root)
+            projection = next((line for line in strict.stderr.splitlines()
+                               if line.startswith(
+                                   b"CLI source disposition projection:")), b"")
+            source_frames = re.search(rb"sourceDwgSourceFrames=(\d+)", projection)
+            published_frames = re.search(rb"sourceDwgFramesPublished=(\d+)",
+                                          projection)
+            if (strict.returncode != 1 or strict_output.read_bytes() != SENTINEL
+                    or raw_source.read_bytes() != raw_source_bytes
+                    or any(field not in projection for field in raw_only_projection)
+                    or not source_frames or not published_frames
+                    or source_frames.group(1) != published_frames.group(1)
+                    or source_frames.group(1) != b"28"
+                    or b"strict-complete conversion requires successful, complete DWG read disposition"
+                       not in strict.stderr):
+                raise AssertionError(
+                    f"strict {source_version} {encoding} output did not refuse "
+                    f"raw-only TABLECONTENT atomically: {strict!r}")
+            checked += 1
 
-        parsed = run_bounded(
-            [str(writer), "--count-dxf-lines", str(partial_output)],
-            10, 131072, cwd=root)
-        if (parsed.returncode != 0 or b"lineCount=1" not in parsed.stdout
-                or b"vportCount=1" not in parsed.stdout
-                or partial_output.read_bytes() != payload
-                or raw_source.read_bytes() != raw_source_bytes):
-            raise AssertionError(
-                f"raw-only {encoding} partial output failed direct DXF readback: "
-                f"{parsed!r}")
-        checked += 1
+            partial_output = root / (
+                f"raw-only TABLECONTENT partial {source_version} {encoding}.dxf")
+            partial_args = [str(converter), str(raw_source), "-o",
+                            str(partial_output), f"-v{target_year}", "-y", "-d",
+                            "--allow-partial-dwg-read"]
+            if binary:
+                partial_args.append("-b")
+            partial = run_bounded(partial_args, 10, 2 * 1024 * 1024, cwd=root)
+            payload = partial_output.read_bytes() if partial_output.is_file() else b""
+            projection = next((line for line in partial.stderr.splitlines()
+                               if line.startswith(
+                                   b"CLI source disposition projection:")), b"")
+            source_frames = re.search(rb"sourceDwgSourceFrames=(\d+)", projection)
+            published_frames = re.search(rb"sourceDwgFramesPublished=(\d+)",
+                                          projection)
+            if (partial.returncode != 0 or b"Success:" not in partial.stdout
+                    or b"WARNING: explicit partial DWG read mode" not in partial.stderr
+                    or b"is not a completeness/support claim" not in partial.stderr
+                    or any(field not in projection for field in raw_only_projection)
+                    or not source_frames or not published_frames
+                    or source_frames.group(1) != published_frames.group(1)
+                    or source_frames.group(1) != b"28"
+                    or not output_has_revision(payload, target_revision, binary)
+                    or b"TABLECONTENT" in payload
+                    or raw_source.read_bytes() != raw_source_bytes):
+                raise AssertionError(
+                    f"explicit {source_version} {encoding} partial mode did not "
+                    f"diagnose and omit raw-only TABLECONTENT: {partial!r}")
+            checked += 1
+
+            parsed = run_bounded(
+                [str(writer), "--count-dxf-lines", str(partial_output)],
+                10, 131072, cwd=root)
+            if (parsed.returncode != 0 or b"lineCount=1" not in parsed.stdout
+                    or b"vportCount=1" not in parsed.stdout
+                    or partial_output.read_bytes() != payload
+                    or raw_source.read_bytes() != raw_source_bytes):
+                raise AssertionError(
+                    f"raw-only {source_version} {encoding} partial output failed "
+                    f"direct DXF readback: {parsed!r}")
+            checked += 1
     return checked
 
 
