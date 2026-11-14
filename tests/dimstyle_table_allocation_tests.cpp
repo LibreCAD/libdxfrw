@@ -13,6 +13,7 @@
 #include <new>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -161,14 +162,19 @@ bool asciiDimstyleHasGroup(const std::string& bytes, int wanted) {
     std::string value;
     bool inDimstyle = false;
     while (std::getline(input, code) && std::getline(input, value)) {
-        if (code == "0") {
+        const auto first = code.find_first_not_of(" \t\r");
+        const std::string_view codeValue = first == std::string::npos
+            ? std::string_view{} : std::string_view(code).substr(first);
+        if (codeValue == "0") {
             if (inDimstyle)
                 return false;
             inDimstyle = value == "DIMSTYLE";
             continue;
         }
-        if (inDimstyle && code == std::to_string(wanted))
-            return true;
+        if (inDimstyle) {
+            if (codeValue == std::to_string(wanted))
+                return true;
+        }
     }
     return false;
 }
@@ -355,8 +361,10 @@ bool dimaltrndRefusalRetry(const std::filesystem::path& directory) {
         dxfRW cleanCodec(cleanPath.string().c_str());
         Export cleanExporter(cleanCodec);
         if (!cleanCodec.write(&cleanExporter, version, binary)
-            || !cleanExporter.accepted)
+            || !cleanExporter.accepted) {
+            std::cerr << "pre-2010 DIMTXTDIRECTION baseline failed\n";
             return false;
+        }
         std::string expectedBytes;
         if (!readBytes(cleanPath, expectedBytes)
             || (!binary && asciiDimstyleHasGroup(expectedBytes, 148))) {
@@ -519,6 +527,38 @@ bool dimtxtdirectionRefusalRetry(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool dimtxtdirectionTypedOutput(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-dimtxtdirection-typed.dxf";
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimtxtdirection = 1;
+        if (!codec.write(&exporter, DRW::AC1024, binary)
+            || !exporter.accepted) {
+            std::cerr << "AC1024 DIMTXTDIRECTION typed write failed: binary="
+                      << binary << " error=" << codec.getError() << '\n';
+            return false;
+        }
+        std::string bytes;
+        if (!readBytes(path, bytes)
+            || (!binary && !asciiDimstyleHasGroup(bytes, 295))) {
+            std::cerr << "AC1024 DIMTXTDIRECTION output group missing: binary="
+                      << binary << '\n';
+            return false;
+        }
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
+        if (!readerCodec.read(&reader, false)
+            || reader.dimstyles.size() != 1u
+            || reader.dimstyles.front().dimtxtdirection != 1) {
+            std::cerr << "AC1024 DIMTXTDIRECTION typed readback failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -562,5 +602,6 @@ int main() {
         && dimfxlRefusalRetry(directory)
         && dimaltrndRefusalRetry(directory)
         && dimfxlonRefusalRetry(directory)
-        && dimtxtdirectionRefusalRetry(directory) ? 0 : 2;
+        && dimtxtdirectionRefusalRetry(directory)
+        && dimtxtdirectionTypedOutput(directory) ? 0 : 2;
 }

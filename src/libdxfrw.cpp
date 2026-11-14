@@ -8906,6 +8906,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     if (version > DRW::AC1018 && ent->dimfxlon != 0
         && !dimVarCodes.count(290))
         writer->writeBool(290, ent->dimfxlon != 0);
+    if (version >= DRW::AC1024 && !dimVarCodes.count(295))
+        writer->writeBool(295, ent->dimtxtdirection != 0);
     if (version > DRW::AC1009) {
         if (!dimVarCodes.count(340)) {
             if (hasEmittedDimTextStyleHandle) {
