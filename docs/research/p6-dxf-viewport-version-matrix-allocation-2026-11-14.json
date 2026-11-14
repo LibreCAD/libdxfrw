@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.dxf.writer-transaction-receipt.v1",
+  "slice": "P6-G VIEWPORT version-gated direct-writer matrix",
+  "date": "2026-11-14",
+  "scope": {
+    "writerRoute": "dxfRW::writeViewport",
+    "profile": "generated paper-space viewport with nondefault view, snap, grid, UCS, shade-plot, and ambient-light fields; all optional object-reference handles are zero",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "versionGates": "Typed readback checks majorGridLines from AC1021, shadePlotMode from AC1018, and ambient-light fields from AC1021; older-target values match parser defaults.",
+    "unsupportedVersion": "AC1012 refusal preserves destination and caller state; same-writer AC1014 retry matches clean bytes and typed readback.",
+    "fixturePolicy": "No committed DWG/DXF fixtures; generated output is scratch-only and removed by the runner."
+  },
+  "checks": {
+    "wholeOperationAllocationFailureOffsets": {
+      "AC1014_ASCII": 91,
+      "AC1014_Binary": 90,
+      "AC1015_ASCII": 93,
+      "AC1015_Binary": 92,
+      "AC1018_ASCII": 93,
+      "AC1018_Binary": 92,
+      "AC1021_ASCII": 93,
+      "AC1021_Binary": 92,
+      "AC1024_ASCII": 100,
+      "AC1024_Binary": 99,
+      "AC1027_ASCII": 93,
+      "AC1027_Binary": 92,
+      "AC1032_ASCII": 93,
+      "AC1032_Binary": 92,
+      "total": 1305
+    },
+    "destinationRollback": true,
+    "callerStatePreservation": true,
+    "sameWriterByteIdenticalRetry": true,
+    "freshTypedReadback": true,
+    "ac1012RefusalAndAc1014Recovery": true,
+    "stagedOutputCleanup": true
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_viewport_version_allocation_transaction$' --output-on-failure",
+      "result": "passed 1/1 in 8.39 seconds"
+    },
+    "runner": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-viewport-version-allocation viewport-versions",
+    "sourceSha256": "06023da8b43ba2e3bfbcb4edd6aa822cbc393594a8c79a36a90160d6ee9dc149",
+    "runnerSha256": "55bb45ba2c5886c74aeb51ff30bc462c2ebc7b6b335ee36a44f60d2161d7638f"
+  },
+  "limits": [
+    "Generated codec self-readback does not prove independent producer semantics or native application behavior.",
+    "Object-reference remapping, frozen-layer handle lists, and layer-override references are outside this profile and need graph-specific evidence."
+  ]
+}

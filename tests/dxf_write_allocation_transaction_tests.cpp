@@ -8526,6 +8526,292 @@ bool runMeshVersionSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runViewportVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "VIEWPORT version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeViewport = [] {
+        DRW_Viewport value;
+        value.handle = 0xDA60u;
+        value.space = DRW::PaperSpace;
+        value.basePoint = DRW_Coord(5.0, 6.0, 7.0);
+        value.pswidth = 210.0;
+        value.psheight = 148.0;
+        value.vpstatus = 1;
+        value.vpID = 2;
+        value.centerPX = 105.0;
+        value.centerPY = 74.0;
+        value.snapPX = 1.5;
+        value.snapPY = 2.5;
+        value.snapSpPX = 3.5;
+        value.snapSpPY = 4.5;
+        value.gridSpX = 5.5;
+        value.gridSpY = 6.5;
+        value.viewDir = DRW_Coord(1.0, 2.0, 3.0);
+        value.viewTarget = DRW_Coord(10.0, 20.0, 30.0);
+        value.viewLength = 55.0;
+        value.frontClip = 0.25;
+        value.backClip = 500.0;
+        value.viewHeight = 90.0;
+        value.snapAngle = 30.0;
+        value.twistAngle = 45.0;
+        value.circleZoom = 137.0;
+        value.majorGridLines = 5;
+        value.statusFlags = 0xA51;
+        value.styleSheet = "viewport-style-sheet";
+        value.renderMode = 2;
+        value.ucsPerViewport = true;
+        value.ucsAtOrigin = true;
+        value.ucsOrigin = DRW_Coord(7.0, 8.0, 9.0);
+        value.ucsXAxis = DRW_Coord(0.0, 1.0, 0.0);
+        value.ucsYAxis = DRW_Coord(-1.0, 0.0, 0.0);
+        value.ucsElevation = 11.0;
+        value.ucsOrthographicType = 4;
+        value.shadePlotMode = 3;
+        value.useDefaultLighting = false;
+        value.defaultLightingType = 0;
+        value.brightness = 0.4;
+        value.contrast = 0.6;
+        value.ambientColor = 42u;
+        value.ambientColorRgb = 0x123456;
+        value.ambientColorName = "Named Ambient";
+        return value;
+    };
+    const auto sameViewport = [](const DRW_Viewport& a,
+                                 const DRW_Viewport& b) {
+        return a.basePoint.x == b.basePoint.x
+            && a.basePoint.y == b.basePoint.y
+            && a.basePoint.z == b.basePoint.z
+            && a.pswidth == b.pswidth && a.psheight == b.psheight
+            && a.vpstatus == b.vpstatus && a.vpID == b.vpID
+            && a.centerPX == b.centerPX && a.centerPY == b.centerPY
+            && a.snapPX == b.snapPX && a.snapPY == b.snapPY
+            && a.snapSpPX == b.snapSpPX && a.snapSpPY == b.snapSpPY
+            && a.gridSpX == b.gridSpX && a.gridSpY == b.gridSpY
+            && a.viewDir.x == b.viewDir.x && a.viewDir.y == b.viewDir.y
+            && a.viewDir.z == b.viewDir.z
+            && a.viewTarget.x == b.viewTarget.x
+            && a.viewTarget.y == b.viewTarget.y
+            && a.viewTarget.z == b.viewTarget.z
+            && a.viewLength == b.viewLength && a.frontClip == b.frontClip
+            && a.backClip == b.backClip && a.viewHeight == b.viewHeight
+            && a.snapAngle == b.snapAngle && a.twistAngle == b.twistAngle
+            && a.circleZoom == b.circleZoom
+            && a.majorGridLines == b.majorGridLines
+            && a.statusFlags == b.statusFlags && a.styleSheet == b.styleSheet
+            && a.renderMode == b.renderMode
+            && a.ucsPerViewport == b.ucsPerViewport
+            && a.ucsAtOrigin == b.ucsAtOrigin
+            && a.ucsOrigin.x == b.ucsOrigin.x
+            && a.ucsOrigin.y == b.ucsOrigin.y
+            && a.ucsOrigin.z == b.ucsOrigin.z
+            && a.ucsXAxis.x == b.ucsXAxis.x
+            && a.ucsXAxis.y == b.ucsXAxis.y
+            && a.ucsXAxis.z == b.ucsXAxis.z
+            && a.ucsYAxis.x == b.ucsYAxis.x
+            && a.ucsYAxis.y == b.ucsYAxis.y
+            && a.ucsYAxis.z == b.ucsYAxis.z
+            && a.ucsElevation == b.ucsElevation
+            && a.ucsOrthographicType == b.ucsOrthographicType
+            && a.shadePlotMode == b.shadePlotMode
+            && a.useDefaultLighting == b.useDefaultLighting
+            && a.defaultLightingType == b.defaultLightingType
+            && a.brightness == b.brightness && a.contrast == b.contrast
+            && a.ambientColor == b.ambientColor
+            && a.ambientColorRgb == b.ambientColorRgb
+            && a.ambientColorName == b.ambientColorName;
+    };
+    class ViewportExport final : public dx_iface {
+    public:
+        ViewportExport(dxfRW& codec, DRW_Viewport source)
+            : output(codec), viewport(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override {
+            written = output.writeViewport(&viewport);
+        }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Viewport viewport;
+        bool written = false;
+    };
+    class ViewportReadback final : public dx_iface {
+    public:
+        ViewportReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addViewport(const DRW_Viewport& value) override {
+            viewport = value;
+            ++count;
+        }
+        dx_data storage;
+        DRW_Viewport viewport;
+        unsigned count = 0u;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version version) {
+        dxfRW reader(path.string().c_str());
+        ViewportReadback probe;
+        DRW_Viewport expected = makeViewport();
+        if (version <= DRW::AC1018)
+            expected.majorGridLines = 0;
+        if (version <= DRW::AC1015)
+            expected.shadePlotMode = 0;
+        if (version <= DRW::AC1018) {
+            expected.useDefaultLighting = true;
+            expected.defaultLightingType = 1;
+            expected.brightness = 0.0;
+            expected.contrast = 0.0;
+            expected.ambientColor = 250u;
+            expected.ambientColorRgb = -1;
+            expected.ambientColorName.clear();
+        }
+        const bool read = reader.read(&probe, true);
+        if (probe.count == 1u)
+            expected.handle = probe.viewport.handle;
+        return read && reader.getSourceVersion() == version
+            && probe.count == 1u && probe.viewport.handle != 0u
+            && sameViewport(probe.viewport, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "prior viewport destination\n";
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "viewport-refusal-binary.dxf"
+                      : "viewport-refusal-ascii.dxf");
+        const auto expectedPath = directory
+            / (binary ? "viewport-retry-expected-binary.dxf"
+                      : "viewport-retry-expected-ascii.dxf");
+        if (!clearStagedOutput(output) || !clearStagedOutput(expectedPath))
+            return fail("could not clear refusal/retry staging files");
+        {
+            dxfRW codec(expectedPath.string().c_str());
+            ViewportExport adapter(codec, makeViewport());
+            if (!codec.write(&adapter, DRW::AC1014, binary) || !adapter.written)
+                return fail("could not create refusal/retry reference output");
+        }
+        std::string expectedBytes;
+        if (!readBytes(expectedPath, expectedBytes))
+            return fail("could not read refusal/retry reference output");
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed refused destination");
+        }
+        dxfRW codec(output.string().c_str());
+        ViewportExport adapter(codec, makeViewport());
+        const DRW_Viewport original(adapter.viewport);
+        if (codec.write(&adapter, DRW::AC1012, binary) || adapter.written
+            || !sameViewport(adapter.viewport, original)
+            || adapter.viewport.handle != original.handle)
+            return fail("unsupported AC1012 route was not refused atomically");
+        std::string afterRefusal;
+        if (!readBytes(output, afterRefusal) || afterRefusal != sentinel
+            || hasStagedOutput(output))
+            return fail("AC1012 refusal changed destination state");
+        if (!codec.write(&adapter, DRW::AC1014, binary) || !adapter.written
+            || !sameViewport(adapter.viewport, original)
+            || adapter.viewport.handle != original.handle)
+            return fail("same-writer AC1014 retry failed");
+        std::string retryBytes;
+        if (!readBytes(output, retryBytes) || retryBytes != expectedBytes
+            || !readbackMatches(output, DRW::AC1014)
+            || hasStagedOutput(output))
+            return fail("AC1014 retry differs from clean output");
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        std::filesystem::remove(expectedPath, ignored);
+    }
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("viewport-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                ViewportExport adapter(codec, makeViewport());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.written)
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                ViewportExport adapter(codec, makeViewport());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || allocationFailed
+                    || allocationCount <= 0 || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                ViewportExport adapter(codec, makeViewport());
+                const DRW_Viewport original(adapter.viewport);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                if (wrote || !injected || !readBytes(output, afterFailure)
+                    || afterFailure != sentinel
+                    || !sameViewport(adapter.viewport, original)
+                    || adapter.viewport.handle != original.handle
+                    || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.written;
+                std::string retryBytes;
+                if (!retried || !sameViewport(adapter.viewport, original)
+                    || adapter.viewport.handle != original.handle
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "VIEWPORT " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runCameraSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "CAMERA allocation transaction: " << message << '\n';
@@ -11987,6 +12273,8 @@ int main(int argc, char** argv) {
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "camera")
             return runCameraSweep(directory) ? 0 : 1;
+        if (mode == "viewport-versions")
+            return runViewportVersionSweep(directory) ? 0 : 1;
         if (mode == "mesh-versions")
             return runMeshVersionSweep(directory) ? 0 : 1;
         if (mode == "geo-marker-versions")
