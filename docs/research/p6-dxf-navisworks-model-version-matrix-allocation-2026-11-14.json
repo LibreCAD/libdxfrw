@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "NAVISWORKSMODEL DXF writer version transaction matrix",
+  "sourceRevision": "0686c9dd",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+    "testSha256": "f8381384502780b21bb77f4ba806a182a77b9b18ae641fe6421aa5cd50db3847",
+    "cmake": "tests/CMakeLists.txt",
+    "cmakeSha256": "ccd7b9c063feb065c83ba7dca0472ec7f37bcc3752fe25222cc69f79832e66a5",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "entity": "NAVISWORKSMODEL",
+    "generatedFields": [
+      "flags and non-null definition reference",
+      "nonidentity 4x4 transform",
+      "nondefault unit factor"
+    ],
+    "versions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_3d_entity_version_allocation_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_navisworks_version_allocation$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 0.54 seconds",
+    "directCommand": "build-gcc/tests/libdxfrw_3d_entity_version_allocation_tests /private/tmp/p6-navisworks-version-allocation --navisworks-versions",
+    "allocationFailures": 120,
+    "allocationOffsetsByProfile": {
+      "AC1015_ASCII": 10,
+      "AC1015_Binary": 10,
+      "AC1018_ASCII": 10,
+      "AC1018_Binary": 10,
+      "AC1021_ASCII": 10,
+      "AC1021_Binary": 10,
+      "AC1024_ASCII": 10,
+      "AC1024_Binary": 10,
+      "AC1027_ASCII": 10,
+      "AC1027_Binary": 10,
+      "AC1032_ASCII": 10,
+      "AC1032_Binary": 10
+    },
+    "rollback": "Each injected allocation failure preserves the prior destination and caller model.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed readback checks flags, definition reference, all 16 transform values and unit factor.",
+    "versionBoundary": "AC1014 ASCII and Binary refusal preserves destination and caller state, then same-codec retry at AC1015 reproduces clean bytes and typed readback.",
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated NAVISWORKSMODEL writer transaction behavior across six revisions and two encodings.",
+      "The AC1014 unsupported-target refusal and same-writer recovery path."
+    ],
+    "doesNotProve": [
+      "Definition target-object existence or recursive graph closure.",
+      "Independent producer interoperability or NWD asset loading.",
+      "Native Navisworks or other 3D consumer behavior."
+    ]
+  },
+  "qualificationEligible": false
+}

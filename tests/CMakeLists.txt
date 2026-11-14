@@ -6183,6 +6183,13 @@ add_test(NAME libdxfrw_pointcloudex_version_allocation
 set_tests_properties(libdxfrw_pointcloudex_version_allocation PROPERTIES
     LABELS "dxf;fast;entity;pointcloudex;transaction;allocation;versions"
     TIMEOUT 30)
+add_test(NAME libdxfrw_navisworks_version_allocation
+    COMMAND libdxfrw_3d_entity_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/navisworks-version-allocation
+        --navisworks-versions)
+set_tests_properties(libdxfrw_navisworks_version_allocation PROPERTIES
+    LABELS "dxf;fast;entity;navisworks;transaction;allocation;versions"
+    TIMEOUT 30)
 
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp

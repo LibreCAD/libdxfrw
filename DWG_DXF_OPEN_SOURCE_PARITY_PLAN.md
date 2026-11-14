@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **359 completed implementation and qualification slices** and **34 remaining
+The plan records **360 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`359 / (359 + 34) = 91.3%`. This is a count-based progress measure, not an
+`360 / (360 + 34) = 91.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -191,6 +191,17 @@ in both encodings, followed by same-writer AC1027 retry. This closes generated
 version/transaction behavior only; it does not prove referenced-object graph
 closure, crop evaluation, external asset loading or native semantics. The
 focused selector passes in 0.33 seconds ([receipt](docs/research/p6-dxf-pointcloudex-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G NAVISWORKSMODEL version transaction slice (2026-11-14):** generated
+direct-writer coverage now spans AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in
+ASCII and Binary, including a non-null definition reference, nonidentity 4x4
+transform and unit factor. All 120 injected allocation failures preserve the
+destination and caller model; same-writer retry reproduces clean bytes and
+typed readback checks all modeled fields. AC1014 refusal preserves state and
+recovers on the same writer at AC1015. This closes generated transaction and
+minimum-version behavior only; definition-object closure, producer behavior
+and native Navisworks semantics remain unqualified. The focused selector
+passes in 0.54 seconds ([receipt](docs/research/p6-dxf-navisworks-model-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the

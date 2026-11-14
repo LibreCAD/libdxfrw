@@ -48,7 +48,8 @@ void disarmAllocationFailure() noexcept {
 
 enum class Profile {
     Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text,
-    RText, ArcAlignedText, Shape, SectionObject, PointCloud, PointCloudEx
+    RText, ArcAlignedText, Shape, SectionObject, PointCloud, PointCloudEx,
+    NavisworksModel
 };
 
 const char* profileName(Profile profile) {
@@ -69,6 +70,7 @@ const char* profileName(Profile profile) {
     case Profile::SectionObject: return "SECTIONOBJECT";
     case Profile::PointCloud: return "POINTCLOUD";
     case Profile::PointCloudEx: return "POINTCLOUDEX";
+    case Profile::NavisworksModel: return "NAVISWORKSMODEL";
     }
     return "unknown";
 }
@@ -449,6 +451,29 @@ bool samePointCloudEx(const DRW_PointCloudEx& a, const DRW_PointCloudEx& b,
     return true;
 }
 
+DRW_NavisworksModel makeNavisworksModel() {
+    DRW_NavisworksModel model;
+    model.handle = 0xD95Au;
+    model.flags = 5u;
+    model.definitionHandle = 0xD95Bu;
+    model.transform = {1.0, 0.0, 0.0, 2.0,
+                       0.0, 1.0, 0.0, 3.0,
+                       0.0, 0.0, 1.0, 4.0,
+                       0.0, 0.0, 0.0, 1.0};
+    model.unitFactor = 0.25;
+    return model;
+}
+
+bool sameNavisworksModel(const DRW_NavisworksModel& a,
+                         const DRW_NavisworksModel& b,
+                         bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.flags == b.flags
+        && a.definitionHandle == b.definitionHandle
+        && a.transform == b.transform
+        && a.unitFactor == b.unitFactor;
+}
+
 bool sameShape(const DRW_Shape& a, const DRW_Shape& b,
                bool compareHandle = true) {
     return (!compareHandle || a.handle == b.handle)
@@ -626,6 +651,7 @@ public:
         sectionObject = makeSectionObject();
         pointCloud = makePointCloud(pointCloudLateFields);
         pointCloudEx = makePointCloudEx();
+        navisworksModel = makeNavisworksModel();
         codec.setEllipseParts(8);
     }
 
@@ -659,6 +685,8 @@ public:
             accepted = codec.writePointCloud(&pointCloud); break;
         case Profile::PointCloudEx:
             accepted = codec.writePointCloudEx(&pointCloudEx); break;
+        case Profile::NavisworksModel:
+            accepted = codec.writeNavisworksModel(&navisworksModel); break;
         }
     }
 
@@ -683,6 +711,7 @@ public:
     DRW_SectionObject sectionObject;
     DRW_PointCloud pointCloud;
     DRW_PointCloudEx pointCloudEx;
+    DRW_NavisworksModel navisworksModel;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -906,6 +935,11 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return pointCloud != nullptr && pointCloud->eType == DRW::POINTCLOUDEX
             && samePointCloudEx(*pointCloud, makePointCloudEx(), false);
     }
+    if (profile == Profile::NavisworksModel) {
+        const auto* model = dynamic_cast<const DRW_NavisworksModel*>(entity);
+        return model != nullptr && model->eType == DRW::NAVISWORKSMODEL
+            && sameNavisworksModel(*model, makeNavisworksModel(), false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -964,6 +998,13 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
     const std::array<std::pair<DRW::Version, const char*>, 2>
         pointCloudExVersions = {{{DRW::AC1027, "AC1027"},
                                  {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 6>
+        navisworksModelVersions = {{{DRW::AC1015, "AC1015"},
+                                    {DRW::AC1018, "AC1018"},
+                                    {DRW::AC1021, "AC1021"},
+                                    {DRW::AC1024, "AC1024"},
+                                    {DRW::AC1027, "AC1027"},
+                                    {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> shapeVersions = {{
         {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
@@ -1017,6 +1058,8 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     exporter.sectionObject;
                 const DRW_PointCloud originalPointCloud = exporter.pointCloud;
                 const DRW_PointCloudEx originalPointCloudEx = exporter.pointCloudEx;
+                const DRW_NavisworksModel originalNavisworksModel =
+                    exporter.navisworksModel;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -1074,6 +1117,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 case Profile::PointCloudEx:
                     callerPreserved = samePointCloudEx(
                         exporter.pointCloudEx, originalPointCloudEx);
+                    break;
+                case Profile::NavisworksModel:
+                    callerPreserved = sameNavisworksModel(
+                        exporter.navisworksModel, originalNavisworksModel);
                     break;
                 }
                 if (!allocationFailed || written
@@ -1135,9 +1182,13 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                                                 ? samePointCloud(
                                                                     exporter.pointCloud,
                                                                     originalPointCloud)
-                                                                : samePointCloudEx(
-                                                                    exporter.pointCloudEx,
-                                                                    originalPointCloudEx);
+                                                                : profile == Profile::PointCloudEx
+                                                                    ? samePointCloudEx(
+                                                                        exporter.pointCloudEx,
+                                                                        originalPointCloudEx)
+                                                                    : sameNavisworksModel(
+                                                                        exporter.navisworksModel,
+                                                                        originalNavisworksModel);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -1201,6 +1252,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 return false;
     } else if (profile == Profile::PointCloudEx) {
         for (const auto& version : pointCloudExVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
+    } else if (profile == Profile::NavisworksModel) {
+        for (const auto& version : navisworksModelVersions)
             if (!runVersion(version.first, version.second))
                 return false;
     } else {
@@ -1438,6 +1493,62 @@ bool runPointCloudExMinimumVersionBoundary(
     return true;
 }
 
+bool runNavisworksModelMinimumVersionBoundary(
+        const std::filesystem::path& directory) {
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return false;
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "NAVISWORKSMODEL-minimum-binary.dxf"
+                      : "NAVISWORKSMODEL-minimum-ascii.dxf");
+        std::string expectedBytes;
+        {
+            dxfRW cleanCodec(output.string().c_str());
+            Export cleanExporter(cleanCodec, Profile::NavisworksModel);
+            if (!cleanCodec.write(&cleanExporter, DRW::AC1015, binary)
+                || !cleanExporter.accepted
+                || !readBytes(output, expectedBytes)
+                || !readbackMatches(output, Profile::NavisworksModel,
+                                    DRW::AC1015))
+                return false;
+        }
+        const std::string sentinel = "prior NAVISWORKSMODEL minimum target\n";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+                return false;
+        }
+        dxfRW codec(output.string().c_str());
+        Export exporter(codec, Profile::NavisworksModel);
+        const DRW_NavisworksModel original = exporter.navisworksModel;
+        const bool refused = !codec.write(&exporter, DRW::AC1014, binary)
+            && !exporter.accepted
+            && sameNavisworksModel(exporter.navisworksModel, original);
+        std::string afterRefusal;
+        if (!refused || !readBytes(output, afterRefusal)
+            || afterRefusal != sentinel) {
+            std::cerr << "NAVISWORKSMODEL AC1014 refusal changed caller or "
+                         "destination\n";
+            return false;
+        }
+        const bool retried = codec.write(&exporter, DRW::AC1015, binary)
+            && exporter.accepted;
+        std::string retryBytes;
+        if (!retried || !readBytes(output, retryBytes)
+            || retryBytes != expectedBytes
+            || !readbackMatches(output, Profile::NavisworksModel,
+                                DRW::AC1015)) {
+            std::cerr << "NAVISWORKSMODEL AC1014 refusal then AC1015 retry failed\n";
+            return false;
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
         && runProfile(directory, Profile::Line)
@@ -1459,7 +1570,9 @@ bool run(const std::filesystem::path& directory) {
         && runPointCloudVersionLossBoundary(directory)
         && runPointCloudMinimumVersionBoundary(directory)
         && runProfile(directory, Profile::PointCloudEx)
-        && runPointCloudExMinimumVersionBoundary(directory);
+        && runPointCloudExMinimumVersionBoundary(directory)
+        && runProfile(directory, Profile::NavisworksModel)
+        && runNavisworksModelMinimumVersionBoundary(directory);
 }
 
 bool runUnsupportedTextExtensionBoundaries(
@@ -1567,10 +1680,18 @@ int main(int argc, char** argv) {
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     }
+    if (argc == 3 && std::string(argv[2]) == "--navisworks-versions") {
+        const std::filesystem::path directory(argv[1]);
+        const bool passed = runProfile(directory, Profile::NavisworksModel)
+            && runNavisworksModelMinimumVersionBoundary(directory);
+        std::cout << "NAVISWORKSMODEL version transaction matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    }
     if (argc != 2) {
         std::cerr << "usage: dxf_3d_entity_version_allocation_tests SCRATCH_DIR"
                      " [--sectionobject-versions|--pointcloud-versions|"
-                     "--pointcloudex-versions]\n";
+                     "--pointcloudex-versions|--navisworks-versions]\n";
         return 2;
     }
     return run(argv[1]) ? 0 : 1;
