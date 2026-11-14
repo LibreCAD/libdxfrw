@@ -41832,6 +41832,7 @@ int main(int argc, char** argv) {
         const DwgReadObservations observations = reader.getReadObservations();
         std::cout << "readSucceeded=" << (read ? "true" : "false")
                   << " lineCount=" << capture.lines
+                  << " entityParseFailures=" << reader.getEntityParseFailures()
                   << " objectParseFailures=" << reader.getObjectParseFailures()
                   << " sourceFrames=" << observations.frames.sourceFrames
                   << " publishedFrames=" << observations.frames.dispositions[

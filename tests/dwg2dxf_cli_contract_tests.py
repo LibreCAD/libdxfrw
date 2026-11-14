@@ -1085,6 +1085,32 @@ def check_partial_dwg_read_cli(converter, root, writer):
             raise AssertionError(
                 f"partial-read DWG generator emitted the wrong version for {version}")
 
+        direct_read = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)],
+            10, 131072, cwd=root)
+        direct_fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in direct_read.stdout.split() if b"=" in field
+        }
+        try:
+            direct_source_frames = int(direct_fields[b"sourceFrames"])
+            direct_published_frames = int(direct_fields[b"publishedFrames"])
+            direct_failed_frames = int(direct_fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            direct_source_frames = direct_published_frames = direct_failed_frames = -1
+        if (direct_read.returncode != 0
+                or b"readSucceeded=true" not in direct_read.stdout
+                or b"lineCount=1" not in direct_read.stdout
+                or b"entityParseFailures=1" not in direct_read.stdout
+                or b"objectParseFailures=0" not in direct_read.stdout
+                or direct_failed_frames != 1
+                or direct_published_frames + direct_failed_frames
+                    != direct_source_frames):
+            raise AssertionError(
+                f"{version} entity parse failure stopped the following LINE or "
+                f"escaped terminal frame accounting: {direct_read!r}")
+        checked += 1
+
         strict_output = root / f"partial-read strict result {version}.dxf"
         strict_output.write_bytes(SENTINEL)
         strict = run_bounded(
