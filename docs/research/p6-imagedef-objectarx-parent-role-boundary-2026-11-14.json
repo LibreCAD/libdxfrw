@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Autodesk RasterImageDef API parent-role evidence boundary",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Check whether Autodesk's public ObjectARX and .NET RasterImageDef documentation resolves the DWG IMAGEDEF parentHandle role conflict documented in the existing physical AC1021/AC1024/AC1027/AC1032 profile.",
+  "sources": [
+    {
+      "title": "RasterImageDef Class",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RasterImageDef.html",
+      "observation": "RasterImageDef objects are stored in ISM_RASTER_IMAGE_DICT and work with RasterImage entities. The page does not specify the DWG parentHandle field or its handle-reference type."
+    },
+    {
+      "title": "AcDbRasterImage::setReactorId",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbRasterImage__setReactorId_AcDbObjectId.html",
+      "observation": "Each image entity has a persistent reactor attached to its image definition; the image entity owns the reactor object. This establishes the reactor relationship, not the IMAGEDEF parentHandle role."
+    },
+    {
+      "title": "Attach and Scale a Raster Image (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-DevGuide-Managed/files/GUID-00A0BCD9-4519-4746-BC73-88544D75D789.htm",
+      "observation": "The example inserts the RasterImageDef into the image dictionary, assigns it to a RasterImage, and associates the raster definition. It does not expose parent-handle ownership or erase/copy semantics."
+    },
+    {
+      "title": "AcDbDictionary::setTreatElementsAsHard",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDictionary__setTreatElementsAsHard_bool.html",
+      "observation": "A dictionary can be configured to treat its entries as hard- or soft-owned. The generic API description does not establish the setting or the parentHandle type for IMAGEDEF."
+    },
+    {
+      "title": "About Object Ownership (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+      "observation": "The named-object dictionary uses hard ownership for its entries; this generic description is not specific to ACAD_IMAGE_DICT or the IMAGEDEF parent field."
+    }
+  ],
+  "joinedEvidence": {
+    "priorReceipt": "docs/research/p6-imagedef-cross-version-soft-role-evidence-2026-11-07.json",
+    "existingPhysicalFinding": "Four AutoCAD SAVEAS pairs encode the IMAGEDEF parent observation as DWG handle code 0xC and emit the corresponding DXF IMAGEDEF group 330; the ACAD_IMAGE_DICT entry uses group 350. ODA v5.4.1 §2.13 defines 0xC as soft-pointer, while §20.4.81 describes IMAGEDEF parenthandle as hard-owner.",
+    "interpretation": "The API documentation confirms the image dictionary and reactor graph, but does not resolve the conflicting reference type on the IMAGEDEF parent field. Dictionary membership, image-instance reactors, and the object's common parent reference remain separate graph roles."
+  },
+  "implementationDecision": "No parser or writer change. Preserve the raw source role as unqualified and retain strict output refusal.",
+  "nextEvidence": "Use a version-bound native ObjectARX probe to inspect IMAGEDEF parentId reference type and behavior through create, save/reopen, erase/unerase, copy, and WBLOCK operations, alongside the dictionary entry and reactor graph. Bind executable, module, DWG/DXF bytes, version, and observed roles. Only then decide whether the current DXF group-330 output preserves semantics.",
+  "limitations": [
+    "The API pages describe class use and related object relationships, not the serialized IMAGEDEF parentHandle field.",
+    "No native AutoCAD/ObjectARX runtime was executed in this research slice.",
+    "The existing physical cohort is one source saved to four releases and does not resolve deletion or object-copy semantics."
+  ]
+}
