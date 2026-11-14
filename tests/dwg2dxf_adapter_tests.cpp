@@ -22773,6 +22773,28 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
   DxIfaceStandardDwgCaptureTestAccess::printAcDsHistorySourceFrames(data);
   DxIfaceStandardDwgCaptureTestAccess::printUnrepresentedSourceFrameIdentities(
       data, data.importGeneration);
+  std::size_t sortEntsEntryCount = 0u;
+  for (const DRW_DwgSortEntsMembership& membership :
+       data.dwgSortEntsMemberships)
+    sortEntsEntryCount += membership.m_entries.size();
+  std::cout << "opaqueSortEntsMembershipInventory tables="
+            << data.dwgSortEntsMemberships.size()
+            << " entries=" << sortEntsEntryCount << '\n';
+  for (const DRW_DwgSortEntsMembership& membership :
+       data.dwgSortEntsMemberships) {
+    std::cout << " sortentsSource table=" << membership.m_tableHandle
+              << " version=" << versionName
+              << " encodedType=" << membership.m_encodedType
+              << " owner=" << membership.m_blockOwnerHandle
+              << " complete=" << membership.m_complete
+              << " entries=" << membership.m_entries.size() << '\n';
+    for (const DRW_DwgSortEntsMembership::Entry& entry : membership.m_entries)
+      std::cout << " sortentsEntry table=" << membership.m_tableHandle
+                << " ordinal=" << entry.m_ordinal
+                << " entity=" << entry.m_entityHandle
+                << " sort=" << entry.m_sortHandle
+                << " fallback=" << entry.m_sortFallsBackToEntity << '\n';
+  }
   std::cout << " opaqueTypedBodyModels"
             << " dictionaryWithDefault=" << data.dictionaryWithDefaults.size()
             << " layouts=" << data.layouts.size()

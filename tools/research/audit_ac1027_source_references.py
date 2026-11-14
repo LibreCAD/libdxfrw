@@ -35,6 +35,20 @@ FRAME = re.compile(
     r"offset=(\d+) size=(\d+) dataStorage=(\d+) rawBodyBytes=(\d+)$",
     re.MULTILINE,
 )
+SORTENTS_INVENTORY = re.compile(
+    r"^opaqueSortEntsMembershipInventory tables=(\d+) entries=(\d+)$",
+    re.MULTILINE,
+)
+SORTENTS_SOURCE = re.compile(
+    r"^ sortentsSource table=(\d+) version=(\S+) encodedType=(\d+) "
+    r"owner=(\d+) complete=(\d+) entries=(\d+)$",
+    re.MULTILINE,
+)
+SORTENTS_ENTRY = re.compile(
+    r"^ sortentsEntry table=(\d+) ordinal=(\d+) entity=(\d+) "
+    r"sort=(\d+) fallback=(\d+)$",
+    re.MULTILINE,
+)
 BODY_FRAME = re.compile(
     r"^ typedBodyFrame type=(\S+) handle=(\d+)(?: |$)", re.MULTILINE
 )
@@ -155,6 +169,76 @@ def peer_handle(value: object) -> int | None:
         tail = value[-1]
         return int(tail) if isinstance(tail, int) else None
     return None
+
+
+def normalize_null_handle(value: int | None) -> int | None:
+    return None if value in (None, 0, 0xFFFFFFFF) else value
+
+
+def verify_sortents_entry_pairs(
+    source_entries: list[dict[str, object]],
+    peer_entities: list[object],
+    peer_sorts: list[object],
+) -> list[dict[str, object]]:
+    if (
+        len(source_entries) != len(peer_entities)
+        or len(source_entries) != len(peer_sorts)
+    ):
+        raise SystemExit("SORTENTSTABLE source and peer entry counts differ")
+    pairs = []
+    for ordinal, (source_entry, peer_entity, peer_sort) in enumerate(zip(
+        source_entries, peer_entities, peer_sorts
+    )):
+        if (
+            not isinstance(peer_entity, list) or not peer_entity
+            or not isinstance(peer_sort, list) or not peer_sort
+            or peer_entity[0] != 4 or peer_sort[0] != 0
+        ):
+            raise SystemExit("LibreDWG SORTENTSTABLE entry has the wrong handle code")
+        source_entity = int(source_entry["entityHandle"])
+        source_sort = int(source_entry["sortHandle"])
+        peer_entity_handle = peer_handle(peer_entity)
+        peer_sort_handle = peer_handle(peer_sort)
+        if (
+            int(source_entry["ordinal"]) != ordinal
+            or normalize_null_handle(source_entity)
+                != normalize_null_handle(peer_entity_handle)
+            or normalize_null_handle(source_sort)
+                != normalize_null_handle(peer_sort_handle)
+            or bool(source_entry["sortFallsBackToEntity"])
+                != (normalize_null_handle(peer_sort_handle) is None)
+        ):
+            raise SystemExit(
+                f"SORTENTSTABLE source/peer body reference mismatch at entry {ordinal}"
+            )
+        pairs.append({
+            "ordinal": ordinal,
+            "entityHandle": normalize_null_handle(source_entity),
+            "sortHandle": normalize_null_handle(source_sort),
+            "sortFallsBackToEntity": bool(source_entry["sortFallsBackToEntity"]),
+        })
+    return pairs
+
+
+def self_test_sortents_peer_fields() -> None:
+    source = [{
+        "ordinal": 0, "entityHandle": 42, "sortHandle": 99,
+        "sortFallsBackToEntity": False,
+    }]
+    peer_entities = [[4, 1, 42, 42]]
+    peer_sorts = [[0, 1, 99, 99]]
+    if len(verify_sortents_entry_pairs(source, peer_entities, peer_sorts)) != 1:
+        raise SystemExit("generated SORTENTSTABLE peer control did not match")
+    for entities, sorts in (
+        ([[4, 1, 43, 43]], peer_sorts),
+        (peer_entities, [[0, 1, 98, 98]]),
+        ([[5, 1, 42, 42]], peer_sorts),
+    ):
+        try:
+            verify_sortents_entry_pairs(source, entities, sorts)
+        except SystemExit:
+            continue
+        raise SystemExit("generated SORTENTSTABLE peer mutation was admitted")
 
 
 def verify_layer_peer_fields(
@@ -375,6 +459,7 @@ def verify_peer_profiles(
     vport_handle_fields: dict[int, list[dict[str, object]]],
     mlinestyle_fields: dict[int, dict[str, object]],
     mlinestyle_elements: dict[int, list[dict[str, object]]],
+    sortents_profiles: dict[int, dict[str, object]],
 ) -> dict[str, object]:
     peer_json = json.loads(peer_json_path.read_text())
     peer_objects = peer_json.get("OBJECTS")
@@ -390,6 +475,54 @@ def verify_peer_profiles(
         if handle in peer_by_handle:
             raise SystemExit("LibreDWG minJSON repeats an object handle")
         peer_by_handle[handle] = obj
+
+    matched_sortents = []
+    sortents_frames = {
+        int(frame["handle"]): frame for frame in frames
+        if frame["recordName"] == "SORTENTSTABLE"
+        or frame["className"] == "AcDbSortentsTable"
+    }
+    if sortents_profiles and set(sortents_profiles) != set(sortents_frames):
+        raise SystemExit(
+            "source SORTENTSTABLE membership rows do not cover every captured table"
+        )
+    for handle, profile in sorted(sortents_profiles.items()):
+        obj = peer_by_handle.get(handle)
+        peer_block_owner = peer_handle(obj.get("block_owner")) if obj else None
+        peer_block_owner_ref = obj.get("block_owner") if obj else None
+        peer_entities = obj.get("ents") if obj else None
+        peer_sorts = obj.get("sort_ents") if obj else None
+        if (
+            peer_entities is None and peer_sorts is None
+            and int(profile["declaredEntryCount"]) == 0
+        ):
+            peer_entities = []
+            peer_sorts = []
+        if (
+            obj is None or obj.get("object") != "SORTENTSTABLE"
+            or peer_block_owner != int(profile["blockOwnerHandle"])
+            or not isinstance(peer_entities, list)
+            or not isinstance(peer_sorts, list)
+            or len(peer_entities) != len(peer_sorts)
+            or len(peer_entities) != len(profile["entries"])
+            or not isinstance(peer_block_owner_ref, list)
+            or not peer_block_owner_ref or peer_block_owner_ref[0] != 4
+        ):
+            raise SystemExit(
+                "LibreDWG SORTENTSTABLE identity/owner/count mismatch for "
+                f"{handle:#x}"
+            )
+        pairs = verify_sortents_entry_pairs(
+            profile["entries"], peer_entities, peer_sorts
+        )
+        matched_sortents.append({
+            "handle": handle,
+            "blockOwnerHandle": peer_block_owner,
+            "entryCount": len(pairs),
+            "entries": pairs,
+            "matchesLibdxfrwAndLibreDWG": True,
+            "roleRule": "ODA-20.4.93",
+        })
 
     record_to_peer_object = {
         "VPORT": "VPORT", "DIMSTYLE": "DIMSTYLE",
@@ -466,6 +599,28 @@ def verify_peer_profiles(
 
     schema_text = peer_schema_path.read_text(errors="replace")
     schema_blocks: dict[str, str] = {}
+    sortents_start = schema_text.find("DWG_OBJECT (SORTENTSTABLE)")
+    sortents_end = schema_text.find("DWG_OBJECT_END", sortents_start)
+    if sortents_start < 0 or sortents_end < 0:
+        raise SystemExit("LibreDWG dwg2.spec lacks SORTENTSTABLE schema")
+    sortents_block = schema_text[sortents_start:sortents_end]
+    object_stream = sortents_block.find("START_OBJECT_HANDLE_STREAM")
+    sort_stream = sortents_block.find("HANDLE_VECTOR (sort_ents")
+    owner_stream = sortents_block.find("FIELD_HANDLE (block_owner, 4, 0)")
+    entity_stream = sortents_block.find("HANDLE_VECTOR_N (ents")
+    if not (
+        "FIELD_BL (num_ents, 0);" in sortents_block
+        and 0 <= sort_stream < object_stream < owner_stream < entity_stream
+        and "HANDLE_VECTOR (sort_ents, num_ents, 0, 0);" in sortents_block
+        and (
+            "HANDLE_VECTOR_N (ents, FIELD_VALUE (num_ents), 4, 0);"
+            in sortents_block
+        )
+    ):
+        raise SystemExit("LibreDWG SORTENTSTABLE body/handle-stream roles changed")
+    schema_blocks["SORTENTSTABLE"] = hashlib.sha256(
+        sortents_block.encode()
+    ).hexdigest()
     for name in ("PLACEHOLDER", "VISUALSTYLE", "SUN"):
         start = schema_text.find(f"DWG_OBJECT ({name})")
         end = schema_text.find("DWG_OBJECT_END", start)
@@ -775,6 +930,7 @@ def verify_peer_profiles(
         "matchedVport": matched_vport,
         "matchedMLineStyle": matched_mlinestyle,
         "matchedMLineStyles": matched_mlinestyles,
+        "matchedSortEntsTables": matched_sortents,
     }
 
 
@@ -790,7 +946,11 @@ def main() -> int:
     if args.self_test:
         self_test_layer_peer_fields()
         self_test_mlinestyle_fields()
-        print("generated LAYER/LTYPE and MLINESTYLE mutation controls passed")
+        self_test_sortents_peer_fields()
+        print(
+            "generated LAYER/LTYPE, MLINESTYLE, and SORTENTSTABLE mutation "
+            "controls passed"
+        )
         return 0
     if args.executable is None or args.source is None:
         parser.error("--executable and --source are required unless --self-test is used")
@@ -839,6 +999,61 @@ def main() -> int:
             "hasDataStorage": bool(int(data_storage)),
             "rawBodyBytes": int(raw_body_bytes),
         })
+    sortents_inventory = SORTENTS_INVENTORY.search(combined)
+    sortents_profiles: dict[int, dict[str, object]] = {}
+    expected_version = summary.group(2)
+    for match in SORTENTS_SOURCE.finditer(combined):
+        handle, sort_version, encoded_type, block_owner, complete, count = (
+            match.groups()
+        )
+        handle_value = int(handle)
+        if handle_value in sortents_profiles:
+            raise SystemExit("source inventory repeats a SORTENTSTABLE membership")
+        if sort_version != expected_version:
+            raise SystemExit("SORTENTSTABLE profile version differs from its DWG source")
+        sortents_profiles[handle_value] = {
+            "version": sort_version,
+            "encodedType": int(encoded_type),
+            "blockOwnerHandle": int(block_owner),
+            "complete": bool(int(complete)),
+            "declaredEntryCount": int(count),
+            "entries": [],
+        }
+    for match in SORTENTS_ENTRY.finditer(combined):
+        table, ordinal, entity, sort, fallback = map(int, match.groups())
+        profile = sortents_profiles.get(table)
+        if profile is None:
+            raise SystemExit("SORTENTSTABLE body row has no source table profile")
+        profile["entries"].append({
+            "ordinal": ordinal,
+            "entityHandle": entity,
+            "sortHandle": sort,
+            "sortFallsBackToEntity": bool(fallback),
+        })
+    sortents_frames = {
+        int(frame["handle"]) for frame in frames
+        if frame["recordName"] == "SORTENTSTABLE"
+        or frame["className"] == "AcDbSortentsTable"
+    }
+    if set(sortents_profiles) != sortents_frames:
+        raise SystemExit(
+            "SORTENTSTABLE source membership inventory does not cover all captured frames"
+        )
+    if sortents_inventory is not None:
+        declared_tables, declared_entries = map(int, sortents_inventory.groups())
+        observed_entries = sum(len(p["entries"]) for p in sortents_profiles.values())
+        if (
+            declared_tables != len(sortents_profiles)
+            or declared_entries != observed_entries
+            or any(
+                not p["complete"]
+                or len(p["entries"]) != p["declaredEntryCount"]
+                for p in sortents_profiles.values()
+            )
+        ):
+            raise SystemExit("SORTENTSTABLE source membership inventory is incomplete")
+    elif sortents_profiles:
+        raise SystemExit("SORTENTSTABLE source rows lack their inventory summary")
     if len({frame["handle"] for frame in frames}) != len(frames):
         raise SystemExit("source inventory contains duplicate captured frame handles")
 
@@ -1202,7 +1417,21 @@ def main() -> int:
             vport_handle_fields,
             mlinestyle_fields,
             mlinestyle_elements,
+            sortents_profiles,
         )
+    peer_sortents_handles = {
+        int(item["handle"])
+        for item in (peer_evidence or {}).get("matchedSortEntsTables", [])
+    }
+    for frame in frames:
+        if frame["handle"] in peer_sortents_handles:
+            frame["bodyReferenceDisposition"] = (
+                "peer-profile-exact-body-references"
+            )
+            frame["bodyReferenceRule"] = "ODA-20.4.93"
+            frame["sortEntsEntryCount"] = len(
+                sortents_profiles[frame["handle"]]["entries"]
+            )
     if version == "AC1027":
         mleader_styles = [
             frame for frame in frames
@@ -1552,6 +1781,11 @@ def main() -> int:
         "retainedAcDsHistoryFrames": int(acds_retained),
         "capturedFrameIdentities": len(frames),
         "typedBodyReferenceRows": len(typed_references),
+        "sourceSortEntsTableCount": len(sortents_profiles),
+        "sourceSortEntsEntryCount": sum(
+            len(profile["entries"]) for profile in sortents_profiles.values()
+        ),
+        "peerMatchedSortEntsTableCount": len(peer_sortents_handles),
         "typedLayerHandleFieldRows": sum(
             len(fields) for fields in layer_handle_fields.values()
         ),
@@ -1600,6 +1834,11 @@ def main() -> int:
         ),
         "framesWithPeerNoBodyHandleProfile": sum(
             frame["bodyReferenceDisposition"] == "peer-profile-no-body-handles"
+            for frame in frames
+        ),
+        "framesWithPeerExactBodyReferenceProfile": sum(
+            frame["bodyReferenceDisposition"]
+            == "peer-profile-exact-body-references"
             for frame in frames
         ),
         "typedBodyReferences": typed_references,
