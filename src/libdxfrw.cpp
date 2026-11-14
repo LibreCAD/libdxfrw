@@ -8397,6 +8397,14 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             // can omit its documented default, but must not lose an override.
             return failDxfWrite();
         }
+        if (version < DRW::AC1015 && value->code() == 148
+            && (value->type() != DRW_Variant::DOUBLE
+                || !std::isfinite(value->content.d)
+                || value->content.d != 0.0)) {
+            // DIMALTRND was introduced with AutoCAD 2000; R14 has no
+            // equivalent DIMSTYLE field for a nonzero alternate-unit round.
+            return failDxfWrite();
+        }
         if (version < spec->minimumVersion)
             continue;
         if (value->type() != spec->type
@@ -8428,6 +8436,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         }
     }
     if (version < DRW::AC1021 && ent->dimfxl != 1.0)
+        return failDxfWrite();
+    if (version < DRW::AC1015 && ent->dimaltrnd != 0.0)
         return failDxfWrite();
 
     std::uint32_t emittedDimTextStyleHandle = 0;
