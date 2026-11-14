@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-current-source-ac1021-ac1024-open-insert-2026-11-14",
+  "date": "2026-11-14",
+  "status": "PASS_MACOS_ARM64_GENERATED_AC1021_AC1024_OPEN_INSERT_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Requalify the current-source installed dwg2dxf route through FreeCAD 1.1.4's C++ DXF importer for generated AC1021 and AC1024 primitive drawings, using both open and insert operations.",
+  "binding": {
+    "repositoryHead": "1d46b450ea834d9109084eb900fbe1da5c6de948",
+    "sourceTreeCodeHead": "88ef24f82007f64a19bcdbca4c378113c9bb60b6",
+    "platform": "macOS 27.2.1 arm64",
+    "freecad": {
+      "version": "1.1.4",
+      "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+      "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+      "appBinarySha256": "a535464ece9a6175a3b15f385b35818402007eb3a8853384dacd65f128b50b1e"
+    },
+    "converter": {
+      "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+      "installedPath": "/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+      "sha256": "553464f0a037426f755d633e914d45ab85a7cc4459821923ca3d3fbf0eac1f20",
+      "buildAndInstalledBinariesMatch": true
+    },
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "src/drw_interface.h": "a25f02effd686279f3b355a4458c52f5bbd140c6cf2576d930d706557b96b67f",
+      "src/drw_entities.cpp": "86f4a1c556107d7703e503bc7307849adfce0a419720d785e3b33af556970fcd",
+      "tests/dwg_local_roundtrip_tests.cpp": "e9d926a69ce1fd47e7ff84b8f490e862dd096e778acc043ab3c4757a699d7527",
+      "tests/run_freecad_installed_3d_line_test.cmake": "ef795372590eea87d4e5a5046f59222cadd9c2a351d29609e5bc3e1ae6a631fc",
+      "tests/freecad_dwg2dxf_import_check.FCMacro": "6b3aaa8aa3e05bb20c4afa2e9ded284d22e1e1a123cbc8928a647c192db6d734",
+      "tests/CMakeLists.txt": "e67688c9c1405c7685bae837e076877a84b4dfd23971355a90ccc015e160286a",
+      ".github/workflows/freecad-platform-qualification.yml": "b0543576aecde26ec09671db8e5e7bb7eaa84339211a554fdfd18169746d9f27"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "d1690ff0987412a7d594d0058eac1929415bfce95d2e09d6e9de0d67c8270242",
+      "build-gcc/tests/libdxfrw_3d_consumer_probe": "94e4b8652f128fdb8e9229c3053e7b6e18b901c1865cf7f669d155c168c28b1c"
+    }
+  },
+  "inputProfiles": {
+    "provenance": "Each DWG is generated from scratch at test runtime by the libdxfrw DWG writer; no drawing fixture is committed.",
+    "AC1021": {
+      "sha256": "db0d3ca2dbb243e55dfda6bfa062b1c4ff97dd62e6de1135bb50efac3efcf547",
+      "entityCounts": {"POINT": 1, "LINE": 1, "CIRCLE": 1, "ARC": 1, "ELLIPSE": 1, "LWPOLYLINE": 1, "POLYLINE": 2, "SPLINE": 1}
+    },
+    "AC1024": {
+      "sha256": "238e302caabc3df262f321996b6f7684de40ac49acce95ac28c85eac63c1bf94",
+      "entityCounts": {"POINT": 1, "LINE": 1, "CIRCLE": 1, "ARC": 1, "ELLIPSE": 1, "LWPOLYLINE": 1, "POLYLINE": 2, "SPLINE": 1}
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j2: PASS",
+    "install": "cmake --install build-gcc --prefix /tmp/libdxfrw-freecad-current-install: PASS; installed converter hash matches build target",
+    "sandboxAttempt": "All four CTests reached FreeCAD but Qt aborted before import because the sandbox did not expose ARM NEON.",
+    "nativeHostRetry": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_generated_ac102(1|4)_primitives_(open|insert)$' --output-on-failure",
+      "execution": "Outside sandbox, with native host CPU feature visibility",
+      "result": "PASS 4/4 in 3.59 seconds",
+      "tests": {
+        "dwg2dxf_freecad_generated_ac1021_primitives_open": "PASS",
+        "dwg2dxf_freecad_generated_ac1021_primitives_insert": "PASS",
+        "dwg2dxf_freecad_generated_ac1024_primitives_open": "PASS",
+        "dwg2dxf_freecad_generated_ac1024_primitives_insert": "PASS"
+      }
+    },
+    "semanticObservations": {
+      "importer": "FreeCAD C++ DXF importer through Draft DWG open/insert routes",
+      "createdObjects": 9,
+      "unsupportedFeatures": [],
+      "checked": [
+        "Exact per-type entity counts",
+        "Shape count, validity, vertices, edges, bounds, and lengths",
+        "Ordered 3D POLYLINE and closed 2D POLYLINE points",
+        "Tilted SPLINE evaluations at normalized parameters 0, 0.5, and 1"
+      ]
+    }
+  },
+  "limitations": [
+    "This qualifies generated AC1021/AC1024 primitive transport through FreeCAD 1.1.4 on macOS ARM64 only.",
+    "Physical producer drawings, other entities/profiles, ACIS solids, native DWG opening, Linux/Windows, ABI and package/release qualification remain open.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Run the matching hosted Linux and Windows FreeCAD open/insert selectors; continue independent source-backed P6/P7 implementation and retain ACIS refusal until consumer and kernel evidence closes."
+}

@@ -6094,18 +6094,22 @@ case-folding behavior, and scratch cleanup (1/1 CTest). This qualifies the
 local macOS preflight path only; Linux/Windows hosted builds and native consumer
 gates remain open ([receipt](docs/research/p8-macos-batch-output-name-capabilities-2026-11-13.json)).
 
-**P8 native platform workflow pin refresh (2026-11-12):** the dispatch workflow
-and generated-consumer expected revision now target the official FreeCAD 1.1.4
-release, commit `4fd3bf320d9566a27e60069fc8387448aaa3a094`. GitHub release
-metadata provides the Linux AppImage digest
+**P8 native platform workflow pin and current-source recheck (2026-11-14):**
+the dispatch workflow and generated-consumer expected revision target official
+FreeCAD 1.1.4, commit `4fd3bf320d9566a27e60069fc8387448aaa3a094`. GitHub
+release metadata provides the Linux AppImage digest
 `f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434` and
 Windows 7z digest `4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d`;
-the workflow verifies both before running tests. On the installed macOS 1.1.4
-consumer, the two CLI compatibility controls and four AC1021/AC1024 primitive
-open/insert controls pass. The sandboxed native invocations abort in Qt's ARM
-NEON startup check before import; rerunning those same four tests outside the
-sandbox passes. Hosted Linux/Windows qualification remains pending, so P8 stays
-OPEN. See the [release-bound pin and local recheck receipt](docs/research/p8-freecad-platform-workflow-114-pin-2026-11-12.json).
+the workflow verifies both before testing. At current HEAD `1d46b450`, the
+rebuilt and temporary-installed `dwg2dxf` binaries match byte-for-byte. The
+four generated AC1021/AC1024 primitive open/insert selectors pass through
+FreeCAD's C++ DXF importer on macOS ARM64, including exact entity counts,
+checked shape geometry and no unsupported-feature reports. The sandboxed run
+aborts before import when Qt cannot see ARM NEON; the same four commands pass
+outside the sandbox. These are generated macOS profiles only. Hosted
+Linux/Windows qualification remains pending, so P8 stays OPEN. See the
+[current-source receipt](docs/research/p8-freecad-current-source-ac1021-ac1024-open-insert-2026-11-14.json)
+and [release-bound workflow receipt](docs/research/p8-freecad-platform-workflow-114-pin-2026-11-12.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four
