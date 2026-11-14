@@ -7575,6 +7575,283 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runMLeaderVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](DRW::Version version, bool binary,
+                         const char* message) {
+        std::cerr << "MULTILEADER " << static_cast<int>(version)
+                  << (binary ? " Binary: " : " ASCII: ") << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return false;
+
+    const auto makeLeader = [] {
+        DRW_MLeader value;
+        value.handle = 0xEA10u;
+        value.styleContentType = 2u;
+        value.landingDistance = 2.5;
+        value.defaultArrowHeadSize = 1.25;
+        value.context.overallScale = 1.5;
+        value.context.hasTextContents = true;
+        value.context.textLabel = "version matrix MULTILEADER text";
+        value.context.contentBasePoint = DRW_Coord{2.0, 3.0, 4.0};
+        value.context.textLocation = DRW_Coord{5.0, 6.0, 7.0};
+        value.context.textHeight = 2.0;
+        DRW_MLeaderRoot root;
+        root.connectionPoint = DRW_Coord{1.0, 2.0, 3.0};
+        root.direction = DRW_Coord{0.0, 1.0, 0.0};
+        root.leaderIndex = 2;
+        root.landingDistance = 3.5;
+        DRW_MLeaderLeaderLine line;
+        line.points = {DRW_Coord{1.0, 2.0, 3.0},
+                       DRW_Coord{4.0, 5.0, 6.0}};
+        line.segmentIndex = 1;
+        line.leaderLineIndex = 3;
+        line.leaderType = 1;
+        root.leaderLines.push_back(std::move(line));
+        value.context.roots.push_back(std::move(root));
+        return value;
+    };
+    const auto sameLeader = [](const DRW_MLeader& actual,
+                               const DRW_MLeader& expected,
+                               bool compareHandle) {
+        if ((compareHandle && actual.handle != expected.handle)
+            || actual.styleContentType != expected.styleContentType
+            || actual.landingDistance != expected.landingDistance
+            || actual.defaultArrowHeadSize != expected.defaultArrowHeadSize
+            || actual.context.overallScale != expected.context.overallScale
+            || actual.context.hasTextContents
+                != expected.context.hasTextContents
+            || actual.context.textLabel != expected.context.textLabel
+            || actual.context.contentBasePoint.x
+                != expected.context.contentBasePoint.x
+            || actual.context.contentBasePoint.y
+                != expected.context.contentBasePoint.y
+            || actual.context.contentBasePoint.z
+                != expected.context.contentBasePoint.z
+            || actual.context.textLocation.x != expected.context.textLocation.x
+            || actual.context.textLocation.y != expected.context.textLocation.y
+            || actual.context.textLocation.z != expected.context.textLocation.z
+            || actual.context.textHeight != expected.context.textHeight
+            || actual.context.roots.size() != expected.context.roots.size())
+            return false;
+        for (std::size_t i = 0; i < actual.context.roots.size(); ++i) {
+            const auto& a = actual.context.roots[i];
+            const auto& e = expected.context.roots[i];
+            if (a.isContentValid != e.isContentValid
+                || a.unknown291 != e.unknown291
+                || a.connectionPoint.x != e.connectionPoint.x
+                || a.connectionPoint.y != e.connectionPoint.y
+                || a.connectionPoint.z != e.connectionPoint.z
+                || a.direction.x != e.direction.x
+                || a.direction.y != e.direction.y
+                || a.direction.z != e.direction.z
+                || a.leaderIndex != e.leaderIndex
+                || a.landingDistance != e.landingDistance
+                || a.leaderLines.size() != e.leaderLines.size())
+                return false;
+            for (std::size_t j = 0; j < a.leaderLines.size(); ++j) {
+                const auto& al = a.leaderLines[j];
+                const auto& el = e.leaderLines[j];
+                if (al.points.size() != el.points.size()
+                    || al.segmentIndex != el.segmentIndex
+                    || al.leaderLineIndex != el.leaderLineIndex
+                    || al.leaderType != el.leaderType)
+                    return false;
+                for (std::size_t k = 0; k < al.points.size(); ++k) {
+                    if (al.points[k].x != el.points[k].x
+                        || al.points[k].y != el.points[k].y
+                        || al.points[k].z != el.points[k].z)
+                        return false;
+                }
+            }
+        }
+        return true;
+    };
+    class MLeaderExport final : public dx_iface {
+    public:
+        MLeaderExport(dxfRW& codec, DRW_MLeader value)
+            : output(codec), leader(std::move(value)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override { emitted = output.writeMultiLeader(&leader); }
+        bool finalizeDxfWrite() override { return emitted; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_MLeader leader;
+        bool emitted = false;
+    };
+    class MLeaderReadback final : public dx_iface {
+    public:
+        MLeaderReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addMLeader(const DRW_MLeader* value) override {
+            if (value != nullptr) {
+                leader = *value;
+                seen = true;
+            }
+        }
+        dx_data storage;
+        DRW_MLeader leader;
+        bool seen = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version version) {
+        dxfRW reader(path.string().c_str());
+        MLeaderReadback probe;
+        return reader.read(&probe, true)
+            && reader.getSourceVersion() == version && probe.seen
+            && sameLeader(probe.leader, makeLeader(), false);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const auto output = directory / "mleader-version-transaction.dxf";
+    const std::string sentinel = "prior MULTILEADER destination\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            if (!clearStagedOutput(output))
+                return fail(version.first, binary,
+                            "could not clear stale staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                std::ofstream prior(output,
+                    std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail(version.first, binary,
+                                "could not seed calibration destination");
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                MLeaderExport adapter(codec, makeLeader());
+                armAllocationFailure(1000000000L);
+                const bool written = codec.write(&adapter, version.first,
+                                                  binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                const bool bytesRead = readBytes(output, expectedBytes);
+                const bool readback = bytesRead
+                    && readbackMatches(output, version.first);
+                if (!written || !adapter.emitted || allocationCount <= 0
+                    || !bytesRead || !readback) {
+                    std::cerr << "  write=" << written
+                              << " callback=" << adapter.emitted
+                              << " allocations=" << allocationCount
+                              << " bytes=" << bytesRead
+                              << " readback=" << readback
+                              << " error=" << codec.getError() << '\n';
+                    return fail(version.first, binary,
+                                "clean write or typed readback failed");
+                }
+            }
+            long failureCount = 0;
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail(version.first, binary,
+                                    "could not seed destination");
+                }
+                dxfRW codec(output.string().c_str());
+                MLeaderExport adapter(codec, makeLeader());
+                const DRW_MLeader original = adapter.leader;
+                armAllocationFailure(offset);
+                const bool written = codec.write(&adapter, version.first,
+                                                  binary);
+                const long attempts = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool callerPreserved =
+                    sameLeader(adapter.leader, original, true);
+                const bool destinationPreserved = readBytes(output, afterFailure)
+                    && afterFailure == sentinel;
+                const bool stagingPreserved = hasStagedOutput(output);
+                if (!allocationFailed) {
+                    std::string boundaryBytes;
+                    if (!written || !adapter.emitted || !callerPreserved
+                        || !readBytes(output, boundaryBytes)
+                        || boundaryBytes != expectedBytes
+                        || !readbackMatches(output, version.first)
+                        || stagingPreserved)
+                        return fail(version.first, binary,
+                                    "unfaulted allocation boundary changed output");
+                    break;
+                }
+                if (!allocationFailed || written
+                    || attempts != offset + 1
+                    || !callerPreserved || !destinationPreserved
+                    || stagingPreserved) {
+                    std::cerr << "  offset=" << offset
+                              << " failed=" << allocationFailed
+                              << " write=" << written
+                              << " callback=" << adapter.emitted
+                              << " attempts=" << attempts
+                              << " caller=" << callerPreserved
+                              << " destination=" << destinationPreserved
+                              << " staged=" << stagingPreserved << '\n';
+                    return fail(version.first, binary,
+                                "injected failure did not roll back");
+                }
+                ++failureCount;
+                const bool retried = codec.write(&adapter, version.first,
+                                                  binary);
+                std::string retryBytes;
+                if (!retried || !adapter.emitted
+                    || !sameLeader(adapter.leader, original, true)
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail(version.first, binary,
+                                "same-codec retry/readback failed");
+            }
+            std::cout << "MULTILEADER " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": injected allocation offsets=" << failureCount
+                      << ", rollback/retry/readback=PASS\n";
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+    }
+    for (const bool binary : {false, true}) {
+        {
+            std::ofstream prior(output,
+                std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail(DRW::AC1018, binary,
+                            "could not seed minimum-version destination");
+        }
+        dxfRW codec(output.string().c_str());
+        MLeaderExport adapter(codec, makeLeader());
+        const DRW_MLeader original = adapter.leader;
+        if (codec.write(&adapter, DRW::AC1018, binary) || adapter.emitted
+            || !sameLeader(adapter.leader, original, true))
+            return fail(DRW::AC1018, binary,
+                        "pre-R2010 target was not atomically refused");
+        std::string afterRefusal;
+        if (!readBytes(output, afterRefusal) || afterRefusal != sentinel)
+            return fail(DRW::AC1018, binary,
+                        "minimum-version refusal replaced destination");
+        if (!codec.write(&adapter, DRW::AC1021, binary) || !adapter.emitted
+            || !readbackMatches(output, DRW::AC1021))
+            return fail(DRW::AC1021, binary,
+                        "same-codec retry at minimum supported version failed");
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool runCameraSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "CAMERA allocation transaction: " << message << '\n';
@@ -11016,7 +11293,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|dimension-versions|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|helix|spline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|dimension-versions|hatch-mpolygon-versions|long-mtext|camera|mleader-versions|light-entity|ole-frames|ray-xline|tolerance|helix|spline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -11036,6 +11313,8 @@ int main(int argc, char** argv) {
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "camera")
             return runCameraSweep(directory) ? 0 : 1;
+        if (mode == "mleader-versions")
+            return runMLeaderVersionSweep(directory) ? 0 : 1;
         if (mode == "light-entity")
             return runLightEntitySweep(directory) ? 0 : 1;
         if (mode == "ole-frames")

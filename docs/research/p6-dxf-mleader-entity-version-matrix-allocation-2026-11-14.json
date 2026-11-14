@@ -1,0 +1,61 @@
+{
+  "id": "p6-dxf-mleader-entity-version-matrix-allocation-2026-11-14",
+  "title": "MULTILEADER whole-operation revision allocation transaction matrix",
+  "date": "2026-11-14",
+  "scope": "Locally generated DXF whole-operation transaction evidence for one text-content MULTILEADER with a nested root and leader line, across the minimum supported revision and later admitted targets.",
+  "profile": {
+    "content": "Text content, overall scale, non-default landing/arrow sizes, one root attachment and one two-point leader line with non-default indices.",
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "minimumVersionBoundary": {
+      "refused": "AC1018",
+      "retry": "AC1021",
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ]
+    }
+  },
+  "verification": {
+    "checks": [
+      "Whole-operation allocation failures preserve a pre-existing sentinel destination and every checked caller-model field; same-codec retry reproduces clean bytes and fresh typed MLEADER readback.",
+      "The allocation sweep includes a terminal no-failure boundary probe and verifies that it produces the clean reference bytes; only actually injected failures are counted.",
+      "AC1018 target refusal preserves caller and destination; the same codec retries successfully at AC1021 in ASCII and Binary with typed readback.",
+      "Generated output is removed after each lane; no DWG/DXF fixture is added."
+    ],
+    "injectedAllocationFailuresByCell": {
+      "AC1021-ASCII": 94,
+      "AC1021-Binary": 93,
+      "AC1024-ASCII": 101,
+      "AC1024-Binary": 100,
+      "AC1027-ASCII": 94,
+      "AC1027-Binary": 93,
+      "AC1032-ASCII": 94,
+      "AC1032-Binary": 93
+    },
+    "totalInjectedAllocationFailures": 762,
+    "focusedCTest": "ctest --test-dir build -R ^libdxfrw_dxf_mleader_version_allocation_transaction$ --output-on-failure",
+    "focusedCTestResult": "PASS, 1/1, 5.31 seconds",
+    "directCommand": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-mleader-version-allocation mleader-versions",
+    "directResult": "PASS, eight revision/encoding cells and AC1018 refusal/AC1021 same-codec retry in ASCII and Binary"
+  },
+  "artifacts": {
+    "testSource": "tests/dxf_write_allocation_transaction_tests.cpp",
+    "testSourceSha256": "e8c43492accd2aa5954debe575669808eb353ca970c4a3aa968ef80a5b4b8f87",
+    "cmakeRegistration": "tests/CMakeLists.txt",
+    "testExecutable": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests",
+    "testExecutableSha256": "dc585427455c3d1b35463955be82e6ff82e1668903751bebc86e78bc5f70c9e8"
+  },
+  "limitations": [
+    "Generated writer and same-library typed readback only; no independent producer or reader qualification.",
+    "This one text-content/root/line profile does not prove all MULTILEADER content branches, style dependency closure, native rendering, or 3D consumer semantics."
+  ]
+}
