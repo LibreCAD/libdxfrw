@@ -1115,7 +1115,8 @@ bool writeBackgroundSunCaptureControl(const std::filesystem::path& path,
 bool writeViewReferenceControl(const std::filesystem::path& path,
                                bool binary, int referenceCode,
                                const char* viewName,
-                               bool includeSectionSettings = false) {
+                               bool includeSectionSettings = false,
+                               const char* fileVersion = "AC1027") {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
         return false;
@@ -1124,12 +1125,12 @@ bool writeViewReferenceControl(const std::filesystem::path& path,
     std::unique_ptr<dxfWriter> writer = binary
         ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
         : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
-    writer->setVersion("AC1027", true);
+    writer->setVersion(fileVersion, true);
     const auto string = [&writer](int code, const char* value) {
         return writer->writeString(code, value);
     };
     const bool written = string(0, "SECTION") && string(2, "HEADER")
-        && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(9, "$ACADVER") && string(1, fileVersion)
         && string(0, "ENDSEC") && string(0, "SECTION")
         && string(2, "TABLES") && string(0, "TABLE")
         && string(2, "VIEW") && string(5, "6") && string(330, "0")
@@ -8351,8 +8352,20 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
         }
     } cleanup{directory};
 
-    const auto sourceFor = [&](bool binary) {
-        return directory / (binary ? "source-binary.dxf" : "source-ascii.dxf");
+    const DRW::Version versions[] = {
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    const auto versionName = [](DRW::Version version) {
+        switch (version) {
+        case DRW::AC1021: return "AC1021";
+        case DRW::AC1024: return "AC1024";
+        case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
+        default: return "UNKNOWN";
+        }
+    };
+    const auto sourceFor = [&](bool binary, DRW::Version version) {
+        return directory / (std::string(binary ? "source-binary-" : "source-ascii-")
+            + versionName(version) + ".dxf");
     };
     const auto outputPath = directory / "section-objects.dxf";
     const std::string outputFilename = outputPath.string();
@@ -8360,12 +8373,15 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
         std::ifstream input(outputPath, std::ios::binary);
         return std::string(std::istreambuf_iterator<char>(input), {});
     };
-    const auto importSource = [&](bool binary, SectionAllocationWriter& adapter,
+    const auto importSource = [&](bool binary, DRW::Version version,
+                                  SectionAllocationWriter& adapter,
                                   dx_data& data) {
-        const auto source = sourceFor(binary);
+        const auto source = sourceFor(binary, version);
         if (!writeViewReferenceControl(source, binary, 334,
-                                       "LIVE_SECTION_VIEW", true)
+                                       "LIVE_SECTION_VIEW", true,
+                                       versionName(version))
             || !adapter.fileImport(source.string(), &data, false)
+            || data.sourceVersion != version
             || data.mBlock == nullptr)
             return false;
         auto* section = new DRW_SectionObject();
@@ -8375,10 +8391,11 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
         data.mBlock->ent.push_back(section);
         return true;
     };
-    const auto graphReadbackMatches = [&]() {
+    const auto graphReadbackMatches = [&](DRW::Version version) {
         dx_data decoded;
         dx_iface reader;
         if (!reader.fileImport(outputFilename, &decoded, false)
+            || decoded.sourceVersion != version
             || decoded.mBlock == nullptr)
             return false;
         const DRW_SectionObject* section = nullptr;
@@ -8427,14 +8444,15 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
     };
 
     for (const bool binary : {false, true}) {
+      for (const DRW::Version version : versions) {
         constexpr long allocationProbe = 1000000L;
         SectionAllocationWriter measureAdapter;
         dx_data measureData;
         measureAdapter.armAllocationFailure = true;
         measureAdapter.allocationOffset = allocationProbe;
-        const bool imported = importSource(binary, measureAdapter, measureData);
+        const bool imported = importSource(binary, version, measureAdapter, measureData);
         const bool measuredWrite = imported && measureAdapter.fileExport(
-            outputFilename, DRW::AC1027, binary, &measureData, false);
+            outputFilename, version, binary, &measureData, false);
         const long objectAllocations = allocationProbe
             - measureAdapter.remainingAllocationCountdown;
         const bool calibrated = measuredWrite
@@ -8443,8 +8461,8 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
             && measureAdapter.remainingAllocationCountdown < allocationProbe
             && objectAllocations > 0L;
         if (!calibrated) {
-            std::cerr << "SECTION OBJECTS allocation calibration binary="
-                      << binary << " imported=" << imported
+            std::cerr << "SECTION OBJECTS allocation calibration version="
+                      << versionName(version) << " binary=" << binary << " imported=" << imported
                       << " written=" << measuredWrite
                       << " callback="
                       << measureAdapter.objectsCallbackReached
@@ -8470,20 +8488,20 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
 
             SectionAllocationWriter adapter;
             dx_data data;
-            const bool sourceImported = importSource(binary, adapter, data);
+            const bool sourceImported = importSource(binary, version, adapter, data);
             adapter.armAllocationFailure = true;
             adapter.allocationOffset = offset;
             const std::size_t failuresBefore = materialFailedAllocations;
             const bool failed = sourceImported && !adapter.fileExport(
-                outputFilename, DRW::AC1027, binary, &data, false);
+                outputFilename, version, binary, &data, false);
             materialAllocationCountdown = -1;
             const bool rolledBack = failed
                 && adapter.objectsCallbackReached
                 && materialFailedAllocations == failuresBefore + 1u
                 && outputBytes() == sentinel;
             if (!rolledBack) {
-                std::cerr << "SECTION OBJECTS allocation rollback binary="
-                          << binary << " offset=" << offset
+                std::cerr << "SECTION OBJECTS allocation rollback version="
+                          << versionName(version) << " binary=" << binary << " offset=" << offset
                           << " imported=" << sourceImported
                           << " failed=" << failed
                           << " callback=" << adapter.objectsCallbackReached
@@ -8502,24 +8520,24 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
             adapter.armAllocationFailure = false;
             adapter.objectsCallbackReached = false;
             const bool retried = rolledBack && adapter.fileExport(
-                outputFilename, DRW::AC1027, binary, &data, false);
+                outputFilename, version, binary, &data, false);
             const bool retryReadback = retried
                 && adapter.objectsCallbackReached
-                && graphReadbackMatches();
+                && graphReadbackMatches(version);
             everyOffsetRetried = everyOffsetRetried && retryReadback;
             if (rolledBack && !retryReadback && firstRetryFailure < 0L)
                 firstRetryFailure = offset;
             if (rolledBack && !everyOffsetRetried && offset < 4L)
-                std::cerr << "SECTION OBJECTS allocation retry binary="
-                          << binary << " offset=" << offset
+                std::cerr << "SECTION OBJECTS allocation retry version="
+                          << versionName(version) << " binary=" << binary << " offset=" << offset
                           << " retried=" << retried
                           << " callback=" << adapter.objectsCallbackReached
-                          << " graph=" << graphReadbackMatches() << '\n';
+                          << " graph=" << graphReadbackMatches(version) << '\n';
         }
 
         if (!everyOffsetRolledBack || !everyOffsetRetried) {
-            std::cerr << "SECTION OBJECTS allocation summary binary="
-                      << binary << " calibrated=" << calibrated
+            std::cerr << "SECTION OBJECTS allocation summary version="
+                      << versionName(version) << " binary=" << binary << " calibrated=" << calibrated
                       << " allocations=" << objectAllocations
                       << " injectedFailures=" << injectedFailures
                       << " firstRollbackFailure=" << firstRollbackFailure
@@ -8535,6 +8553,15 @@ void testSectionObjectsAllocationRetry(TestContext& t) {
                  binary
                      ? "binary SECTION OBJECTS sweep retries on the same adapter and reads the closed graph"
                      : "ASCII SECTION OBJECTS sweep retries on the same adapter and reads the closed graph");
+        std::cout << "SECTION OBJECTS " << versionName(version) << ' '
+                  << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << objectAllocations
+                  << ", rollback/retry/readback="
+                  << (calibrated && everyOffsetRolledBack && everyOffsetRetried
+                          && injectedFailures == objectAllocations
+                      ? "PASS" : "FAIL")
+                  << '\n';
+      }
     }
 }
 

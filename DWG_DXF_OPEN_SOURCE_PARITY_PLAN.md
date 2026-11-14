@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **255 completed implementation slices** and **35 remaining
+The plan records **256 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`255 / (255 + 35) = 87.9%`. This is a count-based progress measure, not an
+`256 / (256 + 35) = 88.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1976,6 +1976,16 @@ target. All 516 injected allocation failures pass; the focused CTest completes
 in about 2.1 seconds. Cross-revision conversion of this graph remains outside
 this evidence. See the
 [LAYOUT/RapidRT matrix receipt](docs/research/p6-dxf-layout-rapidrt-version-matrix-allocation-2026-11-13.json).
+
+**P6-G SECTION/SECTIONOBJECT revision-matrix transaction slice (2026-11-13):**
+the generated live-view, SECTIONMANAGER, SECTIONSETTINGS and SECTIONOBJECT graph
+now passes allocation rollback, caller-state preservation, same-adapter retry
+and closed-graph readback at AC1021, AC1024, AC1027 and AC1032 in ASCII and
+Binary. Both source import and output readback verify the tested revision. All
+148 injected failures pass; the focused CTest completes in about 0.6 seconds.
+This is generated transaction evidence only, not producer or native SECTION
+semantics. See the
+[SECTION matrix receipt](docs/research/p6-dxf-section-objects-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH and MPOLYGON writes now have per-allocation rollback, same-writer retry,
