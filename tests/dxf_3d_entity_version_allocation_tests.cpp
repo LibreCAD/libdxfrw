@@ -46,7 +46,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text, Shape };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -60,6 +60,7 @@ const char* profileName(Profile profile) {
     case Profile::BasicLine: return "LINE";
     case Profile::Ellipse: return "ELLIPSE";
     case Profile::Text: return "TEXT";
+    case Profile::Shape: return "SHAPE";
     }
     return "unknown";
 }
@@ -176,6 +177,34 @@ DRW_Text makeText() {
     return text;
 }
 
+DRW_Shape makeShape() {
+    DRW_Shape shape;
+    shape.handle = 0xD942u;
+    shape.m_insertionPoint = DRW_Coord{5.0, -2.0, 1.5};
+    shape.m_scale = 2.25;
+    shape.m_rotation = 0.5;
+    shape.m_widthFactor = 1.3;
+    shape.m_oblique = 0.2;
+    shape.m_thickness = 0.75;
+    shape.m_styleName = "SIMPLEX";
+    shape.m_extrusion = DRW_Coord{0.0, 1.0, 0.0};
+    return shape;
+}
+
+bool sameShape(const DRW_Shape& a, const DRW_Shape& b,
+               bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.m_insertionPoint.x == b.m_insertionPoint.x
+        && a.m_insertionPoint.y == b.m_insertionPoint.y
+        && a.m_insertionPoint.z == b.m_insertionPoint.z
+        && a.m_scale == b.m_scale && a.m_rotation == b.m_rotation
+        && a.m_widthFactor == b.m_widthFactor && a.m_oblique == b.m_oblique
+        && a.m_thickness == b.m_thickness && a.m_styleName == b.m_styleName
+        && a.m_extrusion.x == b.m_extrusion.x
+        && a.m_extrusion.y == b.m_extrusion.y
+        && a.m_extrusion.z == b.m_extrusion.z;
+}
+
 bool sameText(const DRW_Text& a, const DRW_Text& b,
               bool compareHandle = true) {
     return (!compareHandle || a.handle == b.handle)
@@ -290,6 +319,7 @@ public:
         basicLine = makeBasicLine();
         ellipse = makeEllipse();
         text = makeText();
+        shape = makeShape();
         codec.setEllipseParts(8);
     }
 
@@ -313,6 +343,7 @@ public:
         case Profile::BasicLine: accepted = codec.writeLine(&basicLine); break;
         case Profile::Ellipse: accepted = codec.writeEllipse(&ellipse); break;
         case Profile::Text: accepted = codec.writeText(&text); break;
+        case Profile::Shape: accepted = codec.writeShape(&shape); break;
         }
     }
 
@@ -331,6 +362,7 @@ public:
     DRW_Line basicLine;
     DRW_Ellipse ellipse;
     DRW_Text text;
+    DRW_Shape shape;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -457,6 +489,23 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return text != nullptr && text->eType == DRW::TEXT
             && sameText(*text, expected, false);
     }
+    if (profile == Profile::Shape) {
+        const auto* shape = dynamic_cast<const DRW_Shape*>(entity);
+        const DRW_Shape expected = makeShape();
+        return shape != nullptr && shape->eType == DRW::SHAPE
+            && shape->m_insertionPoint.x == expected.m_insertionPoint.x
+            && shape->m_insertionPoint.y == expected.m_insertionPoint.y
+            && shape->m_insertionPoint.z == expected.m_insertionPoint.z
+            && shape->m_scale == expected.m_scale
+            && std::abs(shape->m_rotation - expected.m_rotation) < 1e-12
+            && shape->m_widthFactor == expected.m_widthFactor
+            && std::abs(shape->m_oblique - expected.m_oblique) < 1e-12
+            && shape->m_thickness == expected.m_thickness
+            && shape->m_styleName == expected.m_styleName
+            && shape->m_extrusion.x == expected.m_extrusion.x
+            && shape->m_extrusion.y == expected.m_extrusion.y
+            && shape->m_extrusion.z == expected.m_extrusion.z;
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -495,6 +544,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
         {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> textVersions = {{
+        {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
+        {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 8> shapeVersions = {{
         {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
@@ -540,6 +594,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Line originalBasicLine = exporter.basicLine;
                 const DRW_Ellipse originalEllipse = exporter.ellipse;
                 const DRW_Text originalText = exporter.text;
+                const DRW_Shape originalShape = exporter.shape;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -575,6 +630,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Text:
                     callerPreserved = sameText(exporter.text, originalText);
+                    break;
+                case Profile::Shape:
+                    callerPreserved = sameShape(exporter.shape, originalShape);
                     break;
                 }
                 if (!allocationFailed || written
@@ -615,8 +673,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                             : profile == Profile::Ellipse
                                                 ? sameEllipse(exporter.ellipse,
                                                     originalEllipse)
-                                                : sameText(exporter.text,
-                                                    originalText);
+                                                : profile == Profile::Text
+                                                    ? sameText(exporter.text,
+                                                        originalText)
+                                                    : sameShape(exporter.shape,
+                                                        originalShape);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -662,6 +723,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : textVersions)
             if (!runVersion(version.first, version.second))
                 return false;
+    } else if (profile == Profile::Shape) {
+        for (const auto& version : shapeVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
     } else {
         for (const auto& version : legacyVersions)
             if (!runVersion(version.first, version.second))
@@ -680,7 +745,8 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Arc)
         && runProfile(directory, Profile::BasicLine)
         && runProfile(directory, Profile::Ellipse)
-        && runProfile(directory, Profile::Text);
+        && runProfile(directory, Profile::Text)
+        && runProfile(directory, Profile::Shape);
 }
 } // namespace
 
