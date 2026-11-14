@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **310 completed implementation slices** and **34 remaining
+The plan records **311 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`310 / (310 + 34) = 90.1%`. This is a count-based progress measure, not an
+`311 / (311 + 34) = 90.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5651,6 +5651,13 @@ retry and typed-readback checks; the expanded focused CTest passes in 7.43
 seconds. This is generated writer transaction/self-readback evidence only; it
 does not qualify producer-authored geometry or native 3D consumers
 ([revision-matrix receipt](docs/research/p6-dxf-3d-entity-version-allocation-2026-11-14.json)).
+The direct ELLIPSE route now covers AC1009's configured eight-part downgrade
+to a classic polyline and AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032
+typed ELLIPSE output in both encodings. All 173 injected failures preserve
+caller/destination state and pass same-codec byte-identical retry; typed
+readback checks the legacy polyline carrier and all modern ellipse fields. The
+expanded focused CTest passes in 8.58 seconds. This does not establish
+independent curve equivalence or native rendering.
 The same whole-operation sweep now calls `writeTableStyle()` directly with a
 locally generated legacy three-row style, a nondefault emitted text style and
 six ordered borders per row. Typed readback checks the style identity/name,

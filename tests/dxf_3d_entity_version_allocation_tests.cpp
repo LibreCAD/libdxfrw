@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Generated DXF 3DFACE and 3DLINE writer version transaction controls.
+// Generated DXF entity writer version transaction controls.
 #include "dx_iface.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdlib>
@@ -45,7 +46,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -57,6 +58,7 @@ const char* profileName(Profile profile) {
     case Profile::Circle: return "CIRCLE";
     case Profile::Arc: return "ARC";
     case Profile::BasicLine: return "LINE";
+    case Profile::Ellipse: return "ELLIPSE";
     }
     return "unknown";
 }
@@ -143,6 +145,29 @@ DRW_Line makeBasicLine() {
     line.secPoint = DRW_Coord{-2.0, 4.0, 5.0};
     line.thickness = 0.75;
     return line;
+}
+
+DRW_Ellipse makeEllipse() {
+    DRW_Ellipse ellipse;
+    ellipse.handle = 0xD928u;
+    ellipse.basePoint = DRW_Coord{2.0, -3.0, 4.0};
+    ellipse.secPoint = DRW_Coord{4.0, 0.0, 0.0};
+    ellipse.ratio = 0.5;
+    ellipse.staparam = 0.25;
+    ellipse.endparam = 2.5;
+    return ellipse;
+}
+
+bool sameEllipse(const DRW_Ellipse& a, const DRW_Ellipse& b,
+                 bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x && a.basePoint.y == b.basePoint.y
+        && a.basePoint.z == b.basePoint.z && a.secPoint.x == b.secPoint.x
+        && a.secPoint.y == b.secPoint.y && a.secPoint.z == b.secPoint.z
+        && a.ratio == b.ratio && a.staparam == b.staparam
+        && a.endparam == b.endparam && a.extPoint.x == b.extPoint.x
+        && a.extPoint.y == b.extPoint.y && a.extPoint.z == b.extPoint.z
+        && a.isccw == b.isccw;
 }
 
 bool sameBasicLine(const DRW_Line& a, const DRW_Line& b,
@@ -233,6 +258,8 @@ public:
         circle = makeCircle();
         arc = makeArc();
         basicLine = makeBasicLine();
+        ellipse = makeEllipse();
+        codec.setEllipseParts(8);
     }
 
     void writeEntities() override {
@@ -253,6 +280,7 @@ public:
         case Profile::Circle: accepted = codec.writeCircle(&circle); break;
         case Profile::Arc: accepted = codec.writeArc(&arc); break;
         case Profile::BasicLine: accepted = codec.writeLine(&basicLine); break;
+        case Profile::Ellipse: accepted = codec.writeEllipse(&ellipse); break;
         }
     }
 
@@ -269,6 +297,7 @@ public:
     DRW_Circle circle;
     DRW_Arc arc;
     DRW_Line basicLine;
+    DRW_Ellipse ellipse;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -360,6 +389,33 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return line != nullptr && line->eType == DRW::LINE
             && sameBasicLine(*line, expected, false);
     }
+    if (profile == Profile::Ellipse) {
+        const DRW_Ellipse expected = makeEllipse();
+        if (expectedVersion == DRW::AC1009) {
+            const auto* polyline = dynamic_cast<const DRW_Polyline*>(entity);
+            const bool matches = polyline != nullptr
+                && polyline->eType == DRW::POLYLINE
+                && polyline->vertlist.size() >= 2u
+                && std::all_of(polyline->vertlist.begin(), polyline->vertlist.end(),
+                    [](const std::shared_ptr<DRW_Vertex>& vertex) {
+                        return vertex != nullptr && std::isfinite(vertex->basePoint.x)
+                            && std::isfinite(vertex->basePoint.y)
+                            && std::isfinite(vertex->basePoint.z);
+                    });
+            if (!matches)
+                std::cerr << "R12 ELLIPSE downgrade typed polyline="
+                          << (polyline != nullptr)
+                          << " entity-type=" << static_cast<int>(entity->eType)
+                          << " vertices=" << (polyline != nullptr
+                                ? polyline->vertlist.size() : 0u)
+                          << " vertex-count=" << (polyline != nullptr
+                                ? polyline->vertexcount : -1) << '\n';
+            return matches;
+        }
+        const auto* ellipse = dynamic_cast<const DRW_Ellipse*>(entity);
+        return ellipse != nullptr && ellipse->eType == DRW::ELLIPSE
+            && sameEllipse(*ellipse, expected, false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -392,6 +448,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
         {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 8> ellipseVersions = {{
+        {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
+        {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
     const auto runVersion = [&](DRW::Version target, const char* versionName) {
         for (const bool binary : {false, true}) {
             const std::string stem = std::string(profileName(profile)) + "-";
@@ -431,6 +492,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Circle originalCircle = exporter.circle;
                 const DRW_Arc originalArc = exporter.arc;
                 const DRW_Line originalBasicLine = exporter.basicLine;
+                const DRW_Ellipse originalEllipse = exporter.ellipse;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -459,6 +521,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 case Profile::BasicLine:
                     callerPreserved = sameBasicLine(exporter.basicLine,
                                                     originalBasicLine);
+                    break;
+                case Profile::Ellipse:
+                    callerPreserved = sameEllipse(exporter.ellipse,
+                                                  originalEllipse);
                     break;
                 }
                 if (!allocationFailed || written
@@ -493,14 +559,28 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                         ? sameCircle(exporter.circle, originalCircle)
                                         : profile == Profile::Arc
                                             ? sameArc(exporter.arc, originalArc)
-                                            : sameBasicLine(exporter.basicLine,
-                                                            originalBasicLine);
+                                            : profile == Profile::BasicLine
+                                                ? sameBasicLine(exporter.basicLine,
+                                                    originalBasicLine)
+                                                : sameEllipse(exporter.ellipse,
+                                                    originalEllipse);
+                const bool retryReadback = readbackMatches(output, profile,
+                                                            target);
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
-                    || !readbackMatches(output, profile, target)
+                    || !retryReadback
                     || !retryCallerPreserved)
+                {
+                    std::cerr << profileName(profile) << ' ' << versionName
+                              << ' ' << (binary ? "Binary" : "ASCII")
+                              << " retry=" << retried
+                              << " callback=" << exporter.accepted
+                              << " readback=" << retryReadback
+                              << " bytes=" << (retryBytes == expectedBytes)
+                              << " caller=" << retryCallerPreserved << '\n';
                     return fail("same-codec retry or typed readback failed");
+                }
             }
             std::cout << profileName(profile) << ' '
                       << versionName << ' '
@@ -521,6 +601,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : lineVersions)
             if (!runVersion(version.first, version.second))
                 return false;
+    } else if (profile == Profile::Ellipse) {
+        for (const auto& version : ellipseVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
     } else {
         for (const auto& version : legacyVersions)
             if (!runVersion(version.first, version.second))
@@ -537,7 +621,8 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Point)
         && runProfile(directory, Profile::Circle)
         && runProfile(directory, Profile::Arc)
-        && runProfile(directory, Profile::BasicLine);
+        && runProfile(directory, Profile::BasicLine)
+        && runProfile(directory, Profile::Ellipse);
 }
 } // namespace
 
