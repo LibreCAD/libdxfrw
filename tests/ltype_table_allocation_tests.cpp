@@ -156,6 +156,10 @@ const char* versionCode(DRW::Version version) {
     }
 }
 
+constexpr std::array<DRW::Version, 7> ltypeVersions{{
+    DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+    DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+
 bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     std::ifstream input(path, std::ios::binary);
     if (!input)
@@ -175,9 +179,7 @@ bool readbackMatches(const std::filesystem::path& path) {
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "ltype-table-allocation.dxf";
     const std::string prior = "prior LTYPE destination bytes\n";
-    constexpr std::array<DRW::Version, 7> versions{{
-        DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
-        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    constexpr auto& versions = ltypeVersions;
     for (const DRW::Version version : versions) {
         for (const bool binary : {false, true}) {
             long allocationCount = 0;
@@ -305,28 +307,36 @@ bool editedImportedRecordRoundTrip(const std::filesystem::path& directory) {
     edited.desc = "Edited after import";
     edited.path = {3.0, -1.0};
 
-    for (const bool binary : {false, true}) {
-        dxfRW codec(output.string().c_str());
-        EditedExport exporter(codec, edited);
-        if (!codec.write(&exporter, DRW::AC1027, binary) || !exporter.accepted)
-            return false;
-        dxfRW outputReader(output.string().c_str());
-        Reader readback;
-        if (!outputReader.read(&readback, false)
-            || readback.lineTypes.size() != 1u) {
-            std::cerr << "edited LTYPE output failed to import: binary="
-                      << binary << " rows=" << readback.lineTypes.size() << '\n';
-            return false;
-        }
-        const DRW_LType& actual = readback.lineTypes.front();
-        if (!sameEditedReadback(actual, edited)) {
-            std::cerr << "edited imported LTYPE fields were not re-emitted: "
-                         "binary=" << binary << '\n';
-            return false;
+    for (const DRW::Version version : ltypeVersions) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(output.string().c_str());
+            EditedExport exporter(codec, edited);
+            if (!codec.write(&exporter, version, binary) || !exporter.accepted) {
+                std::cerr << "edited LTYPE output failed to write: version="
+                          << versionCode(version) << " binary=" << binary << '\n';
+                return false;
+            }
+            dxfRW outputReader(output.string().c_str());
+            Reader readback;
+            if (!outputReader.read(&readback, false)
+                || readback.lineTypes.size() != 1u) {
+                std::cerr << "edited LTYPE output failed to import: version="
+                          << versionCode(version) << " binary=" << binary
+                          << " rows=" << readback.lineTypes.size() << '\n';
+                return false;
+            }
+            const DRW_LType& actual = readback.lineTypes.front();
+            if (!sameEditedReadback(actual, edited)) {
+                std::cerr << "edited imported LTYPE fields were not re-emitted: "
+                             "version=" << versionCode(version)
+                          << " binary=" << binary << '\n';
+                return false;
+            }
         }
     }
-    std::cout << "edited imported LTYPE description and dash pattern "
-                 "readback passed\n";
+    std::cout << "edited imported LTYPE description, complex segments, and "
+                 "application metadata readback passed for seven revisions "
+                 "in ASCII and Binary\n";
     return true;
 }
 } // namespace
