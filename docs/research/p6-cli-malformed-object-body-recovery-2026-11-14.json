@@ -15,6 +15,11 @@
       "sha256": "3b83d2f77cff8a989b123fe5d1e4aee757cdec78cd2ac6fcf3bfaae9f94505c2"
     },
     {
+      "version": "AC1027",
+      "sha256": "8941a6f5ce8d11b3a7f74ca6ef04fd47b9d2b82d7a8813f8bf997b68428053c2",
+      "qualification": "reader-only; source-reference closure masks CLI output"
+    },
+    {
       "version": "AC1032",
       "sha256": "a7833966093cac8bf1ee3fad85f717d97d64659ac5d6b3223ce7231157a1d5d3"
     }
@@ -32,15 +37,17 @@
   "cli_policy": {
     "strict": "Refuses before replacing the destination; source and sentinel destination are unchanged.",
     "explicit_partial": "Succeeds with the partial-output warning; reopened DXF contains exactly the retained LINE and VPORT; source is unchanged.",
-    "retained_integrity_errors": 0
+    "retained_integrity_errors": 0,
+    "profiles": ["AC1021", "AC1024", "AC1032"],
+    "reader_only_profile": "AC1027"
   },
   "validation": {
     "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
-    "result": "PASS: CLI partial DWG read (64 strict/partial/readback controls)"
+    "result": "PASS: CLI partial DWG read (65 strict/partial/readback controls)"
   },
   "limitations": [
     "Controls are generated locally and are not committed as DWG/DXF fixture files.",
     "This proves bounded parser failure isolation and CLI disposition only; it does not prove MLINESTYLE body semantics or producer interoperability.",
-    "AC1027 is excluded because an independent source-reference closure gate prevents meaningful CLI output qualification for this generated profile."
+    "AC1027 is reader-only because an independent source-reference closure gate prevents meaningful CLI output qualification for this generated profile."
   ]
 }

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **371 completed implementation and qualification slices** and **34 remaining
+The plan records **372 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`371 / (371 + 34) = 91.6%`. This is a count-based progress measure, not an
+`372 / (372 + 34) = 91.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -95,7 +95,10 @@ partial mode succeeds with an incomplete-output warning; its generated DXF
 reopens with the retained LINE and VPORT, and the source remains unchanged.
 The failed frame contributes no retained integrity row, which is why this
 bounded failure is eligible for explicit partial output while the truncated
-common-prologue cases above are not. The fast partial-read selector passes 64
+common-prologue cases above are not. AC1027 now joins as a reader-only profile:
+it also reports one failed frame, retains the following LINE, and balances
+all 27 object frames, while CLI output remains unqualified behind its separate
+source-reference closure gate. The fast partial-read selector passes 65
 controls. This is generated parser-recovery and CLI disposition evidence, not
 MLINESTYLE semantic or producer interoperability support evidence
 ([receipt](docs/research/p6-cli-malformed-object-body-recovery-2026-11-14.json)).
