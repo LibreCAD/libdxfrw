@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **297 completed implementation slices** and **34 remaining
+The plan records **298 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`297 / (297 + 34) = 89.7%`. This is a count-based progress measure, not an
+`298 / (298 + 34) = 89.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1941,6 +1941,17 @@ and dynamic-constraint dimensions, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION
 remain only in their separately bounded AC1027 transaction profile; producer
 semantics and native rendering remain unqualified. See the
 [standard-subtype receipt](docs/research/p6-dxf-standard-dimension-version-matrix-allocation-2026-11-14.json).
+
+**P6-G dynamic-constraint DIMENSION version-matrix follow-up (2026-11-14):**
+the same seven-revision ASCII/Binary matrix now includes the current
+`*ADSK_CONSTRAINTS` layer and the legacy `*LayerNameForDynamicConstraint`
+spelling, with all modeled DSTYLE override values. The legacy spelling stays
+unchanged in caller state and is normalized to `*ADSK_CONSTRAINTS` in emitted
+records/readback. All 3,474 measured allocation failures preserve the prior
+destination and source fields; same-codec retry reproduces exact clean bytes
+and typed readback. The focused CTest passes in 24.17 seconds. This does not
+qualify dynamic constraint evaluation or other producer spellings. See the
+[dynamic-dimension receipt](docs/research/p6-dxf-dynamic-dimension-version-matrix-allocation-2026-11-14.json).
 
 **P6-G AC1024 associative constraint-group transaction slice (2026-11-14):** the generated one-node `AcFixedConstraint` profile now has direct-writer allocation rollback, caller-profile and handle-map preservation, explicit failed-session reset, same-writer byte-identical retry, and bounded raw-group readback in ASCII and Binary. All 9 measured allocation offsets pass for each encoding; the focused CTest passes in 0.03 seconds. This is generated transaction/self-readback evidence only and does not qualify source producer semantics, graph closure, or native constraint evaluation ([receipt](docs/research/p6-dxf-associative-constraint-group-allocation-retry-2026-11-14.json)).
 

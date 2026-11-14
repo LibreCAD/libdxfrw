@@ -42,6 +42,16 @@ public:
             && dimension.tolAlign == 2 && dimension.tolZero == 4
             && dimension.altZero == 5 && dimension.altTolZero == 6;
     }
+
+    static void printOverrides(const DRW_Dimension& dimension) {
+        std::cerr << " dstyle=" << dimension.tolPlus << ','
+                  << dimension.tolMinus << ',' << dimension.genTol << ','
+                  << dimension.limGen << ',' << dimension.tolScale << ','
+                  << dimension.tolDecimals << ','
+                  << dimension.altTolDecimals << ',' << dimension.textMove
+                  << ',' << dimension.tolAlign << ',' << dimension.tolZero
+                  << ',' << dimension.altZero << ',' << dimension.altTolZero;
+    }
 };
 
 namespace {
@@ -1834,6 +1844,21 @@ public:
                       "version matrix ordinate");
         ordinate.setFirstLine(DRW_Coord{61.0, 62.0, 63.0});
         ordinate.setSecondLine(DRW_Coord{64.0, 65.0, 66.0});
+
+        dynamicConstraint.handle = 0xDC17u;
+        dynamicConstraint.layer = "*ADSK_CONSTRAINTS";
+        dynamicConstraint.setStyle("DIM_MATRIX_STYLE");
+        dynamicConstraint.setDefPoint(DRW_Coord{70.0, 71.0, 72.0});
+        dynamicConstraint.setTextPoint(DRW_Coord{70.5, 71.5, 0.0});
+        dynamicConstraint.setText("version matrix dynamic constraint");
+        DxfDimensionDstyleTestAccess::setOverrides(dynamicConstraint);
+
+        legacyDynamicConstraint.handle = 0xDC18u;
+        legacyDynamicConstraint.layer = "*LayerNameForDynamicConstraint";
+        legacyDynamicConstraint.setStyle("DIM_MATRIX_STYLE");
+        legacyDynamicConstraint.setDefPoint(DRW_Coord{80.0, 81.0, 82.0});
+        legacyDynamicConstraint.setTextPoint(DRW_Coord{80.5, 81.5, 0.0});
+        legacyDynamicConstraint.setText("version matrix legacy constraint");
     }
 
     void writeEntities() override {
@@ -1843,7 +1868,9 @@ public:
             && dxfW->writeDimension(&diametric)
             && dxfW->writeDimension(&angular)
             && dxfW->writeDimension(&angular3p)
-            && dxfW->writeDimension(&ordinate);
+            && dxfW->writeDimension(&ordinate)
+            && dxfW->writeDimension(&dynamicConstraint)
+            && dxfW->writeDimension(&legacyDynamicConstraint);
     }
     bool finalizeDxfWrite() override { return written; }
 
@@ -1898,7 +1925,21 @@ public:
             && ordinate.handle == 0xDC16u
             && ordinate.getFirstLine().x == 61.0
             && ordinate.getSecondLine().x == 64.0
-            && ordinate.getText() == "version matrix ordinate";
+            && ordinate.getText() == "version matrix ordinate"
+            && dynamicConstraint.handle == 0xDC17u
+            && dynamicConstraint.layer == "*ADSK_CONSTRAINTS"
+            && dynamicConstraint.getDefPoint().x == 70.0
+            && dynamicConstraint.getDefPoint().y == 71.0
+            && dynamicConstraint.getDefPoint().z == 72.0
+            && dynamicConstraint.getText() == "version matrix dynamic constraint"
+            && DxfDimensionDstyleTestAccess::matchesOverrides(
+                dynamicConstraint)
+            && legacyDynamicConstraint.handle == 0xDC18u
+            && legacyDynamicConstraint.layer
+                == "*LayerNameForDynamicConstraint"
+            && legacyDynamicConstraint.getDefPoint().x == 80.0
+            && legacyDynamicConstraint.getText()
+                == "version matrix legacy constraint";
     }
 
     DRW_DimAligned aligned;
@@ -1908,6 +1949,8 @@ public:
     DRW_DimAngular angular;
     DRW_DimAngular3p angular3p;
     DRW_DimOrdinate ordinate;
+    DRW_DimLinear dynamicConstraint;
+    DRW_DimLinear legacyDynamicConstraint;
     bool written = false;
     dx_data storage;
 };
@@ -1926,8 +1969,17 @@ public:
     }
     void addDimLinear(const DRW_DimLinear* value) override {
         if (value != nullptr) {
-            ++linearCount;
-            linear = *value;
+            if (value->getText() == "version matrix dynamic constraint") {
+                ++dynamicConstraintCount;
+                dynamicConstraint = *value;
+            } else if (value->getText()
+                       == "version matrix legacy constraint") {
+                ++legacyDynamicConstraintCount;
+                legacyDynamicConstraint = *value;
+            } else {
+                ++linearCount;
+                linear = *value;
+            }
         }
     }
     void addDimRadial(const DRW_DimRadial* value) override {
@@ -1968,6 +2020,8 @@ public:
     unsigned angularCount{0};
     unsigned angular3pCount{0};
     unsigned ordinateCount{0};
+    unsigned dynamicConstraintCount{0};
+    unsigned legacyDynamicConstraintCount{0};
     DRW_DimAligned aligned;
     DRW_DimLinear linear;
     DRW_DimRadial radial;
@@ -1975,6 +2029,8 @@ public:
     DRW_DimAngular angular;
     DRW_DimAngular3p angular3p;
     DRW_DimOrdinate ordinate;
+    DRW_DimLinear dynamicConstraint;
+    DRW_DimLinear legacyDynamicConstraint;
     dx_data storage;
 };
 
@@ -7028,7 +7084,7 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
 
 bool runDimensionVersionSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
-        std::cerr << "standard DIMENSION version-matrix allocation transaction: "
+        std::cerr << "DIMENSION version-matrix allocation transaction: "
                   << message << '\n';
         return false;
     };
@@ -7046,6 +7102,8 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.radialCount == 1u && adapter.diametricCount == 1u
             && adapter.angularCount == 1u && adapter.angular3pCount == 1u
             && adapter.ordinateCount == 1u
+            && adapter.dynamicConstraintCount == 1u
+            && adapter.legacyDynamicConstraintCount == 1u
             && adapter.aligned.handle != 0u
             && adapter.aligned.getStyle() == "DIM_MATRIX_STYLE"
             && adapter.aligned.getDefPoint().x == 1.25
@@ -7103,7 +7161,26 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.ordinate.getDefPoint().z == 62.0
             && adapter.ordinate.getFirstLine().x == 61.0
             && adapter.ordinate.getSecondLine().x == 64.0
-            && adapter.ordinate.getText() == "version matrix ordinate";
+            && adapter.ordinate.getText() == "version matrix ordinate"
+            && adapter.dynamicConstraint.handle != 0u
+            && adapter.dynamicConstraint.layer == "*ADSK_CONSTRAINTS"
+            && adapter.dynamicConstraint.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.dynamicConstraint.getDefPoint().x == 70.0
+            && adapter.dynamicConstraint.getDefPoint().y == 71.0
+            && adapter.dynamicConstraint.getDefPoint().z == 72.0
+            && adapter.dynamicConstraint.getText()
+                == "version matrix dynamic constraint"
+            && DxfDimensionDstyleTestAccess::matchesOverrides(
+                adapter.dynamicConstraint)
+            && adapter.legacyDynamicConstraint.handle != 0u
+            && adapter.legacyDynamicConstraint.layer
+                == "*ADSK_CONSTRAINTS"
+            && adapter.legacyDynamicConstraint.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.legacyDynamicConstraint.getDefPoint().x == 80.0
+            && adapter.legacyDynamicConstraint.getDefPoint().y == 81.0
+            && adapter.legacyDynamicConstraint.getDefPoint().z == 82.0
+            && adapter.legacyDynamicConstraint.getText()
+                == "version matrix legacy constraint";
         if (!matches) {
             std::cerr << "DIMENSION readback diagnostic read=" << read
                       << " error=" << reader.getError()
@@ -7114,6 +7191,9 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                       << " angular=" << adapter.angularCount
                       << " angular3p=" << adapter.angular3pCount
                       << " ordinate=" << adapter.ordinateCount
+                      << " dynamic=" << adapter.dynamicConstraintCount
+                      << " legacyDynamic="
+                      << adapter.legacyDynamicConstraintCount
                       << " alignedHandle=" << adapter.aligned.handle
                       << " alignedStyle=" << adapter.aligned.getStyle()
                       << " alignedDef=" << adapter.aligned.getDefPoint().x
@@ -7130,7 +7210,19 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                       << ',' << adapter.linear.getDef2Point().y
                       << " linearTextPoint=" << adapter.linear.getTextPoint().x
                       << ',' << adapter.linear.getTextPoint().y
-                      << " linearText=" << adapter.linear.getText() << '\n';
+                      << " linearText=" << adapter.linear.getText()
+                      << " dynamicLayer=" << adapter.dynamicConstraint.layer
+                      << " dynamicText=" << adapter.dynamicConstraint.getText()
+                      << " dynamicOverrides="
+                      << DxfDimensionDstyleTestAccess::matchesOverrides(
+                             adapter.dynamicConstraint)
+                      << " legacyLayer="
+                      << adapter.legacyDynamicConstraint.layer
+                      << " legacyText="
+                      << adapter.legacyDynamicConstraint.getText();
+            DxfDimensionDstyleTestAccess::printOverrides(
+                adapter.dynamicConstraint);
+            std::cerr << '\n';
         }
         return matches;
     };
@@ -7229,7 +7321,7 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                     || hasStagedOutput(output))
                     return fail("same-codec retry or typed readback failed");
             }
-            std::cout << target.second << " standard DIMENSION subtypes "
+            std::cout << target.second << " DIMENSION subtypes/constraints "
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", caller/destination rollback, retry/readback=PASS\n";

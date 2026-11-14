@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dynamic-dimension-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_DYNAMIC_CONSTRAINT_DIMENSION_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated dimension transaction matrix with current and legacy dynamic-constraint DIMENSION profiles across all seven target revisions and both DXF encodings.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "current dynamic constraint DIMENSION on *ADSK_CONSTRAINTS with all modeled DSTYLE overrides nondefault",
+      "legacy dynamic constraint DIMENSION on *LayerNameForDynamicConstraint, normalized to *ADSK_CONSTRAINTS on readback",
+      "standard aligned, linear, radial, diametric, two-line angular, three-point angular, and ordinate dimensions in the same drawing",
+      "generated TEXTSTYLE and DIMSTYLE dependencies"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dynamic-dimension-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Prime each version and encoding with an untracked write to initialize lazy writer state, measure allocations in a clean write, inject std::bad_alloc at every measured offset, require failure plus unchanged destination sentinel and caller records (including all DSTYLE override values), retry with the same codec, compare exact output bytes with the clean baseline, and freshly read each dimension callback, alias layer, and modeled override."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 249,
+      "Binary": 247
+    },
+    "AC1015": {
+      "ASCII": 251,
+      "Binary": 249
+    },
+    "AC1018": {
+      "ASCII": 251,
+      "Binary": 249
+    },
+    "AC1021": {
+      "ASCII": 246,
+      "Binary": 244
+    },
+    "AC1024": {
+      "ASCII": 255,
+      "Binary": 253
+    },
+    "AC1027": {
+      "ASCII": 246,
+      "Binary": 244
+    },
+    "AC1032": {
+      "ASCII": 246,
+      "Binary": 244
+    }
+  },
+  "allocationOffsetTotal": 3474,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_dimension_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 24.17 seconds",
+    "diffCheck": "PENDING",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native consumer behavior are not qualified.",
+    "This covers the two generated dynamic-constraint layer profiles and modeled DSTYLE fields only; dynamic constraint evaluation, other producer spellings, generic DIMENSION, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION remain outside this matrix.",
+    "The legacy layer spelling remains unchanged in caller input; the library normalizes it to *ADSK_CONSTRAINTS in emitted/readback records.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Current and legacy dynamic-constraint DIMENSION profiles now have generated ASCII/Binary allocation rollback, caller-state preservation including DSTYLE values, same-codec retry, byte-identical output, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "P6-G remains open for public-writer inventory reconciliation, remaining direct routes and compound variants, and uncovered variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "298 completed slices and 34 remaining packages: 298/(298+34)=89.8%; equal-weight count, not effort-weighted."
+  }
+}
