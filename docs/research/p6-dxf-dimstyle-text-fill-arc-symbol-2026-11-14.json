@@ -57,7 +57,7 @@
     },
     "focusedTest": {
       "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
-      "result": "PASS (1/1; generated ASCII/Binary typed readback, pre-AC1021 atomic refusal and same-writer retry, and DIMTFILLCLR refusal/retry)"
+      "result": "PASS (1/1; generated ASCII/Binary typed readback, typed and dynamic pre-AC1021 atomic refusal with same-writer retry, and DIMTFILLCLR refusal/retry)"
     },
     "persistentDwgDxfFixturesAdded": 0,
     "fullSuiteRun": false,

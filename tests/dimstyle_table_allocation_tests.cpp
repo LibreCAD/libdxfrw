@@ -618,39 +618,51 @@ bool dimstyleTextFillAndArcSymbolDowngradeRetry(
             return false;
 
         for (const int code : {69, 90}) {
-            {
+            for (const bool useOverride : {false, true}) {
+                {
                 std::ofstream output(path,
                                      std::ios::binary | std::ios::trunc);
                 output << prior;
                 if (!output)
                     return false;
-            }
-            dxfRW codec(path.string().c_str());
-            Export exporter(codec);
-            if (code == 69)
-                exporter.dimstyle.dimtfill = 2;
-            else
-                exporter.dimstyle.dimarcsym = 1;
-            if (codec.write(&exporter, DRW::AC1018, binary)
-                || exporter.accepted) {
-                std::cerr << "pre-2007 DIMSTYLE field downgrade was accepted: code="
-                          << code << " binary=" << binary << '\n';
-                return false;
-            }
-            std::string current;
-            if (!readBytes(path, current) || current != prior)
-                return false;
+                }
+                dxfRW codec(path.string().c_str());
+                Export exporter(codec);
+                if (useOverride)
+                    exporter.dimstyle.add(code == 69 ? "$DIMTFILL"
+                                                     : "$DIMARCSYM",
+                                          code, code == 69 ? 2 : 1);
+                else if (code == 69)
+                    exporter.dimstyle.dimtfill = 2;
+                else
+                    exporter.dimstyle.dimarcsym = 1;
+                if (codec.write(&exporter, DRW::AC1018, binary)
+                    || exporter.accepted) {
+                    std::cerr << "pre-2007 DIMSTYLE field downgrade was accepted: code="
+                              << code << " binary=" << binary
+                              << " override=" << useOverride << '\n';
+                    return false;
+                }
+                std::string current;
+                if (!readBytes(path, current) || current != prior)
+                    return false;
 
-            if (code == 69)
-                exporter.dimstyle.dimtfill = 0;
-            else
-                exporter.dimstyle.dimarcsym = 0;
-            if (!codec.write(&exporter, DRW::AC1018, binary)
-                || !exporter.accepted || !readBytes(path, current)
-                || current != expectedBytes || !readbackMatches(path)) {
-                std::cerr << "pre-2007 DIMSTYLE field retry failed: code="
-                          << code << " binary=" << binary << '\n';
-                return false;
+                if (useOverride)
+                    exporter.dimstyle.add(code == 69 ? "$DIMTFILL"
+                                                     : "$DIMARCSYM",
+                                          code, 0);
+                else if (code == 69)
+                    exporter.dimstyle.dimtfill = 0;
+                else
+                    exporter.dimstyle.dimarcsym = 0;
+                if (!codec.write(&exporter, DRW::AC1018, binary)
+                    || !exporter.accepted || !readBytes(path, current)
+                    || current != expectedBytes || !readbackMatches(path)) {
+                    std::cerr << "pre-2007 DIMSTYLE field retry failed: code="
+                              << code << " binary=" << binary
+                              << " override=" << useOverride << '\n';
+                    return false;
+                }
             }
         }
     }
