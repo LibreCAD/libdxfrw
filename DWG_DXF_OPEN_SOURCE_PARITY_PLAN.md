@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **259 completed implementation slices** and **35 remaining
+The plan records **260 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`259 / (259 + 35) = 88.1%`. This is a count-based progress measure, not an
+`260 / (260 + 35) = 88.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5506,6 +5506,16 @@ revision, emitted handle validity, and every modeled LIGHT field. The focused
 CTest passes in 1.79 seconds. This is generated transaction and serializer
 readback evidence only, not source-producer interoperability or native lighting
 qualification ([receipt](docs/research/p6-dxf-light-entity-version-matrix-allocation-2026-11-13.json)).
+The public `writeCamera()` route now has whole-operation allocation coverage
+with its required VIEW table dependency from AC1015 through AC1032, across six
+revisions and both encodings. All 1,244 measured failure offsets preserve the
+destination, CAMERA and VIEW caller state, derived handle bindings, and staging
+cleanup; same-codec retry is byte-identical and typed readback verifies the
+CAMERA's VIEW handle resolves to the emitted VIEW, including source revision
+and modeled VIEW fields. The focused CTest passes in 2.90 seconds. This is
+generated transaction and self-readback evidence only; it does not establish
+producer interoperability or native camera behavior
+([receipt](docs/research/p6-dxf-camera-view-version-matrix-allocation-2026-11-13.json)).
 The whole-operation sweep now covers a generated `SUNSTUDY` with two date
 entries, three modeled hours, subset/range selection and nondefault viewport
 settings at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. Across the

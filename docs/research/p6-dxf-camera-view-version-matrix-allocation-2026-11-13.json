@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-camera-view-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_CAMERA_VIEW_VERSION_MATRIX_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep whole-operation CAMERA writes and their required VIEW table dependency at AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary; verify rollback, same-codec retry, source revision and typed graph readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One CAMERA referring to one generated VIEW table row with nondefault name, size, center, view direction and target. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-camera-view-version-matrix-allocation-2026-11-13.json"
+    ],
+    "method": "For each supported revision and encoding, warm and calibrate the whole-document writer, inject one-shot allocation failures at all measured offsets, and check destination preservation, CAMERA and VIEW caller state, derived handle binding rollback and staging cleanup. Retry using the same codec and require byte-identical output plus typed readback verifying the exact source revision, modeled VIEW fields and CAMERA reference to the emitted VIEW handle.",
+    "revisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "allocationOffsets": {
+      "AC1015_ASCII": 104,
+      "AC1015_BINARY": 101,
+      "AC1018_ASCII": 104,
+      "AC1018_BINARY": 101,
+      "AC1021_ASCII": 104,
+      "AC1021_BINARY": 101,
+      "AC1024_ASCII": 111,
+      "AC1024_BINARY": 108,
+      "AC1027_ASCII": 104,
+      "AC1027_BINARY": 101,
+      "AC1032_ASCII": 104,
+      "AC1032_BINARY": 101,
+      "total": 1244
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_camera_allocation_transaction$' --output-on-failure: PASS 1/1 (2.90 sec)",
+    "directRun": "PASS; all twelve revision/encoding profiles reached the listed allocation offsets and passed caller/destination rollback, same-codec retry, and typed graph readback.",
+    "fullSuites": "NOT RUN",
+    "asan": "NOT RUN for this version-matrix control"
+  },
+  "limitations": [
+    "Generated transaction and self-readback evidence does not establish producer-authored CAMERA/VIEW semantics or native camera behavior.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory with another exact uncovered route or overload, keeping generated transaction evidence separate from source and consumer qualification."
+}

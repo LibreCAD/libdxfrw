@@ -6887,6 +6887,185 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runCameraSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "CAMERA allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const DRW_View sourceView = [] {
+        DRW_View value;
+        value.handle = 0xDA31u;
+        value.name = "CAMERA_VIEW_MATRIX";
+        value.size = DRW_Coord(640.0, 480.0, 0.0);
+        value.center = DRW_Coord(0.5, 0.5, 0.0);
+        value.viewDirectionFromTarget = DRW_Coord(0.0, 0.0, 1.0);
+        value.targetPoint = DRW_Coord(10.0, 20.0, 30.0);
+        return value;
+    }();
+    const auto makeCamera = [] {
+        DRW_Camera value;
+        value.handle = 0xDA30u;
+        value.m_viewHandle = 0xDA31u;
+        return value;
+    };
+    const auto sameView = [](const DRW_View& a, const DRW_View& b) {
+        return a.handle == b.handle && a.name == b.name
+            && a.size.x == b.size.x && a.size.y == b.size.y
+            && a.size.z == b.size.z && a.center.x == b.center.x
+            && a.center.y == b.center.y
+            && a.viewDirectionFromTarget.x == b.viewDirectionFromTarget.x
+            && a.viewDirectionFromTarget.y == b.viewDirectionFromTarget.y
+            && a.viewDirectionFromTarget.z == b.viewDirectionFromTarget.z
+            && a.targetPoint.x == b.targetPoint.x
+            && a.targetPoint.y == b.targetPoint.y
+            && a.targetPoint.z == b.targetPoint.z;
+    };
+    class CameraExport final : public dx_iface {
+    public:
+        CameraExport(dxfRW& codec, DRW_View view, DRW_Camera source)
+            : output(codec), camera(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+            storage.views.push_back(std::move(view));
+        }
+        void writeEntities() override { written = output.writeCamera(&camera); }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Camera camera;
+        bool written = false;
+    };
+    class CameraReadback final : public dx_iface {
+    public:
+        CameraReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addView(const DRW_View& value) override {
+            view = value;
+            hasView = true;
+        }
+        void addCamera(const DRW_Camera& value) override {
+            camera = value;
+            hasCamera = true;
+        }
+        dx_data storage;
+        DRW_View view;
+        DRW_Camera camera;
+        bool hasView = false;
+        bool hasCamera = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dxfRW reader(path.string().c_str());
+        CameraReadback probe;
+        const bool read = reader.read(&probe, true);
+        DRW_View expectedView = sourceView;
+        if (probe.hasView)
+            expectedView.handle = probe.view.handle;
+        return read
+            && reader.getSourceVersion() == expectedVersion
+            && probe.hasView && probe.hasCamera
+            && sameView(probe.view, expectedView)
+            && probe.view.handle != 0u && probe.camera.handle != 0u
+            && probe.camera.m_viewHandle == probe.view.handle;
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 6> versions = {{
+        {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "prior camera document\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("camera-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                CameraExport adapter(codec, sourceView, makeCamera());
+                if (!codec.write(&adapter, version.first, binary))
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                CameraExport adapter(codec, sourceView, makeCamera());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || allocationFailed || allocationCount <= 0
+                    || !readBytes(output, expectedBytes))
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                       std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                CameraExport adapter(codec, sourceView, makeCamera());
+                const std::uint32_t sourceCameraHandle = adapter.camera.handle;
+                const std::uint32_t sourceViewHandle =
+                    adapter.camera.m_viewHandle;
+                const DRW_View originalView = adapter.storage.views.front();
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                const bool callerSame = adapter.camera.handle == sourceCameraHandle
+                    && adapter.camera.m_viewHandle == sourceViewHandle
+                    && adapter.storage.views.size() == 1u
+                    && sameView(adapter.storage.views.front(), originalView);
+                const bool stageRemains = hasStagedOutput(output);
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !identitiesRolledBack || !callerSame || stageRemains)
+                    return fail("injected allocation failure changed state");
+                const bool retried = codec.write(&adapter, version.first, binary);
+                std::string retryBytes;
+                if (!retried || adapter.camera.handle != sourceCameraHandle
+                    || adapter.camera.m_viewHandle != sourceViewHandle
+                    || adapter.storage.views.size() != 1u
+                    || !sameView(adapter.storage.views.front(), originalView)
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-codec retry or graph readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "CAMERA " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", graph rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runLightEntitySweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "LIGHT entity allocation transaction: " << message << '\n';
@@ -9194,7 +9373,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|light-entity|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9210,6 +9389,8 @@ int main(int argc, char** argv) {
             return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;
+        if (mode == "camera")
+            return runCameraSweep(directory) ? 0 : 1;
         if (mode == "light-entity")
             return runLightEntitySweep(directory) ? 0 : 1;
         if (mode == "light-list")
