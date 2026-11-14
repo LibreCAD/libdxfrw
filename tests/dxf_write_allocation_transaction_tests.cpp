@@ -7874,6 +7874,11 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                     34.0 + static_cast<double>(index) * 20.0, 0.0};
                 this->inserts.push_back(std::move(insert));
             }
+            block.handle = 0xA300u;
+            block.name = blockName;
+            block.basePoint = DRW_Coord{3.0, 4.0, 5.0};
+            block.description = "generated block envelope";
+            block.hasDescription = true;
         }
         void writeBlockRecords() override {
             switch (overload) {
@@ -7907,8 +7912,17 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             if (!insertWritten && !allocationTracking)
                 std::cerr << "BLOCK_RECORD profile INSERT write failed\n";
         }
+        void writeBlocks() override {
+            blockBeginWritten = output.writeBlock(&block);
+            blockEndWritten = blockBeginWritten
+                && output.writeBlockEnd(nullptr);
+            if ((!blockBeginWritten || !blockEndWritten)
+                && !allocationTracking)
+                std::cerr << "BLOCK_RECORD profile BLOCK envelope write failed\n";
+        }
         bool finalizeDxfWrite() override {
-            return blockRecordWritten && insertWritten;
+            return blockRecordWritten && insertWritten
+                && blockBeginWritten && blockEndWritten;
         }
         dxfRW& output;
         dx_data storage;
@@ -7920,8 +7934,11 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         DRW_Variant xdataText;
         std::vector<DRW_Variant*> xdata;
         std::vector<DRW_Insert> inserts;
+        DRW_Block block;
         bool blockRecordWritten = false;
         bool insertWritten = false;
+        bool blockBeginWritten = false;
+        bool blockEndWritten = false;
     };
     class BlockRecordReadback final : public dx_iface {
     public:
@@ -7961,10 +7978,16 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         void addInsert(const DRW_Insert& value) override {
             inserts.push_back(value);
         }
+        void addBlock(const DRW_Block& value) override {
+            blocks.push_back(value);
+        }
+        void endBlock() override { ++blockEnds; }
         dx_data storage;
         std::string targetName;
         std::vector<Record> records;
         std::vector<DRW_Insert> inserts;
+        std::vector<DRW_Block> blocks;
+        unsigned blockEnds = 0u;
     };
     const auto readbackMatches = [&](const std::filesystem::path& path,
                                      unsigned overload) {
@@ -7978,6 +8001,17 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                       << " inserts=" << probe.inserts.size() << '\n';
             return false;
         }
+        const auto block = std::find_if(probe.blocks.begin(), probe.blocks.end(),
+            [&](const DRW_Block& value) {
+                return value.name == blockName && !value.getIsEnd();
+            });
+        if (block == probe.blocks.end() || probe.blockEnds == 0u
+            || block->handle == 0u || block->handle == DRW::NoHandle
+            || block->basePoint.x != 3.0 || block->basePoint.y != 4.0
+            || block->basePoint.z != 5.0
+            || block->description != "generated block envelope"
+            || !block->hasDescription)
+            return false;
         const BlockRecordReadback::Record& record = probe.records.front();
         std::vector<std::uint32_t> emittedInsertHandles;
         emittedInsertHandles.reserve(probe.inserts.size());
@@ -8033,6 +8067,13 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             || !adapter.appId.stringEquals("LOCAL_BLOCK_RECORD_APP")
             || adapter.xdataText.code() != 1000
             || !adapter.xdataText.stringEquals("block-record metadata")
+            || adapter.block.handle != 0xA300u
+            || adapter.block.name != blockName
+            || adapter.block.basePoint.x != 3.0
+            || adapter.block.basePoint.y != 4.0
+            || adapter.block.basePoint.z != 5.0
+            || adapter.block.description != "generated block envelope"
+            || !adapter.block.hasDescription
             || adapter.inserts.size() != original.size())
             return false;
         for (std::size_t index = 0; index < original.size(); ++index) {
