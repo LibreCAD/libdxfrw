@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-generated-solid-boundary-ac1021-ac1024-2026-11-14",
+  "date": "2026-11-14",
+  "status": "PASS_PINNED_FREECAD_SOLID_AND_3DFACE_UNSUPPORTED_MIXED_PROFILE",
+  "supportClaimEffect": "none",
+  "scope": "Extend the locally generated AC1021/AC1024 FreeCAD C++ importer profile with a planar DXF SOLID and pin its importer outcome alongside existing 3DFACE and POLYFACE checks.",
+  "binding": {
+    "implementationCommit": "5010e0a47012b2d7493c1637ec3eb7dd1c7312ea",
+    "platform": "macOS 27.2.1 arm64",
+    "freecad": {
+      "version": "1.1.4",
+      "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+      "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60"
+    },
+    "converter": {
+      "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+      "installedPath": "/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+      "sha256": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
+      "buildAndInstalledBinariesMatch": true
+    },
+    "generator": {
+      "path": "build-gcc/libdxfrw_dwg_local_roundtrip",
+      "sha256": "bc3d81532affc1003d9799611fee80e18a6725f22c34477afa254138cf1cf8b5"
+    },
+    "sourceSha256": {
+      "tests/CMakeLists.txt": "1eb76caf51ef858e0bb320609ab1d2c5ee4705b7ce093d4db5055c9a7373b478",
+      "tests/dwg_local_roundtrip_tests.cpp": "7b923cb733f17e7333483d00a1562c9f172b32edca3dd772989a666a6abd2b0c",
+      "tests/freecad_dwg2dxf_import_check.FCMacro": "f554aabe1ca0729d6f1bf25263f0f0fc1c82c0f86e1db15ba35fe970ab73c865",
+      "tests/run_freecad_installed_3d_line_test.cmake": "0bde38a257f57f12ff9bb56b44e5691ef5f26fe4c643a036c31d58351d03ed53"
+    }
+  },
+  "generatedProfiles": {
+    "provenance": "AC1021 and AC1024 DWGs are created from scratch at test runtime. No DWG or DXF fixture is committed.",
+    "entityCounts": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "POLYLINE": 3,
+      "SOLID": 1,
+      "3DFACE": 1,
+      "SPLINE": 1
+    },
+    "inputSha256": {
+      "AC1021": "86e9252b24020aeaa0aa3a7823f65fd52ff4af608ece892ec5366f4d35841ea0",
+      "AC1024": "331dbe3da18da039066ecab9db43c978bd619a675881a1adbd96617f01adc5ae"
+    },
+    "convertedDxfSha256": {
+      "AC1021": "5bf26fe678a305446cd0bca5bd83b2b798f064a4a59a783a3f05527e5276a14c",
+      "AC1024": "1ea0c8796cae6934904c70fced594e97cbf9af158f795c9924248b14122b3964"
+    },
+    "solid": {
+      "points": [[141, 142, 13], [144, 142, 13], [144, 146, 13], [141, 146, 13]],
+      "serializedDxfRecord": "SOLID with group-code corner points 10/20/30, 11/21/31, 12/22/32, and 13/23/33 matching the authored coordinates",
+      "sourceBytesRetained": false
+    },
+    "polyface": {
+      "flags": 64,
+      "coordinateVertexCount": 4,
+      "faceRecordCount": 1,
+      "faceIndices": [1, 2, 3, 4],
+      "points": [[121, 122, 1], [124, 122, 4], [124, 126, 8], [121, 126, 5]]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+    "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_generated_ac102(1|4)_primitives_(open|insert)$' --output-on-failure",
+    "result": "PASS 4/4 in 3.44 seconds (native FreeCAD execution outside the sandbox)",
+    "tests": {
+      "dwg2dxf_freecad_generated_ac1021_primitives_open": "PASS",
+      "dwg2dxf_freecad_generated_ac1021_primitives_insert": "PASS",
+      "dwg2dxf_freecad_generated_ac1024_primitives_open": "PASS",
+      "dwg2dxf_freecad_generated_ac1024_primitives_insert": "PASS"
+    },
+    "observed": {
+      "freecadImporter": "Pinned FreeCAD 1.1.4 C++ DXF importer",
+      "solidEntityCount": 1,
+      "solidUnsupportedCount": 1,
+      "solidCreatedFaces": 0,
+      "threeDFaceEntityCount": 1,
+      "threeDFaceUnsupportedCount": 1,
+      "otherShapedEntities": 9,
+      "otherShapedEntitiesExactGeometryChecks": "PASS",
+      "polyfaceOutcome": "wireframe_includes_parent_basepoint",
+      "polyfaceShape": {"shapeType": "Wire", "faces": 0, "edges": 4, "vertices": 5}
+    },
+    "serializedSolidObservation": "The temporary strict-preflight DXF has a SOLID entity with all four authored 3D corner coordinates at z=13; its SHA-256 is recorded above. FreeCAD reports this SOLID and the 3DFACE as unsupported, and creates no shape for either entity."
+  },
+  "limitations": [
+    "This qualifies only FreeCAD 1.1.4 C++ DXF import on macOS ARM64.",
+    "The tested FreeCAD path does not import this SOLID or 3DFACE profile as surfaces and creates a basepoint-contaminated wire for POLYFACE.",
+    "No conclusion is made about FreeCAD's legacy Python importer, other versions/platforms, or other consumers.",
+    "The other primitive checks do not qualify general surface, mesh, or ACIS support.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Keep SOLID, 3DFACE, and POLYFACE surface claims unqualified for this FreeCAD route. Do not alter conforming DXF serialization to accommodate this importer. Continue with other consumers or a separately qualified importer route, and keep native Linux/Windows and P7 modeler gates open."
+}

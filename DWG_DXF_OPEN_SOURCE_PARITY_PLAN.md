@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **368 completed implementation and qualification slices** and **34 remaining
+The plan records **369 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`368 / (368 + 34) = 91.5%`. This is a count-based progress measure, not an
+`369 / (369 + 34) = 91.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6593,6 +6593,18 @@ consumer limitation is asserted as a boundary outcome; it does not establish
 POLYFACE surface support or justify changing conforming libdxfrw output. No
 fixture is committed and no support claim is promoted. See the
 [POLYFACE boundary receipt](docs/research/p8-freecad-generated-polyface-boundary-ac1021-ac1024-2026-11-14.json).
+
+**P8 generated SOLID consumer boundary (2026-11-14):** the AC1021/AC1024
+scratch profiles now also carry one planar DXF `SOLID` at z=13. The generated
+and converted record preserves all four authored corner coordinates, but the
+pinned FreeCAD 1.1.4 C++ importer reports the `SOLID` unsupported and creates
+no surface; the same is true of the profile's 3DFACE. The nine other shaped
+entities retain exact geometry checks, and the POLYFACE wireframe boundary is
+unchanged. Open/insert pass for both revisions (4/4, 3.44 seconds) as
+revision-pinned outcome checks only. This does not establish surface support
+for FreeCAD, nor justify changing conforming writer output. No fixture is
+committed and no support claim is promoted. See the
+[SOLID boundary receipt](docs/research/p8-freecad-generated-solid-boundary-ac1021-ac1024-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four
