@@ -7,6 +7,7 @@
 #include "intern/dwgobjectframe.h"
 #include "intern/dwg_fixed_handles.h"
 #include "intern/dwgbuffer.h"
+#include "intern/dwgsortentsdiagnostic.h"
 #include "intern/drw_textcodec.h"
 #include "libdxfrw.h"
 #include "libdwgr.h"
@@ -22739,6 +22740,14 @@ bool acdsOpaqueProxyCodecReadback() {
 }
 
 bool opaqueDwgSourceInventory(const std::string& sourcePath) {
+    struct SortEntsSpanCaptureScope {
+        SortEntsSpanCaptureScope() {
+            DRW::setSortEntsSpanDiagnostic(true);
+        }
+        ~SortEntsSpanCaptureScope() {
+            DRW::setSortEntsSpanDiagnostic(false);
+        }
+    } spanCaptureScope;
     dx_data data;
     dx_iface importer;
   if (!importer.fileImport(sourcePath, &data, false) ||

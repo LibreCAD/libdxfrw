@@ -12,10 +12,13 @@
 ******************************************************************************/
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstring>
+#include <iostream>
 #include <limits>
 #include <new>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -30,6 +33,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_default_material.h"
+#include "intern/dwgsortentsdiagnostic.h"
 #include "intern/drw_textcodec.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
@@ -40,6 +44,8 @@
 #include "intern/dxfmleadercolor.h"
 
 namespace {
+
+std::atomic<bool> g_sortEntsSpanDiagnostic{false};
 
 constexpr double kMLineRadiansToDegrees =
     57.295779513082320876798154814105;
@@ -3039,6 +3045,10 @@ bool decodeLTypeTextAreaString(const std::vector<std::uint8_t>& area,
 }
 
 } // namespace
+
+void DRW::setSortEntsSpanDiagnostic(bool enabled) noexcept {
+    g_sortEntsSpanDiagnostic.store(enabled, std::memory_order_relaxed);
+}
 
 void populateVbaProjectSectionView(DRW_RawDwgSection& section) {
     section.m_hasVbaProjectView = false;
@@ -12965,6 +12975,8 @@ bool DRW_WipeoutVariables::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
+    bool captureFieldSpans =
+        g_sortEntsSpanDiagnostic.load(std::memory_order_relaxed);
     reset();
     const auto fail = [this, buf]() {
         if (buf != nullptr)
@@ -12989,11 +13001,14 @@ bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         && !objectBodyDataEnd(version, stringBuf, objSize, bodyEnd))
         return fail();
 
+    const std::uint64_t bodyFieldStartBit = currentObjectDwgBit(bodyBuf);
+    const std::uint64_t entryCountStartBit = bodyFieldStartBit;
     std::int32_t rawNumEntries = 0;
     if (!readBitLongWithinBody(bodyBuf, version, bodyEnd, rawNumEntries)
         || rawNumEntries < 0
         || rawNumEntries > static_cast<std::int32_t>(kMaxEntries))
         return fail();
+    const std::uint64_t entryCountEndBit = currentObjectDwgBit(bodyBuf);
     const std::uint32_t numEntries = static_cast<std::uint32_t>(rawNumEntries);
 
     if (static_cast<std::uint64_t>(numEntries)
@@ -13001,14 +13016,22 @@ bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         return fail();
 
     std::vector<std::uint32_t> parsedSortHandles;
+    std::vector<std::pair<std::uint64_t, std::uint64_t>> sortHandleBitSpans;
+    if (captureFieldSpans
+        && !DRW::reserve(sortHandleBitSpans, static_cast<int>(numEntries)))
+        captureFieldSpans = false;
     if (!DRW::reserve(parsedSortHandles, static_cast<int>(numEntries)))
         return fail();
     for (std::uint32_t i = 0; i < numEntries; ++i) {
+        const std::uint64_t fieldStartBit = currentObjectDwgBit(bodyBuf);
         dwgHandle sortH;
         if (!readHandleWithinBody(bodyBuf, version, bodyEnd, handle, true,
                                   sortH)
             || sortH.code != DRW::DwgNullReference)
             return fail();
+        if (captureFieldSpans)
+            sortHandleBitSpans.emplace_back(
+                fieldStartBit, currentObjectDwgBit(bodyBuf));
         parsedSortHandles.push_back(sortH.ref);
     }
     if (!bodyBuf->isGood()
@@ -13029,6 +13052,7 @@ bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
     if (!getDwgHandleEndBit(version, *handleBuf, handleEndBit))
         return fail();
     seekObjectHandleStream(version, handleBuf, objSize);
+    const std::uint64_t handleStreamStartBit = currentObjectDwgBit(handleBuf);
     std::uint32_t parsedParentHandle = 0;
     std::vector<std::uint32_t> parsedReactors;
     std::uint32_t parsedXDictHandle = 0;
@@ -13037,11 +13061,13 @@ bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         || !buf->isGood() || !handleBuf->isGood())
         return fail();
 
+    const std::uint64_t ownerFieldStartBit = currentObjectDwgBit(handleBuf);
     dwgHandle ownerH;
     if (!readDwgObjectHandleWithinFrame(version, *handleBuf, true, ownerH)
         || ownerH.code != DRW::DwgSoftPointer
         || ownerH.ref == DRW::NoHandle)
         return fail();
+    const std::uint64_t ownerFieldEndBit = currentObjectDwgBit(handleBuf);
     const std::uint32_t parsedBlockOwnerHandle = ownerH.ref;
 
     if (static_cast<std::uint64_t>(numEntries)
@@ -13049,19 +13075,65 @@ bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         return fail();
 
     std::vector<std::uint32_t> parsedEntityHandles;
+    std::vector<std::pair<std::uint64_t, std::uint64_t>> entityHandleBitSpans;
+    if (captureFieldSpans
+        && !DRW::reserve(entityHandleBitSpans, static_cast<int>(numEntries)))
+        captureFieldSpans = false;
     if (!DRW::reserve(parsedEntityHandles, static_cast<int>(numEntries)))
         return fail();
     for (std::uint32_t i = 0; i < numEntries; ++i) {
+        const std::uint64_t fieldStartBit = currentObjectDwgBit(handleBuf);
         dwgHandle entH;
         if (!readDwgObjectHandleWithinFrame(version, *handleBuf, true, entH)
             || entH.code != DRW::DwgSoftPointer)
             return fail();
+        if (captureFieldSpans)
+            entityHandleBitSpans.emplace_back(
+                fieldStartBit, currentObjectDwgBit(handleBuf));
         // Preserve typed null source slots. The adapter's strict graph check
         // rejects any zero entity target before DXF publication.
         parsedEntityHandles.push_back(entH.ref);
     }
     if (!buf->isGood() || !handleBuf->isGood())
         return fail();
+
+    if (captureFieldSpans) {
+        try {
+            std::ostringstream spanTrace;
+            spanTrace << "sortentsSourceSpan coordinateFrame=objectDecompressedBitstreamBits"
+                      << " handle=" << handle
+                      << " version=" << static_cast<int>(version)
+                      << " bodyStart=" << bodyFieldStartBit
+                      << " bodyEnd=" << bodyEnd
+                      << " count=" << numEntries
+                      << " countSpan=" << entryCountStartBit << ':'
+                      << entryCountEndBit
+                      << " sortSpans=";
+            for (std::size_t i = 0u; i < sortHandleBitSpans.size(); ++i) {
+                if (i != 0u)
+                    spanTrace << ',';
+                spanTrace << i << ':' << sortHandleBitSpans[i].first << ':'
+                          << sortHandleBitSpans[i].second << ':'
+                          << parsedSortHandles[i];
+            }
+            spanTrace << " handleStreamStart=" << handleStreamStartBit
+                      << " handleStreamEnd=" << handleEndBit
+                      << " ownerSpan=" << ownerFieldStartBit << ':'
+                      << ownerFieldEndBit << ':' << parsedBlockOwnerHandle
+                      << " entitySpans=";
+            for (std::size_t i = 0u; i < entityHandleBitSpans.size(); ++i) {
+                if (i != 0u)
+                    spanTrace << ',';
+                spanTrace << i << ':' << entityHandleBitSpans[i].first << ':'
+                          << entityHandleBitSpans[i].second << ':'
+                          << parsedEntityHandles[i];
+            }
+            spanTrace << '\n';
+            std::cerr << spanTrace.str();
+        } catch (...) {
+            // Optional source diagnostics must never change parsing behavior.
+        }
+    }
 
     m_sortHandles = std::move(parsedSortHandles);
     m_blockOwnerHandle = parsedBlockOwnerHandle;

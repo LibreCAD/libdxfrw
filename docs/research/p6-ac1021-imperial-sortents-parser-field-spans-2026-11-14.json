@@ -1,0 +1,2792 @@
+{
+  "authority": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1",
+    "roles": [
+      "entry count is a BL in the object data body",
+      "ordered sort handles are H code 0 in the body stream",
+      "block owner and ordered entity handles are H code 4 in the object handle stream"
+    ],
+    "section": "\u00a720.4.93 SORTENTSTABLE"
+  },
+  "bitCoordinateFrame": {
+    "meaning": "Cursor positions in decoded object-local body and handle buffers. Body and handle-stream bounds are distinct domains; offsets are not compressed source-file byte positions.",
+    "name": "objectDecompressedBitstreamBits"
+  },
+  "date": "2026-11-14",
+  "id": "p6-ac1021-imperial-sortents-parser-field-spans-2026-11-14",
+  "implementation": {
+    "change": "Add a disabled-by-default internal diagnostic switch. When the in-tree inventory enables it, SORTENTSTABLE parsing records object-buffer cursor intervals and emits one row only after successful parsing. Optional allocation/formatting failure does not fail the DWG parse. The audit rejects missing/duplicate profiles, wrong ordinals/targets, zero-width or overlapping fields, count/body boundary errors, and handle-stream boundary/order errors.",
+    "diagnosticHeaderSha256": "0602db6bdf12e0ca2e460b5de4dba83f51645e19d883d3308bb0942ca56bcfd4",
+    "diagnosticOutputSha256": "55f247361f27d161fa7a79e4d6229a83337d94e9ef5e8e5db80b69974f7b227a",
+    "executableSha256": "db1368e9c0fdccb2a046820e4a846d7d7771abd5b3801ed67ff59f76a2018cd4",
+    "files": [
+      "src/drw_objects.cpp",
+      "src/intern/dwgsortentsdiagnostic.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tools/research/audit_ac1027_source_references.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": "75c9ac5e2a1f1ab3d8f2427d13ac84836bb43468707b3a6a4837305ecc3ebb1c",
+    "testSourceSha256": "08a8e0b0be3d36a71396eca1510909956b3aa020b324b92d67007671b0b5f0cf",
+    "verifierSha256": "c411664106fff6974accaab2d9c67fa41c7906bd4f01afc2edc2832be43c27a7"
+  },
+  "independentValuePeer": {
+    "comparison": "All 16 table identities, owner values, entry counts, ordered entity/sort values, and parser-enforced handle roles agree; peer provides no independent field bit offsets.",
+    "createdBy": "LibreDWG 0.13.3.553_6d6a_dirty",
+    "jsonPath": "/private/tmp/p6-mlinestyle-ac1021-imperial-peer.json",
+    "jsonSha256": "f5675a85f73566ceec3065db2b0239a44ad9825defdbc254eab4fc285e63a12d",
+    "name": "LibreDWG minJSON",
+    "schemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "schemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499"
+  },
+  "limits": [
+    "Intervals are observed by libdxfrw itself; no independent implementation reports matching physical bit offsets.",
+    "Coordinates are in separate decoded object-local body and handle buffers, not compressed source-file byte positions.",
+    "Peer equality proves decoded values/order and peer schema roles, not correctness of the parser-observed offsets.",
+    "This does not prove recursive target closure, strict source-wide output, producer prevalence, or native draw-order semantics.",
+    "The 657 other AC1021 frames without exhaustive body-reference decoding remain unqualified."
+  ],
+  "matchedProfiles": [
+    {
+      "blockOwnerField": {
+        "endBit": 4242,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 4226,
+        "targetHandle": 31
+      },
+      "bodyEndBit": 4194,
+      "bodyStartBit": 87,
+      "entityHandleFields": [
+        {
+          "endBit": 4266,
+          "ordinal": 0,
+          "startBit": 4242,
+          "targetHandle": 22766,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4298,
+          "ordinal": 1,
+          "startBit": 4266,
+          "targetHandle": 72858,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4330,
+          "ordinal": 2,
+          "startBit": 4298,
+          "targetHandle": 72866,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4354,
+          "ordinal": 3,
+          "startBit": 4330,
+          "targetHandle": 28723,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4378,
+          "ordinal": 4,
+          "startBit": 4354,
+          "targetHandle": 13921,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4402,
+          "ordinal": 5,
+          "startBit": 4378,
+          "targetHandle": 22774,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4426,
+          "ordinal": 6,
+          "startBit": 4402,
+          "targetHandle": 13937,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4450,
+          "ordinal": 7,
+          "startBit": 4426,
+          "targetHandle": 22782,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4474,
+          "ordinal": 8,
+          "startBit": 4450,
+          "targetHandle": 22679,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4498,
+          "ordinal": 9,
+          "startBit": 4474,
+          "targetHandle": 22790,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4522,
+          "ordinal": 10,
+          "startBit": 4498,
+          "targetHandle": 22687,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4546,
+          "ordinal": 11,
+          "startBit": 4522,
+          "targetHandle": 13444,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4570,
+          "ordinal": 12,
+          "startBit": 4546,
+          "targetHandle": 28660,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4594,
+          "ordinal": 13,
+          "startBit": 4570,
+          "targetHandle": 28668,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4618,
+          "ordinal": 14,
+          "startBit": 4594,
+          "targetHandle": 28405,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4642,
+          "ordinal": 15,
+          "startBit": 4618,
+          "targetHandle": 13595,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4666,
+          "ordinal": 16,
+          "startBit": 4642,
+          "targetHandle": 13452,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4690,
+          "ordinal": 17,
+          "startBit": 4666,
+          "targetHandle": 13866,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4714,
+          "ordinal": 18,
+          "startBit": 4690,
+          "targetHandle": 16329,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4738,
+          "ordinal": 19,
+          "startBit": 4714,
+          "targetHandle": 13476,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4762,
+          "ordinal": 20,
+          "startBit": 4738,
+          "targetHandle": 22767,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4794,
+          "ordinal": 21,
+          "startBit": 4762,
+          "targetHandle": 72859,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4826,
+          "ordinal": 22,
+          "startBit": 4794,
+          "targetHandle": 72867,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4850,
+          "ordinal": 23,
+          "startBit": 4826,
+          "targetHandle": 28724,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4874,
+          "ordinal": 24,
+          "startBit": 4850,
+          "targetHandle": 13898,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4898,
+          "ordinal": 25,
+          "startBit": 4874,
+          "targetHandle": 13500,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4922,
+          "ordinal": 26,
+          "startBit": 4898,
+          "targetHandle": 13508,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4946,
+          "ordinal": 27,
+          "startBit": 4922,
+          "targetHandle": 23942,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4970,
+          "ordinal": 28,
+          "startBit": 4946,
+          "targetHandle": 13413,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 4994,
+          "ordinal": 29,
+          "startBit": 4970,
+          "targetHandle": 13532,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5018,
+          "ordinal": 30,
+          "startBit": 4994,
+          "targetHandle": 26118,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5042,
+          "ordinal": 31,
+          "startBit": 5018,
+          "targetHandle": 13429,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5066,
+          "ordinal": 32,
+          "startBit": 5042,
+          "targetHandle": 22680,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5090,
+          "ordinal": 33,
+          "startBit": 5066,
+          "targetHandle": 22791,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5114,
+          "ordinal": 34,
+          "startBit": 5090,
+          "targetHandle": 13437,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5138,
+          "ordinal": 35,
+          "startBit": 5114,
+          "targetHandle": 28661,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5162,
+          "ordinal": 36,
+          "startBit": 5138,
+          "targetHandle": 28669,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5186,
+          "ordinal": 37,
+          "startBit": 5162,
+          "targetHandle": 13564,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5210,
+          "ordinal": 38,
+          "startBit": 5186,
+          "targetHandle": 22696,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5234,
+          "ordinal": 39,
+          "startBit": 5210,
+          "targetHandle": 13477,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5266,
+          "ordinal": 40,
+          "startBit": 5234,
+          "targetHandle": 72860,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5298,
+          "ordinal": 41,
+          "startBit": 5266,
+          "targetHandle": 72868,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5322,
+          "ordinal": 42,
+          "startBit": 5298,
+          "targetHandle": 28725,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5346,
+          "ordinal": 43,
+          "startBit": 5322,
+          "targetHandle": 28733,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5370,
+          "ordinal": 44,
+          "startBit": 5346,
+          "targetHandle": 22768,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5394,
+          "ordinal": 45,
+          "startBit": 5370,
+          "targetHandle": 23943,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5418,
+          "ordinal": 46,
+          "startBit": 5394,
+          "targetHandle": 13740,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5442,
+          "ordinal": 47,
+          "startBit": 5418,
+          "targetHandle": 13533,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5466,
+          "ordinal": 48,
+          "startBit": 5442,
+          "targetHandle": 22673,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5490,
+          "ordinal": 49,
+          "startBit": 5466,
+          "targetHandle": 26119,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5514,
+          "ordinal": 50,
+          "startBit": 5490,
+          "targetHandle": 13796,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5538,
+          "ordinal": 51,
+          "startBit": 5514,
+          "targetHandle": 22681,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5570,
+          "ordinal": 52,
+          "startBit": 5538,
+          "targetHandle": 72853,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5594,
+          "ordinal": 53,
+          "startBit": 5570,
+          "targetHandle": 28662,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5618,
+          "ordinal": 54,
+          "startBit": 5594,
+          "targetHandle": 28670,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5642,
+          "ordinal": 55,
+          "startBit": 5618,
+          "targetHandle": 16323,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5666,
+          "ordinal": 56,
+          "startBit": 5642,
+          "targetHandle": 22705,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5690,
+          "ordinal": 57,
+          "startBit": 5666,
+          "targetHandle": 13462,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5714,
+          "ordinal": 58,
+          "startBit": 5690,
+          "targetHandle": 13478,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5746,
+          "ordinal": 59,
+          "startBit": 5714,
+          "targetHandle": 72861,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5778,
+          "ordinal": 60,
+          "startBit": 5746,
+          "targetHandle": 72869,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5802,
+          "ordinal": 61,
+          "startBit": 5778,
+          "targetHandle": 28718,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5826,
+          "ordinal": 62,
+          "startBit": 5802,
+          "targetHandle": 28726,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5850,
+          "ordinal": 63,
+          "startBit": 5826,
+          "targetHandle": 13741,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5874,
+          "ordinal": 64,
+          "startBit": 5850,
+          "targetHandle": 16787,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5898,
+          "ordinal": 65,
+          "startBit": 5874,
+          "targetHandle": 22777,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5922,
+          "ordinal": 66,
+          "startBit": 5898,
+          "targetHandle": 13415,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5946,
+          "ordinal": 67,
+          "startBit": 5922,
+          "targetHandle": 13534,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5970,
+          "ordinal": 68,
+          "startBit": 5946,
+          "targetHandle": 22674,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 5994,
+          "ordinal": 69,
+          "startBit": 5970,
+          "targetHandle": 20635,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6018,
+          "ordinal": 70,
+          "startBit": 5994,
+          "targetHandle": 27711,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6050,
+          "ordinal": 71,
+          "startBit": 6018,
+          "targetHandle": 72854,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6074,
+          "ordinal": 72,
+          "startBit": 6050,
+          "targetHandle": 28663,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6098,
+          "ordinal": 73,
+          "startBit": 6074,
+          "targetHandle": 28671,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6122,
+          "ordinal": 74,
+          "startBit": 6098,
+          "targetHandle": 28400,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6146,
+          "ordinal": 75,
+          "startBit": 6122,
+          "targetHandle": 62667,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6170,
+          "ordinal": 76,
+          "startBit": 6146,
+          "targetHandle": 20803,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6194,
+          "ordinal": 77,
+          "startBit": 6170,
+          "targetHandle": 22690,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6218,
+          "ordinal": 78,
+          "startBit": 6194,
+          "targetHandle": 23121,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6242,
+          "ordinal": 79,
+          "startBit": 6218,
+          "targetHandle": 28111,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6266,
+          "ordinal": 80,
+          "startBit": 6242,
+          "targetHandle": 13479,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6298,
+          "ordinal": 81,
+          "startBit": 6266,
+          "targetHandle": 72862,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6330,
+          "ordinal": 82,
+          "startBit": 6298,
+          "targetHandle": 72870,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6354,
+          "ordinal": 83,
+          "startBit": 6330,
+          "targetHandle": 28719,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6378,
+          "ordinal": 84,
+          "startBit": 6354,
+          "targetHandle": 28727,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6402,
+          "ordinal": 85,
+          "startBit": 6378,
+          "targetHandle": 13742,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6426,
+          "ordinal": 86,
+          "startBit": 6402,
+          "targetHandle": 16788,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6450,
+          "ordinal": 87,
+          "startBit": 6426,
+          "targetHandle": 13424,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6474,
+          "ordinal": 88,
+          "startBit": 6450,
+          "targetHandle": 27712,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6498,
+          "ordinal": 89,
+          "startBit": 6474,
+          "targetHandle": 13981,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6522,
+          "ordinal": 90,
+          "startBit": 6498,
+          "targetHandle": 22794,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6546,
+          "ordinal": 91,
+          "startBit": 6522,
+          "targetHandle": 13440,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6578,
+          "ordinal": 92,
+          "startBit": 6546,
+          "targetHandle": 72855,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6602,
+          "ordinal": 93,
+          "startBit": 6578,
+          "targetHandle": 28672,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6626,
+          "ordinal": 94,
+          "startBit": 6602,
+          "targetHandle": 28401,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6650,
+          "ordinal": 95,
+          "startBit": 6626,
+          "targetHandle": 62668,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6674,
+          "ordinal": 96,
+          "startBit": 6650,
+          "targetHandle": 13862,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6698,
+          "ordinal": 97,
+          "startBit": 6674,
+          "targetHandle": 23122,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6722,
+          "ordinal": 98,
+          "startBit": 6698,
+          "targetHandle": 22707,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6754,
+          "ordinal": 99,
+          "startBit": 6722,
+          "targetHandle": 72863,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6786,
+          "ordinal": 100,
+          "startBit": 6754,
+          "targetHandle": 72871,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6810,
+          "ordinal": 101,
+          "startBit": 6786,
+          "targetHandle": 28720,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6834,
+          "ordinal": 102,
+          "startBit": 6810,
+          "targetHandle": 28728,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6858,
+          "ordinal": 103,
+          "startBit": 6834,
+          "targetHandle": 65524,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6882,
+          "ordinal": 104,
+          "startBit": 6858,
+          "targetHandle": 13695,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6906,
+          "ordinal": 105,
+          "startBit": 6882,
+          "targetHandle": 22771,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6930,
+          "ordinal": 106,
+          "startBit": 6906,
+          "targetHandle": 13743,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6954,
+          "ordinal": 107,
+          "startBit": 6930,
+          "targetHandle": 16789,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 6978,
+          "ordinal": 108,
+          "startBit": 6954,
+          "targetHandle": 26114,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7002,
+          "ordinal": 109,
+          "startBit": 6978,
+          "targetHandle": 13536,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7026,
+          "ordinal": 110,
+          "startBit": 7002,
+          "targetHandle": 16813,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7050,
+          "ordinal": 111,
+          "startBit": 7026,
+          "targetHandle": 22684,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7074,
+          "ordinal": 112,
+          "startBit": 7050,
+          "targetHandle": 22795,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7098,
+          "ordinal": 113,
+          "startBit": 7074,
+          "targetHandle": 13441,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7122,
+          "ordinal": 114,
+          "startBit": 7098,
+          "targetHandle": 28665,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7146,
+          "ordinal": 115,
+          "startBit": 7122,
+          "targetHandle": 28673,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7170,
+          "ordinal": 116,
+          "startBit": 7146,
+          "targetHandle": 13990,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7194,
+          "ordinal": 117,
+          "startBit": 7170,
+          "targetHandle": 13831,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7218,
+          "ordinal": 118,
+          "startBit": 7194,
+          "targetHandle": 16318,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7242,
+          "ordinal": 119,
+          "startBit": 7218,
+          "targetHandle": 22700,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7266,
+          "ordinal": 120,
+          "startBit": 7242,
+          "targetHandle": 28113,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7290,
+          "ordinal": 121,
+          "startBit": 7266,
+          "targetHandle": 13656,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7314,
+          "ordinal": 122,
+          "startBit": 7290,
+          "targetHandle": 23171,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7346,
+          "ordinal": 123,
+          "startBit": 7314,
+          "targetHandle": 72856,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7378,
+          "ordinal": 124,
+          "startBit": 7346,
+          "targetHandle": 72864,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7410,
+          "ordinal": 125,
+          "startBit": 7378,
+          "targetHandle": 72872,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7442,
+          "ordinal": 126,
+          "startBit": 7410,
+          "targetHandle": 72896,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7466,
+          "ordinal": 127,
+          "startBit": 7442,
+          "targetHandle": 28729,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7490,
+          "ordinal": 128,
+          "startBit": 7466,
+          "targetHandle": 65525,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7514,
+          "ordinal": 129,
+          "startBit": 7490,
+          "targetHandle": 13688,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7538,
+          "ordinal": 130,
+          "startBit": 7514,
+          "targetHandle": 22772,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7562,
+          "ordinal": 131,
+          "startBit": 7538,
+          "targetHandle": 13744,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7586,
+          "ordinal": 132,
+          "startBit": 7562,
+          "targetHandle": 16790,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7610,
+          "ordinal": 133,
+          "startBit": 7586,
+          "targetHandle": 22669,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7634,
+          "ordinal": 134,
+          "startBit": 7610,
+          "targetHandle": 26115,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7658,
+          "ordinal": 135,
+          "startBit": 7634,
+          "targetHandle": 16814,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7682,
+          "ordinal": 136,
+          "startBit": 7658,
+          "targetHandle": 22677,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7706,
+          "ordinal": 137,
+          "startBit": 7682,
+          "targetHandle": 22788,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7730,
+          "ordinal": 138,
+          "startBit": 7706,
+          "targetHandle": 13442,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7754,
+          "ordinal": 139,
+          "startBit": 7730,
+          "targetHandle": 28737,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7778,
+          "ordinal": 140,
+          "startBit": 7754,
+          "targetHandle": 28658,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7802,
+          "ordinal": 141,
+          "startBit": 7778,
+          "targetHandle": 28666,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7826,
+          "ordinal": 142,
+          "startBit": 7802,
+          "targetHandle": 28674,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7850,
+          "ordinal": 143,
+          "startBit": 7826,
+          "targetHandle": 28403,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7874,
+          "ordinal": 144,
+          "startBit": 7850,
+          "targetHandle": 22693,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7898,
+          "ordinal": 145,
+          "startBit": 7874,
+          "targetHandle": 22908,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7922,
+          "ordinal": 146,
+          "startBit": 7898,
+          "targetHandle": 13633,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7954,
+          "ordinal": 147,
+          "startBit": 7922,
+          "targetHandle": 72857,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 7986,
+          "ordinal": 148,
+          "startBit": 7954,
+          "targetHandle": 72865,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8018,
+          "ordinal": 149,
+          "startBit": 7986,
+          "targetHandle": 72873,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8042,
+          "ordinal": 150,
+          "startBit": 8018,
+          "targetHandle": 28722,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8066,
+          "ordinal": 151,
+          "startBit": 8042,
+          "targetHandle": 28730,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8090,
+          "ordinal": 152,
+          "startBit": 8066,
+          "targetHandle": 16399,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8114,
+          "ordinal": 153,
+          "startBit": 8090,
+          "targetHandle": 22773,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8138,
+          "ordinal": 154,
+          "startBit": 8114,
+          "targetHandle": 16791,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8162,
+          "ordinal": 155,
+          "startBit": 8138,
+          "targetHandle": 27707,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8186,
+          "ordinal": 156,
+          "startBit": 8162,
+          "targetHandle": 22678,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8210,
+          "ordinal": 157,
+          "startBit": 8186,
+          "targetHandle": 22789,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8234,
+          "ordinal": 158,
+          "startBit": 8210,
+          "targetHandle": 13443,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8258,
+          "ordinal": 159,
+          "startBit": 8234,
+          "targetHandle": 28380,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8282,
+          "ordinal": 160,
+          "startBit": 8258,
+          "targetHandle": 28659,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8306,
+          "ordinal": 161,
+          "startBit": 8282,
+          "targetHandle": 28667,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8330,
+          "ordinal": 162,
+          "startBit": 8306,
+          "targetHandle": 28404,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8354,
+          "ordinal": 163,
+          "startBit": 8330,
+          "targetHandle": 13562,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 8378,
+          "ordinal": 164,
+          "startBit": 8354,
+          "targetHandle": 21447,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        }
+      ],
+      "entryCount": 165,
+      "entryCountSpanBits": [
+        87,
+        97
+      ],
+      "handleStreamEndBit": 8384,
+      "handleStreamStartBit": 4194,
+      "sortHandleFields": [
+        {
+          "endBit": 121,
+          "ordinal": 0,
+          "startBit": 97,
+          "targetHandle": 23513,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 145,
+          "ordinal": 1,
+          "startBit": 121,
+          "targetHandle": 13449,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 177,
+          "ordinal": 2,
+          "startBit": 145,
+          "targetHandle": 72868,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 201,
+          "ordinal": 3,
+          "startBit": 177,
+          "targetHandle": 61504,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 225,
+          "ordinal": 4,
+          "startBit": 201,
+          "targetHandle": 19437,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 249,
+          "ordinal": 5,
+          "startBit": 225,
+          "targetHandle": 23965,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 273,
+          "ordinal": 6,
+          "startBit": 249,
+          "targetHandle": 19443,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 297,
+          "ordinal": 7,
+          "startBit": 273,
+          "targetHandle": 23976,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 321,
+          "ordinal": 8,
+          "startBit": 297,
+          "targetHandle": 23173,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 345,
+          "ordinal": 9,
+          "startBit": 321,
+          "targetHandle": 24164,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 369,
+          "ordinal": 10,
+          "startBit": 345,
+          "targetHandle": 23286,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 393,
+          "ordinal": 11,
+          "startBit": 369,
+          "targetHandle": 13504,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 417,
+          "ordinal": 12,
+          "startBit": 393,
+          "targetHandle": 61437,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 441,
+          "ordinal": 13,
+          "startBit": 417,
+          "targetHandle": 61445,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 465,
+          "ordinal": 14,
+          "startBit": 441,
+          "targetHandle": 61403,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 489,
+          "ordinal": 15,
+          "startBit": 465,
+          "targetHandle": 13802,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 513,
+          "ordinal": 16,
+          "startBit": 489,
+          "targetHandle": 13509,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 537,
+          "ordinal": 17,
+          "startBit": 513,
+          "targetHandle": 19419,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 561,
+          "ordinal": 18,
+          "startBit": 537,
+          "targetHandle": 21251,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 585,
+          "ordinal": 19,
+          "startBit": 561,
+          "targetHandle": 13538,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 609,
+          "ordinal": 20,
+          "startBit": 585,
+          "targetHandle": 23514,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 633,
+          "ordinal": 21,
+          "startBit": 609,
+          "targetHandle": 13444,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 665,
+          "ordinal": 22,
+          "startBit": 633,
+          "targetHandle": 72869,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 689,
+          "ordinal": 23,
+          "startBit": 665,
+          "targetHandle": 61505,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 713,
+          "ordinal": 24,
+          "startBit": 689,
+          "targetHandle": 19435,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 737,
+          "ordinal": 25,
+          "startBit": 713,
+          "targetHandle": 13675,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 761,
+          "ordinal": 26,
+          "startBit": 737,
+          "targetHandle": 13749,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 785,
+          "ordinal": 27,
+          "startBit": 761,
+          "targetHandle": 28769,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 809,
+          "ordinal": 28,
+          "startBit": 785,
+          "targetHandle": 13416,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 833,
+          "ordinal": 29,
+          "startBit": 809,
+          "targetHandle": 13750,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 857,
+          "ordinal": 30,
+          "startBit": 833,
+          "targetHandle": 61312,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 881,
+          "ordinal": 31,
+          "startBit": 857,
+          "targetHandle": 13431,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 905,
+          "ordinal": 32,
+          "startBit": 881,
+          "targetHandle": 23174,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 929,
+          "ordinal": 33,
+          "startBit": 905,
+          "targetHandle": 24165,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 953,
+          "ordinal": 34,
+          "startBit": 929,
+          "targetHandle": 13441,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 977,
+          "ordinal": 35,
+          "startBit": 953,
+          "targetHandle": 61438,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1001,
+          "ordinal": 36,
+          "startBit": 977,
+          "targetHandle": 61446,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1025,
+          "ordinal": 37,
+          "startBit": 1001,
+          "targetHandle": 13801,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1049,
+          "ordinal": 38,
+          "startBit": 1025,
+          "targetHandle": 23299,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1073,
+          "ordinal": 39,
+          "startBit": 1049,
+          "targetHandle": 13540,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1105,
+          "ordinal": 40,
+          "startBit": 1073,
+          "targetHandle": 72862,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1137,
+          "ordinal": 41,
+          "startBit": 1105,
+          "targetHandle": 72870,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1161,
+          "ordinal": 42,
+          "startBit": 1137,
+          "targetHandle": 61506,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1185,
+          "ordinal": 43,
+          "startBit": 1161,
+          "targetHandle": 61532,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1209,
+          "ordinal": 44,
+          "startBit": 1185,
+          "targetHandle": 23938,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1233,
+          "ordinal": 45,
+          "startBit": 1209,
+          "targetHandle": 28774,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1257,
+          "ordinal": 46,
+          "startBit": 1233,
+          "targetHandle": 16789,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1281,
+          "ordinal": 47,
+          "startBit": 1257,
+          "targetHandle": 13751,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1305,
+          "ordinal": 48,
+          "startBit": 1281,
+          "targetHandle": 23136,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1329,
+          "ordinal": 49,
+          "startBit": 1305,
+          "targetHandle": 61329,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1353,
+          "ordinal": 50,
+          "startBit": 1329,
+          "targetHandle": 19412,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1377,
+          "ordinal": 51,
+          "startBit": 1353,
+          "targetHandle": 23223,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1401,
+          "ordinal": 52,
+          "startBit": 1377,
+          "targetHandle": 13748,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1425,
+          "ordinal": 53,
+          "startBit": 1401,
+          "targetHandle": 61439,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1449,
+          "ordinal": 54,
+          "startBit": 1425,
+          "targetHandle": 61447,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1473,
+          "ordinal": 55,
+          "startBit": 1449,
+          "targetHandle": 21248,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1497,
+          "ordinal": 56,
+          "startBit": 1473,
+          "targetHandle": 23507,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1521,
+          "ordinal": 57,
+          "startBit": 1497,
+          "targetHandle": 13515,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1545,
+          "ordinal": 58,
+          "startBit": 1521,
+          "targetHandle": 13542,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1577,
+          "ordinal": 59,
+          "startBit": 1545,
+          "targetHandle": 72863,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1609,
+          "ordinal": 60,
+          "startBit": 1577,
+          "targetHandle": 72871,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1633,
+          "ordinal": 61,
+          "startBit": 1609,
+          "targetHandle": 61485,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1657,
+          "ordinal": 62,
+          "startBit": 1633,
+          "targetHandle": 61507,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1681,
+          "ordinal": 63,
+          "startBit": 1657,
+          "targetHandle": 16790,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1705,
+          "ordinal": 64,
+          "startBit": 1681,
+          "targetHandle": 21531,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1729,
+          "ordinal": 65,
+          "startBit": 1705,
+          "targetHandle": 23971,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1753,
+          "ordinal": 66,
+          "startBit": 1729,
+          "targetHandle": 13417,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1777,
+          "ordinal": 67,
+          "startBit": 1753,
+          "targetHandle": 13752,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1801,
+          "ordinal": 68,
+          "startBit": 1777,
+          "targetHandle": 23138,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1825,
+          "ordinal": 69,
+          "startBit": 1801,
+          "targetHandle": 22837,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1849,
+          "ordinal": 70,
+          "startBit": 1825,
+          "targetHandle": 61335,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1873,
+          "ordinal": 71,
+          "startBit": 1849,
+          "targetHandle": 13676,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1897,
+          "ordinal": 72,
+          "startBit": 1873,
+          "targetHandle": 61440,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1921,
+          "ordinal": 73,
+          "startBit": 1897,
+          "targetHandle": 61448,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1945,
+          "ordinal": 74,
+          "startBit": 1921,
+          "targetHandle": 61399,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1969,
+          "ordinal": 75,
+          "startBit": 1945,
+          "targetHandle": 27712,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 1993,
+          "ordinal": 76,
+          "startBit": 1969,
+          "targetHandle": 22839,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2017,
+          "ordinal": 77,
+          "startBit": 1993,
+          "targetHandle": 23290,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2041,
+          "ordinal": 78,
+          "startBit": 2017,
+          "targetHandle": 24180,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2065,
+          "ordinal": 79,
+          "startBit": 2041,
+          "targetHandle": 16372,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2089,
+          "ordinal": 80,
+          "startBit": 2065,
+          "targetHandle": 13543,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2121,
+          "ordinal": 81,
+          "startBit": 2089,
+          "targetHandle": 72864,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2153,
+          "ordinal": 82,
+          "startBit": 2121,
+          "targetHandle": 72872,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2177,
+          "ordinal": 83,
+          "startBit": 2153,
+          "targetHandle": 61486,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2201,
+          "ordinal": 84,
+          "startBit": 2177,
+          "targetHandle": 61527,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2225,
+          "ordinal": 85,
+          "startBit": 2201,
+          "targetHandle": 19357,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2249,
+          "ordinal": 86,
+          "startBit": 2225,
+          "targetHandle": 21534,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2273,
+          "ordinal": 87,
+          "startBit": 2249,
+          "targetHandle": 13426,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2297,
+          "ordinal": 88,
+          "startBit": 2273,
+          "targetHandle": 13826,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2321,
+          "ordinal": 89,
+          "startBit": 2297,
+          "targetHandle": 19453,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2345,
+          "ordinal": 90,
+          "startBit": 2321,
+          "targetHandle": 24167,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2369,
+          "ordinal": 91,
+          "startBit": 2345,
+          "targetHandle": 13443,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2393,
+          "ordinal": 92,
+          "startBit": 2369,
+          "targetHandle": 13442,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2417,
+          "ordinal": 93,
+          "startBit": 2393,
+          "targetHandle": 61449,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2441,
+          "ordinal": 94,
+          "startBit": 2417,
+          "targetHandle": 61400,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2465,
+          "ordinal": 95,
+          "startBit": 2441,
+          "targetHandle": 26593,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2489,
+          "ordinal": 96,
+          "startBit": 2465,
+          "targetHandle": 19418,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2513,
+          "ordinal": 97,
+          "startBit": 2489,
+          "targetHandle": 24181,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2537,
+          "ordinal": 98,
+          "startBit": 2513,
+          "targetHandle": 23508,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2569,
+          "ordinal": 99,
+          "startBit": 2537,
+          "targetHandle": 72865,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2601,
+          "ordinal": 100,
+          "startBit": 2569,
+          "targetHandle": 72873,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2625,
+          "ordinal": 101,
+          "startBit": 2601,
+          "targetHandle": 61487,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2649,
+          "ordinal": 102,
+          "startBit": 2625,
+          "targetHandle": 61528,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2681,
+          "ordinal": 103,
+          "startBit": 2649,
+          "targetHandle": 72858,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2705,
+          "ordinal": 104,
+          "startBit": 2681,
+          "targetHandle": 16371,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2729,
+          "ordinal": 105,
+          "startBit": 2705,
+          "targetHandle": 23953,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2753,
+          "ordinal": 106,
+          "startBit": 2729,
+          "targetHandle": 19372,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2777,
+          "ordinal": 107,
+          "startBit": 2753,
+          "targetHandle": 21536,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2801,
+          "ordinal": 108,
+          "startBit": 2777,
+          "targetHandle": 61306,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2825,
+          "ordinal": 109,
+          "startBit": 2801,
+          "targetHandle": 13789,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2849,
+          "ordinal": 110,
+          "startBit": 2825,
+          "targetHandle": 22810,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2873,
+          "ordinal": 111,
+          "startBit": 2849,
+          "targetHandle": 23237,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2897,
+          "ordinal": 112,
+          "startBit": 2873,
+          "targetHandle": 24168,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2921,
+          "ordinal": 113,
+          "startBit": 2897,
+          "targetHandle": 13448,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2945,
+          "ordinal": 114,
+          "startBit": 2921,
+          "targetHandle": 61442,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2969,
+          "ordinal": 115,
+          "startBit": 2945,
+          "targetHandle": 61450,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 2993,
+          "ordinal": 116,
+          "startBit": 2969,
+          "targetHandle": 19454,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3017,
+          "ordinal": 117,
+          "startBit": 2993,
+          "targetHandle": 19413,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3041,
+          "ordinal": 118,
+          "startBit": 3017,
+          "targetHandle": 21247,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3065,
+          "ordinal": 119,
+          "startBit": 3041,
+          "targetHandle": 23506,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3089,
+          "ordinal": 120,
+          "startBit": 3065,
+          "targetHandle": 22838,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3113,
+          "ordinal": 121,
+          "startBit": 3089,
+          "targetHandle": 13825,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3137,
+          "ordinal": 122,
+          "startBit": 3113,
+          "targetHandle": 27708,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3161,
+          "ordinal": 123,
+          "startBit": 3137,
+          "targetHandle": 13480,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3193,
+          "ordinal": 124,
+          "startBit": 3161,
+          "targetHandle": 72866,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3225,
+          "ordinal": 125,
+          "startBit": 3193,
+          "targetHandle": 72896,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3257,
+          "ordinal": 126,
+          "startBit": 3225,
+          "targetHandle": 72899,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3281,
+          "ordinal": 127,
+          "startBit": 3257,
+          "targetHandle": 61529,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3313,
+          "ordinal": 128,
+          "startBit": 3281,
+          "targetHandle": 72859,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3337,
+          "ordinal": 129,
+          "startBit": 3313,
+          "targetHandle": 16370,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3361,
+          "ordinal": 130,
+          "startBit": 3337,
+          "targetHandle": 23956,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3385,
+          "ordinal": 131,
+          "startBit": 3361,
+          "targetHandle": 19373,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3409,
+          "ordinal": 132,
+          "startBit": 3385,
+          "targetHandle": 21667,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3433,
+          "ordinal": 133,
+          "startBit": 3409,
+          "targetHandle": 22967,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3457,
+          "ordinal": 134,
+          "startBit": 3433,
+          "targetHandle": 61309,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3481,
+          "ordinal": 135,
+          "startBit": 3457,
+          "targetHandle": 22811,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3505,
+          "ordinal": 136,
+          "startBit": 3481,
+          "targetHandle": 23171,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3529,
+          "ordinal": 137,
+          "startBit": 3505,
+          "targetHandle": 24162,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3553,
+          "ordinal": 138,
+          "startBit": 3529,
+          "targetHandle": 13455,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3577,
+          "ordinal": 139,
+          "startBit": 3553,
+          "targetHandle": 61536,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3601,
+          "ordinal": 140,
+          "startBit": 3577,
+          "targetHandle": 61435,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3625,
+          "ordinal": 141,
+          "startBit": 3601,
+          "targetHandle": 61443,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3649,
+          "ordinal": 142,
+          "startBit": 3625,
+          "targetHandle": 61451,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3673,
+          "ordinal": 143,
+          "startBit": 3649,
+          "targetHandle": 61401,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3697,
+          "ordinal": 144,
+          "startBit": 3673,
+          "targetHandle": 23291,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3721,
+          "ordinal": 145,
+          "startBit": 3697,
+          "targetHandle": 24169,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3745,
+          "ordinal": 146,
+          "startBit": 3721,
+          "targetHandle": 13810,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3769,
+          "ordinal": 147,
+          "startBit": 3745,
+          "targetHandle": 13478,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3801,
+          "ordinal": 148,
+          "startBit": 3769,
+          "targetHandle": 72867,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3833,
+          "ordinal": 149,
+          "startBit": 3801,
+          "targetHandle": 72898,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3857,
+          "ordinal": 150,
+          "startBit": 3833,
+          "targetHandle": 61503,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3881,
+          "ordinal": 151,
+          "startBit": 3857,
+          "targetHandle": 61531,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3905,
+          "ordinal": 152,
+          "startBit": 3881,
+          "targetHandle": 21523,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3929,
+          "ordinal": 153,
+          "startBit": 3905,
+          "targetHandle": 23957,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3953,
+          "ordinal": 154,
+          "startBit": 3929,
+          "targetHandle": 22809,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 3977,
+          "ordinal": 155,
+          "startBit": 3953,
+          "targetHandle": 13544,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4001,
+          "ordinal": 156,
+          "startBit": 3977,
+          "targetHandle": 23172,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4025,
+          "ordinal": 157,
+          "startBit": 4001,
+          "targetHandle": 24163,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4049,
+          "ordinal": 158,
+          "startBit": 4025,
+          "targetHandle": 13479,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4073,
+          "ordinal": 159,
+          "startBit": 4049,
+          "targetHandle": 28778,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4097,
+          "ordinal": 160,
+          "startBit": 4073,
+          "targetHandle": 61436,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4121,
+          "ordinal": 161,
+          "startBit": 4097,
+          "targetHandle": 61444,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4145,
+          "ordinal": 162,
+          "startBit": 4121,
+          "targetHandle": 61402,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4169,
+          "ordinal": 163,
+          "startBit": 4145,
+          "targetHandle": 13792,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 4193,
+          "ordinal": 164,
+          "startBit": 4169,
+          "targetHandle": 22841,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        }
+      ],
+      "tableHandle": "0x6C3A"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 266,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 250,
+        "targetHandle": 35
+      },
+      "bodyEndBit": 218,
+      "bodyStartBit": 87,
+      "entityHandleFields": [
+        {
+          "endBit": 290,
+          "ordinal": 0,
+          "startBit": 266,
+          "targetHandle": 56899,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 314,
+          "ordinal": 1,
+          "startBit": 290,
+          "targetHandle": 53348,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 338,
+          "ordinal": 2,
+          "startBit": 314,
+          "targetHandle": 26649,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 362,
+          "ordinal": 3,
+          "startBit": 338,
+          "targetHandle": 56454,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        },
+        {
+          "endBit": 386,
+          "ordinal": 4,
+          "startBit": 362,
+          "targetHandle": 26652,
+          "wireRole": "soft-pointer (ODA handle code 4 enforced by parser)"
+        }
+      ],
+      "entryCount": 5,
+      "entryCountSpanBits": [
+        87,
+        97
+      ],
+      "handleStreamEndBit": 392,
+      "handleStreamStartBit": 218,
+      "sortHandleFields": [
+        {
+          "endBit": 121,
+          "ordinal": 0,
+          "startBit": 97,
+          "targetHandle": 56899,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 145,
+          "ordinal": 1,
+          "startBit": 121,
+          "targetHandle": 53348,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 169,
+          "ordinal": 2,
+          "startBit": 145,
+          "targetHandle": 26649,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 193,
+          "ordinal": 3,
+          "startBit": 169,
+          "targetHandle": 56454,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        },
+        {
+          "endBit": 217,
+          "ordinal": 4,
+          "startBit": 193,
+          "targetHandle": 26652,
+          "wireRole": "null-reference (ODA handle code 0 enforced by parser)"
+        }
+      ],
+      "tableHandle": "0x6ED3"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 146,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 122,
+        "targetHandle": 28628
+      },
+      "bodyEndBit": 90,
+      "bodyStartBit": 87,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        87,
+        89
+      ],
+      "handleStreamEndBit": 152,
+      "handleStreamStartBit": 90,
+      "sortHandleFields": [],
+      "tableHandle": "0x6FF1"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 178,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 154,
+        "targetHandle": 56320
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 184,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x11C2F"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 178,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 146,
+        "targetHandle": 74613
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 184,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x12380"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 73421
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x1273A"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 73633
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x12E00"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 178,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 146,
+        "targetHandle": 177151
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 184,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2BC0C"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 180649
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C1B9"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 180707
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C1F3"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 180765
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C22D"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 180855
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C287"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 180954
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C2EA"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 181040
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C340"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 181139
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C3A3"
+    },
+    {
+      "blockOwnerField": {
+        "endBit": 170,
+        "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+        "startBit": 138,
+        "targetHandle": 181197
+      },
+      "bodyEndBit": 98,
+      "bodyStartBit": 95,
+      "entityHandleFields": [],
+      "entryCount": 0,
+      "entryCountSpanBits": [
+        95,
+        97
+      ],
+      "handleStreamEndBit": 176,
+      "handleStreamStartBit": 98,
+      "sortHandleFields": [],
+      "tableHandle": "0x2C3DD"
+    }
+  ],
+  "planImpact": {
+    "completedSlice": "Add opt-in source-inventory capture and mutation-checked validation of parser-observed SORTENTSTABLE field intervals for all 16 AC1021 source tables; reconcile every emitted target/order against independent LibreDWG values.",
+    "progressEstimate": "284 completed slices and 35 remaining packages: 284/(284+35)=89.0%; equal-weight activity proxy only. P4\u2013P8 exit gates remain open; P9 remains deferred external.",
+    "remaining": "Independent physical bit-span decoding/comparison remains open, along with recursive target closure, other uncovered frame families, strict output, and native ordering semantics."
+  },
+  "schema": "libdxfrw.research-receipt.v1",
+  "scope": "Record parser cursor spans for each AC1021 SORTENTSTABLE count, sort-handle field, block-owner field, and entity-handle field; check body/handle bounds and order, and reconcile every decoded target and ordinal with the prior hash-bound LibreDWG minJSON differential.",
+  "source": {
+    "fixtureFilesAdded": 0,
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "unchangedDuringAudit": true,
+    "version": "AC1021"
+  },
+  "status": "HASH_BOUND_AC1021_SORTENTSTABLE_PARSER_FIELD_SPANS_CAPTURED",
+  "summary": {
+    "allDecodedTargetsAndOrdersMatchLibreDWG": true,
+    "allFieldSpansWithinBodyOrHandleBounds": true,
+    "allIntervalsOrderedAndNonoverlapping": true,
+    "allTargetsMatchParserOwnedInventory": true,
+    "blockOwnerFieldSpanCount": 16,
+    "entityHandleFieldSpanCount": 170,
+    "entryCount": 170,
+    "profileCountWithSpans": 16,
+    "sortHandleFieldSpanCount": 170,
+    "tableCount": 16
+  },
+  "supportClaimEffect": "none",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS",
+    "diffCheck": "git diff --check: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R ^dwg2dxf_mline_style_typed_capture_limits$: PASS 1/1 (fast regression guard; source audit is the direct span control).",
+    "fullTestSuites": "Not run; this diagnostic-only slice is validated by the source audit and focused fast controls.",
+    "pythonSyntax": "python3 -m py_compile tools/research/audit_ac1027_source_references.py: PASS",
+    "sourceAudit": "audit_ac1027_source_references.py on hash-bound AC1021 imperial DWG and LibreDWG peer/schema: PASS; 16/16 span profiles and 170/170 ordered pairs.",
+    "verifierSelfTest": "python3 tools/research/audit_ac1027_source_references.py --self-test: PASS; generated mutations rejected for count/body, sort/count, owner identity, owner/entity overlap, stream order, and body/handle bounds."
+  }
+}

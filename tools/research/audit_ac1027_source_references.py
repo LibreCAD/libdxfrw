@@ -49,6 +49,13 @@ SORTENTS_ENTRY = re.compile(
     r"sort=(\d+) fallback=(\d+)$",
     re.MULTILINE,
 )
+SORTENTS_SPAN = re.compile(
+    r"^sortentsSourceSpan coordinateFrame=(\S+) handle=(\d+) version=(\d+) "
+    r"bodyStart=(\d+) bodyEnd=(\d+) count=(\d+) countSpan=(\d+):(\d+) "
+    r"sortSpans=(.*?) handleStreamStart=(\d+) handleStreamEnd=(\d+) "
+    r"ownerSpan=(\d+):(\d+):(\d+) entitySpans=(.*)$",
+    re.MULTILINE,
+)
 BODY_FRAME = re.compile(
     r"^ typedBodyFrame type=(\S+) handle=(\d+)(?: |$)", re.MULTILINE
 )
@@ -239,6 +246,149 @@ def self_test_sortents_peer_fields() -> None:
         except SystemExit:
             continue
         raise SystemExit("generated SORTENTSTABLE peer mutation was admitted")
+
+
+def decode_span_list(
+    value: str, label: str, wire_role: str
+) -> list[dict[str, int | str]]:
+    if not value:
+        return []
+    result = []
+    for row in value.split(","):
+        parts = row.split(":")
+        if len(parts) != 4:
+            raise SystemExit(f"malformed SORTENTSTABLE {label} span row")
+        ordinal, start, end, target = map(int, parts)
+        if ordinal != len(result) or start < 0 or end <= start:
+            raise SystemExit(f"invalid SORTENTSTABLE {label} span bounds/order")
+        result.append({
+            "ordinal": ordinal, "startBit": start, "endBit": end,
+            "targetHandle": target, "wireRole": wire_role,
+        })
+    if any(left["endBit"] > right["startBit"]
+           for left, right in zip(result, result[1:])):
+        raise SystemExit(f"overlapping SORTENTSTABLE {label} fields")
+    return result
+
+
+def verify_sortents_source_spans(
+    matches: list[tuple[str, ...]],
+    profiles: dict[int, dict[str, object]],
+    expected_version: str,
+) -> list[dict[str, object]]:
+    fields_by_handle: dict[int, dict[str, object]] = {}
+    for match in matches:
+        (coordinate_frame, handle, version_code, body_start, body_end, count,
+         count_start, count_end, sort_rows, handle_stream_start, handle_stream_end,
+         owner_start, owner_end, owner_target, entity_rows) = match
+        handle_value = int(handle)
+        profile = profiles.get(handle_value)
+        if profile is None or handle_value in fields_by_handle:
+            raise SystemExit("SORTENTSTABLE span row is missing or duplicated")
+        entries = profile["entries"]
+        count_value = int(count)
+        count_start_value, count_end_value = int(count_start), int(count_end)
+        body_start_value = int(body_start)
+        body_end_value = int(body_end)
+        if (
+            coordinate_frame != "objectDecompressedBitstreamBits"
+            or profile["version"] != expected_version
+            or count_value != int(profile["declaredEntryCount"])
+            or count_start_value != body_start_value
+            or count_end_value <= count_start_value
+            or count_end_value > body_end_value
+        ):
+            raise SystemExit("SORTENTSTABLE count span does not match its source profile")
+        sort_spans = decode_span_list(
+            sort_rows, "sort-handle", "null-reference (ODA handle code 0 enforced by parser)"
+        )
+        entity_spans = decode_span_list(
+            entity_rows, "entity-handle", "soft-pointer (ODA handle code 4 enforced by parser)"
+        )
+        if (
+            len(sort_spans) != count_value or len(entity_spans) != count_value
+            or any(int(item["targetHandle"]) != int(entry["sortHandle"])
+                   for item, entry in zip(sort_spans, entries))
+            or any(int(item["targetHandle"]) != int(entry["entityHandle"])
+                   for item, entry in zip(entity_spans, entries))
+            or any(int(item["endBit"]) > body_end_value for item in sort_spans)
+            or (sort_spans and sort_spans[0]["startBit"] < count_end_value)
+        ):
+            raise SystemExit("SORTENTSTABLE field spans do not match decoded ordered handles")
+        handle_stream_start_value = int(handle_stream_start)
+        handle_stream_end_value = int(handle_stream_end)
+        owner_start_value, owner_end_value = int(owner_start), int(owner_end)
+        if (
+            handle_stream_start_value < 0
+            or handle_stream_end_value <= handle_stream_start_value
+            or owner_start_value < handle_stream_start_value
+            or owner_end_value <= owner_start_value
+            or owner_end_value > handle_stream_end_value
+            or int(owner_target) != int(profile["blockOwnerHandle"])
+            or (entity_spans and entity_spans[0]["startBit"] < owner_end_value)
+            or any(int(item["endBit"]) > handle_stream_end_value
+                   for item in entity_spans)
+        ):
+            raise SystemExit("SORTENTSTABLE handle-stream spans violate field order/identity")
+        fields_by_handle[handle_value] = {
+            "tableHandle": handle_value,
+            "version": expected_version,
+            "versionEnum": int(version_code),
+            "coordinateFrame": coordinate_frame,
+            "bodyStartBit": body_start_value,
+            "bodyEndBit": body_end_value,
+            "entryCount": count_value,
+            "entryCountSpan": [count_start_value, count_end_value],
+            "sortHandleFields": sort_spans,
+            "handleStreamStartBit": handle_stream_start_value,
+            "handleStreamEndBit": handle_stream_end_value,
+            "blockOwnerField": {
+                "startBit": owner_start_value,
+                "endBit": owner_end_value,
+                "targetHandle": int(owner_target),
+                "role": "soft-pointer (ODA handle code 4 enforced by parser)",
+            },
+            "entityHandleFields": entity_spans,
+            "spanOrigin": "libdxfrw parser cursor observations; no independent peer bit-offset comparison",
+        }
+    if set(fields_by_handle) != set(profiles):
+        raise SystemExit("SORTENTSTABLE field-span rows do not cover all parsed tables")
+    return [fields_by_handle[handle] for handle in sorted(fields_by_handle)]
+
+
+def self_test_sortents_source_spans() -> None:
+    profile = {
+        10: {
+            "version": "AC1021", "blockOwnerHandle": 7,
+            "declaredEntryCount": 1,
+            "entries": [{"sortHandle": 20, "entityHandle": 9}],
+        }
+    }
+    row = (
+        "objectDecompressedBitstreamBits", "10", "15", "80", "96", "1",
+        "80", "88", "0:88:96:20", "100", "140", "120", "128", "7",
+        "0:128:136:9",
+    )
+    if len(verify_sortents_source_spans([row], profile, "AC1021")) != 1:
+        raise SystemExit("generated SORTENTSTABLE parser span control did not match")
+    bad_rows = (
+        row[:6] + ("81",) + row[7:],  # count begins after the observed body start
+        row[:8] + ("0:87:96:20",) + row[9:],  # sort field precedes count end
+        row[:13] + ("8",) + row[14:],  # owner target differs
+        row[:14] + ("0:127:136:9",),  # entity overlaps the owner field
+        row[:9] + ("121",) + row[10:],  # owner starts before handle stream
+        row[:4] + ("95",) + row[5:],  # sort field exceeds the object body
+        row[:10] + ("127",) + row[11:],  # owner exceeds handle-stream end
+    )
+    for index, bad in enumerate(bad_rows):
+        try:
+            verify_sortents_source_spans([bad], profile, "AC1021")
+        except SystemExit:
+            continue
+        raise SystemExit(
+            "generated SORTENTSTABLE parser span mutation was admitted: "
+            f"{index}"
+        )
 
 
 def verify_layer_peer_fields(
@@ -947,6 +1097,7 @@ def main() -> int:
         self_test_layer_peer_fields()
         self_test_mlinestyle_fields()
         self_test_sortents_peer_fields()
+        self_test_sortents_source_spans()
         print(
             "generated LAYER/LTYPE, MLINESTYLE, and SORTENTSTABLE mutation "
             "controls passed"
@@ -1054,6 +1205,9 @@ def main() -> int:
             raise SystemExit("SORTENTSTABLE source membership inventory is incomplete")
     elif sortents_profiles:
         raise SystemExit("SORTENTSTABLE source rows lack their inventory summary")
+    sortents_source_spans = verify_sortents_source_spans(
+        SORTENTS_SPAN.findall(combined), sortents_profiles, expected_version
+    )
     if len({frame["handle"] for frame in frames}) != len(frames):
         raise SystemExit("source inventory contains duplicate captured frame handles")
 
@@ -1785,6 +1939,8 @@ def main() -> int:
         "sourceSortEntsEntryCount": sum(
             len(profile["entries"]) for profile in sortents_profiles.values()
         ),
+        "sourceSortEntsFieldSpanProfileCount": len(sortents_source_spans),
+        "sourceSortEntsFieldSpans": sortents_source_spans,
         "peerMatchedSortEntsTableCount": len(peer_sortents_handles),
         "typedLayerHandleFieldRows": sum(
             len(fields) for fields in layer_handle_fields.values()
