@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-object-ac1027-reader-only-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Extend malformed, size-delimited OBJECTS-frame continuation evidence to AC1027 without using the output path blocked by separate reference-closure integrity.",
+  "profile": {
+    "sourceVersion": "AC1027",
+    "generatedSource": "Created from scratch in the focused test's temporary directory; no fixture is committed.",
+    "malformedFrame": "Retains encoded custom object type and handle, but truncates the common prologue before EED/reactor fields.",
+    "readOperationSucceeded": true,
+    "objectParseFailures": 1,
+    "sourceFrames": 27,
+    "publishedFrames": 26,
+    "failedFrames": 1,
+    "frameAccounting": "27 = 26 + 1",
+    "followingLineCallbacks": 1
+  },
+  "qualificationBoundary": {
+    "cliOutput": "Not exercised by this receipt. Existing AC1027 source-reference closure integrity blocks strict and explicit-partial CLI output; this receipt proves reader continuation only.",
+    "semanticEffect": "No object semantics or output support are qualified."
+  },
+  "validation": {
+    "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "result": "PASS: 49 strict/partial/readback controls, including the AC1027 reader-only continuation check"
+  },
+  "limits": [
+    "The malformed source is a synthetic negative control and does not represent producer-authored content.",
+    "AC1027 CLI output remains blocked by independent source-reference closure; no support claim is inferred.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

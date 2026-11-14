@@ -1247,6 +1247,9 @@ def check_partial_dwg_read_cli(converter, root, writer):
     malformed_object_profiles = {
         "AC1021": "2007",
         "AC1024": "2010",
+        # AC1027 has an independent source-reference closure issue that blocks
+        # CLI output, so qualify only the reader's continuation and accounting.
+        "AC1027": None,
         "AC1032": "2018",
     }
     for revision, target_year in malformed_object_profiles.items():
@@ -1283,6 +1286,9 @@ def check_partial_dwg_read_cli(converter, root, writer):
             raise AssertionError(
                 f"{revision} malformed object stopped later OBJECTS records: {counted!r}")
         checked += 1
+
+        if target_year is None:
+            continue
 
         for binary in (False, True):
             encoding = "Binary" if binary else "ASCII"
