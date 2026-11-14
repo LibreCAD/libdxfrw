@@ -136,10 +136,11 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path, DRW::Version version) {
     dxfRW codec(path.string().c_str());
     Readback reader;
-    if (!codec.read(&reader, false) || reader.records.size() != 1u)
+    if (!codec.read(&reader, false) || codec.getSourceVersion() != version
+        || reader.records.size() != 1u)
         return false;
     return sourceMatches(reader.records.front(), makeGeometry());
 }
@@ -194,15 +195,27 @@ bool run(const std::filesystem::path& directory) {
 
     const auto output = directory / "tablegeometry-objects.dxf";
     const std::string sentinel = "prior TABLEGEOMETRY destination bytes\n";
-    for (const bool binary : {false, true}) {
+    const DRW::Version versions[] = {
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    const auto versionName = [](DRW::Version version) {
+        switch (version) {
+        case DRW::AC1021: return "AC1021";
+        case DRW::AC1024: return "AC1024";
+        case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
+        default: return "UNKNOWN";
+        }
+    };
+    for (const DRW::Version version : versions) {
+      for (const bool binary : {false, true}) {
         long allocationCount = 0;
         std::string expectedBytes;
         {
             dxfRW codec(output.string().c_str());
             Export exporter(codec);
             exporter.failAt = 1000000;
-            if (!codec.write(&exporter, DRW::AC1027, binary)
-                || !exporter.accepted || !readbackMatches(output))
+            if (!codec.write(&exporter, version, binary)
+                || !exporter.accepted || !readbackMatches(output, version))
                 return fail("allocation calibration output did not read back");
             allocationCount = exporter.reached;
             if (!readBytes(output, expectedBytes))
@@ -224,7 +237,7 @@ bool run(const std::filesystem::path& directory) {
             exporter.failAt = offset;
             exporter.reached = 0;
             exporter.accepted = false;
-            const bool written = codec.write(&exporter, DRW::AC1027, binary);
+            const bool written = codec.write(&exporter, version, binary);
             exporter.failAt = -1;
             std::string current;
             if (written || exporter.accepted || exporter.reached != offset + 1
@@ -233,19 +246,20 @@ bool run(const std::filesystem::path& directory) {
                 return fail("injected failure changed destination or missed allocation");
             if (!sourceMatches(exporter.geometry, source))
                 return fail("injected failure changed caller TABLEGEOMETRY state");
-            const bool retry = codec.write(&exporter, DRW::AC1027, binary);
+            const bool retry = codec.write(&exporter, version, binary);
             std::string retryBytes;
             if (!retry || !exporter.accepted || !readBytes(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
+                || retryBytes != expectedBytes || !readbackMatches(output, version)
                 || !sourceMatches(exporter.geometry, source))
                 return fail("same-codec retry failed exact bytes or typed readback");
         }
-        std::cout << "TABLEGEOMETRY OBJECTS "
+        std::cout << "TABLEGEOMETRY OBJECTS " << versionName(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }

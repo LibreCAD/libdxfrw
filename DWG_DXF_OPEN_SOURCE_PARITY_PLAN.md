@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **250 completed implementation slices** and **35 remaining
+The plan records **251 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`250 / (250 + 35) = 87.7%`. This is a count-based progress measure, not an
+`251 / (251 + 35) = 87.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1935,6 +1935,16 @@ CTest completes in about 0.6 seconds. Sources are generated from scratch and
 removed by the runner. This closes one transaction sub-slice only; P6-G's complete
 public-writer inventory remains open. See the
 [SUNSTUDY version-matrix receipt](docs/research/p6-dxf-sunstudy-objects-version-matrix-allocation-2026-11-13.json).
+
+**P6-G TABLEGEOMETRY revision-matrix transaction slice (2026-11-13):** the
+generated bounded TABLEGEOMETRY writer profile now passes allocation rollback,
+same-codec retry, exact-byte comparison and typed readback at AC1021, AC1024,
+AC1027 and AC1032 in ASCII and Binary. Readback also checks the detected source
+revision. All 88 injected allocation failures pass; the focused CTest completes
+in about 0.6 seconds. This proves generated transaction behavior only, not
+producer-authored unknown cell references or TABLEGEOMETRY consumer semantics.
+P6-G's full public-writer inventory remains open. See the
+[TABLEGEOMETRY matrix receipt](docs/research/p6-dxf-tablegeometry-objects-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH and MPOLYGON writes now have per-allocation rollback, same-writer retry,
