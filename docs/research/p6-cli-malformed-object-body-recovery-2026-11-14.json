@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "slice": "P6-F malformed supported OBJECTS body recovery",
+  "status": "generated fast control passed",
+  "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-object-body-source",
+  "mutation": "Start from a locally generated supported MLINESTYLE object with an intact common object prologue and handle. Flip candidate bits after the common prologue until the supported body parser rejects the object; emit the isolated raw frame in a fresh generated DWG.",
+  "profiles": [
+    {
+      "version": "AC1021",
+      "sha256": "873bc627e9e2a42a28dc1b6ce793b230de0196f419aa3a55b1301439bcf77c8c"
+    },
+    {
+      "version": "AC1024",
+      "sha256": "3b83d2f77cff8a989b123fe5d1e4aee757cdec78cd2ac6fcf3bfaae9f94505c2"
+    },
+    {
+      "version": "AC1032",
+      "sha256": "a7833966093cac8bf1ee3fad85f717d97d64659ac5d6b3223ce7231157a1d5d3"
+    }
+  ],
+  "per_profile_observation": {
+    "read_succeeded": true,
+    "retained_line_count": 1,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 1,
+    "object_frames": 27,
+    "published_frames": 26,
+    "failed_frames": 1,
+    "frame_accounting": "source = published + failed"
+  },
+  "cli_policy": {
+    "strict": "Refuses before replacing the destination; source and sentinel destination are unchanged.",
+    "explicit_partial": "Succeeds with the partial-output warning; reopened DXF contains exactly the retained LINE and VPORT; source is unchanged.",
+    "retained_integrity_errors": 0
+  },
+  "validation": {
+    "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "result": "PASS: CLI partial DWG read (64 strict/partial/readback controls)"
+  },
+  "limitations": [
+    "Controls are generated locally and are not committed as DWG/DXF fixture files.",
+    "This proves bounded parser failure isolation and CLI disposition only; it does not prove MLINESTYLE body semantics or producer interoperability.",
+    "AC1027 is excluded because an independent source-reference closure gate prevents meaningful CLI output qualification for this generated profile."
+  ]
+}
