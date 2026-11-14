@@ -6149,6 +6149,20 @@ add_test(NAME libdxfrw_proxy_entity_object_id_allocation
 set_tests_properties(libdxfrw_proxy_entity_object_id_allocation PROPERTIES
     LABELS "dxf;fast;entity;transaction;allocation;versions" TIMEOUT 120)
 
+add_executable(libdxfrw_3d_entity_version_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_3d_entity_version_allocation_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_3d_entity_version_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_3d_entity_version_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_3d_entity_version_allocation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_3d_entity_version_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_3d_entity_version_allocation
+    COMMAND libdxfrw_3d_entity_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/3d-entity-version-allocation)
+set_tests_properties(libdxfrw_3d_entity_version_allocation PROPERTIES
+    LABELS "dxf;fast;entity;3d;transaction;allocation;versions" TIMEOUT 120)
+
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp
     ${_libdxfrw_test_adapter_source})
