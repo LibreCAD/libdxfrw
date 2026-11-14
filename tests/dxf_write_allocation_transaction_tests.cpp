@@ -7364,8 +7364,10 @@ bool runOleFrameVersionSweep(const std::filesystem::path& directory) {
         dx_iface reader;
         if (!reader.fileImport(path.string(), &decoded, false)
             || decoded.sourceVersion != expectedVersion
-            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 2u)
+            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 2u) {
+            std::cerr << "  RAY/XLINE inventory/import mismatch\n";
             return false;
+        }
         const auto firstEntity = decoded.mBlock->ent.begin();
         const auto* actualOle2 = dynamic_cast<const DRW_Ole2Frame*>(
             *firstEntity);
@@ -7472,6 +7474,196 @@ bool runOleFrameVersionSweep(const std::filesystem::path& directory) {
                 std::filesystem::remove(output, ignored);
             }
             std::cout << "OLEFRAME/OLE2FRAME " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
+bool runRayXlineVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "RAY/XLINE version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeRay = [] {
+        DRW_Ray value;
+        value.basePoint = DRW_Coord(1.25, -2.5, 3.75);
+        value.secPoint = DRW_Coord(0.0, 0.0, 1.0);
+        return value;
+    };
+    const auto makeXline = [] {
+        DRW_Xline value;
+        value.basePoint = DRW_Coord(-7.0, 8.5, 9.25);
+        value.secPoint = DRW_Coord(1.0, 0.0, 0.0);
+        return value;
+    };
+    const auto sameDirection = [](const DRW_Line& actual,
+                                  const DRW_Line& expected) {
+        return actual.handle == expected.handle
+            && actual.basePoint.x == expected.basePoint.x
+            && actual.basePoint.y == expected.basePoint.y
+            && actual.basePoint.z == expected.basePoint.z
+            && actual.secPoint.x == expected.secPoint.x
+            && actual.secPoint.y == expected.secPoint.y
+            && actual.secPoint.z == expected.secPoint.z;
+    };
+    class DirectionExport final : public dx_iface {
+    public:
+        DirectionExport(dxfRW& codec, DRW_Ray sourceRay,
+                        DRW_Xline sourceXline)
+            : output(codec), ray(std::move(sourceRay)),
+              xline(std::move(sourceXline)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override {
+            wroteRay = output.writeRay(&ray);
+            wroteXline = wroteRay && output.writeXline(&xline);
+        }
+        bool finalizeDxfWrite() override { return wroteXline; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Ray ray;
+        DRW_Xline xline;
+        bool wroteRay = false;
+        bool wroteXline = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dx_data decoded;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &decoded, false)
+            || decoded.sourceVersion != expectedVersion
+            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 2u)
+            return false;
+        auto entity = decoded.mBlock->ent.begin();
+        const auto* ray = dynamic_cast<const DRW_Ray*>(*entity++);
+        const auto* xline = dynamic_cast<const DRW_Xline*>(*entity);
+        DRW_Ray expectedRay = makeRay();
+        DRW_Xline expectedXline = makeXline();
+        if (ray != nullptr)
+            expectedRay.handle = ray->handle;
+        if (xline != nullptr)
+            expectedXline.handle = xline->handle;
+        const bool matched = ray != nullptr && xline != nullptr
+            && ray->handle != 0u && xline->handle != 0u
+            && sameDirection(*ray, expectedRay)
+            && sameDirection(*xline, expectedXline);
+        if (!matched)
+            std::cerr << "  RAY/XLINE fields/type mismatch: ray="
+                      << (ray != nullptr) << " xline=" << (xline != nullptr)
+                      << " handles=" << (ray == nullptr ? 0u : ray->handle)
+                      << ',' << (xline == nullptr ? 0u : xline->handle)
+                      << " base=" << (ray == nullptr ? 0.0 : ray->basePoint.x)
+                      << ',' << (ray == nullptr ? 0.0 : ray->basePoint.y)
+                      << ',' << (ray == nullptr ? 0.0 : ray->basePoint.z)
+                      << " direction="
+                      << (ray == nullptr ? 0.0 : ray->secPoint.x) << ','
+                      << (ray == nullptr ? 0.0 : ray->secPoint.y) << ','
+                      << (ray == nullptr ? 0.0 : ray->secPoint.z) << '\n';
+        return matched;
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "previous complete RAY/XLINE destination\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("ray-xline-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                DirectionExport adapter(codec, makeRay(), makeXline());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.wroteRay || !adapter.wroteXline)
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                DirectionExport adapter(codec, makeRay(), makeXline());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                const bool bytesRead = readBytes(output, expectedBytes);
+                const bool readback = bytesRead
+                    && readbackMatches(output, version.first);
+                if (!wrote || !adapter.wroteRay || !adapter.wroteXline
+                    || allocationFailed || allocationCount <= 0
+                    || !bytesRead || !readback) {
+                    std::cerr << "  calibration: wrote=" << wrote
+                              << " ray=" << adapter.wroteRay
+                              << " xline=" << adapter.wroteXline
+                              << " failed=" << allocationFailed
+                              << " allocations=" << allocationCount
+                              << " bytes=" << bytesRead
+                              << " readback=" << readback << '\n';
+                    return fail("calibration write/readback failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                DirectionExport adapter(codec, makeRay(), makeXline());
+                const DRW_Ray originalRay(adapter.ray);
+                const DRW_Xline originalXline(adapter.xline);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const bool callerSame = sameDirection(adapter.ray, originalRay)
+                    && sameDirection(adapter.xline, originalXline);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !callerSame || !identitiesRolledBack
+                    || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination state");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.wroteRay && adapter.wroteXline;
+                std::string retryBytes;
+                const bool retryRead = readBytes(output, retryBytes);
+                if (!retried
+                    || !sameDirection(adapter.ray, originalRay)
+                    || !sameDirection(adapter.xline, originalXline) || !retryRead
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "RAY/XLINE " << version.second << ' '
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
@@ -9598,7 +9790,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9620,6 +9812,8 @@ int main(int argc, char** argv) {
             return runLightEntitySweep(directory) ? 0 : 1;
         if (mode == "ole-frames")
             return runOleFrameVersionSweep(directory) ? 0 : 1;
+        if (mode == "ray-xline")
+            return runRayXlineVersionSweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")

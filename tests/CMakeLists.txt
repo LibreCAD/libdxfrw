@@ -6256,6 +6256,12 @@ add_test(NAME libdxfrw_dxf_ole_frames_version_allocation_transaction
         ole-frames)
 set_tests_properties(libdxfrw_dxf_ole_frames_version_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation;ole;versions" TIMEOUT 120)
+add_test(NAME libdxfrw_dxf_ray_xline_version_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-ray-xline-version-allocation
+        ray-xline)
+set_tests_properties(libdxfrw_dxf_ray_xline_version_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;linear-entities;versions" TIMEOUT 120)
 add_test(NAME libdxfrw_dxf_camera_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-camera-allocation

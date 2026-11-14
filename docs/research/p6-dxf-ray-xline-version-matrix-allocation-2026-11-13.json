@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ray-xline-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RAY_XLINE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add a fast full-operation allocation rollback, same-writer retry and typed readback matrix for the direct RAY and XLINE writers.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Ray and DRW_Xline entities",
+    "profile": "One RAY and one XLINE with distinct nondefault base points and axis-aligned unit direction vectors. Unit vectors keep the transaction oracle independent of non-unit direction normalization.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ray-xline-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "4fae548e14c4a93b67fd4de029edc2b75b938fb51fa69bfeee48ad0784d8dca9",
+    "testExecutableSha256": "d56ce3a4adaa89330aa8950af10bf787e7e840d5d979beea0af6d5235b59b1c6",
+    "method": "For each revision and encoding, calibrate the successful full-document write, inject std::bad_alloc at every measured allocation, preserve destination bytes, caller geometry and derived identities, retry with the same codec and compare exact output bytes, then freshly import and verify target revision, entity types, handles and geometry."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 90, "Binary": 89},
+    "AC1015": {"ASCII": 92, "Binary": 91},
+    "AC1018": {"ASCII": 92, "Binary": 91},
+    "AC1021": {"ASCII": 92, "Binary": 91},
+    "AC1024": {"ASCII": 99, "Binary": 98},
+    "AC1027": {"ASCII": 92, "Binary": 91},
+    "AC1032": {"ASCII": 92, "Binary": 91},
+    "totals": {"ASCII": 649, "Binary": 642, "all": 1291}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_ray_xline_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 3.07 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests build-gcc/tests/ray-xline-version-allocation ray-xline: PASS; all 1,291 allocation offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and same-library readback evidence only; no independent producer or native application qualification.",
+    "The profile uses axis-aligned unit direction vectors and does not qualify non-unit direction normalization behavior.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated RAY/XLINE whole-operation rollback, caller-state preservation, same-writer byte-identical retry and typed readback now span all seven target revisions in ASCII and Binary.",
+    "remainingP6G": "Continue exact public-writer and version-variant inventory; independent producer and native geometry semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "272 completed slices and 35 remaining packages: 272/(272+35)=88.6%; count-based activity proxy only."
+  }
+}
