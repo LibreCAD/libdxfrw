@@ -7879,6 +7879,12 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             block.basePoint = DRW_Coord{3.0, 4.0, 5.0};
             block.description = "generated block envelope";
             block.hasDescription = true;
+            blockEnd.setIsEnd(true);
+            blockEnd.layer = "LOCAL_BLOCK_FOOTER_LAYER";
+            blockEnd.lineType = "DASHED";
+            blockEnd.color = 5;
+            blockEnd.visible = false;
+            blockEnd.ltypeScale = 2.5;
         }
         void writeBlockRecords() override {
             switch (overload) {
@@ -7915,7 +7921,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         void writeBlocks() override {
             blockBeginWritten = output.writeBlock(&block);
             blockEndWritten = blockBeginWritten
-                && output.writeBlockEnd(nullptr);
+                && output.writeBlockEnd(&blockEnd);
             if ((!blockBeginWritten || !blockEndWritten)
                 && !allocationTracking)
                 std::cerr << "BLOCK_RECORD profile BLOCK envelope write failed\n";
@@ -7935,6 +7941,7 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         std::vector<DRW_Variant*> xdata;
         std::vector<DRW_Insert> inserts;
         DRW_Block block;
+        DRW_Block blockEnd;
         bool blockRecordWritten = false;
         bool insertWritten = false;
         bool blockBeginWritten = false;
@@ -7981,12 +7988,16 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         void addBlock(const DRW_Block& value) override {
             blocks.push_back(value);
         }
+        void addBlockEnd(const DRW_Block& value) override {
+            blockFooters.push_back(value);
+        }
         void endBlock() override { ++blockEnds; }
         dx_data storage;
         std::string targetName;
         std::vector<Record> records;
         std::vector<DRW_Insert> inserts;
         std::vector<DRW_Block> blocks;
+        std::vector<DRW_Block> blockFooters;
         unsigned blockEnds = 0u;
     };
     const auto readbackMatches = [&](const std::filesystem::path& path,
@@ -8014,6 +8025,23 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             || !block->hasDescription)
             return false;
         const BlockRecordReadback::Record& record = probe.records.front();
+        const auto footerIt = std::find_if(
+            probe.blockFooters.begin(), probe.blockFooters.end(),
+            [](const DRW_Block& value) {
+                return value.layer == "LOCAL_BLOCK_FOOTER_LAYER";
+            });
+        if (footerIt == probe.blockFooters.end())
+            return false;
+        const DRW_Block& footer = *footerIt;
+        const std::uint32_t expectedFooterOwner =
+            version > DRW::AC1014 ? record.handle : DRW::NoHandle;
+        if (!footer.getIsEnd() || footer.handle != record.handle + 2u
+            || footer.handle == DRW::NoHandle
+            || footer.parentHandle != expectedFooterOwner
+            || footer.layer != "LOCAL_BLOCK_FOOTER_LAYER"
+            || footer.lineType != "DASHED" || footer.color != 5
+            || footer.visible || footer.ltypeScale != 2.5)
+            return false;
         std::vector<std::uint32_t> emittedInsertHandles;
         emittedInsertHandles.reserve(probe.inserts.size());
         bool insertsMatch = true;
@@ -8076,6 +8104,11 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             || adapter.block.basePoint.z != 5.0
             || adapter.block.description != "generated block envelope"
             || !adapter.block.hasDescription
+            || !adapter.blockEnd.getIsEnd()
+            || adapter.blockEnd.layer != "LOCAL_BLOCK_FOOTER_LAYER"
+            || adapter.blockEnd.lineType != "DASHED"
+            || adapter.blockEnd.color != 5 || adapter.blockEnd.visible
+            || adapter.blockEnd.ltypeScale != 2.5
             || adapter.inserts.size() != original.size())
             return false;
         for (std::size_t index = 0; index < original.size(); ++index) {
