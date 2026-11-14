@@ -28365,6 +28365,28 @@ public:
           opaqueThird_(makeCliSkippedObject(kind, 2, sourceVersion)) {
         cData = &owned_;
         currentBlock = owned_.mBlock;
+        if (kind_ == 6) {
+            // Retain the encoded object type and handle, but truncate before
+            // EED/reactor state so the reader's independent common-prologue
+            // validation fails without corrupting the outer DWG framing.
+            dwgBuffer probe(opaque_.m_rawBytes.data(),
+                            opaque_.m_rawBytes.size());
+            (void)probe.getObjType(sourceVersion);
+            if (sourceVersion > DRW::AC1014
+                && sourceVersion < DRW::AC1024)
+                (void)probe.getRawLong32();
+            (void)probe.getHandle();
+            const std::uint64_t usedBits = probe.getPosition() * 8u
+                + probe.getBitPos();
+            const std::uint64_t prefixBytes = (usedBits + 7u) / 8u;
+            if (probe.isGood()
+                && prefixBytes <= opaque_.m_rawBytes.size())
+                opaque_.m_rawBytes.resize(
+                    static_cast<std::size_t>(prefixBytes));
+            opaque_.m_objectSize = static_cast<std::uint32_t>(
+                opaque_.m_rawBytes.size());
+            opaque_.m_bodyBitSize = 0u;
+        }
     }
     void writeHeader(DRW_Header& header) override { header.vars.clear(); }
     void writeBlocks() override {}
@@ -41801,6 +41823,56 @@ int main(int argc, char** argv) {
         }
         std::cout << "lineCount=" << capture.lines
                   << " vportCount=" << capture.vports << '\n';
+        return 0;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--count-dwg-lines") {
+        dwgRW reader(argv[2]);
+        ReadOutcomeControl capture(nullptr, 0, &reader);
+        const bool read = reader.read(&capture, false);
+        const DwgReadObservations observations = reader.getReadObservations();
+        std::cout << "readSucceeded=" << (read ? "true" : "false")
+                  << " lineCount=" << capture.lines
+                  << " objectParseFailures=" << reader.getObjectParseFailures()
+                  << " sourceFrames=" << observations.frames.sourceFrames
+                  << " publishedFrames=" << observations.frames.dispositions[
+                         static_cast<std::size_t>(
+                             DRW_DwgFrameDisposition::Published)]
+                  << " failedFrames=" << observations.frames.dispositions[
+                         static_cast<std::size_t>(
+                             DRW_DwgFrameDisposition::Failed)] << '\n';
+        return read ? 0 : 1;
+    }
+    if (argc == 4
+        && std::string(argv[1]) == "--generate-cli-malformed-object-source") {
+        if (std::filesystem::exists(argv[2])) {
+            std::cerr << "Refusing to replace an existing malformed-object source\n";
+            return 1;
+        }
+        DRW::Version version = DRW::AC1032;
+        const std::string token(argv[3]);
+        if (token == "AC1015")
+            version = DRW::AC1015;
+        else if (token == "AC1018")
+            version = DRW::AC1018;
+        else if (token == "AC1021")
+            version = DRW::AC1021;
+        else if (token == "AC1024")
+            version = DRW::AC1024;
+        else if (token == "AC1027")
+            version = DRW::AC1027;
+        else if (token != "AC1032") {
+            std::cerr << "Unsupported malformed-object source version: "
+                      << token << '\n';
+            return 1;
+        }
+        dwgRW writer(argv[2]);
+        ReadOutcomeControl source(&writer, 6, nullptr, version);
+        if (!writer.write(&source, version, true) || !source.wrote) {
+            const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
+            std::cerr << "Could not generate malformed-object source: "
+                      << diagnostic.code << " — " << diagnostic.message << '\n';
+            return 1;
+        }
         return 0;
     }
     if ((argc == 3 || argc == 4)

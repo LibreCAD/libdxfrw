@@ -13867,7 +13867,11 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         commonObject.handle != obj.handle) {
       recordObjectFrameFailure(obj, offsetSpace);
       DRW_DBG(" Warning: readDwgObject, invalid common prologue or handle\n");
-      return failStructural();
+      // The object-map entry and outer size-delimited frame are already
+      // bounded. Treat a malformed record prologue as one failed object and
+      // continue at the next independent object-map location; callers still
+      // receive a failed-frame disposition and strict output remains closed.
+      return false;
     }
     if (version > DRW::AC1018 &&
         !commonObject.DRW_TableEntry::parseDwgCommonHandleData(version,
@@ -13875,7 +13879,11 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
             oType == dwgObjType::IMAGEDEF)) {
       recordObjectFrameFailure(obj, offsetSpace);
       DRW_DBG(" Warning: readDwgObject, invalid common handle tail\n");
-      return failStructural();
+      // As with a bad common prologue, this failure is bounded to the current
+      // size-delimited object. Mark this frame failed but leave independent
+      // object-map records readable; strict output and integrity-sensitive
+      // partial output still reject the source.
+      return false;
     }
     DRW_DwgFramePublication publication;
     publication.m_version = version;

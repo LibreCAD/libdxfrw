@@ -1238,6 +1238,108 @@ def check_partial_dwg_read_cli(converter, root, writer):
                 f"{version} Binary partial output did not reopen with the retained "
                 f"LINE only: {binary_reopened!r}")
         checked += 1
+
+    # A size-delimited OBJECTS frame may be valid while its common object
+    # prologue is truncated. The reader must continue through the independent
+    # object map and publish later records, but both strict and explicit-
+    # partial export stay closed because the integrity ledger contains an
+    # error for that failed frame.
+    malformed_object_profiles = {
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1032": "2018",
+    }
+    for revision, target_year in malformed_object_profiles.items():
+        source = root / f"generated malformed OBJECTS source {revision}.dwg"
+        generated = run_bounded(
+            [str(writer), "--generate-cli-malformed-object-source", str(source),
+             revision], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not source.is_file():
+            raise AssertionError(
+                f"could not author malformed {revision} OBJECTS source: {generated!r}")
+        original = source.read_bytes()
+        if original[:6] != revision.encode("ascii"):
+            raise AssertionError(
+                f"malformed OBJECTS generator emitted another revision for {revision}")
+
+        counted = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)],
+            10, 131072, cwd=root)
+        counted_fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in counted.stdout.split() if b"=" in field
+        }
+        try:
+            source_frames = int(counted_fields[b"sourceFrames"])
+            published_frames = int(counted_fields[b"publishedFrames"])
+            failed_frames = int(counted_fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            source_frames = published_frames = failed_frames = -1
+        if (counted.returncode != 0 or b"readSucceeded=true" not in counted.stdout
+                or b"lineCount=1" not in counted.stdout
+                or b"objectParseFailures=1" not in counted.stdout
+                or failed_frames != 1 or source_frames <= 1
+                or published_frames + failed_frames != source_frames):
+            raise AssertionError(
+                f"{revision} malformed object stopped later OBJECTS records: {counted!r}")
+        checked += 1
+
+        for binary in (False, True):
+            encoding = "Binary" if binary else "ASCII"
+            for partial_mode in (False, True):
+                mode = "partial" if partial_mode else "strict"
+                output = root / (
+                    f"malformed OBJECTS {mode} {revision} {encoding}.dxf")
+                output.write_bytes(SENTINEL)
+                arguments = [str(converter), str(source), "-o", str(output),
+                             f"-v{target_year}", "-y", "-d"]
+                if binary:
+                    arguments.append("-b")
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
+                projection = next((line for line in result.stderr.splitlines()
+                                   if line.startswith(
+                                       b"CLI source disposition projection:")), b"")
+                projected_fields = {
+                    field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+                    for field in projection.split() if b"=" in field
+                }
+                try:
+                    projected_source_frames = int(
+                        projected_fields[b"sourceDwgSourceFrames"])
+                    projected_published_frames = int(
+                        projected_fields[b"sourceDwgFramesPublished"])
+                except (KeyError, ValueError):
+                    projected_source_frames = projected_published_frames = -1
+                required_projection = (
+                    b"sourceDwgObjectParseFailures=1",
+                    b"sourceDwgEntityParseFailures=0",
+                    b"sourceDwgFrameCoverage=partial",
+                    b"sourceDwgFramesFailed=1",
+                    b"sourceDwgIntegrityErrorsAmongRetained=1",
+                )
+                expected_gate = (
+                    b"partial DWG output requires a successful read and finalized, bounded frame dispositions"
+                    if partial_mode else
+                    b"strict-complete conversion requires successful, complete DWG read disposition")
+                if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                        or source.read_bytes() != original
+                        or b"operationSucceeded=true" not in result.stderr
+                        or any(field not in projection for field in required_projection)
+                        or projected_source_frames <= 1
+                        or projected_published_frames + 1 != projected_source_frames
+                        or expected_gate not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} malformed OBJECTS {mode} {encoding} did not "
+                        f"fail closed atomically: {result!r}")
+                if partial_mode and (
+                        b"WARNING: explicit partial DWG read mode" not in result.stderr
+                        or b"is not a completeness/support claim" not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} malformed OBJECTS partial mode lacked its "
+                        f"incomplete-output warning: {result!r}")
+                checked += 1
     return checked
 
 
