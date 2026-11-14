@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **293 completed implementation slices** and **34 remaining
+The plan records **294 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`293 / (293 + 34) = 89.6%`. This is a count-based progress measure, not an
+`294 / (294 + 34) = 89.6%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5277,6 +5277,14 @@ reproduces the codec-specific bytes with typed VPORT/SUN owner readback. The
 focused CTest passes in 0.30 seconds. This extends only the generated owner
 route; physical producer and SUN semantic qualification remain open. See the
 [Binary follow-up receipt](docs/research/p6-dxf-sun-owner-override-binary-allocation-rollback-retry-2026-11-13.json).
+
+**P6-G retained SUN raw-owner revision matrix (2026-11-14):** the locally
+generated VPORT→SUN source and raw-owner override callback now run at AC1021,
+AC1024, AC1027, and AC1032 in ASCII and Binary. All 36 allocation failures
+preserve the previous destination and caller SUN record; same-adapter retry
+matches clean bytes and typed readback verifies the remapped VPORT/SUN owner
+edge at each revision. Focused CTest passes 1/1; no fixture was added
+([receipt](docs/research/p6-dxf-sun-owner-override-all-revision-matrix-rollback-retry-2026-11-14.json)).
 
 **P6-G modeler SAT text whole-write transaction slice (2026-11-13):** a new
 AC1024 generated 3DSOLID profile carries 600 SAT text bytes in three ordered

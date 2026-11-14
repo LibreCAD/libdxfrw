@@ -43,17 +43,30 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-bool writeInput(const std::filesystem::path& path) {
+const char* versionTag(DRW::Version version) {
+    switch (version) {
+    case DRW::AC1021: return "AC1021";
+    case DRW::AC1024: return "AC1024";
+    case DRW::AC1027: return "AC1027";
+    case DRW::AC1032: return "AC1032";
+    default: return "";
+    }
+}
+
+bool writeInput(const std::filesystem::path& path, DRW::Version version) {
+    const char* const versionString = versionTag(version);
+    if (*versionString == '\0')
+        return false;
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
         return false;
     dxfWriterAscii writer(&output);
-    writer.setVersion("AC1027", true);
+    writer.setVersion(versionString, true);
     const auto text = [&writer](int code, const char* value) {
         return writer.writeString(code, value);
     };
     const bool written = text(0, "SECTION") && text(2, "HEADER")
-        && text(9, "$ACADVER") && text(1, "AC1027")
+        && text(9, "$ACADVER") && text(1, versionString)
         && text(0, "ENDSEC") && text(0, "SECTION")
         && text(2, "TABLES") && text(0, "TABLE") && text(2, "VPORT")
         && text(5, "8") && text(330, "0") && text(100, "AcDbSymbolTable")
@@ -134,10 +147,12 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path,
+                     DRW::Version version) {
     dx_data data;
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
+        || data.sourceVersion != version
         || data.VPorts.size() != 1u || data.suns.size() != 1u
         || data.rawSunObjects.size() != 1u)
         return false;
@@ -160,33 +175,38 @@ bool run(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto input = directory / "sun-owner-override-input.dxf";
-    if (!writeInput(input))
-        return fail("could not generate the AC1027 VPORT/SUN source");
-    dx_data source;
-    dx_iface importer;
-    if (!importer.fileImport(input.string(), &source, false)
-        || source.sourceVersion != DRW::AC1027
-        || source.VPorts.size() != 1u || source.suns.size() != 1u
-        || source.rawSunObjects.size() != 1u
-        || source.rawSunObjects.front().handle != 0x706u
-        || source.rawSunObjects.front().parentHandle != 0x721u)
-        return fail("generated source did not import the retained SUN graph");
-
-    const DRW_RawDxfObject expectedSource = source.rawSunObjects.front();
     const std::string sentinel = "previous SUN owner-override destination\n";
-    for (const bool binary : {false, true}) {
-        const auto output = directory / (binary
-            ? "sun-owner-override-binary.dxf"
-            : "sun-owner-override-ascii.dxf");
+    for (const DRW::Version version : {DRW::AC1021, DRW::AC1024,
+                                       DRW::AC1027, DRW::AC1032}) {
+      const auto input = directory
+          / (std::string("sun-owner-override-input-")
+             + std::to_string(static_cast<int>(version)) + ".dxf");
+      if (!writeInput(input, version))
+          return fail("could not generate the versioned VPORT/SUN source");
+      dx_data source;
+      dx_iface importer;
+      if (!importer.fileImport(input.string(), &source, false)
+          || source.sourceVersion != version
+          || source.VPorts.size() != 1u || source.suns.size() != 1u
+          || source.rawSunObjects.size() != 1u
+          || source.rawSunObjects.front().handle != 0x706u
+          || source.rawSunObjects.front().parentHandle != 0x721u)
+          return fail("generated source did not import the retained SUN graph");
+
+      const DRW_RawDxfObject expectedSource = source.rawSunObjects.front();
+      for (const bool binary : {false, true}) {
+        const auto output = directory / (std::string("sun-owner-override-")
+            + std::to_string(static_cast<int>(version))
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
         long allocationCount = 0;
         std::string expectedBytes;
         {
             RawSunExport exporter(expectedSource);
             exporter.failAt = 1000000;
             const bool wrote = exporter.fileExport(
-                output.string(), DRW::AC1027, binary, &source, false);
-            if (!wrote || !exporter.emitted || !readbackMatches(output)
+                output.string(), version, binary, &source, false);
+            if (!wrote || !exporter.emitted
+                || !readbackMatches(output, version)
                 || !rawMatches(exporter.sun, expectedSource))
                 return fail("calibration output/readback failed");
             allocationCount = exporter.reached;
@@ -205,7 +225,7 @@ bool run(const std::filesystem::path& directory) {
             RawSunExport exporter(expectedSource);
             exporter.failAt = offset;
             const bool wrote = exporter.fileExport(
-                output.string(), DRW::AC1027, binary, &source, false);
+                output.string(), version, binary, &source, false);
             if (!allocationFailed || wrote || exporter.emitted
                 || allocationAttempts
                     != static_cast<std::size_t>(offset + 1u)
@@ -218,19 +238,22 @@ bool run(const std::filesystem::path& directory) {
 
             exporter.failAt = -1;
             const bool retried = exporter.fileExport(
-                output.string(), DRW::AC1027, binary, &source, false);
+                output.string(), version, binary, &source, false);
             std::string retryBytes;
             if (!retried || !exporter.emitted
                 || !readBytes(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, version)
                 || !rawMatches(exporter.sun, expectedSource))
                 return fail("same-adapter retry failed exact output/readback");
         }
 
-        std::cout << "raw SUN owner override "
+        std::cout << "raw SUN owner override version="
+                  << static_cast<int>(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/typed-owner-readback=PASS\n";
+      }
     }
     std::error_code ignored;
     std::filesystem::remove_all(directory, ignored);

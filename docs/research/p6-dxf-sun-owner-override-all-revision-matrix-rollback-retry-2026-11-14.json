@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-sun-owner-override-all-revision-matrix-rollback-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_SUN_RAW_OWNER_OVERRIDE_ALL_REVISION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Expand the generated raw SUN owner-override allocation control from AC1027 to the four R2007+ revisions supported by the selected VPORT/SUN profile.",
+  "source": {
+    "kind": "locally-generated-from-scratch ASCII DXF VPORT/SUN graph",
+    "profile": "One active VPORT references one retained raw SUN object; the adapter preplans the target VPORT identity and writes the SUN through writeRawDxfObject(rawSun, ownerOverride).",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_sun_owner_override_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 0.36,
+    "testSourceSha256": "67ae61ce3584596c301f4665c00c1550887dca23cf226f524d976310d52175cd",
+    "testExecutableSha256": "b384e509f98f185b7cc3ccbfc87bc219fade26590852ec78a16e582bee0fecc7",
+    "allocationOffsets": {
+      "each_version_ASCII": 5,
+      "each_version_Binary": 4,
+      "total": 36
+    },
+    "checks": [
+      "Every injected allocation failure refuses export and preserves the previous destination",
+      "Caller raw SUN handle, owner, groups, and typed fields remain unchanged after failure",
+      "Same-adapter retry matches the clean encoding-specific bytes",
+      "Fresh typed import verifies VPORT control reference, SUN owner, and retained raw SUN identity at every revision"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_sun_owner_override_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_sun_owner_override_allocation$' --output-on-failure"
+    ]
+  },
+  "limitations": [
+    "Generated transport and transaction evidence only; this does not establish producer prevalence or SUN lighting semantics.",
+    "The selected VPORT/SUN profile does not qualify unrelated raw object types or owner relationships.",
+    "No fixture file was committed; generated source and output remain in temporary storage."
+  ],
+  "priorReceipts": [
+    "docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json",
+    "docs/research/p6-dxf-sun-owner-override-binary-allocation-rollback-retry-2026-11-13.json"
+  ]
+}
