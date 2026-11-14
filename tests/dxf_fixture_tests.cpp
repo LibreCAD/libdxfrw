@@ -6389,6 +6389,134 @@ void testVportShadePlotRetention(TestContext& t) {
     }
 }
 
+void testVportVersionLossRefusalAndRetry(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-vport-version-loss-"
+           + std::to_string(std::chrono::steady_clock::now()
+                                .time_since_epoch().count()));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary VPORT version-loss directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    class DirectVportWriter final : public dx_iface {
+    public:
+        DRW_Vport vport;
+        bool emitted = false;
+
+        void writeVports() override { emitted = dxfW->writeVport(&vport); }
+    };
+
+    struct Profile {
+        const char* name;
+        DRW::Version oldVersion;
+        DRW::Version retryVersion;
+        std::function<void(DRW_Vport&)> setUnsupported;
+        std::function<void(DRW_Vport&)> makeRepresentable;
+        std::function<bool(const DRW_Vport&)> readbackMatches;
+    };
+    const Profile profiles[] = {
+        {"r2000-fields", DRW::AC1014, DRW::AC1015,
+         [](DRW_Vport& value) {
+             value.renderMode = 2;
+             value.ucsPerVP = true;
+             value.ucsOrigin = DRW_Coord(1.0, 2.0, 3.0);
+             value.ucsXAxis = DRW_Coord(0.0, 1.0, 0.0);
+             value.ucsYAxis = DRW_Coord(-1.0, 0.0, 0.0);
+             value.ucsElevation = 4.5;
+             value.ucsOrthoType = 3;
+         },
+         [](DRW_Vport&) {},
+         [](const DRW_Vport& value) {
+             return value.renderMode == 2 && value.ucsPerVP
+                 && value.ucsOrigin.x == 1.0 && value.ucsOrigin.y == 2.0
+                 && value.ucsOrigin.z == 3.0
+                 && value.ucsXAxis.x == 0.0 && value.ucsXAxis.y == 1.0
+                 && value.ucsYAxis.x == -1.0 && value.ucsYAxis.y == 0.0
+                 && value.ucsElevation == 4.5 && value.ucsOrthoType == 3;
+         }},
+        {"r2007-fields", DRW::AC1018, DRW::AC1021,
+         [](DRW_Vport& value) {
+             value.gridBehavior = 3;
+             value.gridMajorLines = 11;
+             value.useDefaultLighting = false;
+             value.defaultLightingType = 0;
+             value.brightness = 0.25;
+             value.contrast = 0.75;
+         },
+         [](DRW_Vport&) {},
+         [](const DRW_Vport& value) {
+             return value.gridBehavior == 3 && value.gridMajorLines == 11
+                 && !value.useDefaultLighting && value.defaultLightingType == 0
+                 && value.brightness == 0.25 && value.contrast == 0.75;
+         }},
+        {"r2007-visual-style-reference", DRW::AC1018, DRW::AC1021,
+         [](DRW_Vport& value) { value.visualStyleHandle = 0x777u; },
+         [](DRW_Vport&) {},
+         [](const DRW_Vport& value) {
+             return value.visualStyleHandle == 0x777u;
+         }},
+        {"r2007-background-reference", DRW::AC1018, DRW::AC1021,
+         [](DRW_Vport& value) { value.backgroundHandle = 0x778u; },
+         [](DRW_Vport& value) { value.backgroundHandle = 0u; },
+         [](const DRW_Vport& value) { return value.backgroundHandle == 0u; }}
+    };
+
+    for (const bool binary : {false, true}) {
+        for (const Profile& profile : profiles) {
+            const std::string suffix = std::string(profile.name)
+                + (binary ? "-binary" : "-ascii");
+            const auto output = directory / (suffix + ".dxf");
+            const std::string sentinel = "vport-version-sentinel";
+            {
+                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+            }
+            DirectVportWriter writer;
+            writer.vport.name = "*ACTIVE";
+            dx_data data;
+            profile.setUnsupported(writer.vport);
+            writer.cData = &data;
+            writer.currentBlock = data.mBlock;
+            dxfRW codec(output.string().c_str());
+            writer.dxfW = &codec;
+
+            const bool refused = !codec.write(&writer, profile.oldVersion, binary);
+            std::ifstream prior(output, std::ios::binary);
+            const std::string priorContents(
+                (std::istreambuf_iterator<char>(prior)),
+                std::istreambuf_iterator<char>());
+            const bool refusalIsAtomic = refused && !writer.emitted
+                && priorContents == sentinel;
+            t.expect(refusalIsAtomic,
+                binary ? "binary VPORT down-level omitted state is refused atomically"
+                       : "ASCII VPORT down-level omitted state is refused atomically");
+            if (!refusalIsAtomic)
+                continue;
+
+            profile.makeRepresentable(writer.vport);
+            const bool retried = codec.write(&writer, profile.retryVersion, binary);
+            dx_iface reader;
+            dx_data readback;
+            const bool loaded = retried && reader.fileImport(
+                output.string(), &readback, false);
+            const bool matches = loaded && readback.VPorts.size() == 1u
+                && profile.readbackMatches(readback.VPorts.front());
+            t.expect(matches,
+                binary ? "binary VPORT same-writer retry reads representable fields"
+                       : "ASCII VPORT same-writer retry reads representable fields");
+        }
+    }
+}
+
 void testSortEntsPaperLayoutOwnership(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto directory = std::filesystem::temp_directory_path()
@@ -68436,6 +68564,14 @@ int main(int argc, char** argv) {
         TestContext context;
         testVportShadePlotRetention(context);
         std::cout << "VPORT shade-plot retention and fail-closed output: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--vport-version-loss-refusal-retry") {
+        TestContext context;
+        testVportVersionLossRefusalAndRetry(context);
+        std::cout << "VPORT version-loss refusal and retry: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

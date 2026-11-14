@@ -1,0 +1,29 @@
+{
+  "title": "VPORT DXF revision loss refusal and retry",
+  "date": "2026-11-14",
+  "scope": "Prevent the direct VPORT DXF writer from silently dropping nondefault fields or references that the selected revision does not encode.",
+  "implementation": {
+    "preAC1015": [
+      "Refuse nondefault render mode, per-viewport UCS flag, UCS origin/axes/elevation, or orthographic UCS type.",
+      "Continue refusing non-null named/base UCS handles through the existing version guard."
+    ],
+    "preAC1021": [
+      "Refuse nondefault grid behavior/major interval, default-lighting controls, brightness, or contrast.",
+      "Refuse non-null background, visual-style, shade-plot, or SUN references when the target cannot encode them.",
+      "Existing version-aware ambient-color and shade-plot value guards remain in force."
+    ]
+  },
+  "verification": {
+    "focusedCommand": "ctest --test-dir build -R '^libdxfrw_vport_version_loss_refusal_retry$' --output-on-failure",
+    "focusedResult": "PASS, 1/1, 0.63 seconds.",
+    "profiles": "ASCII and Binary: AC1014 refusal then AC1015 retry/readback for R2000 UCS/render fields; AC1018 refusal then AC1021 retry/readback for R2007 grid/lighting fields and visual-style reference; AC1018 background-reference refusal followed by clearing the unsupported handle and same-codec retry.",
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 passed with project warning-as-error settings.",
+    "broaderFixtureRun": "libdxfrw_dxf_fixtures failed with 872 assertions, including unrelated finalizer lifetime, rendering preset, VIEWPORT graph, SORTENTSTABLE, and TABLE assertions. This result is recorded as a failing broad fixture run; the focused VPORT CTest passes independently and no claim is made that the full fixture suite is green."
+  },
+  "limits": [
+    "Generated direct-writer refusal/retry and typed readback evidence only.",
+    "The visual-style reference profile checks field transport and does not prove graph closure.",
+    "The background profile verifies atomic refusal and corrected retry after removing the unsupported reference; it does not prove background graph output.",
+    "No producer-authored prevalence, native CAD behavior, or application-level VPORT semantic claim is made."
+  ]
+}

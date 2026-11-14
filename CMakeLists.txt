@@ -3175,6 +3175,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --view-vport-ambient-cmc)
     set_tests_properties(libdxfrw_view_vport_ambient_cmc PROPERTIES
         LABELS "fast;dxf;dwg;color" TIMEOUT 30)
+    add_test(NAME libdxfrw_vport_version_loss_refusal_retry
+        COMMAND libdxfrw_dxf_fixture_tests --vport-version-loss-refusal-retry)
+    set_tests_properties(libdxfrw_vport_version_loss_refusal_retry PROPERTIES
+        LABELS "fast;dxf;vport;versions;retry" TIMEOUT 30)
     add_test(NAME libdxfrw_dictionary_with_default_writer
         COMMAND libdxfrw_dxf_fixture_tests --dictionary-with-default-writer)
     set_tests_properties(libdxfrw_dictionary_with_default_writer PROPERTIES

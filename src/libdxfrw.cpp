@@ -8090,17 +8090,48 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
 }
 
 bool dxfRW::writeVport(DRW_Vport *ent){
+    const DRW_Vport defaultVport;
     const bool hasShadePlotFields = ent != nullptr
         && (ent->hasDxfShadePlotMode || ent->shadePlotMode != 0
             || ent->hasDxfShadePlotHandle || ent->shadePlotHandle != 0);
     const bool hasUcsReferences = ent != nullptr
         && (ent->namedUcsHandle != 0 || ent->baseUcsHandle != 0);
+    const bool hasPreR2000Fields = ent != nullptr
+        && (ent->renderMode != defaultVport.renderMode
+            || ent->ucsPerVP != defaultVport.ucsPerVP
+            || ent->ucsOrigin.x != defaultVport.ucsOrigin.x
+            || ent->ucsOrigin.y != defaultVport.ucsOrigin.y
+            || ent->ucsOrigin.z != defaultVport.ucsOrigin.z
+            || ent->ucsXAxis.x != defaultVport.ucsXAxis.x
+            || ent->ucsXAxis.y != defaultVport.ucsXAxis.y
+            || ent->ucsXAxis.z != defaultVport.ucsXAxis.z
+            || ent->ucsYAxis.x != defaultVport.ucsYAxis.x
+            || ent->ucsYAxis.y != defaultVport.ucsYAxis.y
+            || ent->ucsYAxis.z != defaultVport.ucsYAxis.z
+            || ent->ucsElevation != defaultVport.ucsElevation
+            || ent->ucsOrthoType != defaultVport.ucsOrthoType);
+    const bool hasPreR2007Fields = ent != nullptr
+        && (ent->gridBehavior != defaultVport.gridBehavior
+            || ent->gridMajorLines != defaultVport.gridMajorLines
+            || ent->useDefaultLighting != defaultVport.useDefaultLighting
+            || ent->defaultLightingType != defaultVport.defaultLightingType
+            || ent->brightness != defaultVport.brightness
+            || ent->contrast != defaultVport.contrast);
+    const bool hasPreR2007References = ent != nullptr
+        && (ent->backgroundHandle != 0 || ent->visualStyleHandle != 0
+            || ent->shadePlotHandle != 0 || ent->m_sunHandle != 0);
     const bool entryValid = preflightTableEntry(ent);
     const bool payloadValid = ent != nullptr && ent->validateDxf(version);
     const bool shadeVersionValid = !hasShadePlotFields
         || version >= DRW::AC1021;
     const bool ucsVersionValid = !hasUcsReferences
         || version > DRW::AC1014;
+    const bool r2000VersionValid = !hasPreR2000Fields
+        || version > DRW::AC1014;
+    const bool r2007VersionValid = !hasPreR2007Fields
+        || version >= DRW::AC1021;
+    const bool r2007ReferenceVersionValid = !hasPreR2007References
+        || version >= DRW::AC1021;
     const bool orthoValid = ent != nullptr && ent->ucsOrthoType >= 0
         && ent->ucsOrthoType <= 6
         && (ent->baseUcsHandle == 0 || ent->ucsOrthoType != 0);
@@ -8119,7 +8150,8 @@ bool dxfRW::writeVport(DRW_Vport *ent){
                              m_resolvedSunHandles.end(), ent->m_sunHandle)
                     != m_resolvedSunHandles.end()));
     if (!entryValid || !payloadValid || !shadeVersionValid
-        || !ucsVersionValid || !orthoValid || !shadeTargetValid
+        || !ucsVersionValid || !r2000VersionValid || !r2007VersionValid
+        || !r2007ReferenceVersionValid || !orthoValid || !shadeTargetValid
         || !backgroundTargetValid || !sunTargetValid) {
         m_writeError = true;
         return false;
