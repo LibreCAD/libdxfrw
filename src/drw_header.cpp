@@ -902,41 +902,45 @@ bool DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
     return true;
 }
 
-void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){
-/*RLZ: TODO complete all vars to AC1024*/
+bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexcept {
     // Packed DWG flags decode to their legacy group-70 representation, while
     // modern DXF files may already carry group 290. Accept both for AC2010+
     // and let the target-version writer below normalize the emitted code.
     const int headerBooleanGroupCode = 70;
     const int alternateHeaderBooleanGroupCode =
         ver > DRW::AC1021 ? 290 : -1;
-    if (!canWriteDxfHeaderStructure()
-        || !canWriteDxfUnknownHeaderVariables()
-        || !canWriteDxfLinetypeScale()
-        || !canWriteDxfCeltscale()
-        || !canWriteDxfPsltscale()
-        || !canWriteDxfMsltscale(ver)
-        || !canWriteDxfMeasurement()
-        || !canWriteDxfUcsBaseVariables()
-        || !canWriteDxfInsunits(ver)
-        || !canWriteDxfCelweight()
-        || !canWriteDxfEndcaps()
-        || !canWriteDxfJoinstyle()
-        || !canWriteDxfLwdisplay()
-        || !canWriteDxfXedit()
-        || !canWriteDxfHeaderFlags()
-        || !canWriteDxfHeaderIntegerRange("$EXTNAMES", headerBooleanGroupCode, 0, 1,
-                                          nullptr, alternateHeaderBooleanGroupCode)
-        || !canWriteDxfHeaderIntegerRange("$PSTYLEMODE", headerBooleanGroupCode, 0, 1,
-                                          nullptr, alternateHeaderBooleanGroupCode)
-        || !canWriteDxfHeaderIntegerRange("$OLESTARTUP", headerBooleanGroupCode, 0, 1,
-                                          nullptr, alternateHeaderBooleanGroupCode)
-        || !canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
-        || !canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
-        || !canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
-        || (ver < DRW::AC1012
-            && (!canWriteDxfHeaderIntegerRange("$ATTDIA", 70, 0, 1)
-                || !canWriteDxfHeaderIntegerRange("$ATTREQ", 70, 0, 1)))) {
+    return canWriteDxfHeaderStructure()
+        && canWriteDxfUnknownHeaderVariables()
+        && canWriteDxfLinetypeScale()
+        && canWriteDxfCeltscale()
+        && canWriteDxfPsltscale()
+        && canWriteDxfMsltscale(ver)
+        && canWriteDxfMeasurement()
+        && canWriteDxfUcsBaseVariables()
+        && canWriteDxfInsunits(ver)
+        && canWriteDxfCelweight()
+        && canWriteDxfEndcaps()
+        && canWriteDxfJoinstyle()
+        && canWriteDxfLwdisplay()
+        && canWriteDxfXedit()
+        && canWriteDxfHeaderFlags()
+        && canWriteDxfHeaderIntegerRange("$EXTNAMES", headerBooleanGroupCode, 0, 1,
+                                         nullptr, alternateHeaderBooleanGroupCode)
+        && canWriteDxfHeaderIntegerRange("$PSTYLEMODE", headerBooleanGroupCode, 0, 1,
+                                         nullptr, alternateHeaderBooleanGroupCode)
+        && canWriteDxfHeaderIntegerRange("$OLESTARTUP", headerBooleanGroupCode, 0, 1,
+                                         nullptr, alternateHeaderBooleanGroupCode)
+        && canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
+        && canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
+        && canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
+        && (ver >= DRW::AC1012
+            || (canWriteDxfHeaderIntegerRange("$ATTDIA", 70, 0, 1)
+                && canWriteDxfHeaderIntegerRange("$ATTREQ", 70, 0, 1)));
+}
+
+void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){
+/*RLZ: TODO complete all vars to AC1024*/
+    if (!canWriteDxfHeaderInitialPreflight(ver)) {
         writer->markWriteError();
         return;
     }

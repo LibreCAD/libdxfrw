@@ -161,6 +161,10 @@ void reportCliConversionProjection(const dx_data& data,
     const bool isDwg = data.sourceFormat == dx_source_format::DWG;
     const char* headerStructure = !isDxf ? "not-applicable"
         : data.headerC.canWriteDxfHeaderStructure() ? "ready" : "repair-required";
+    const char* headerInitialPreflight = !isDxf ? "not-applicable"
+        : targetVersion == DRW::UNKNOWNV ? "unknown-target"
+        : data.headerC.canWriteDxfHeaderInitialPreflight(targetVersion)
+            ? "admitted" : "refused";
     const auto requiredVersions = data.headerC.vars.find("$REQUIREDVERSIONS");
     const bool hasRequiredVersions = requiredVersions != data.headerC.vars.end();
     const DRW_Variant* requiredValue = hasRequiredVersions
@@ -190,6 +194,7 @@ void reportCliConversionProjection(const dx_data& data,
     std::cerr << "CLI source disposition projection: schema=1 "
               << "sourceRepairAction=none "
               << "sourceHeaderStructure=" << headerStructure << ' '
+              << "sourceHeaderInitialPreflight=" << headerInitialPreflight << ' '
               << "inputCodePagePolicy=" << cliCodePagePolicyName(codePagePolicy)
               << " sourceDxfTextIssueMask=";
     if (isDxf)

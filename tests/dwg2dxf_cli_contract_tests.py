@@ -1324,6 +1324,46 @@ def check_source_disposition_projection(converter, root, writer):
             f"malformed HEADER was not projected as repair-required: {malformed!r}")
     checked += 1
 
+    valid_ltscale = root / "valid LTSCALE header.dxf"
+    valid_ltscale_output = root / "valid LTSCALE header output.dxf"
+    valid_ltscale_bytes = SOURCE.replace(
+        b"0\nENDSEC\n0\nSECTION\n2\nENTITIES",
+        b"9\n$LTSCALE\n40\n2.0\n0\nENDSEC\n0\nSECTION\n2\nENTITIES", 1)
+    valid_ltscale.write_bytes(valid_ltscale_bytes)
+    admitted_ltscale = run_bounded(
+        [str(converter), str(valid_ltscale), "-o", str(valid_ltscale_output),
+         "-y", "-d"], 10, 131072, cwd=root)
+    valid_ltscale_output_bytes = (valid_ltscale_output.read_bytes()
+                                  if valid_ltscale_output.is_file() else b"")
+    if (admitted_ltscale.returncode != 0
+            or valid_ltscale.read_bytes() != valid_ltscale_bytes
+            or b"$LTSCALE" not in valid_ltscale_output_bytes
+            or b"sourceHeaderStructure=ready" not in admitted_ltscale.stderr
+            or b"sourceHeaderInitialPreflight=admitted" not in admitted_ltscale.stderr):
+        raise AssertionError(
+            f"valid LTSCALE HEADER was not admitted by preflight: {admitted_ltscale!r}")
+    checked += 1
+
+    wrong_type_ltscale = root / "wrong type LTSCALE header.dxf"
+    wrong_type_ltscale_output = root / "wrong type LTSCALE destination.dxf"
+    wrong_type_ltscale_bytes = SOURCE.replace(
+        b"0\nENDSEC\n0\nSECTION\n2\nENTITIES",
+        b"9\n$LTSCALE\n70\n2\n0\nENDSEC\n0\nSECTION\n2\nENTITIES", 1)
+    wrong_type_ltscale.write_bytes(wrong_type_ltscale_bytes)
+    wrong_type_ltscale_output.write_bytes(SENTINEL)
+    refused_ltscale = run_bounded(
+        [str(converter), str(wrong_type_ltscale), "-o",
+         str(wrong_type_ltscale_output), "-y", "-d"], 10, 131072, cwd=root)
+    if (refused_ltscale.returncode != 1
+            or wrong_type_ltscale.read_bytes() != wrong_type_ltscale_bytes
+            or wrong_type_ltscale_output.read_bytes() != SENTINEL
+            or b"sourceHeaderStructure=ready" not in refused_ltscale.stderr
+            or b"sourceHeaderInitialPreflight=refused" not in refused_ltscale.stderr):
+        raise AssertionError(
+            "wrong-type LTSCALE was not distinguished from HEADER structure "
+            f"while preserving source/destination: {refused_ltscale!r}")
+    checked += 1
+
     checked += check_historical_ac1021_role_refusal(converter, root)
 
     repeated_group_header = root / "repeated HEADER group code.dxf"

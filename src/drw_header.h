@@ -273,6 +273,9 @@ public:
     bool canWriteDxfHeaderStructure() const noexcept {
         return m_dxfHeaderStructureWellFormed;
     }
+    /// Check the shared initial HEADER write gates. Later field-specific
+    /// checks remain in write(); this is separate from source-shape status.
+    bool canWriteDxfHeaderInitialPreflight(DRW::Version target) const noexcept;
     /// Validate scalar unknown HEADER values retained with a supported DXF
     /// group type. Unknown compounds and non-null reference roles fail closed.
     bool canWriteDxfUnknownHeaderVariables() const noexcept;
