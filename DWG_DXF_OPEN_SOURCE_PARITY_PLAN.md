@@ -1257,10 +1257,13 @@ then exported to matching ASCII and Binary DXF versions. The AC1021 profiles
 cover 12 ASCII and 11 Binary allocation failures; AC1027 covers the same
 counts. Each failure preserves the source record and prior destination, then
 same-adapter retry matches clean bytes and typed readback. The focused CTest
-passes in 0.39 seconds. AC1032 is not included: its generated source fails the
-current reader's class-integrity qualification and the adapter refuses export.
-This local transaction evidence does not resolve that reader gate or establish
-producer semantics ([source-version receipt](docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json)).
+passes in 0.39 seconds. AC1024 remains unqualified: generated source creation
+and import pass, but DXF export fails source-frame qualification for handle
+`0xB500` before allocation injection; the cause remains unresolved. AC1032 is
+also unqualified because its generated source fails the current reader's
+class-integrity qualification and the adapter refuses export. Keep both version
+gates open; neither attempt promotes a support claim
+([source-version receipt](docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json)).
 
 **P6-G DATALINK version-matrix transaction follow-up (2026-11-13):** the same
 sixteen-target graph now passes for AC1021, AC1024, AC1027, and AC1032, each in

@@ -4,7 +4,7 @@
   "date": "2026-11-13",
   "status": "GENERATED_RASTERVARIABLES_SOURCE_VERSION_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Extend source-backed RASTERVARIABLES DXF allocation transaction evidence to matching AC1021 and AC1027 DWG/DXF profiles.",
+  "scope": "Extend source-backed RASTERVARIABLES DXF allocation transaction evidence to matching AC1021 and AC1027 DWG/DXF profiles; record unqualified AC1024 and AC1032 attempts separately.",
   "source": {
     "kind": "deterministic locally-authored DWG records generated during each test run",
     "profile": "One ACAD_IMAGE_VARS rooted RASTERVARIABLES object; a matching-version DWG is generated, imported into the adapter, and exported to ASCII and Binary DXF.",
@@ -12,6 +12,12 @@
     "versionAttemptedButUnqualified": {
       "version": "AC1032",
       "reason": "The generated source did not pass current DWG class-integrity qualification; the DXF adapter refused output before allocation injection."
+    },
+    "additionalVersionAttemptedButUnqualified": {
+      "version": "AC1024",
+      "sourceGenerationAndImport": "PASS",
+      "reason": "DXF export returned false at source-frame qualification for RASTERVARIABLES handle 0xB500 before allocation injection; the generated test does not establish why the captured source-frame identity is absent or rejected.",
+      "allocationOffsetsReached": 0
     },
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
@@ -38,6 +44,7 @@
   },
   "limitations": [
     "Generated source data is locally authored; no independent producer interoperability or native consumer semantics are established.",
+    "AC1024 remains unqualified because export fails source-frame qualification for the typed RASTERVARIABLES record before allocation testing.",
     "AC1032 remains unqualified because its source failed class-integrity qualification and output was refused before allocation testing.",
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
