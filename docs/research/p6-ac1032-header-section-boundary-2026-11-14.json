@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound AC1032 physical HEADER page and decoded envelope accounting for an external source sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["R2018 section/page map", "AcDb:Header"],
+    "rules": [
+      "The section map identifies the HEADER section and its physical page references.",
+      "The decoded AcDb:Header envelope contains a begin sentinel, size fields, CRC, and end sentinel; compare the validated trailer end to the decoded logical-section size when accounting for suffix bytes."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "size": 1081979,
+    "version": "AC1032",
+    "provenance": "ACadSharp's recorded sample-generation script invokes AutoCAD SAVEAS for R2018 and history records these bytes; the host executable and execution log are not bound to this file hash. See p6-imagedef-cross-version-soft-role-evidence-2026-11-07.json."
+  },
+  "physicalHeaderPage": {
+    "pageNumber": 54,
+    "fileOffset": 1079552,
+    "pageBytes": 992,
+    "pageSha256": "c9bc0ee79aa3fd5f4c0b57191656398b7fa7b277f2a758bf2fab78c1a335e65f",
+    "compressedDataBytes": 942,
+    "decompressedDataBytes": 870
+  },
+  "decodedHeaderEnvelope": {
+    "logicalSectionId": 1,
+    "inputBytes": 870,
+    "beginSentinelOffset": 0,
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 828,
+    "highSizeWordOffset": 20,
+    "highSizeWord": 0,
+    "dataOffset": 24,
+    "payloadEndOffset": 852,
+    "crcOffset": 852,
+    "storedCrc": "0x93e1",
+    "calculatedCrc": "0x93e1",
+    "endSentinelOffset": 854,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 870,
+    "unclaimedSuffixBytes": 0,
+    "compatibilityDiagnostic": "The reader reports HeaderSectionCompatibility expected=848, observed=852 while admitting the zero high-size-word profile. This receipt does not assert whether that producer-facing severity is correct."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/p6-e-ac1032-crc-probe.dxf",
+    "executableSha256": "0c3038724b39b95ac57062fee287be3de5e819d6a90d2ed38da12d105a4eb3f6",
+    "traceSha256": "83d15fc2741d63a87b692a45cb10d8c1789fc0ae0ed61b1b26c9f3ed9a693a3f",
+    "exitCode": 1,
+    "observation": "The reader parsed the HEADER envelope with zero unclaimed bytes and matching traced CRC values. It published all 842 observed source frames with zero entity/object parse failures. Strict output later refused a standalone OBJECTCONTEXTDATA record with no qualified replay path."
+  },
+  "limitations": [
+    "The save script supports AutoCAD SAVEAS provenance but does not bind the host executable or run log to these bytes.",
+    "The AC1032 production reader remains the documented pass-through stub; this HEADER observation does not qualify R2018 page-map, compression, or general reader support.",
+    "This exact-envelope profile does not classify the separate LibreDWG Line.dwg suffix observed in p6-ac1032-libredwg-line-header-suffix-triage-2026-11-07.json.",
+    "CRC is computed by libdxfrw itself, not by an independent implementation; no output or support claim is promoted."
+  ]
+}
