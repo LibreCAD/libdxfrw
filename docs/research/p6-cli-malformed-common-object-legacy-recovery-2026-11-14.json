@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "slice": "P6-F AC1015/AC1018 malformed common-prologue recovery",
+  "status": "generated fast control passed",
+  "basis": "ODA Open Design Specification v5.4.1 §§20.1 and 23.1–23.2: independently size-bounded OBJECTS records and object-map locations permit one malformed record to fail without shifting later frames.",
+  "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-object-prologue-source",
+  "mutation": "Start with a generated reader-supported MLINESTYLE, flip one bit inside the common prologue after the encoded type and handle, and require the common-prologue probe to reject it while the encoded type and handle remain unchanged.",
+  "profiles": [
+    {
+      "source_version": "AC1015",
+      "sha256": "476c3bc4296023aa31d83c8dab0b6c4688458fe81263cc76a45bba8b92368d0f",
+      "source_frames": 28,
+      "published_frames": 27,
+      "failed_frames": 1
+    },
+    {
+      "source_version": "AC1018",
+      "sha256": "29adcdaee186d2256ab24693c464aeddf4ec0190306f03a2536cf84087aa83b1",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1
+    }
+  ],
+  "per_profile_observation": {
+    "read_succeeded": true,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 1,
+    "retained_line_count": 1,
+    "frame_accounting": "source = published + failed"
+  },
+  "cli_policy": {
+    "target_version": "AC1021 / AutoCAD 2007 DXF",
+    "encodings": ["ASCII", "Binary"],
+    "strict": "Refuses before replacing the destination; source and sentinel destination remain unchanged.",
+    "explicit_partial": "Refuses because the failed common-prologue frame retains an ObjectFrameBounds integrity error; source and sentinel destination remain unchanged.",
+    "same_destination_and_source_preserved": true
+  },
+  "validation": {
+    "focused_selector": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "focused_selector_result": "PASS: CLI partial DWG read (93 strict/partial/readback controls)",
+    "ctest": "dwg2dxf_cli_partial_read_disposition",
+    "ctest_result": "PASS 1/1 in 2.27 seconds"
+  },
+  "limitations": [
+    "DWG inputs are generated locally in temporary directories and are not committed as fixtures.",
+    "This proves malformed-frame isolation and CLI refusal only; it does not qualify MLINESTYLE semantics, producer interoperability, or support.",
+    "The earlier unsupported custom-class truncation produced no parser failures in AC1015/AC1018 and is explicitly excluded from this evidence."
+  ]
+}
