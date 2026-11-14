@@ -560,6 +560,13 @@ if expect_3dface and (desktop_dispatch or expected_modeler):
     raise RuntimeError(
         "3DFACE importer qualification excludes desktop dispatch and modeler mode"
     )
+expect_solid = os.environ.get("LIBDXFRW_FREECAD_EXPECT_SOLID", "")
+if expect_solid not in ("", "unsupported"):
+    raise RuntimeError("LIBDXFRW_FREECAD_EXPECT_SOLID must be unsupported")
+if expect_solid and (desktop_dispatch or expected_modeler or not expect_3dface):
+    raise RuntimeError(
+        "SOLID importer qualification requires the pinned mixed-profile lane"
+    )
 if desktop_dispatch and not App.GuiUp:
     raise RuntimeError("desktop dispatch qualification requires the FreeCAD GUI")
 if operation == "insert" and " " not in os.path.abspath(sample):
@@ -863,7 +870,8 @@ def assert_failed_converter_route():
 
 
 def assert_3dface_unsupported(document, stats, unsupported,
-                             expected_shaped_count=0):
+                             expected_shaped_count=0,
+                             expected_other_unsupported=()):
     expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
     actual_version = list(App.Version())
     if not expected_revision or len(actual_version) < 8:
@@ -890,26 +898,39 @@ def assert_3dface_unsupported(document, stats, unsupported,
         if getattr(obj, "Shape", None) is not None
         and not obj.Shape.isNull()
     )
-    other_unsupported = {
+    other_unsupported = {}
+    for entity, count in expected_other_unsupported:
+        matches = [values for key, values in unsupported.items()
+                   if entity in key.upper()]
+        other_unsupported[entity] = sum(len(values) for values in matches)
+    unexpected_unsupported = {
         key: values for key, values in unsupported.items()
-        if "3DFACE" not in key.upper() and values
+        if "3DFACE" not in key.upper()
+        and not any(entity in key.upper()
+                    for entity, _count in expected_other_unsupported)
+        and values
     }
     if (unsupported_3dface_count != 1
             or shaped_count != expected_shaped_count
-            or other_unsupported):
+            or any(other_unsupported[entity] != count
+                   for entity, count in expected_other_unsupported)
+            or unexpected_unsupported):
         raise AssertionError(
             "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes "
-            "(expected %d), objects %r, other unsupported %r"
+            "(expected %d), objects %r, other unsupported %r (expected %r)"
             % (unsupported_3dface_count, shaped_count, expected_shaped_count,
                [(obj.Name, obj.TypeId, hasattr(obj, "Mesh"),
                  getattr(obj, "Shape", None) is not None)
-                for obj in document.Objects], other_unsupported)
+                for obj in document.Objects],
+               {**other_unsupported, **unexpected_unsupported},
+               dict(expected_other_unsupported))
         )
     return {
         "pinned_freecad_revision": expected_revision,
         "entity_count": entity_counts.get("3DFACE", 0),
         "unsupported_count": unsupported_3dface_count,
         "created_shape_count": shaped_count,
+        "other_unsupported_counts": other_unsupported,
         "semantic_status": "unsupported_by_pinned_freecad_importer",
     }
 
@@ -1303,13 +1324,17 @@ try:
             doc, stats, unsupported,
             0 if expected_primitives is None
             else len(expected_primitives["shapes"])
-            + (1 if expected_polyface is not None else 0))
+            + (1 if expected_polyface is not None else 0),
+            (("SOLID", 1),) if expect_solid == "unsupported" else ())
         result = dict(common_result)
         result.update(
             {
                 "support_level": "converter-integration-only",
                 "importer_outcome": face_outcome["semantic_status"],
                 "freecad_3dface_outcome": face_outcome,
+                "freecad_solid_outcome": (
+                    "unsupported_by_pinned_freecad_importer"
+                    if expect_solid == "unsupported" else None),
             }
         )
         if expected_primitives is not None:

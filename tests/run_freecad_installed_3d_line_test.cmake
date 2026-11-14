@@ -316,6 +316,10 @@ if(DEFINED EXPECT_3DFACE)
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_3DFACE=${EXPECT_3DFACE}")
 endif()
+if(DEFINED EXPECT_SOLID)
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_SOLID=${EXPECT_SOLID}")
+endif()
 if(DEFINED EXPECTED_FREECAD_POLYFACE)
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_POLYFACE=${EXPECTED_FREECAD_POLYFACE}")
@@ -350,6 +354,10 @@ set(_polyface_assertion_key "")
 if(DEFINED EXPECTED_FREECAD_POLYFACE)
     set(_polyface_assertion_key "\"expected_polyface_triangles\"")
 endif()
+set(_solid_assertion_key "")
+if(DEFINED EXPECT_SOLID AND EXPECT_SOLID STREQUAL "unsupported")
+    set(_solid_assertion_key "\"freecad_solid_outcome\": \"unsupported_by_pinned_freecad_importer\"")
+endif()
 foreach(_expected IN ITEMS
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
         "${_installed_converter}"
@@ -358,6 +366,7 @@ foreach(_expected IN ITEMS
         "\"discovery\": \"path\""
         "\"dwg_conversion\": ${DWG_CONVERSION_MODE}"
         "${_polyface_assertion_key}"
+        "${_solid_assertion_key}"
         "${_geometry_assertion_key}")
     if(NOT _expected)
         continue()

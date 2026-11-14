@@ -10172,6 +10172,15 @@ public:
         wrotePolyface_ = writer_->writePolyline(&polyface)
             && polyface.handle != 0u;
 
+        // SOLID is a filled surface entity that older CAD consumers can
+        // represent directly even when they do not support 3DFACE/POLYFACE.
+        DRW_Solid solid;
+        solid.basePoint = {141.0, 142.0, 13.0};
+        solid.secPoint = {144.0, 142.0, 13.0};
+        solid.thirdPoint = {144.0, 146.0, 13.0};
+        solid.fourPoint = {141.0, 146.0, 13.0};
+        wroteSolid_ = writer_->writeSolid(&solid) && solid.handle != 0u;
+
         // A tilted planar face checks actual 3D surface transport through
         // DWG, DXF, and the native consumer, beyond wire-level entity counts.
         DRW_3Dface face;
@@ -10223,8 +10232,8 @@ public:
     bool finalizeDwgWrite() override {
         return wrotePoint_ && wroteLine_ && wroteCircle_ && wroteArc_
             && wroteEllipse_ && wrotePolyline_ && wrote3dPolyline_
-            && wrotePolyface_ && wrote3dFace_ && wroteClosed2dPolyline_
-            && wroteSpline_;
+            && wrotePolyface_ && wroteSolid_ && wrote3dFace_
+            && wroteClosed2dPolyline_ && wroteSpline_;
     }
     bool finalizeDwgWriteStructure() override { return true; }
 
@@ -10238,6 +10247,7 @@ private:
     bool wrotePolyline_ {false};
     bool wrote3dPolyline_ {false};
     bool wrotePolyface_ {false};
+    bool wroteSolid_ {false};
     bool wrote3dFace_ {false};
     bool wroteClosed2dPolyline_ {false};
     bool wroteSpline_ {false};
