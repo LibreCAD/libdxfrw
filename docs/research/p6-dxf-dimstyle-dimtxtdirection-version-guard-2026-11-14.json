@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-14",
+  "scope": "Pre-AC1024 DXF DIMSTYLE DIMTXTDIRECTION group-295 output",
+  "evidence": {
+    "format_crosswalk": "The project DIMSTYLE descriptor maps group 295 to DIMTXTDIRECTION with minimum revision AC1024; ODA DWG v5.4.1 lists the field as R2010+. Autodesk documents DIMTXTDIRECTION as a system variable introduced for current supported releases, with initial value 0. The parser stores group 295 in the typed field and syncStructToVars maps that field back to group 295.",
+    "references": [
+      {
+        "title": "Autodesk DIMTXTDIRECTION system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-06B9BE91-A2E9-45CB-9B3D-7D5BDD238F5B.htm",
+        "initial_value": 0
+      },
+      {
+        "title": "ODA Open Design Specification for .dwg files",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "section": "DIMSTYLE R2010+ fields",
+        "observation": "Lists DIMTXTDIRECTION with field code 295."
+      }
+    ],
+    "code": "dxfRW::writeDimstyle now refuses pre-AC1024 output when the typed dimtxtdirection field or a dynamic group-295 override is nonzero. The default left-to-right value remains omitted.",
+    "control": "libdxfrw_dimstyle_table_allocation generates typed and dynamic nonzero cases and verifies atomic refusal plus same-writer retry after restoring zero in ASCII and Binary AC1021; clean ASCII output is checked for absence of DIMSTYLE group 295.",
+    "test_command": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4 && ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.40 seconds",
+    "fixture_policy": "Generated controls write only to the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "This is a version-loss refusal guard, not a native dimension-rendering qualification.",
+      "Accepted compatibility spellings 292 and 294 are parse-only; this slice does not establish a legacy output mapping for them."
+    ]
+  }
+}

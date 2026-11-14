@@ -8412,6 +8412,13 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             // that represents enabled fixed-length extension lines.
             return failDxfWrite();
         }
+        if (version < DRW::AC1024 && value->code() == 295
+            && (value->type() != DRW_Variant::INTEGER
+                || value->content.i != 0)) {
+            // DIMTXTDIRECTION first appears in AutoCAD 2010; older targets
+            // have no established equivalent direction field.
+            return failDxfWrite();
+        }
         if (version < spec->minimumVersion)
             continue;
         if (value->type() != spec->type
@@ -8447,6 +8454,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     if (version < DRW::AC1015 && ent->dimaltrnd != 0.0)
         return failDxfWrite();
     if (version < DRW::AC1021 && ent->dimfxlon != 0)
+        return failDxfWrite();
+    if (version < DRW::AC1024 && ent->dimtxtdirection != 0)
         return failDxfWrite();
 
     std::uint32_t emittedDimTextStyleHandle = 0;

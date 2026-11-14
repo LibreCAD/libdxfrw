@@ -74,7 +74,8 @@ bool sameDimstyle(const DRW_Dimstyle& a, const DRW_Dimstyle& b,
         && a.dimdec == b.dimdec && a.dimtad == b.dimtad
         && a.dimunit == b.dimunit && a.dimfit == b.dimfit
         && a.dimfxl == b.dimfxl && a.dimaltrnd == b.dimaltrnd
-        && a.dimfxlon == b.dimfxlon;
+        && a.dimfxlon == b.dimfxlon
+        && a.dimtxtdirection == b.dimtxtdirection;
 }
 
 std::string handleHex(std::uint32_t handle) {
@@ -460,6 +461,64 @@ bool dimfxlonRefusalRetry(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool dimtxtdirectionRefusalRetry(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-dimtxtdirection.dxf";
+    const auto cleanPath = directory / "dimstyle-dimtxtdirection-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    const DRW::Version version = DRW::AC1021;
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        if (!cleanCodec.write(&cleanExporter, version, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expectedBytes;
+        if (!readBytes(cleanPath, expectedBytes)
+            || (!binary && asciiDimstyleHasGroup(expectedBytes, 295))) {
+            std::cerr << "pre-2010 DIMSTYLE emitted group 295\n";
+            return false;
+        }
+
+        for (const bool useOverride : {false, true}) {
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            if (useOverride)
+                exporter.dimstyle.add("$DIMTXTDIRECTION", 295, 1);
+            else
+                exporter.dimstyle.dimtxtdirection = 1;
+            if (codec.write(&exporter, version, binary)
+                || exporter.accepted) {
+                std::cerr << "pre-2010 DIMTXTDIRECTION refusal failed: binary="
+                          << binary << " override=" << useOverride << '\n';
+                return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
+
+            if (useOverride)
+                exporter.dimstyle.add("$DIMTXTDIRECTION", 295, 0);
+            else
+                exporter.dimstyle.dimtxtdirection = 0;
+            if (!codec.write(&exporter, version, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes || !readbackMatches(path)) {
+                std::cerr << "pre-2010 DIMTXTDIRECTION retry failed: binary="
+                          << binary << " override=" << useOverride << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -502,5 +561,6 @@ int main() {
     return allocationSweep(directory)
         && dimfxlRefusalRetry(directory)
         && dimaltrndRefusalRetry(directory)
-        && dimfxlonRefusalRetry(directory) ? 0 : 2;
+        && dimfxlonRefusalRetry(directory)
+        && dimtxtdirectionRefusalRetry(directory) ? 0 : 2;
 }
