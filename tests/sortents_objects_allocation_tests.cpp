@@ -240,17 +240,21 @@ bool directRecordReadback(const std::string& bytes, bool binary) {
 
 bool directRecordAllocationSweep() {
     constexpr long calibrationLimit = 1000000;
+    const DRW::Version versions[] = {
+        DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032};
     const auto writeDirect = [](dxfRW& codec, DRW_SortEntsTable& table) {
         return codec.writeSortEntsTable(&table);
     };
-    for (const bool binary : {false, true}) {
+    for (const DRW::Version version : versions) {
+      for (const bool binary : {false, true}) {
         std::string expectedBytes;
         long allocationCount = 0;
         {
             std::ostringstream bytes;
             dxfRW codec("");
             DxfSortEntsTableTestAccess::attachWriter(
-                codec, DRW::AC1027, binary, bytes);
+                codec, version, binary, bytes);
             DRW_SortEntsTable table = makeSortTable();
             bool written = false;
             {
@@ -278,7 +282,7 @@ bool directRecordAllocationSweep() {
             std::ostringstream bytes;
             dxfRW codec("");
             DxfSortEntsTableTestAccess::attachWriter(
-                codec, DRW::AC1027, binary, bytes);
+                codec, version, binary, bytes);
             DRW_SortEntsTable table = makeSortTable();
             const std::size_t failuresBefore = failedAllocations;
             bool written = false;
@@ -315,8 +319,10 @@ bool directRecordAllocationSweep() {
             }
         }
         std::cout << (binary ? "Binary" : "ASCII")
-                  << " direct SORTENTSTABLE allocation offsets="
+                  << " direct SORTENTSTABLE allocation offsets version="
+                  << static_cast<int>(version) << " count="
                   << allocationCount << '\n';
+      }
     }
     return true;
 }

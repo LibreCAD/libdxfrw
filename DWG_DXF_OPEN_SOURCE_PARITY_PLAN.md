@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **237 completed implementation slices** and **35 remaining
+The plan records **238 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`237 / (237 + 35) = 87.1%`. This is a count-based progress measure, not an
+`238 / (238 + 35) = 87.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -2141,6 +2141,20 @@ readback across 7,580 injected allocation failures. The focused CTest passes in
 15.00 seconds. This adds generated revision-gate evidence only; producer and
 native semantics remain open (same
 [all-overload receipt](docs/research/p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G SORTENTSTABLE direct-writer revision matrix (2026-11-13):** the
+generated direct-record allocation sweep now covers AC1014, AC1015, AC1018,
+AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. All 22 measured
+allocation offsets per lane preserve caller state and leave source-handle
+binding unpublished on failure; direct typed record readback and same-codec
+retry pass across all 14 lanes. The existing full-file rollback/retry and
+Model/Paper-space owner graph checks remain AC1027, where the test verifies
+entity-owner readback. A full-file AC1014 attempt exposed that legacy entity
+owner output does not satisfy that graph oracle, so no legacy graph-closure
+claim is made. The focused CTest passes in 0.24 seconds. This closes one
+generated direct-writer transaction matrix only; source-producer prevalence,
+named-block ownership and native SORTENTSTABLE behavior remain open (see the
+[revision-matrix receipt](docs/research/p6-sortents-objects-dxf-writer-version-matrix-2026-11-13.json)).
 
 **P6 RENDERSETTINGS MentalRay preset follow-up (2026-11-13):** the same
 whole-file sweep now also includes generated Legacy and Modern MentalRay
