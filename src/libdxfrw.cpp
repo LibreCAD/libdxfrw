@@ -7850,15 +7850,19 @@ bool dxfRW::recordDxfTableRow() noexcept {
 bool dxfRW::writeLayer(DRW_Layer *ent){
     std::uint32_t material = 0u;
     bool hasMaterial = false;
+    std::uint32_t plotStyle = 0u;
+    bool hasPlotStyle = false;
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()
         || !ent->getDxfMaterialHandle(material, hasMaterial)
+        || !ent->getDxfPlotStyleHandle(plotStyle, hasPlotStyle)
         || (hasMaterial && version < DRW::AC1021)
         || (ent->color24 >= 0 && version <= DRW::AC1015)
         || (!ent->colorName.empty() && version <= DRW::AC1015)
         || (version <= DRW::AC1014
             && (!ent->plotF
-                || ent->lWeight != DRW_LW_Conv::widthDefault))) {
+                || ent->lWeight != DRW_LW_Conv::widthDefault
+                || (hasPlotStyle && plotStyle != 0x0Fu)))) {
         m_writeError = true;
         return false;
     }
@@ -7960,7 +7964,34 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                     return failDxfWrite();
                 write(writer->writeString(390, toHexStr(target)));
             } else {
-                write(writer->writeString(390, "F"));
+                std::uint32_t sourcePlotStyle = 0u;
+                bool hasPlotStyle = false;
+                if (!ent->getDxfPlotStyleHandle(sourcePlotStyle,
+                                                hasPlotStyle))
+                    return failDxfWrite();
+                if (!hasPlotStyle) {
+                    // Match the library's historical default PlotStyleName
+                    // placeholder for layers with no supplied source pointer.
+                    write(writer->writeString(390, "F"));
+                } else if (sourcePlotStyle == 0u) {
+                    write(writer->writeString(390, "0"));
+                } else if (sourcePlotStyle == 0x0Fu
+                           && !m_referenceResolver) {
+                    // F is the conventional default Normal PlotStyleName
+                    // placeholder used by ordinary DXF table writers.
+                    write(writer->writeString(390, "F"));
+                } else {
+                    // A nondefault group-390 value is a graph edge. Do not
+                    // emit its source handle (or silently replace it with F)
+                    // unless the caller closes that edge in the output graph.
+                    if (!m_referenceResolver)
+                        return failDxfWrite();
+                    const std::uint32_t target =
+                        resolveReference(sourcePlotStyle);
+                    if (target == 0u || target == DRW::NoHandle)
+                        return failDxfWrite();
+                    write(writer->writeString(390, toHexStr(target)));
+                }
             }
         }
     } else

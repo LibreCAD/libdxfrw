@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **339 completed implementation slices** and **34 remaining
+The plan records **340 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`339 / (339 + 34) = 90.9%`. This is a count-based progress measure, not an
+`340 / (340 + 34) = 90.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -17,6 +17,18 @@ sub-slices do not retire their parent package until its full exit gate passes. T
 activity proxy, not as the percentage of package gates completed. Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
+
+**Newest local P6-D slice (2026-11-14):** LAYER group 390 is now handled as a
+PlotStyleName graph edge. An explicit nondefault handle must resolve through
+the caller's reference resolver; otherwise the table write fails atomically
+instead of silently replacing the source style with `F`. Pre-R2000 output
+refuses a supplied nondefault pointer rather than dropping it. Explicit null
+remains null and absent input retains the historical default placeholder. The
+focused generated test proves unresolved refusal, destination rollback,
+same-writer retry, and fresh DXF readback of the mapped handle in ASCII and
+Binary. This is bounded writer behavior only; the resolver's target graph and
+native plot-style semantics remain outside the evidence
+([receipt](docs/research/p6-dxf-layer-plotstyle-reference-mapping-2026-11-14.json)).
 
 **Newest local P6-G slice (2026-11-14):** generated AC1021 DIMSTYLE records
 with nondefault typed and dynamic `$DIMTFILLCLR` values now pass

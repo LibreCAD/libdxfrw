@@ -58,8 +58,11 @@ bool sameLayer(const DRW_Layer& actual, DRW::Version version,
 
 class Export final : public LC3CompatCheck {
 public:
-    Export(dxfRW& codec, DRW::Version version)
-        : codec(codec), version(version), layer(makeLayer(version)) {}
+    Export(dxfRW& codec, DRW::Version version,
+           const std::string& plotStyle = {})
+        : codec(codec), version(version), layer(makeLayer(version)) {
+        layer.handlePlotS = plotStyle;
+    }
     void writeHeader(DRW_Header&) override {}
     void writeLayers() override {
         if (failAt < 0) {
@@ -152,6 +155,60 @@ bool readbackPlotAndLineweightMatch(
     return codec.read(&reader, false) && reader.layers.size() == 1u
         && reader.layers.front().plotF == plot
         && reader.layers.front().lWeight == lineweight;
+}
+
+bool readbackPlotStyleMatches(const std::filesystem::path& path,
+                              const std::string& handle) {
+    dxfRW codec(path.string().c_str());
+    Reader reader;
+    return codec.read(&reader, false) && reader.layers.size() == 1u
+        && reader.layers.front().handlePlotS == handle;
+}
+
+bool plotStyleReferenceMapping(const std::filesystem::path& directory) {
+    constexpr std::uint32_t sourceHandle = 0x123u;
+    constexpr std::uint32_t targetHandle = 0x456u;
+    const auto path = directory / "layer-plotstyle-closure.dxf";
+    const std::string prior = "prior LAYER destination bytes\n";
+    {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output << prior;
+        if (!output)
+            return false;
+    }
+    {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec, DRW::AC1027, "123");
+        const bool written = codec.write(&exporter, DRW::AC1027, false);
+        std::string current;
+        if (written || exporter.accepted || !readBytes(path, current)
+            || current != prior) {
+            std::cerr << "unresolved LAYER PlotStyleName was not refused\n";
+            return false;
+        }
+        exporter.accepted = false;
+        codec.setReferenceResolver([](std::uint32_t handle) {
+            return handle == sourceHandle ? targetHandle : 0u;
+        });
+        const bool retried = codec.write(&exporter, DRW::AC1027, false);
+        if (!retried || !exporter.accepted
+            || !readbackPlotStyleMatches(path, "456")) {
+            std::cerr << "LAYER PlotStyleName same-writer retry failed\n";
+            return false;
+        }
+    }
+    const auto nullPath = directory / "layer-null-plotstyle.dxf";
+    {
+        dxfRW codec(nullPath.string().c_str());
+        Export exporter(codec, DRW::AC1027, "0");
+        if (!codec.write(&exporter, DRW::AC1027, false) || !exporter.accepted
+            || !readbackPlotStyleMatches(nullPath, "0")) {
+            std::cerr << "explicit null LAYER PlotStyleName was not preserved\n";
+            return false;
+        }
+    }
+    std::cout << "LAYER PlotStyleName resolver mapping and null passed\n";
+    return true;
 }
 
 bool allocationSweep(const std::filesystem::path& directory) {
@@ -285,6 +342,43 @@ bool preR2000LayerLossRefusalAndRetry(
     }
     return true;
 }
+
+bool preR2000PlotStyleRefusalAndRetry(
+    const std::filesystem::path& directory) {
+    constexpr std::uint32_t sourceHandle = 0x123u;
+    constexpr std::uint32_t targetHandle = 0x456u;
+    const auto path = directory / "layer-r13-plotstyle-refusal.dxf";
+    const std::string prior = "prior LAYER destination bytes\n";
+    for (const bool binary : {false, true}) {
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output)
+                return false;
+        }
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec, DRW::AC1014, "123");
+        const bool written = codec.write(&exporter, DRW::AC1014, binary);
+        std::string current;
+        if (written || exporter.accepted || !readBytes(path, current)
+            || current != prior || exporter.layer.handlePlotS != "123") {
+            std::cerr << "pre-R2000 LAYER plot-style loss was not refused\n";
+            return false;
+        }
+        codec.setReferenceResolver([](std::uint32_t handle) {
+            return handle == sourceHandle ? targetHandle : 0u;
+        });
+        const bool retried = codec.write(&exporter, DRW::AC1015, binary);
+        if (!retried || !exporter.accepted
+            || !readbackPlotStyleMatches(path, "456")) {
+            std::cerr << "R2000 LAYER plot-style retry failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+    }
+    std::cout << "pre-R2000 LAYER PlotStyleName refusal and retry passed\n";
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -326,5 +420,7 @@ int main() {
     } cleanup{directory};
     return allocationSweep(directory)
             && preR2000LayerLossRefusalAndRetry(directory)
+            && preR2000PlotStyleRefusalAndRetry(directory)
+            && plotStyleReferenceMapping(directory)
         ? 0 : 2;
 }

@@ -2622,6 +2622,12 @@ public:
   /// native aliases must agree, and all supplied handles must fit 32 bits.
   /// This validates representation only; the exporter owns graph closure.
   bool getDxfMaterialHandle(std::uint32_t &handle, bool &present) const noexcept;
+  /// Resolve the optional DXF group-390 PlotStyleName pointer without
+  /// consuming it. Empty text/native zero is absent; text "0" is explicitly
+  /// null. Nonzero native aliases must agree and fit 32 bits. The exporter
+  /// owns target resolution and graph closure.
+  bool getDxfPlotStyleHandle(std::uint32_t &handle,
+                             bool &present) const noexcept;
   UTF8STRING lineType;  /*!< line type, code 6 */
   int color;            /*!< layer color, code 62 */
   int color24;          /*!< 24-bit color, code 420 */
