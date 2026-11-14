@@ -64,7 +64,7 @@
     },
     "focusedTest": {
       "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
-      "result": "PASS (1/1; generated ASCII/Binary DIMTFILLCLR typed output/readback, dynamic override precedence/readback, third-occurrence refusal, and typed/dynamic pre-AC1021 atomic refusal with same-writer retry; existing DIMTFILL/DIMARCSYM controls remain green)"
+      "result": "PASS (1/1; generated ASCII/Binary DIMTFILLCLR typed output/readback, dynamic override precedence/readback, third-occurrence refusal, nonrepresentable RGB CMC atomic refusal and ACI same-writer retry, and typed/dynamic pre-AC1021 atomic refusal with same-writer retry; existing DIMTFILL/DIMARCSYM controls remain green)"
     },
     "consumerCompatibility": {
       "command": "cmake --build build-gcc --target lc3_compat_check -j4",

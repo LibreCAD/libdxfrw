@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **336 completed implementation slices** and **34 remaining
+The plan records **337 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`336 / (336 + 34) = 90.8%`. This is a count-based progress measure, not an
+`337 / (337 + 34) = 90.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -23,7 +23,9 @@ now preserve the documented first group-70 table-entry flags and the
 peer-documented second R2007+ group-70 DIMTFILLCLR ACI index. Generated
 AC1021 ASCII/Binary typed output/readback and dynamic override controls pass;
 a third group-70 occurrence and nondefault pre-R2007 downgrade both refuse,
-with same-writer retry covered. The focused DIMSTYLE allocation CTest passes.
+with same-writer retry covered. A nonrepresentable RGB CMC value also refuses
+atomically and retries as ACI in ASCII/Binary. The focused DIMSTYLE allocation
+CTest passes.
 The `lc3_compat_check` target builds and the existing 3D consumer probe passes
 1/1 after the public DIMSTYLE metadata accessor change; these are compile and
 probe checks, not native LibreCAD/LibreCAD_3 application qualification.

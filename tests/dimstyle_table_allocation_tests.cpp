@@ -295,6 +295,63 @@ bool dimstyleTextFillColorTypedOutput(const std::filesystem::path& directory) {
     return true;
 }
 
+bool dimstyleTextFillColorUnsupportedCmcRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-text-fill-color-cmc.dxf";
+    const auto cleanPath =
+        directory / "dimstyle-text-fill-color-cmc-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        cleanExporter.dimstyle.dimtfill = 2;
+        cleanExporter.dimstyle.dimtfillclr = 42;
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expected;
+        if (!readBytes(cleanPath, expected))
+            return false;
+
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output)
+                return false;
+        }
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimtfill = 2;
+        exporter.dimstyle.dimtfillclr = 256;
+        exporter.dimstyle.dimtfillclrRgb = 0x0000FF;
+        if (codec.write(&exporter, DRW::AC1021, binary)
+            || exporter.accepted) {
+            std::cerr << "unprojected DIMTFILLCLR RGB was accepted: binary="
+                      << binary << '\n';
+            return false;
+        }
+        std::string current;
+        if (!readBytes(path, current) || current != prior)
+            return false;
+
+        exporter.dimstyle.dimtfillclr = 42;
+        exporter.dimstyle.dimtfillclrRgb = -1;
+        if (!codec.write(&exporter, DRW::AC1021, binary)
+            || !exporter.accepted || !readBytes(path, current)
+            || current != expected) {
+            std::cerr << "DIMTFILLCLR ACI retry after RGB refusal failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
+        if (!readerCodec.read(&reader, false) || reader.dimstyles.size() != 1u
+            || reader.dimstyles.front().dimtfillclr != 42)
+            return false;
+    }
+    return true;
+}
+
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "dimstyle-table-allocation.dxf";
     const std::string prior = "prior DIMSTYLE destination bytes\n";
@@ -1006,6 +1063,7 @@ int main() {
     } cleanup{directory};
     return allocationSweep(directory)
         && dimstyleTextFillColorTypedOutput(directory)
+        && dimstyleTextFillColorUnsupportedCmcRetry(directory)
         && dimfxlRefusalRetry(directory)
         && dimaltrndRefusalRetry(directory)
         && dimfxlonRefusalRetry(directory)
