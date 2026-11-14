@@ -46,7 +46,10 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text, RText, ArcAlignedText, Shape };
+enum class Profile {
+    Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text,
+    RText, ArcAlignedText, Shape, SectionObject
+};
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -63,6 +66,7 @@ const char* profileName(Profile profile) {
     case Profile::RText: return "RTEXT";
     case Profile::ArcAlignedText: return "ARCALIGNEDTEXT";
     case Profile::Shape: return "SHAPE";
+    case Profile::SectionObject: return "SECTIONOBJECT";
     }
     return "unknown";
 }
@@ -245,6 +249,55 @@ DRW_Shape makeShape() {
     return shape;
 }
 
+DRW_SectionObject makeSectionObject() {
+    DRW_SectionObject section;
+    section.handle = 0xD946u;
+    section.m_state = 3u;
+    section.m_flags = 5u;
+    section.m_name = "VERSION_MATRIX_SECTION";
+    section.m_vertDir = DRW_Coord{0.0, 0.0, 1.0};
+    section.m_topHeight = 12.5;
+    section.m_bottomHeight = -2.5;
+    section.m_indicatorAlpha = 125u;
+    section.m_indicatorColor = 6u;
+    section.m_verts = {DRW_Coord{1.0, 2.0, 3.0},
+                       DRW_Coord{4.0, 5.0, 6.0}};
+    section.m_blVerts = {DRW_Coord{-1.0, -2.0, -3.0},
+                         DRW_Coord{-4.0, -5.0, -6.0}};
+    return section;
+}
+
+bool sameSectionObject(const DRW_SectionObject& a,
+                       const DRW_SectionObject& b,
+                       bool compareHandle = true) {
+    const auto samePoint = [](const DRW_Coord& x, const DRW_Coord& y) {
+        return x.x == y.x && x.y == y.y && x.z == y.z;
+    };
+    const auto samePoints = [&samePoint](const std::vector<DRW_Coord>& x,
+                                         const std::vector<DRW_Coord>& y) {
+        return x.size() == y.size()
+            && std::equal(x.begin(), x.end(), y.begin(), samePoint);
+    };
+    return (!compareHandle || a.handle == b.handle)
+        && a.m_state == b.m_state && a.m_flags == b.m_flags
+        && a.m_name == b.m_name && samePoint(a.m_vertDir, b.m_vertDir)
+        && a.m_topHeight == b.m_topHeight
+        && a.m_bottomHeight == b.m_bottomHeight
+        && a.m_indicatorAlpha == b.m_indicatorAlpha
+        && a.m_indicatorColor == b.m_indicatorColor
+        && samePoints(a.m_verts, b.m_verts)
+        && samePoints(a.m_blVerts, b.m_blVerts)
+        && a.m_sectionSettingsHandle == b.m_sectionSettingsHandle
+        && a.m_indicatorColorRgb == b.m_indicatorColorRgb
+        && a.m_indicatorColorName == b.m_indicatorColorName
+        && a.m_indicatorColorBookName == b.m_indicatorColorBookName
+        && a.m_indicatorColorDwgMethod == b.m_indicatorColorDwgMethod
+        && a.m_indicatorColorDwgFlags == b.m_indicatorColorDwgFlags
+        && a.m_indicatorColorDwgIndex == b.m_indicatorColorDwgIndex
+        && a.m_indicatorColorDwgMetadataPresent
+               == b.m_indicatorColorDwgMetadataPresent;
+}
+
 bool sameShape(const DRW_Shape& a, const DRW_Shape& b,
                bool compareHandle = true) {
     return (!compareHandle || a.handle == b.handle)
@@ -418,6 +471,7 @@ public:
         rtext = makeRText();
         arcAlignedText = makeArcAlignedText();
         shape = makeShape();
+        sectionObject = makeSectionObject();
         codec.setEllipseParts(8);
     }
 
@@ -445,6 +499,8 @@ public:
         case Profile::ArcAlignedText:
             accepted = codec.writeArcAlignedText(&arcAlignedText); break;
         case Profile::Shape: accepted = codec.writeShape(&shape); break;
+        case Profile::SectionObject:
+            accepted = codec.writeSectionObject(&sectionObject); break;
         }
     }
 
@@ -466,6 +522,7 @@ public:
     DRW_RText rtext;
     DRW_ArcAlignedText arcAlignedText;
     DRW_Shape shape;
+    DRW_SectionObject sectionObject;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -672,6 +729,11 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
             && shape->m_extrusion.y == expected.m_extrusion.y
             && shape->m_extrusion.z == expected.m_extrusion.z;
     }
+    if (profile == Profile::SectionObject) {
+        const auto* section = dynamic_cast<const DRW_SectionObject*>(entity);
+        return section != nullptr && section->eType == DRW::SECTION
+            && sameSectionObject(*section, makeSectionObject(), false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -719,6 +781,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
         {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 4>
+        sectionObjectVersions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> shapeVersions = {{
         {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
@@ -768,6 +834,8 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_RText originalRText = exporter.rtext;
                 const DRW_ArcAlignedText originalArcAlignedText = exporter.arcAlignedText;
                 const DRW_Shape originalShape = exporter.shape;
+                const DRW_SectionObject originalSectionObject =
+                    exporter.sectionObject;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -813,6 +881,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Shape:
                     callerPreserved = sameShape(exporter.shape, originalShape);
+                    break;
+                case Profile::SectionObject:
+                    callerPreserved = sameSectionObject(
+                        exporter.sectionObject, originalSectionObject);
                     break;
                 }
                 if (!allocationFailed || written
@@ -863,8 +935,12 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                                         ? sameArcAlignedText(
                                                             exporter.arcAlignedText,
                                                             originalArcAlignedText)
-                                                        : sameShape(exporter.shape,
-                                                            originalShape);
+                                                        : profile == Profile::Shape
+                                                            ? sameShape(exporter.shape,
+                                                                originalShape)
+                                                            : sameSectionObject(
+                                                                exporter.sectionObject,
+                                                                originalSectionObject);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -918,6 +994,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : shapeVersions)
             if (!runVersion(version.first, version.second))
                 return false;
+    } else if (profile == Profile::SectionObject) {
+        for (const auto& version : sectionObjectVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
     } else {
         for (const auto& version : legacyVersions)
             if (!runVersion(version.first, version.second))
@@ -928,6 +1008,63 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
 
 bool runUnsupportedTextExtensionBoundaries(
         const std::filesystem::path& directory);
+
+bool runSectionObjectVersionBoundary(
+        const std::filesystem::path& directory) {
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return false;
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "SECTIONOBJECT-boundary-binary.dxf"
+                      : "SECTIONOBJECT-boundary-ascii.dxf");
+        std::string expectedBytes;
+        {
+            dxfRW cleanCodec(output.string().c_str());
+            Export cleanExporter(cleanCodec, Profile::SectionObject);
+            if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+                || !cleanExporter.accepted
+                || !readBytes(output, expectedBytes)
+                || !readbackMatches(output, Profile::SectionObject,
+                                    DRW::AC1021))
+                return false;
+        }
+        const std::string sentinel = "prior unsupported SECTIONOBJECT target\n";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+                return false;
+        }
+        dxfRW codec(output.string().c_str());
+        Export exporter(codec, Profile::SectionObject);
+        const DRW_SectionObject original = exporter.sectionObject;
+        const bool refused = !codec.write(&exporter, DRW::AC1018, binary)
+            && !exporter.accepted
+            && sameSectionObject(exporter.sectionObject, original);
+        std::string afterRefusal;
+        if (!refused || !readBytes(output, afterRefusal)
+            || afterRefusal != sentinel) {
+            std::cerr << "SECTIONOBJECT AC1018 refusal changed caller or "
+                         "destination\n";
+            return false;
+        }
+        const bool retried = codec.write(&exporter, DRW::AC1021, binary)
+            && exporter.accepted;
+        std::string retryBytes;
+        if (!retried || !readBytes(output, retryBytes)
+            || retryBytes != expectedBytes
+            || !readbackMatches(output, Profile::SectionObject,
+                                DRW::AC1021)) {
+            std::cerr << "SECTIONOBJECT AC1018 refusal then AC1021 retry "
+                         "failed\n";
+            return false;
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
 
 bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
@@ -943,7 +1080,9 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::RText)
         && runProfile(directory, Profile::ArcAlignedText)
         && runUnsupportedTextExtensionBoundaries(directory)
-        && runProfile(directory, Profile::Shape);
+        && runProfile(directory, Profile::Shape)
+        && runProfile(directory, Profile::SectionObject)
+        && runSectionObjectVersionBoundary(directory);
 }
 
 bool runUnsupportedTextExtensionBoundaries(
@@ -1026,8 +1165,17 @@ void operator delete(void* value, std::size_t) noexcept { std::free(value); }
 void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
+    if (argc == 3 && std::string(argv[2]) == "--sectionobject-versions") {
+        const std::filesystem::path directory(argv[1]);
+        const bool passed = runProfile(directory, Profile::SectionObject)
+            && runSectionObjectVersionBoundary(directory);
+        std::cout << "SECTIONOBJECT version transaction matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    }
     if (argc != 2) {
-        std::cerr << "usage: dxf_3d_entity_version_allocation_tests SCRATCH_DIR\n";
+        std::cerr << "usage: dxf_3d_entity_version_allocation_tests SCRATCH_DIR"
+                     " [--sectionobject-versions]\n";
         return 2;
     }
     return run(argv[1]) ? 0 : 1;

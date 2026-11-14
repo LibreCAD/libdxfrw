@@ -6162,6 +6162,13 @@ add_test(NAME libdxfrw_3d_entity_version_allocation
         ${CMAKE_CURRENT_BINARY_DIR}/3d-entity-version-allocation)
 set_tests_properties(libdxfrw_3d_entity_version_allocation PROPERTIES
     LABELS "dxf;fast;entity;3d;transaction;allocation;versions" TIMEOUT 120)
+add_test(NAME libdxfrw_sectionobject_version_allocation
+    COMMAND libdxfrw_3d_entity_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/sectionobject-version-allocation
+        --sectionobject-versions)
+set_tests_properties(libdxfrw_sectionobject_version_allocation PROPERTIES
+    LABELS "dxf;fast;entity;sectionobject;transaction;allocation;versions"
+    TIMEOUT 30)
 
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp

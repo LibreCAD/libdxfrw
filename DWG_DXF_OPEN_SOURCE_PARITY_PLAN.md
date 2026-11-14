@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **356 completed implementation and qualification slices** and **34 remaining
+The plan records **357 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`356 / (356 + 34) = 91.3%`. This is a count-based progress measure, not an
+`357 / (357 + 34) = 91.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -157,6 +157,17 @@ measured allocation failures pass; the focused
 DIMSTYLE transaction test completes in under one second. This adds generated
 transaction evidence only; the peer-defined field and its semantic profile
 remain bounded as described below ([receipt](docs/research/p6-dxf-dimstyle-fill-color-allocation-retry-2026-11-14.json)).
+
+**P6-G SECTIONOBJECT version transaction slice (2026-11-14):** the generated
+direct-writer matrix now covers AC1021/AC1024/AC1027/AC1032 in ASCII and
+Binary. All 80 injected allocation failures preserve the prior destination
+and caller model, then same-writer retry reproduces clean bytes and fresh typed
+readback verifies the state, flags, name, direction, heights, indicator and
+both vertex arrays. AC1018 refusal also preserves the sentinel and retries at
+AC1021. This closes only the generated SECTIONOBJECT transaction/version
+sub-slice; non-null SECTION_SETTINGS closure, producer semantics, native
+presentation and DWG source support remain unqualified. The focused selector
+passes in 0.44 seconds ([receipt](docs/research/p6-dxf-sectionobject-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the
