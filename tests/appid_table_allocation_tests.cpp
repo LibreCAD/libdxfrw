@@ -30,7 +30,6 @@ DRW_AppId makeAppId() {
     app.handle = 0xD750u;
     app.name = "GENERATED_ALLOCATION_RETRY_APP";
     app.flags = 0x10;
-    app.unknown71 = 2u;
     return app;
 }
 
@@ -188,6 +187,58 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool unknownGroup71RefusalRetry(const std::filesystem::path& directory) {
+    const auto path = directory / "appid-unknown-71.dxf";
+    const auto cleanPath = directory / "appid-unknown-71-clean.dxf";
+    const std::string prior = "prior APPID destination bytes\n";
+    constexpr std::array<DRW::Version, 2> versions{{
+        DRW::AC1014, DRW::AC1032}};
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            dxfRW cleanCodec(cleanPath.string().c_str());
+            Export cleanExporter(cleanCodec);
+            if (!cleanCodec.write(&cleanExporter, version, binary)
+                || !cleanExporter.accepted)
+                return false;
+            std::string expectedBytes;
+            if (!readBytes(cleanPath, expectedBytes))
+                return false;
+
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            exporter.app.unknown71 = 2u;
+            if (codec.write(&exporter, version, binary)
+                || exporter.accepted || exporter.app.unknown71 != 2u) {
+                std::cerr << "APPID group-71 refusal failed: version="
+                          << versionCode(version) << " binary=" << binary
+                          << '\n';
+                return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
+
+            exporter.app.unknown71 = 0u;
+            if (!codec.write(&exporter, version, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes || !readbackMatches(path)) {
+                std::cerr << "APPID group-71 retry failed: version="
+                          << versionCode(version) << " binary=" << binary
+                          << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -227,5 +278,6 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory)
+        && unknownGroup71RefusalRetry(directory) ? 0 : 2;
 }

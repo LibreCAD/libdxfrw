@@ -9315,6 +9315,11 @@ bool dxfRW::writeUCS(DRW_UCS *ent){
 
 
 bool dxfRW::writeAppId(DRW_AppId *ent){
+    // APPID DXF records define groups 2 and 70 (plus the R2000+ subclass
+    // marker).  unknown71 is retained for DWG compatibility only; group 71
+    // has no documented APPID meaning, so do not emit an unqualified field.
+    if (ent != nullptr && ent->unknown71 != 0)
+        return failDxfWrite();
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()) {
         m_writeError = true;
@@ -9364,8 +9369,6 @@ bool dxfRW::writeAppId(DRW_AppId *ent){
         result = writer->writeUtf8Caps(2, ent->name) && result;
     }
     result = writer->writeInt16(70, ent->flags) && result;
-    if (ent->unknown71 != 0)
-        result = writer->writeInt16(71, ent->unknown71) && result;
     if (!ent->extData.empty())
         result = writeExtData(ent->extData) && result;
     if (!result || writer->hasWriteError())
