@@ -86,6 +86,12 @@ struct Export final : LC3CompatCheck {
     long failAt = -1;
     long reached = 0;
 
+    void setTargetVersion(DRW::Version version) {
+        const int cloning = version == DRW::AC1014 ? 0 : 1;
+        firstChild.m_cloning = cloning;
+        secondChild.m_cloning = cloning;
+    }
+
     void writeObjects() override {
         bool tableWritten = false;
         if (failAt < 0) {
@@ -235,15 +241,17 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path, int expectedCloning) {
     Reader readback;
     dxfRW reader(path.string().c_str());
     return reader.read(&readback, false) && readback.tables.size() == 1u
         && readback.raw.size() == 1u && readback.xrecords.size() == 2u
         && verify(readback.tables.front(), true, true)
         && readback.xrecords[0].handle == 0x216u
+        && readback.xrecords[0].m_cloning == expectedCloning
         && readback.xrecords[0].parentHandle == 0x215u
         && readback.xrecords[1].handle == 0x217u
+        && readback.xrecords[1].m_cloning == expectedCloning
         && readback.xrecords[1].parentHandle == 0x215u;
 }
 
@@ -288,9 +296,10 @@ bool sourceUnchanged(const Export& actual, const Export& expected) {
 bool allocationSweep(const std::filesystem::path& path) {
     const std::string prior = "prior DATATABLE bytes\n";
     constexpr DRW::Version versions[] = {
-        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     for (const DRW::Version version : versions) {
+        const int expectedCloning = version == DRW::AC1014 ? 0 : 1;
         for (const bool binary : {false, true}) {
             long allocationCount = 0;
             std::string expectedBytes;
@@ -299,9 +308,11 @@ bool allocationSweep(const std::filesystem::path& path) {
                 codec.setHandleRemap({{0x114u, 0x214u}, {0x115u, 0x215u},
                                       {0x116u, 0x216u}, {0x117u, 0x217u}});
                 Export exporter(codec);
+                exporter.setTargetVersion(version);
                 exporter.failAt = 1000000;
                 const bool written = codec.write(&exporter, version, binary);
-                if (!written || !exporter.emitted || !readbackMatches(path)
+                if (!written || !exporter.emitted
+                    || !readbackMatches(path, expectedCloning)
                     || !readBytes(path, expectedBytes)) {
                     std::cerr << "DATATABLE calibration failed: version="
                               << static_cast<int>(version)
@@ -327,6 +338,8 @@ bool allocationSweep(const std::filesystem::path& path) {
                                       {0x116u, 0x216u}, {0x117u, 0x217u}});
                 Export exporter(codec);
                 Export expected(codec);
+                exporter.setTargetVersion(version);
+                expected.setTargetVersion(version);
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, version, binary);
                 exporter.failAt = -1;
@@ -350,7 +363,8 @@ bool allocationSweep(const std::filesystem::path& path) {
                 std::string retryBytes;
                 if (!retried || !exporter.emitted
                     || !readBytes(path, retryBytes)
-                    || retryBytes != expectedBytes || !readbackMatches(path)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(path, expectedCloning)
                     || !sourceUnchanged(exporter, expected)) {
                     std::cerr << "DATATABLE retry failed: version="
                               << static_cast<int>(version)

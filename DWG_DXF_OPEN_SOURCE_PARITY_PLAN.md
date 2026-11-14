@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **266 completed implementation slices** and **35 remaining
+The plan records **267 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`266 / (266 + 35) = 88.4%`. This is a count-based progress measure, not an
+`267 / (267 + 35) = 88.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1208,7 +1208,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P5-H | OPEN | Resolve VIEWPORT group-91 type and semantics from native ASCII and Binary pairs, then lock the parser profile. | Paired source files and type/range agreement; malformed-domain fast controls. |
 | P6-A | OPEN | Resolve the IMAGEDEF parent-role conflict across source field, handle stream, dictionary membership, and target graph. | Exact source spans and independently decoded handle roles; strict output/readback proof. |
 | P6-B | OPEN | Qualify PERSUBENTMGR typed semantics, ownership, dependencies, and output route; retain raw-only refusal for unknown members. | Source-bound object plus independent field mapping and fresh output readback. |
-| P6-C | OPEN | Close TABLECONTENT/DATATABLE record families, nested references, and per-version writer behavior. | A generated DATATABLE plus row-XRECORD allocation matrix now passes AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 ASCII and Binary; this is codec transaction evidence only. Still require distinct producer-backed source profiles, exact owner/target roles, and independent roundtrip evidence for each admitted version. |
+| P6-C | OPEN | Close TABLECONTENT/DATATABLE record families, nested references, and per-version writer behavior. | A generated DATATABLE plus row-XRECORD allocation matrix now passes AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 ASCII and Binary; the AC1014 child XRECORDs use and read back cloning=0, while later revisions retain cloning=1. This is codec transaction evidence only. Still require distinct producer-backed source profiles, exact owner/target roles, and independent roundtrip evidence for each admitted version. |
 | P6-D | OPEN | Finish per-version field and geometry/no-loss census for uncovered record families; classify typed, normalized, raw-only, and dropped data. | Delta against current source-matched receipts; every field has a disposition and selected regression control. |
 | P6-E | OPEN | Complete HEADER envelope/suffix accounting by version: declared data, CRC, sentinels, trailers, and unclaimed bytes. | ODA v5.4.1 plus hash-bound traces; no unexplained bytes inside an admitted strict profile. |
 | P6-F | OPEN | Complete CLI disposition matrix for malformed, partial, recoverable, raw-only, and strict-refusal cases across supported versions. | Reconcile existing CLI tests first; fast selector covers status, diagnostics, destination atomicity, and retry. |
@@ -1231,13 +1231,14 @@ dependency-ready local package. Do not stop implementation at a blocker.
 
 **P6-G DATATABLE writer version-matrix transaction follow-up (2026-11-13):**
 the generated four-column DATATABLE graph and its two row XRECORD children now
-pass for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032, in ASCII and
-Binary. Each version/encoding profile covers all 12 ASCII or 11 Binary
+pass for AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032, in ASCII
+and Binary. Each version/encoding profile covers all 12 ASCII or 11 Binary
 measured allocations; failures preserve the destination and caller records,
 and same-codec retry reproduces clean bytes with typed table and child readback.
-The focused CTest passes in 0.45 seconds; the direct control covers 138
-allocation offsets. This is generated transaction evidence only; P6-C remains
-open for producer-backed schemas and independent consumer meaning
+AC1014 uses and verifies cloning=0 on its row XRECORDs because that target has
+no cloning header. The focused CTest passes in 0.49 seconds; the direct control
+covers 161 allocation offsets. This is generated transaction evidence only;
+P6-C remains open for producer-backed schemas and independent consumer meaning
 ([version-matrix receipt](docs/research/p6-dxf-datatable-version-matrix-allocation-2026-11-13.json)).
 
 **P6-G DATALINK custom-data vector transaction follow-up (2026-11-13):**
