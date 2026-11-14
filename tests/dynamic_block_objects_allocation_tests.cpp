@@ -2000,84 +2000,111 @@ bool sourceUnchanged(const DRW_DynamicBlockObject& object) {
 
 bool allocationSweep(bool binary) {
     constexpr long calibrationLimit = 1000000;
+    const DRW::Version versions[] = {
+        DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    const auto versionName = [](DRW::Version version) {
+        switch (version) {
+        case DRW::AC1024: return "AC1024";
+        case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
+        default: return "UNKNOWN";
+        }
+    };
     const auto writeRecord = [](dxfRW& codec,
                                 DRW_DynamicBlockObject& object) {
         return codec.writeDynamicBlockObject(&object);
     };
 
-    std::ostringstream cleanBytes;
-    dxfRW cleanCodec("");
-    DxfDynamicBlockTestAccess::attachWriter(
-        cleanCodec, DRW::AC1024, binary, cleanBytes);
-    DRW_DynamicBlockObject cleanObject = makePurgePreventer();
-    long allocationCount = 0;
-    bool cleanWrite = false;
-    {
-        AllocationFailure failure(calibrationLimit);
-        cleanWrite = writeRecord(cleanCodec, cleanObject);
-        allocationCount = calibrationLimit - allocationsBeforeFailure;
-    }
-    if (!cleanWrite || !sourceUnchanged(cleanObject)
-        || cleanCodec.getWritingContext()
-            ->sourceHandleToWrittenObjectMap.count(cleanObject.handle) != 1u
-        || cleanCodec.getWritingContext()
-            ->sourceHandleToWrittenObjectMap.at(cleanObject.handle)
-            != cleanCodec.remapHandle(cleanObject.handle)
-        || !DxfDynamicBlockTestAccess::writeEnd(cleanCodec)) {
-        std::cerr << "clean PurgePreventer record failed (binary="
-                  << binary << ") write=" << cleanWrite
-                  << " source=" << sourceUnchanged(cleanObject)
-                  << " handleBindings="
-                  << cleanCodec.getWritingContext()
-                         ->sourceHandleToWrittenObjectMap.size()
-                  << '\n';
-        return false;
-    }
-    const std::string expectedBytes = cleanBytes.str();
-    const bool cleanReadback = wireReadback(expectedBytes, binary);
-    if (allocationCount <= 0 || !cleanReadback) {
-        std::cerr << "PurgePreventer clean readback/calibration failed binary="
-                  << binary << " allocationCount=" << allocationCount
-                  << " bytes=" << expectedBytes.size()
-                  << " readback=" << cleanReadback << '\n';
-        return false;
-    }
-
-    for (long offset = 0; offset < allocationCount; ++offset) {
-        std::ostringstream failedBytes;
-        dxfRW failedCodec("");
+    for (const DRW::Version version : versions) {
+        std::ostringstream cleanBytes;
+        dxfRW cleanCodec("");
         DxfDynamicBlockTestAccess::attachWriter(
-            failedCodec, DRW::AC1024, binary, failedBytes);
-        DRW_DynamicBlockObject object = makePurgePreventer();
-        const std::size_t failuresBefore = failedAllocations;
-        bool wrote = false;
-        try {
-            AllocationFailure failure(offset);
-            wrote = writeRecord(failedCodec, object);
-        } catch (const std::bad_alloc&) {
-            allocationsBeforeFailure = -1;
+            cleanCodec, version, binary, cleanBytes);
+        DRW_DynamicBlockObject cleanObject = makePurgePreventer();
+        long allocationCount = 0;
+        bool cleanWrite = false;
+        {
+            AllocationFailure failure(calibrationLimit);
+            cleanWrite = writeRecord(cleanCodec, cleanObject);
+            allocationCount = calibrationLimit - allocationsBeforeFailure;
         }
-        allocationsBeforeFailure = -1;
-        const DRW_WritingContext* context = failedCodec.getWritingContext();
-        if (wrote || failedAllocations == failuresBefore
-            || !sourceUnchanged(object) || context == nullptr
-            || context->sourceHandleToWrittenObjectMap.count(object.handle)
-                != 0u) {
-            std::cerr << "PurgePreventer allocation rollback failed at "
-                      << (binary ? "Binary" : "ASCII")
-                      << " offset=" << offset << " wrote=" << wrote
-                      << " failed=" << (failedAllocations != failuresBefore)
-                      << " identityAbsent="
-                      << (context != nullptr
-                          && context->sourceHandleToWrittenObjectMap.count(
-                                 object.handle) == 0u)
-                      << '\n';
+        const DRW_WritingContext* cleanContext =
+            cleanCodec.getWritingContext();
+        if (!cleanWrite || !sourceUnchanged(cleanObject)
+            || cleanContext == nullptr
+            || cleanContext->sourceHandleToWrittenObjectMap.count(
+                   cleanObject.handle) != 1u
+            || cleanContext->sourceHandleToWrittenObjectMap.at(
+                   cleanObject.handle) != cleanCodec.remapHandle(cleanObject.handle)
+            || !DxfDynamicBlockTestAccess::writeEnd(cleanCodec)) {
+            std::cerr << "clean PurgePreventer record failed (version="
+                      << versionName(version) << ", binary=" << binary
+                      << ") write=" << cleanWrite
+                      << " source=" << sourceUnchanged(cleanObject) << '\n';
             return false;
         }
+        const std::string expectedBytes = cleanBytes.str();
+        const bool cleanReadback = wireReadback(expectedBytes, binary);
+        if (allocationCount <= 0 || !cleanReadback) {
+            std::cerr << "PurgePreventer clean readback/calibration failed version="
+                      << versionName(version) << " binary=" << binary
+                      << " allocationCount=" << allocationCount
+                      << " readback=" << cleanReadback << '\n';
+            return false;
+        }
+
+        for (long offset = 0; offset < allocationCount; ++offset) {
+            std::ostringstream failedBytes;
+            dxfRW failedCodec("");
+            DxfDynamicBlockTestAccess::attachWriter(
+                failedCodec, version, binary, failedBytes);
+            DRW_DynamicBlockObject object = makePurgePreventer();
+            const std::size_t failuresBefore = failedAllocations;
+            bool wrote = false;
+            try {
+                AllocationFailure failure(offset);
+                wrote = writeRecord(failedCodec, object);
+            } catch (const std::bad_alloc&) {
+                allocationsBeforeFailure = -1;
+            }
+            allocationsBeforeFailure = -1;
+            const DRW_WritingContext* context = failedCodec.getWritingContext();
+            if (wrote || failedAllocations == failuresBefore
+                || !sourceUnchanged(object) || context == nullptr
+                || context->sourceHandleToWrittenObjectMap.count(object.handle)
+                    != 0u) {
+                std::cerr << "PurgePreventer allocation rollback failed at "
+                          << versionName(version) << ' '
+                          << (binary ? "Binary" : "ASCII")
+                          << " offset=" << offset << " wrote=" << wrote << '\n';
+                return false;
+            }
+
+            std::ostringstream retryBytes;
+            dxfRW retryCodec("");
+            DxfDynamicBlockTestAccess::attachWriter(
+                retryCodec, version, binary, retryBytes);
+            const bool retryWrote = writeRecord(retryCodec, object);
+            const DRW_WritingContext* retryContext =
+                retryCodec.getWritingContext();
+            if (!retryWrote || !sourceUnchanged(object) || retryContext == nullptr
+                || retryContext->sourceHandleToWrittenObjectMap.count(
+                       object.handle) != 1u
+                || !DxfDynamicBlockTestAccess::writeEnd(retryCodec)
+                || retryBytes.str() != expectedBytes
+                || !wireReadback(retryBytes.str(), binary)) {
+                std::cerr << "PurgePreventer fresh-writer retry failed at "
+                          << versionName(version) << ' '
+                          << (binary ? "Binary" : "ASCII")
+                          << " offset=" << offset << '\n';
+                return false;
+            }
+        }
+        std::cout << versionName(version) << ' '
+                  << (binary ? "Binary" : "ASCII")
+                  << " PurgePreventer allocation offsets=" << allocationCount
+                  << "; rollback, fresh-writer retry, and readback pass\n";
     }
-    std::cout << (binary ? "Binary" : "ASCII")
-              << " PurgePreventer allocation offsets=" << allocationCount
-              << "; source identities roll back on every refusal\n";
     return true;
 }
 } // namespace

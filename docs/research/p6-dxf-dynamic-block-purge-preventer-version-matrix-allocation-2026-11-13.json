@@ -1,0 +1,45 @@
+{
+  "id": "p6-dxf-dynamic-block-purge-preventer-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "scope": "Generated ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION record allocation rollback, source identity rollback, fresh-writer retry, exact-byte comparison, and wire readback across admitted target revisions.",
+  "profile": {
+    "kind": "DRW_DynamicBlockObject::Kind::PurgePreventer",
+    "targetRevisions": ["AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "repositoryFixtureAdded": false,
+    "versionGate": "dxfRW::writeDynamicBlockObject admits AC1024 and later; this profile uses the three currently modeled modern revisions"
+  },
+  "implementation": {
+    "test": "tests/dynamic_block_objects_allocation_tests.cpp",
+    "testSha256": "9722537262c72d522d35ef0c51807c836350446f727f69569a01a9aabdc45a20",
+    "normalBinarySha256": "888699518e980ea04bc00ff17e66c5734e9f8d6020ccb2dcf15445126027d888"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "build-gcc",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dynamic_block_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dynamic_block_objects_allocation$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_dynamic_block_objects_allocation",
+    "durationSeconds": 0.32,
+    "revisions": {
+      "AC1024": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "identityRollback": true, "freshWriterRetry": true, "wireReadback": true, "retryBytesMatchCalibration": true},
+      "AC1027": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "identityRollback": true, "freshWriterRetry": true, "wireReadback": true, "retryBytesMatchCalibration": true},
+      "AC1032": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "identityRollback": true, "freshWriterRetry": true, "wireReadback": true, "retryBytesMatchCalibration": true}
+    },
+    "totalAllocationOffsets": 66,
+    "callerStatePreservedAtEveryOffset": true,
+    "suite": "focused normal CTest selector only; no full suite or ASan rerun"
+  },
+  "limits": [
+    "This receipt covers the PurgePreventer object only; other dynamic-block records remain version-specific and require separate review.",
+    "Retry uses a fresh dxfRW writer because failed low-level record writes may leave a sticky writer error.",
+    "No native dynamic-block evaluation or application behavior is qualified.",
+    "Does not close P6-G's full public-writer inventory."
+  ],
+  "next": "Continue the P6-G writer-route inventory and select the next admitted transaction gap from current writer/version gates."
+}

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **253 completed implementation slices** and **35 remaining
+The plan records **254 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`253 / (253 + 35) = 87.8%`. This is a count-based progress measure, not an
+`254 / (254 + 35) = 87.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1956,6 +1956,16 @@ allocation failures pass; the focused CTest completes in about 1.4 seconds.
 This establishes generated transaction behavior only, not independent FIELD
 evaluation or native semantics. See the
 [FIELD/path/PARTIAL_VIEWING_INDEX receipt](docs/research/p6-dxf-field-path-partial-viewing-index-version-matrix-allocation-2026-11-13.json).
+
+**P6-G dynamic-block PurgePreventer revision-matrix transaction slice
+(2026-11-13):** the admitted `ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION` object
+now has allocation rollback, handle-identity rollback, unchanged source state,
+fresh-writer retry, exact-byte comparison and wire readback at AC1024, AC1027
+and AC1032 in ASCII and Binary. All 66 injected allocation failures pass; the
+focused dynamic-block allocation CTest completes in about 0.3 seconds. This
+closes only the PurgePreventer matrix; other dynamic-block profiles and the
+full P6-G writer inventory remain open. See the
+[PurgePreventer receipt](docs/research/p6-dxf-dynamic-block-purge-preventer-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH and MPOLYGON writes now have per-allocation rollback, same-writer retry,
