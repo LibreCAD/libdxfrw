@@ -10148,6 +10148,15 @@ public:
         wrote3dPolyline_ = writer_->writePolyline(&spatialPolyline)
             && spatialPolyline.handle != 0u;
 
+        // A tilted planar face checks actual 3D surface transport through
+        // DWG, DXF, and the native consumer, beyond wire-level entity counts.
+        DRW_3Dface face;
+        face.basePoint = {101.0, 102.0, 1.0};
+        face.secPoint = {104.0, 102.0, 4.0};
+        face.thirdPoint = {104.0, 106.0, 8.0};
+        face.fourPoint = {101.0, 106.0, 5.0};
+        wrote3dFace_ = writer_->write3dface(&face) && face.handle != 0u;
+
         DRW_Polyline closed2dPolyline;
         closed2dPolyline.flags = 1; // Closed classic 2D POLYLINE.
         closed2dPolyline.vertexcount = 4;
@@ -10190,7 +10199,7 @@ public:
     bool finalizeDwgWrite() override {
         return wrotePoint_ && wroteLine_ && wroteCircle_ && wroteArc_
             && wroteEllipse_ && wrotePolyline_ && wrote3dPolyline_
-            && wroteClosed2dPolyline_ && wroteSpline_;
+            && wrote3dFace_ && wroteClosed2dPolyline_ && wroteSpline_;
     }
     bool finalizeDwgWriteStructure() override { return true; }
 
@@ -10203,6 +10212,7 @@ private:
     bool wroteEllipse_ {false};
     bool wrotePolyline_ {false};
     bool wrote3dPolyline_ {false};
+    bool wrote3dFace_ {false};
     bool wroteClosed2dPolyline_ {false};
     bool wroteSpline_ {false};
 };

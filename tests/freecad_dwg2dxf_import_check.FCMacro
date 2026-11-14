@@ -161,18 +161,21 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
             6, "observed primitive bounds")
         edge_count = len(shape.Edges)
         vertex_count = len(shape.Vertexes)
+        face_count = len(shape.Faces)
         length = math.fsum(float(edge.Length) for edge in shape.Edges)
         if not math.isfinite(length):
             raise AssertionError("imported primitive edge length must be finite")
         spline_curves = [edge.Curve for edge in shape.Edges
                          if getattr(edge.Curve, "Degree", None) is not None]
         observed.append((bool(spline_curves), bounds, edge_count,
-                         vertex_count, length, spline_curves))
+                         vertex_count, face_count, length, spline_curves))
 
     expected = []
     for profile in expected_shapes:
+        required_profile_keys = {"bounds", "edges", "vertices", "length", "spline"}
         if (not isinstance(profile, dict)
-                or set(profile) != {"bounds", "edges", "vertices", "length", "spline"}):
+                or not required_profile_keys.issubset(profile)
+                or set(profile) - required_profile_keys - {"faces"}):
             raise AssertionError(
                 "each primitive expectation needs bounds, topology, length, and spline flag")
         if profile["spline"]:
@@ -183,8 +186,10 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
             bounds = finite_values(profile["bounds"], 6, "expected primitive bounds")
         edge_count = profile["edges"]
         vertex_count = profile["vertices"]
+        face_count = profile.get("faces", 0)
         if (type(edge_count) is not int or edge_count < 0
                 or type(vertex_count) is not int or vertex_count <= 0
+                or type(face_count) is not int or face_count < 0
                 or (edge_count == 0 and vertex_count != 1)):
             raise AssertionError("expected primitive topology counts are invalid")
         length = float(profile["length"])
@@ -192,7 +197,7 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
                 or (edge_count == 0 and length != 0.0)):
             raise AssertionError("expected primitive length is invalid")
         expected.append((profile["spline"], bounds, edge_count,
-                         vertex_count, length))
+                         vertex_count, face_count, length))
 
     observed.sort(key=lambda item: (item[0], item[1]))
     expected.sort(key=lambda item: (item[0], item[1] or ()))
@@ -202,9 +207,9 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
         raise AssertionError("imported SPLINE shape count differs from authored profile")
     verified_spline_samples = []
     for (actual_spline, actual_bounds, actual_edges, actual_vertices,
-         actual_length, spline_curves), (
+         actual_faces, actual_length, spline_curves), (
             wanted_spline, wanted_bounds, wanted_edges,
-            wanted_vertices, wanted_length) in zip(
+            wanted_vertices, wanted_faces, wanted_length) in zip(
             observed, expected):
         if actual_spline != wanted_spline:
             raise AssertionError("imported primitive curve kind differs from authored profile")
@@ -219,6 +224,8 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
             raise AssertionError("imported primitive edge count differs from authored value")
         if actual_vertices != wanted_vertices:
             raise AssertionError("imported primitive vertex count differs from authored value")
+        if actual_faces != wanted_faces:
+            raise AssertionError("imported primitive face count differs from authored value")
         if abs(actual_length - wanted_length) > 1e-7 * max(1.0, wanted_length):
             raise AssertionError(
                 "imported primitive edge length %.17g differs from authored value %.17g"
@@ -274,7 +281,8 @@ def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
     return {"shape_bounds": [item[1] for item in observed],
             "edge_counts": [item[2] for item in observed],
             "vertex_counts": [item[3] for item in observed],
-            "shape_lengths": [item[4] for item in observed],
+            "face_counts": [item[4] for item in observed],
+            "shape_lengths": [item[5] for item in observed],
             "spline_bounds_checked": False if actual_spline_count else None,
             "spline_samples": verified_spline_samples,
             "polyline_points": verified_polyline_points,
@@ -745,7 +753,8 @@ def assert_failed_converter_route():
     }
 
 
-def assert_3dface_unsupported(document, stats, unsupported):
+def assert_3dface_unsupported(document, stats, unsupported,
+                             expected_shaped_count=0):
     expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
     actual_version = list(App.Version())
     if not expected_revision or len(actual_version) < 8:
@@ -772,10 +781,16 @@ def assert_3dface_unsupported(document, stats, unsupported):
         if getattr(obj, "Shape", None) is not None
         and not obj.Shape.isNull()
     )
-    if unsupported_3dface_count != 1 or shaped_count != 0:
+    other_unsupported = {
+        key: values for key, values in unsupported.items()
+        if "3DFACE" not in key.upper() and values
+    }
+    if (unsupported_3dface_count != 1
+            or shaped_count != expected_shaped_count
+            or other_unsupported):
         raise AssertionError(
-            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes"
-            % (unsupported_3dface_count, shaped_count)
+            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes, other unsupported %r"
+            % (unsupported_3dface_count, shaped_count, other_unsupported)
         )
     return {
         "pinned_freecad_revision": expected_revision,
@@ -935,14 +950,16 @@ if expected_primitive_counts or expected_primitive_shapes:
         expected_shapes = []
         for item in expected_primitive_shapes.split("|"):
             values = [float(value) for value in item.split(",")]
-            if (len(values) != 10 or values[6] != int(values[6])
+            if (len(values) not in (10, 11) or values[6] != int(values[6])
                     or values[7] != int(values[7])
-                    or values[9] not in (0.0, 1.0)):
+                    or values[9] not in (0.0, 1.0)
+                    or (len(values) == 11 and values[10] != int(values[10]))):
                 raise ValueError(
-                    "each shape expectation needs six bounds, topology, length, and spline flag")
+                    "each shape expectation needs six bounds, topology, length, and spline flag, with an optional face count")
             expected_shapes.append({"bounds": values[:6], "edges": int(values[6]),
                                    "vertices": int(values[7]), "length": values[8],
-                                   "spline": bool(values[9])})
+                                   "spline": bool(values[9]),
+                                   "faces": int(values[10]) if len(values) == 11 else 0})
             if values[9] and any(values[:6]):
                 raise ValueError("SPLINE bound placeholder must be six zeros")
             if values[9]:
@@ -1145,7 +1162,10 @@ try:
             }
         )
     elif expect_3dface == "unsupported":
-        face_outcome = assert_3dface_unsupported(doc, stats, unsupported)
+        face_outcome = assert_3dface_unsupported(
+            doc, stats, unsupported,
+            0 if expected_primitives is None
+            else len(expected_primitives["shapes"]))
         result = dict(common_result)
         result.update(
             {
@@ -1154,6 +1174,16 @@ try:
                 "freecad_3dface_outcome": face_outcome,
             }
         )
+        if expected_primitives is not None:
+            geometry = assert_primitive_geometry(
+                doc, stats, expected_primitives["counts"],
+                expected_primitives["shapes"], expected_spline_samples,
+                expected_polyline_points, expected_closed_2d_polyline_points)
+            result.update({
+                "expected_entity_counts": expected_primitives["counts"],
+                "expected_primitive_shapes": expected_primitives["shapes"],
+                "primitive_geometry": geometry,
+            })
     elif expected_primitives is not None:
         geometry = assert_primitive_geometry(
             doc, stats, expected_primitives["counts"],
