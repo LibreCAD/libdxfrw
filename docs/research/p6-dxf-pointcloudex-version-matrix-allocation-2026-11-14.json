@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "POINTCLOUDEX DXF writer version transaction matrix",
+  "sourceRevision": "fba9c3cc",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+    "testSha256": "f2a6abb4a08c61e38a6b1bb03f810c2c6e55f3ad16d4be80c9743ca0b4471ffd",
+    "cmake": "tests/CMakeLists.txt",
+    "cmakeSha256": "835a062764131c11bfe95f43cd112caa3c5a8848f8bd495b3147feba0268e0c0",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "entity": "POINTCLOUDEX",
+    "generatedFields": [
+      "class version, extents, UCS origin and axes, lock state and entity name",
+      "non-null definition and reactor reference handles",
+      "intensity/elevation display, schemes, ranges and behavior fields",
+      "one inside crop with plane, X/Y directions and three ordered vertices"
+    ],
+    "versions": ["AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_3d_entity_version_allocation_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_pointcloudex_version_allocation$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 0.33 seconds",
+    "directCommand": "build-gcc/tests/libdxfrw_3d_entity_version_allocation_tests /private/tmp/p6-pointcloudex-version-allocation --pointcloudex-versions",
+    "allocationFailures": 44,
+    "allocationOffsetsByProfile": {
+      "AC1027_ASCII": 11,
+      "AC1027_Binary": 11,
+      "AC1032_ASCII": 11,
+      "AC1032_Binary": 11
+    },
+    "rollback": "Each injected allocation failure preserves the prior destination and caller POINTCLOUDEX.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed readback checks modeled scalar/vector fields, non-null definition/reactor handles and ordered crop geometry.",
+    "versionBoundary": "AC1024 ASCII and Binary refusal preserves destination and caller state, then same-codec retry at AC1027 reproduces clean bytes and typed readback.",
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated POINTCLOUDEX writer transaction behavior for AC1027 and AC1032 in ASCII and Binary.",
+      "The AC1024 unsupported-target refusal and same-writer recovery path."
+    ],
+    "doesNotProve": [
+      "Definition/reactor target-object existence or recursive graph closure.",
+      "Independent producer interoperability or crop evaluation.",
+      "External asset loading, native consumer behavior or broader 3D support."
+    ]
+  },
+  "qualificationEligible": false
+}

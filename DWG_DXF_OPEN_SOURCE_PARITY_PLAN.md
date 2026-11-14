@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **358 completed implementation and qualification slices** and **34 remaining
+The plan records **359 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`358 / (358 + 34) = 91.3%`. This is a count-based progress measure, not an
+`359 / (359 + 34) = 91.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -180,6 +180,17 @@ on the same writer at the first admitting revision. This closes generated
 version/transaction behavior only, with null definition/reactor handles; graph
 closure, clipping and producer/consumer semantics remain unqualified. The
 focused selector passes in 0.40 seconds ([receipt](docs/research/p6-dxf-pointcloud-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G POINTCLOUDEX version transaction slice (2026-11-14):** the generated
+direct-writer matrix now covers AC1027 and AC1032 in ASCII and Binary, with
+non-null definition/reactor references and a three-point crop. All 44 injected
+allocation failures preserve the previous destination and caller model;
+same-writer retry reproduces clean bytes and typed readback checks the modeled
+fields, references and ordered crop geometry. AC1024 refusal is also checked
+in both encodings, followed by same-writer AC1027 retry. This closes generated
+version/transaction behavior only; it does not prove referenced-object graph
+closure, crop evaluation, external asset loading or native semantics. The
+focused selector passes in 0.33 seconds ([receipt](docs/research/p6-dxf-pointcloudex-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the
