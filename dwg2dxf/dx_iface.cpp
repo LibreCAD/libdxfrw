@@ -48279,6 +48279,16 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
     try {
         const auto* context = dxfW->getWritingContext();
         if (!context) return false;
+        // Omitted-source rows are keyed by table handle; join owner
+        // dictionaries by their captured identity instead of reusing that key.
+        const auto findOmittedSortEntsOwner = [this](std::uint32_t handle) {
+            return std::find_if(
+                m_dwgOmittedSortEntsOutputSources.begin(),
+                m_dwgOmittedSortEntsOutputSources.end(),
+                [handle](const auto& row) {
+                    return row.second.ownerDictionary.handle == handle;
+                });
+        };
         enum class BlockRecordMapping { NotBlockRecord, Mapped, Invalid };
         const auto mapBlockRecord = [this, context](std::uint32_t source,
                                                      std::uint32_t& output)
@@ -48727,20 +48737,55 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                     == frame.raw.m_version
                 && frame.dictionaryMembership.m_dictionaryHandle
                     == frame.raw.m_handle;
+            const bool qualifiedOutputNames =
+                hasQualifiedStandardDwgOutputNames(
+                    frame.generation, frame.raw.m_handle, false);
+            const bool standardOutputCandidate =
+                frame.typedBaseline && frame.payloadMatched
+                && !frame.opaquePayload
+                && frame.hasNoObservedTextDecodeIssues()
+                && (drwDwgCommonLinkEvidenceValidated(
+                        frame.raw.m_commonLinkEvidence)
+                    || completeLegacyDictionaryPayload
+                    || (frame.raw.m_commonLinkEvidence
+                            == DRW_DwgCommonLinkEvidence::Unknown
+                        && frame.publication.m_commonLinkEvidence
+                            == DRW_DwgCommonLinkEvidence::Unknown
+                        && (cData->hasAc1018MinimalRootGroupSource(
+                                frame.raw.m_handle)
+                            || cData->hasAc1018WipeoutRootGroupSource(
+                                frame.raw.m_handle)
+                            || cData->hasAc1018RasterRootGroupSource(
+                                frame.raw.m_handle))))
+                && (!frame.sourceCodePageFieldPresent
+                    || frame.sourceCodePageRecognized)
+                && qualifiedOutputNames;
             // Unknown/opaque carriers and unmodeled source state are not
             // upgraded by a successful typed projection/readback.
-            if (!frame.typedBaseline || !frame.payloadMatched || frame.opaquePayload
-                || !frame.hasNoObservedTextDecodeIssues()
-                || (!drwDwgCommonLinkEvidenceValidated(
-                        frame.raw.m_commonLinkEvidence)
-                    && !completeLegacyDictionaryPayload
-                    && !(frame.raw.m_commonLinkEvidence == DRW_DwgCommonLinkEvidence::Unknown
-                         && frame.publication.m_commonLinkEvidence == DRW_DwgCommonLinkEvidence::Unknown
-                         && (cData->hasAc1018MinimalRootGroupSource(frame.raw.m_handle)
-                             || cData->hasAc1018WipeoutRootGroupSource(frame.raw.m_handle)
-                             || cData->hasAc1018RasterRootGroupSource(frame.raw.m_handle))))
-                || (frame.sourceCodePageFieldPresent && !frame.sourceCodePageRecognized)
-                || !hasQualifiedStandardDwgOutputNames(frame.generation, frame.raw.m_handle, false)) continue;
+            if (!standardOutputCandidate) {
+                if (m_debugDwgOutputQualification
+                    && findOmittedSortEntsOwner(frame.raw.m_handle)
+                        != m_dwgOmittedSortEntsOutputSources.end())
+                    std::cerr
+                        << "SORTENTSTABLE owner DICTIONARY excluded from "
+                           "standard output proof: handle="
+                        << frame.raw.m_handle
+                        << " baseline=" << (frame.typedBaseline != nullptr)
+                        << " payload=" << frame.payloadMatched
+                        << " opaque=" << frame.opaquePayload
+                        << " text="
+                        << frame.hasNoObservedTextDecodeIssues()
+                        << " common="
+                        << drwDwgCommonLinkEvidenceValidated(
+                               frame.raw.m_commonLinkEvidence)
+                        << " common-evidence="
+                        << static_cast<int>(frame.raw.m_commonLinkEvidence)
+                        << " cp-present=" << frame.sourceCodePageFieldPresent
+                        << " cp-recognized="
+                        << frame.sourceCodePageRecognized
+                        << " output-names=" << qualifiedOutputNames << '\n';
+                continue;
+            }
             const auto found = context->sourceHandleToWrittenObjectMap.find(source.first.second);
             std::uint32_t emitted = 0u;
             if (found != context->sourceHandleToWrittenObjectMap.end()) {
@@ -48798,6 +48843,24 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             const auto compare = [&](const auto& actual) {
                 using Record = std::decay_t<decltype(actual)>;
                 const auto* source = dynamic_cast<const Record*>(frame.typedBaseline.get());
+                const void* comparisonSource = source;
+                if (frame.raw.m_objectType == dwgObjType::DICTIONARY) {
+                    const auto projection = m_sortDictionaryOutputs.find(
+                        frame.raw.m_handle);
+                    if (projection != m_sortDictionaryOutputs.end()) {
+                        const auto omitted =
+                            findOmittedSortEntsOwner(projection->first);
+                        if (!hasUnchangedDwgSortEntsOutputSources()
+                            || omitted
+                                == m_dwgOmittedSortEntsOutputSources.end()
+                            || omitted->second.ownerDictionary.handle
+                                != frame.raw.m_handle) {
+                            comparisonSource = nullptr;
+                        } else {
+                            comparisonSource = &projection->second;
+                        }
+                    }
+                }
                 const auto mapper = [this, context, &map,
                     allowRemappedDictionaryHandles =
                         frame.raw.m_objectType == dwgObjType::DICTIONARY](
@@ -48875,13 +48938,17 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                         }
                         matched = common && payload;
                     } else {
-                        matched = source && dx_standard_output::equal(
-                            *source, actual, mapper, proof.references,
+                        const auto* expected =
+                            static_cast<const Record*>(comparisonSource);
+                        matched = expected && dx_standard_output::equal(
+                            *expected, actual, mapper, proof.references,
                             verifyLayer);
                     }
                 } else {
-                    matched = source && dx_standard_output::equal(
-                        *source, actual, mapper, proof.references,
+                    const auto* expected =
+                        static_cast<const Record*>(comparisonSource);
+                    matched = expected && dx_standard_output::equal(
+                        *expected, actual, mapper, proof.references,
                         verifyLayer);
                 }
                 proof.owner = actual.parentHandle;
@@ -48901,6 +48968,29 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                     && frame.raw.m_handle == layerControl.sourceDictionary
                     && source->parentHandle == layerControl.sourceControl
                     && actual.parentHandle == layerControl.emittedTable;
+                if (m_debugDwgOutputQualification
+                    && frame.raw.m_objectType == dwgObjType::DICTIONARY
+                    && findOmittedSortEntsOwner(frame.raw.m_handle)
+                        != m_dwgOmittedSortEntsOutputSources.end()) {
+                    const auto* actualDictionary =
+                        dynamic_cast<const DRW_Dictionary*>(&actual);
+                    const auto* expectedDictionary =
+                        static_cast<const DRW_Dictionary*>(
+                            comparisonSource);
+                    std::cerr
+                        << "SORTENTSTABLE owner DICTIONARY body proof: "
+                        << "handle=" << frame.raw.m_handle
+                        << " matched=" << matched
+                        << " expected-entries="
+                        << (expectedDictionary != nullptr
+                            ? expectedDictionary->m_entries.size() : 0u)
+                        << " actual-entries="
+                        << (actualDictionary != nullptr
+                            ? actualDictionary->m_entries.size() : 0u)
+                        << " source=" << (source != nullptr)
+                        << " owner=" << actual.parentHandle
+                        << " xdict=" << actual.xDictHandle << '\n';
+                }
                 return true; // A partial projection stays explicitly unqualified.
             };
             bool decoded = false;
@@ -48993,7 +49083,28 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
                         && !dxfW->dxfWriteRecordHasIdentity(
                             reference, "TABLE", "TABLES"))) closed = false;
             }
-            if (!closed) current = m_standardDwgOutputProofs.erase(current);
+            if (!closed) {
+                if (m_debugDwgOutputQualification
+                    && std::any_of(
+                        m_dwgOmittedSortEntsOutputSources.begin(),
+                        m_dwgOmittedSortEntsOutputSources.end(),
+                        [&current](const auto& row) {
+                            return row.second.ownerDictionary.handle
+                                == current->first;
+                        }))
+                    std::cerr
+                        << "SORTENTSTABLE owner DICTIONARY proof closed="
+                        << closed << " handle=" << current->first
+                        << " identity=" << identityMatches
+                        << " owner-role=" << ownerRoleMatches
+                        << " names="
+                        << hasQualifiedStandardDwgOutputNames(
+                               proof.generation, current->first, true)
+                        << " refs=" << proof.references.size()
+                        << " emitted=" << proof.emitted
+                        << " owner=" << proof.owner << '\n';
+                current = m_standardDwgOutputProofs.erase(current);
+            }
             else ++current;
         }
         // Resolve dictionary-derived GROUP names only after *all* candidate
@@ -53648,7 +53759,8 @@ bool dx_iface::finalizeDwgDynamicBlockOutputGraphSet() const noexcept {
 }
 
 bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
-    if (m_dwgSortEntsOutputSources.empty())
+    if (m_dwgSortEntsOutputSources.empty()
+        && m_dwgOmittedSortEntsOutputSources.empty())
         return m_dwgSortEntsOutputSourceOwner == nullptr
             && m_dwgSortEntsOutputGeneration == 0u;
     if (cData == nullptr || cData != m_dwgSortEntsOutputSourceOwner
@@ -53663,6 +53775,7 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
         || cData->sortEntsTables.size()
             != cData->dwgSortEntsMemberships.size()
         || m_dwgSortEntsOutputSources.size()
+                + m_dwgOmittedSortEntsOutputSources.size()
             > cData->sortEntsTables.size())
         return false;
     const DRW::Version sourceVersion = cData->sourceVersion;
@@ -53820,6 +53933,170 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
                 || frame->second.m_className != source.className)
                 return false;
         }
+        for (const auto& item : m_dwgOmittedSortEntsOutputSources) {
+            const DwgOmittedSortEntsOutputSource& source = item.second;
+            const auto currentIt = tables.find(source.table.handle);
+            const auto membershipIt = memberships.find(source.table.handle);
+            const auto dictionaryIt =
+                dictionaries.find(source.ownerDictionary.handle);
+            const auto blockIt = blocks.find(source.ownerBlock.handle);
+            const auto projectionIt = m_sortDictionaryOutputs.find(
+                source.ownerDictionary.handle);
+            if (item.first != source.table.handle
+                || currentIt == tables.end()
+                || membershipIt == memberships.end()
+                || dictionaryIt == dictionaries.end()
+                || blockIt == blocks.end()
+                || projectionIt == m_sortDictionaryOutputs.end())
+                return false;
+            const DRW_SortEntsTable& current = *currentIt->second;
+            const DRW_DwgSortEntsMembership& membership =
+                *membershipIt->second;
+            const DRW_Dictionary& currentDictionary = *dictionaryIt->second;
+            const DRW_Block_Record& currentBlock = *blockIt->second;
+            const auto dictionaryFrame =
+                cData->m_standardDwgObjectFrames.find(
+                    {cData->importGeneration,
+                     source.ownerDictionary.handle});
+            const DRW_Dictionary* dictionaryBaseline =
+                dictionaryFrame != cData->m_standardDwgObjectFrames.end()
+                    && dictionaryFrame->second.typedBaseline
+                ? dynamic_cast<const DRW_Dictionary*>(
+                    dictionaryFrame->second.typedBaseline.get())
+                : nullptr;
+            const auto tableFrame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, source.table.handle});
+            const std::string ownerName = layoutSymbolKey(
+                currentBlock.name);
+            const std::size_t sortEntryCount = std::count_if(
+                source.ownerDictionary.m_entries.begin(),
+                source.ownerDictionary.m_entries.end(),
+                [&source](const DRW_Dictionary::Entry& entry) {
+                    return layoutSymbolKey(entry.m_name) == "ACAD_SORTENTS"
+                        && entry.m_handle == source.table.handle;
+                });
+            const std::size_t allSortEntryCount = std::count_if(
+                source.ownerDictionary.m_entries.begin(),
+                source.ownerDictionary.m_entries.end(), [](
+                    const DRW_Dictionary::Entry& entry) {
+                    return layoutSymbolKey(entry.m_name) == "ACAD_SORTENTS";
+                });
+            DRW_Dictionary expectedProjection = source.ownerDictionary;
+            expectedProjection.m_entries.erase(std::remove_if(
+                expectedProjection.m_entries.begin(),
+                expectedProjection.m_entries.end(), [](
+                    const DRW_Dictionary::Entry& entry) {
+                    return layoutSymbolKey(entry.m_name) == "ACAD_SORTENTS";
+                }), expectedProjection.m_entries.end());
+            const bool sourceProjectionMatches =
+                sortEntryCount == 1u && allSortEntryCount == 1u
+                && standardDwgModelsEqual(
+                    expectedProjection, source.projectedOwnerDictionary,
+                    sourceVersion, dwgObjType::DICTIONARY)
+                && standardDwgModelsEqual(
+                    expectedProjection, projectionIt->second,
+                    sourceVersion, dwgObjType::DICTIONARY);
+            if (!tableEqual(source.table, current, sourceVersion)
+                || !current.m_entityHandles.empty()
+                || !current.m_sortHandles.empty()
+                || current.m_blockOwnerHandle
+                    != source.ownerBlock.handle
+                || current.parentHandle
+                    != source.ownerDictionary.handle
+                || current.xDictHandle != 0u
+                || !current.extData.empty()
+                || !current.appData.empty()
+                || (!current.reactorHandles.empty()
+                    && current.reactorHandles
+                        != std::vector<std::uint32_t>{
+                            source.ownerDictionary.handle})
+                || !membership.m_complete
+                || !membership.m_hasSourceLocation
+                || !membership.m_classStreamOrdinal.has_value()
+                || !source.membership.m_complete
+                || !source.membership.m_hasSourceLocation
+                || !source.membership.m_classStreamOrdinal.has_value()
+                || membership.m_version != sourceVersion
+                || membership.m_version != source.membership.m_version
+                || membership.m_tableHandle != source.table.handle
+                || membership.m_tableHandle
+                    != source.membership.m_tableHandle
+                || membership.m_sourceOffset
+                    != source.membership.m_sourceOffset
+                || membership.m_sourceMapOrdinal
+                    != source.membership.m_sourceMapOrdinal
+                || membership.m_sourceOffsetSpace
+                    != source.membership.m_sourceOffsetSpace
+                || membership.m_hasSourceLocation
+                    != source.membership.m_hasSourceLocation
+                || membership.m_complete != source.membership.m_complete
+                || membership.m_encodedType
+                    != source.membership.m_encodedType
+                || membership.m_resolvedType
+                    != source.membership.m_resolvedType
+                || membership.m_classStreamOrdinal
+                    != source.membership.m_classStreamOrdinal
+                || membership.m_recordName != "SORTENTSTABLE"
+                || membership.m_recordName
+                    != source.membership.m_recordName
+                || membership.m_className != "AcDbSortentsTable"
+                || membership.m_className != source.membership.m_className
+                || membership.m_blockOwnerHandle
+                    != source.ownerBlock.handle
+                || membership.m_blockOwnerHandle
+                    != source.membership.m_blockOwnerHandle
+                || !membership.m_entries.empty()
+                || !source.membership.m_entries.empty()
+                || !sourceProjectionMatches
+                || !standardDwgModelsEqual(
+                    source.ownerDictionary, currentDictionary,
+                    sourceVersion, dwgObjType::DICTIONARY)
+                || !standardDwgCommonEqual(
+                    source.ownerBlock, currentBlock, sourceVersion)
+                || currentBlock.xDictHandle
+                    != source.ownerDictionary.handle
+                || currentDictionary.parentHandle
+                    != currentBlock.handle
+                || source.ownerBlock.handle
+                    != source.table.m_blockOwnerHandle
+                || source.ownerDictionary.handle
+                    != source.table.parentHandle
+                || source.ownerDictionary.parentHandle
+                    != source.ownerBlock.handle
+                || source.ownerBlock.xDictHandle
+                    != source.ownerDictionary.handle
+                || source.objectType != membership.m_resolvedType
+                || !asciiIdentifierEquals(source.recordName,
+                                          "SORTENTSTABLE")
+                || source.className != "AcDbSortentsTable"
+                || ownerName.empty() || ownerName == "*MODEL_SPACE"
+                || ownerName == "*PAPER_SPACE"
+                || dictionaryBaseline == nullptr
+                || dictionaryFrame == cData->m_standardDwgObjectFrames.end()
+                || dictionaryFrame->second.generation
+                    != cData->importGeneration
+                || !dictionaryFrame->second.payloadMatched
+                || dictionaryFrame->second.raw.m_handle
+                    != source.ownerDictionary.handle
+                || dictionaryFrame->second.raw.m_objectType
+                    != dwgObjType::DICTIONARY
+                || dictionaryFrame->second.raw.m_version != sourceVersion
+                || dictionaryFrame->second.raw.m_isEntity
+                || dictionaryFrame->second.raw.m_isCustomClass
+                || !dictionaryFrame->second.raw.m_recordName.empty()
+                || !dictionaryFrame->second.raw.m_className.empty()
+                || !standardDwgModelsEqual(
+                    *dictionaryBaseline, source.ownerDictionary,
+                    sourceVersion, dwgObjType::DICTIONARY)
+                || tableFrame == cData->m_opaqueDwgSourceFrames.end()
+                || tableFrame->second.m_handle != source.table.handle
+                || tableFrame->second.m_objectType != source.objectType
+                || tableFrame->second.m_version != sourceVersion
+                || !asciiIdentifierEquals(
+                    tableFrame->second.m_recordName, source.recordName)
+                || tableFrame->second.m_className != source.className)
+                return false;
+        }
         return true;
     } catch (...) {
         return false;
@@ -53829,7 +54106,8 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
 bool dx_iface::inspectDwgSortEntsOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
     m_dwgSortEntsOutputInspected = false;
-    if (m_dwgSortEntsOutputSources.empty())
+    if (m_dwgSortEntsOutputSources.empty()
+        && m_dwgOmittedSortEntsOutputSources.empty())
         return true;
     if (dxfW == nullptr || cData == nullptr
         || (cData->sourceVersion != DRW::AC1021
@@ -54160,6 +54438,61 @@ bool dx_iface::inspectDwgSortEntsOutput(
             if (tableSeen[index] != 1u || dictionarySeen[index] != 1u)
                 return reject(
                     "selected SORTENTSTABLE/DICTIONARY output count");
+        const DRW_WritingContext* context = dxfW->getWritingContext();
+        if (context == nullptr)
+            return reject("omitted SORTENTSTABLE output context");
+        std::unordered_set<std::uint32_t> omittedTables;
+        std::unordered_set<std::uint32_t> omittedDictionaries;
+        omittedTables.reserve(m_dwgOmittedSortEntsOutputSources.size());
+        omittedDictionaries.reserve(
+            m_dwgOmittedSortEntsOutputSources.size());
+        for (auto& item : m_dwgOmittedSortEntsOutputSources) {
+            DwgOmittedSortEntsOutputSource& source = item.second;
+            source.emittedTable = 0u;
+            source.emittedDictionary = 0u;
+            source.emittedBlock = 0u;
+            std::uint32_t omittedTable = 0u;
+            std::uint32_t emittedDictionary = 0u;
+            std::uint32_t emittedBlock = 0u;
+            if (item.first != source.table.handle
+                || context->ambiguousSourceHandles.count(
+                    source.table.handle) != 0u
+                || !mapHandle(source.table.handle, omittedTable)
+                || !mapHandle(source.ownerDictionary.handle,
+                              emittedDictionary)
+                || !mapBlockOwner(source.ownerBlock, emittedBlock)
+                || !omittedTables.insert(omittedTable).second
+                || !omittedDictionaries.insert(
+                    emittedDictionary).second)
+                return reject("omitted SORTENTSTABLE source/output mapping");
+            const bool tableAbsent =
+                dxfW->dxfWriteRecordHandleCount(omittedTable) == 0u;
+            const bool dictionaryPresent =
+                dxfW->dxfWriteRecordHandleCount(emittedDictionary) == 1u
+                && dxfW->dxfWriteRecordHasIdentity(
+                    emittedDictionary, "DICTIONARY", "OBJECTS")
+                && dxfW->dxfWriteRecordHasOwner(
+                    emittedDictionary, emittedBlock);
+            const bool blockPresent =
+                dxfW->dxfWriteRecordHandleCount(emittedBlock) == 1u
+                && dxfW->dxfWriteRecordHasIdentity(
+                    emittedBlock, "BLOCK_RECORD", "TABLES");
+            if (!tableAbsent || !dictionaryPresent || !blockPresent) {
+                if (debug)
+                    std::cerr
+                        << "SORTENTSTABLE no-op output roles: source="
+                        << source.table.handle << " omitted=" << omittedTable
+                        << " dictionary=" << emittedDictionary
+                        << " block=" << emittedBlock << " absent="
+                        << tableAbsent << " dictionary-role="
+                        << dictionaryPresent << " block-role=" << blockPresent
+                        << '\n';
+                return reject("empty named-block table omission/owner output roles");
+            }
+            source.emittedTable = omittedTable;
+            source.emittedDictionary = emittedDictionary;
+            source.emittedBlock = emittedBlock;
+        }
         m_dwgSortEntsOutputInspected = true;
         return true;
     } catch (...) {
@@ -72985,6 +73318,7 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
     m_sortDictionaryOutputs.clear();
     m_sortEmissionTables.clear();
     m_dwgSortEntsOutputSources.clear();
+    m_dwgOmittedSortEntsOutputSources.clear();
     m_dwgSortEntsOutputSourceOwner = nullptr;
     m_dwgSortEntsOutputGeneration = 0u;
     m_dwgSortEntsOutputInspected = false;
@@ -72998,6 +73332,7 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
         m_sortDictionaryOutputs.clear();
         m_sortEmissionTables.clear();
         m_dwgSortEntsOutputSources.clear();
+        m_dwgOmittedSortEntsOutputSources.clear();
         m_dwgSortEntsOutputSourceOwner = nullptr;
         m_dwgSortEntsOutputGeneration = 0u;
         m_dwgSortEntsOutputInspected = false;
@@ -73960,8 +74295,7 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
             for (const DRW_SortEntsTable& table : data.sortEntsTables) {
                 const auto membership = memberships.find(table.handle);
                 const auto emission = emissions.find(table.handle);
-                if (membership == memberships.end()
-                    || emission == emissions.end())
+                if (membership == memberships.end())
                     continue;
                 const auto dictionary = dictionaries.find(table.parentHandle);
                 const auto blockOwner = owners.find(
@@ -73979,66 +74313,139 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
                     ? dynamic_cast<const DRW_Dictionary*>(
                         ownerFrame->second.typedBaseline.get())
                     : nullptr;
-                if (dictionary == dictionaries.end()
-                    || blockOwner == owners.end()
-                    || frame == data.m_opaqueDwgSourceFrames.end()
-                    || (!asciiIdentifierEquals(
-                            blockOwner->second->name, "*MODEL_SPACE")
-                        && !asciiIdentifierEquals(
-                            blockOwner->second->name, "*PAPER_SPACE"))
-                    || ownerFrame == data.m_standardDwgObjectFrames.end()
-                    || ownerFrame->second.generation != data.importGeneration
-                    || !ownerFrame->second.payloadMatched
-                    || ownerFrameBaseline == nullptr
-                    || ownerFrame->second.raw.m_handle != table.parentHandle
-                    || ownerFrame->second.raw.m_objectType
-                        != dwgObjType::DICTIONARY
-                    || ownerFrame->second.raw.m_version
-                        != data.sourceVersion
-                    || ownerFrame->second.raw.m_isEntity
-                    || ownerFrame->second.raw.m_isCustomClass
-                    || !ownerFrame->second.raw.m_recordName.empty()
-                    || !ownerFrame->second.raw.m_className.empty()
-                    || !standardDwgModelsEqual(
+                const bool sourceBound =
+                    dictionary != dictionaries.end()
+                    && blockOwner != owners.end()
+                    && frame != data.m_opaqueDwgSourceFrames.end()
+                    && ownerFrame
+                        != data.m_standardDwgObjectFrames.end()
+                    && ownerFrame->second.generation
+                        == data.importGeneration
+                    && ownerFrame->second.payloadMatched
+                    && ownerFrameBaseline != nullptr
+                    && ownerFrame->second.raw.m_handle
+                        == table.parentHandle
+                    && ownerFrame->second.raw.m_objectType
+                        == dwgObjType::DICTIONARY
+                    && ownerFrame->second.raw.m_version
+                        == data.sourceVersion
+                    && !ownerFrame->second.raw.m_isEntity
+                    && !ownerFrame->second.raw.m_isCustomClass
+                    && ownerFrame->second.raw.m_recordName.empty()
+                    && ownerFrame->second.raw.m_className.empty()
+                    && standardDwgModelsEqual(
                         *ownerFrameBaseline, *dictionary->second,
                         data.sourceVersion, dwgObjType::DICTIONARY)
-                    || table.handle == 0u || table.handle == DRW::NoHandle
-                    || table.hasCompleteDwgEntries() == false
-                    || !sourceMembership.m_complete
-                    || !sourceMembership.m_hasSourceLocation
-                    || !sourceMembership.m_classStreamOrdinal.has_value()
-                    || sourceMembership.m_version != data.sourceVersion
-                    || sourceMembership.m_tableHandle != table.handle
-                    || sourceMembership.m_recordName != "SORTENTSTABLE"
-                    || sourceMembership.m_className != "AcDbSortentsTable"
-                    || sourceMembership.m_blockOwnerHandle
-                        != table.m_blockOwnerHandle
-                    || sourceMembership.m_resolvedType
-                        != frame->second.m_objectType
-                    || frame->second.m_handle != table.handle
-                    || frame->second.m_version != data.sourceVersion
-                    || !asciiIdentifierEquals(frame->second.m_recordName,
-                                              "SORTENTSTABLE")
-                    || frame->second.m_className != "AcDbSortentsTable"
-                    || dictionary->second->parentHandle
-                        != table.m_blockOwnerHandle
-                    || blockOwner->second->xDictHandle
-                        != dictionary->second->handle)
+                    && table.handle != 0u
+                    && table.handle != DRW::NoHandle
+                    && table.hasCompleteDwgEntries()
+                    && sourceMembership.m_complete
+                    && sourceMembership.m_hasSourceLocation
+                    && sourceMembership.m_classStreamOrdinal.has_value()
+                    && sourceMembership.m_version == data.sourceVersion
+                    && sourceMembership.m_tableHandle == table.handle
+                    && sourceMembership.m_recordName == "SORTENTSTABLE"
+                    && sourceMembership.m_className
+                        == "AcDbSortentsTable"
+                    && sourceMembership.m_blockOwnerHandle
+                        == table.m_blockOwnerHandle
+                    && sourceMembership.m_resolvedType
+                        == frame->second.m_objectType
+                    && frame->second.m_handle == table.handle
+                    && frame->second.m_version == data.sourceVersion
+                    && asciiIdentifierEquals(
+                        frame->second.m_recordName, "SORTENTSTABLE")
+                    && frame->second.m_className
+                        == "AcDbSortentsTable"
+                    && dictionary->second->parentHandle
+                        == table.m_blockOwnerHandle
+                    && blockOwner->second->xDictHandle
+                        == dictionary->second->handle;
+                if (!sourceBound) {
+                    if (emission != emissions.end())
+                        return reject();
+                    continue;
+                }
+                const std::string ownerName = layoutSymbolKey(
+                    blockOwner->second->name);
+                const bool modelOrPaperSpace = ownerName == "*MODEL_SPACE"
+                    || ownerName == "*PAPER_SPACE";
+                if (emission != emissions.end()) {
+                    if (!modelOrPaperSpace)
+                        return reject();
+                    DwgSortEntsOutputSource source;
+                    source.table = table;
+                    source.emission = *emission->second;
+                    source.membership = sourceMembership;
+                    source.ownerDictionary = *dictionary->second;
+                    source.ownerBlock = *blockOwner->second;
+                    source.objectType = frame->second.m_objectType;
+                    source.recordName = frame->second.m_recordName;
+                    source.className = frame->second.m_className;
+                    if (!m_dwgSortEntsOutputSources.emplace(
+                            table.handle, std::move(source)).second)
+                        return reject();
+                    continue;
+                }
+
+                if (modelOrPaperSpace || !table.m_entityHandles.empty()
+                    || !table.m_sortHandles.empty()
+                    || !table.extData.empty() || !table.appData.empty()
+                    || table.xDictHandle != 0u
+                    || (!table.reactorHandles.empty()
+                        && table.reactorHandles
+                            != std::vector<std::uint32_t>{
+                                table.parentHandle})
+                    || !sourceMembership.m_entries.empty())
+                    continue;
+                const std::size_t sortEntryCount = std::count_if(
+                    dictionary->second->m_entries.begin(),
+                    dictionary->second->m_entries.end(), [&table](
+                        const DRW_Dictionary::Entry& entry) {
+                        return layoutSymbolKey(entry.m_name)
+                                == "ACAD_SORTENTS"
+                            && entry.m_handle == table.handle;
+                    });
+                const std::size_t allSortEntryCount = std::count_if(
+                    dictionary->second->m_entries.begin(),
+                    dictionary->second->m_entries.end(), [](
+                        const DRW_Dictionary::Entry& entry) {
+                        return layoutSymbolKey(entry.m_name)
+                            == "ACAD_SORTENTS";
+                    });
+                const auto projected = m_sortDictionaryOutputs.find(
+                    dictionary->second->handle);
+                if (sortEntryCount != 1u || allSortEntryCount != 1u
+                    || projected == m_sortDictionaryOutputs.end())
+                    continue;
+                DRW_Dictionary expectedProjection = *dictionary->second;
+                expectedProjection.m_entries.erase(std::remove_if(
+                    expectedProjection.m_entries.begin(),
+                    expectedProjection.m_entries.end(), [](
+                        const DRW_Dictionary::Entry& entry) {
+                        return layoutSymbolKey(entry.m_name)
+                            == "ACAD_SORTENTS";
+                    }), expectedProjection.m_entries.end());
+                if (!standardDwgModelsEqual(
+                        expectedProjection, projected->second,
+                        data.sourceVersion, dwgObjType::DICTIONARY))
                     continue;
 
-                DwgSortEntsOutputSource source;
+                DwgOmittedSortEntsOutputSource source;
                 source.table = table;
-                source.emission = *emission->second;
                 source.membership = sourceMembership;
                 source.ownerDictionary = *dictionary->second;
+                source.projectedOwnerDictionary = projected->second;
                 source.ownerBlock = *blockOwner->second;
                 source.objectType = frame->second.m_objectType;
                 source.recordName = frame->second.m_recordName;
                 source.className = frame->second.m_className;
-                m_dwgSortEntsOutputSources.emplace(
-                    table.handle, std::move(source));
+                if (!m_dwgOmittedSortEntsOutputSources.emplace(
+                        table.handle, std::move(source)).second)
+                    return reject();
             }
-            if (!m_dwgSortEntsOutputSources.empty()) {
+            if (!m_dwgSortEntsOutputSources.empty()
+                || !m_dwgOmittedSortEntsOutputSources.empty()) {
                 m_dwgSortEntsOutputSourceOwner = &data;
                 m_dwgSortEntsOutputGeneration = data.importGeneration;
             }
@@ -79413,6 +79820,61 @@ bool dx_iface::finalizeDxfWrite() {
                         proof.second.ownerDictionary.handle))
                     return false;
             }
+            for (const auto& proof :
+                 m_dwgOmittedSortEntsOutputSources) {
+                const DwgOmittedSortEntsOutputSource& source =
+                    proof.second;
+                const auto dictionaryProof =
+                    m_standardDwgOutputProofs.find(
+                        source.ownerDictionary.handle);
+                const std::uint32_t emittedTable = source.emittedTable;
+                const std::uint32_t emittedDictionary =
+                    source.emittedDictionary;
+                const std::uint32_t emittedBlock = source.emittedBlock;
+                const bool unchanged =
+                    hasUnchangedDwgSortEntsOutputSources();
+                const bool dictionaryQualified =
+                    dictionaryProof != m_standardDwgOutputProofs.end()
+                    && dictionaryProof->second.generation
+                        == cData->importGeneration
+                    && dictionaryProof->second.objectType
+                        == dwgObjType::DICTIONARY
+                    && dictionaryProof->second.emitted
+                        == emittedDictionary
+                    && dictionaryProof->second.owner == emittedBlock
+                    && std::find(
+                        dictionaryProof->second.references.begin(),
+                        dictionaryProof->second.references.end(), emittedTable)
+                        == dictionaryProof->second.references.end();
+                const bool handlesValid = emittedTable != 0u
+                    && emittedTable != DRW::NoHandle
+                    && emittedDictionary != 0u
+                    && emittedDictionary != DRW::NoHandle
+                    && emittedBlock != 0u
+                    && emittedBlock != DRW::NoHandle;
+                const bool omitted = handlesValid
+                    && dxfW->dxfWriteRecordHandleCount(emittedTable) == 0u;
+                if (proof.first != source.table.handle || !unchanged
+                    || !dictionaryQualified || !omitted) {
+                    if (m_debugDwgOutputQualification)
+                        std::cerr
+                            << "SORTENTSTABLE no-op qualification deferred: "
+                            << "table=" << source.table.handle
+                            << " dictionary="
+                            << source.ownerDictionary.handle
+                            << " unchanged=" << unchanged
+                            << " dictionary-proof=" << dictionaryQualified
+                            << " omitted=" << omitted
+                            << " handles=" << handlesValid
+                            << " proof-present="
+                            << (dictionaryProof
+                                != m_standardDwgOutputProofs.end())
+                            << '\n';
+                    continue;
+                }
+                if (!qualifyCapturedIdentity(source.table.handle))
+                    return false;
+            }
         }
         if (m_dwgDynamicBlockOutputInspected) {
             for (const auto& proof : m_dwgDynamicBlockOutputSources) {
@@ -83611,6 +84073,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_sortDictionaryOutputs.clear();
     m_sortEmissionTables.clear();
     m_dwgSortEntsOutputSources.clear();
+    m_dwgOmittedSortEntsOutputSources.clear();
     m_dwgSortEntsOutputSourceOwner = nullptr;
     m_dwgSortEntsOutputGeneration = 0u;
     m_dwgSortEntsOutputInspected = false;
@@ -85176,6 +85639,27 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << m_extensionGraphStats.inspectedXRecordPayloadSlots
                       << " detail=" << extensionGraphFailureDetail() << '\n';
         }
+        return false;
+    }
+    // An empty dictionary left after removing a source-proven no-op named
+    // SORTENTSTABLE is still needed to close the owning BLOCK_RECORD's
+    // XDICTIONARY edge. It has no remaining child edges to walk, so stage only
+    // this exact empty projection after the general graph walk.
+    try {
+        for (const auto& item : m_dwgOmittedSortEntsOutputSources) {
+            const DwgOmittedSortEntsOutputSource& source = item.second;
+            if (!source.projectedOwnerDictionary.m_entries.empty())
+                continue;
+            if (std::find(m_extensionDictionaryHandles.begin(),
+                          m_extensionDictionaryHandles.end(),
+                          source.ownerDictionary.handle)
+                == m_extensionDictionaryHandles.end())
+                m_extensionDictionaryHandles.push_back(
+                    source.ownerDictionary.handle);
+        }
+    } catch (...) {
+        reportPreflightFailure(
+            "empty named SORTENTSTABLE dictionary staging allocation");
         return false;
     }
     if (!cData->sunStudies.empty() && (m_extensionSunStudyHandles.size() != 1u
@@ -86928,10 +87412,25 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             m_sortDictionaryOutputs.find(record.xDictHandle);
         if (projection == m_sortDictionaryOutputs.end())
             continue;
-        if (projection->second.m_entries.empty())
-            selectedBlockRecordXdicts.erase(record.handle);
-        else
+        if (projection->second.m_entries.empty()) {
+            const bool emptyNoOpDictionary = std::any_of(
+                m_dwgOmittedSortEntsOutputSources.begin(),
+                m_dwgOmittedSortEntsOutputSources.end(),
+                [&record](const auto& item) {
+                    return item.second.ownerBlock.handle == record.handle
+                        && item.second.ownerDictionary.handle
+                            == record.xDictHandle
+                        && item.second.projectedOwnerDictionary
+                               .m_entries.empty();
+                });
+            if (emptyNoOpDictionary)
+                selectedBlockRecordXdicts[record.handle] =
+                    record.xDictHandle;
+            else
+                selectedBlockRecordXdicts.erase(record.handle);
+        } else {
             selectedBlockRecordXdicts[record.handle] = record.xDictHandle;
+        }
     }
     for (const auto& selected : selectedBlockRecordXdicts) {
         const DRW_Block_Record* sourceRecord = nullptr;

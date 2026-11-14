@@ -4937,6 +4937,21 @@ private:
     };
     std::map<std::uint32_t, DwgSortEntsOutputSource>
         m_dwgSortEntsOutputSources;
+    struct DwgOmittedSortEntsOutputSource {
+        DRW_SortEntsTable table;
+        DRW_DwgSortEntsMembership membership;
+        DRW_Dictionary ownerDictionary;
+        DRW_Dictionary projectedOwnerDictionary;
+        DRW_Block_Record ownerBlock;
+        std::uint32_t emittedTable{0u};
+        std::uint32_t emittedDictionary{0u};
+        std::uint32_t emittedBlock{0u};
+        int objectType{0};
+        std::string recordName;
+        std::string className;
+    };
+    std::map<std::uint32_t, DwgOmittedSortEntsOutputSource>
+        m_dwgOmittedSortEntsOutputSources;
     const dx_data* m_dwgSortEntsOutputSourceOwner{nullptr};
     std::uint64_t m_dwgSortEntsOutputGeneration{0u};
     bool m_dwgSortEntsOutputInspected{false};

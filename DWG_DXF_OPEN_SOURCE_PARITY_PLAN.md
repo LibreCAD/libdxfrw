@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **388 completed implementation and qualification slices** and **34 remaining
+The plan records **389 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`388 / (388 + 34) = 91.9%`. This is a count-based progress measure, not an
+`389 / (389 + 34) = 92.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -24,9 +24,11 @@ root action ([receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-gra
 **P4 empty named-block SORTENTSTABLE no-op projection slice (2026-11-14):**
 the architectural source's six named-block tables have zero pairs and are
 omitted only with their exact BTR owner and dictionary links validated. Its
-graph and dynamic-block owner-route checks now pass. Strict finalization still
-refuses at 478/490 opaque callbacks (six tables and six dictionaries); no DXF
-is published and P4-D/P4-E remain open
+graph and dynamic-block owner-route checks pass. The output proof now matches
+each of the six emitted owner dictionaries to its exact projected body, checks
+that the six table handles are absent, and passes strict finalization for all
+490 captured opaque callbacks. The local AC1024 DXF is published; this resolves
+only this source profile and does not close P4-D/P4-E or promote a support claim
 ([receipt](docs/research/p4-ac1024-empty-named-sortents-noop-projection-2026-11-14.json)).
 
 **P8-D generated LTYPE edit-preservation qualification slice (2026-11-14):**
@@ -1598,7 +1600,7 @@ integration/release checkpoints.
 
 | ID | State | Remaining work | Ready evidence / dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source and graph closure | P4-A has a distinct AC1027 LibreDWG-authored associative-constraints source/callback identity witness; its same-lineage peer and strict-output refusal do not qualify semantics or support. A bounded AC1024 BTR `ACDBASSOCNETWORK` path validates the exact BTR extension-dictionary → unique `ACAD_ASSOCNETWORK` subdictionary → network owner/reactor chain and reciprocal non-owned root-network action. Six empty named-block `SORTENTSTABLE` objects now project away as no-op records, with other extension-dictionary entries and dynamic-block owner routes retained. The architectural source publishes 663/663 frames with zero entity/object parse failures and passes graph/owner-route checks, then strict finalization refuses because 12 opaque callbacks (six dictionaries, six tables) are unqualified; no DXF is published ([graph receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json), [no-op table receipt](docs/research/p4-ac1024-empty-named-sortents-noop-projection-2026-11-14.json)). Continue qualifying one source-backed OBJECTS subgraph end to end: exact identities, handle roles, recursive dependencies, emitted records and fresh readback. Resolve the AC1032 associative-network class-version-2 schema and AC1027 Sweep suffix/embedded-entity profile before admitting those routes. | Resume only on distinct eligible producer/source witnesses. Keep non-empty named-block SORTENTSTABLE, null-member, orphan-owner, unsupported-frame, and unresolved HEADER cases refused. |
+| P4 | OPEN — source and graph closure | P4-A has a distinct AC1027 LibreDWG-authored associative-constraints source/callback identity witness; its same-lineage peer and strict-output refusal do not qualify semantics or support. A bounded AC1024 BTR `ACDBASSOCNETWORK` path validates the exact BTR extension-dictionary → unique `ACAD_ASSOCNETWORK` subdictionary → network owner/reactor chain and reciprocal non-owned root-network action. Six empty named-block `SORTENTSTABLE` objects now project away as no-op records, with other extension-dictionary entries and dynamic-block owner routes retained. The architectural source publishes 663/663 frames with zero entity/object parse failures; strict conversion now passes after decoding and matching all six projected owner-dictionary bodies, confirming all six table handles absent and qualifying all 490 opaque callback identities. This is one local AC1024 profile and does not close the broader P4 source, graph, or semantic gates ([graph receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json), [no-op table receipt](docs/research/p4-ac1024-empty-named-sortents-noop-projection-2026-11-14.json)). Continue with remaining independently bounded OBJECTS graphs, the AC1032 associative-network class-version-2 schema, and the AC1027 Sweep suffix/embedded-entity profile. | Resume only on distinct eligible producer/source witnesses. Keep non-empty named-block SORTENTSTABLE, null-member, orphan-owner, unsupported-frame, and unresolved HEADER cases refused. |
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER envelope/suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
