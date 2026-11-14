@@ -8682,24 +8682,33 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto makeSpline = [] {
+    const auto makeSpline = [](bool fitOnly) {
         DRW_Spline value;
-        value.degree = 2;
-        value.flags = 12; // planar + rational for the non-unit middle weight
         value.normalVec = DRW_Coord(0.0, 0.0, 1.0);
         value.tgStart = DRW_Coord(1.0, 0.0, 0.0);
         value.tgEnd = DRW_Coord(0.0, 1.0, 0.0);
         value.tolknot = 1.0e-6;
         value.tolcontrol = 2.0e-6;
         value.tolfit = 3.0e-6;
-        value.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-        value.weightlist = {1.0, 1.25, 1.0};
-        value.controllist = {
-            std::make_shared<DRW_Coord>(DRW_Coord(0.0, 0.0, 0.0)),
-            std::make_shared<DRW_Coord>(DRW_Coord(2.0, 3.0, 1.0)),
-            std::make_shared<DRW_Coord>(DRW_Coord(4.0, 0.0, 2.0))};
-        value.nknots = static_cast<std::int32_t>(value.knotslist.size());
-        value.ncontrol = static_cast<std::int32_t>(value.controllist.size());
+        if (fitOnly) {
+            value.degree = 3;
+            value.fitlist = {
+                std::make_shared<DRW_Coord>(DRW_Coord(0.0, 0.0, 0.0)),
+                std::make_shared<DRW_Coord>(DRW_Coord(2.0, 3.0, 1.0)),
+                std::make_shared<DRW_Coord>(DRW_Coord(4.0, 0.0, 2.0))};
+            value.nfit = static_cast<std::int32_t>(value.fitlist.size());
+        } else {
+            value.degree = 2;
+            value.flags = 12; // planar + rational for the non-unit middle weight
+            value.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+            value.weightlist = {1.0, 1.25, 1.0};
+            value.controllist = {
+                std::make_shared<DRW_Coord>(DRW_Coord(0.0, 0.0, 0.0)),
+                std::make_shared<DRW_Coord>(DRW_Coord(2.0, 3.0, 1.0)),
+                std::make_shared<DRW_Coord>(DRW_Coord(4.0, 0.0, 2.0))};
+            value.nknots = static_cast<std::int32_t>(value.knotslist.size());
+            value.ncontrol = static_cast<std::int32_t>(value.controllist.size());
+        }
         return value;
     };
     const auto sameSpline = [](const DRW_Spline& actual,
@@ -8723,13 +8732,21 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
             || actual.tolfit != expected.tolfit
             || actual.knotslist != expected.knotslist
             || actual.weightlist != expected.weightlist
-            || actual.controllist.size() != expected.controllist.size())
+            || actual.controllist.size() != expected.controllist.size()
+            || actual.fitlist.size() != expected.fitlist.size())
             return false;
         for (std::size_t i = 0; i < actual.controllist.size(); ++i) {
             if (!actual.controllist[i] || !expected.controllist[i]
                 || actual.controllist[i]->x != expected.controllist[i]->x
                 || actual.controllist[i]->y != expected.controllist[i]->y
                 || actual.controllist[i]->z != expected.controllist[i]->z)
+                return false;
+        }
+        for (std::size_t i = 0; i < actual.fitlist.size(); ++i) {
+            if (!actual.fitlist[i] || !expected.fitlist[i]
+                || actual.fitlist[i]->x != expected.fitlist[i]->x
+                || actual.fitlist[i]->y != expected.fitlist[i]->y
+                || actual.fitlist[i]->z != expected.fitlist[i]->z)
                 return false;
         }
         return true;
@@ -8750,7 +8767,8 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
         bool emitted = false;
     };
     const auto readbackMatches = [&](const std::filesystem::path& path,
-                                     DRW::Version expectedVersion) {
+                                     DRW::Version expectedVersion,
+                                     bool fitOnly) {
         dx_data decoded;
         dx_iface reader;
         if (!reader.fileImport(path.string(), &decoded, false)
@@ -8759,7 +8777,7 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
             return false;
         const auto* actual = dynamic_cast<const DRW_Spline*>(
             decoded.mBlock->ent.front());
-        DRW_Spline expected = makeSpline();
+        DRW_Spline expected = makeSpline(fitOnly);
         if (actual != nullptr)
             expected.handle = actual->handle;
         const bool matches = actual != nullptr && actual->handle != 0u
@@ -8786,9 +8804,11 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
         {DRW::AC1032, "AC1032"}}};
     const std::string sentinel = "previous complete SPLINE destination\n";
     for (const auto& version : versions) {
+      for (const bool fitOnly : {false, true}) {
         for (const bool binary : {false, true}) {
             const auto output = directory
                 / (std::string("spline-") + version.second
+                   + (fitOnly ? "-fit" : "-rational")
                    + (binary ? "-binary.dxf" : "-ascii.dxf"));
             if (!clearStagedOutput(output))
                 return fail("could not clear stale output staging files");
@@ -8796,7 +8816,7 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                SplineExport adapter(codec, makeSpline());
+                SplineExport adapter(codec, makeSpline(fitOnly));
                 if (!codec.write(&adapter, version.first, binary)
                     || !adapter.emitted)
                     return fail("warm-up write failed");
@@ -8805,14 +8825,14 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
             }
             {
                 dxfRW codec(output.string().c_str());
-                SplineExport adapter(codec, makeSpline());
+                SplineExport adapter(codec, makeSpline(fitOnly));
                 armAllocationFailure(1000000000L);
                 const bool wrote = codec.write(&adapter, version.first, binary);
                 allocationCount = static_cast<long>(allocationAttempts);
                 disarmAllocationFailure();
                 const bool bytesRead = readBytes(output, expectedBytes);
                 const bool readback = bytesRead
-                    && readbackMatches(output, version.first);
+                    && readbackMatches(output, version.first, fitOnly);
                 if (!wrote || !adapter.emitted || allocationFailed
                     || allocationCount <= 0 || !bytesRead || !readback) {
                     std::cerr << "SPLINE calibration " << version.second << ' '
@@ -8837,7 +8857,7 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
                         return fail("could not seed prior destination");
                 }
                 dxfRW codec(output.string().c_str());
-                SplineExport adapter(codec, makeSpline());
+                SplineExport adapter(codec, makeSpline(fitOnly));
                 const DRW_Spline original(adapter.spline);
                 armAllocationFailure(offset);
                 const bool wrote = codec.write(&adapter, version.first, binary);
@@ -8861,17 +8881,19 @@ bool runSplineVersionSweep(const std::filesystem::path& directory) {
                 if (!retried || !sameSpline(adapter.spline, original)
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
-                    || !readbackMatches(output, version.first)
+                    || !readbackMatches(output, version.first, fitOnly)
                     || hasStagedOutput(output))
                     return fail("same-writer retry or typed readback failed");
                 std::error_code ignored;
                 std::filesystem::remove(output, ignored);
             }
             std::cout << "SPLINE " << version.second << ' '
+                      << (fitOnly ? "fit " : "rational ")
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
         }
+      }
     }
     return true;
 }
