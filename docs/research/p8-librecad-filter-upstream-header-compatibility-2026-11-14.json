@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-filter-upstream-header-compatibility-2026-11-14",
+  "date": "2026-11-14",
+  "title": "LibreCAD RS_FilterDXFRW source compiles against upstream libdxfrw headers",
+  "status": "focused_consumer_syntax_check_passed",
+  "supportClaimEffect": "none",
+  "scope": "Syntax-only compile of the locally checked-out LibreCAD RS_FilterDXFRW translation unit with the existing LibreCAD consumer build flags, substituting this upstream libdxfrw checkout's public and intern headers for the bundled fork headers.",
+  "consumer": {
+    "repositoryHead": "078aac8922874eddd7fa46590b5f306e3aee6423",
+    "workingTreeState": "The adapter source is locally modified; other LibreCAD working-tree changes are present. No LibreCAD source was changed by this check.",
+    "adapterSource": "../LibreCAD/librecad/src/lib/filters/rs_filterdxfrw.cpp",
+    "adapterSourceSha256": "2c06a8873753f798489561ee4d9fc0390314d88685292218750c4acb2d13fe51",
+    "buildFlagsFile": "../LibreCAD/build/CMakeFiles/librecad_lib.dir/flags.make",
+    "buildFlagsSha256": "94b51b1a02ba27b42aca9c1d47416e1fdd91d3beb9d5967447e2d14e90fa62d1"
+  },
+  "upstream": {
+    "repositoryHead": "7fc1580e5ef7cb1aeef1ab5242c4592061b0a41d",
+    "includeSubstitution": "Replaced the two bundled libdxfrw include roots in the consumer flags with /Users/dli/dev/libdxfrw/src and /Users/dli/dev/libdxfrw/src/intern.",
+    "includeTraceConfirmedUpstreamHeaders": [
+      "drw_acis.h",
+      "drw_base.h",
+      "drw_classes.h",
+      "drw_datastorage.h",
+      "drw_entities.h",
+      "drw_header.h",
+      "drw_interface.h",
+      "drw_objects.h",
+      "libdxfrw.h",
+      "libdwgr.h"
+    ]
+  },
+  "command": {
+    "compiler": "/usr/bin/c++",
+    "compilerVersion": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "mode": "-fsyntax-only",
+    "result": "PASS, exit status 0 with no diagnostics"
+  },
+  "limitations": [
+    "This compiles one locally modified LibreCAD translation unit; it does not build or link LibreCAD against upstream libdxfrw.",
+    "It does not run the LibreCAD LTYPE edit/save/readback regression from PR #3269.",
+    "It does not establish ABI stability, LibreCAD_3 compatibility, or native producer/consumer behavior.",
+    "No DWG/DXF fixture was added or changed."
+  ]
+}
