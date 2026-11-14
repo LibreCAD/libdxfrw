@@ -207,7 +207,7 @@ bool run(const std::filesystem::path& directory) {
     const DRW_PlotSettings source = data.plotSettings.front();
     const std::string sentinel = "prior PLOTSETTINGS destination bytes\n";
     for (const DRW::Version version : {
-             DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
       PlotSettingsExport exporter;
       const auto output = directory
           / ("plotsettings-objects-"

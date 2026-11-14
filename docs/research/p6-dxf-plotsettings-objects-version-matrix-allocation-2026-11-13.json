@@ -4,12 +4,12 @@
   "date": "2026-11-13",
   "status": "GENERATED_PLOTSETTINGS_OBJECTS_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Allocation rollback, same-adapter retry, and typed graph readback for one generated PLOTSETTINGS OBJECTS profile exported at AC1024, AC1027, and AC1032.",
+  "scope": "Allocation rollback, same-adapter retry, and typed graph readback for one generated PLOTSETTINGS OBJECTS profile exported at AC1021, AC1024, AC1027, and AC1032.",
   "source": {
     "kind": "locally authored ASCII DXF graph parsed at AC1027 during each test run",
     "profile": "One named ACAD_PLOTSETTINGS dictionary entry targeting one PLOTSETTINGS record with printer, paper, margin, layout flag, paper-unit, and plot-type fields.",
     "sourceVersion": "AC1027",
-    "targetVersions": ["AC1024", "AC1027", "AC1032"],
+    "targetVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
   },
@@ -20,20 +20,21 @@
       "docs/research/p6-dxf-plotsettings-objects-version-matrix-allocation-2026-11-13.json"
     ],
     "productionCodeChanged": false,
-    "testSourceSha256": "87d5fe3f06870ed5fde3c55769afe860af52904eff62f9d036c326fc842c3d48",
-    "testExecutableSha256": "94485524b6c0d1e799239d68eebb1d955dcebb5c8e87b13fa57a554615b5e43b",
+    "testSourceSha256": "a0bccb971fca5dcc3734b83bc458f1f07005b86ca2621d14a94abf2ae0953d28",
+    "testExecutableSha256": "90af9a8049d8f92b10cef6fa2206f118b3628c996563656aa5199ab845188dc1",
     "method": "For each target version and encoding, calibrate the complete file export, inject std::bad_alloc at each measured OBJECTS callback allocation, verify prior destination bytes and source graph preservation, retry through the same adapter, and validate dictionary ownership and typed PLOTSETTINGS readback."
   },
   "allocationOffsets": {
     "AC1024": {"ASCII": 22, "Binary": 21},
+    "AC1021": {"ASCII": 22, "Binary": 21},
     "AC1027": {"ASCII": 22, "Binary": 21},
     "AC1032": {"ASCII": 22, "Binary": 21},
-    "totals": {"ASCII": 66, "Binary": 63, "all": 129}
+    "totals": {"ASCII": 88, "Binary": 84, "all": 172}
   },
   "validation": {
-    "build": "cmake --build build --target libdxfrw_plotsettings_objects_allocation_tests -j4: PASS",
-    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_plotsettings_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 2.38 seconds",
-    "directControl": "build/tests/libdxfrw_plotsettings_objects_allocation_tests build/plotsettings-scratch: PASS; three target versions, both encodings, 129 injected OBJECTS allocations",
+    "build": "cmake --build build-gcc --target libdxfrw_plotsettings_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_plotsettings_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.63 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_plotsettings_objects_allocation_tests build-gcc/plotsettings-objects-allocation-scratch: PASS; four target versions, both encodings, 172 injected OBJECTS allocations",
     "diffCheck": "git diff --check: PASS"
   },
   "limitations": [
@@ -43,10 +44,10 @@
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "The generated rooted PLOTSETTINGS graph passes callback allocation rollback, caller preservation, same-adapter retry, and typed readback across AC1024/AC1027/AC1032 ASCII and Binary.",
+    "completedSlice": "The generated rooted PLOTSETTINGS graph passes callback allocation rollback, caller preservation, same-adapter retry, and typed readback across AC1021/AC1024/AC1027/AC1032 ASCII and Binary.",
     "remainingP6G": "Continue the public-writer inventory and keep producer, reference-closure, native, and platform gates open.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "228 completed slices and 35 remaining packages: 228/(228+35)=86.7%; count-based activity proxy only."
+    "progressEstimate": "242 completed slices and 35 remaining packages: 242/(242+35)=87.4%; count-based activity proxy only."
   },
   "wholeOperationReceipt": "docs/research/p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13.json"
 }
