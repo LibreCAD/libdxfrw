@@ -7277,6 +7277,209 @@ bool runLightEntitySweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runOleFrameVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "OLE frame version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makePayload = [](std::uint8_t seed) {
+        std::vector<std::uint8_t> bytes(130u);
+        for (std::size_t i = 0u; i < bytes.size(); ++i)
+            bytes[i] = static_cast<std::uint8_t>(seed + i * 17u);
+        return bytes;
+    };
+    const auto makeOle2 = [&] {
+        DRW_Ole2Frame value;
+        value.m_oleVersion = 2u;
+        value.m_oleClient = "LibreCAD-OLE2";
+        value.m_pt1 = DRW_Coord(1.0, 2.0, 3.0);
+        value.m_pt2 = DRW_Coord(4.0, 5.0, 6.0);
+        value.m_flags = 2u;
+        value.m_mode = 1u;
+        value.m_lockAspect = 1u;
+        value.m_payloadBytes = makePayload(0x21u);
+        value.m_payloadPresent = true;
+        value.m_declaredPayloadLength =
+            static_cast<std::uint32_t>(value.m_payloadBytes.size());
+        return value;
+    };
+    const auto makeOle = [&] {
+        DRW_OleFrame value;
+        value.m_flags = 1u;
+        value.m_payloadBytes = makePayload(0x47u);
+        value.m_payloadPresent = true;
+        value.m_declaredPayloadLength =
+            static_cast<std::uint32_t>(value.m_payloadBytes.size());
+        return value;
+    };
+    const auto sameOle2 = [](const DRW_Ole2Frame& actual,
+                             const DRW_Ole2Frame& expected) {
+        return actual.handle == expected.handle
+            && actual.m_oleVersion == expected.m_oleVersion
+            && actual.m_oleClient == expected.m_oleClient
+            && actual.m_pt1.x == expected.m_pt1.x
+            && actual.m_pt1.y == expected.m_pt1.y
+            && actual.m_pt1.z == expected.m_pt1.z
+            && actual.m_pt2.x == expected.m_pt2.x
+            && actual.m_pt2.y == expected.m_pt2.y
+            && actual.m_pt2.z == expected.m_pt2.z
+            && actual.m_flags == expected.m_flags
+            && actual.m_mode == expected.m_mode
+            && actual.m_lockAspect == expected.m_lockAspect
+            && actual.m_payloadBytes == expected.m_payloadBytes;
+    };
+    const auto sameOle = [](const DRW_OleFrame& actual,
+                            const DRW_OleFrame& expected) {
+        return actual.handle == expected.handle
+            && actual.m_flags == expected.m_flags
+            && actual.m_payloadBytes == expected.m_payloadBytes;
+    };
+    class OleExport final : public dx_iface {
+    public:
+        OleExport(dxfRW& codec, DRW_Ole2Frame framed, DRW_OleFrame legacy)
+            : output(codec), ole2(std::move(framed)), ole(std::move(legacy)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override {
+            wroteOle2 = output.writeOle2Frame(&ole2);
+            wroteOle = wroteOle2 && output.writeOleFrame(&ole);
+        }
+        bool finalizeDxfWrite() override { return wroteOle; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Ole2Frame ole2;
+        DRW_OleFrame ole;
+        bool wroteOle2 = false;
+        bool wroteOle = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dx_data decoded;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &decoded, false)
+            || decoded.sourceVersion != expectedVersion
+            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 2u)
+            return false;
+        const auto firstEntity = decoded.mBlock->ent.begin();
+        const auto* actualOle2 = dynamic_cast<const DRW_Ole2Frame*>(
+            *firstEntity);
+        const auto* actualOle = dynamic_cast<const DRW_OleFrame*>(
+            *std::next(firstEntity));
+        DRW_Ole2Frame expectedOle2 = makeOle2();
+        DRW_OleFrame expectedOle = makeOle();
+        if (actualOle2 != nullptr)
+            expectedOle2.handle = actualOle2->handle;
+        if (actualOle != nullptr)
+            expectedOle.handle = actualOle->handle;
+        return actualOle2 != nullptr && actualOle != nullptr
+            && actualOle2->handle != 0u && actualOle->handle != 0u
+            && sameOle2(*actualOle2, expectedOle2)
+            && sameOle(*actualOle, expectedOle)
+            && actualOle2->m_payloadPresent && actualOle->m_payloadPresent;
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "previous complete OLE destination\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("ole-frames-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                OleExport adapter(codec, makeOle2(), makeOle());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.wroteOle2 || !adapter.wroteOle)
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                OleExport adapter(codec, makeOle2(), makeOle());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.wroteOle2 || !adapter.wroteOle
+                    || allocationFailed || allocationCount <= 0
+                    || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                OleExport adapter(codec, makeOle2(), makeOle());
+                const DRW_Ole2Frame originalOle2(adapter.ole2);
+                const DRW_OleFrame originalOle(adapter.ole);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const bool callerSame = sameOle2(adapter.ole2, originalOle2)
+                    && sameOle(adapter.ole, originalOle);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !callerSame || !identitiesRolledBack
+                    || hasStagedOutput(output)) {
+                    std::cerr << "version=" << version.second << " binary="
+                              << binary << " offset=" << offset
+                              << " wrote=" << wrote << " injected=" << injected
+                              << " destination=" << (afterFailure == sentinel)
+                              << " caller=" << callerSame << '\n';
+                    return fail("injected failure changed caller or destination state");
+                }
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.wroteOle2 && adapter.wroteOle;
+                std::string retryBytes;
+                const bool retryRead = readBytes(output, retryBytes);
+                if (!retried || !sameOle2(adapter.ole2, originalOle2)
+                    || !sameOle(adapter.ole, originalOle)
+                    || !retryRead || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "OLEFRAME/OLE2FRAME " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runLightListSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "LIGHTLIST allocation transaction: " << message << '\n';
@@ -9395,7 +9598,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9415,6 +9618,8 @@ int main(int argc, char** argv) {
             return runCameraSweep(directory) ? 0 : 1;
         if (mode == "light-entity")
             return runLightEntitySweep(directory) ? 0 : 1;
+        if (mode == "ole-frames")
+            return runOleFrameVersionSweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")

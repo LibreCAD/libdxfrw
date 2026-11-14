@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ole-frame-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_OLEFRAME_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add a fast full-operation allocation rollback, same-writer retry and typed readback matrix for the variable-size OLEFRAME and OLE2FRAME writers.",
+  "source": {
+    "kind": "locally generated in-memory OLEFRAME and OLE2FRAME entities",
+    "profile": "One OLEFRAME and one OLE2FRAME each carry 130 deterministic payload bytes, crossing the 127-byte group-310 chunk boundary. OLE2FRAME also carries nondefault client, version, rectangle, type, mode and lock-aspect fields.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ole-frame-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "026cf061ed7aba3d4575ea118183f7bfa24fbc12c5921424d3dbcd728d008555",
+    "testExecutableSha256": "fe74661483322f2b3156f66a5b59a5157a74e143ddcc7ebf8407eac55177ba92",
+    "method": "For each revision and encoding, calibrate the successful full-document write, inject std::bad_alloc at every measured allocation, preserve prior destination bytes, caller payload/model fields and derived identity state, retry with the same codec and compare exact bytes, then freshly import and check both entity types, fields, payloads and source revision."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 93, "Binary": 91},
+    "AC1015": {"ASCII": 96, "Binary": 93},
+    "AC1018": {"ASCII": 96, "Binary": 93},
+    "AC1021": {"ASCII": 96, "Binary": 93},
+    "AC1024": {"ASCII": 103, "Binary": 100},
+    "AC1027": {"ASCII": 96, "Binary": 93},
+    "AC1032": {"ASCII": 96, "Binary": 93},
+    "totals": {"ASCII": 676, "Binary": 656, "all": 1332}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_ole_frames_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 3.15 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests build-gcc/tests/ole-frames-version-allocation ole-frames: PASS; all 1,332 allocation offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transport and same-library readback evidence only; it does not establish independent producer behavior or native OLE semantics.",
+    "The test covers one 130-byte payload per entity type and the 127-byte chunk boundary; broader payload sizes/producers remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "OLEFRAME and OLE2FRAME whole-operation rollback, caller-state preservation, same-writer byte-identical retry and typed readback now span all seven target revisions in ASCII and Binary.",
+    "remainingP6G": "Continue exact public-writer/variant inventory; broader OLE source profiles and native consumer semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "271 completed slices and 35 remaining packages: 271/(271+35)=88.6%; count-based activity proxy only."
+  }
+}
