@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **230 completed implementation slices** and **35 remaining
+The plan records **231 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`230 / (230 + 35) = 86.8%`. This is a count-based progress measure, not an
+`231 / (231 + 35) = 86.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1431,6 +1431,16 @@ readback. All 66 ASCII and 59 Binary allocation failures preserve the caller
 graph and destination. This remains generated writer transaction evidence;
 producer-specific underlay semantics and native presentation are unqualified
 ([receipt](docs/research/p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G UNDERLAY admitted-version transaction matrix (2026-11-13):** the same
+generated three-kind profile now passes at AC1024, AC1027, and AC1032 in both
+ASCII and Binary. At each admitted revision, 66 ASCII and 59 Binary injected
+allocation failures preserve the caller graph and destination; same-adapter
+retry matches clean bytes and fresh typed graph readback. The AC1021 probe is
+refused before allocation injection because UNDERLAY is not admitted for that
+target version. This establishes a local serializer boundary only; it does
+not qualify producer behavior, reference closure beyond the generated graph,
+or native display. See the [version-matrix receipt](docs/research/p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13.json).
 
 P9/J256, J260, J268, J284, J293, and J295 remain separately
 `DEFERRED_EXTERNAL`; their evidence is advisory and cannot satisfy a work

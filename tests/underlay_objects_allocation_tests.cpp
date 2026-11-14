@@ -163,7 +163,8 @@ bool callerGraphMatches(const dx_data& data) {
     return true;
 }
 
-bool run(const std::filesystem::path& directory, bool binary) {
+bool run(const std::filesystem::path& directory, DRW::Version version,
+         const char* versionName, bool binary) {
     const auto fail = [](const char* message) {
         std::cerr << "underlay OBJECTS allocation retry: " << message << '\n';
         return false;
@@ -214,7 +215,8 @@ bool run(const std::filesystem::path& directory, bool binary) {
     }
 
     const auto destination = directory
-        / (binary ? "underlay-objects-binary.dxf" : "underlay-objects-ascii.dxf");
+        / (std::string("underlay-objects-") + versionName
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
     const std::string sentinel = "preexisting destination bytes\n";
     {
         std::ofstream output(destination, std::ios::binary);
@@ -224,7 +226,7 @@ bool run(const std::filesystem::path& directory, bool binary) {
     }
 
     const auto write = [&]() {
-        return exporter.fileExport(destination.string(), DRW::AC1027, binary,
+        return exporter.fileExport(destination.string(), version, binary,
                                    &data, false, true);
     };
     exporter.failAt = 1000000;
@@ -270,7 +272,8 @@ bool run(const std::filesystem::path& directory, bool binary) {
     }
     if (failures != static_cast<unsigned>(allocationCount))
         return fail("not every calibrated callback allocation was injected");
-    std::cout << "underlay OBJECTS " << (binary ? "binary" : "ASCII")
+    std::cout << "underlay OBJECTS " << versionName << ' '
+              << (binary ? "binary" : "ASCII")
               << ": allocations=" << allocationCount
               << ", rollback/retry/readback=" << failures << '\n';
     return true;
@@ -303,5 +306,13 @@ int main(int argc, char** argv) {
         std::cerr << "could not create scratch directory: " << error.message() << '\n';
         return 2;
     }
-    return run(directory, false) && run(directory, true) ? 0 : 1;
+    constexpr std::array<std::pair<DRW::Version, const char*>, 3> versions{{
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    for (const auto& version : versions) {
+        if (!run(directory, version.first, version.second, false)
+            || !run(directory, version.first, version.second, true))
+            return 1;
+    }
+    return 0;
 }
