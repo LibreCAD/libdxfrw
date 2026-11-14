@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **300 completed implementation slices** and **34 remaining
+The plan records **301 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`300 / (300 + 34) = 89.8%`. This is a count-based progress measure, not an
+`301 / (301 + 34) = 89.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1980,6 +1980,18 @@ interpretation of arbitrary base-class records. See the
 **P6-G AC1024 associative-variable transaction slice (2026-11-14):** the generated `ACDBASSOCVARIABLE` direct writer now has allocation rollback, caller-profile and handle-map preservation, explicit failed-session reset, same-writer byte-identical retry, and bounded raw-group readback in ASCII and Binary. All 8 ASCII and 7 Binary measured allocation offsets pass; the focused CTest passes in 0.02 seconds. This is generated transport/self-readback evidence only and does not qualify producer semantics, graph closure, or native variable evaluation ([receipt](docs/research/p6-dxf-associative-variable-allocation-retry-2026-11-14.json)).
 
 **P6-G AC1024 associative-network transaction slice (2026-11-14):** the generated `ACDBASSOCNETWORK` direct writer now has allocation rollback, caller-profile and handle-map preservation, explicit failed-session reset, same-writer byte-identical retry, and bounded readback of the remapped owner, reactor, owning-network and mixed owned/soft action references in ASCII and Binary. All 10 ASCII and 9 Binary measured allocation offsets pass; the focused CTest passes in 0.13 seconds. This is generated transport/self-readback evidence only and does not qualify producer semantics, graph closure, or native associative evaluation ([receipt](docs/research/p6-dxf-associative-network-allocation-retry-2026-11-14.json)).
+
+**P6-G standalone SPLINE writer revision-matrix transaction slice (2026-11-14):**
+a generated rational planar degree-2 SPLINE with three control points, six
+knots, nondefault tolerances, extrusion and endpoint tangents now passes
+whole-operation ASCII/Binary allocation rollback, caller-state preservation,
+same-writer byte-identical retry and typed readback across AC1014, AC1015,
+AC1018, AC1021, AC1024, AC1027 and AC1032. All 1,235 measured allocation
+failure offsets passed; the focused CTest passes in 8.89 seconds. This is
+generated transaction and same-library readback evidence only; producer
+profiles, native spline semantics and the complete writer inventory remain
+open. No drawing fixtures were added. See the
+[SPLINE transaction receipt](docs/research/p6-dxf-spline-version-matrix-allocation-2026-11-14.json).
 
 **P6-G LAYER table-writer version-matrix transaction slice (2026-11-13):** a
 generated named LAYER row now has whole-file ASCII/Binary allocation rollback,
