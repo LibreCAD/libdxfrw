@@ -28,7 +28,8 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-DRW_View makeView(DRW::Version version) {
+DRW_View makeView(DRW::Version version, bool modernExtras = false,
+                  bool camera = false, bool resourceReferences = false) {
     DRW_View view;
     view.handle = 0xD720u;
     view.parentHandle = 6u;
@@ -49,13 +50,17 @@ DRW_View makeView(DRW::Version version) {
     view.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
     view.ucsOrthoType = 4;
     view.ucsElevation = 8.5;
-    view.cameraPlottable = false;
-    if (version > DRW::AC1018) {
+    view.cameraPlottable = camera;
+    if (version > DRW::AC1018 || modernExtras) {
         view.m_useDefaultLights = false;
         view.m_defaultLightingType = 1;
         view.m_brightness = 0.75;
         view.m_contrast = 0.4;
         view.m_ambientColor = 7;
+    }
+    if (resourceReferences) {
+        view.m_backgroundHandle = 0xD721u;
+        view.m_visualStyleHandle = 0xD722u;
     }
     view.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
     view.extData.push_back(new DRW_Variant(
@@ -64,8 +69,10 @@ DRW_View makeView(DRW::Version version) {
 }
 
 bool sameView(const DRW_View& actual, DRW::Version version,
-              bool readback = false) {
-    const DRW_View expected = makeView(version);
+              bool readback = false, bool modernExtras = false,
+              bool camera = false, bool resourceReferences = false) {
+    const DRW_View expected = makeView(
+        version, modernExtras, camera, resourceReferences);
     return actual.tType == DRW::VIEW
         && (readback ? actual.handle != 0u : actual.handle == expected.handle)
         && actual.parentHandle == expected.parentHandle
@@ -93,6 +100,13 @@ bool sameView(const DRW_View& actual, DRW::Version version,
         && actual.renderMode == expected.renderMode
         && actual.hasUCS == expected.hasUCS
         && actual.cameraPlottable == expected.cameraPlottable
+        && actual.m_useDefaultLights == expected.m_useDefaultLights
+        && actual.m_defaultLightingType == expected.m_defaultLightingType
+        && actual.m_brightness == expected.m_brightness
+        && actual.m_contrast == expected.m_contrast
+        && actual.m_ambientColor == expected.m_ambientColor
+        && actual.m_backgroundHandle == expected.m_backgroundHandle
+        && actual.m_visualStyleHandle == expected.m_visualStyleHandle
         && actual.ucsOrigin.x == expected.ucsOrigin.x
         && actual.ucsOrigin.y == expected.ucsOrigin.y
         && actual.ucsOrigin.z == expected.ucsOrigin.z
@@ -126,8 +140,15 @@ bool sameView(const DRW_View& actual, DRW::Version version,
 
 class Export final : public LC3CompatCheck {
 public:
-    Export(dxfRW& codec, DRW::Version version)
-        : codec(codec), version(version), view(makeView(version)) {}
+    Export(dxfRW& codec, DRW::Version version,
+           bool modernExtras = false, bool camera = false,
+           bool resourceReferences = false)
+        : codec(codec), version(version), modernExtras(modernExtras),
+          camera(camera), resourceReferences(resourceReferences),
+          view(makeView(version, modernExtras, camera, resourceReferences)) {
+        if (resourceReferences)
+            codec.setResolvedBackgroundHandles({view.m_backgroundHandle});
+    }
 
     void writeViews() override {
         if (failAt < 0) {
@@ -150,6 +171,9 @@ public:
 
     dxfRW& codec;
     DRW::Version version;
+    bool modernExtras;
+    bool camera;
+    bool resourceReferences;
     DRW_View view;
     long failAt = -1;
     long reached = 0;
@@ -187,14 +211,17 @@ const char* versionCode(DRW::Version version) {
 }
 
 bool readbackMatches(const std::filesystem::path& path,
-                     DRW::Version version) {
+                     DRW::Version version, bool modernExtras = false,
+                     bool camera = false, bool resourceReferences = false) {
     dxfRW codec(path.string().c_str());
     Reader reader;
     if (!codec.read(&reader, false) || reader.views.size() != 1u)
         return false;
-    if (!sameView(reader.views.front(), version, true)) {
+    if (!sameView(reader.views.front(), version, true, modernExtras,
+                  camera, resourceReferences)) {
         const DRW_View& view = reader.views.front();
-        const DRW_View expected = makeView(version);
+        const DRW_View expected = makeView(
+            version, modernExtras, camera, resourceReferences);
         std::cerr << "VIEW readback mismatch: version=" << versionCode(version)
                   << " handle=" << view.handle << '/' << expected.handle
                   << " owner=" << view.parentHandle << '/' << expected.parentHandle
@@ -301,6 +328,75 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool refuseLostViewStateThenRetry(
+        const std::filesystem::path& directory, const char* label,
+        DRW::Version refusedVersion, DRW::Version supportedVersion,
+        bool modernExtras, bool camera, bool resourceReferences) {
+    const std::string sentinel = "prior VIEW destination bytes\n";
+    for (const bool binary : {false, true}) {
+        const std::string stem = std::string("view-loss-") + label
+            + (binary ? "-binary" : "-ascii");
+        const auto output = directory / (stem + ".dxf");
+        const auto expectedPath = directory / (stem + "-expected.dxf");
+        {
+            dxfRW expectedCodec(expectedPath.string().c_str());
+            Export expectedExporter(expectedCodec, supportedVersion,
+                modernExtras, camera, resourceReferences);
+            if (!expectedCodec.write(&expectedExporter, supportedVersion, binary)
+                || !expectedExporter.accepted
+                || !readbackMatches(expectedPath, supportedVersion,
+                    modernExtras, camera, resourceReferences))
+                return false;
+        }
+        std::string expectedBytes;
+        if (!readBytes(expectedPath, expectedBytes))
+            return false;
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+                return false;
+        }
+        dxfRW codec(output.string().c_str());
+        Export exporter(codec, supportedVersion, modernExtras,
+                        camera, resourceReferences);
+        const DRW_View original(exporter.view);
+        const bool refused = !codec.write(&exporter, refusedVersion, binary)
+            && !exporter.accepted
+            && sameView(exporter.view, supportedVersion, false,
+                        modernExtras, camera, resourceReferences);
+        std::string afterRefusal;
+        if (!refused || !readBytes(output, afterRefusal)
+            || afterRefusal != sentinel || !sameView(exporter.view,
+                supportedVersion, false, modernExtras, camera,
+                resourceReferences))
+            return false;
+        const bool retried = codec.write(&exporter, supportedVersion, binary)
+            && exporter.accepted
+            && sameView(exporter.view, supportedVersion, false,
+                        modernExtras, camera, resourceReferences);
+        std::string retryBytes;
+        if (!retried || exporter.view.handle != original.handle
+            || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+            || !readbackMatches(output, supportedVersion, modernExtras,
+                                camera, resourceReferences))
+            return false;
+    }
+    return true;
+}
+
+bool lossAvoidanceControls(const std::filesystem::path& directory) {
+    return refuseLostViewStateThenRetry(
+               directory, "camera-plottable", DRW::AC1018, DRW::AC1021,
+               false, true, false)
+        && refuseLostViewStateThenRetry(
+               directory, "lighting", DRW::AC1018, DRW::AC1021,
+               true, false, false)
+        && refuseLostViewStateThenRetry(
+               directory, "resource-refs", DRW::AC1018, DRW::AC1021,
+               false, false, true);
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -341,5 +437,6 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory) && lossAvoidanceControls(directory)
+        ? 0 : 2;
 }

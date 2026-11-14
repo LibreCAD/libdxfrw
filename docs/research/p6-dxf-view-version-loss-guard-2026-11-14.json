@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.dxf.writer-version-loss-guard-receipt.v1",
+  "slice": "P6-D VIEW table older-target loss refusal and same-writer recovery",
+  "date": "2026-11-14",
+  "scope": {
+    "writerRoute": "dxfRW::writeView",
+    "unsupportedRevision": "AC1018",
+    "firstCoveredRevision": "AC1021",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "generatedProfiles": [
+      "cameraPlottable=true",
+      "nondefault R2007 lighting flag/brightness/contrast with ambient color left at its DXF-valid default",
+      "resolved background handle plus visual-style handle"
+    ],
+    "fixturePolicy": "No committed DWG/DXF fixtures; output is generated in a scratch directory."
+  },
+  "checks": {
+    "olderTargetRefused": true,
+    "priorDestinationPreserved": true,
+    "callerStatePreserved": true,
+    "sameWriterRetryAtAc1021": true,
+    "retryByteIdenticalToCleanWrite": true,
+    "freshTypedReadback": true,
+    "profileEncodingCases": 6
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_view_table_allocation_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_view_table_allocation$' --output-on-failure",
+      "result": "passed 1/1 in 2.37 seconds"
+    },
+    "sourceSha256": "3933bfbf93d9ab8a165f4ceb10085adadc8158230da766d7c397965c6a38528e",
+    "librarySourceSha256": "c812e33c435a7303567faf453895f8ed2bb3e4b64ae84ccf2f12151fb3418a2f",
+    "runnerSha256": "4a42a58b7a6d2492d9224b139b73a0374472a2fc5340b62cd99b5fe5f28f845d"
+  },
+  "limits": [
+    "The tests prove serializer/refusal behavior and typed self-readback only.",
+    "The generated handles are not backed by a closed target graph, so the receipt does not establish semantic reference closure or native consumer behavior."
+  ]
+}

@@ -8993,6 +8993,18 @@ bool dxfRW::writeView(DRW_View *ent){
         m_writeError = true;
         return false;
     }
+    // R2007 added camera plottability, viewport lighting, and the background
+    // and visual-style references. Do not silently discard populated state
+    // when targeting an earlier VIEW table schema.
+    if (version <= DRW::AC1018
+        && (ent->cameraPlottable || !ent->m_useDefaultLights
+            || ent->m_defaultLightingType != 1u
+            || ent->m_brightness != 0.0 || ent->m_contrast != 0.0
+            || ent->m_backgroundHandle != 0u
+            || ent->m_visualStyleHandle != 0u)) {
+        m_writeError = true;
+        return false;
+    }
     const std::uint32_t emittedBackgroundHandle =
         version > DRW::AC1018 && ent->m_backgroundHandle != 0u
             ? emittedReference(ent->m_backgroundHandle) : 0u;
