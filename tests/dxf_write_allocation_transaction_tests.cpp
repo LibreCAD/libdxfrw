@@ -7672,6 +7672,162 @@ bool runRayXlineVersionSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runToleranceVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "TOLERANCE version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeTolerance = [] {
+        DRW_Tolerance value;
+        value.dimStyleName = "STANDARD";
+        value.text = "%%v0.25^0.10";
+        value.insertionPoint = DRW_Coord(2.5, -3.75, 4.125);
+        value.extPoint = DRW_Coord(0.0, 0.0, 1.0);
+        value.xAxisDirectionVector = DRW_Coord(0.0, 1.0, 0.0);
+        return value;
+    };
+    const auto sameTolerance = [](const DRW_Tolerance& actual,
+                                  const DRW_Tolerance& expected) {
+        return actual.handle == expected.handle
+            && actual.dimStyleName == expected.dimStyleName
+            && actual.text == expected.text
+            && actual.insertionPoint.x == expected.insertionPoint.x
+            && actual.insertionPoint.y == expected.insertionPoint.y
+            && actual.insertionPoint.z == expected.insertionPoint.z
+            && actual.extPoint.x == expected.extPoint.x
+            && actual.extPoint.y == expected.extPoint.y
+            && actual.extPoint.z == expected.extPoint.z
+            && actual.xAxisDirectionVector.x
+                == expected.xAxisDirectionVector.x
+            && actual.xAxisDirectionVector.y
+                == expected.xAxisDirectionVector.y
+            && actual.xAxisDirectionVector.z
+                == expected.xAxisDirectionVector.z;
+    };
+    class ToleranceExport final : public dx_iface {
+    public:
+        ToleranceExport(dxfRW& codec, DRW_Tolerance source)
+            : output(codec), tolerance(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override {
+            emitted = output.writeTolerance(&tolerance);
+        }
+        bool finalizeDxfWrite() override { return emitted; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Tolerance tolerance;
+        bool emitted = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dx_data decoded;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &decoded, false)
+            || decoded.sourceVersion != expectedVersion
+            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 1u)
+            return false;
+        const auto* actual = dynamic_cast<const DRW_Tolerance*>(
+            decoded.mBlock->ent.front());
+        DRW_Tolerance expected = makeTolerance();
+        if (actual != nullptr)
+            expected.handle = actual->handle;
+        return actual != nullptr && actual->handle != 0u
+            && sameTolerance(*actual, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "previous complete TOLERANCE destination\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("tolerance-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                ToleranceExport adapter(codec, makeTolerance());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.emitted)
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                ToleranceExport adapter(codec, makeTolerance());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.emitted || allocationFailed
+                    || allocationCount <= 0
+                    || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                ToleranceExport adapter(codec, makeTolerance());
+                const DRW_Tolerance original(adapter.tolerance);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !sameTolerance(adapter.tolerance, original)
+                    || !identitiesRolledBack || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination state");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.emitted;
+                std::string retryBytes;
+                if (!retried || !sameTolerance(adapter.tolerance, original)
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "TOLERANCE " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runLightListSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "LIGHTLIST allocation transaction: " << message << '\n';
@@ -9790,7 +9946,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9814,6 +9970,8 @@ int main(int argc, char** argv) {
             return runOleFrameVersionSweep(directory) ? 0 : 1;
         if (mode == "ray-xline")
             return runRayXlineVersionSweep(directory) ? 0 : 1;
+        if (mode == "tolerance")
+            return runToleranceVersionSweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")
