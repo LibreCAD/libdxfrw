@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **387 completed implementation and qualification slices** and **34 remaining
+The plan records **388 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`387 / (387 + 34) = 91.9%`. This is a count-based progress measure, not an
+`388 / (388 + 34) = 91.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -17,12 +17,17 @@ sub-slices do not retire their parent package until its full exit gate passes. T
 activity proxy, not as the percentage of package gates completed.
 
 **P4-BTR associative-network graph admission slice (2026-11-14):** the
-source-bound AC1024 BTR extension-dictionary/network-dictionary chain now
-passes graph validation with exact reciprocal owners, reactors, and the
-non-owned root action. The 663-frame architectural sample still refuses at
-its unqualified named-block `SORTENTSTABLE`; P4-D/P4-E and whole-source output
-remain open. The adapter regression, source trace, independent LibreDWG object
-inventory, code, and plan are committed together ([receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json)).
+source-bound AC1024 BTR extension-dictionary/network-dictionary chain passes
+graph validation with exact reciprocal owners, reactors, and the non-owned
+root action ([receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json)).
+
+**P4 empty named-block SORTENTSTABLE no-op projection slice (2026-11-14):**
+the architectural source's six named-block tables have zero pairs and are
+omitted only with their exact BTR owner and dictionary links validated. Its
+graph and dynamic-block owner-route checks now pass. Strict finalization still
+refuses at 478/490 opaque callbacks (six tables and six dictionaries); no DXF
+is published and P4-D/P4-E remain open
+([receipt](docs/research/p4-ac1024-empty-named-sortents-noop-projection-2026-11-14.json)).
 
 **P8-D generated LTYPE edit-preservation qualification slice (2026-11-14):**
 the focused libdxfrw regression imports a generated AC1027 LTYPE with an
@@ -1593,7 +1598,7 @@ integration/release checkpoints.
 
 | ID | State | Remaining work | Ready evidence / dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source and graph closure | P4-A has a distinct AC1027 LibreDWG-authored associative-constraints source/callback identity witness; its same-lineage peer and strict-output refusal do not qualify semantics or support. A bounded AC1024 BTR `ACDBASSOCNETWORK` path now validates the exact BTR extension-dictionary → unique `ACAD_ASSOCNETWORK` subdictionary → network owner/reactor chain and the reciprocal non-owned root-network action. The architectural sample publishes all 663 frames with zero entity/object parse failures, then remains strictly refused at named-block `SORTENTSTABLE` 0x1BBA; its associative graph admission is not whole-file output qualification ([receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json)). Continue qualifying a new source-backed OBJECTS subgraph end to end: exact source/frame identities, handle roles, recursive dependencies, emitted records and fresh readback. Resolve the AC1032 associative-network class-version-2 schema and the AC1027 Sweep suffix/embedded-entity profile before admitting those routes. | Resume only on a distinct eligible producer/source witness. Keep known null-member, orphan-owner, unsupported-frame, named-block SORTENTSTABLE and unresolved HEADER cases refused. |
+| P4 | OPEN — source and graph closure | P4-A has a distinct AC1027 LibreDWG-authored associative-constraints source/callback identity witness; its same-lineage peer and strict-output refusal do not qualify semantics or support. A bounded AC1024 BTR `ACDBASSOCNETWORK` path validates the exact BTR extension-dictionary → unique `ACAD_ASSOCNETWORK` subdictionary → network owner/reactor chain and reciprocal non-owned root-network action. Six empty named-block `SORTENTSTABLE` objects now project away as no-op records, with other extension-dictionary entries and dynamic-block owner routes retained. The architectural source publishes 663/663 frames with zero entity/object parse failures and passes graph/owner-route checks, then strict finalization refuses because 12 opaque callbacks (six dictionaries, six tables) are unqualified; no DXF is published ([graph receipt](docs/research/p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14.json), [no-op table receipt](docs/research/p4-ac1024-empty-named-sortents-noop-projection-2026-11-14.json)). Continue qualifying one source-backed OBJECTS subgraph end to end: exact identities, handle roles, recursive dependencies, emitted records and fresh readback. Resolve the AC1032 associative-network class-version-2 schema and AC1027 Sweep suffix/embedded-entity profile before admitting those routes. | Resume only on distinct eligible producer/source witnesses. Keep non-empty named-block SORTENTSTABLE, null-member, orphan-owner, unsupported-frame, and unresolved HEADER cases refused. |
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER envelope/suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
@@ -1612,7 +1617,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | --- | --- | --- | --- |
 | P4-B | OPEN | Resolve AC1032 associative-network class-version-2 fields from ODA and source-bound spans; add bounded parser and boundary controls. | Exact source/class frame plus ODA chapter; field/span map and generated boundary controls. |
 | P4-C | OPEN | Resolve AC1027 Sweep suffix and embedded-entity layout without assuming padding; preserve unknown bytes until role/order is proven. | Source-bound Sweep frame and ODA version comparison; truncation and following-frame alignment controls. |
-| P4-D | OPEN | Close one selected source OBJECTS subgraph: frame identities, handle roles, owners, dictionary edges, recursive dependencies, and omissions. The AC1024 BTR associative-network owner cycle now passes its bounded graph gate; close its owned action targets and remaining block-record `SORTENTSTABLE` dependencies before output admission. | P4-A witness; zero unknown dispositions for the admitted profile. Keep the current whole-file refusal until all dependencies close. |
+| P4-D | OPEN | Close one selected source OBJECTS subgraph: frame identities, handle roles, owners, dictionary edges, recursive dependencies, and omissions. The AC1024 BTR associative-network owner cycle and empty named-block sort-table no-op projection now pass graph/dynamic-owner checks. Qualify the six remaining BTR dictionaries and six omitted SORTENTSTABLE source callbacks, then close owned action targets and fresh readback before strict output admission. | P4-A witness; zero unknown dispositions for the admitted profile. Keep whole-file refusal until every source callback and dependency closes. |
 | P4-E | OPEN | Add strict writer admission, fresh readback, and transactional retry for that closed subgraph. | P4-D closure; emitted records and handle graph match the frozen source plan; mutation refuses atomically. |
 | P5-A | OPEN | Acquire a FIELD/FIELDLIST graph with a visible root and enumerate owners, field codes, dependencies, and expressions. | Producer/source identity, independently visible result, and complete raw frame inventory. |
 | P5-B | OPEN | Implement typed FIELD/FIELDLIST parse and write for the selected profile, preserving unsupported tokens and reference roles. | P5-A map; parser spans, graph closure, strict output, typed readback. |

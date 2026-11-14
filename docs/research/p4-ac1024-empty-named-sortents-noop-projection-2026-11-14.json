@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-empty-named-sortents-noop-projection-2026-11-14",
+  "date": "2026-11-14",
+  "title": "AC1024 empty named-block SORTENTSTABLE no-op projection gate",
+  "supportClaimEffect": "none",
+  "scope": "Project only empty non-model/non-paper-space SORTENTSTABLE objects from a BTR extension dictionary, and only after the table, BTR owner, parent dictionary, and remaining dictionary graph are validated. Keep strict DWG output refused until every source callback is qualified.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local research drawing; it is not a committed fixture or an authenticated AutoCAD producer witness."
+  },
+  "formatAuthority": {
+    "autodeskDxf2024": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "observation": "Autodesk documents SORTENTSTABLE group 330 as owning the ACAD_SORTENTS dictionary and the table's BLOCK_RECORD owner as currently limited to *MODEL_SPACE or *PAPER_SPACE. A named-block table with zero entity and sort-handle pairs carries no draw-order mapping; it can be omitted as a no-op only after the exact empty profile is proven.",
+    "limitation": "This does not qualify non-empty named-block tables or any writer support for them."
+  },
+  "independentPeer": {
+    "name": "LibreDWG dwgread minJSON",
+    "version": "0.14",
+    "path": "/private/tmp/architectural-libredwg.json",
+    "sha256": "32a04f8e1b4679c4c397fbedd9c7c20f7eaec487045dda9a53f7aed6fac7c4e3",
+    "observedNamedBlockTables": [
+      {"handle": "0x1BB9", "owner": "0x110D", "name": "Door - Imperial", "entityPairs": 0},
+      {"handle": "0x1BBA", "owner": "0x1145", "name": "Window - Imperial", "entityPairs": 0},
+      {"handle": "0x1F66", "owner": "0x1F57", "name": "*U4", "entityPairs": 0},
+      {"handle": "0x1FB3", "owner": "0x1FA4", "name": "*U5", "entityPairs": 0},
+      {"handle": "0x2037", "owner": "0x201E", "name": "*U6", "entityPairs": 0},
+      {"handle": "0x2090", "owner": "0x2077", "name": "*U7", "entityPairs": 0}
+    ],
+    "limitation": "Peer agreement corroborates the records in this source only; it does not qualify general named-block SORTENTSTABLE output."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "The extension-graph walker uses the source dictionary projection only when exactly one referenced named-block SORTENTSTABLE has zero entity and sort pairs, its parent equals the BTR extension dictionary, its reactor is absent or points back to that dictionary, and the block record xDictHandle matches.",
+      "Dynamic-block owner-route verification accepts an unmapped sort-table handle only when the same empty named-block table is present in the validated source inventory and its projected owner dictionary no longer contains ACAD_SORTENTS.",
+      "The table object is omitted; unrelated non-empty tables and unrelated missing handle mappings remain strict failures."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "passed"
+    },
+    "focusedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-adapter /private/tmp/sortents-regression",
+        "exitCode": 0,
+        "scope": "Existing ASCII/Binary SORTENTSTABLE writer, invalid-target refusal, partial named-block omission, and retry controls; it does not isolate the new empty named-block strict profile."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --associative-dwg-nested-network-sortents-output",
+        "exitCode": 0,
+        "logPath": "/private/tmp/nested-net-regression.log",
+        "logSha256": "2eca0d0b6dd04b98de830448877a4d1f29bc29acedd06a8dfab8a3288cc7bdd5"
+      }
+    ],
+    "sourceConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_example-imperial.dwg -y -d -v2010 /private/tmp/architectural-after-empty-named-sort-final.dxf",
+      "executableSha256": "b1178a42c1f8aae5ab9560fa5425c52e52c62fc8f2d92c4a989c874c65282d16",
+      "logPath": "/private/tmp/architectural-after-empty-named-sort-final.log",
+      "logSha256": "08fac3a889cda777b930f21ce3c17e7cc51b11c85d33ceef01c2049b2a528ed1",
+      "exitCode": 1,
+      "observed": {
+        "readerOperationSucceeded": true,
+        "sourceFrames": 663,
+        "publishedFrames": 663,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "dynamicBlockOwnerRouteMapping": "passed",
+        "strictFinalization": "refused at opaque callback qualification: 478/490 qualified",
+        "unqualifiedCallbacks": [
+          "DICTIONARY 0x110E",
+          "DICTIONARY 0x1146",
+          "SORTENTSTABLE 0x1BB9",
+          "SORTENTSTABLE 0x1BBA",
+          "DICTIONARY 0x1F65",
+          "SORTENTSTABLE 0x1F66",
+          "DICTIONARY 0x1FB2",
+          "SORTENTSTABLE 0x1FB3",
+          "DICTIONARY 0x2032",
+          "SORTENTSTABLE 0x2037",
+          "DICTIONARY 0x208B",
+          "SORTENTSTABLE 0x2090"
+        ],
+        "publishedDxf": false
+      },
+      "interpretation": "The empty-table projection passes extension-graph and dynamic-block owner-route checks. Strict output remains refused because these 12 opaque callback frames lack output qualification; no DXF file was published and no support claim is promoted."
+    }
+  }
+}

@@ -14308,6 +14308,74 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 ? &frame.dictionaryWithDefault->m_entries
                                 : &frame.dictionary->m_entries;
                         if (frame.dictionary != nullptr
+                            && m_selectedDwgAssociativeSource != data) {
+                            const auto sortProjection =
+                                m_sortDictionaryOutputs.find(
+                                    frame.dictionary->handle);
+                            if (sortProjection
+                                != m_sortDictionaryOutputs.end()) {
+                                std::size_t noOpNamedSortTables = 0u;
+                                bool sourceProjectionIsNoOp = true;
+                                for (const DRW_Dictionary::Entry& entry :
+                                     frame.dictionary->m_entries) {
+                                    if (layoutSymbolKey(entry.m_name)
+                                        != "ACAD_SORTENTS")
+                                        continue;
+                                    const DRW_SortEntsTable* table = nullptr;
+                                    for (const DRW_SortEntsTable& candidate :
+                                         data->sortEntsTables) {
+                                        if (candidate.handle
+                                            != entry.m_handle)
+                                            continue;
+                                        if (table != nullptr) {
+                                            sourceProjectionIsNoOp = false;
+                                            break;
+                                        }
+                                        table = &candidate;
+                                    }
+                                    if (!sourceProjectionIsNoOp
+                                        || table == nullptr
+                                        || table->parentHandle
+                                            != frame.dictionary->handle
+                                        || !table->m_entityHandles.empty()
+                                        || !table->m_sortHandles.empty()
+                                        || (!table->reactorHandles.empty()
+                                            && table->reactorHandles
+                                                != std::vector<std::uint32_t>{
+                                                    frame.dictionary->handle})) {
+                                        sourceProjectionIsNoOp = false;
+                                        break;
+                                    }
+                                    const auto owner = std::find_if(
+                                        data->blockRecords.begin(),
+                                        data->blockRecords.end(),
+                                        [&table](
+                                            const DRW_Block_Record& record) {
+                                            return record.handle
+                                                == table->m_blockOwnerHandle;
+                                        });
+                                    if (owner == data->blockRecords.end()
+                                        || owner->xDictHandle
+                                            != frame.dictionary->handle) {
+                                        sourceProjectionIsNoOp = false;
+                                        break;
+                                    }
+                                    const std::string ownerName =
+                                        layoutSymbolKey(owner->name);
+                                    if (ownerName == "*MODEL_SPACE"
+                                        || ownerName == "*PAPER_SPACE") {
+                                        sourceProjectionIsNoOp = false;
+                                        break;
+                                    }
+                                    ++noOpNamedSortTables;
+                                }
+                                if (sourceProjectionIsNoOp
+                                    && noOpNamedSortTables == 1u)
+                                    entries =
+                                        &sortProjection->second.m_entries;
+                            }
+                        }
+                        if (frame.dictionary != nullptr
                             && m_selectedDwgAssociativeSource == data) {
                             const auto projection =
                                 m_selectedDwgAssociativeDictionaryOutputs.find(
@@ -14348,7 +14416,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     != frame.handle)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACAD_SORTENTS entry is not the validated SORTENTSTABLE owned by this dictionary");
+                                    "ACAD_SORTENTS entry is not the validated SORTENTSTABLE owned by this dictionary: dictionary="
+                                        + std::to_string(frame.handle)
+                                        + " target="
+                                        + std::to_string(child)
+                                        + " projected="
+                                        + std::to_string(
+                                            m_sortDictionaryOutputs.count(
+                                                frame.handle))
+                                        + " typed="
+                                        + std::to_string(
+                                            std::count_if(
+                                                data->sortEntsTables.begin(),
+                                                data->sortEntsTables.end(),
+                                                [child](
+                                                    const DRW_SortEntsTable& table) {
+                                                    return table.handle == child;
+                                                })));
                             // SORTENTSTABLE has its own source-membership and
                             // output projection planner. Its validated entry
                             // is a typed edge, not a generic OBJECT target.
@@ -53005,13 +53089,65 @@ bool dx_iface::inspectDwgDynamicBlockOutputGraphSet(
                 return mapEntityHandle(source, emitted);
             return mapObjectHandle(source, emitted);
         };
+        const auto isProjectedEmptyNamedSortTable =
+            [this](std::uint32_t handle) {
+            if (cData == nullptr || handle == 0u
+                || handle == DRW::NoHandle)
+                return false;
+            const DRW_SortEntsTable* table = nullptr;
+            for (const DRW_SortEntsTable& candidate :
+                 cData->sortEntsTables) {
+                if (candidate.handle != handle)
+                    continue;
+                if (table != nullptr)
+                    return false;
+                table = &candidate;
+            }
+            if (table == nullptr || !table->m_entityHandles.empty()
+                || !table->m_sortHandles.empty())
+                return false;
+            const auto owner = std::find_if(
+                cData->blockRecords.begin(), cData->blockRecords.end(),
+                [table](const DRW_Block_Record& record) {
+                    return record.handle == table->m_blockOwnerHandle;
+                });
+            if (owner == cData->blockRecords.end()
+                || owner->xDictHandle != table->parentHandle
+                || table->parentHandle == 0u
+                || table->parentHandle == DRW::NoHandle
+                || static_cast<std::uint64_t>(table->parentHandle)
+                    > std::numeric_limits<std::uint32_t>::max()
+                || (!table->reactorHandles.empty()
+                    && table->reactorHandles
+                        != std::vector<std::uint32_t>{
+                            static_cast<std::uint32_t>(
+                                table->parentHandle)}))
+                return false;
+            const std::string ownerName = layoutSymbolKey(owner->name);
+            if (ownerName == "*MODEL_SPACE"
+                || ownerName == "*PAPER_SPACE")
+                return false;
+            const auto projection = m_sortDictionaryOutputs.find(
+                static_cast<std::uint32_t>(table->parentHandle));
+            if (projection == m_sortDictionaryOutputs.end())
+                return false;
+            return std::none_of(
+                projection->second.m_entries.begin(),
+                projection->second.m_entries.end(), [](
+                    const DRW_Dictionary::Entry& entry) {
+                    return layoutSymbolKey(entry.m_name) == "ACAD_SORTENTS";
+                });
+        };
         const auto rememberHandle = [&emittedHandleBySource, &mapReference,
+                                     &isProjectedEmptyNamedSortTable,
                                      &debug](
                 std::uint32_t source) {
             if (source == 0u || source == DRW::NoHandle)
                 return true;
             std::uint32_t emitted = 0u;
             if (!mapReference(source, emitted)) {
+                if (isProjectedEmptyNamedSortTable(source))
+                    return true;
                 if (debug)
                     std::cerr << "dynamic-block unmapped source reference: 0x"
                               << std::hex << source << std::dec << '\n';
