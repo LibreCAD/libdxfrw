@@ -1,98 +1,290 @@
 {
   "id": "p6-dxf-3d-entity-version-allocation-2026-11-14",
-  "title": "LINE, 3DFACE, 3DLINE, SOLID, TRACE, POINT, CIRCLE, ARC, ELLIPSE, TEXT, and SHAPE DXF writer revision transaction matrix",
+  "title": "LINE, 3DFACE, 3DLINE, SOLID, TRACE, POINT, CIRCLE, ARC, ELLIPSE, TEXT, RTEXT, ARCALIGNEDTEXT, and SHAPE DXF writer revision transaction matrix",
   "date": "2026-11-14",
-  "scope": "Generated direct-writer transaction and library self-readback controls for LINE, 3DFACE, 3DLINE, SOLID, TRACE, POINT, CIRCLE, ARC, ELLIPSE, TEXT, and SHAPE.",
+  "scope": "Generated direct-writer transaction and library self-readback controls for LINE, 3DFACE, 3DLINE, SOLID, TRACE, POINT, CIRCLE, ARC, ELLIPSE, TEXT, RTEXT, ARCALIGNEDTEXT, and SHAPE.",
   "profiles": {
     "3DFACE": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Four distinct WCS corners and selected invisible-edge flags."
     },
     "3DLINE": {
-      "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Distinct 3D endpoints, non-default extrusion and thickness; AC1014 is excluded by the writer's minimum-version gate."
     },
     "SOLID": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
-      "allocation_offsets_per_cell": {"AC1014-ASCII": 9, "AC1014-Binary": 10, "other-cells": 10},
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "AC1014-ASCII": 9,
+        "AC1014-Binary": 10,
+        "other-cells": 10
+      },
       "geometry": "Four WCS corners at a shared elevation, non-default extrusion and thickness."
     },
     "TRACE": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
-      "allocation_offsets_per_cell": {"ASCII": 9, "Binary": 10},
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "ASCII": 9,
+        "Binary": 10
+      },
       "geometry": "Four WCS corners at a shared elevation, non-default extrusion and thickness."
     },
     "POINT": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Non-default position, thickness, extrusion and UCS angle."
     },
     "CIRCLE": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Non-default center, elevation, radius and thickness."
     },
     "ARC": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Non-default center, elevation, radius, thickness and partial sweep angles."
     },
     "LINE": {
-      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
       "allocation_offsets_per_cell": 9,
       "geometry": "Distinct 3D endpoints and non-default thickness."
     },
     "ELLIPSE": {
-      "versions": ["AC1009", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
-      "allocation_offsets_per_cell": {"AC1009-ASCII": 24, "AC1009-Binary": 23, "other-cells": 9},
+      "versions": [
+        "AC1009",
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "AC1009-ASCII": 24,
+        "AC1009-Binary": 23,
+        "other-cells": 9
+      },
       "geometry": "Partial ellipse with non-default center, major axis, ratio and parameters. AC1009 uses the configured eight-part R12 conversion and typed polyline carrier readback; AC1014+ retain the typed ELLIPSE."
     },
     "TEXT": {
-      "versions": ["AC1009", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
-      "allocation_offsets_per_cell": {"AC1009-ASCII": 10, "AC1009-Binary": 9, "other-cells": 10},
+      "versions": [
+        "AC1009",
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "AC1009-ASCII": 10,
+        "AC1009-Binary": 9,
+        "other-cells": 10
+      },
       "geometry_and_fields": "Non-default insertion/alignment positions, text payload, style, height, width, oblique and angle; AC1009 exercises uppercase style output."
     },
     "SHAPE": {
-      "versions": ["AC1009", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
-      "encodings": ["ASCII", "Binary"],
-      "allocation_offsets_per_cell": {"AC1009-ASCII": 9, "AC1009-Binary": 9, "ASCII-modern": 10, "Binary-modern": 9},
+      "versions": [
+        "AC1009",
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "AC1009-ASCII": 9,
+        "AC1009-Binary": 9,
+        "ASCII-modern": 10,
+        "Binary-modern": 9
+      },
       "geometry_and_fields": "Non-default insertion point, scale, SHX style name, rotation, width factor, oblique, thickness and extrusion."
+    },
+    "RTEXT": {
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": 9,
+      "fields": "DIESEL/reactive text payload, style, insertion, height, rotation, extrusion and non-default flags. Readback checks the RTEXT subtype and fields represented by the DXF record."
+    },
+    "ARCALIGNEDTEXT": {
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "allocation_offsets_per_cell": {
+        "AC1014-ASCII": 12,
+        "AC1014-Binary": 11,
+        "AC1015-ASCII": 12,
+        "AC1015-Binary": 11,
+        "AC1018-ASCII": 12,
+        "AC1018-Binary": 11,
+        "AC1021-ASCII": 11,
+        "AC1021-Binary": 10,
+        "AC1024-ASCII": 11,
+        "AC1024-Binary": 10,
+        "AC1027-ASCII": 11,
+        "AC1027-Binary": 10,
+        "AC1032-ASCII": 11,
+        "AC1032-Binary": 10
+      },
+      "fields": "Arc center/radius/angles, text, font/style, D2T scale/spacing/offsets, color, flags and extrusion. Readback checks emitted fields and the documented DRW_Text midpoint/tangent approximation; numeric D2T strings are compared by finite numeric value because the parser canonicalizes their spelling."
     }
   },
   "verification": {
-    "cells": 158,
-    "allocation_failures": 1493,
+    "cells": 186,
+    "allocation_failures": 1772,
     "checks": [
-      "Every injected allocation failure fails the enclosing write while preserving the prior destination bytes and caller entity fields.",
+      "Every injected allocation failure fails the enclosing write while preserving prior destination bytes and every caller entity field.",
       "Every failed cell retries through the same codec and reproduces the clean reference bytes.",
-      "Fresh dx_iface fileImport readback checks source revision, typed entity subtype and all profiled geometry fields.",
-      "The generated test removes its DXF outputs; no fixture files were added."
+      "Fresh dx_iface fileImport readback checks source revision, typed RTEXT/ARCALIGNEDTEXT subtype, represented fields and approximation, and each profiled entity\u2019s modeled fields.",
+      "Generated DXF outputs are removed by the test; no fixture files were added."
     ],
     "focused_ctest": "ctest --test-dir build -R '^libdxfrw_3d_entity_version_allocation$' --output-on-failure",
-    "focused_ctest_result": "PASS, 1/1, 10.57 seconds",
+    "focused_ctest_result": "PASS, 1/1, 12.49 seconds",
     "direct_command": "build/tests/libdxfrw_3d_entity_version_allocation_tests build/tests/3d-entity-version-allocation",
-    "direct_result": "PASS, 158 profile/encoding cells, 1493 injected allocation failures"
+    "direct_result": "PASS, 186 profile/encoding cells, 1772 injected allocation failures across 13 writer routes"
   },
   "artifacts": {
     "test_source": "tests/dxf_3d_entity_version_allocation_tests.cpp",
-    "test_source_sha256": "97dec235dc3a24da131970ff1dbd31bb8489848f5ac49dc594cbed96f17d516a",
+    "test_source_sha256": "b7bcc7f6e7faf641814a79c13e9c2cdbc6a8b2be1fd627207c52d31d41079eb4",
     "test_executable": "build/tests/libdxfrw_3d_entity_version_allocation_tests",
-    "test_executable_sha256": "8eee5c6c94df70daeae3da2f028755ee1e99636c8c40c04e7637f180e03507e9"
+    "test_executable_sha256": "9b233fcd6f96d21e833b42f43e36ddead7d6da2943e7abaaecdfc5ff262a8b87"
   },
   "limitations": [
-    "Locally generated writer and self-readback evidence only; paired implementation behavior is not independent format proof.",
-    "Does not qualify physical producer profiles, native application behavior, or 3D geometry semantics."
+    "Locally generated writer and paired library self-readback evidence only; it is not independent format or producer evidence.",
+    "Does not qualify native application rendering, RTEXT evaluation, ARCALIGNEDTEXT glyph placement, or 3D geometry semantics."
   ]
 }

@@ -46,7 +46,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text, Shape };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text, RText, ArcAlignedText, Shape };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -60,6 +60,8 @@ const char* profileName(Profile profile) {
     case Profile::BasicLine: return "LINE";
     case Profile::Ellipse: return "ELLIPSE";
     case Profile::Text: return "TEXT";
+    case Profile::RText: return "RTEXT";
+    case Profile::ArcAlignedText: return "ARCALIGNEDTEXT";
     case Profile::Shape: return "SHAPE";
     }
     return "unknown";
@@ -177,6 +179,58 @@ DRW_Text makeText() {
     return text;
 }
 
+DRW_RText makeRText() {
+    DRW_RText text;
+    text.handle = 0xD943u;
+    text.basePoint = DRW_Coord{12.0, -3.0, 1.0};
+    text.secPoint = DRW_Coord{15.0, 6.0, 2.0};
+    text.height = 2.0;
+    text.text = "revision matrix RTEXT";
+    text.angle = 15.0;
+    text.widthscale = 1.2;
+    text.oblique = 3.5;
+    text.style = "MatrixStyle";
+    text.textgen = 2;
+    text.alignH = DRW_Text::HCenter;
+    text.alignV = DRW_Text::VTop;
+    text.extPoint = DRW_Coord{0.0, 0.0, 1.0};
+    text.m_rTextFlags = 3;
+    return text;
+}
+
+DRW_ArcAlignedText makeArcAlignedText() {
+    DRW_ArcAlignedText text;
+    text.handle = 0xD944u;
+    text.text = "revision matrix arc text";
+    text.style = "MatrixStyle";
+    text.m_center = DRW_Coord{2.0, -1.0, 0.5};
+    text.m_radius = 8.0;
+    text.m_startAngle = 0.25;
+    text.m_endAngle = 1.75;
+    text.m_textSize = "2.5";
+    text.m_xScale = "1.2";
+    text.m_charSpacing = "1.1";
+    text.m_offsetFromArc = "0.2";
+    text.m_rightOffset = "0.3";
+    text.m_leftOffset = "0.4";
+    text.m_fontName = "Simplex";
+    text.m_bigFontName = "Bigfont";
+    text.m_rawColor = 0x123456;
+    text.m_characterSet = 1;
+    text.m_pitchAndFamily = 2;
+    text.m_isShx = 1;
+    text.m_isBold = 1;
+    text.m_isItalic = 0;
+    text.m_isUnderlined = 1;
+    text.m_alignment = 2;
+    text.m_isReverse = 1;
+    text.m_wizardFlag = 1;
+    text.m_textPosition = 2;
+    text.m_textDirection = 1;
+    text.m_arcHandle = 0xD945u;
+    return text;
+}
+
 DRW_Shape makeShape() {
     DRW_Shape shape;
     shape.handle = 0xD942u;
@@ -215,6 +269,48 @@ bool sameText(const DRW_Text& a, const DRW_Text& b,
         && a.widthscale == b.widthscale && a.oblique == b.oblique
         && a.style == b.style && a.textgen == b.textgen
         && a.alignH == b.alignH && a.alignV == b.alignV;
+}
+
+bool sameFiniteTextNumber(const std::string& a, const std::string& b) {
+    char* aEnd = nullptr;
+    char* bEnd = nullptr;
+    const double aValue = std::strtod(a.c_str(), &aEnd);
+    const double bValue = std::strtod(b.c_str(), &bEnd);
+    return aEnd != a.c_str() && *aEnd == '\0'
+        && bEnd != b.c_str() && *bEnd == '\0'
+        && std::isfinite(aValue) && std::isfinite(bValue)
+        && std::abs(aValue - bValue) < 1e-12;
+}
+
+bool sameRText(const DRW_RText& a, const DRW_RText& b,
+               bool compareHandle = true) {
+    return sameText(a, b, compareHandle)
+        && a.extPoint.x == b.extPoint.x && a.extPoint.y == b.extPoint.y
+        && a.extPoint.z == b.extPoint.z && a.m_rTextFlags == b.m_rTextFlags;
+}
+
+bool sameArcAlignedText(const DRW_ArcAlignedText& a,
+                        const DRW_ArcAlignedText& b,
+                        bool compareHandle = true) {
+    return sameText(a, b, compareHandle)
+        && a.m_center.x == b.m_center.x && a.m_center.y == b.m_center.y
+        && a.m_center.z == b.m_center.z && a.m_radius == b.m_radius
+        && a.m_startAngle == b.m_startAngle && a.m_endAngle == b.m_endAngle
+        && a.m_textSize == b.m_textSize && a.m_xScale == b.m_xScale
+        && a.m_charSpacing == b.m_charSpacing
+        && a.m_offsetFromArc == b.m_offsetFromArc
+        && a.m_rightOffset == b.m_rightOffset
+        && a.m_leftOffset == b.m_leftOffset && a.m_fontName == b.m_fontName
+        && a.m_bigFontName == b.m_bigFontName && a.m_rawColor == b.m_rawColor
+        && a.m_characterSet == b.m_characterSet
+        && a.m_pitchAndFamily == b.m_pitchAndFamily && a.m_isShx == b.m_isShx
+        && a.m_isBold == b.m_isBold && a.m_isItalic == b.m_isItalic
+        && a.m_isUnderlined == b.m_isUnderlined
+        && a.m_alignment == b.m_alignment && a.m_isReverse == b.m_isReverse
+        && a.m_wizardFlag == b.m_wizardFlag
+        && a.m_textPosition == b.m_textPosition
+        && a.m_textDirection == b.m_textDirection
+        && a.m_arcHandle == b.m_arcHandle;
 }
 
 bool sameEllipse(const DRW_Ellipse& a, const DRW_Ellipse& b,
@@ -319,6 +415,8 @@ public:
         basicLine = makeBasicLine();
         ellipse = makeEllipse();
         text = makeText();
+        rtext = makeRText();
+        arcAlignedText = makeArcAlignedText();
         shape = makeShape();
         codec.setEllipseParts(8);
     }
@@ -343,6 +441,9 @@ public:
         case Profile::BasicLine: accepted = codec.writeLine(&basicLine); break;
         case Profile::Ellipse: accepted = codec.writeEllipse(&ellipse); break;
         case Profile::Text: accepted = codec.writeText(&text); break;
+        case Profile::RText: accepted = codec.writeRText(&rtext); break;
+        case Profile::ArcAlignedText:
+            accepted = codec.writeArcAlignedText(&arcAlignedText); break;
         case Profile::Shape: accepted = codec.writeShape(&shape); break;
         }
     }
@@ -362,6 +463,8 @@ public:
     DRW_Line basicLine;
     DRW_Ellipse ellipse;
     DRW_Text text;
+    DRW_RText rtext;
+    DRW_ArcAlignedText arcAlignedText;
     DRW_Shape shape;
     long failAt = -1;
     long reached = 0;
@@ -489,6 +592,69 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return text != nullptr && text->eType == DRW::TEXT
             && sameText(*text, expected, false);
     }
+    if (profile == Profile::RText) {
+        const auto* text = dynamic_cast<const DRW_RText*>(entity);
+        const DRW_RText expected = makeRText();
+        return text != nullptr && text->eType == DRW::TEXT
+            && text->basePoint.x == expected.basePoint.x
+            && text->basePoint.y == expected.basePoint.y
+            && text->basePoint.z == expected.basePoint.z
+            && text->height == expected.height && text->text == expected.text
+            && text->angle == expected.angle && text->style == expected.style
+            && text->extPoint.x == expected.extPoint.x
+            && text->extPoint.y == expected.extPoint.y
+            && text->extPoint.z == expected.extPoint.z
+            && text->m_rTextFlags == expected.m_rTextFlags;
+    }
+    if (profile == Profile::ArcAlignedText) {
+        const auto* text = dynamic_cast<const DRW_ArcAlignedText*>(entity);
+        DRW_ArcAlignedText expected = makeArcAlignedText();
+        expected.applyArcApproximation();
+        if (text == nullptr) {
+            std::cerr << "ARCALIGNEDTEXT readback subtype missing\n";
+            return false;
+        }
+        const bool matches = text->eType == DRW::TEXT
+            && text->text == expected.text && text->style == expected.style
+            && text->basePoint.x == expected.basePoint.x
+            && text->basePoint.y == expected.basePoint.y
+            && text->basePoint.z == expected.basePoint.z
+            && text->secPoint.x == expected.secPoint.x
+            && text->secPoint.y == expected.secPoint.y
+            && text->secPoint.z == expected.secPoint.z
+            && text->height == expected.height
+            && std::abs(text->angle - expected.angle) < 1e-12
+            && text->m_center.x == expected.m_center.x
+            && text->m_center.y == expected.m_center.y
+            && text->m_center.z == expected.m_center.z
+            && text->m_radius == expected.m_radius
+            && text->m_startAngle == expected.m_startAngle
+            && text->m_endAngle == expected.m_endAngle
+            && sameFiniteTextNumber(text->m_textSize, expected.m_textSize)
+            && sameFiniteTextNumber(text->m_xScale, expected.m_xScale)
+            && sameFiniteTextNumber(text->m_charSpacing, expected.m_charSpacing)
+            && sameFiniteTextNumber(text->m_offsetFromArc, expected.m_offsetFromArc)
+            && sameFiniteTextNumber(text->m_rightOffset, expected.m_rightOffset)
+            && sameFiniteTextNumber(text->m_leftOffset, expected.m_leftOffset)
+            && text->m_fontName == expected.m_fontName
+            && text->m_bigFontName == expected.m_bigFontName
+            && text->m_rawColor == expected.m_rawColor
+            && text->m_characterSet == expected.m_characterSet
+            && text->m_pitchAndFamily == expected.m_pitchAndFamily
+            && text->m_isShx == expected.m_isShx
+            && text->m_isBold == expected.m_isBold
+            && text->m_isItalic == expected.m_isItalic
+            && text->m_isUnderlined == expected.m_isUnderlined
+            && text->m_alignment == expected.m_alignment
+            && text->m_isReverse == expected.m_isReverse
+            && text->m_wizardFlag == expected.m_wizardFlag
+            && text->m_textPosition == expected.m_textPosition
+            && text->m_textDirection == expected.m_textDirection
+            && text->extPoint.x == expected.extPoint.x
+            && text->extPoint.y == expected.extPoint.y
+            && text->extPoint.z == expected.extPoint.z;
+        return matches;
+    }
     if (profile == Profile::Shape) {
         const auto* shape = dynamic_cast<const DRW_Shape*>(entity);
         const DRW_Shape expected = makeShape();
@@ -548,6 +714,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
         {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 7> modernEntityVersions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> shapeVersions = {{
         {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
@@ -594,6 +765,8 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Line originalBasicLine = exporter.basicLine;
                 const DRW_Ellipse originalEllipse = exporter.ellipse;
                 const DRW_Text originalText = exporter.text;
+                const DRW_RText originalRText = exporter.rtext;
+                const DRW_ArcAlignedText originalArcAlignedText = exporter.arcAlignedText;
                 const DRW_Shape originalShape = exporter.shape;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
@@ -630,6 +803,13 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Text:
                     callerPreserved = sameText(exporter.text, originalText);
+                    break;
+                case Profile::RText:
+                    callerPreserved = sameRText(exporter.rtext, originalRText);
+                    break;
+                case Profile::ArcAlignedText:
+                    callerPreserved = sameArcAlignedText(exporter.arcAlignedText,
+                                                         originalArcAlignedText);
                     break;
                 case Profile::Shape:
                     callerPreserved = sameShape(exporter.shape, originalShape);
@@ -676,8 +856,15 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                                 : profile == Profile::Text
                                                     ? sameText(exporter.text,
                                                         originalText)
-                                                    : sameShape(exporter.shape,
-                                                        originalShape);
+                                                : profile == Profile::RText
+                                                    ? sameRText(exporter.rtext,
+                                                        originalRText)
+                                                    : profile == Profile::ArcAlignedText
+                                                        ? sameArcAlignedText(
+                                                            exporter.arcAlignedText,
+                                                            originalArcAlignedText)
+                                                        : sameShape(exporter.shape,
+                                                            originalShape);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -723,6 +910,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : textVersions)
             if (!runVersion(version.first, version.second))
                 return false;
+    } else if (profile == Profile::RText || profile == Profile::ArcAlignedText) {
+        for (const auto& version : modernEntityVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
     } else if (profile == Profile::Shape) {
         for (const auto& version : shapeVersions)
             if (!runVersion(version.first, version.second))
@@ -746,6 +937,8 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::BasicLine)
         && runProfile(directory, Profile::Ellipse)
         && runProfile(directory, Profile::Text)
+        && runProfile(directory, Profile::RText)
+        && runProfile(directory, Profile::ArcAlignedText)
         && runProfile(directory, Profile::Shape);
 }
 } // namespace
