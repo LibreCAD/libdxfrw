@@ -76,7 +76,8 @@ bool sameDimstyle(const DRW_Dimstyle& a, const DRW_Dimstyle& b,
         && a.dimunit == b.dimunit && a.dimfit == b.dimfit
         && a.dimfxl == b.dimfxl && a.dimaltrnd == b.dimaltrnd
         && a.dimfxlon == b.dimfxlon
-        && a.dimtxtdirection == b.dimtxtdirection;
+        && a.dimtxtdirection == b.dimtxtdirection
+        && a.dimtfill == b.dimtfill && a.dimarcsym == b.dimarcsym;
 }
 
 std::string handleHex(std::uint32_t handle) {
@@ -559,6 +560,150 @@ bool dimtxtdirectionTypedOutput(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool dimstyleTextFillAndArcSymbolTypedOutput(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-text-fill-arc-symbol.dxf";
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimtfill = 2;
+        exporter.dimstyle.dimarcsym = 1;
+        if (!codec.write(&exporter, DRW::AC1021, binary)
+            || !exporter.accepted) {
+            std::cerr << "AC1021 DIMTFILL/DIMARCSYM typed write failed: binary="
+                      << binary << " error=" << codec.getError() << '\n';
+            return false;
+        }
+        std::string bytes;
+        if (!readBytes(path, bytes)
+            || (!binary && (!asciiDimstyleHasGroup(bytes, 69)
+                            || !asciiDimstyleHasGroup(bytes, 90)))) {
+            std::cerr << "AC1021 DIMTFILL/DIMARCSYM output missing: binary="
+                      << binary << '\n';
+            return false;
+        }
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
+        if (!readerCodec.read(&reader, false)
+            || reader.dimstyles.size() != 1u
+            || reader.dimstyles.front().dimtfill != 2
+            || reader.dimstyles.front().dimarcsym != 1) {
+            std::cerr << "AC1021 DIMTFILL/DIMARCSYM readback failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+    }
+    return true;
+}
+
+bool dimstyleTextFillAndArcSymbolDowngradeRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-text-fill-arc-symbol-old.dxf";
+    const auto cleanPath =
+        directory / "dimstyle-text-fill-arc-symbol-old-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1018, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expectedBytes;
+        if (!readBytes(cleanPath, expectedBytes)
+            || (!binary && (asciiDimstyleHasGroup(expectedBytes, 69)
+                            || asciiDimstyleHasGroup(expectedBytes, 90))))
+            return false;
+
+        for (const int code : {69, 90}) {
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            if (code == 69)
+                exporter.dimstyle.dimtfill = 2;
+            else
+                exporter.dimstyle.dimarcsym = 1;
+            if (codec.write(&exporter, DRW::AC1018, binary)
+                || exporter.accepted) {
+                std::cerr << "pre-2007 DIMSTYLE field downgrade was accepted: code="
+                          << code << " binary=" << binary << '\n';
+                return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
+
+            if (code == 69)
+                exporter.dimstyle.dimtfill = 0;
+            else
+                exporter.dimstyle.dimarcsym = 0;
+            if (!codec.write(&exporter, DRW::AC1018, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes || !readbackMatches(path)) {
+                std::cerr << "pre-2007 DIMSTYLE field retry failed: code="
+                          << code << " binary=" << binary << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool dimstyleTextFillColorRefusalRetry(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-text-fill-color.dxf";
+    const auto cleanPath =
+        directory / "dimstyle-text-fill-color-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW cleanCodec(cleanPath.string().c_str());
+        Export cleanExporter(cleanCodec);
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+            || !cleanExporter.accepted)
+            return false;
+        std::string expectedBytes;
+        if (!readBytes(cleanPath, expectedBytes))
+            return false;
+
+        {
+            std::ofstream output(path,
+                                 std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output)
+                return false;
+        }
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimtfill = 2;
+        exporter.dimstyle.dimtfillclr = 5;
+        if (codec.write(&exporter, DRW::AC1021, binary)
+            || exporter.accepted) {
+            std::cerr << "unmapped DIMTFILLCLR color was accepted: binary="
+                      << binary << '\n';
+            return false;
+        }
+        std::string current;
+        if (!readBytes(path, current) || current != prior)
+            return false;
+
+        exporter.dimstyle.dimtfill = 0;
+        exporter.dimstyle.dimtfillclr = 0;
+        if (!codec.write(&exporter, DRW::AC1021, binary)
+            || !exporter.accepted || !readBytes(path, current)
+            || current != expectedBytes || !readbackMatches(path)) {
+            std::cerr << "DIMTFILLCLR refusal retry failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -603,5 +748,8 @@ int main() {
         && dimaltrndRefusalRetry(directory)
         && dimfxlonRefusalRetry(directory)
         && dimtxtdirectionRefusalRetry(directory)
-        && dimtxtdirectionTypedOutput(directory) ? 0 : 2;
+        && dimtxtdirectionTypedOutput(directory)
+        && dimstyleTextFillAndArcSymbolTypedOutput(directory)
+        && dimstyleTextFillAndArcSymbolDowngradeRetry(directory)
+        && dimstyleTextFillColorRefusalRetry(directory) ? 0 : 2;
 }

@@ -8368,6 +8368,26 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         m_writeError = true;
         return false;
     }
+    const auto dimstyleTextFillColorIsDefault = [&]() {
+        return ent->dimtfillclr == 0 && ent->dimtfillclrRgb == -1
+            && ent->dimtfillclrMethod == 0 && ent->dimtfillclrFlags == 0
+            && ent->dimtfillclrRawIndex == 0
+            && ent->dimtfillclrName.empty()
+            && ent->dimtfillclrBookName.empty();
+    };
+    if (ent->dimtfill < 0 || ent->dimtfill > 2
+        || ent->dimarcsym < 0 || ent->dimarcsym > 2
+        || !dimstyleTextFillColorIsDefault()) {
+        // DIMTFILLCLR has an unofficial group-70 DXF projection, but group
+        // 70 is also the documented DIMSTYLE table-entry flags field. Do not
+        // emit the retained DWG CMC value as a second, ambiguous record field.
+        return failDxfWrite();
+    }
+    if (version < DRW::AC1021
+        && ((ent->dimtfill != 0 && !ent->get("$DIMTFILL"))
+            || (ent->dimarcsym != 0 && !ent->get("$DIMARCSYM")))) {
+        return failDxfWrite();
+    }
 
     // Validate dynamic DIMSTYLE overrides before the record prefix is
     // emitted.  Unknown codes are rejected rather than silently dropped;
@@ -8433,6 +8453,18 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             && value->i_val() != 0 && value->i_val() != 1) {
             m_writeError = true;
             return false;
+        }
+        if ((value->code() == 69 || value->code() == 90)
+            && (value->type() != DRW_Variant::INTEGER
+                || value->i_val() < 0 || value->i_val() > 2)) {
+            m_writeError = true;
+            return false;
+        }
+        if (version < DRW::AC1021
+            && ((value->code() == 69 || value->code() == 90)
+                && value->i_val() != 0)) {
+            // DIMTFILL and DIMARCSYM are R2007-era DIMSTYLE variables.
+            return failDxfWrite();
         }
         if (version >= spec->minimumVersion) {
             dimVarCodes.insert(value->code());
@@ -8858,6 +8890,12 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     wI(76, ent->dimse2);
     wI(77, ent->dimtad);
     wI(78, ent->dimzin);
+    if (version >= DRW::AC1021) {
+        if (!dimVarCodes.count(69))
+            writer->writeInt16(69, ent->dimtfill);
+        if (!dimVarCodes.count(90))
+            writer->writeInt32(90, ent->dimarcsym);
+    }
     if (version > DRW::AC1014) {
         wI(79, ent->dimazin);
     }

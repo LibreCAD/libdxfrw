@@ -3957,6 +3957,11 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 48:
         dimtm = reader->getDouble();
         break;
+    case 69:
+        dimtfill = reader->getInt32();
+        if (dimtfill < 0 || dimtfill > 2)
+            return false;
+        break;
     case 49:
         dimfxl = reader->getDouble();
         break;
@@ -4013,6 +4018,11 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     case 79:
         dimazin = reader->getInt32();
+        break;
+    case 90:
+        dimarcsym = reader->getInt32();
+        if (dimarcsym < 0 || dimarcsym > 2)
+            return false;
         break;
     case 170:
         dimalt = reader->getInt32();
@@ -4279,6 +4289,8 @@ bool DRW_Dimstyle::syncStructToVarsImpl(dxfReader* reader) {
     addDouble("$DIMEXO", 42, dimexo);
     addDouble("$DIMEXE", 44, dimexe);
     addDouble("$DIMFXL", 49, dimfxl);
+    addInt("$DIMTFILL", 69, dimtfill);
+    addInt("$DIMARCSYM", 90, dimarcsym);
     addDouble("$DIMDLE", 46, dimdle);
     addDouble("$DIMDLI", 43, dimdli);
     addDouble("$DIMGAP", 147, dimgap);
