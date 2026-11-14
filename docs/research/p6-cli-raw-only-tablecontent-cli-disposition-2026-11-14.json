@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-raw-only-tablecontent-cli-disposition-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Exercise CLI disposition for a generated, structurally recovered but semantically raw-only TABLECONTENT object.",
+  "source": {
+    "version": "AC1032",
+    "origin": "Generated from scratch during the focused local test; not committed as a DWG fixture.",
+    "object": "TABLECONTENT / AcDbTableContent with a bounded common-object shell and intentionally unrecognized body",
+    "read_outcome": {
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "skippedCustomClassInstances": 1,
+      "skippedUnsupportedObjectInstances": 1,
+      "frameCoverage": "complete",
+      "sourceFrames": 27,
+      "publishedFrames": 27,
+      "failedFrames": 0,
+      "unresolvedFrames": 0,
+      "unrecognizedDispositions": 0
+    }
+  },
+  "controls": [
+    {
+      "mode": "strict complete",
+      "encodings": ["ASCII", "Binary"],
+      "expected": "Refuse before replacing the destination; preserve the source and expose exact raw-only/skipped counts and complete frame coverage."
+    },
+    {
+      "mode": "--allow-partial-dwg-read",
+      "encodings": ["ASCII", "Binary"],
+      "expected": "Publish with an explicit omission warning. Direct dxfRW readback sees one retained LINE and one VPORT; TABLECONTENT is omitted and source bytes remain unchanged."
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "test": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --skipped-record-only",
+    "result": "PASS: 24 version/profile controls in 0.75 seconds"
+  },
+  "limits": [
+    "The generated body validates CLI disposition only; it does not establish TABLECONTENT semantics or writer support.",
+    "Explicit partial output is intentionally lossy and remains labeled as incomplete.",
+    "No testing DWG/DXF fixtures were added."
+  ]
+}

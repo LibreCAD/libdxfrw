@@ -28352,7 +28352,11 @@ public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
                        DRW::Version sourceVersion = DRW::AC1027)
         : writer_(writer), reader_(reader), kind_(kind),
-          opaque_(makeCliSkippedObject(kind, 0, sourceVersion)),
+          opaque_(kind == 5
+              ? libdxfrw_test::makeRawCustomObject(
+                    sourceVersion, 700u, 0x700u, "TABLECONTENT",
+                    "AcDbTableContent", "ACAD_TABLE")
+              : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(makeCliSkippedObject(kind, 1, sourceVersion)),
           opaqueThird_(makeCliSkippedObject(kind, 2, sourceVersion)) {
         cData = &owned_;
@@ -41823,6 +41827,22 @@ int main(int argc, char** argv) {
         if (!writer.write(&source, version, true) || !source.wrote) {
             const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
             std::cerr << "Could not generate CLI partial-read DWG source: "
+                      << diagnostic.code << " — " << diagnostic.message << '\n';
+            return 1;
+        }
+        return 0;
+    }
+    if (argc == 3
+        && std::string(argv[1]) == "--generate-cli-raw-only-source") {
+        if (std::filesystem::exists(argv[2])) {
+            std::cerr << "Refusing to replace an existing raw-only CLI source\n";
+            return 1;
+        }
+        dwgRW writer(argv[2]);
+        ReadOutcomeControl source(&writer, 5, nullptr, DRW::AC1032);
+        if (!writer.write(&source, DRW::AC1032, true) || !source.wrote) {
+            const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
+            std::cerr << "Could not generate raw-only CLI source: "
                       << diagnostic.code << " — " << diagnostic.message << '\n';
             return 1;
         }
