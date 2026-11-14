@@ -4,20 +4,14 @@
   "date": "2026-11-13",
   "status": "GENERATED_RASTERVARIABLES_SOURCE_VERSION_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Extend source-backed RASTERVARIABLES DXF allocation transaction evidence to matching AC1021 and AC1027 DWG/DXF profiles; record unqualified AC1024 and AC1032 attempts separately.",
+  "scope": "Extend source-backed RASTERVARIABLES DXF allocation transaction evidence to matching AC1021, AC1024, and AC1027 DWG/DXF profiles; retain the unqualified AC1032 attempt separately.",
   "source": {
     "kind": "deterministic locally-authored DWG records generated during each test run",
-    "profile": "One ACAD_IMAGE_VARS rooted RASTERVARIABLES object; a matching-version DWG is generated, imported into the adapter, and exported to ASCII and Binary DXF.",
-    "versionsQualified": ["AC1021", "AC1027"],
+    "profile": "One ACAD_IMAGE_VARS rooted RASTERVARIABLES object; a matching-version DWG is generated, imported into the adapter, and exported to ASCII and Binary DXF. The locally authored AC1024 profile uses image units 3, as required by the currently admitted AC1024 object profile; AC1021/AC1027 use units 1.",
+    "versionsQualified": ["AC1021", "AC1024", "AC1027"],
     "versionAttemptedButUnqualified": {
       "version": "AC1032",
       "reason": "The generated source did not pass current DWG class-integrity qualification; the DXF adapter refused output before allocation injection."
-    },
-    "additionalVersionAttemptedButUnqualified": {
-      "version": "AC1024",
-      "sourceGenerationAndImport": "PASS",
-      "reason": "DXF export returned false at source-frame qualification for RASTERVARIABLES handle 0xB500 before allocation injection; the generated test does not establish why the captured source-frame identity is absent or rejected.",
-      "allocationOffsetsReached": 0
     },
     "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
@@ -33,26 +27,26 @@
   },
   "allocationOffsets": {
     "AC1021": {"ASCII": 12, "Binary": 11},
+    "AC1024": {"ASCII": 12, "Binary": 11},
     "AC1027": {"ASCII": 12, "Binary": 11},
-    "totals": {"ASCII": 24, "Binary": 22, "all": 46}
+    "totals": {"ASCII": 36, "Binary": 33, "all": 69}
   },
   "validation": {
-    "build": "cmake --build build-gcc --target libdxfrw_rastervariables_objects_allocation_tests --parallel 4: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_rastervariables_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.39 seconds",
-    "directControl": "build-gcc/tests/libdxfrw_rastervariables_objects_allocation_tests /tmp/libdxfrw-rastervariables-source-version-matrix-2026-11-13: PASS for AC1021 and AC1027; ASCII 12 and Binary 11 offsets per version",
+    "build": "cmake --build build --target libdxfrw_rastervariables_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_rastervariables_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.63 seconds",
+    "directControl": "build/tests/libdxfrw_rastervariables_objects_allocation_tests /tmp/libdxfrw-rastervariables-ac1024: PASS for AC1021/AC1024/AC1027; ASCII 12 and Binary 11 offsets per version",
     "diffCheck": "PASS"
   },
   "limitations": [
     "Generated source data is locally authored; no independent producer interoperability or native consumer semantics are established.",
-    "AC1024 remains unqualified because export fails source-frame qualification for the typed RASTERVARIABLES record before allocation testing.",
     "AC1032 remains unqualified because its source failed class-integrity qualification and output was refused before allocation testing.",
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "Matching-source AC1021 and AC1027 RASTERVARIABLES export profiles pass allocation rollback, same-adapter retry, byte comparison, and typed readback.",
+    "completedSlice": "Matching-source AC1021, AC1024, and AC1027 RASTERVARIABLES export profiles pass allocation rollback, same-adapter retry, byte comparison, and typed readback. The AC1024 generated profile now uses its admitted units value 3; the earlier value 1 failed the existing bounded profile gate before allocation injection.",
     "remainingP6G": "Continue remaining public-writer route/variant inventory; keep AC1032 class-integrity, producer-profile, and consumer semantics open.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "209 completed slices and 35 remaining packages: 209/(209+35)=85.7%; count-based, not effort-weighted."
+    "progressEstimate": "246 completed slices and 35 remaining packages: 246/(246+35)=87.5%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json"
 }

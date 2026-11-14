@@ -49,7 +49,7 @@ public:
 
 class RasterAuthor final : public dx_iface {
 public:
-    explicit RasterAuthor(dwgRW& output) : output(output) {
+    RasterAuthor(dwgRW& output, DRW::Version version) : output(output) {
         cData = &storage;
         currentBlock = storage.mBlock;
         variables.handle = 0xB500u;
@@ -57,7 +57,7 @@ public:
         variables.m_classVersion = 0;
         variables.m_imageFrame = 0;
         variables.m_imageQuality = 1;
-        variables.m_units = 1;
+        variables.m_units = version == DRW::AC1024 ? 3 : 1;
         variables.reactorHandles = {DRW::DwgNamedObjectsDictionaryHandle};
         variables.setDwgCommonObjectState(1, 1, false);
     }
@@ -104,7 +104,7 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
     return !input.bad();
 }
 
-bool verifyGraph(const std::filesystem::path& path) {
+bool verifyGraph(const std::filesystem::path& path, std::int16_t expectedUnits) {
     dx_data data;
     RasterReadback reader;
     if (!reader.fileImport(path.string(), &data, false)
@@ -122,7 +122,7 @@ bool verifyGraph(const std::filesystem::path& path) {
         && variables.m_classVersion == 0
         && variables.m_imageFrame == 0
         && variables.m_imageQuality == 1
-        && variables.m_units == 1
+        && variables.m_units == expectedUnits
         && variables.reactorHandles
             == std::vector<std::uint32_t>{data.namedObjectDictionary.handle};
 }
@@ -159,7 +159,8 @@ bool run(const std::filesystem::path& directory) {
         }
     } cleanup{scratchFiles};
 
-    for (const DRW::Version version : {DRW::AC1021, DRW::AC1027}) {
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
         const auto source = directory
             / ("rastervariables-source-"
                + std::to_string(static_cast<int>(version)) + ".dwg");
@@ -178,7 +179,7 @@ bool run(const std::filesystem::path& directory) {
         }
         {
             dwgRW sourceWriter(source.string().c_str());
-            RasterAuthor author(sourceWriter);
+            RasterAuthor author(sourceWriter, version);
             if (!sourceWriter.write(&author, version, false)) {
                 std::cerr << "from-scratch source generation refused version="
                           << static_cast<int>(version) << '\n';
@@ -218,7 +219,9 @@ bool run(const std::filesystem::path& directory) {
                 return fail("allocation calibration export failed");
             }
             const long allocationCount = exporter.reached;
-            if (allocationCount <= 0 || !verifyGraph(destination))
+            const std::int16_t expectedUnits = version == DRW::AC1024 ? 3 : 1;
+            if (allocationCount <= 0
+                || !verifyGraph(destination, expectedUnits))
                 return fail("calibration did not emit the typed raster graph");
             std::string cleanBytes;
             if (!readAll(destination, cleanBytes))
@@ -245,7 +248,7 @@ bool run(const std::filesystem::path& directory) {
                     || !sourceRecordUnchanged(data, sourceRecord))
                     return fail("injected failure changed destination or caller record");
                 if (!write(destination, binary)
-                    || !verifyGraph(destination)
+                    || !verifyGraph(destination, expectedUnits)
                     || !sourceRecordUnchanged(data, sourceRecord))
                     return fail("same-adapter retry failed typed graph readback");
                 std::string retryBytes;
