@@ -76,7 +76,9 @@
   },
   "validation": {
     "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
-    "result": "PASS: CLI partial DWG read (83 strict/partial/readback controls)"
+    "result": "PASS: CLI partial DWG read (83 strict/partial/readback controls)",
+    "ctest": "dwg2dxf_cli_partial_read_disposition",
+    "ctest_result": "PASS 1/1 in 2.11 seconds after CMake configure"
   },
   "limitations": [
     "Controls are generated locally and are not committed as DWG/DXF fixture files.",

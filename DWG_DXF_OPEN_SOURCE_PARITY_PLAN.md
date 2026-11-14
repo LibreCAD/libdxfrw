@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **376 completed implementation and qualification slices** and **34 remaining
+The plan records **377 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`376 / (376 + 34) = 91.7%`. This is a count-based progress measure, not an
+`377 / (377 + 34) = 91.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -110,6 +110,10 @@ preserve the destination and stop at that exact gate. The focused partial-read s
 controls. This is generated parser-recovery and CLI disposition evidence, not
 MLINESTYLE semantic or producer interoperability support evidence
 ([receipt](docs/research/p6-cli-malformed-object-body-recovery-2026-11-14.json)).
+
+The selector is registered as the dedicated fast CTest
+`dwg2dxf_cli_partial_read_disposition`, so subsequent P6-F edits can run the
+83-control owner cohort without paying for the broader CLI contract suite.
 
 
 **P6-F malformed entity continuation across six revisions (2026-11-14):** the
