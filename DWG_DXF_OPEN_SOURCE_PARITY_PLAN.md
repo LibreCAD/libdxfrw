@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **385 completed implementation and qualification slices** and **34 remaining
+The plan records **386 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`385 / (385 + 34) = 91.9%`. This is a count-based progress measure, not an
+`386 / (386 + 34) = 91.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -387,8 +387,18 @@ RGB/book colors and native producer/consumer behavior remain unqualified. A
 read-only review of LibreCAD source at `078aac8922874eddd7fa46590b5f306e3aee6423`
 confirms its adapter consumes the exact `$DIMTFILLCLR` integer key as group 70;
 this confirms the callback-key contract only, not a clean build or roundtrip.
-See
-[receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
+See [receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
+
+**P6-D DIMJOGANG angle-unit correction (2026-11-14):** the AC1021+ DWG
+DIMSTYLE and HEADER paths now convert the DWG radians value to the degree-valued
+DXF/API value and back when writing DWG. A generated AC1024 object-vector
+walk verifies 45 degrees is encoded as π/4 radians and parsed back as 45. The
+hash-pinned AC1024 `mechanical_example-imperial.dwg` converts successfully;
+its `$DIMJOGANG` header variable and MEP DIMSTYLE group 50 both emit 45 instead
+of 0.785398. The source and generated DXF remain outside the repository. The
+DWG spec identifies the BD field but does not state its unit, so this slice is
+supported by the producer sample and Autodesk's DXF degree/API radians
+convention, not broad producer qualification. See the [angle-unit receipt](docs/research/p6-dwg-dxf-dimjogang-angle-unit-2026-11-14.json).
 
 ## Authority and completion gates
 

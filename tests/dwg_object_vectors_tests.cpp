@@ -25614,6 +25614,7 @@ void testDimstyleDimclrCmc(TestContext& t) {
     source.parentHandle = 0xA400u;
     source.setDwgCommonObjectState(0, 0, false);
     source.name = "generated DIMSTYLE";
+    source.dimjogang = 45.0;
     source.dimclrd = 42;
     source.dimclre = 0;
     source.dimclrt = 256;
@@ -25646,7 +25647,7 @@ void testDimstyleDimclrCmc(TestContext& t) {
     for (unsigned index = 0; index < 9u; ++index)
         (void)wire.getBitDouble();
     (void)wire.getBitDouble(); // DIMFXL
-    (void)wire.getBitDouble(); // DIMJOGANG
+    const double wireDimjogang = wire.getBitDouble();
     (void)wire.getBitShort(); // DIMTFILL
     const std::uint32_t wireDimtfillclr = wire.getCmColor(DRW::AC1024);
     for (unsigned index = 0; index < 6u; ++index)
@@ -25680,6 +25681,8 @@ void testDimstyleDimclrCmc(TestContext& t) {
     const std::int32_t wireDimadec = wire.getBitShort();
     t.expect(wire.isGood() && stringWire.isGood() && stringPrefixMatches
                  && xrefFlags == 0
+                 && std::abs(wireDimjogang
+                             - 0.78539816339744830961566084582) < 1e-12
                  && wireDimclrd == static_cast<std::uint32_t>(source.dimclrd)
                  && wireDimclre == static_cast<std::uint32_t>(source.dimclre)
                  && wireDimclrt == static_cast<std::uint32_t>(source.dimclrt)
@@ -25707,6 +25710,7 @@ void testDimstyleDimclrCmc(TestContext& t) {
         DRW::AC1024, &input, frame.handleBits);
     t.expect(read && input.isGood() && parsed.handle == source.handle
                  && parsed.parentHandle == source.parentHandle
+                 && std::abs(parsed.dimjogang - source.dimjogang) < 1e-12
                  && parsed.dimclrd == source.dimclrd
                  && parsed.dimclre == source.dimclre
                  && parsed.dimclrt == source.dimclrt

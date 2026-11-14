@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "title": "DWG/DXF DIMJOGANG angle-unit conversion",
+  "scope": [
+    "Normalize the AC1021+ DWG DIMJOGANG radians value to the degree-valued DXF/API representation",
+    "Apply the inverse conversion when writing DIMSTYLE and HEADER DWG values",
+    "Keep the existing DXF group-code and system-variable values in degrees"
+  ],
+  "evidence": {
+    "formatReferences": [
+      {
+        "title": "Autodesk DXF group codes in numerical order",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "finding": "Group codes 50 through 58 are angles output in degrees to DXF files and radians through AutoLISP and ObjectARX applications."
+      },
+      {
+        "title": "Autodesk DIMJOGANG system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-9C23D722-0792-4585-A40A-B8E3A191999A.htm",
+        "finding": "The setting's documented valid range is 5 through 90 degrees."
+      },
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1, §20.4.68",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "finding": "R2007+ DIMSTYLE stores DIMJOGANG as a BD body field. The spec does not state the unit; the radians interpretation is corroborated by the producer sample below."
+      }
+    ],
+    "producerSource": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "finding": "The typed import probe observed DIMJOGANG 0.785398 in the MEP DIMSTYLE (approximately pi/4). With conversion enabled, dwg2dxf succeeds and emits 45 for both the DXF $DIMJOGANG header variable and the MEP DIMSTYLE group 50. This is one Autodesk-authored sample profile, not a general producer/version qualification."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/drw_header.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "finding": "DIMSTYLE parsing converts radians to degrees before typed synchronization; its DWG encoder converts degrees back to radians. HEADER DWG parsing and encoding apply the corresponding conversion, while DXF parsing/writing retain the public degree value."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS (-Werror build)"
+    },
+    "generatedCodecControl": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --dimstyle-dimclr-cmc",
+      "result": "PASS; independent wire walk confirms a 45-degree API value encodes as pi/4 radians and production DWG parser returns 45 degrees"
+    },
+    "producerConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/mechanical-angle-fix.dxf",
+      "result": "PASS; converted AC1024 input successfully",
+      "outputSha256": "c9c201119427aa3b88abc4c8ad38a7f2a26b8627d724e8059032ff07f93c5cba",
+      "observations": [
+        "DXF $DIMJOGANG group 40 is 45",
+        "MEP DIMSTYLE group 50 is 45"
+      ],
+      "fixturePolicy": "Source DWG and generated DXF remain outside the repository."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Only DIMJOGANG's R2007+ DWG/API radians and DXF degrees boundary is addressed.",
+    "The DWG spec identifies the field type and location but does not explicitly document its unit; one producer source plus DXF/API conventions supports the conversion.",
+    "The generated vector is parser/encoder consistency evidence; the local AC1024 producer conversion independently confirms the read-to-DXF path, not native application write/read interoperability."
+  ]
+}

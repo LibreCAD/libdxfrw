@@ -51,6 +51,12 @@ constexpr double kMLineRadiansToDegrees =
     57.295779513082320876798154814105;
 constexpr double kMLineDegreesToRadians =
     0.017453292519943295769236907684886;
+// DXF group-code angles are represented in degrees.  The DWG DIMJOGANG
+// scalar uses the radians representation used by the DWG API value.
+constexpr double kDimstyleRadiansToDegrees =
+    57.295779513082320876798154814105;
+constexpr double kDimstyleDegreesToRadians =
+    0.017453292519943295769236907684886;
 
 bool validCellStyleMapCellStyle(
     DRW::Version version, const DRW_TableStyleCellStyle& style) noexcept;
@@ -4650,6 +4656,7 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
                               parsed.dimtfillclrFlags,
                               parsed.dimtfillclrRawIndex))
             return fail();
+        parsed.dimjogang *= kDimstyleRadiansToDegrees;
     }
 
     if (!readBodyFlag(parsed.dimtol)
@@ -9444,7 +9451,7 @@ bool DRW_Dimstyle::encodeDwgForWriter(DRW::Version version, dwgBufferW *buf,
     buf->putBitDouble(dimtm);
     if (version > DRW::AC1018) {
         buf->putBitDouble(dimfxl);
-        buf->putBitDouble(dimjogang);
+        buf->putBitDouble(dimjogang * kDimstyleDegreesToRadians);
         buf->putBitShort(static_cast<std::uint16_t>(dimtfill));
         buf->putCmColor(version, dimtfillColorMethod(),
                         static_cast<std::uint16_t>(dimtfillclr),
