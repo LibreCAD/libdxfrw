@@ -7628,6 +7628,11 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                DwgIntegritySeverity::Error, envelope, 0u, 0u, false);
         return false;
       }
+      DRW_DBG("\nHEADER envelope CRC stored=");
+      DRW_DBGH(envelope.storedCrc);
+      DRW_DBG(" calculated=");
+      DRW_DBGH(calculated);
+      DRW_DBG("\n");
       if (calculated == envelope.storedCrc)
         m_ac1027HeaderMaterialCrcValidated = true;
       if (calculated != envelope.storedCrc) {
