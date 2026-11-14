@@ -1380,6 +1380,8 @@ def check_partial_dwg_read_cli(converter, root, writer):
     # partial mode may publish the retained graph when no retained integrity
     # error makes omission unsafe.
     malformed_body_profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
         "AC1021": "2007",
         "AC1024": "2010",
         # The independent source-reference closure gate prevents output
