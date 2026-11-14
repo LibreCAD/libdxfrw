@@ -8306,6 +8306,226 @@ bool runGeoPositionMarkerVersionSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runMeshVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "MESH version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeMesh = [] {
+        DRW_Mesh value;
+        value.handle = 0xDA50u;
+        value.version = 2u;
+        value.blendCrease = true;
+        value.subdivisionLevel = 3;
+        value.vertices = {DRW_Coord(0.0, 0.0, 0.0),
+                          DRW_Coord(2.0, 0.0, 0.0),
+                          DRW_Coord(0.0, 3.0, 0.0),
+                          DRW_Coord(0.0, 0.0, 4.0)};
+        value.faces = {{0, 1, 2}, {0, 2, 3}};
+        value.edges = {{0, 1}, {1, 2}, {2, 0}, {2, 3}};
+        value.creases = {0.5, 1.25};
+        DRW_MeshPropertyOverride overrideData;
+        overrideData.subEntityMarker = 7;
+        overrideData.propertyTypes = {0, 2};
+        value.propertyOverrides.push_back(overrideData);
+        return value;
+    };
+    const auto sameMesh = [](const DRW_Mesh& actual, const DRW_Mesh& expected) {
+        if (actual.version != expected.version
+            || actual.blendCrease != expected.blendCrease
+            || actual.subdivisionLevel != expected.subdivisionLevel
+            || actual.vertices.size() != expected.vertices.size()
+            || actual.faces != expected.faces || actual.edges != expected.edges
+            || actual.creases != expected.creases
+            || actual.propertyOverrides.size() != expected.propertyOverrides.size())
+            return false;
+        for (std::size_t i = 0u; i < actual.vertices.size(); ++i) {
+            if (actual.vertices[i].x != expected.vertices[i].x
+                || actual.vertices[i].y != expected.vertices[i].y
+                || actual.vertices[i].z != expected.vertices[i].z)
+                return false;
+        }
+        for (std::size_t i = 0u; i < actual.propertyOverrides.size(); ++i) {
+            if (actual.propertyOverrides[i].subEntityMarker
+                    != expected.propertyOverrides[i].subEntityMarker
+                || actual.propertyOverrides[i].propertyTypes
+                    != expected.propertyOverrides[i].propertyTypes)
+                return false;
+        }
+        return true;
+    };
+    class MeshExport final : public dx_iface {
+    public:
+        MeshExport(dxfRW& codec, DRW_Mesh source) : output(codec), mesh(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override { written = output.writeMesh(&mesh); }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Mesh mesh;
+        bool written = false;
+    };
+    class MeshReadback final : public dx_iface {
+    public:
+        MeshReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addMesh(const DRW_Mesh& value) override {
+            mesh = value;
+            ++count;
+        }
+        dx_data storage;
+        DRW_Mesh mesh;
+        unsigned count = 0u;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dxfRW reader(path.string().c_str());
+        MeshReadback probe;
+        const bool read = reader.read(&probe, true);
+        DRW_Mesh expected = makeMesh();
+        if (probe.count == 1u)
+            expected.handle = probe.mesh.handle;
+        return read && reader.getSourceVersion() == expectedVersion
+            && probe.count == 1u && probe.mesh.handle != 0u
+            && sameMesh(probe.mesh, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "prior mesh destination\n";
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "mesh-refusal-binary.dxf" : "mesh-refusal-ascii.dxf");
+        const auto expectedPath = directory
+            / (binary ? "mesh-retry-expected-binary.dxf"
+                      : "mesh-retry-expected-ascii.dxf");
+        if (!clearStagedOutput(output) || !clearStagedOutput(expectedPath))
+            return fail("could not clear refusal/retry staging files");
+        {
+            dxfRW codec(expectedPath.string().c_str());
+            MeshExport adapter(codec, makeMesh());
+            if (!codec.write(&adapter, DRW::AC1014, binary) || !adapter.written)
+                return fail("could not create refusal/retry reference output");
+        }
+        std::string expectedBytes;
+        if (!readBytes(expectedPath, expectedBytes))
+            return fail("could not read refusal/retry reference output");
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed refused destination");
+        }
+        dxfRW codec(output.string().c_str());
+        MeshExport adapter(codec, makeMesh());
+        const DRW_Mesh original(adapter.mesh);
+        if (codec.write(&adapter, DRW::AC1009, binary) || adapter.written
+            || !sameMesh(adapter.mesh, original)
+            || adapter.mesh.handle != original.handle)
+            return fail("unsupported AC1009 route was not refused atomically");
+        std::string afterRefusal;
+        if (!readBytes(output, afterRefusal) || afterRefusal != sentinel
+            || hasStagedOutput(output))
+            return fail("AC1009 refusal changed destination state");
+        if (!codec.write(&adapter, DRW::AC1014, binary) || !adapter.written
+            || !sameMesh(adapter.mesh, original)
+            || adapter.mesh.handle != original.handle)
+            return fail("same-writer AC1014 retry failed");
+        std::string retryBytes;
+        if (!readBytes(output, retryBytes) || retryBytes != expectedBytes
+            || !readbackMatches(output, DRW::AC1014)
+            || hasStagedOutput(output))
+            return fail("AC1014 retry differs from clean output");
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        std::filesystem::remove(expectedPath, ignored);
+    }
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("mesh-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                MeshExport adapter(codec, makeMesh());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.written)
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                MeshExport adapter(codec, makeMesh());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || allocationFailed
+                    || allocationCount <= 0 || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                MeshExport adapter(codec, makeMesh());
+                const DRW_Mesh original(adapter.mesh);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                if (wrote || !injected || !readBytes(output, afterFailure)
+                    || afterFailure != sentinel || !sameMesh(adapter.mesh, original)
+                    || adapter.mesh.handle != original.handle
+                    || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.written;
+                std::string retryBytes;
+                if (!retried || !sameMesh(adapter.mesh, original)
+                    || adapter.mesh.handle != original.handle
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "MESH " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runCameraSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "CAMERA allocation transaction: " << message << '\n';
@@ -11767,6 +11987,8 @@ int main(int argc, char** argv) {
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "camera")
             return runCameraSweep(directory) ? 0 : 1;
+        if (mode == "mesh-versions")
+            return runMeshVersionSweep(directory) ? 0 : 1;
         if (mode == "geo-marker-versions")
             return runGeoPositionMarkerVersionSweep(directory) ? 0 : 1;
         if (mode == "leader-versions")

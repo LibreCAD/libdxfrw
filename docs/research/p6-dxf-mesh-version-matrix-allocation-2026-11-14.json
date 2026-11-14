@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.dxf.writer-transaction-receipt.v1",
+  "slice": "P6-G MESH revision matrix including AC1024 SUBDIVISION spelling",
+  "date": "2026-11-14",
+  "scope": {
+    "writerRoute": "dxfRW::writeMesh",
+    "entityProfile": "locally generated four-vertex/two-face SubD mesh with four edges, two crease values, and one property override",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "versionSpecificRecordName": "AC1024 output is read back from the SUBDIVISION record keyword; other covered revisions use MESH.",
+    "unsupportedVersion": "AC1009 refusal preserves the caller and previous destination; same-writer AC1014 retry matches clean bytes and typed readback.",
+    "fixturePolicy": "No committed DWG/DXF fixtures; generated output is scratch-only and removed by the runner."
+  },
+  "checks": {
+    "wholeOperationAllocationFailureOffsets": {
+      "AC1014_ASCII": 90,
+      "AC1014_Binary": 88,
+      "AC1015_ASCII": 92,
+      "AC1015_Binary": 90,
+      "AC1018_ASCII": 92,
+      "AC1018_Binary": 90,
+      "AC1021_ASCII": 92,
+      "AC1021_Binary": 90,
+      "AC1024_ASCII": 99,
+      "AC1024_Binary": 97,
+      "AC1027_ASCII": 92,
+      "AC1027_Binary": 90,
+      "AC1032_ASCII": 92,
+      "AC1032_Binary": 90,
+      "total": 1284
+    },
+    "destinationRollback": true,
+    "callerStatePreservation": true,
+    "sameWriterByteIdenticalRetry": true,
+    "freshTypedReadback": true,
+    "ac1009RefusalAndAc1014Recovery": true,
+    "ac1024SubdivisionKeyword": true,
+    "stagedOutputCleanup": true
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_mesh_version_allocation_transaction$' --output-on-failure",
+      "result": "passed 1/1 in 8.29 seconds"
+    },
+    "runner": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-mesh-version-allocation mesh-versions",
+    "sourceSha256": "2064c2468d606f819cdacc3d0b4d765237f66a783e94718a42de1c399e34e8a7",
+    "runnerSha256": "59e99a424328ccf44128546dbb31720bb092a3d5d6e7f7e19c522878905374a6"
+  },
+  "limits": [
+    "Generated codec self-readback does not prove independent producer semantics or native application behavior.",
+    "Only this locally generated mesh profile was exercised; broader topology/property domains remain governed by their separate admission and loss guards."
+  ]
+}

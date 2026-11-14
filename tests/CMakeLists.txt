@@ -6316,6 +6316,12 @@ add_test(NAME libdxfrw_dxf_camera_allocation_transaction
         camera)
 set_tests_properties(libdxfrw_dxf_camera_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation;camera" TIMEOUT 60)
+add_test(NAME libdxfrw_dxf_mesh_version_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-mesh-version-allocation
+        mesh-versions)
+set_tests_properties(libdxfrw_dxf_mesh_version_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;mesh;versions" TIMEOUT 180)
 add_test(NAME libdxfrw_dxf_geo_marker_version_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-geo-marker-version-allocation
