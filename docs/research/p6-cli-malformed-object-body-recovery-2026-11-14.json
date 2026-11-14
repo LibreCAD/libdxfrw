@@ -5,6 +5,11 @@
   "status": "generated fast control passed",
   "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-object-body-source",
   "mutation": "Start from a locally generated supported MLINESTYLE object with an intact common object prologue and handle. Flip candidate bits after the common prologue until the supported body parser rejects the object; emit the isolated raw frame in a fresh generated DWG.",
+  "mutation_boundary": {
+    "AC1015": "Candidate bits stay within the bounded raw object frame after the validated common prologue because this legacy profile does not expose m_bodyBitSize.",
+    "AC1018_and_later": "Candidate bits stay within min(raw frame end, validated common-prologue end + declared m_bodyBitSize).",
+    "determinism": "All six bounded-search-generated DWG hashes match the previously receipted scratch-control hashes."
+  },
   "profiles": [
     {
       "version": "AC1015",

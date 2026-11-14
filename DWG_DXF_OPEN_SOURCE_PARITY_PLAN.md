@@ -88,14 +88,16 @@ preserve the destination and source. This is malformed-input resilience evidence
 **P6-F malformed supported OBJECTS body recovery slice (2026-11-14):** a
 from-scratch MLINESTYLE control preserves a valid common object prologue and
 handle, then mutates a body bit until the supported MLINESTYLE parser rejects
-only that frame. AC1021, AC1024, and AC1032 each report one object parse
-failure, retain the following LINE, and account for every object frame. The
+only that frame. All six profiles report one object parse failure, retain the
+following LINE, and account for every object frame. The
 legacy AC1015 source has 28 frames (27 published, one failed); AC1018/AC1021/
 AC1024/AC1027/AC1032 each have 27 (26 published, one failed). Strict CLI output
 refuses atomically for AC1015/AC1018/AC1021/AC1024/AC1032. For those five
 profiles, explicit partial mode succeeds with an incomplete-output warning;
 the generated DXF reopens with the retained LINE and VPORT, and the source
-remains unchanged.
+remains unchanged. The mutation search is bounded to the declared body span
+after the common prologue where `m_bodyBitSize` is available; AC1015 instead
+uses its bounded raw-object end because that profile exposes no body-bit size.
 The failed frame contributes no retained integrity row, which is why this
 bounded failure is eligible for explicit partial output while the truncated
 common-prologue cases above are not. AC1027 now joins as a reader-only profile:
