@@ -28671,11 +28671,28 @@ void testLayerDxfColorPolicy(TestContext& t) {
         for (const bool binary : {false, true}) {
             for (const DRW::Version version :
                  {DRW::AC1015, DRW::AC1018, DRW::AC1032}) {
+            const bool trueColorRepresentable = version > DRW::AC1015;
+            const std::string downlevelSentinel = "layer-truecolor-downlevel";
+            if (!trueColorRepresentable) {
+                std::ofstream prior(path, std::ios::binary | std::ios::trunc);
+                prior << downlevelSentinel;
+            }
             FixtureInterface exporter;
             const bool exported = exporter.fileExport(
                 path.string(), version, binary, &source, false);
+            if (!trueColorRepresentable) {
+                std::ifstream refusedFile(path, std::ios::binary);
+                const std::string refusedContents(
+                    (std::istreambuf_iterator<char>(refusedFile)),
+                    std::istreambuf_iterator<char>());
+                t.expect(!exported && refusedContents == downlevelSentinel,
+                    binary
+                        ? "binary AC1015 refuses unrepresentable LAYER truecolor atomically"
+                        : "ASCII AC1015 refuses unrepresentable LAYER truecolor atomically");
+                continue;
+            }
             t.expect(exported,
-                     "valid LAYER CMC color routes write in ASCII/binary DXF");
+                     "representable LAYER CMC color routes write in ASCII/binary DXF");
 
             const int expectedRgb = version > DRW::AC1015 ? 0x00A600 : -1;
             const auto expectTags = [&](const char* name, int expectedAci,

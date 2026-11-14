@@ -18,6 +18,7 @@
     "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 passed with project warning-as-error settings.",
     "command": "ctest --test-dir build -R '^libdxfrw_layer_truecolor_version_loss_retry$' --output-on-failure",
     "result": "PASS, 1/1, 0.57 seconds.",
+    "existingColorControl": "libdxfrw_layer_dwg_cmc_roundtrip passes after its AC1015 case was updated to expect atomic refusal for truecolor-bearing input; AC1018/AC1032 still verify supported output and readback.",
     "profiles": "ASCII and Binary AC1015 writes refuse a generated RGB_LAYER and preserve the pre-existing destination sentinel; same-writer AC1018 retry succeeds, and fresh typed readback checks color24 = 0x123456."
   },
   "limits": [
