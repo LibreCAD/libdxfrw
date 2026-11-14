@@ -1572,13 +1572,13 @@ roundtrip evidence only; native page setup behavior and independent producer
 acceptance remain open. See the [receipt](docs/research/p6-dxf-plotsettings-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G PLOTSETTINGS OBJECTS version matrix (2026-11-13):** the existing
-generated AC1027 input graph now exports at AC1021, AC1024, AC1027, and AC1032
-in both encodings. Each target lane passes all 22 ASCII or 21 Binary injected
-OBJECTS callback allocation failures with destination/source rollback,
-same-adapter retry, dictionary-owner checks, and typed readback. The focused
-CTest passes 1/1 in 0.63 seconds (172 offsets total). This supplements, but is
-distinct from, the whole-operation allocation sweep above; producer acceptance,
-optional reference closure, and native page setup remain open
+generated AC1027 input graph now exports at AC1015, AC1018, AC1021, AC1024,
+AC1027, and AC1032 in both encodings. Each target lane passes all 22 ASCII or
+21 Binary injected OBJECTS callback allocation failures with destination/source
+rollback, same-adapter retry, dictionary-owner checks, and typed readback. The
+focused CTest passes 1/1 in 1.09 seconds (258 offsets total). This supplements,
+but is distinct from, the whole-operation allocation sweep above; producer
+acceptance, optional reference closure, and native page setup remain open
 ([receipt](docs/research/p6-dxf-plotsettings-objects-version-matrix-allocation-2026-11-13.json)).
 
 **P6-G EVALUATIONGRAPH OBJECTS version matrix (2026-11-13):** the generated
