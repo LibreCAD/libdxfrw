@@ -26,9 +26,10 @@ elseif(DEFINED DWG_SOURCE_GENERATOR)
         set(DWG_SOURCE_VERSION AC1021)
     endif()
     if(NOT DWG_SOURCE_VERSION STREQUAL "AC1021"
-            AND NOT DWG_SOURCE_VERSION STREQUAL "AC1024")
+            AND NOT DWG_SOURCE_VERSION STREQUAL "AC1024"
+            AND NOT DWG_SOURCE_VERSION STREQUAL "AC1032")
         message(FATAL_ERROR
-            "DWG_SOURCE_VERSION must be AC1021 or AC1024 for generated controls")
+            "DWG_SOURCE_VERSION must be AC1021, AC1024, or AC1032 for generated controls")
     endif()
     if(NOT EXISTS "${DWG_SOURCE_GENERATOR}")
         message(FATAL_ERROR "DWG_SOURCE_GENERATOR does not exist: ${DWG_SOURCE_GENERATOR}")

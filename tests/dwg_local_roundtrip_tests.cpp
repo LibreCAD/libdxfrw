@@ -42068,8 +42068,10 @@ int main(int argc, char** argv) {
             const std::string token = argv[3];
             if (token == "AC1021") version = DRW::AC1021;
             else if (token == "AC1024") version = DRW::AC1024;
+            else if (token == "AC1027") version = DRW::AC1027;
+            else if (token == "AC1032") version = DRW::AC1032;
             else {
-                std::cerr << "FreeCAD primitive source supports AC1021 or AC1024\n";
+                std::cerr << "FreeCAD primitive source supports AC1021, AC1024, AC1027, or AC1032\n";
                 return 1;
             }
         }

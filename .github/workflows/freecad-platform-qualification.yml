@@ -63,7 +63,7 @@ jobs:
             -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE="$installed"
           cmake --build build --parallel 2 --target dwg2dxf
           ctest --test-dir build \
-            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|cli_compat|installed_cli_compat)$' \
+            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)$' \
             --output-on-failure --verbose
 
       - name: Preserve native test evidence
@@ -138,7 +138,7 @@ jobs:
           cmake --build build --config Release --parallel 2 --target dwg2dxf
           if ($LASTEXITCODE -ne 0) { throw "CMake rebuild failed: $LASTEXITCODE" }
           ctest --test-dir build -C Release `
-            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|cli_compat|installed_cli_compat)$' `
+            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)$' `
             --output-on-failure --verbose
           if ($LASTEXITCODE -ne 0) { throw "FreeCAD CTest qualification failed: $LASTEXITCODE" }
 
