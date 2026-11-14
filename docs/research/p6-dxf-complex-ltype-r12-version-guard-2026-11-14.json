@@ -1,0 +1,28 @@
+{
+  "title": "Refuse complex LTYPE data in R11/R12 DXF output",
+  "date": "2026-11-14",
+  "scope": "Do not silently omit complex LTYPE segment metadata when writing the AC1009 (R11/R12) DXF profile.",
+  "evidence": {
+    "autodeskRelease12Reference": {
+      "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+      "section": "TABLES / LTYPE, lines 1114-1116 in the accessible text",
+      "finding": "The R12 LTYPE field inventory lists name, flags, description, alignment, dash count, total pattern length, and repeated group-49 dash lengths only. It defines no complex-element fields."
+    },
+    "autodeskCurrentLtypeReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "finding": "The later LTYPE schema defines group 74 complex element types and associated groups 75, 340, 46, 50, 44, 45, and 9."
+    }
+  },
+  "implementation": "writeLineType now refuses AC1009 when any normalized segment has nonzero shapeFlags, before opening the record scope. Simple dash-only LTYPE output remains supported. AC1014+ complex output remains unchanged.",
+  "verification": {
+    "command": "ctest --test-dir build -R '^libdxfrw_complex_ltype_r12_refusal_retry$' --output-on-failure",
+    "result": "PASS, 1/1, 0.59 seconds.",
+    "profiles": "ASCII and Binary AC1009 complex-text LTYPE attempts preserve a pre-existing destination sentinel and leave the callback uncommitted; retry through the same writer at AC1014 succeeds, and fresh typed readback verifies the complex segment flag and text payload.",
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 passed with project warning-as-error settings."
+  },
+  "limits": [
+    "Generated direct-writer refusal/retry and self-readback only.",
+    "Does not qualify complex LTYPE native rendering, external producer prevalence, or STYLE font graph closure.",
+    "The test retries at AC1014 because AC1012 is not an enabled top-level DXF writer target in this repository."
+  ]
+}

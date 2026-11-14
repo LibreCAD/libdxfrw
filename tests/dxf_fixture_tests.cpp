@@ -58634,6 +58634,92 @@ void testXRecordVersionedHeaderAndPayload(TestContext& t) {
              "unknown source version preserves ambiguous leading 280 as application data");
 }
 
+void testComplexLTypeR12RefusalAndRetry(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-complex-ltype-r12-"
+           + std::to_string(std::chrono::steady_clock::now()
+                                .time_since_epoch().count()));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary complex-LTYPE directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    class DirectLTypeWriter final : public dx_iface {
+    public:
+        DRW_LType ltype;
+        bool emitted = false;
+        void writeLTypes() override {
+            emitted = dxfW->writeLineType(&ltype);
+        }
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "complex-binary.dxf" : "complex-ascii.dxf");
+        const std::string sentinel = "complex-ltype-r12-sentinel";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+        }
+
+        DirectLTypeWriter writer;
+        dx_data data;
+        writer.cData = &data;
+        writer.currentBlock = data.mBlock;
+        writer.ltype.name = "COMPLEX_TEXT";
+        writer.ltype.desc = "text dash";
+        writer.ltype.size = 1;
+        writer.ltype.length = 1.5;
+        writer.ltype.path = {1.5};
+        DRW_LTypeSegment segment;
+        segment.length = 1.5;
+        segment.shapeFlags = 2;
+        segment.text = "X";
+        writer.ltype.segments = {segment};
+        dxfRW codec(output.string().c_str());
+        writer.dxfW = &codec;
+
+        const bool refused = !codec.write(&writer, DRW::AC1009, binary);
+        std::ifstream prior(output, std::ios::binary);
+        const std::string priorContents(
+            (std::istreambuf_iterator<char>(prior)),
+            std::istreambuf_iterator<char>());
+        const bool refusalIsAtomic = refused && !writer.emitted
+            && priorContents == sentinel;
+        t.expect(refusalIsAtomic,
+            binary ? "binary AC1009 refuses complex LTYPE without replacing destination"
+                   : "ASCII AC1009 refuses complex LTYPE without replacing destination");
+        if (!refusalIsAtomic)
+            continue;
+
+        const bool retried = codec.write(&writer, DRW::AC1014, binary);
+        dx_iface reader;
+        dx_data readback;
+        const bool loaded = retried && reader.fileImport(
+            output.string(), &readback, false);
+        const auto found = std::find_if(readback.lineTypes.begin(),
+            readback.lineTypes.end(), [](const DRW_LType& value) {
+                return value.name == "COMPLEX_TEXT";
+            });
+        const bool matches = loaded && found != readback.lineTypes.end()
+            && found->size == 1 && found->segments.size() == 1u
+            && found->segments.front().length == 1.5
+            && found->segments.front().shapeFlags == 2
+            && found->segments.front().text == "X";
+        t.expect(matches,
+            binary ? "binary AC1014 same-writer retry preserves complex LTYPE data"
+                   : "ASCII AC1014 same-writer retry preserves complex LTYPE data");
+    }
+}
+
 void testLinetypeExtensionGraphRoundTrip(
     TestContext& t, const std::filesystem::path* generatedOutput = nullptr,
     DRW::Version version = DRW::AC1014, bool binary = false) {
@@ -68498,6 +68584,14 @@ int main(int argc, char** argv) {
         TestContext context;
         testLTypeMirrorAuthority(context);
         std::cout << "LTYPE path/segment authority: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--complex-ltype-r12-refusal-retry") {
+        TestContext context;
+        testComplexLTypeR12RefusalAndRetry(context);
+        std::cout << "Complex LTYPE R12 refusal and retry: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

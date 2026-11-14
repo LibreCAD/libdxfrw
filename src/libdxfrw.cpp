@@ -7735,6 +7735,18 @@ bool dxfRW::writeLineType(DRW_LType *ent){
         m_writeError = true;
         return false;
     }
+    const bool hasComplexSegments = std::any_of(
+        normalized.segments.cbegin(), normalized.segments.cend(),
+        [](const DRW_LTypeSegment& segment) {
+            return segment.shapeFlags != 0;
+        });
+    // The Autodesk Release 12 DXF reference describes LTYPE using only
+    // groups 49 for dash lengths. Complex text/shape elements (group 74 and
+    // their associated fields) are not representable in AC1009.
+    if (version <= DRW::AC1009 && hasComplexSegments) {
+        m_writeError = true;
+        return false;
+    }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     bool result = true;

@@ -3163,6 +3163,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --ltype-mirror-authority)
     set_tests_properties(libdxfrw_ltype_mirror_authority PROPERTIES
         LABELS "fast;dxf;linetype" TIMEOUT 30)
+    add_test(NAME libdxfrw_complex_ltype_r12_refusal_retry
+        COMMAND libdxfrw_dxf_fixture_tests --complex-ltype-r12-refusal-retry)
+    set_tests_properties(libdxfrw_complex_ltype_r12_refusal_retry PROPERTIES
+        LABELS "fast;dxf;linetype;versions;retry" TIMEOUT 30)
     add_test(NAME libdxfrw_linetype_extension_graph
         COMMAND libdxfrw_dxf_fixture_tests --linetype-extension-graph)
     set_tests_properties(libdxfrw_linetype_extension_graph PROPERTIES
