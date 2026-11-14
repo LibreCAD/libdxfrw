@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **384 completed implementation and qualification slices** and **34 remaining
+The plan records **385 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`384 / (384 + 34) = 91.9%`. This is a count-based progress measure, not an
+`385 / (385 + 34) = 91.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -33,6 +33,16 @@ syntax-only check, not a linked consumer build or adapter regression
 
 Do not count historical evidence notes or the earlier 145-entry mixed
 checkpoint as extra completed items.
+
+**P8 native macOS FreeCAD generated-primitive slice (2026-11-14):** six local
+FreeCAD 1.1.4 ARM64 open/insert cases pass across generated AC1021, AC1024 and
+AC1032 DWG profiles after strict preflight through the installed converter.
+The C++ importer geometry assertions pass for the emitted points, lines, arcs,
+circles, ellipses, splines and polyline wire profiles. The run also records
+limits: FreeCAD rejects the generated 3DFACE and SOLID records, and imports the
+polyface profile as wireframe. This is macOS generated-source evidence only;
+Linux/Windows, native modeler solids and producer-authored profiles remain open
+([receipt](docs/research/p8-macos-freecad-generated-primitives-ac1021-ac1032-2026-11-14.json)).
 
 **P6-F six-revision skipped custom-class disposition slice (2026-11-14):**
 the from-scratch raw-object helper now writes version-correct common object
@@ -1605,7 +1615,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The selected upstream libdxfrw LTYPE edit/metadata path now has generated ASCII/Binary readback coverage across seven DXF revisions ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)); the current LibreCAD `RS_FilterDXFRW` source also passes a syntax-only compile against upstream headers ([receipt](docs/research/p8-librecad-filter-upstream-header-compatibility-2026-11-14.json)). Clean linked LibreCAD/LibreCAD_3 consumer builds and the actual LibreCAD adapter regression remain required. |
 | P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
-| P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. |
+| P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. Local macOS ARM64 FreeCAD 1.1.4 generated AC1021/AC1024/AC1032 primitive open/insert matrix passes, but rejects 3DFACE/SOLID and imports polyface as wire ([receipt](docs/research/p8-macos-freecad-generated-primitives-ac1021-ac1032-2026-11-14.json)); native Linux/Windows and modeler-solid qualification remain open. |
 
 **P6-G DATATABLE writer version-matrix transaction follow-up (2026-11-13):**
 the generated four-column DATATABLE graph and its two row XRECORD children now
