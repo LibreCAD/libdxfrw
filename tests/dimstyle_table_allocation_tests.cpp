@@ -72,7 +72,8 @@ bool sameDimstyle(const DRW_Dimstyle& a, const DRW_Dimstyle& b,
         && a.dimpost == b.dimpost && a.dimscale == b.dimscale
         && a.dimasz == b.dimasz && a.dimtxt == b.dimtxt
         && a.dimdec == b.dimdec && a.dimtad == b.dimtad
-        && a.dimunit == b.dimunit && a.dimfit == b.dimfit;
+        && a.dimunit == b.dimunit && a.dimfit == b.dimfit
+        && a.dimfxl == b.dimfxl;
 }
 
 std::string handleHex(std::uint32_t handle) {
@@ -150,6 +151,24 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     bytes.assign(std::istreambuf_iterator<char>{input},
                  std::istreambuf_iterator<char>{});
     return !input.bad();
+}
+
+bool asciiDimstyleHasGroup(const std::string& bytes, int wanted) {
+    std::istringstream input(bytes);
+    std::string code;
+    std::string value;
+    bool inDimstyle = false;
+    while (std::getline(input, code) && std::getline(input, value)) {
+        if (code == "0") {
+            if (inDimstyle)
+                return false;
+            inDimstyle = value == "DIMSTYLE";
+            continue;
+        }
+        if (inDimstyle && code == std::to_string(wanted))
+            return true;
+    }
+    return false;
 }
 
 bool readbackMatches(const std::filesystem::path& path) {
@@ -260,6 +279,70 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool dimfxlRefusalRetry(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-dimfxl.dxf";
+    const auto cleanPath = directory / "dimstyle-dimfxl-clean.dxf";
+    const std::string prior = "prior DIMSTYLE destination bytes\n";
+    constexpr std::array<DRW::Version, 2> versions{{
+        DRW::AC1014, DRW::AC1018}};
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            dxfRW cleanCodec(cleanPath.string().c_str());
+            Export cleanExporter(cleanCodec);
+            if (!cleanCodec.write(&cleanExporter, version, binary)
+                || !cleanExporter.accepted)
+                return false;
+            std::string expectedBytes;
+            if (!readBytes(cleanPath, expectedBytes)
+                || (!binary && asciiDimstyleHasGroup(expectedBytes, 49))) {
+                std::cerr << "legacy DIMSTYLE emitted group 49: version="
+                          << versionCode(version) << '\n';
+                return false;
+            }
+
+            for (const bool useOverride : {false, true}) {
+                {
+                    std::ofstream output(path,
+                                         std::ios::binary | std::ios::trunc);
+                    output << prior;
+                    if (!output)
+                        return false;
+                }
+                dxfRW codec(path.string().c_str());
+                Export exporter(codec);
+                if (useOverride)
+                    exporter.dimstyle.add("$DIMFXL", 49, 2.0);
+                else
+                    exporter.dimstyle.dimfxl = 2.0;
+                if (codec.write(&exporter, version, binary)
+                    || exporter.accepted) {
+                    std::cerr << "legacy DIMFXL refusal failed: version="
+                              << versionCode(version) << " binary=" << binary
+                              << " override=" << useOverride << '\n';
+                    return false;
+                }
+                std::string current;
+                if (!readBytes(path, current) || current != prior)
+                    return false;
+
+                if (useOverride)
+                    exporter.dimstyle.add("$DIMFXL", 49, 1.0);
+                else
+                    exporter.dimstyle.dimfxl = 1.0;
+                if (!codec.write(&exporter, version, binary)
+                    || !exporter.accepted || !readBytes(path, current)
+                    || current != expectedBytes || !readbackMatches(path)) {
+                    std::cerr << "legacy DIMFXL retry failed: version="
+                              << versionCode(version) << " binary=" << binary
+                              << " override=" << useOverride << '\n';
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -299,5 +382,6 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory)
+        && dimfxlRefusalRetry(directory) ? 0 : 2;
 }

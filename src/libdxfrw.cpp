@@ -8389,6 +8389,14 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             m_writeError = true;
             return false;
         }
+        if (version < DRW::AC1021 && value->code() == 49
+            && (value->type() != DRW_Variant::DOUBLE
+                || !std::isfinite(value->content.d)
+                || value->content.d != 1.0)) {
+            // DIMFXL is available starting with AutoCAD 2007. Older targets
+            // can omit its documented default, but must not lose an override.
+            return failDxfWrite();
+        }
         if (version < spec->minimumVersion)
             continue;
         if (value->type() != spec->type
@@ -8419,6 +8427,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             }
         }
     }
+    if (version < DRW::AC1021 && ent->dimfxl != 1.0)
+        return failDxfWrite();
 
     std::uint32_t emittedDimTextStyleHandle = 0;
     bool hasEmittedDimTextStyleHandle = false;
@@ -8799,7 +8809,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     wD(46, ent->dimdle);
     wD(47, ent->dimtp);
     wD(48, ent->dimtm);
-    if ( version > DRW::AC1018 || ent->dimfxl !=0 )
+    if (version >= DRW::AC1021)
         wD(49, ent->dimfxl);
     wD(140, ent->dimtxt);
     wD(141, ent->dimcen);
