@@ -24,6 +24,9 @@ peer-documented second R2007+ group-70 DIMTFILLCLR ACI index. Generated
 AC1021 ASCII/Binary typed output/readback and dynamic override controls pass;
 a third group-70 occurrence and nondefault pre-R2007 downgrade both refuse,
 with same-writer retry covered. The focused DIMSTYLE allocation CTest passes.
+The `lc3_compat_check` target builds and the existing 3D consumer probe passes
+1/1 after the public DIMSTYLE metadata accessor change; these are compile and
+probe checks, not native LibreCAD/LibreCAD_3 application qualification.
 Autodesk's published DIMSTYLE schema still lists only the flags field, so the
 color mapping remains an explicitly unofficial ezdxf compatibility profile;
 RGB/book colors and native producer/consumer behavior remain unqualified. See

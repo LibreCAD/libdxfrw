@@ -66,6 +66,14 @@
       "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
       "result": "PASS (1/1; generated ASCII/Binary DIMTFILLCLR typed output/readback, dynamic override precedence/readback, third-occurrence refusal, and typed/dynamic pre-AC1021 atomic refusal with same-writer retry; existing DIMTFILL/DIMARCSYM controls remain green)"
     },
+    "consumerCompatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS; public consumer interface compile target"
+    },
+    "consumerProbe": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+      "result": "PASS (1/1; existing generated 3D callback probe; does not qualify native application import)"
+    },
     "persistentDwgDxfFixturesAdded": 0,
     "fullSuiteRun": false,
     "externalProducerRun": false,
