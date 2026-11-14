@@ -1518,6 +1518,121 @@ def check_partial_dwg_read_cli(converter, root, writer):
                         f"{revision} malformed OBJECTS body partial mode lacked its "
                         f"incomplete-output warning: {result!r}")
                 checked += 1
+
+    # Exercise a second typed OBJECTS body parser. DBCOLOR has a compact CMC
+    # payload and no semantic edge in this generated profile, so partial
+    # output can prove recovery and readback independently of MLINESTYLE.
+    malformed_dbcolor_profiles = {
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    for revision, target_year in malformed_dbcolor_profiles.items():
+        source = root / f"generated malformed DBCOLOR body source {revision}.dwg"
+        generated = run_bounded(
+            [str(writer), "--generate-cli-malformed-dbcolor-body-source",
+             str(source), revision], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not source.is_file():
+            raise AssertionError(
+                f"could not author malformed {revision} DBCOLOR source: {generated!r}")
+        original = source.read_bytes()
+        counted = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)],
+            10, 131072, cwd=root)
+        fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in counted.stdout.split() if b"=" in field
+        }
+        try:
+            source_frames = int(fields[b"sourceFrames"])
+            published_frames = int(fields[b"publishedFrames"])
+            failed_frames = int(fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            source_frames = published_frames = failed_frames = -1
+        if (counted.returncode != 0 or b"readSucceeded=true" not in counted.stdout
+                or b"lineCount=1" not in counted.stdout
+                or b"objectParseFailures=1" not in counted.stdout
+                or b"entityParseFailures=0" not in counted.stdout
+                or failed_frames != 1 or source_frames <= 1
+                or published_frames + 1 != source_frames):
+            raise AssertionError(
+                f"{revision} malformed DBCOLOR stopped later object frames: "
+                f"{counted!r}")
+        checked += 1
+
+        if target_year is None:
+            output = root / f"malformed DBCOLOR body {revision} source gate.dxf"
+            output.write_bytes(SENTINEL)
+            for partial_mode in (False, True):
+                arguments = [str(converter), str(source), "-o", str(output),
+                             "-v2013", "-y", "-d"]
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
+                if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                        or source.read_bytes() != original
+                        or b"AC1027 DWG source references are not fully qualified"
+                           not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} DBCOLOR body output bypassed source gate: "
+                        f"{result!r}")
+                checked += 1
+            continue
+
+        for binary in (False, True):
+            encoding = "Binary" if binary else "ASCII"
+            output = root / f"malformed DBCOLOR body {revision} {encoding}.dxf"
+            output.write_bytes(SENTINEL)
+            for partial_mode in (False, True):
+                mode = "partial" if partial_mode else "strict"
+                arguments = [str(converter), str(source), "-o", str(output),
+                             f"-v{target_year}", "-y", "-d"]
+                if binary:
+                    arguments.append("-b")
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
+                projection = next((line for line in result.stderr.splitlines()
+                                   if line.startswith(
+                                       b"CLI source disposition projection:")), b"")
+                required = (
+                    b"sourceDwgObjectParseFailures=1",
+                    b"sourceDwgEntityParseFailures=0",
+                    b"sourceDwgFrameCoverage=partial",
+                    b"sourceDwgFramesFailed=1",
+                    b"sourceDwgIntegrityErrorsAmongRetained=0",
+                )
+                if (result.returncode != (0 if partial_mode else 1)
+                        or source.read_bytes() != original
+                        or any(field not in projection for field in required)):
+                    raise AssertionError(
+                        f"{revision} DBCOLOR body {mode} had the wrong disposition: "
+                        f"{result!r}")
+                if partial_mode:
+                    reopened = run_bounded(
+                        [str(writer), "--count-dxf-lines", str(output)],
+                        10, 131072, cwd=root)
+                    if (output.read_bytes() == SENTINEL
+                            or reopened.returncode != 0
+                            or b"lineCount=1" not in reopened.stdout
+                            or b"vportCount=1" not in reopened.stdout):
+                        raise AssertionError(
+                            f"{revision} DBCOLOR partial output did not reopen: "
+                            f"{reopened!r}")
+                    if (b"WARNING: explicit partial DWG read mode" not in result.stderr
+                            or b"is not a completeness/support claim" not in result.stderr):
+                        raise AssertionError(
+                            f"{revision} DBCOLOR partial output lacked warning: "
+                            f"{result!r}")
+                else:
+                    gate = (b"strict-complete conversion requires successful, complete DWG read disposition")
+                    if output.read_bytes() != SENTINEL or gate not in result.stderr:
+                        raise AssertionError(
+                            f"{revision} DBCOLOR strict output did not refuse atomically: "
+                            f"{result!r}")
+                checked += 1
     return checked
 
 
