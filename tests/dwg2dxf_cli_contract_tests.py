@@ -1432,10 +1432,10 @@ def check_partial_dwg_read_cli(converter, root, writer):
 
         for binary in (False, True):
             encoding = "Binary" if binary else "ASCII"
+            output = root / f"malformed OBJECTS body {revision} {encoding}.dxf"
+            output.write_bytes(SENTINEL)
             for partial_mode in (False, True):
                 mode = "partial" if partial_mode else "strict"
-                output = root / f"malformed OBJECTS body {mode} {revision} {encoding}.dxf"
-                output.write_bytes(SENTINEL)
                 arguments = [str(converter), str(source), "-o", str(output),
                              f"-v{target_year}", "-y", "-d"]
                 if binary:
