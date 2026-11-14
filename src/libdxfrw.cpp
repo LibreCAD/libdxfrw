@@ -8405,6 +8405,13 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             // equivalent DIMSTYLE field for a nonzero alternate-unit round.
             return failDxfWrite();
         }
+        if (version < DRW::AC1021 && value->code() == 290
+            && (value->type() != DRW_Variant::INTEGER
+                || value->content.i != 0)) {
+            // DIMFXLON is a 2007-era switch; pre-2007 output has no field
+            // that represents enabled fixed-length extension lines.
+            return failDxfWrite();
+        }
         if (version < spec->minimumVersion)
             continue;
         if (value->type() != spec->type
@@ -8438,6 +8445,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     if (version < DRW::AC1021 && ent->dimfxl != 1.0)
         return failDxfWrite();
     if (version < DRW::AC1015 && ent->dimaltrnd != 0.0)
+        return failDxfWrite();
+    if (version < DRW::AC1021 && ent->dimfxlon != 0)
         return failDxfWrite();
 
     std::uint32_t emittedDimTextStyleHandle = 0;
