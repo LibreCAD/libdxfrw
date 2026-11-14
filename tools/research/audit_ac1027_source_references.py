@@ -241,11 +241,11 @@ def verify_mlinestyle_fields(
             raise SystemExit("LibreDWG MLINESTYLE line element is malformed")
         color = item.get("color")
         if not isinstance(color, dict) or color.get("rgb") != "c0000000":
-            raise SystemExit("Cover MLINESTYLE line color is outside the BYLAYER profile")
+            raise SystemExit("MLINESTYLE line color is outside the BYLAYER profile")
         expected_lines.append(item)
     fill_color = peer.get("fill_color")
     if not isinstance(fill_color, dict) or fill_color.get("rgb") != "c0000000":
-        raise SystemExit("Cover MLINESTYLE fill color is outside the BYLAYER profile")
+        raise SystemExit("MLINESTYLE fill color is outside the BYLAYER profile")
 
     numeric_checks = (
         ("name", name, peer.get("name")),
@@ -694,35 +694,44 @@ def verify_peer_profiles(
             "independentPeerLimit": "LibreDWG exposes resolved fields and raw role codes, not physical bit spans",
         }
 
-    matched_mlinestyle = None
-    if source_hash == COVER_AC1027_SHA256:
-        peer_mlinestyles = [
-            obj for obj in peer_objects
-            if isinstance(obj, dict) and obj.get("object") == "MLINESTYLE"
-            and peer_handle(obj.get("handle")) == 0x18
-        ]
-        source_fields = mlinestyle_fields.get(0x18)
-        source_elements = mlinestyle_elements.get(0x18, [])
-        if len(peer_mlinestyles) != 1 or source_fields is None:
+    source_mlinestyle_handles = {
+        int(frame["handle"]) for frame in frames
+        if int(frame["encodedType"]) == 73
+    }
+    if (set(mlinestyle_fields) != source_mlinestyle_handles
+            or set(mlinestyle_elements) - source_mlinestyle_handles):
+        raise SystemExit(
+            "MLINESTYLE typed rows do not cover exactly the retained type-73 frames"
+        )
+    matched_mlinestyles = []
+    for handle in sorted(source_mlinestyle_handles):
+        peer_mlinestyle = peer_by_handle.get(handle)
+        if peer_mlinestyle is None or peer_mlinestyle.get("object") != "MLINESTYLE":
             raise SystemExit(
-                "LibreDWG or libdxfrw lacks hash-bound Cover MLINESTYLE 0x18 fields"
+                f"LibreDWG minJSON lacks source MLINESTYLE handle {handle:#x}"
             )
         matched_fields = verify_mlinestyle_fields(
-            source_fields, source_elements, peer_mlinestyles[0]
+            mlinestyle_fields[handle], mlinestyle_elements.get(handle, []),
+            peer_mlinestyle,
         )
-        matched_mlinestyle = {
+        matched_mlinestyles.append({
             **matched_fields,
-            "sourceFrameHandle": 0x18,
+            "sourceFrameHandle": handle,
             "sourceFrameSize": next(
                 int(frame["objectSize"]) for frame in frames
-                if int(frame["handle"]) == 0x18
+                if int(frame["handle"]) == handle
             ),
-            "peerSize": int(peer_mlinestyles[0]["size"]),
+            "peerSize": int(peer_mlinestyle["size"]),
             "independentPeerLimit": (
                 "LibreDWG minJSON independently exposes semantic fields but "
                 "not their physical source bit spans or arbitrary trailing bytes"
             ),
-        }
+        })
+    matched_mlinestyle = (
+        matched_mlinestyles[0]
+        if source_hash == COVER_AC1027_SHA256 and len(matched_mlinestyles) == 1
+        else None
+    )
 
     mleaderstyle_start = schema_text.find("DWG_OBJECT (MLEADERSTYLE)")
     mleaderstyle_end = schema_text.find("DWG_OBJECT_END", mleaderstyle_start)
@@ -770,6 +779,7 @@ def verify_peer_profiles(
         "matchedDimstyle": matched_dimstyle,
         "matchedVport": matched_vport,
         "matchedMLineStyle": matched_mlinestyle,
+        "matchedMLineStyles": matched_mlinestyles,
     }
 
 
@@ -1040,17 +1050,6 @@ def main() -> int:
                 or indices != list(range(len(elements)))):
             raise SystemExit(
                 f"MLINESTYLE {owner:#x} element rows are incomplete or unordered"
-            )
-    if source_before == COVER_AC1027_SHA256:
-        source_mlinestyle_handles = {
-            int(frame["handle"]) for frame in frames
-            if int(frame["encodedType"]) == 73
-        }
-        if (set(mlinestyle_fields) != source_mlinestyle_handles
-                or set(mlinestyle_elements) - source_mlinestyle_handles):
-            raise SystemExit(
-                "hash-bound Cover MLINESTYLE typed rows do not cover exactly "
-                "the retained type-73 frames"
             )
     source_bound_modeler_history_handles: set[int] = set()
     source_bound_dimstyle_handles: set[int] = set()

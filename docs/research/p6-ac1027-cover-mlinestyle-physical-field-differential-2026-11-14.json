@@ -96,10 +96,10 @@
       "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
       "docs/research/p6-ac1027-cover-mlinestyle-physical-field-differential-2026-11-14.json"
     ],
-    "testSourceSha256": "fcee40fcabe7992a17ccfdd52eced4304d15927e742c36923b2222f4d3602902",
-    "verifierSha256": "217a137e39289a755fdb019889e3a5775ca012673711d0461200438349709aa7",
-    "testExecutableSha256": "ff40197bf283a9227f80a3dac9780f79b03ccc2ba370cb4eceabb6a6e1972cfa",
-    "auditOutputSha256": "1655c3fda2061450018db3878e188f8157e33c6cbb34727b895f0275d5f70917",
+    "testSourceSha256": "5dbc89875083ed9ee487bcd45e2641d8d3dcbb81c95458a5d982e30db3bda262",
+    "verifierSha256": "3e25331417db7f7eb1347ec8eef03ad330b39f75108cf53aab2c26a5df596701",
+    "testExecutableSha256": "b1dc107565ad270e9bf2878bd22dcfbcbde2bcef9d4b574c284a7d2ae996c694",
+    "auditOutputSha256": "b61c944607bdf21dae8a9d1c36ccdf2b61db59edbbaa30eb6cf0a271406ddbe3",
     "diagnosticOutputSha256": "750b11c88f04d12f836e89148a0cf8f846b368fa8d7f4957755ba729b089bc37",
     "method": "The test adapter emits lossless text bytes as hex and typed scalar/element values from the real DWG decode. The verifier binds the source hash, requires the unique physical type-73/handle-0x18 peer object, compares strings and integer/color fields exactly, converts independent radians to degrees, compares floating fields with absolute tolerance 1e-12, verifies two ordered elements, and records the peer's exact 84-byte frame. Self-tests mutate angle, offset, and linetype index and require each mismatch to fail."
   },

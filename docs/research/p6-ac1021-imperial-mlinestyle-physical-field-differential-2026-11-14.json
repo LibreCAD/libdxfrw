@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14",
+  "date": "2026-11-14",
+  "status": "HASH_BOUND_AC1021_MLINESTYLE_SEMANTIC_DIFFERENTIAL_PASS_PARTIAL_INVENTORY",
+  "supportClaimEffect": "none",
+  "scope": "Compare the retained typed MLINESTYLE in one physical AC1021 source with independent LibreDWG minJSON. This records only the MLINESTYLE frame and does not qualify full-source inventory closure.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "version": "AC1021",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "object": {
+      "type": 73,
+      "handle": "0x18",
+      "sizeBytes": 79,
+      "sourceOffset": 325389,
+      "ownerHandle": "0x17",
+      "reactorHandles": [
+        "0x17"
+      ],
+      "dictionary": "ACAD_MLINESTYLE",
+      "dictionaryKey": "Standard",
+      "bodyHandleFields": 0,
+      "odaBodyRule": "ODA-20.4.73"
+    },
+    "fixtureFilesAdded": 0,
+    "sourceUnchangedDuringAudit": true
+  },
+  "comparison": {
+    "independentPeer": "LibreDWG minJSON",
+    "peerCreatedBy": "LibreDWG 0.13.3.553_6d6a_dirty",
+    "peerJsonPath": "/private/tmp/p6-mlinestyle-ac1021-imperial-peer.json",
+    "peerJsonSha256": "f5675a85f73566ceec3065db2b0239a44ad9825defdbc254eab4fc285e63a12d",
+    "peerSchemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "peerSchemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "fields": {
+      "name": {
+        "libdxfrw": "STANDARD",
+        "libreDwg": "STANDARD",
+        "matches": true
+      },
+      "description": {
+        "libdxfrw": "",
+        "libreDwg": "",
+        "matches": true
+      },
+      "flags": {
+        "libdxfrw": 0,
+        "libreDwg": 0,
+        "matches": true
+      },
+      "fillColor": {
+        "libdxfrw": 256,
+        "libdxfrwColor24": -1,
+        "libreDwg": "c0000000 (BYLAYER)",
+        "matches": true
+      },
+      "startAngle": {
+        "libdxfrwDegrees": 90.0,
+        "libreDwgRadians": 1.5707963267949,
+        "peerConvertedDegrees": 90.0000000000002,
+        "absoluteToleranceDegrees": 1e-12,
+        "matches": true
+      },
+      "endAngle": {
+        "libdxfrwDegrees": 90.0,
+        "libreDwgRadians": 1.5707963267949,
+        "peerConvertedDegrees": 90.0000000000002,
+        "absoluteToleranceDegrees": 1e-12,
+        "matches": true
+      },
+      "elements": [
+        {
+          "index": 0,
+          "offset": 3.5,
+          "color": "256 (BYLAYER)",
+          "color24": -1,
+          "linetypeIndex": 32767,
+          "matches": true
+        },
+        {
+          "index": 1,
+          "offset": 0.0,
+          "color": "256 (BYLAYER)",
+          "color24": -1,
+          "linetypeIndex": 32767,
+          "matches": true
+        }
+      ]
+    },
+    "frameSizeMatches": true,
+    "ownerAndReactorRolesMatch": true
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tools/research/audit_ac1027_source_references.py",
+      "tools/research/audit_mlinestyle_source_profile.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14.json"
+    ],
+    "testSourceSha256": "5dbc89875083ed9ee487bcd45e2641d8d3dcbb81c95458a5d982e30db3bda262",
+    "sourceProfileAuditSha256": "c046e77b7391b533f4ac490511af967c55763d3d2d481e286a47565d83fb14cb",
+    "sourceProfileAuditExecutableSha256": "b1dc107565ad270e9bf2878bd22dcfbcbde2bcef9d4b574c284a7d2ae996c694",
+    "diagnosticOutputSha256": "ed0b011a2ae59fb9e6fe72940ec55a2557905af07fe5ccb957bef53bc48b7cc5",
+    "method": "The adapter test diagnostic emits retained frame identity/common links and typed MLINESTYLE fields. A source-profile auditor binds the DWG before and after, selects exactly one type-73 frame, requires its typed row and dictionary identity to agree, then compares the scalar/element values and 79-byte object size with LibreDWG minJSON. The source-profile audit permits only the explicitly identified later VISUALSTYLE assertion failure; all earlier source import, capture, frame and MLINESTYLE checks complete."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS",
+    "sourceProfileAudit": "audit_mlinestyle_source_profile.py: PASS for the hash-bound MLINESTYLE profile; diagnostic exit code 1 is retained because a later unrelated VISUALSTYLE source identity check rejects handle 0x3A2B2; whole-source inventory is explicitly unqualified",
+    "comparatorSelfTest": "audit_ac1027_source_references.py --self-test: PASS; angle, offset, and linetype-index mutations are rejected",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure: PASS 1/1",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "The known later VISUALSTYLE check failure at handle 0x3A2B2 is unrelated to this style's already captured typed values but prevents claiming whole-source inventory completion.",
+    "The source-profile command admits that exact failure only; any other nonzero diagnostic is rejected.",
+    "LibreDWG minJSON exposes semantic values and frame size but not independent physical bit spans for the MLINESTYLE subfields.",
+    "This single AC1021 profile does not establish other source versions, producers, or semantic prevalence.",
+    "MLINE geometry, strict whole-document output, native rendering, and output support remain unqualified."
+  ],
+  "planImpact": {
+    "completedSlice": "A second hash-bound source profile now independently matches MLINESTYLE scalar/element semantics at AC1021, extending the previously matched AC1027 Cover profile across two revisions.",
+    "remaining": "P6-D remains open for physical subfield bit spans, arbitrary tails, other producer/version profiles, full field/no-loss census, and native MLINE meaning; the AC1021 full-source diagnostic remains failed at VISUALSTYLE.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "281 completed slices and 35 remaining packages: 281/(281+35)=88.9%; count-based activity proxy only."
+  }
+}

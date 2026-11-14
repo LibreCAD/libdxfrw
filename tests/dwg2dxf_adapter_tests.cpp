@@ -22713,6 +22713,13 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
       << " inventoryScope=identity-common-header-and-selected-typed-models"
       << " bodyReferenceCoverage=partial-typed-models"
               << " sourceHashBoundByUtility=0\n";
+  // Publish the captured source identity rows before profile-specific typed
+  // checks can fail. This keeps partial diagnostics useful without changing
+  // the fail-closed result or omitting the later mismatch.
+  DxIfaceStandardDwgCaptureTestAccess::printOpaqueSourceFrames(
+      data, data.importGeneration);
+  DxIfaceStandardDwgCaptureTestAccess::printStandardSourceFrames(
+      data, data.importGeneration);
   std::cout << " opaqueTypedBodyModels"
             << " dictionaryWithDefault=" << data.dictionaryWithDefaults.size()
             << " layouts=" << data.layouts.size()
@@ -23920,10 +23927,6 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
                   << " role=layer target=" << layerMatch->handle << '\n';
     }
   }
-    DxIfaceStandardDwgCaptureTestAccess::printOpaqueSourceFrames(
-        data, data.importGeneration);
-    DxIfaceStandardDwgCaptureTestAccess::printStandardSourceFrames(
-        data, data.importGeneration);
     DxIfaceStandardDwgCaptureTestAccess::printStandardObjectPayloadSummaries(
         data, data.importGeneration);
     for (const DRW_Dictionary::Entry& entry :
