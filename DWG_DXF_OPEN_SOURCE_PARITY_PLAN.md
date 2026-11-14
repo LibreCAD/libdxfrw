@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **375 completed implementation and qualification slices** and **34 remaining
+The plan records **376 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`375 / (375 + 34) = 91.7%`. This is a count-based progress measure, not an
+`376 / (376 + 34) = 91.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -105,7 +105,8 @@ bounded failure is eligible for explicit partial output while the truncated
 common-prologue cases above are not. AC1027 now joins as a reader-only profile:
 it also reports one failed frame, retains the following LINE, and balances
 all 27 object frames, while CLI output remains unqualified behind its separate
-source-reference closure gate. The focused partial-read selector passes 81
+source-reference closure gate. Strict and explicit-partial CLI attempts both
+preserve the destination and stop at that exact gate. The focused partial-read selector passes 83
 controls. This is generated parser-recovery and CLI disposition evidence, not
 MLINESTYLE semantic or producer interoperability support evidence
 ([receipt](docs/research/p6-cli-malformed-object-body-recovery-2026-11-14.json)).

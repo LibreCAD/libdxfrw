@@ -71,11 +71,12 @@
     "retained_integrity_errors": 0,
     "profiles": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1032"],
     "encodings": ["ASCII", "Binary"],
-    "reader_only_profile": "AC1027"
+    "reader_only_profile": "AC1027",
+    "AC1027_gate": "Strict and explicit-partial conversion both preserve the destination and refuse at 'AC1027 DWG source references are not fully qualified'; partial mode still reports the malformed object frame."
   },
   "validation": {
     "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
-    "result": "PASS: CLI partial DWG read (81 strict/partial/readback controls)"
+    "result": "PASS: CLI partial DWG read (83 strict/partial/readback controls)"
   },
   "limitations": [
     "Controls are generated locally and are not committed as DWG/DXF fixture files.",
