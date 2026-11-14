@@ -8085,6 +8085,227 @@ bool runLeaderVersionSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runGeoPositionMarkerVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "GEOPOSITIONMARKER version transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeMarker = [] {
+        DRW_GeoPositionMarker value;
+        value.handle = 0xDA40u;
+        value.m_classVersion = 1u;
+        value.m_position = DRW_Coord(123.0, 124.0, 125.0);
+        value.m_radius = 8.5;
+        value.m_notes = "version matrix embedded frame marker";
+        value.m_landingGap = 1.25;
+        value.m_mtextVisible = true;
+        value.m_textAlignment = 1u;
+        value.m_enableFrameText = true;
+        value.mtext = std::make_unique<DRW_MText>();
+        value.mtext->text = "version matrix embedded frame";
+        value.mtext->basePoint = value.m_position;
+        value.mtext->height = 1.75;
+        value.mtext->widthscale = 5.0;
+        value.mtext->style = "STANDARD";
+        return value;
+    };
+    const auto sameMarker = [](const DRW_GeoPositionMarker& actual,
+                               const DRW_GeoPositionMarker& expected) {
+        return actual.m_classVersion == expected.m_classVersion
+            && actual.m_position.x == expected.m_position.x
+            && actual.m_position.y == expected.m_position.y
+            && actual.m_position.z == expected.m_position.z
+            && actual.m_radius == expected.m_radius
+            && actual.m_notes == expected.m_notes
+            && actual.m_landingGap == expected.m_landingGap
+            && actual.m_mtextVisible == expected.m_mtextVisible
+            && actual.m_textAlignment == expected.m_textAlignment
+            && actual.m_enableFrameText == expected.m_enableFrameText
+            && actual.mtext && expected.mtext
+            && actual.mtext->text == expected.mtext->text
+            && actual.mtext->basePoint.x == expected.mtext->basePoint.x
+            && actual.mtext->basePoint.y == expected.mtext->basePoint.y
+            && actual.mtext->basePoint.z == expected.mtext->basePoint.z
+            && actual.mtext->height == expected.mtext->height
+            && actual.mtext->widthscale == expected.mtext->widthscale
+            && actual.mtext->style == expected.mtext->style;
+    };
+    class MarkerExport final : public dx_iface {
+    public:
+        MarkerExport(dxfRW& codec, DRW_GeoPositionMarker source)
+            : output(codec), marker(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override {
+            written = output.writeGeoPositionMarker(&marker);
+        }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_GeoPositionMarker marker;
+        bool written = false;
+    };
+    class MarkerReadback final : public dx_iface {
+    public:
+        MarkerReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addGeoPositionMarker(const DRW_GeoPositionMarker& value) override {
+            marker = value;
+            ++count;
+        }
+        dx_data storage;
+        DRW_GeoPositionMarker marker;
+        unsigned count = 0u;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dxfRW reader(path.string().c_str());
+        MarkerReadback probe;
+        DRW_GeoPositionMarker expected = makeMarker();
+        const bool read = reader.read(&probe, true);
+        if (probe.count == 1u)
+            expected.handle = probe.marker.handle;
+        return read && reader.getSourceVersion() == expectedVersion
+            && probe.count == 1u && probe.marker.handle != 0u
+            && sameMarker(probe.marker, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 2> versions = {{
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "prior geo marker destination\n";
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "geo-marker-refusal-binary.dxf"
+                      : "geo-marker-refusal-ascii.dxf");
+        const auto expectedPath = directory
+            / (binary ? "geo-marker-retry-expected-binary.dxf"
+                      : "geo-marker-retry-expected-ascii.dxf");
+        if (!clearStagedOutput(output) || !clearStagedOutput(expectedPath))
+            return fail("could not clear refusal/retry staging files");
+        {
+            dxfRW codec(expectedPath.string().c_str());
+            MarkerExport adapter(codec, makeMarker());
+            if (!codec.write(&adapter, DRW::AC1027, binary)
+                || !adapter.written)
+                return fail("could not create refusal/retry reference output");
+        }
+        std::string expectedBytes;
+        if (!readBytes(expectedPath, expectedBytes))
+            return fail("could not read refusal/retry reference output");
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+                return fail("could not seed refused destination");
+        }
+        dxfRW codec(output.string().c_str());
+        MarkerExport adapter(codec, makeMarker());
+        const DRW_GeoPositionMarker original(adapter.marker);
+        if (codec.write(&adapter, DRW::AC1024, binary)
+            || adapter.written
+            || !sameMarker(adapter.marker, original)
+            || adapter.marker.handle != original.handle)
+            return fail("unsupported AC1024 route was not refused atomically");
+        std::string afterRefusal;
+        if (!readBytes(output, afterRefusal) || afterRefusal != sentinel
+            || hasStagedOutput(output))
+            return fail("AC1024 refusal changed destination state");
+        if (!codec.write(&adapter, DRW::AC1027, binary) || !adapter.written
+            || !sameMarker(adapter.marker, original)
+            || adapter.marker.handle != original.handle)
+            return fail("same-writer AC1027 retry failed");
+        std::string retryBytes;
+        if (!readBytes(output, retryBytes) || retryBytes != expectedBytes
+            || !readbackMatches(output, DRW::AC1027)
+            || hasStagedOutput(output))
+            return fail("AC1027 retry differs from clean output");
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        std::filesystem::remove(expectedPath, ignored);
+    }
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("geo-marker-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                MarkerExport adapter(codec, makeMarker());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.written)
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                MarkerExport adapter(codec, makeMarker());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || allocationFailed
+                    || allocationCount <= 0 || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                MarkerExport adapter(codec, makeMarker());
+                const DRW_GeoPositionMarker original(adapter.marker);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                if (wrote || !injected || !readBytes(output, afterFailure)
+                    || afterFailure != sentinel
+                    || !sameMarker(adapter.marker, original)
+                    || adapter.marker.handle != original.handle
+                    || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.written;
+                std::string retryBytes;
+                if (!retried || !sameMarker(adapter.marker, original)
+                    || adapter.marker.handle != original.handle
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "GEOPOSITIONMARKER " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runCameraSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "CAMERA allocation transaction: " << message << '\n';
@@ -11546,6 +11767,8 @@ int main(int argc, char** argv) {
             return runLongMTextSweep(directory) ? 0 : 1;
         if (mode == "camera")
             return runCameraSweep(directory) ? 0 : 1;
+        if (mode == "geo-marker-versions")
+            return runGeoPositionMarkerVersionSweep(directory) ? 0 : 1;
         if (mode == "leader-versions")
             return runLeaderVersionSweep(directory) ? 0 : 1;
         if (mode == "mleader-versions")
