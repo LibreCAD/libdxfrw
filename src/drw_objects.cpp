@@ -3957,6 +3957,15 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     case 48:
         dimtm = reader->getDouble();
         break;
+    case 70:
+        // Autodesk defines group 70 as the DIMSTYLE table-entry flags. The
+        // published DIMSTYLE schema does not define a second group-70 color
+        // field, so reject repeated occurrences rather than silently
+        // overwriting flags or guessing which occurrence is DIMTFILLCLR.
+        if ((m_dxfDimensionPresence & kDxfDxfEntryFlagsSeen) != 0)
+            return false;
+        m_dxfDimensionPresence |= kDxfDxfEntryFlagsSeen;
+        return DRW_TableEntry::parseCode(code, reader);
     case 69:
         dimtfill = reader->getInt32();
         if (dimtfill < 0 || dimtfill > 2)

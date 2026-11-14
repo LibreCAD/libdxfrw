@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **335 completed implementation slices** and **34 remaining
+The plan records **336 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`335 / (335 + 34) = 90.8%`. This is a count-based progress measure, not an
+`336 / (336 + 34) = 90.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -17,6 +17,16 @@ sub-slices do not retire their parent package until its full exit gate passes. T
 activity proxy, not as the percentage of package gates completed. Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
+
+**Newest local P6-D slice (2026-11-14):** DIMSTYLE DXF parsing now accepts
+the documented group-70 table-entry flags once and rejects a repeated group
+70 instead of silently overwriting the flags or interpreting an occurrence
+as the peer-only DIMTFILLCLR color. A generated AC1021 ASCII control confirms
+the single flags value survives readback and the duplicate is rejected with
+`BAD_CODE_PARSED`; the focused DIMSTYLE allocation CTest passes. This closes
+the repeated-group parsing ambiguity only. DIMTFILLCLR's DXF mapping,
+producer-authored interoperability, and native consumer semantics remain
+unqualified. See [receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
 
 ## Authority and completion gates
 

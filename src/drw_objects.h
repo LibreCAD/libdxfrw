@@ -2173,6 +2173,9 @@ private:
   static constexpr std::uint16_t kDxfDxfDimltype = 0x0040;
   static constexpr std::uint16_t kDxfDxfDimltex1 = 0x0080;
   static constexpr std::uint16_t kDxfDxfDimltex2 = 0x0100;
+  // Keep the DIMSTYLE record's group-70 entry flags distinct from the
+  // unofficial DIMTFILLCLR interpretation also reported with group 70.
+  static constexpr std::uint16_t kDxfDxfEntryFlagsSeen = 0x0200;
   std::uint16_t m_dxfDimensionPresence {0};
   DRW::Version m_dxfDimensionSourceVersion {DRW::UNKNOWNV};
   // Live logical text bytes retained by the DIMSTYLE DXF parser fields.

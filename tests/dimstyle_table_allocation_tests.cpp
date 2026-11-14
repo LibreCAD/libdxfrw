@@ -159,6 +159,35 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
+bool duplicateDimstyleEntryFlags(std::string& bytes) {
+    std::istringstream input(bytes);
+    std::ostringstream output;
+    std::string code;
+    std::string value;
+    bool inDimstyle = false;
+    bool duplicated = false;
+    while (std::getline(input, code) && std::getline(input, value)) {
+        if (!code.empty() && code.back() == '\r')
+            code.pop_back();
+        if (!value.empty() && value.back() == '\r')
+            value.pop_back();
+        const auto first = code.find_first_not_of(" \t");
+        const std::string codeValue = first == std::string::npos
+            ? std::string{} : code.substr(first);
+        if (codeValue == "0")
+            inDimstyle = value == "DIMSTYLE";
+        output << code << '\n' << value << '\n';
+        if (inDimstyle && !duplicated && codeValue == "70") {
+            output << code << '\n' << value << '\n';
+            duplicated = true;
+        }
+    }
+    if (!input.eof() || !duplicated)
+        return false;
+    bytes = output.str();
+    return true;
+}
+
 bool asciiDimstyleHasGroup(const std::string& bytes, int wanted) {
     std::istringstream input(bytes);
     std::string code;
@@ -195,6 +224,44 @@ bool readbackMatches(const std::filesystem::path& path) {
     return matches && reader.textstyles.front().handle != 0u
         && reader.dimstyles.front().dimtxsty
             == handleHex(reader.textstyles.front().handle);
+}
+
+bool duplicateDimstyleGroup70Refusal(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-duplicate-group70.dxf";
+    {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.flags = 64;
+        if (!codec.write(&exporter, DRW::AC1021, false)
+            || !exporter.accepted)
+            return false;
+    }
+
+    dxfRW validCodec(path.string().c_str());
+    Reader validReader;
+    if (!validCodec.read(&validReader, false)
+        || validReader.dimstyles.size() != 1u
+        || validReader.dimstyles.front().flags != 64)
+        return false;
+
+    std::string bytes;
+    if (!readBytes(path, bytes) || !duplicateDimstyleEntryFlags(bytes))
+        return false;
+    {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        if (!output)
+            return false;
+    }
+
+    dxfRW duplicateCodec(path.string().c_str());
+    Reader duplicateReader;
+    if (duplicateCodec.read(&duplicateReader, false)
+        || duplicateCodec.getError() != DRW::BAD_CODE_PARSED) {
+        std::cerr << "duplicate DIMSTYLE group-70 flags were not refused\n";
+        return false;
+    }
+    return true;
 }
 
 bool allocationSweep(const std::filesystem::path& directory) {
@@ -909,6 +976,7 @@ int main() {
         }
     } cleanup{directory};
     return allocationSweep(directory)
+        && duplicateDimstyleGroup70Refusal(directory)
         && dimfxlRefusalRetry(directory)
         && dimaltrndRefusalRetry(directory)
         && dimfxlonRefusalRetry(directory)
