@@ -242,6 +242,14 @@ if(LIBDXFRW_BUILD_TESTS)
                 --fast-only)
         set_tests_properties(dwg2dxf_cli_contract PROPERTIES
             LABELS "fast;cli;process" TIMEOUT 25)
+        add_test(NAME dwg2dxf_cli_partial_read_disposition
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --partial-read-only)
+        set_tests_properties(dwg2dxf_cli_partial_read_disposition PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
         add_test(NAME dwg2dxf_cli_extended_contract
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
