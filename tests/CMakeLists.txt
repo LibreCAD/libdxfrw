@@ -6236,6 +6236,12 @@ add_test(NAME libdxfrw_dxf_polyline_topology_allocation_transaction
         polyline-topologies)
 set_tests_properties(libdxfrw_dxf_polyline_topology_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation;polyline" TIMEOUT 120)
+add_test(NAME libdxfrw_dxf_dimension_version_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-dimension-version-allocation
+        dimension-versions)
+set_tests_properties(libdxfrw_dxf_dimension_version_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;dimension;versions" TIMEOUT 120)
 add_test(NAME libdxfrw_dxf_hatch_mpolygon_version_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-hatch-mpolygon-version-allocation

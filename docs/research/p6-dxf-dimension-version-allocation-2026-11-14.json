@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dimension-version-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_STANDARD_DIMENSION_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated aligned and linear DIMENSION whole-operation transaction coverage across all seven target revisions and both DXF encodings.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "aligned DIMENSION with nondefault definition point, text point, style, and text",
+      "linear DIMENSION with nondefault extension points, text point, style, and text",
+      "generated TEXTSTYLE and DIMSTYLE dependencies"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/CMakeLists.txt",
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dimension-version-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Prime each version and encoding with an untracked write to initialize lazy writer state, measure allocations in a clean write, inject std::bad_alloc at every measured offset, require failure plus unchanged destination sentinel and caller records, retry with the same codec, compare exact bytes with the clean baseline, and freshly read typed aligned/linear records and modeled fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 124,
+      "Binary": 122
+    },
+    "AC1015": {
+      "ASCII": 126,
+      "Binary": 124
+    },
+    "AC1018": {
+      "ASCII": 126,
+      "Binary": 124
+    },
+    "AC1021": {
+      "ASCII": 126,
+      "Binary": 124
+    },
+    "AC1024": {
+      "ASCII": 135,
+      "Binary": 133
+    },
+    "AC1027": {
+      "ASCII": 126,
+      "Binary": 124
+    },
+    "AC1032": {
+      "ASCII": 126,
+      "Binary": 124
+    }
+  },
+  "allocationOffsetTotal": 1764,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_dimension_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 11.69 seconds",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native consumer behavior are not qualified.",
+    "Only aligned and linear standard DIMENSION profiles are covered by this seven-revision matrix; the broad standard-subtype transaction slice remains separately bounded to AC1027.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated aligned and linear DIMENSION whole-operation ASCII/Binary allocation rollback, same-codec retry, byte-identical output, and typed readback now span AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "P6-G remains open for public-writer inventory reconciliation, remaining direct routes and compound variants, and uncovered variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "296 completed slices and 34 remaining packages: 296/(296+34)=89.7%; equal-weight count, not effort-weighted."
+  }
+}

@@ -1761,6 +1761,101 @@ public:
     std::vector<DRW_Polyline> polylines;
 };
 
+class DimensionVersionExport final : public dx_iface {
+public:
+    explicit DimensionVersionExport(dxfRW& output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+
+        DRW_Textstyle textStyle;
+        textStyle.handle = 0xDC01u;
+        textStyle.name = "DIM_MATRIX_TEXT";
+        textStyle.font = "simplex.shx";
+        storage.textStyles.push_back(textStyle);
+
+        DRW_Dimstyle dimStyle;
+        dimStyle.handle = 0xDC02u;
+        dimStyle.name = "DIM_MATRIX_STYLE";
+        dimStyle.dimtxsty = textStyle.name;
+        dimStyle.dimtxstyH.ref = textStyle.handle;
+        dimStyle.dimscale = 1.25;
+        dimStyle.dimasz = 2.5;
+        dimStyle.dimtxt = 3.0;
+        dimStyle.dimdec = 3;
+        storage.dimStyles.push_back(dimStyle);
+
+        aligned.handle = 0xDC10u;
+        aligned.setStyle(dimStyle.name);
+        aligned.setDefPoint(DRW_Coord{1.25, 2.5, 3.75});
+        aligned.setTextPoint(DRW_Coord{4.5, 5.75, 0.0});
+        aligned.setText("version matrix aligned");
+
+        linear.handle = 0xDC11u;
+        linear.setStyle(dimStyle.name);
+        linear.setDefPoint(DRW_Coord{10.0, 11.0, 12.0});
+        linear.setDef1Point(DRW_Coord{10.0, 11.0, 12.0});
+        linear.setDef2Point(DRW_Coord{14.0, 16.0, 18.0});
+        linear.setTextPoint(DRW_Coord{12.0, 13.0, 0.0});
+        linear.setText("version matrix linear");
+    }
+
+    void writeEntities() override {
+        written = dxfW != nullptr && dxfW->writeDimension(&aligned)
+            && dxfW->writeDimension(&linear);
+    }
+    bool finalizeDxfWrite() override { return written; }
+
+    bool sourceUnchanged() const {
+        return aligned.handle == 0xDC10u
+            && aligned.getStyle() == "DIM_MATRIX_STYLE"
+            && aligned.getDefPoint().x == 1.25
+            && aligned.getDefPoint().y == 2.5
+            && aligned.getDefPoint().z == 3.75
+            && aligned.getTextPoint().x == 4.5
+            && aligned.getTextPoint().y == 5.75
+            && aligned.getText() == "version matrix aligned"
+            && linear.handle == 0xDC11u
+            && linear.getStyle() == "DIM_MATRIX_STYLE"
+            && linear.getDefPoint().x == 10.0
+            && linear.getDef1Point().x == 10.0
+            && linear.getDef2Point().x == 14.0
+            && linear.getTextPoint().x == 12.0
+            && linear.getText() == "version matrix linear";
+    }
+
+    DRW_DimAligned aligned;
+    DRW_DimLinear linear;
+    bool written = false;
+    dx_data storage;
+};
+
+class DimensionVersionReadback final : public dx_iface {
+public:
+    DimensionVersionReadback() {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+    }
+    void addDimAlign(const DRW_DimAligned* value) override {
+        if (value != nullptr) {
+            ++alignedCount;
+            aligned = *value;
+        }
+    }
+    void addDimLinear(const DRW_DimLinear* value) override {
+        if (value != nullptr) {
+            ++linearCount;
+            linear = *value;
+        }
+    }
+
+    unsigned alignedCount{0};
+    unsigned linearCount{0};
+    DRW_DimAligned aligned;
+    DRW_DimLinear linear;
+    dx_data storage;
+};
+
 const std::string& longMTextPayload() {
     static const std::string payload = std::string(249u, 'A') + "€"
         + std::string(300u, 'B');
@@ -6809,6 +6904,172 @@ bool runLegacyCompoundEntitiesSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runDimensionVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "DIMENSION version-matrix allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    std::error_code directoryError;
+    if (!std::filesystem::create_directories(directory, directoryError)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+
+    const auto readbackMatches = [](const std::filesystem::path& path) {
+        dxfRW reader(path.string().c_str());
+        DimensionVersionReadback adapter;
+        const bool read = reader.read(&adapter, false);
+        const bool matches = read
+            && adapter.alignedCount == 1u && adapter.linearCount == 1u
+            && adapter.aligned.handle != 0u
+            && adapter.aligned.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.aligned.getDefPoint().x == 1.25
+            && adapter.aligned.getDefPoint().y == 2.5
+            && adapter.aligned.getDefPoint().z == 3.75
+            && adapter.aligned.getTextPoint().x == 4.5
+            && adapter.aligned.getTextPoint().y == 5.75
+            && adapter.aligned.getText() == "version matrix aligned"
+            && adapter.linear.handle != 0u
+            && adapter.linear.handle != adapter.aligned.handle
+            && adapter.linear.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.linear.getDef1Point().x == 10.0
+            && adapter.linear.getDef1Point().y == 11.0
+            && adapter.linear.getDef2Point().x == 14.0
+            && adapter.linear.getDef2Point().y == 16.0
+            && adapter.linear.getTextPoint().x == 12.0
+            && adapter.linear.getTextPoint().y == 13.0
+            && adapter.linear.getText() == "version matrix linear";
+        if (!matches) {
+            std::cerr << "DIMENSION readback diagnostic read=" << read
+                      << " error=" << reader.getError()
+                      << " aligned=" << adapter.alignedCount
+                      << " linear=" << adapter.linearCount
+                      << " alignedHandle=" << adapter.aligned.handle
+                      << " alignedStyle=" << adapter.aligned.getStyle()
+                      << " alignedDef=" << adapter.aligned.getDefPoint().x
+                      << ',' << adapter.aligned.getDefPoint().y << ','
+                      << adapter.aligned.getDefPoint().z
+                      << " alignedTextPoint=" << adapter.aligned.getTextPoint().x
+                      << ',' << adapter.aligned.getTextPoint().y
+                      << " alignedText=" << adapter.aligned.getText()
+                      << " linearHandle=" << adapter.linear.handle
+                      << " linearStyle=" << adapter.linear.getStyle()
+                      << " linearDef1=" << adapter.linear.getDef1Point().x
+                      << ',' << adapter.linear.getDef1Point().y
+                      << " linearDef2=" << adapter.linear.getDef2Point().x
+                      << ',' << adapter.linear.getDef2Point().y
+                      << " linearTextPoint=" << adapter.linear.getTextPoint().x
+                      << ',' << adapter.linear.getTextPoint().y
+                      << " linearText=" << adapter.linear.getText() << '\n';
+        }
+        return matches;
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions{{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "prior DIMENSION version matrix bytes\n";
+
+    for (const auto& target : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory / (std::string(target.second)
+                + (binary ? "-dimension-matrix-binary.dxf"
+                          : "-dimension-matrix-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear output before warm-up");
+            {
+                // Prime version-specific writer state before calibration;
+                // otherwise a lazy first-use allocation is counted once in
+                // the baseline but is absent from every injected retry.
+                dxfRW codec(output.string().c_str());
+                DimensionVersionExport adapter(codec);
+                if (!codec.write(&adapter, target.first, binary)
+                    || !adapter.written || !adapter.sourceUnchanged()
+                    || !readbackMatches(output))
+                    return fail("version/encoding warm-up failed");
+            }
+            if (!clearStagedOutput(output))
+                return fail("could not clear warmed output");
+            std::string expectedBytes;
+            long allocationCount = 0;
+            {
+                dxfRW codec(output.string().c_str());
+                DimensionVersionExport adapter(codec);
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, target.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || !adapter.sourceUnchanged()
+                    || !readbackMatches(output)
+                    || !readBytes(output, expectedBytes)) {
+                    std::cerr << target.second << " binary=" << binary
+                              << " wrote=" << wrote
+                              << " entities=" << adapter.written
+                              << " unchanged=" << adapter.sourceUnchanged()
+                              << " readback=" << readbackMatches(output)
+                              << " error=" << codec.getError() << '\n';
+                    return fail("warm-up or typed readback failed");
+                }
+            }
+            if (allocationCount <= 0)
+                return fail("calibration observed no allocations");
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not seed destination sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                DimensionVersionExport adapter(codec);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, target.first, binary);
+                const std::size_t reached = allocationAttempts;
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool destinationReadable = readBytes(output, afterFailure);
+                const bool sourceUnchanged = adapter.sourceUnchanged();
+                const bool stagedOutput = hasStagedOutput(output);
+                if (!injected || wrote
+                    || reached != static_cast<std::size_t>(offset + 1)
+                    || !destinationReadable || afterFailure != sentinel
+                    || !sourceUnchanged || stagedOutput) {
+                    std::cerr << target.second << " binary=" << binary
+                              << " offset=" << offset
+                              << " injected=" << injected
+                              << " wrote=" << wrote
+                              << " reached=" << reached
+                              << " destinationReadable=" << destinationReadable
+                              << " destinationMatchesSentinel="
+                              << (afterFailure == sentinel)
+                              << " sourceUnchanged=" << sourceUnchanged
+                              << " stagedOutput=" << stagedOutput << '\n';
+                    return fail("injected failure changed caller or destination");
+                }
+
+                const bool retried = codec.write(&adapter, target.first, binary);
+                std::string retryBytes;
+                if (!retried || !adapter.written || !adapter.sourceUnchanged()
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes || !readbackMatches(output)
+                    || hasStagedOutput(output))
+                    return fail("same-codec retry or typed readback failed");
+            }
+            std::cout << target.second << " DIMENSION aligned/linear "
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", caller/destination rollback, retry/readback=PASS\n";
+            std::error_code removeError;
+            std::filesystem::remove(output, removeError);
+        }
+    }
+    return true;
+}
+
 bool runLongMTextSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "long UTF-8 MTEXT allocation transaction: "
@@ -10137,7 +10398,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|helix|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|dimension-versions|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|helix|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -10149,6 +10410,8 @@ int main(int argc, char** argv) {
             return runLegacyCompoundEntitiesSweep(directory) ? 0 : 1;
         if (mode == "polyline-topologies")
             return runPolylineTopologySweep(directory) ? 0 : 1;
+        if (mode == "dimension-versions")
+            return runDimensionVersionSweep(directory) ? 0 : 1;
         if (mode == "hatch-mpolygon-versions")
             return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
