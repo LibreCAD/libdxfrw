@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **239 completed implementation slices** and **35 remaining
+The plan records **240 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`239 / (239 + 35) = 87.2%`. This is a count-based progress measure, not an
+`240 / (240 + 35) = 87.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1342,6 +1342,14 @@ fresh typed readback. All 20 ASCII and 20 Binary allocation failures preserve
 the prior destination and caller record. This is one generated transaction
 profile only; producer interoperability and native associative behavior remain
 open ([receipt](docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json)).
+
+**P6-G DIMASSOC writer revision-matrix follow-up (2026-11-13):** the generated
+caller-state allocation sweep now covers AC1024, AC1027 and AC1032 in ASCII and
+Binary. Across 120 injected allocation failures, the prior destination and
+complete caller record remain unchanged; corrected same-writer retries match
+the clean bytes and pass fresh typed readback. This adds generated revision
+coverage only; producer profiles, full graph closure and native associative
+behavior remain open ([receipt](docs/research/p6-dxf-dimassoc-version-matrix-allocation-rollback-retry-2026-11-13.json)).
 
 **P6-G MLEADERSTYLE caller-state transaction follow-up (2026-11-13):** the
 AC1027 ASCII/Binary allocation sweep now checks the full initialized style

@@ -503,7 +503,7 @@ bool emitAndReadback(const DimensionAssociationProbe& source,
     return true;
 }
 
-bool allocationRollbackRetry(bool binary) {
+bool allocationRollbackRetry(DRW::Version version, bool binary) {
     dwgRW unusedDwgWriter("");
     DimensionAssociationAuthor authored(unusedDwgWriter);
     DimensionAssociationProbe source;
@@ -512,8 +512,9 @@ bool allocationRollbackRetry(bool binary) {
     const std::string sentinel = "DIMASSOC-RECORD-SENTINEL";
 
     const auto outputPath = std::filesystem::temp_directory_path()
-        / (binary ? "libdxfrw-dimassoc-allocation-retry-binary.dxf"
-                  : "libdxfrw-dimassoc-allocation-retry-ascii.dxf");
+        / ("libdxfrw-dimassoc-allocation-retry-"
+           + std::to_string(static_cast<int>(version))
+           + (binary ? "-binary.dxf" : "-ascii.dxf"));
     const std::string outputPathString = outputPath.string();
     const auto writeSentinel = [&]() {
         std::ofstream output(outputPath, std::ios::binary | std::ios::trunc);
@@ -545,7 +546,7 @@ bool allocationRollbackRetry(bool binary) {
     DimensionAssociationDxfExport calibration(calibrationCodec, source);
     calibration.failAt = 1000000;
     const bool calibrated = calibrationCodec.write(
-        &calibration, DRW::AC1024, binary);
+        &calibration, version, binary);
     const long allocationCount = calibration.reached;
     if (!calibrated || !calibration.emitted || allocationCount <= 0) {
         std::remove(outputPathString.c_str());
@@ -583,7 +584,7 @@ bool allocationRollbackRetry(bool binary) {
         bool wrote = false;
         const std::size_t before = failedAllocations;
         try {
-            wrote = codec.write(&exporter, DRW::AC1024, binary);
+            wrote = codec.write(&exporter, version, binary);
         } catch (const std::bad_alloc&) {
             allocationsBeforeFailure = -1;
         }
@@ -613,7 +614,7 @@ bool allocationRollbackRetry(bool binary) {
         }
         exporter.failAt = -1;
         exporter.emitted = false;
-        if (!codec.write(&exporter, DRW::AC1024, binary)
+        if (!codec.write(&exporter, version, binary)
             || !exporter.emitted
             || !callerAssociationUnchanged(exporter.source, source)
             || !readbackIsExact()
@@ -644,7 +645,8 @@ bool allocationRollbackRetry(bool binary) {
     if (failures != static_cast<std::size_t>(allocationCount))
         return false;
     std::remove(outputPathString.c_str());
-    std::cout << "DIMASSOC " << (binary ? "binary" : "ASCII")
+    std::cout << "DIMASSOC target=" << static_cast<int>(version) << ' '
+              << (binary ? "binary" : "ASCII")
               << ": record-allocations=" << allocationCount
               << ", whole-file destination rollback and corrected same-writer"
                  " readback retries="
@@ -1094,9 +1096,15 @@ int main(int argc, char** argv) {
         return runAdapterClosureRetryRoundtrip(argv[2], false) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--adapter-closure-retry-binary")
         return runAdapterClosureRetryRoundtrip(argv[2], true) ? 0 : 1;
-    if (argc == 2 && std::string(argv[1]) == "--allocation-rollback-retry")
-        return allocationRollbackRetry(false) && allocationRollbackRetry(true)
-            ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--allocation-rollback-retry") {
+        for (const DRW::Version version :
+             {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+            if (!allocationRollbackRetry(version, false)
+                || !allocationRollbackRetry(version, true))
+                return 1;
+        }
+        return 0;
+    }
     if (argc == 3 && std::string(argv[1]) == "--generate-dimassoc") {
         dwgRW writer(argv[2]);
         DimensionAssociationAuthor author(writer);
