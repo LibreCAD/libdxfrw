@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **367 completed implementation and qualification slices** and **34 remaining
+The plan records **368 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`367 / (367 + 34) = 91.5%`. This is a count-based progress measure, not an
+`368 / (368 + 34) = 91.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6580,6 +6580,19 @@ to this FreeCAD route and build; it is not a libdxfrw 3DFACE support failure or
 a support claim for FreeCAD's legacy importer, other platforms, or other
 consumers. Generated inputs are scratch-only. P8 remains OPEN; see the
 [3DFACE boundary receipt](docs/research/p8-freecad-generated-3dface-boundary-ac1021-ac1024-2026-11-14.json).
+
+**P8 generated POLYFACE consumer boundary (2026-11-14):** the same scratch-
+generated AC1021/AC1024 FreeCAD profile now includes a tilted classic
+POLYFACE quad with four WCS vertices and one face record. The emitted DXF
+retains the authored `AcDbPolyFaceMesh` flag, vertex pool and face indices.
+FreeCAD 1.1.4's pinned C++ importer instead returns a four-edge wire with
+zero faces and adds the POLYLINE parent base point `(0,0,0)` as a fifth
+vertex. All nine other primitive shapes still pass exact geometry checks.
+AC1021/AC1024 open/insert pass (4/4, 3.55 seconds) because this known
+consumer limitation is asserted as a boundary outcome; it does not establish
+POLYFACE surface support or justify changing conforming libdxfrw output. No
+fixture is committed and no support claim is promoted. See the
+[POLYFACE boundary receipt](docs/research/p8-freecad-generated-polyface-boundary-ac1021-ac1024-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four
