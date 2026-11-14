@@ -56165,8 +56165,8 @@ bool fieldListSourceMatchesRawDxf(const DRW_RawDxfObject& raw,
 }
 
 bool blockRecordSourceEqual(const DRW_Block_Record& a,const DRW_Block_Record& b,DRW::Version version) {
-    return standardDwgCommonEqual(a,b,version)&&dxfBlockRecord::Decoder::hasNoNativeLinks(a)
-        &&dxfBlockRecord::Decoder::hasNoNativeLinks(b)&&a.xrefUnloaded==b.xrefUnloaded&&a.insUnits==b.insUnits
+    return standardDwgCommonEqual(a,b,version)&&DRW::internal::DxfBlockRecordDecoder::hasNoNativeLinks(a)
+        &&DRW::internal::DxfBlockRecordDecoder::hasNoNativeLinks(b)&&a.xrefUnloaded==b.xrefUnloaded&&a.insUnits==b.insUnits
         &&tableSourcePointEqual(a.basePoint,b.basePoint)&&a.xrefIndex==b.xrefIndex&&a.xrefPath==b.xrefPath
         &&a.description==b.description&&a.previewData==b.previewData&&a.canExplode==b.canExplode
         &&a.blockScaling==b.blockScaling&&a.layoutHandle==b.layoutHandle&&a.insertCount==b.insertCount
@@ -63305,7 +63305,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
             if(reader->recordCount()!=raw.groups.size()||!decoder.finish()||!decoder.sourceCorePresent()
                 ||raw.handle!=parsed.handle||raw.parentHandle!=parsed.parentHandle||!fieldSourceEqual(parsed,*model,raw.m_version))return;
         } else if(block) {
-            DRW_Block_Record parsed;dxfBlockRecord::Decoder decoder(parsed,reader);
+            DRW_Block_Record parsed;DRW::internal::DxfBlockRecordDecoder decoder(parsed,reader);
             const auto* model=dynamic_cast<const DRW_Block_Record*>(resource.model.get());int code=0;
             while(buffer.position()<body.size()) {
                 if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)){replayBudgetFailure();return;}
@@ -63836,7 +63836,7 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
             Pending pending;auto& in=pending.input;in.container=cData;in.generation=s.generation;in.containerId=cData->m_entitiesContainerIdentity.value;
             in.kind=view.kind;in.state=state;in.payloadComplete=view.originalPayloadComplete;in.context=std::move(context);in.model=row.model;in.raw=row.raw;
             in.sourceModel=symbol?symbolOriginSnapshot(*model,view.kind):row.model;if(!in.sourceModel){fail();return;}
-            in.paired=dxfBlockRecord::Decoder::observeCommonState(*model)==state;
+            in.paired=DRW::internal::DxfBlockRecordDecoder::observeCommonState(*model)==state;
             pending.model=view.model;pending.raw=view.source;s.resourceOriginPending.emplace(model->handle,std::move(pending));return;
         }
         const auto id=view.model->handle;const auto found=s.resourceOriginPending.find(id);if(found==s.resourceOriginPending.end()){fail();return;}
@@ -63850,7 +63850,7 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
         if(!estimateTableResourceBytes(row.family,*view.model,work,items)||!estimateRawDxfObjectBytes(*view.source,rawBytes)
             ||!addAssociativeRetainedBytes(rawBytes,work)||s.resourceOriginWork>s.maxResourceOriginWork||work>s.maxResourceOriginWork-s.resourceOriginWork){fail();return;}
         s.resourceOriginWork+=work;in.raw=row.raw;in.model=row.model;
-        in.paired=in.paired&&dxfBlockRecord::Decoder::observeCommonState(*view.model)==state&&retainedRawDxfObjectsEqual(*row.raw,*view.source)
+        in.paired=in.paired&&DRW::internal::DxfBlockRecordDecoder::observeCommonState(*view.model)==state&&retainedRawDxfObjectsEqual(*row.raw,*view.source)
             &&resourceOriginEqual(*view.model,*row.model,live.sourceVersion,view.kind)&&resourceOriginEqual(*in.sourceModel,*row.model,live.sourceVersion,view.kind);
         in.index=s.resourceOriginInputOwners.size();auto input=std::make_shared<const Input>(std::move(in));
         s.resourceOriginInputs.emplace(id,input);s.resourceOriginInputOwners.push_back(std::move(input));s.resourceOriginPending.erase(found);
@@ -66634,7 +66634,7 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             ||!addAssociativeRetainedBytes(rawBytes,modelBytes)||s.structuralWork>s.maxStructuralWork
             ||modelBytes>s.maxStructuralWork-s.structuralWork) {fail();return;}
         s.structuralWork+=modelBytes;in.model=row.model;in.raw=row.raw;
-        in.paired=retainedRawDxfObjectsEqual(*row.raw,*view.source)&&dxfBlockRecord::Decoder::observeCommonState(value)==state
+        in.paired=retainedRawDxfObjectsEqual(*row.raw,*view.source)&&DRW::internal::DxfBlockRecordDecoder::observeCommonState(value)==state
             &&(block?blockRecordSourceEqual(static_cast<const DRW_Block_Record&>(value),static_cast<const DRW_Block_Record&>(*row.model),live.sourceVersion):
                 standardDwgModelsEqual(value,*row.model,live.sourceVersion,dwgObjType::DICTIONARY));
         if(legacyBlock&&in.paired&&!state.first&&!state.second) {
@@ -66655,14 +66655,14 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             reader->setDxfTextEncoding(in.context->textEncoding);reader->setDxfCodePagePolicy(in.context->codePagePolicy);
             reader->setSemanticStringMode(true);reader->setRecordBudget(row.raw->groups.size());
             reader->setTypedVariantNodeBudget(row.raw->groups.size());reader->setDecodeWorkBudget(s.maxStructuralWork-s.structuralWork);
-            DRW_Block_Record parsed;dxfBlockRecord::Decoder decoder(parsed,reader);int code=0;bool decoded=true;
+            DRW_Block_Record parsed;DRW::internal::DxfBlockRecordDecoder decoder(parsed,reader);int code=0;bool decoded=true;
             while(buffer.position()<body.size())
                 if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)){decoded=false;break;}
             s.structuralWork+=reader->decodeWorkCount();
             if(budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()
                 ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()) {fail();return;}
             in.legacyBlockRecordReplayMatched=decoded&&reader->recordCount()==row.raw->groups.size()
-                &&decoder.finish(row.raw->m_version)&&dxfBlockRecord::Decoder::observeCommonState(parsed)==state
+                &&decoder.finish(row.raw->m_version)&&DRW::internal::DxfBlockRecordDecoder::observeCommonState(parsed)==state
                 &&blockRecordSourceEqual(parsed,static_cast<const DRW_Block_Record&>(*row.model),row.raw->m_version);
             if(in.legacyBlockRecordReplayMatched) {
                 // Charge the separate field inventory before any vector

@@ -45,8 +45,8 @@
 class dxfReader;
 class dxfWriter;
 class DxfReadRetainedLease;
+namespace DRW { namespace internal { class DxfBlockRecordDecoder; } }
 namespace dxfField { class Decoder; }
-namespace dxfBlockRecord { class Decoder; }
 namespace dxfLayout { class Decoder; }
 namespace dxfViewUcs { class Decoder; }
 namespace dxfRenderSettings { class Decoder; }
@@ -213,7 +213,7 @@ private:
 class DRW_TableEntry {
   SETOBJFRIENDS
   friend class dxfField::Decoder;
-  friend class dxfBlockRecord::Decoder;
+  friend class DRW::internal::DxfBlockRecordDecoder;
   friend class dxfLayout::Decoder;
   friend class dxfViewUcs::Decoder;
   friend class dxfRendering::Observation;
@@ -2671,7 +2671,7 @@ private:
  */
 class DRW_Block_Record : public DRW_TableEntry {
   SETOBJFRIENDS
-  friend class dxfBlockRecord::Decoder;
+  friend class DRW::internal::DxfBlockRecordDecoder;
 public:
   DRW_Block_Record() { reset(); }
   void reset() {

@@ -454,7 +454,7 @@ public:
         buffer.reset(bytes);
         input.clear();
         DRW_Block_Record record;
-        dxfBlockRecord::Decoder decoder(record, reader);
+        DRW::internal::DxfBlockRecordDecoder decoder(record, reader);
         int code = 0;
         while (buffer.position() < bytes.size()) {
             if (!reader->readRec(&code) || code == 0

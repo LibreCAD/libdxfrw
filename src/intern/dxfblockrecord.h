@@ -12,8 +12,8 @@
 // Production BLOCK_RECORD body decoder. Batch publication and context-map
 // ownership remain with dxfRW. Replay uses the same body grammar and quota
 // owners, never a second interpretation of BLKREFS or preview bytes.
-namespace dxfBlockRecord {
-class Decoder {
+namespace DRW { namespace internal {
+class DxfBlockRecordDecoder {
     DRW_Block_Record& record;
     std::shared_ptr<DxfReadRetainedBudget> budget;
     DxfReadRetainedReservation indexReservation;
@@ -38,11 +38,11 @@ class Decoder {
         return !budget||!budget->exceeded();
     }
 public:
-    Decoder(DRW_Block_Record& target,const std::unique_ptr<dxfReader>& reader)
+    DxfBlockRecordDecoder(DRW_Block_Record& target,const std::unique_ptr<dxfReader>& reader)
         :record(target),budget(reader?reader->retainedByteBudget():nullptr),indexReservation(budget,0u){}
-    Decoder(const Decoder&)=delete;
-    Decoder& operator=(const Decoder&)=delete;
-    ~Decoder(){restoreOpaqueHandles();}
+    DxfBlockRecordDecoder(const DxfBlockRecordDecoder&)=delete;
+    DxfBlockRecordDecoder& operator=(const DxfBlockRecordDecoder&)=delete;
+    ~DxfBlockRecordDecoder(){restoreOpaqueHandles();}
 
     bool inApplication() const noexcept {return blockReferences||extensionDictionary||ignoredDepth!=0;}
     static std::pair<bool,std::uint8_t> observeCommonState(const DRW_TableEntry& value) noexcept {
@@ -162,5 +162,5 @@ public:
         return true;
     }
 };
-} // namespace dxfBlockRecord
+} } // namespace DRW::internal
 #endif

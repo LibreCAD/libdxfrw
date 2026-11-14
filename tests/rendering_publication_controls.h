@@ -145,8 +145,8 @@ void run(TestContext& test) {
         test.expect(!input.original.model&&!input.original.source&&input.typedModel&&input.rawModel&&input.typedRaw&&input.rawRaw,
             "immutable rendering owners retain both callback snapshots and no expired borrowed pointers");
         if(form==2u){test.expect(input.original.originalPendingXdata&&input.original.originalCoordinateMask==3u
-            &&dxfBlockRecord::Decoder::observeCommonState(*input.typedModel)==std::make_pair(true,std::uint8_t{3})
-            &&dxfBlockRecord::Decoder::observeCommonState(*input.rawModel)==std::make_pair(true,std::uint8_t{3})
+            &&DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.typedModel)==std::make_pair(true,std::uint8_t{3})
+            &&DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.rawModel)==std::make_pair(true,std::uint8_t{3})
             &&input.typedModel->extData.back()!=input.rawModel->extData.back(),
             "original pending rendering state agrees with separately owned copied XDATA variants");++pending;}
         auto& mutableState=A::rendering(data);

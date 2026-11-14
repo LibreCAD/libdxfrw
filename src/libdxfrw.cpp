@@ -20583,7 +20583,7 @@ bool dxfRW::processBlockRecord() {
     int code = 0;
     bool reading = false;
     DRW_Block_Record publicRecord;
-    dxfBlockRecord::Decoder decoder(publicRecord,reader);
+    DRW::internal::DxfBlockRecordDecoder decoder(publicRecord,reader);
     std::vector<DRW_Block_Record> pendingPublicBlockRecords;
     auto* sourceHandler=dynamic_cast<DRW_DxfBlockRecordSourceHandler*>(iface);
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockRecordSource();
@@ -28380,7 +28380,7 @@ void publishDxfRendering(dxfReader& reader,DRW_Interface& iface,
     if(!selected) {
         typed();iface.addRawDxfObject(raw);return;
     }
-    const auto common=dxfBlockRecord::Decoder::observeCommonState(model);
+    const auto common=DRW::internal::DxfBlockRecordDecoder::observeCommonState(model);
     const DRW_RawDxfObject original(std::move(raw));
     view.model=&model;view.source=&original;
     view.originalPendingXdata=common.first;
@@ -28477,7 +28477,7 @@ void publishDxfResource(dxfReader& reader,DRW_Interface& iface,std::uint8_t kind
     const auto* handler=dynamic_cast<const DRW_DxfResourceSourceHandler*>(&iface);
     const bool selected=handler&&handler->wantsDxfResourceSource();
     if(!selected){if(typedAvailable)typed();iface.addRawDxfObject(raw);return;}
-    const auto cursor=dxfBlockRecord::Decoder::observeCommonState(model);
+    const auto cursor=DRW::internal::DxfBlockRecordDecoder::observeCommonState(model);
     const DRW_RawDxfObject original(std::move(raw));
     DxfResourcePublication view;view.kind=kind;view.phase=typedAvailable?1u:2u;
     view.model=&model;view.source=&original;view.pendingXdata=cursor.first;view.coordinateMask=cursor.second;

@@ -85,7 +85,8 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
    if(count==names.size())return reject(Reason::Limit,at);
    for(std::size_t i=0;i<count;++i)if(sameAsciiName(names[i],text(*v)))return reject(Reason::Duplicate,at);
    names[count++]=text(*v);values=0u;take(code,Field::Xdata,Role::AppIdName,0u);
-  } else if(!count)return reject(Reason::Xdata,at);
+  } else if(code==102&&!count)return reject(Reason::Application,at);
+  else if(!count)return reject(Reason::Xdata,at);
   else if(code==1000) {
    const auto s=text(*v);if(v->type()!=DRW_Variant::STRING||!v->content.s||s.size()>255u||s.find('\0')!=std::string_view::npos)return reject(Reason::InvalidValue,at);
    ++values;take(code,Field::Xdata,Role::None,0u);

@@ -29,7 +29,7 @@ bool renderingName(std::string_view name) noexcept {
 }
 bool renderingModelState(const RenderingView& view) noexcept {
     if(!view.model)return false;
-    const auto common=dxfBlockRecord::Decoder::observeCommonState(*view.model);
+    const auto common=DRW::internal::DxfBlockRecordDecoder::observeCommonState(*view.model);
     if(common!=std::make_pair(view.originalPendingXdata,view.originalCoordinateMask))return false;
     if(view.kind==RenderingView::Kind::VisualStyle) {
         const auto* style=dynamic_cast<const DRW_VisualStyle*>(view.model);
@@ -171,7 +171,7 @@ void dx_iface::replayRenderingInput(dx_data& data,dx_data::TableDxfSourceCapture
                 ||s.renderingReplayWork>s.maxRenderingReplayWork){limit();return;}
             if(!good||reader->recordCount()!=in.typedRaw->groups.size()){s.renderingReplayFailed=true;return;}
             if(s.renderingReplayLimited)return;
-            const auto state=dxfBlockRecord::Decoder::observeCommonState(model);
+            const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(model);
             row.replayedState.kind=in.original.kind;row.replayedState.originalPendingXdata=state.first;
             row.replayedState.originalCoordinateMask=state.second;
             row.replayDecoded=true;

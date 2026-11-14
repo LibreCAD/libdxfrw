@@ -42,7 +42,7 @@ struct PlotSourceProbe:dx_iface {
     void addDictionaryWithDefault(const DRW_DictionaryWithDefault& value) override {
         if(value.handle!=0xE801u){if(!publicOnly)dx_iface::addDictionaryWithDefault(value);return;}
         inspect(&value,nullptr,1u);
-        auto& originalModel=const_cast<DRW_DictionaryWithDefault&>(value);const auto state=dxfBlockRecord::Decoder::observeCommonState(value);const int hard=value.hardOwner;
+        auto& originalModel=const_cast<DRW_DictionaryWithDefault&>(value);const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(value);const int hard=value.hardOwner;
         if(mutate==1u)DrwObjectEncodeTestAccess::commonMask(originalModel,static_cast<std::uint8_t>(state.second^1u));
         if(mutate==2u)originalModel.hardOwner^=1;
         const auto invoke=[&](){if(publicOnly)return;if(copy==1u){auto clone=value;dx_iface::addDictionaryWithDefault(clone);}else dx_iface::addDictionaryWithDefault(value);};

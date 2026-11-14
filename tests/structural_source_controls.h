@@ -131,8 +131,8 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
                 const auto r=dx_iface::structuralSourceReport(data);std::cerr<<"pending dictionary="<<dictionary<<" state="<<static_cast<int>(r.state)<<" complete="<<r.stateComplete<<'\n';return false;
             }
             const auto h=dictionary?0x40u:0xB0u;const auto& input=*A::structuralInputs(data).at(h);
-            if(!input.originalState.first||dxfBlockRecord::Decoder::observeCommonState(*input.model)!=input.originalState) {
-                std::cerr<<"pending dictionary="<<dictionary<<" original="<<input.originalState.first<<" mask="<<static_cast<int>(input.originalState.second)<<" copied="<<dxfBlockRecord::Decoder::observeCommonState(*input.model).first<<'\n';return false;
+            if(!input.originalState.first||DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.model)!=input.originalState) {
+                std::cerr<<"pending dictionary="<<dictionary<<" original="<<input.originalState.first<<" mask="<<static_cast<int>(input.originalState.second)<<" copied="<<DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.model).first<<'\n';return false;
             }
             if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }

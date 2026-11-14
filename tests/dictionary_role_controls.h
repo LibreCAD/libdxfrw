@@ -154,7 +154,7 @@ bool blockRecordOpaqueScopeTests(const std::filesystem::path& path,unsigned& con
         reader->setVersion("AC1032",true);reader->setAllowWideHandleLexemes(previous);
         DRW_Block_Record row;bool rejected=false,threw=false;
         try {
-            dxfBlockRecord::Decoder decoder(row,reader);
+            DRW::internal::DxfBlockRecordDecoder decoder(row,reader);
             for(std::size_t i=0;i<tags.size();++i) {
                 int code=0;if(!reader->readRec(&code))return false;
                 if(!decoder.parseCode(code,reader)){rejected=true;break;}

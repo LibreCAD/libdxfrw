@@ -29,7 +29,7 @@ bool legacyBlockRecordProfileDirectControls(const DRW_RawDxfObject& clean) {
  bad=clean;bad.groups.insert(bad.groups.begin()+14,DRW_Variant(102,std::string("{OTHER")));if(!expect(bad,Reason::Unexpected,14))return false;
  bad=clean;bad.groups[15]=DRW_Variant(1070,std::int32_t(32768));if(!expect(bad,Reason::InvalidValue,15))return false;
  bad=clean;bad.groups[15]=DRW_Variant(1070,std::string("1"));if(!expect(bad,Reason::InvalidValue,15))return false;
- bad=clean;bad.groups[15]=DRW_Variant(1005,std::string("A"));if(!expect(bad,Reason::Unexpected,15))return false;
+ bad=clean;bad.groups[15]=DRW_Variant(1006,std::string("A"));if(!expect(bad,Reason::Unexpected,15))return false;
  bad=clean;bad.groups.pop_back();if(!expect(bad,Reason::Xdata,17))return false;
  bad=clean;for(unsigned i=0;i<240u;++i)bad.groups.emplace_back(1000,std::string("x"));if(!expect(bad,Reason::Limit,0))return false;
  return true;

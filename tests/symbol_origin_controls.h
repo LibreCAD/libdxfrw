@@ -37,7 +37,7 @@ struct SymbolOriginProbe:dx_iface {
         ++callbacks;
     }
     template<class Call>void source(const DRW_TableEntry& v,const DRW_RawDxfObject& r,unsigned kind,Call call) {
-        inspect(v,&r,kind,3u);auto& actual=const_cast<DRW_TableEntry&>(v);const auto flags=actual.flags;const auto state=dxfBlockRecord::Decoder::observeCommonState(v);
+        inspect(v,&r,kind,3u);auto& actual=const_cast<DRW_TableEntry&>(v);const auto flags=actual.flags;const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(v);
         if(mutate==3)actual.flags^=1;if(cursor==3)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(skip!=3){if(copy==3){const DRW_RawDxfObject clone(r);call(v,clone);}else call(v,r);if(duplicate==3)call(v,r);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);
@@ -50,7 +50,7 @@ struct SymbolOriginProbe:dx_iface {
         source(v,r,v.tType==DRW::LAYER?7u:8u,[&](const auto& x,const auto& y){dx_iface::addDxfNamespaceSource(x,y);});
     }
     template<class Model,class Call>void typed(const Model& v,unsigned kind,Call call) {
-        inspect(v,nullptr,kind,1u);auto& actual=const_cast<Model&>(v);const auto flags=actual.flags;const auto state=dxfBlockRecord::Decoder::observeCommonState(v);
+        inspect(v,nullptr,kind,1u);auto& actual=const_cast<Model&>(v);const auto flags=actual.flags;const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(v);
         if(mutate==1)actual.flags^=1;if(cursor==1)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(skip!=1){if(copy==1){const Model clone(v);call(clone);}else call(v);if(duplicate==1)call(v);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);model=nullptr;raw=nullptr;

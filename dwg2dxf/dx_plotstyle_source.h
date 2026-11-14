@@ -133,7 +133,7 @@ void dx_iface::observePlotStyleSource(const DRW_TableEntry* model,const DRW_RawD
             if(dictionary)in.model=std::make_shared<const DRW_DictionaryWithDefault>(static_cast<const DRW_DictionaryWithDefault&>(*model));
             pending.model=model;pending.raw=view.source;
             in.paired=!dictionary||(view.source->handle==model->handle&&view.source->parentHandle==model->parentHandle
-                &&dxfBlockRecord::Decoder::observeCommonState(*model)==state);
+                &&DRW::internal::DxfBlockRecordDecoder::observeCommonState(*model)==state);
             if(dictionary){s.plotSourcePending.emplace(id,std::move(pending));return;}
             in.index=s.plotSourceInputOwners.size();auto saved=std::make_shared<const Input>(std::move(in));
             s.plotSourceInputs.emplace(id,saved);s.plotSourceInputOwners.push_back(std::move(saved));return;
@@ -145,7 +145,7 @@ void dx_iface::observePlotStyleSource(const DRW_TableEntry* model,const DRW_RawD
             ||in.context->declaration!=live.declaration||in.context->hasDeclaration!=live.hasDeclaration||in.context->binary!=live.binary
             ||in.context->compatibilityProfile!=live.compatibilityProfile||in.context->textEncoding!=live.textEncoding
             ||in.context->codePagePolicy!=live.codePagePolicy||in.context->applyExtrusion!=live.applyExtrusion){fail();return;}
-        in.paired=in.paired&&retainedRawDxfObjectsEqual(*in.raw,*raw)&&dxfBlockRecord::Decoder::observeCommonState(*view.model)==state
+        in.paired=in.paired&&retainedRawDxfObjectsEqual(*in.raw,*raw)&&DRW::internal::DxfBlockRecordDecoder::observeCommonState(*view.model)==state
             &&plotSourceModelsEqual(*in.model,static_cast<const DRW_DictionaryWithDefault&>(*view.model),live.sourceVersion);
         in.index=s.plotSourceInputOwners.size();auto saved=std::make_shared<const Input>(std::move(in));
         s.plotSourceInputs.emplace(id,saved);s.plotSourceInputOwners.push_back(std::move(saved));s.plotSourcePending.erase(found);

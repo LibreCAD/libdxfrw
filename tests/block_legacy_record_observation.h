@@ -16,7 +16,7 @@ bool legacyBlockRecordModelEqual(const DRW_Block_Record& a,const DRW_Block_Recor
         ||a.xrefBlockHandle.code!=b.xrefBlockHandle.code||a.xrefBlockHandle.size!=b.xrefBlockHandle.size
         ||a.xrefBlockHandle.ref!=b.xrefBlockHandle.ref||a.xrefBlockHandle.ref64!=b.xrefBlockHandle.ref64
         ||a.appData.size()!=b.appData.size()||a.extData.size()!=b.extData.size()
-        ||!dxfBlockRecord::Decoder::hasNoNativeLinks(a)||!dxfBlockRecord::Decoder::hasNoNativeLinks(b))return false;
+        ||!DRW::internal::DxfBlockRecordDecoder::hasNoNativeLinks(a)||!DRW::internal::DxfBlockRecordDecoder::hasNoNativeLinks(b))return false;
     auto ga=a.appData.begin(),gb=b.appData.begin();
     for(;ga!=a.appData.end();++ga,++gb) {
         if(ga->size()!=gb->size())return false;
@@ -48,10 +48,10 @@ LegacyCapturedReplay legacyBlockRecordReplay(const DRW_RawDxfObject& raw,const D
     if(!result.transport)return result;
     dx_standard_output::InputBuffer buffer(bytes);std::istream in(&buffer);
     auto reader=dx_standard_output::readerFor(in,view,std::make_shared<DxfReadRetainedBudget>(1024u*1024u));
-    if(!reader)return result;DRW_Block_Record parsed;dxfBlockRecord::Decoder decoder(parsed,reader);int code=0;
+    if(!reader)return result;DRW_Block_Record parsed;DRW::internal::DxfBlockRecordDecoder decoder(parsed,reader);int code=0;
     while(buffer.position()<bytes.size())if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader))return result;
     if(!decoder.finish(raw.m_version)||reader->recordCount()!=raw.groups.size())return result;
-    result.decoded=true;result.state=dxfBlockRecord::Decoder::observeCommonState(parsed)==state&&!state.first&&!state.second;
+    result.decoded=true;result.state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(parsed)==state&&!state.first&&!state.second;
     result.model=legacyBlockRecordModelEqual(parsed,model);return result;
 }
 bool legacyBlockRecordObservationTests(const std::filesystem::path& path) {
@@ -68,10 +68,10 @@ bool legacyBlockRecordObservationTests(const std::filesystem::path& path) {
                 &&view.kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord
                 &&view.phase==dxfRW::DxfStructuralSourceView::Phase::Source&&reader->getDxfReadContext(live);
             if(sourceLive){context=live;page=std::string(live.codecCodePage);declaration=std::string(live.declaration);}
-            sourceState=dxfBlockRecord::Decoder::observeCommonState(value);raw=body;original=value;
+            sourceState=DRW::internal::DxfBlockRecordDecoder::observeCommonState(value);raw=body;original=value;
         }
         void addBlockRecord(const DRW_Block_Record& value)override {
-            ++typed;typedState=dxfBlockRecord::Decoder::observeCommonState(value);delivered=value;
+            ++typed;typedState=DRW::internal::DxfBlockRecordDecoder::observeCommonState(value);delivered=value;
             dxfRW::DxfStructuralSourceView view;
             typedLive=reader&&reader->getDxfStructuralSourceView(view)&&view.model==&value
                 &&view.kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord

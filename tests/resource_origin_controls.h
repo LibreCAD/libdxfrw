@@ -38,7 +38,7 @@ struct ResourceOriginProbe final:dx_iface {
     }
     template<class Model,class Call>void typed(const Model& row,unsigned kind,Call call) {
         inspect(&row,nullptr,kind,1u);auto& value=const_cast<Model&>(row);const int flags=value.flags;
-        const auto state=dxfBlockRecord::Decoder::observeCommonState(row);
+        const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(row);
         if(mutate==1)value.flags^=1;
         if(common==1)DrwObjectEncodeTestAccess::commonMask(value,static_cast<std::uint8_t>(state.second^1u));
         const auto invoke=[&](){if(copy==1){const Model clone(row);call(clone);}else call(row);};
