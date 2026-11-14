@@ -1324,7 +1324,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | Native Linux receipt with document counts, inserted geometry, bounds, and diagnostics. |
 | P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | Native Windows receipt matching P8-B observations and exact converter/importer path. |
-| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression, verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The adapter fix is implemented in LibreCAD; this upstream plan still requires qualification against the current libdxfrw build. |
 | P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. |
@@ -1986,10 +1986,10 @@ LTYPE row now participates in the whole-operation ASCII/Binary allocation
 sweep. All 833 ASCII and 815 Binary injected failures preserve the destination
 and input table row; same-writer retries reproduce clean output and typed
 readback checks the dash path and description. This covers the libdxfrw row
-serializer only. It does not cover LibreCAD PR [#3269](https://github.com/LibreCAD/LibreCAD/pull/3269)'s
+serializer only. It does not implement or validate LibreCAD PR [#3269](https://github.com/LibreCAD/LibreCAD/pull/3269)'s
 adapter-side reconciliation of an edited `LC_LineType` against its archived
-`DRW_LType` record; that behavior and its LibreCAD DXF/DWG tests are outside
-this plan. The focused transaction CTest passes in 5.55 seconds. See the
+`DRW_LType` record; that consumer-side fix is tracked under P8-D. The focused
+transaction CTest passes in 5.55 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G standard DIMENSION version-matrix follow-up (2026-11-14):** generated
