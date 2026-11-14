@@ -73,7 +73,7 @@
   },
   "assertions": {
     "operationCount": 6,
-    "result": "PASS 6/6 (open and insert for three DWG revisions). Each operation required successful strict converter preflight, matching generated DXF entity counts, exact geometry bounds/lengths and ordered polyline points, spline samples, and polyface wire geometry.",
+    "result": "PASS 6/6 (open and insert for three DWG revisions). Every run passed strict installed-converter preflight, exact entity counts, geometric bounds/lengths, ordered polyline points, spline samples, and polyface wire checks.",
     "perOperation": [
       {
         "version": "AC1021",
@@ -109,249 +109,13 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       },
       {
         "version": "AC1021",
@@ -387,249 +151,13 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       },
       {
         "version": "AC1024",
@@ -665,249 +193,13 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       },
       {
         "version": "AC1024",
@@ -943,249 +235,13 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       },
       {
         "version": "AC1032",
@@ -1221,249 +277,13 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       },
       {
         "version": "AC1032",
@@ -1499,255 +319,214 @@
             ]
           ]
         },
-        "geometryAssertions": {
-          "closed_2d_polyline_points": [
-            [
-              [
-                91.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                92.0,
-                0.0
-              ],
-              [
-                95.0,
-                96.0,
-                0.0
-              ],
-              [
-                91.0,
-                96.0,
-                0.0
-              ]
-            ]
-          ],
-          "edge_counts": [
-            1,
-            1,
-            1,
-            2,
-            0,
-            1,
-            3,
-            4,
-            1
-          ],
-          "face_counts": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "polyline_points": [
-            [
-              [
-                61.0,
-                62.0,
-                1.0
-              ],
-              [
-                64.0,
-                62.0,
-                4.0
-              ],
-              [
-                65.0,
-                66.0,
-                5.0
-              ],
-              [
-                70.0,
-                68.0,
-                8.0
-              ]
-            ]
-          ],
-          "shape_bounds": [
-            [
-              1.0,
-              2.0,
-              3.0,
-              4.000000000000001,
-              5.000000000000001,
-              6.000000000000001
-            ],
-            [
-              7.5,
-              8.5,
-              12.0,
-              12.5,
-              13.5,
-              12.0
-            ],
-            [
-              14.103628268383442,
-              14.865913857390831,
-              15.0,
-              16.391193475987258,
-              17.321446167744554,
-              15.0
-            ],
-            [
-              16.0,
-              17.0,
-              0.0,
-              18.0,
-              20.0,
-              0.0
-            ],
-            [
-              21.0,
-              22.0,
-              23.0,
-              21.0,
-              22.0,
-              23.0
-            ],
-            [
-              22.0,
-              25.0,
-              28.0,
-              30.0,
-              29.0,
-              28.0
-            ],
-            [
-              61.0,
-              62.0,
-              1.0,
-              70.0,
-              68.0,
-              8.0
-            ],
-            [
-              91.0,
-              92.0,
-              0.0,
-              95.0,
-              96.0,
-              0.0
-            ],
-            [
-              31.0,
-              32.0,
-              33.0,
-              35.0,
-              35.4375,
-              37.0
-            ]
-          ],
-          "shape_lengths": [
-            5.196152422706632,
-            15.707963267948966,
-            3.4999999999999996,
-            5.0,
-            0.0,
-            19.376896441095102,
-            14.649695377207546,
-            16.0,
-            7.880049135263712
-          ],
-          "spline_bounds_checked": false,
-          "spline_samples": [
-            [
-              0.0,
-              [
-                31.0,
-                32.0,
-                33.0
-              ]
-            ],
-            [
-              0.5,
-              [
-                33.0,
-                34.5,
-                35.0
-              ]
-            ],
-            [
-              1.0,
-              [
-                35.0,
-                32.0,
-                37.0
-              ]
-            ]
-          ],
-          "vertex_counts": [
-            2,
-            1,
-            2,
-            3,
-            1,
-            1,
-            4,
-            4,
-            2
-          ]
-        },
-        "polyfaceGeometry": {
-          "bounds": [
-            -2.857387169004149e-14,
-            -2.7509686248235614e-14,
-            -7.548042696364358e-16,
-            124.0,
-            126.0,
-            8.0
-          ],
-          "edge_count": 4,
-          "face_count": 0,
-          "object_name": "Polyline002",
-          "object_type": "Part::Feature",
-          "outcome": "wireframe_includes_parent_basepoint",
-          "pinned_freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
-          "shape_type": "Wire",
-          "vertex_count": 5,
-          "vertices": [
-            [
-              0.0,
-              0.0,
-              0.0
-            ],
-            [
-              121.0,
-              122.0,
-              1.0
-            ],
-            [
-              121.0,
-              126.0,
-              5.0
-            ],
-            [
-              124.0,
-              122.0,
-              4.0
-            ],
-            [
-              124.0,
-              126.0,
-              8.0
-            ]
-          ]
-        },
-        "threeDFaceOutcome": "unsupported_by_pinned_freecad_importer",
-        "solidOutcome": "unsupported_by_pinned_freecad_importer",
-        "importerOutcome": "unsupported_by_pinned_freecad_importer"
+        "importerOutcome": "unsupported_by_pinned_freecad_importer",
+        "geometryAssertionsPassed": true,
+        "unsupportedFeatureBehavior": {
+          "3DFACE": "unsupported_by_pinned_freecad_importer",
+          "SOLID": "unsupported_by_pinned_freecad_importer",
+          "polyface": "wireframe_includes_parent_basepoint"
+        }
       }
     ],
     "unsupportedFeatures": {
       "3DFACE": "Unsupported by pinned FreeCAD importer (one source record; no face shape created).",
       "SOLID": "Unsupported by pinned FreeCAD importer (one source record).",
       "POLYFACE": "Imported as a wire with four edges and five vertices including the base point; this is wireframe, not mesh-surface evidence."
+    },
+    "sharedGeometryAssertions": {
+      "closed_2d_polyline_points": [
+        [
+          [
+            91.0,
+            92.0,
+            0.0
+          ],
+          [
+            95.0,
+            92.0,
+            0.0
+          ],
+          [
+            95.0,
+            96.0,
+            0.0
+          ],
+          [
+            91.0,
+            96.0,
+            0.0
+          ]
+        ]
+      ],
+      "edge_counts": [
+        1,
+        1,
+        1,
+        2,
+        0,
+        1,
+        3,
+        4,
+        1
+      ],
+      "face_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "polyline_points": [
+        [
+          [
+            61.0,
+            62.0,
+            1.0
+          ],
+          [
+            64.0,
+            62.0,
+            4.0
+          ],
+          [
+            65.0,
+            66.0,
+            5.0
+          ],
+          [
+            70.0,
+            68.0,
+            8.0
+          ]
+        ]
+      ],
+      "shape_bounds": [
+        [
+          1.0,
+          2.0,
+          3.0,
+          4.000000000000001,
+          5.000000000000001,
+          6.000000000000001
+        ],
+        [
+          7.5,
+          8.5,
+          12.0,
+          12.5,
+          13.5,
+          12.0
+        ],
+        [
+          14.103628268383442,
+          14.865913857390831,
+          15.0,
+          16.391193475987258,
+          17.321446167744554,
+          15.0
+        ],
+        [
+          16.0,
+          17.0,
+          0.0,
+          18.0,
+          20.0,
+          0.0
+        ],
+        [
+          21.0,
+          22.0,
+          23.0,
+          21.0,
+          22.0,
+          23.0
+        ],
+        [
+          22.0,
+          25.0,
+          28.0,
+          30.0,
+          29.0,
+          28.0
+        ],
+        [
+          61.0,
+          62.0,
+          1.0,
+          70.0,
+          68.0,
+          8.0
+        ],
+        [
+          91.0,
+          92.0,
+          0.0,
+          95.0,
+          96.0,
+          0.0
+        ],
+        [
+          31.0,
+          32.0,
+          33.0,
+          35.0,
+          35.4375,
+          37.0
+        ]
+      ],
+      "shape_lengths": [
+        5.196152422706632,
+        15.707963267948966,
+        3.4999999999999996,
+        5.0,
+        0.0,
+        19.376896441095102,
+        14.649695377207546,
+        16.0,
+        7.880049135263712
+      ],
+      "spline_bounds_checked": false,
+      "spline_samples": [
+        [
+          0.0,
+          [
+            31.0,
+            32.0,
+            33.0
+          ]
+        ],
+        [
+          0.5,
+          [
+            33.0,
+            34.5,
+            35.0
+          ]
+        ],
+        [
+          1.0,
+          [
+            35.0,
+            32.0,
+            37.0
+          ]
+        ]
+      ],
+      "vertex_counts": [
+        2,
+        1,
+        2,
+        3,
+        1,
+        1,
+        4,
+        4,
+        2
+      ]
     }
   },
   "binding": {
