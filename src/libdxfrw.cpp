@@ -8415,6 +8415,12 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             m_writeError = true;
             return false;
         }
+        if (value->code() == 70) {
+            // Group 70 is the documented DIMSTYLE entry flags field. The
+            // peer-only DIMTFILLCLR interpretation is ambiguous without a
+            // corresponding typed, occurrence-aware parser representation.
+            return failDxfWrite();
+        }
         if (version < DRW::AC1021 && value->code() == 49
             && (value->type() != DRW_Variant::DOUBLE
                 || !std::isfinite(value->content.d)

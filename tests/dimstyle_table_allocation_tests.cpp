@@ -685,35 +685,50 @@ bool dimstyleTextFillColorRefusalRetry(
         if (!readBytes(cleanPath, expectedBytes))
             return false;
 
-        {
-            std::ofstream output(path,
-                                 std::ios::binary | std::ios::trunc);
-            output << prior;
-            if (!output)
+        for (const bool useOverride : {false, true}) {
+            {
+                std::ofstream output(path,
+                                     std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output)
+                    return false;
+            }
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec);
+            if (useOverride) {
+                exporter.dimstyle.dimtfill = 2;
+                exporter.dimstyle.add("$DIMTFILLCLR", 70, 5);
+            } else {
+                exporter.dimstyle.dimtfill = 2;
+                exporter.dimstyle.dimtfillclr = 5;
+            }
+            if (codec.write(&exporter, DRW::AC1021, binary)
+                || exporter.accepted) {
+                std::cerr << "unmapped DIMTFILLCLR color was accepted: binary="
+                          << binary << " override=" << useOverride << '\n';
                 return false;
-        }
-        dxfRW codec(path.string().c_str());
-        Export exporter(codec);
-        exporter.dimstyle.dimtfill = 2;
-        exporter.dimstyle.dimtfillclr = 5;
-        if (codec.write(&exporter, DRW::AC1021, binary)
-            || exporter.accepted) {
-            std::cerr << "unmapped DIMTFILLCLR color was accepted: binary="
-                      << binary << '\n';
-            return false;
-        }
-        std::string current;
-        if (!readBytes(path, current) || current != prior)
-            return false;
+            }
+            std::string current;
+            if (!readBytes(path, current) || current != prior)
+                return false;
 
-        exporter.dimstyle.dimtfill = 0;
-        exporter.dimstyle.dimtfillclr = 0;
-        if (!codec.write(&exporter, DRW::AC1021, binary)
-            || !exporter.accepted || !readBytes(path, current)
-            || current != expectedBytes || !readbackMatches(path)) {
-            std::cerr << "DIMTFILLCLR refusal retry failed: binary="
-                      << binary << '\n';
-            return false;
+            exporter.dimstyle.dimtfill = 0;
+            if (useOverride) {
+                const auto field = exporter.dimstyle.vars.find("$DIMTFILLCLR");
+                if (field == exporter.dimstyle.vars.end())
+                    return false;
+                delete field->second;
+                exporter.dimstyle.vars.erase(field);
+            } else {
+                exporter.dimstyle.dimtfillclr = 0;
+            }
+            if (!codec.write(&exporter, DRW::AC1021, binary)
+                || !exporter.accepted || !readBytes(path, current)
+                || current != expectedBytes || !readbackMatches(path)) {
+                std::cerr << "DIMTFILLCLR refusal retry failed: binary="
+                          << binary << " override=" << useOverride << '\n';
+                return false;
+            }
         }
     }
     return true;
