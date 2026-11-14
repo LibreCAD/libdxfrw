@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-associative-network-allocation-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "AC1024_ASSOCIATIVE_NETWORK_TRANSACTION_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct-writer allocation rollback, failed-session reset, same-writer retry, and bounded raw-group readback for the AC1024 ACDBASSOCNETWORK profile.",
+  "source": {
+    "format": "locally generated in-memory DRW_AssociativeObject",
+    "revision": "AC1024",
+    "record": "ACDBASSOCNETWORK",
+    "profile": "AcDbAssocNetwork v1 with one reactor, owning-network link, one owned action and one soft action",
+    "fixtureFilesAdded": 0,
+    "testSource": {
+      "path": "tests/associative_constraint_group_allocation_tests.cpp",
+      "sha256": "7a253b57a4cebed9a9c9abc89146d00553b2daba011dfc4a496ed7c7faa6eede"
+    }
+  },
+  "coverage": {
+    "writerRoute": "dxfRW::writeAssociativeNetwork",
+    "encodings": ["ASCII", "Binary"],
+    "allocationFailureOffsets": {
+      "ASCII": 10,
+      "Binary": 9
+    },
+    "transactionAssertions": [
+      "Every injected failure is observed and returns failure.",
+      "The fixed-capacity destination sink remains empty after every injected failure.",
+      "The caller's modeled network, owner, reactor, ordered actions and prefix profile remain unchanged.",
+      "The source-handle remap context is rolled back.",
+      "After resetting the failed write session and writer error state, the same dxfRW and network retry successfully.",
+      "Retry bytes are identical to clean output.",
+      "A bounded low-level DXF reader confirms the remapped object, owner, reactor, owning-network, owned-action and soft-action handles plus a following sentinel."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_associative_constraint_group_allocation_tests -j4",
+      "result": "PASS",
+      "executableSha256": "5529060b0e9e2c3c52d70c447accb5a5b1198af39f24c85ad46b834f34e7c983"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_constraint_group_allocation_retry$' --output-on-failure",
+      "result": "PASS (1/1, 0.13 seconds); shared executable also reran constraint-group and associative-variable matrices."
+    },
+    "directRun": {
+      "command": "build-gcc/tests/libdxfrw_associative_constraint_group_allocation_tests",
+      "result": "PASS; network passed 10 ASCII and 9 Binary allocation offsets, rollback, same-writer retry, byte identity, and bounded handle-role readback."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated AC1024 transaction/self-readback evidence only; no producer, native consumer, graph-closure, or associative evaluation claim is established.",
+    "The failed-session state is explicitly reset before retry; this does not test a full dxfRW::write facade retry.",
+    "No DWG or DXF fixture was committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The direct ACDBASSOCNETWORK route now has allocation rollback/retry/readback coverage in both encodings.",
+    "remaining": "P6-G remains open for the complete public-writer inventory and its remaining untested overloads and variable-size routes."
+  }
+}

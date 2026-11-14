@@ -139,6 +139,34 @@ DRW_AssociativeObject makeVariable() {
     return variable;
 }
 
+DRW_AssociativeObject makeNetwork() {
+    DRW_AssociativeObject network("ACDBASSOCNETWORK");
+    network.handle = 0x700u;
+    network.parentHandle = 0x701u;
+    network.reactorHandles = {0x701u};
+    network.m_classVersion = 1u;
+    network.m_owningNetworkHandle = 0x702u;
+    network.m_actionIndex = 5;
+    network.m_networkVersion = 0;
+    network.m_networkActionIndex = 2;
+    network.m_networkFieldsParsed = true;
+    network.m_actions = {{true, 0x703u}, {false, 0x704u}};
+
+    DRW_AssociativePrefixStatus action;
+    action.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocAction;
+    action.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+    action.m_classVersion = 1u;
+    action.m_decodedHandleCount = 2u;
+    DRW_AssociativePrefixStatus body;
+    body.m_kind = DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork;
+    body.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
+    body.m_classVersion = 1u;
+    body.m_decodedHandleCount = 2u;
+    body.m_decodedCountValue = 2;
+    network.m_prefixStatuses = {action, body};
+    return network;
+}
+
 bool sameCallerProfile(const DRW_AssociativeObject& actual,
                        const DRW_AssociativeObject& expected) {
     if (actual.handle != expected.handle
@@ -232,10 +260,14 @@ bool sameVariableProfile(const DRW_AssociativeObject& actual,
 
 struct Codec {
     explicit Codec(bool binary)
-        : binary(binary), output(&outputBuffer), writer(""), group(makeGroup()) {
+        : binary(binary), output(&outputBuffer), writer(""), group(makeGroup()),
+          network(makeNetwork()) {
         writer.setHandleRemap({{0x500u, 0x3E8u}, {0x501u, 0x3E9u},
                                {0x502u, 0x3EAu}, {0x600u, 0x3EBu},
-                               {0x601u, 0x3ECu}, {0x602u, 0x3EDu}});
+                               {0x601u, 0x3ECu}, {0x602u, 0x3EDu},
+                               {0x700u, 0x3F0u}, {0x701u, 0x3F1u},
+                               {0x702u, 0x3F2u}, {0x703u, 0x3F3u},
+                               {0x704u, 0x3F4u}});
         DxfAssociativeConstraintGroupAllocationTestAccess::attachWriter(
             writer, binary, output);
     }
@@ -275,6 +307,7 @@ struct Codec {
     std::ostream output;
     dxfRW writer;
     DRW_AssociativeObject group;
+    DRW_AssociativeObject network;
 };
 
 bool appendSentinel(Codec& codec) {
@@ -342,6 +375,84 @@ bool hasVariableRouteTags(const std::string& bytes, bool binary) {
     }
     return inVariable && nameSeen && valueSeen && handleSeen && ownerSeen
         && networkSeen && endSeen;
+}
+
+bool hasNetworkRouteTags(const std::string& bytes, bool binary) {
+    std::istringstream input(bytes, std::ios::in | std::ios::binary);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+    bool inNetwork = false;
+    bool handleSeen = false;
+    bool reactorSeen = false;
+    bool inReactors = false;
+    bool ownerSeen = false;
+    bool owningNetworkSeen = false;
+    bool ownedActionSeen = false;
+    bool softActionSeen = false;
+    bool endSeen = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        const std::string value = reader->getString();
+        if (code == 0 && value == "ACDBASSOCNETWORK")
+            inNetwork = true;
+        else if (code == 0 && value == "WIRE_END") {
+            endSeen = true;
+            break;
+        } else if (inNetwork && code == 5) {
+            handleSeen = value == "3F0";
+        } else if (inNetwork && code == 102
+                   && value == "{ACAD_REACTORS") {
+            inReactors = true;
+        } else if (inNetwork && code == 102 && value == "}") {
+            inReactors = false;
+        } else if (inNetwork && code == 330 && value == "3F1") {
+            if (inReactors)
+                reactorSeen = true;
+            else
+                ownerSeen = true;
+        } else if (inNetwork && code == 330 && value == "3F2") {
+            owningNetworkSeen = true;
+        } else if (inNetwork && code == 360 && value == "3F3") {
+            ownedActionSeen = true;
+        } else if (inNetwork && code == 330 && value == "3F4") {
+            softActionSeen = true;
+        }
+    }
+    return inNetwork && handleSeen && reactorSeen && ownerSeen
+        && owningNetworkSeen && ownedActionSeen && softActionSeen && endSeen;
+}
+
+bool sameNetworkProfile(const DRW_AssociativeObject& actual,
+                        const DRW_AssociativeObject& expected) {
+    if (actual.handle != expected.handle
+        || actual.parentHandle != expected.parentHandle
+        || actual.m_recordName != expected.m_recordName
+        || actual.reactorHandles != expected.reactorHandles
+        || actual.m_classVersion != expected.m_classVersion
+        || actual.m_owningNetworkHandle != expected.m_owningNetworkHandle
+        || actual.m_actionIndex != expected.m_actionIndex
+        || actual.m_networkVersion != expected.m_networkVersion
+        || actual.m_networkActionIndex != expected.m_networkActionIndex
+        || actual.m_networkFieldsParsed != expected.m_networkFieldsParsed
+        || actual.m_actions.size() != expected.m_actions.size()
+        || actual.m_prefixStatuses.size() != expected.m_prefixStatuses.size())
+        return false;
+    for (std::size_t i = 0; i < actual.m_actions.size(); ++i)
+        if (actual.m_actions[i].m_isOwned != expected.m_actions[i].m_isOwned
+            || actual.m_actions[i].m_handle != expected.m_actions[i].m_handle)
+            return false;
+    for (std::size_t i = 0; i < actual.m_prefixStatuses.size(); ++i) {
+        const auto& left = actual.m_prefixStatuses[i];
+        const auto& right = expected.m_prefixStatuses[i];
+        if (left.m_kind != right.m_kind || left.m_status != right.m_status
+            || left.m_classVersion != right.m_classVersion
+            || left.m_decodedHandleCount != right.m_decodedHandleCount
+            || left.m_decodedValueCount != right.m_decodedValueCount
+            || left.m_decodedCountValue != right.m_decodedCountValue)
+            return false;
+    }
+    return true;
 }
 
 bool runRoute(bool binary) {
@@ -486,6 +597,69 @@ bool runVariableRoute(bool binary) {
               << ", rollback/retry/readback=PASS\n";
     return true;
 }
+
+bool runNetworkRoute(bool binary) {
+    Codec calibration(binary);
+    armAllocationFailure(0x7fffffffL);
+    bool calibrationWrote = false;
+    try {
+        calibrationWrote = calibration.writer.writeAssociativeNetwork(
+            &calibration.network);
+    } catch (const std::bad_alloc&) {
+        disarmAllocationFailure();
+        std::cerr << "network calibration allocation measurement failed\n";
+        return false;
+    }
+    const long allocationCount = allocationAttempts;
+    disarmAllocationFailure();
+    if (!calibrationWrote || !appendSentinel(calibration)) {
+        std::cerr << "network calibration write failed\n";
+        return false;
+    }
+    const std::string expectedBytes = calibration.outputBuffer.str();
+    if (!hasNetworkRouteTags(expectedBytes, binary) || allocationCount <= 0) {
+        std::cerr << "network calibration readback/allocation count failed\n";
+        return false;
+    }
+
+    for (long offset = 0; offset < allocationCount; ++offset) {
+        Codec retry(binary);
+        const DRW_AssociativeObject baseline = retry.network;
+        armAllocationFailure(offset);
+        bool wrote = false;
+        try {
+            wrote = retry.writer.writeAssociativeNetwork(&retry.network);
+        } catch (const std::bad_alloc&) {
+            // Allocation can fail before the writer's internal catch block.
+        }
+        disarmAllocationFailure();
+        if (wrote || !allocationFailed || !retry.outputBuffer.empty()
+            || !sameNetworkProfile(retry.network, baseline)
+            || !DxfAssociativeConstraintGroupAllocationTestAccess::hasEmptyHandleMap(
+                retry.writer)) {
+            std::cerr << "network allocation rollback failed at offset "
+                      << offset << '\n';
+            return false;
+        }
+        DxfAssociativeConstraintGroupAllocationTestAccess::resetForRetry(
+            retry.writer);
+        const bool retryWrote = retry.writer.writeAssociativeNetwork(
+            &retry.network);
+        const bool sentinelWrote = retryWrote && appendSentinel(retry);
+        const std::string retryBytes = retry.outputBuffer.str();
+        if (!retryWrote || !sentinelWrote || retryBytes != expectedBytes
+            || !hasNetworkRouteTags(retryBytes, binary)) {
+            std::cerr << "network same-writer retry/readback failed at offset "
+                      << offset << '\n';
+            return false;
+        }
+    }
+    std::cout << "AC1024 associative network "
+              << (binary ? "Binary" : "ASCII")
+              << ": allocation offsets=" << allocationCount
+              << ", rollback/retry/readback=PASS\n";
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -511,7 +685,8 @@ void operator delete[](void* memory, std::size_t) noexcept { std::free(memory); 
 
 int main() {
     if (!runRoute(false) || !runRoute(true)
-        || !runVariableRoute(false) || !runVariableRoute(true))
+        || !runVariableRoute(false) || !runVariableRoute(true)
+        || !runNetworkRoute(false) || !runNetworkRoute(true))
         return 1;
     return 0;
 }
