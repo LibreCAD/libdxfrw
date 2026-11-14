@@ -86,6 +86,21 @@ public:
     bool accepted = false;
 };
 
+class EditedExport final : public LC3CompatCheck {
+public:
+    EditedExport(dxfRW& codec, const DRW_LType& lineType)
+        : codec(codec), lineType(lineType) {}
+    void writeHeader(DRW_Header&) override {}
+    void writeLTypes() override {
+        accepted = codec.writeLineType(&lineType);
+    }
+    bool finalizeDxfWrite() override { return accepted; }
+
+    dxfRW& codec;
+    DRW_LType lineType;
+    bool accepted = false;
+};
+
 class Reader final : public LC3CompatCheck {
 public:
     void addLType(const DRW_LType& value) override {
@@ -199,6 +214,48 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool editedImportedRecordRoundTrip(const std::filesystem::path& directory) {
+    const auto source = directory / "ltype-edit-source.dxf";
+    const auto output = directory / "ltype-edit-output.dxf";
+    {
+        dxfRW codec(source.string().c_str());
+        Export exporter(codec);
+        if (!codec.write(&exporter, DRW::AC1027, false) || !exporter.accepted)
+            return false;
+    }
+
+    dxfRW sourceReader(source.string().c_str());
+    Reader imported;
+    if (!sourceReader.read(&imported, false) || imported.lineTypes.size() != 1u)
+        return false;
+    DRW_LType edited = imported.lineTypes.front();
+    edited.desc = "Edited after import";
+    edited.path = {3.0, -1.0};
+
+    for (const bool binary : {false, true}) {
+        dxfRW codec(output.string().c_str());
+        EditedExport exporter(codec, edited);
+        if (!codec.write(&exporter, DRW::AC1027, binary) || !exporter.accepted)
+            return false;
+        dxfRW outputReader(output.string().c_str());
+        Reader readback;
+        if (!outputReader.read(&readback, false)
+            || readback.lineTypes.size() != 1u)
+            return false;
+        const DRW_LType& actual = readback.lineTypes.front();
+        if (actual.name != edited.name || actual.desc != edited.desc
+            || actual.path != std::vector<double>{3.0, -1.0}
+            || actual.size != 2 || actual.length != 4.0) {
+            std::cerr << "edited imported LTYPE fields were not re-emitted: "
+                         "binary=" << binary << '\n';
+            return false;
+        }
+    }
+    std::cout << "edited imported LTYPE description and dash pattern "
+                 "readback passed\n";
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -238,5 +295,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory)
+            && editedImportedRecordRoundTrip(directory)
+        ? 0 : 2;
 }
