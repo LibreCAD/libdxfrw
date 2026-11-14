@@ -7990,7 +7990,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         unsigned blockEnds = 0u;
     };
     const auto readbackMatches = [&](const std::filesystem::path& path,
-                                     unsigned overload) {
+                                     unsigned overload,
+                                     DRW::Version version) {
         dxfRW reader(path.string().c_str());
         BlockRecordReadback probe(blockName);
         const bool read = reader.read(&probe, true);
@@ -8026,7 +8027,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
                 && inserted.basePoint.y == 34.0 + static_cast<double>(index) * 20.0;
         }
         const bool matches = record.handle != 0u && record.handle != DRW::NoHandle
-            && record.insUnits == 4 && record.name == blockName
+            && record.insUnits == (version > DRW::AC1018 ? 4 : 0)
+            && record.name == blockName
             && record.previewData == (overload >= 1u
                 ? preview : std::vector<std::uint8_t>{})
             && insertsMatch
@@ -8089,97 +8091,107 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
         }
         return true;
     };
+    const std::vector<std::pair<DRW::Version, const char *>> versions = {
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}};
     for (unsigned overload = 0u; overload < 4u; ++overload) {
-      for (const bool binary : {false, true}) {
-        {
+      for (const auto &target : versions) {
+        // Ordered INSERT handle references were introduced after AC1014.
+        if (target.first == DRW::AC1014 && overload >= 2u)
+          continue;
+        for (const bool binary : {false, true}) {
+          {
             dxfRW codec(output.string().c_str());
             BlockRecordExport adapter(codec, blockName, preview, insertHandles,
                                       overload);
-            if (!codec.write(&adapter, DRW::AC1032, binary)) {
-                const DRW_OperationDiagnostic diagnostic =
-                    codec.getLastDiagnostic();
-                std::cerr << "BLOCK_RECORD warmup callbacks="
-                          << adapter.blockRecordWritten << ','
-                          << adapter.insertWritten << " diagnostic="
-                          << diagnostic.code << ": " << diagnostic.message
-                          << '\n';
-                return fail("warm-up write failed");
+            if (!codec.write(&adapter, target.first, binary)) {
+              const DRW_OperationDiagnostic diagnostic =
+                  codec.getLastDiagnostic();
+              std::cerr << "BLOCK_RECORD warmup callbacks="
+                        << adapter.blockRecordWritten << ','
+                        << adapter.insertWritten
+                        << " diagnostic=" << diagnostic.code << ": "
+                        << diagnostic.message << '\n';
+              return fail("warm-up write failed");
             }
             std::error_code ignored;
             std::filesystem::remove(output, ignored);
-        }
-        {
+          }
+          {
             std::ofstream prior(output, std::ios::binary | std::ios::trunc);
             prior << sentinel;
             if (!prior.good())
-                return fail("could not seed calibration destination");
-        }
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
+              return fail("could not seed calibration destination");
+          }
+          long allocationCount = 0;
+          std::string expectedBytes;
+          {
             dxfRW codec(output.string().c_str());
             BlockRecordExport adapter(codec, blockName, preview, insertHandles,
                                       overload);
             armAllocationFailure(1000000000L);
-            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool wrote = codec.write(&adapter, target.first, binary);
             allocationCount = static_cast<long>(allocationAttempts);
             disarmAllocationFailure();
-            if (!wrote || allocationFailed || allocationCount <= 0
-                || !readBytes(output, expectedBytes))
-                return fail("calibration write failed");
+            if (!wrote || allocationFailed || allocationCount <= 0 ||
+                !readBytes(output, expectedBytes))
+              return fail("calibration write failed");
             std::error_code ignored;
             std::filesystem::remove(output, ignored);
-        }
-        for (long offset = 0; offset < allocationCount; ++offset) {
+          }
+          for (long offset = 0; offset < allocationCount; ++offset) {
             {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior.good())
-                    return fail("could not seed prior destination");
+              std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+              prior << sentinel;
+              if (!prior.good())
+                return fail("could not seed prior destination");
             }
             dxfRW codec(output.string().c_str());
             BlockRecordExport adapter(codec, blockName, preview, insertHandles,
                                       overload);
             const std::vector<DRW_Insert> originalInserts = adapter.inserts;
             armAllocationFailure(offset);
-            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
+            const bool wrote = codec.write(&adapter, target.first, binary);
             const bool injected = allocationFailed;
             disarmAllocationFailure();
             std::string afterFailure;
             const bool bytesRead = readBytes(output, afterFailure);
-            const auto& context = *codec.getWritingContext();
+            const auto &context = *codec.getWritingContext();
             const bool identitiesRolledBack =
-                context.sourceHandleToMintedMap.empty()
-                && context.sourceHandleToWrittenObjectMap.empty()
-                && context.writtenSourceEntityHandles.empty()
-                && context.ambiguousSourceHandles.empty();
+                context.sourceHandleToMintedMap.empty() &&
+                context.sourceHandleToWrittenObjectMap.empty() &&
+                context.writtenSourceEntityHandles.empty() &&
+                context.ambiguousSourceHandles.empty();
             const bool stageRemains = hasStagedOutput(output);
-            if (wrote || !injected || !bytesRead || afterFailure != sentinel
-                || !sameCaller(adapter, originalInserts)
-                || !identitiesRolledBack || stageRemains)
-                return fail("injected failure changed caller/destination state");
-            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
+            if (wrote || !injected || !bytesRead || afterFailure != sentinel ||
+                !sameCaller(adapter, originalInserts) ||
+                !identitiesRolledBack || stageRemains)
+              return fail("injected failure changed caller/destination state");
+            const bool retried = codec.write(&adapter, target.first, binary);
             std::string retryBytes;
             const bool retryRead = readBytes(output, retryBytes);
             const bool sameBytes = retryRead && retryBytes == expectedBytes;
-            const bool readback = retryRead
-                && readbackMatches(output, overload);
+            const bool readback =
+                retryRead && readbackMatches(output, overload, target.first);
             const bool stageAfterRetry = hasStagedOutput(output);
-            if (!retried || !retryRead || !sameBytes || !readback
-                || stageAfterRetry || !sameCaller(adapter, originalInserts)) {
-                std::cerr << "BLOCK_RECORD retry=" << retried
-                          << " read=" << retryRead << " sameBytes=" << sameBytes
-                          << " readback=" << readback
-                          << " stageRemains=" << stageAfterRetry << '\n';
-                return fail("same-codec retry or typed readback failed");
+            if (!retried || !retryRead || !sameBytes || !readback ||
+                stageAfterRetry || !sameCaller(adapter, originalInserts)) {
+              std::cerr << "BLOCK_RECORD retry=" << retried
+                        << " read=" << retryRead << " sameBytes=" << sameBytes
+                        << " readback=" << readback
+                        << " stageRemains=" << stageAfterRetry << '\n';
+              return fail("same-codec retry or typed readback failed");
             }
+          }
+          std::cout << "BLOCK_RECORD " << target.second << " overload "
+                    << overload << ' ' << (binary ? "Binary" : "ASCII")
+                    << ": allocation offsets=" << allocationCount
+                    << ", caller/destination rollback, retry/readback=PASS\n";
+          std::error_code ignored;
+          std::filesystem::remove(output, ignored);
         }
-        std::cout << "BLOCK_RECORD overload " << overload << ' '
-                  << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", caller/destination rollback, retry/readback=PASS\n";
-        std::error_code ignored;
-        std::filesystem::remove(output, ignored);
       }
     }
     return true;
