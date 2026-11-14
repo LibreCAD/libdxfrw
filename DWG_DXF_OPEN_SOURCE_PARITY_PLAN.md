@@ -6721,17 +6721,18 @@ cases as well. Hosted runs remain pending. No DWG/DXF fixture is committed and
 no support claim is promoted. See the
 [AC1032 handoff receipt](docs/research/p8-freecad-generated-ac1032-primitives-open-insert-2026-11-14.json).
 
-**FreeCAD legacy POLYFACE route dependency check (2026-11-14):** the pinned
-FreeCAD 1.1.4 `importDXF.py` source contains a separate flag-64 POLYFACE-to-Mesh
-path, but this route requires the optional `Draft-dxf-importer` Python modules;
-they are not present in the local application or user-data directory. A
-scratch-generated AC1021 profile was converted and offered to the legacy
-importer, which aborted before parsing when those modules were unavailable.
-This is not a pass and establishes no legacy geometry behavior. If that
-optional importer is a required consumer, pin/provision its exact dependency
-and test open/insert separately from the default C++ importer. Keep standard
-POLYFACE output unchanged until an actual consumer result supports a change.
-See the [legacy route dependency receipt](docs/research/p8-freecad-legacy-polyface-qualification-dependency-2026-11-14.json).
+**FreeCAD legacy POLYFACE open/insert qualification (2026-11-14):** provisioned
+the optional Draft-dxf-importer 1.42 modules in a temporary checkout matching
+FreeCAD 1.1.4's required version. Its legacy Python route imports a scratch-
+generated AC1021 POLYFACE quad as one `Mesh::Feature` with two facets, the exact
+four authored WCS points, and exact bounds in both `open()` and `insert()`.
+The default C++ importer remains a separate, previously observed boundary: it
+returns a wire with no faces for this profile. The add-on remains optional and
+was not installed into the user's FreeCAD directory; preferences were restored
+after the run. This closes only the generated macOS ARM64 legacy-importer
+profile, not the default importer, physical producer interoperability, other
+mesh topologies, platforms, or general 3D support. No fixture was committed.
+See the [legacy route receipt](docs/research/p8-freecad-legacy-polyface-qualification-dependency-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four
