@@ -7106,9 +7106,6 @@ bool runSunStudySweep(const std::filesystem::path& directory) {
     if (!std::filesystem::create_directories(directory)
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
-    const auto output = directory / "sun-study-allocation-transaction.dxf";
-    if (!clearStagedOutput(output))
-        return fail("could not clear stale output staging files in test scratch");
     const std::string sentinel = "previous complete document\n";
     const auto makeStudy = [] {
         DRW_SunStudy value;
@@ -7191,10 +7188,12 @@ bool runSunStudySweep(const std::filesystem::path& directory) {
         DRW_SunStudy study;
         bool found = false;
     };
-    const auto readbackMatches = [&](const std::filesystem::path& path) {
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
         dxfRW reader(path.string().c_str());
         SunStudyReadback probe;
-        if (!reader.read(&probe, true) || !probe.found)
+        if (!reader.read(&probe, true)
+            || reader.getSourceVersion() != expectedVersion || !probe.found)
             return false;
         const DRW_SunStudy expected = makeStudy();
         return probe.study.handle != 0u
@@ -7226,89 +7225,100 @@ bool runSunStudySweep(const std::filesystem::path& directory) {
             && probe.study.m_labelViewports == expected.m_labelViewports;
     };
 
-    for (const bool binary : {false, true}) {
-        {
-            dxfRW codec(output.string().c_str());
-            SunStudyExport adapter(codec, makeStudy());
-            if (!codec.write(&adapter, DRW::AC1032, binary)) {
-                std::cerr << "warm-up binary=" << binary
-                          << " objectWritten=" << adapter.written
-                          << " error=" << codec.getError()
-                          << " diagnostic=" << codec.getLastDiagnostic().code
-                          << " message=" << codec.getLastDiagnostic().message
-                          << '\n';
-                return fail("warm-up write failed");
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    for (const auto& version : versions) {
+        const auto output = directory
+            / (std::string("sun-study-allocation-") + version.second
+               + ".dxf");
+        if (!clearStagedOutput(output))
+            return fail("could not clear stale output staging files in test scratch");
+        for (const bool binary : {false, true}) {
+            {
+                dxfRW codec(output.string().c_str());
+                SunStudyExport adapter(codec, makeStudy());
+                if (!codec.write(&adapter, version.first, binary)) {
+                    std::cerr << "warm-up binary=" << binary
+                              << " objectWritten=" << adapter.written
+                              << " error=" << codec.getError()
+                              << " diagnostic=" << codec.getLastDiagnostic().code
+                              << " message=" << codec.getLastDiagnostic().message
+                              << '\n';
+                    return fail("warm-up write failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
             }
-            std::error_code ignored;
-            std::filesystem::remove(output, ignored);
-        }
-        {
-            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-            prior << sentinel;
-            if (!prior.good())
-                return fail("could not seed calibration destination");
-        }
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(output.string().c_str());
-            SunStudyExport adapter(codec, makeStudy());
-            armAllocationFailure(1000000000L);
-            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
-            allocationCount = static_cast<long>(allocationAttempts);
-            disarmAllocationFailure();
-            if (!wrote || allocationFailed || allocationCount <= 0
-                || !readBytes(output, expectedBytes))
-                return fail("calibration write failed");
-            std::error_code ignored;
-            std::filesystem::remove(output, ignored);
-        }
-        for (long offset = 0; offset < allocationCount; ++offset) {
             {
                 std::ofstream prior(output, std::ios::binary | std::ios::trunc);
                 prior << sentinel;
                 if (!prior.good())
-                    return fail("could not seed prior destination");
+                    return fail("could not seed calibration destination");
             }
-            dxfRW codec(output.string().c_str());
-            SunStudyExport adapter(codec, makeStudy());
-            const DRW_SunStudy original(adapter.study);
-            armAllocationFailure(offset);
-            const bool wrote = codec.write(&adapter, DRW::AC1032, binary);
-            const bool injected = allocationFailed;
-            disarmAllocationFailure();
-            std::string afterFailure;
-            const bool bytesRead = readBytes(output, afterFailure);
-            const auto& context = *codec.getWritingContext();
-            const bool identitiesRolledBack =
-                context.sourceHandleToMintedMap.empty()
-                && context.sourceHandleToWrittenObjectMap.empty()
-                && context.writtenSourceEntityHandles.empty()
-                && context.ambiguousSourceHandles.empty();
-            const bool stageRemains = hasStagedOutput(output);
-            if (wrote || !injected || !bytesRead || afterFailure != sentinel
-                || !sameStudy(adapter.study, original) || !identitiesRolledBack
-                || stageRemains) {
-                std::cerr << "offset=" << offset << " wrote=" << wrote
-                          << " injected=" << injected
-                          << " destinationPreserved=" << (afterFailure == sentinel)
-                          << " callerSame=" << sameStudy(adapter.study, original)
-                          << " identitiesRolledBack=" << identitiesRolledBack
-                          << " stageRemains=" << stageRemains << '\n';
-                return fail("injected allocation failure changed caller or destination state");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                SunStudyExport adapter(codec, makeStudy());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || allocationFailed || allocationCount <= 0
+                    || !readBytes(output, expectedBytes))
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
             }
-            const bool retried = codec.write(&adapter, DRW::AC1032, binary);
-            std::string retryBytes;
-            if (!retried || !sameStudy(adapter.study, original)
-                || !readBytes(output, retryBytes) || retryBytes != expectedBytes
-                || !readbackMatches(output) || hasStagedOutput(output))
-                return fail("same-codec retry or typed readback failed");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                SunStudyExport adapter(codec, makeStudy());
+                const DRW_SunStudy original(adapter.study);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                const bool stageRemains = hasStagedOutput(output);
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !sameStudy(adapter.study, original) || !identitiesRolledBack
+                    || stageRemains) {
+                    std::cerr << "offset=" << offset << " wrote=" << wrote
+                              << " injected=" << injected
+                              << " destinationPreserved=" << (afterFailure == sentinel)
+                              << " callerSame=" << sameStudy(adapter.study, original)
+                              << " identitiesRolledBack=" << identitiesRolledBack
+                              << " stageRemains=" << stageRemains << '\n';
+                    return fail("injected allocation failure changed caller or destination state");
+                }
+                const bool retried = codec.write(&adapter, version.first, binary);
+                std::string retryBytes;
+                if (!retried || !sameStudy(adapter.study, original)
+                    || !readBytes(output, retryBytes) || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first) || hasStagedOutput(output))
+                    return fail("same-codec retry or typed readback failed");
+            }
+            std::cout << "SUNSTUDY " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", caller/destination rollback, retry/readback=PASS\n";
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
         }
-        std::cout << "SUNSTUDY " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", caller/destination rollback, retry/readback=PASS\n";
-        std::error_code ignored;
-        std::filesystem::remove(output, ignored);
     }
     return true;
 }

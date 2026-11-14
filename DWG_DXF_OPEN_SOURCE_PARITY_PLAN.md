@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **257 completed implementation slices** and **35 remaining
+The plan records **258 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`257 / (257 + 35) = 88.0%`. This is a count-based progress measure, not an
+`258 / (258 + 35) = 88.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5497,15 +5497,17 @@ focused CTest passes in 1.83 seconds. This closes generated transaction coverage
 profile across the four revisions only; source-profile provenance, ACAD_LIGHT
 dictionary membership and native consumer behavior remain unqualified
 ([version-matrix receipt](docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json)).
-The same whole-operation sweep now writes a generated AC1032 `SUNSTUDY` with
-two date entries, three modeled hours, subset/range selection and nondefault
-viewport settings. All 93 ASCII and 91 Binary injected allocation failures
-preserve the prior destination, caller fields, source-handle bindings and stage
-cleanup; same-codec retry reproduces clean output and typed readback verifies
-the ordered date/hour arrays and scalar settings. The focused CTest passes in
-normal and ASan builds. This is generated serializer transaction evidence for
-one profile; source graph ownership, independent producer semantics and native
-Sun Study behavior remain separate ([receipt](docs/research/p6-dxf-sunstudy-allocation-rollback-retry-2026-11-13.json)).
+The whole-operation sweep now covers a generated `SUNSTUDY` with two date
+entries, three modeled hours, subset/range selection and nondefault viewport
+settings at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. Across the
+eight profiles, all 750 injected allocation failures preserve the prior
+destination, caller fields, source-handle bindings and staging cleanup;
+same-codec retry reproduces clean bytes and typed readback checks the source
+revision, ordered date/hour arrays and scalar settings. The focused CTest passes
+in 1.49 seconds. This is generated serializer transaction evidence only;
+source graph ownership, independent producer semantics and native Sun Study
+behavior remain separate
+([version-matrix receipt](docs/research/p6-dxf-sunstudy-whole-operation-version-matrix-allocation-2026-11-13.json)).
 The generated whole-operation sweep now also writes an AC1027
 `SPATIAL_FILTER` with three boundary points, nondefault normal/origin and clip
 planes, and distinct 12-value inverse/forward transforms. All 94 ASCII and 93
