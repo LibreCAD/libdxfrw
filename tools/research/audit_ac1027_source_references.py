@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import sys
 from collections import Counter
@@ -35,6 +36,19 @@ FRAME = re.compile(
 )
 BODY_FRAME = re.compile(
     r"^ typedBodyFrame type=(\S+) handle=(\d+)(?: |$)", re.MULTILINE
+)
+MLINESTYLE_FIELDS = re.compile(
+    r"^ typedMLineStyleFields handle=(\d+) nameHex=([0-9a-f]*) "
+    r"descriptionHex=([0-9a-f]*) flags=(-?\d+) fillColor=(-?\d+) "
+    r"fillColor24=(-?\d+) startAngleDegrees=(\S+) "
+    r"endAngleDegrees=(\S+) elementCount=(\d+)$",
+    re.MULTILINE,
+)
+MLINESTYLE_ELEMENT = re.compile(
+    r"^ typedMLineStyleElement handle=(\d+) index=(\d+) "
+    r"offset=(\S+) color=(-?\d+) color24=(-?\d+) "
+    r"linetypeIndex=(-?\d+)$",
+    re.MULTILINE,
 )
 MODELER_HISTORY_PROFILE = re.compile(
     r"^ typedBodyFrame type=3DSOLID handle=(\d+) layerName=(.*?) "
@@ -208,6 +222,146 @@ def _verify_layer_peer_fields_for_profile(
     return matched_fields
 
 
+def verify_mlinestyle_fields(
+    source: dict[str, object],
+    source_elements: list[dict[str, object]],
+    peer: dict[str, object],
+) -> dict[str, object]:
+    try:
+        name = bytes.fromhex(str(source["nameHex"])).decode("utf-8")
+        description = bytes.fromhex(str(source["descriptionHex"])).decode("utf-8")
+    except (ValueError, UnicodeDecodeError) as error:
+        raise SystemExit("MLINESTYLE source text hex is invalid") from error
+    peer_lines = peer.get("lines")
+    if not isinstance(peer_lines, list):
+        raise SystemExit("LibreDWG MLINESTYLE has no line-element list")
+    expected_lines: list[dict[str, object]] = []
+    for item in peer_lines:
+        if not isinstance(item, dict):
+            raise SystemExit("LibreDWG MLINESTYLE line element is malformed")
+        color = item.get("color")
+        if not isinstance(color, dict) or color.get("rgb") != "c0000000":
+            raise SystemExit("Cover MLINESTYLE line color is outside the BYLAYER profile")
+        expected_lines.append(item)
+    fill_color = peer.get("fill_color")
+    if not isinstance(fill_color, dict) or fill_color.get("rgb") != "c0000000":
+        raise SystemExit("Cover MLINESTYLE fill color is outside the BYLAYER profile")
+
+    numeric_checks = (
+        ("name", name, peer.get("name")),
+        ("description", description, peer.get("description")),
+        ("flags", int(source["flags"]), peer.get("flag")),
+        ("fillColor", int(source["fillColor"]), 256),
+        ("fillColor24", int(source["fillColor24"]), -1),
+        ("elementCount", len(source_elements), len(expected_lines)),
+    )
+    for field, actual, expected in numeric_checks:
+        if actual != expected:
+            raise SystemExit(f"physical MLINESTYLE {field} differs from LibreDWG profile")
+    angle_matches = []
+    for field, actual_key, peer_key in (
+        ("startAngle", "startAngleDegrees", "start_angle"),
+        ("endAngle", "endAngleDegrees", "end_angle"),
+    ):
+        radians = peer.get(peer_key)
+        if not isinstance(radians, (int, float)) or not math.isfinite(float(radians)):
+            raise SystemExit(f"LibreDWG MLINESTYLE {peer_key} is not finite")
+        degrees = math.degrees(float(radians))
+        actual = float(source[actual_key])
+        if not math.isclose(actual, degrees, rel_tol=0.0, abs_tol=1e-12):
+            raise SystemExit(
+                f"physical MLINESTYLE {field} degrees differ from LibreDWG radians"
+            )
+        angle_matches.append({
+            "field": field,
+            "libdxfrwDegrees": actual,
+            "libreDwgRadians": float(radians),
+            "degreesFromPeer": degrees,
+            "matches": True,
+        })
+
+    line_matches = []
+    for index, (actual, expected) in enumerate(zip(source_elements, expected_lines)):
+        if int(actual["color"]) != 256 or int(actual["color24"]) != -1:
+            raise SystemExit(
+                f"physical MLINESTYLE line {index} color differs from BYLAYER profile"
+            )
+        offset = float(expected.get("offset"))
+        actual_offset = float(actual["offset"])
+        line_type_index = int(expected.get("lt.index"))
+        actual_line_type_index = int(actual["linetypeIndex"])
+        if (not math.isclose(actual_offset, offset, rel_tol=0.0, abs_tol=1e-12)
+                or actual_line_type_index != line_type_index):
+            raise SystemExit(
+                f"physical MLINESTYLE line {index} offset or linetype differs from LibreDWG"
+            )
+        line_matches.append({
+            "index": index,
+            "libdxfrwOffset": actual_offset,
+            "libreDwgOffset": offset,
+            "libdxfrwColor": 256,
+            "libreDwgColor": "c0000000 (BYLAYER)",
+            "libdxfrwLinetypeIndex": actual_line_type_index,
+            "libreDwgLinetypeIndex": line_type_index,
+            "matches": True,
+        })
+    if len(source_elements) != len(expected_lines):
+        raise SystemExit("physical MLINESTYLE element count differs from LibreDWG")
+    return {
+        "handle": int(source["handle"]),
+        "name": name,
+        "description": description,
+        "flags": int(source["flags"]),
+        "fillColorMapping": "libdxfrw 256/-1 matches LibreDWG c0000000 BYLAYER",
+        "angleMatches": angle_matches,
+        "lineMatches": line_matches,
+    }
+
+
+def self_test_mlinestyle_fields() -> None:
+    source = {
+        "handle": 24, "nameHex": "5374616e64617264", "descriptionHex": "",
+        "flags": 0, "fillColor": 256, "fillColor24": -1,
+        "startAngleDegrees": 90.0, "endAngleDegrees": 90.0,
+    }
+    elements = [
+        {"offset": 0.5, "color": 256, "color24": -1, "linetypeIndex": 32767},
+        {"offset": -0.5, "color": 256, "color24": -1, "linetypeIndex": 32767},
+    ]
+    peer = {
+        "name": "Standard", "description": "", "flag": 0,
+        "fill_color": {"rgb": "c0000000"},
+        "start_angle": math.pi / 2.0, "end_angle": math.pi / 2.0,
+        "lines": [
+            {"offset": 0.5, "color": {"rgb": "c0000000"}, "lt.index": 32767},
+            {"offset": -0.5, "color": {"rgb": "c0000000"}, "lt.index": 32767},
+        ],
+    }
+    if len(verify_mlinestyle_fields(source, elements, peer)["lineMatches"]) != 2:
+        raise SystemExit("generated MLINESTYLE semantic control did not match")
+    wrong_angle = dict(source, startAngleDegrees=89.0)
+    try:
+        verify_mlinestyle_fields(wrong_angle, elements, peer)
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("generated MLINESTYLE angle mutation was admitted")
+    wrong_line = [dict(elements[0], linetypeIndex=0), elements[1]]
+    try:
+        verify_mlinestyle_fields(source, wrong_line, peer)
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("generated MLINESTYLE linetype mutation was admitted")
+    wrong_offset = [dict(elements[0], offset=0.75), elements[1]]
+    try:
+        verify_mlinestyle_fields(source, wrong_offset, peer)
+    except SystemExit:
+        pass
+    else:
+        raise SystemExit("generated MLINESTYLE offset mutation was admitted")
+
+
 def verify_peer_profiles(
     peer_json_path: Path,
     peer_schema_path: Path,
@@ -218,6 +372,8 @@ def verify_peer_profiles(
     dimstyle_names: dict[int, str],
     dimstyle_handle_fields: dict[int, list[dict[str, object]]],
     vport_handle_fields: dict[int, list[dict[str, object]]],
+    mlinestyle_fields: dict[int, dict[str, object]],
+    mlinestyle_elements: dict[int, list[dict[str, object]]],
 ) -> dict[str, object]:
     peer_json = json.loads(peer_json_path.read_text())
     peer_objects = peer_json.get("OBJECTS")
@@ -538,6 +694,36 @@ def verify_peer_profiles(
             "independentPeerLimit": "LibreDWG exposes resolved fields and raw role codes, not physical bit spans",
         }
 
+    matched_mlinestyle = None
+    if source_hash == COVER_AC1027_SHA256:
+        peer_mlinestyles = [
+            obj for obj in peer_objects
+            if isinstance(obj, dict) and obj.get("object") == "MLINESTYLE"
+            and peer_handle(obj.get("handle")) == 0x18
+        ]
+        source_fields = mlinestyle_fields.get(0x18)
+        source_elements = mlinestyle_elements.get(0x18, [])
+        if len(peer_mlinestyles) != 1 or source_fields is None:
+            raise SystemExit(
+                "LibreDWG or libdxfrw lacks hash-bound Cover MLINESTYLE 0x18 fields"
+            )
+        matched_fields = verify_mlinestyle_fields(
+            source_fields, source_elements, peer_mlinestyles[0]
+        )
+        matched_mlinestyle = {
+            **matched_fields,
+            "sourceFrameHandle": 0x18,
+            "sourceFrameSize": next(
+                int(frame["objectSize"]) for frame in frames
+                if int(frame["handle"]) == 0x18
+            ),
+            "peerSize": int(peer_mlinestyles[0]["size"]),
+            "independentPeerLimit": (
+                "LibreDWG minJSON independently exposes semantic fields but "
+                "not their physical source bit spans or arbitrary trailing bytes"
+            ),
+        }
+
     mleaderstyle_start = schema_text.find("DWG_OBJECT (MLEADERSTYLE)")
     mleaderstyle_end = schema_text.find("DWG_OBJECT_END", mleaderstyle_start)
     if mleaderstyle_start < 0 or mleaderstyle_end < 0:
@@ -583,6 +769,7 @@ def verify_peer_profiles(
         "matchedLayer": matched_layer,
         "matchedDimstyle": matched_dimstyle,
         "matchedVport": matched_vport,
+        "matchedMLineStyle": matched_mlinestyle,
     }
 
 
@@ -597,7 +784,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.self_test:
         self_test_layer_peer_fields()
-        print("generated LAYER/LTYPE role and target mutation controls passed")
+        self_test_mlinestyle_fields()
+        print("generated LAYER/LTYPE and MLINESTYLE mutation controls passed")
         return 0
     if args.executable is None or args.source is None:
         parser.error("--executable and --source are required unless --self-test is used")
@@ -816,6 +1004,54 @@ def main() -> int:
             raise SystemExit(
                 f"VPORT {owner:#x} handle-field spans are incomplete or unordered"
             )
+    mlinestyle_fields: dict[int, dict[str, object]] = {}
+    for match in MLINESTYLE_FIELDS.finditer(combined):
+        (handle, name_hex, description_hex, flags, fill_color, fill_color24,
+         start_angle, end_angle, element_count) = match.groups()
+        owner = int(handle)
+        if owner in mlinestyle_fields:
+            raise SystemExit(f"MLINESTYLE {owner:#x} has duplicate typed field rows")
+        mlinestyle_fields[owner] = {
+            "handle": owner,
+            "nameHex": name_hex,
+            "descriptionHex": description_hex,
+            "flags": int(flags),
+            "fillColor": int(fill_color),
+            "fillColor24": int(fill_color24),
+            "startAngleDegrees": float(start_angle),
+            "endAngleDegrees": float(end_angle),
+            "elementCount": int(element_count),
+        }
+    mlinestyle_elements: dict[int, list[dict[str, object]]] = {}
+    for match in MLINESTYLE_ELEMENT.finditer(combined):
+        handle, index, offset, color, color24, line_type_index = match.groups()
+        owner = int(handle)
+        mlinestyle_elements.setdefault(owner, []).append({
+            "index": int(index),
+            "offset": float(offset),
+            "color": int(color),
+            "color24": int(color24),
+            "linetypeIndex": int(line_type_index),
+        })
+    for owner, fields in mlinestyle_fields.items():
+        elements = mlinestyle_elements.get(owner, [])
+        indices = [int(item["index"]) for item in elements]
+        if (len(elements) != int(fields["elementCount"])
+                or indices != list(range(len(elements)))):
+            raise SystemExit(
+                f"MLINESTYLE {owner:#x} element rows are incomplete or unordered"
+            )
+    if source_before == COVER_AC1027_SHA256:
+        source_mlinestyle_handles = {
+            int(frame["handle"]) for frame in frames
+            if int(frame["encodedType"]) == 73
+        }
+        if (set(mlinestyle_fields) != source_mlinestyle_handles
+                or set(mlinestyle_elements) - source_mlinestyle_handles):
+            raise SystemExit(
+                "hash-bound Cover MLINESTYLE typed rows do not cover exactly "
+                "the retained type-73 frames"
+            )
     source_bound_modeler_history_handles: set[int] = set()
     source_bound_dimstyle_handles: set[int] = set()
     if source_before == COVER_AC1027_SHA256:
@@ -961,6 +1197,8 @@ def main() -> int:
             dimstyle_names,
             dimstyle_handle_fields,
             vport_handle_fields,
+            mlinestyle_fields,
+            mlinestyle_elements,
         )
     if version == "AC1027":
         mleader_styles = [

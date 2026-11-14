@@ -23157,6 +23157,32 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
                 << " dictionaryOwner=" << mlineStyleDictionary->handle
                 << " dictionaryKey=" << membership->m_name
                 << " bodyHandleFields=0 bodyReferenceRule=ODA-20.4.73\n";
+      const auto encodeHex = [](const UTF8STRING& value) {
+        std::ostringstream encoded;
+        encoded << std::hex << std::setfill('0');
+        for (unsigned char byte : value)
+          encoded << std::setw(2) << static_cast<unsigned int>(byte);
+        return encoded.str();
+      };
+      std::cout << std::setprecision(17)
+                << " typedMLineStyleFields handle=" << style.handle
+                << " nameHex=" << encodeHex(style.name)
+                << " descriptionHex=" << encodeHex(style.description)
+                << " flags=" << style.flags
+                << " fillColor=" << style.fillColor
+                << " fillColor24=" << style.fillColor24
+                << " startAngleDegrees=" << style.startAngle
+                << " endAngleDegrees=" << style.endAngle
+                << " elementCount=" << style.elements.size() << '\n';
+      for (std::size_t index = 0u; index < style.elements.size(); ++index) {
+        const DRW_MLineElement& element = style.elements[index];
+        std::cout << std::setprecision(17)
+                  << " typedMLineStyleElement handle=" << style.handle
+                  << " index=" << index << " offset=" << element.offset
+                  << " color=" << element.color
+                  << " color24=" << element.color24
+                  << " linetypeIndex=" << element.linetypeIndex << '\n';
+      }
     }
     if (reportedMlineStyleHandles.size() != mlineStyleDictionary->m_entries.size()) {
       std::cerr << "MLINESTYLE source inventory found unmodeled ACAD_MLINESTYLE members\n";
