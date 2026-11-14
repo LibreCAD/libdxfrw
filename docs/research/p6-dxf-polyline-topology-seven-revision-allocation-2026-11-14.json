@@ -1,0 +1,200 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-polyline-topology-seven-revision-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_POLYLINE_TOPOLOGY_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated whole-operation POLYLINE topology transaction matrix to the omitted AC1015 and AC1018 revisions.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "3D POLYLINE with two WCS vertices",
+      "AC1024+ 3D POLYLINE with VERTEX identifiers",
+      "2x2 POLYGONMESH",
+      "rectangular 3x2 POLYGONMESH with both closure flags",
+      "POLYFACE with signed edge-visibility indices and multiple face records"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-polyline-topology-seven-revision-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each supported topology/version/encoding profile, calibrate a complete dxfRW::write, inject std::bad_alloc at every reached allocation, require destination sentinel and caller-owned source records to remain unchanged, retry with the same codec, compare exact output bytes with the clean baseline, and freshly read typed topology/fields. VERTEX group-91 identifiers remain tested only at AC1024+ and are refused before AC1024."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "3d-polyline": {
+        "ASCII": 99,
+        "Binary": 97
+      },
+      "polygon-mesh": {
+        "ASCII": 107,
+        "Binary": 106
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 114,
+        "Binary": 113
+      },
+      "polyface-mesh": {
+        "ASCII": 118,
+        "Binary": 117
+      }
+    },
+    "AC1015": {
+      "3d-polyline": {
+        "ASCII": 101,
+        "Binary": 100
+      },
+      "polygon-mesh": {
+        "ASCII": 110,
+        "Binary": 108
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 116,
+        "Binary": 115
+      },
+      "polyface-mesh": {
+        "ASCII": 120,
+        "Binary": 119
+      }
+    },
+    "AC1018": {
+      "3d-polyline": {
+        "ASCII": 101,
+        "Binary": 100
+      },
+      "polygon-mesh": {
+        "ASCII": 110,
+        "Binary": 108
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 116,
+        "Binary": 115
+      },
+      "polyface-mesh": {
+        "ASCII": 120,
+        "Binary": 119
+      }
+    },
+    "AC1021": {
+      "3d-polyline": {
+        "ASCII": 101,
+        "Binary": 100
+      },
+      "polygon-mesh": {
+        "ASCII": 110,
+        "Binary": 108
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 116,
+        "Binary": 115
+      },
+      "polyface-mesh": {
+        "ASCII": 120,
+        "Binary": 119
+      }
+    },
+    "AC1024": {
+      "3d-polyline": {
+        "ASCII": 108,
+        "Binary": 107
+      },
+      "3d-polyline-identifiers": {
+        "ASCII": 109,
+        "Binary": 108
+      },
+      "polygon-mesh": {
+        "ASCII": 117,
+        "Binary": 115
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 123,
+        "Binary": 122
+      },
+      "polyface-mesh": {
+        "ASCII": 127,
+        "Binary": 126
+      }
+    },
+    "AC1027": {
+      "3d-polyline": {
+        "ASCII": 101,
+        "Binary": 100
+      },
+      "3d-polyline-identifiers": {
+        "ASCII": 102,
+        "Binary": 101
+      },
+      "polygon-mesh": {
+        "ASCII": 110,
+        "Binary": 108
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 116,
+        "Binary": 115
+      },
+      "polyface-mesh": {
+        "ASCII": 120,
+        "Binary": 119
+      }
+    },
+    "AC1032": {
+      "3d-polyline": {
+        "ASCII": 101,
+        "Binary": 100
+      },
+      "3d-polyline-identifiers": {
+        "ASCII": 102,
+        "Binary": 101
+      },
+      "polygon-mesh": {
+        "ASCII": 110,
+        "Binary": 108
+      },
+      "polygon-mesh-3x2-closed-both": {
+        "ASCII": 116,
+        "Binary": 115
+      },
+      "polyface-mesh": {
+        "ASCII": 120,
+        "Binary": 119
+      }
+    }
+  },
+  "allocationOffsetTotal": 6884,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R ^libdxfrw_dxf_polyline_topology_allocation_transaction$ --output-on-failure: PASS 1/1 in 43.02 seconds",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native consumer behavior are not qualified.",
+    "This closes omitted intermediate target-version transaction coverage for the listed topology profiles, not all POLYLINE geometry variants or all public writer routes.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The 3D POLYLINE, POLYGONMESH, and POLYFACE whole-operation ASCII/Binary allocation rollback, same-codec retry, and typed readback matrix now includes AC1015 and AC1018 and spans all seven target revisions.",
+    "remainingP6G": "P6-G remains open for the public-writer inventory diff, distinct untested overloads/compound variants, and variable-size OBJECTS builders absent from the sweeps.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "295 completed slices and 34 remaining packages: 295/(295+34)=89.7%; equal-weight count, not effort-weighted."
+  }
+}

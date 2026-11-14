@@ -6308,8 +6308,9 @@ bool runPolylineTopologySweep(const std::filesystem::path& directory) {
         {PolylineTopologyExport::Topology::Polyface,
          "polyface-mesh", 64, 7u}
     }};
-    const std::array<std::pair<DRW::Version, const char*>, 5> versions{{
-        {DRW::AC1014, "AC1014"}, {DRW::AC1021, "AC1021"},
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions{{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
         {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}
     }};
