@@ -1,0 +1,96 @@
+# Optional FreeCAD legacy Python DXF importer POLYFACE qualification.
+# Requires an explicitly provisioned Draft-dxf-importer addon directory;
+# the macro never downloads or installs addon code.
+import json
+import hashlib
+import os
+import platform
+import sys
+
+import FreeCAD as App
+
+source = os.environ.get("LIBDXFRW_FREECAD_DXF")
+dwg_source = os.environ.get("LIBDXFRW_FREECAD_DWG")
+addon_dir = os.environ.get("LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR")
+operation = os.environ.get("LIBDXFRW_FREECAD_OPERATION")
+if not source or not os.path.isfile(source):
+    raise RuntimeError("LIBDXFRW_FREECAD_DXF must name the generated preflight DXF")
+if not dwg_source or not os.path.isfile(dwg_source):
+    raise RuntimeError("LIBDXFRW_FREECAD_DWG must name the generated AC1021 source")
+if not addon_dir or not os.path.isdir(addon_dir):
+    raise RuntimeError("a local LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR is required")
+if operation not in ("open", "insert"):
+    raise RuntimeError("operation must be open or insert")
+
+required_modules = (
+    "dxfReader.py", "dxfLibrary.py", "dxfColorMap.py", "dxfImportObjects.py")
+if any(not os.path.isfile(os.path.join(addon_dir, name))
+       for name in required_modules):
+    raise RuntimeError("the addon directory is missing a required DXF module")
+sys.path.insert(0, addon_dir)
+
+import importDXF
+import dxfLibrary
+
+required_version = float(importDXF.CURRENTDXFLIB)
+addon_version = float(dxfLibrary.__version__[1:5])
+if addon_version < required_version:
+    raise RuntimeError("DXF addon %.2f is older than required %.2f"
+                       % (addon_version, required_version))
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+preferences = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Draft")
+preferences.SetBool("dxfUseLegacyImporter", True)
+preferences.SetBool("dxfUseDraftVisGroups", False)
+preferences.SetBool("dxfImportPoints", True)
+preferences.SetInt("DxfImportMode", 2)
+
+if operation == "open":
+    document = importDXF.open(source)
+else:
+    document = App.newDocument("LegacyPolyfaceInsert")
+    importDXF.insert(source, document.Name)
+if document is None:
+    raise AssertionError("legacy importer returned no document")
+
+meshes = [obj for obj in document.Objects if obj.TypeId == "Mesh::Feature"]
+if len(meshes) != 1:
+    raise AssertionError("expected one Mesh::Feature, observed %d" % len(meshes))
+mesh = meshes[0].Mesh
+points = sorted((float(point.x), float(point.y), float(point.z))
+                for point in mesh.Points)
+expected_points = sorted(((121.0, 122.0, 1.0), (124.0, 122.0, 4.0),
+                          (124.0, 126.0, 8.0), (121.0, 126.0, 5.0)))
+box = mesh.BoundBox
+bounds = [float(box.XMin), float(box.YMin), float(box.ZMin),
+          float(box.XMax), float(box.YMax), float(box.ZMax)]
+expected_bounds = [121.0, 122.0, 1.0, 124.0, 126.0, 8.0]
+if len(mesh.Facets) != 2 or points != expected_points or bounds != expected_bounds:
+    raise AssertionError("POLYFACE mesh geometry differs: facets=%d points=%r bounds=%r"
+                         % (len(mesh.Facets), points, bounds))
+
+result = {
+    "operation": operation,
+    "importer": "legacy-python",
+    "freecadVersion": list(App.Version()),
+    "platform": platform.platform(),
+    "architecture": platform.machine(),
+    "addonVersion": dxfLibrary.__version__,
+    "dwgSha256": sha256(dwg_source),
+    "dxfSha256": sha256(source),
+    "converterSha256": os.environ.get("LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256"),
+    "documentObjects": len(document.Objects),
+    "meshObjects": len(meshes),
+    "facets": len(mesh.Facets),
+    "points": points,
+    "bounds": bounds,
+}
+print("LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS="
+      + json.dumps(result, sort_keys=True, allow_nan=False))
+App.closeDocument(document.Name)

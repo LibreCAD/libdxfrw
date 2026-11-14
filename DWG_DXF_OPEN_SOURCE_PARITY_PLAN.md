@@ -6731,7 +6731,11 @@ returns a wire with no faces for this profile. The add-on remains optional and
 was not installed into the user's FreeCAD directory; preferences were restored
 after the run. This closes only the generated macOS ARM64 legacy-importer
 profile, not the default importer, physical producer interoperability, other
-mesh topologies, platforms, or general 3D support. No fixture was committed.
+mesh topologies, platforms, or general 3D support. A reproducible opt-in CTest
+now exposes both operations when the caller supplies a local addon directory;
+it uses an isolated FreeCAD config, a runtime-generated DWG/DXF pair, and the
+hash-checked installed converter, and never downloads the addon. The focused
+open/insert selectors pass 2/2 in 1.29 seconds. No fixture was committed.
 See the [legacy route receipt](docs/research/p8-freecad-legacy-polyface-qualification-dependency-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated

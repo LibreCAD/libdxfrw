@@ -5200,6 +5200,57 @@ if(LIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL)
     )
 endif()
 
+option(LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL
+    "Enable FreeCAD legacy Python importer POLYFACE open/insert checks" OFF)
+set(LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR "" CACHE PATH
+    "Explicit local Draft-dxf-importer module directory (no automatic download)")
+if(LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL)
+    foreach(_required IN ITEMS
+            LIBDXFRW_FREECADCMD_EXECUTABLE
+            LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE
+            LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR)
+        if(NOT DEFINED ${_required} OR "${${_required}}" STREQUAL "")
+            message(FATAL_ERROR "${_required} must be set for the legacy POLYFACE control")
+        endif()
+    endforeach()
+    foreach(_module IN ITEMS
+            dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py)
+        if(NOT EXISTS "${LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR}/${_module}")
+            message(FATAL_ERROR
+                "Missing ${_module} under LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR")
+        endif()
+    endforeach()
+    foreach(_required IN ITEMS
+            LIBDXFRW_FREECADCMD_EXECUTABLE
+            LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE)
+        if(NOT EXISTS "${${_required}}")
+            message(FATAL_ERROR "${_required} does not exist: ${${_required}}")
+        endif()
+    endforeach()
+    foreach(_operation IN ITEMS open insert)
+        add_test(
+            NAME dwg2dxf_freecad_legacy_polyface_${_operation}
+            COMMAND ${CMAKE_COMMAND}
+                "-DFREECADCMD=${LIBDXFRW_FREECADCMD_EXECUTABLE}"
+                "-DDWG2DXF=${LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE}"
+                "-DBUILD_DWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DDWG_SOURCE_GENERATOR=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                -DDWG_SOURCE_VERSION=AC1021
+                -DEXPECTED_MAGIC_HEX=414331303231
+                "-DIMPORT_CHECK_MACRO=${CMAKE_CURRENT_SOURCE_DIR}/freecad_legacy_polyface_import_check.FCMacro"
+                -DIMPORT_CHECK_MODE=legacy_polyface
+                "-DFREECAD_LEGACY_DXF_ADDON_DIR=${LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR}"
+                "-DOPERATION=${_operation}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_3d_line_test.cmake
+        )
+        set_tests_properties(dwg2dxf_freecad_legacy_polyface_${_operation}
+            PROPERTIES
+                LABELS "freecad;installed;generated;integration;AC1021;platform;legacy;polyface"
+                TIMEOUT 180)
+    endforeach()
+endif()
+
 # Exercise the current shared build after CMake installs it into a relocatable
 # prefix, then reuse the installed-artifact FreeCAD geometry harness. CMake's
 # install step rewrites the executable RPATH, so this must be a distinct

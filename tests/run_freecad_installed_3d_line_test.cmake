@@ -9,6 +9,18 @@ foreach(_path IN ITEMS FREECADCMD DWG2DXF BUILD_DWG2DXF IMPORT_CHECK_MACRO)
         message(FATAL_ERROR "${_path} does not exist: ${${_path}}")
     endif()
 endforeach()
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    if(NOT DEFINED FREECAD_LEGACY_DXF_ADDON_DIR
+            OR NOT IS_DIRECTORY "${FREECAD_LEGACY_DXF_ADDON_DIR}")
+        message(FATAL_ERROR "FREECAD_LEGACY_DXF_ADDON_DIR is required")
+    endif()
+    foreach(_module IN ITEMS
+            dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py)
+        if(NOT EXISTS "${FREECAD_LEGACY_DXF_ADDON_DIR}/${_module}")
+            message(FATAL_ERROR "Missing legacy DXF module: ${_module}")
+        endif()
+    endforeach()
+endif()
 if(DEFINED SAMPLE)
     foreach(_required IN ITEMS EXPECTED_INPUT_SHA256 EXPECTED_MAGIC_HEX)
         if(NOT DEFINED ${_required})
@@ -161,7 +173,10 @@ if(DEFINED SAMPLE)
             "Evidence retained at ${_temp_parent}\n${_copy_stdout}\n${_copy_stderr}")
     endif()
 elseif(DEFINED DWG_SOURCE_GENERATOR)
-if(DEFINED EXPECTED_PRIMITIVE_COUNTS
+    if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+        set(_generated_source "${_test_root}/generated ${DWG_SOURCE_VERSION} primitives.dwg")
+        set(_generator_option "--generate-freecad-primitives-source")
+    elseif(DEFINED EXPECTED_PRIMITIVE_COUNTS
         AND DEFINED EXPECTED_PRIMITIVE_SHAPES)
         set(_generated_source "${_test_root}/generated ${DWG_SOURCE_VERSION} primitives.dwg")
         set(_generator_option "--generate-freecad-primitives-source")
@@ -280,6 +295,11 @@ set(_environment
     "TMPDIR=${_temp_parent}"
     "TEMP=${_temp_parent}"
     "TMP=${_temp_parent}")
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_DXF=${_strict_preflight_output}"
+        "LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR=${FREECAD_LEGACY_DXF_ADDON_DIR}")
+endif()
 if(DEFINED EXPECTED_LINE_BOUNDS)
     list(REMOVE_ITEM _environment
         "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]")
@@ -343,6 +363,30 @@ if(NOT "${_freecad_result}" STREQUAL "0")
         "FreeCAD ${OPERATION} integration failed (${_freecad_result}).\n"
         "Evidence retained at ${_temp_parent}\n"
         "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}")
+endif()
+
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    foreach(_expected IN ITEMS
+            "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS="
+            "\"operation\": \"${OPERATION}\""
+            "\"importer\": \"legacy-python\""
+            "\"facets\": 2"
+            "\"converterSha256\": \"${_converter_sha256}\""
+            "\"bounds\": [121.0, 122.0, 1.0, 124.0, 126.0, 8.0]")
+        string(FIND "${_freecad_stdout}" "${_expected}" _found)
+        if(_found EQUAL -1)
+            message(FATAL_ERROR
+                "FreeCAD legacy ${OPERATION} output lacks '${_expected}'.\n"
+                "Evidence retained at ${_temp_parent}\n"
+                "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}")
+        endif()
+    endforeach()
+    message(STATUS
+        "FreeCAD legacy POLYFACE ${OPERATION} check passed.\n"
+        "Converter: ${_installed_converter} (SHA-256 ${_converter_sha256})\n"
+        "FreeCAD output:\n${_freecad_stdout}\n${_freecad_stderr}")
+    file(REMOVE_RECURSE "${_temp_parent}")
+    return()
 endif()
 
 if(DEFINED EXPECTED_PRIMITIVE_COUNTS

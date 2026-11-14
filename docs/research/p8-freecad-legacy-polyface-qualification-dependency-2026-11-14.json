@@ -31,7 +31,9 @@
     "dxf_sha256": "5bf26fe678a305446cd0bca5bd83b2b798f064a4a59a783a3f05527e5276a14c",
     "converter_sha256": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
     "generator_sha256": "0ef852377621ea5fd45e592ecbbe868bcbbdd5367cf196b007a661a340d66343",
-    "qualification_macro_sha256": "9ab1f4f75d36517cc27b4186deb3917f74beb6d6d6e01286c7955b27625cf51a",
+    "qualification_macro_sha256": "32bdef318d0f2531f65a001e2bf796cb5d186b582a6a4233be0f7266bf20fa5a",
+    "runner_sha256": "450bf8e270f0f76ad83975cc8a64b1117aabbffd00f60fc42ba718674e2aa85a",
+    "ctest_registration_sha256": "1a91ec5b99f498c3818be563cd3ff2740e9147b9fe16fa60d6aba380fdb9e0fd",
     "polyface": {
       "vertices": [[121, 122, 1], [124, 122, 4], [124, 126, 8], [121, 126, 5]],
       "face_records": 1,
@@ -43,8 +45,9 @@
   "operations": [
     {
       "operation": "open",
+      "ctest": "dwg2dxf_freecad_legacy_polyface_open",
       "process_exit": 0,
-      "macro_assertion_marker": "LIBDXFRW_LEGACY_POLYFACE",
+      "macro_assertion_marker": "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS=",
       "document_objects": 13,
       "mesh_objects": 1,
       "facets": 2,
@@ -53,8 +56,9 @@
     },
     {
       "operation": "insert",
+      "ctest": "dwg2dxf_freecad_legacy_polyface_insert",
       "process_exit": 0,
-      "macro_assertion_marker": "LIBDXFRW_LEGACY_POLYFACE",
+      "macro_assertion_marker": "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS=",
       "document_objects": 13,
       "mesh_objects": 1,
       "facets": 2,
@@ -73,6 +77,8 @@
   },
   "reproducibility_notes": {
     "preference_profile": "Legacy importer enabled; Draft visibility groups disabled for headless compatibility; points enabled; texts disabled.",
+    "ctest_result": "2/2 passed in 1.29 seconds with the opt-in LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL profile and addon directory supplied explicitly.",
+    "ctest_selector": "ctest --test-dir build-gcc -VV -R '^dwg2dxf_freecad_legacy_polyface_(open|insert)$'",
     "user_preferences_restored_after_run": true,
     "addon_dependency_is_optional": true,
     "source_code_reference": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Draft/importDXF.py"
