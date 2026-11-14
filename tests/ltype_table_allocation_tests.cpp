@@ -57,6 +57,39 @@ bool sameReadback(const DRW_LType& actual) {
         && actual.size == 2 && actual.length == 15.0;
 }
 
+bool hasEditMetadata(const DRW_LType& lineType) {
+    if (lineType.appData.size() != 1u || lineType.appData.front().size() != 3u)
+        return false;
+    auto value = lineType.appData.front().cbegin();
+    if (value->code() != 102 || value->c_str() == nullptr
+        || std::string(value->c_str()) != "LTYPE_EDIT_METADATA")
+        return false;
+    ++value;
+    if (value->code() != 1 || value->c_str() == nullptr
+        || std::string(value->c_str())
+            != "preserve while editing definition")
+        return false;
+    ++value;
+    return value->code() == 102 && value->c_str() != nullptr
+        && std::string(value->c_str()) == "}";
+}
+
+bool sameEditedReadback(const DRW_LType& actual, const DRW_LType& edited) {
+    return actual.tType == DRW::LTYPE && actual.handle != 0u
+        && actual.name == edited.name && actual.desc == edited.desc
+        && actual.alignment == edited.alignment
+        && actual.path == std::vector<double>{3.0, -1.0}
+        && actual.size == 2 && actual.length == 4.0
+        && actual.segments.size() == 2u
+        && actual.segments[0].length == 3.0
+        && actual.segments[0].shapeFlags == 0x02
+        && actual.segments[0].text == "X"
+        && actual.segments[1].length == -1.0
+        && actual.segments[1].shapeFlags == 0
+        && actual.appData.size() == edited.appData.size()
+        && hasEditMetadata(actual);
+}
+
 class Export final : public LC3CompatCheck {
 public:
     explicit Export(dxfRW& codec) : codec(codec), lineType(makeLType()) {}
@@ -218,18 +251,57 @@ bool allocationSweep(const std::filesystem::path& directory) {
 bool editedImportedRecordRoundTrip(const std::filesystem::path& directory) {
     const auto source = directory / "ltype-edit-source.dxf";
     const auto output = directory / "ltype-edit-output.dxf";
+    DRW_LType sourceLineType = makeLType();
+    sourceLineType.appData.push_back({
+        {102, std::string("{LTYPE_EDIT_METADATA")},
+        {1, std::string("preserve while editing definition")},
+        {102, std::string("}")}});
+    DRW_LTypeSegment textElement;
+    textElement.length = 10.0;
+    textElement.shapeFlags = 0x02;
+    textElement.text = "X";
+    DRW_LTypeSegment trailingDash;
+    trailingDash.length = -5.0;
+    sourceLineType.segments = {textElement, trailingDash};
     {
         dxfRW codec(source.string().c_str());
-        Export exporter(codec);
+        EditedExport exporter(codec, sourceLineType);
         if (!codec.write(&exporter, DRW::AC1027, false) || !exporter.accepted)
             return false;
     }
 
     dxfRW sourceReader(source.string().c_str());
     Reader imported;
-    if (!sourceReader.read(&imported, false) || imported.lineTypes.size() != 1u)
+    if (!sourceReader.read(&imported, false) || imported.lineTypes.size() != 1u) {
+        std::cerr << "LTYPE metadata source did not import: rows="
+                  << imported.lineTypes.size() << '\n';
         return false;
-    DRW_LType edited = imported.lineTypes.front();
+    }
+    const DRW_LType& original = imported.lineTypes.front();
+    if (!hasEditMetadata(original)
+        || original.segments.size() != 2u
+        || original.segments.front().shapeFlags != 0x02
+        || original.segments.front().text != "X") {
+        std::cerr << "LTYPE source metadata/complex fields mismatch: appGroups="
+                  << original.appData.size() << " segments="
+                  << original.segments.size();
+        if (!original.appData.empty())
+            std::cerr << " firstAppGroupSize=" << original.appData.front().size()
+                      << " opener="
+                      << (original.appData.front().front().c_str() == nullptr
+                              ? "<null>"
+                              : original.appData.front().front().c_str())
+                      << " closer="
+                      << (original.appData.front().back().c_str() == nullptr
+                              ? "<null>"
+                              : original.appData.front().back().c_str());
+        if (!original.segments.empty())
+            std::cerr << " shape=" << original.segments.front().shapeFlags
+                      << " text=" << original.segments.front().text.c_str();
+        std::cerr << '\n';
+        return false;
+    }
+    DRW_LType edited = original;
     edited.desc = "Edited after import";
     edited.path = {3.0, -1.0};
 
@@ -241,12 +313,13 @@ bool editedImportedRecordRoundTrip(const std::filesystem::path& directory) {
         dxfRW outputReader(output.string().c_str());
         Reader readback;
         if (!outputReader.read(&readback, false)
-            || readback.lineTypes.size() != 1u)
+            || readback.lineTypes.size() != 1u) {
+            std::cerr << "edited LTYPE output failed to import: binary="
+                      << binary << " rows=" << readback.lineTypes.size() << '\n';
             return false;
+        }
         const DRW_LType& actual = readback.lineTypes.front();
-        if (actual.name != edited.name || actual.desc != edited.desc
-            || actual.path != std::vector<double>{3.0, -1.0}
-            || actual.size != 2 || actual.length != 4.0) {
+        if (!sameEditedReadback(actual, edited)) {
             std::cerr << "edited imported LTYPE fields were not re-emitted: "
                          "binary=" << binary << '\n';
             return false;

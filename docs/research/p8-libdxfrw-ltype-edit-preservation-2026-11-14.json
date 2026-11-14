@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-libdxfrw-ltype-edit-preservation-2026-11-14",
+  "date": "2026-11-14",
+  "title": "Generated imported-LTYPE edit preserves application metadata and complex segments",
+  "status": "focused_fast_control_passed",
+  "supportClaimEffect": "none",
+  "scope": "One locally generated AC1027 LTYPE profile through libdxfrw DXF import, caller edit, ASCII/Binary export, and fresh typed readback.",
+  "sourceProfile": {
+    "origin": "generated locally by libdxfrw test code; no external drawing fixture",
+    "version": "AC1027",
+    "record": "LTYPE",
+    "initialPath": [10.0, -5.0],
+    "complexTextSegment": {
+      "length": 10.0,
+      "shapeFlags": 2,
+      "text": "X"
+    },
+    "applicationData": [
+      [
+        [102, "{LTYPE_EDIT_METADATA"],
+        [1, "preserve while editing definition"],
+        [102, "}"]
+      ]
+    ]
+  },
+  "edit": {
+    "description": "Edited after import",
+    "path": [3.0, -1.0]
+  },
+  "readbackAssertions": [
+    "edited description and dash lengths override imported values",
+    "name, alignment, element count and total pattern length remain coherent",
+    "ordered complex text element fields remain present with updated first length",
+    "application-data opener, payload and closer remain unchanged"
+  ],
+  "binding": {
+    "testSource": "tests/ltype_table_allocation_tests.cpp",
+    "testSourceSha256": "7c6c18047b14d112ade090e2d51bf547038dd5653d3580f56690e17ab4a3ca6b",
+    "executable": "build-gcc/tests/libdxfrw_ltype_table_allocation_tests",
+    "executableSha256": "1ab6a8f3ea6077bc7ef2af250e98d2053cc426479941b59c41c6f6d16719f665",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_ltype_table_allocation_tests -j4",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_table_allocation$' --output-on-failure",
+    "result": "PASS 1/1 in 0.73 seconds; edited-import profile verifies ASCII and Binary outputs"
+  },
+  "limitations": [
+    "This is generated codec and typed-readback evidence for one profile, not a LibreCAD application/adapter regression run.",
+    "It does not establish native AutoCAD or other consumer acceptance, other LTYPE metadata groups, arbitrary complex elements, or producer interoperability.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

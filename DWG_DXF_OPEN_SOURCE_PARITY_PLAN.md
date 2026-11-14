@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **381 completed implementation and qualification slices** and **34 remaining
+The plan records **382 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`381 / (381 + 34) = 91.8%`. This is a count-based progress measure, not an
+`382 / (382 + 34) = 91.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -14,7 +14,15 @@ met its full evidence requirements. Completed implementation actions have
 been removed from the execution queue; their commits and receipts remain the
 evidence record. The remaining count is derived from the 34 OPEN P4–P8 rows below; completed
 sub-slices do not retire their parent package until its full exit gate passes. Treat the percentage as a rough equal-weight
-activity proxy, not as the percentage of package gates completed. Do not count
+activity proxy, not as the percentage of package gates completed.
+
+**P8-D generated LTYPE edit-preservation qualification slice (2026-11-14):**
+the focused libdxfrw regression imports a generated AC1027 LTYPE with an
+application-data group and a complex text segment, edits its description and
+dash lengths, then exports ASCII and Binary and verifies fresh typed readback
+preserves the edit, segment metadata, and application group. The focused CTest
+passes; this qualifies only the selected upstream codec path and not the
+LibreCAD adapter or native consumers ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)). Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
 
@@ -1586,7 +1594,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | Native Linux receipt with document counts, inserted geometry, bounds, and diagnostics. |
 | P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | Native Windows receipt matching P8-B observations and exact converter/importer path. |
-| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The adapter fix is implemented in LibreCAD; this upstream plan still requires qualification against the current libdxfrw build. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The selected upstream libdxfrw LTYPE edit/metadata path now has generated ASCII/Binary readback coverage ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)); clean LibreCAD/LibreCAD_3 consumer builds and the actual LibreCAD adapter regression remain required. |
 | P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. |
