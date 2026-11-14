@@ -145,7 +145,8 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
     const std::string sentinel = "prior SCALE destination bytes\n";
     for (const DRW::Version version : {
-             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+             DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+             DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto output = directory
             / (std::string("scale-objects-")
                + std::to_string(static_cast<int>(version)) + ".dxf");
