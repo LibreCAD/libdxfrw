@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.freecad_legacy_polyface_qualification_dependency.v1",
+  "date": "2026-11-14",
+  "result": "NOT_QUALIFIED_OPTIONAL_DEPENDENCY_MISSING",
+  "purpose": "Determine whether FreeCAD's legacy Python DXF importer provides a separate POLYFACE consumer route after the pinned C++ importer boundary was observed.",
+  "environment": {
+    "freecad_version": "1.1.4",
+    "freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "host": "macOS ARM64",
+    "application": "FreeCADCmd",
+    "source_file": "FreeCAD.app/Contents/Resources/Mod/Draft/importDXF.py",
+    "source_sha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992"
+  },
+  "source_review": {
+    "finding": "The pinned importDXF.py separates POLYLINE flags 16 and 64 from ordinary polylines; drawMesh selects POLYFACE points and facet-index records for flag 64 and constructs a Mesh object. This is implementation evidence only, not a successful import or semantic qualification.",
+    "source_url": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Draft/importDXF.py",
+    "dependency_finding": "The legacy path calls getDXFlibs() and requires dxfReader.py, dxfLibrary.py, dxfColorMap.py and dxfImportObjects.py from the separate Draft-dxf-importer package. None was present in this FreeCAD installation or under the local FreeCAD user-data directory.",
+    "dependency_source_url": "https://github.com/yorikvanhavre/Draft-dxf-importer",
+    "official_documentation_url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+  },
+  "scratch_profile": {
+    "input_created_from_scratch": true,
+    "dwg_version": "AC1021",
+    "dwg_bytes": 20096,
+    "dwg_sha256": "86e9252b24020aeaa0aa3a7823f65fd52ff4af608ece892ec5366f4d35841ea0",
+    "dxf_bytes": 14058,
+    "dxf_sha256": "5bf26fe678a305446cd0bca5bd83b2b798f064a4a59a783a3f05527e5276a14c",
+    "location": "temporary files only; removed after recording hashes",
+    "expected_polyface": {
+      "vertices": 4,
+      "face_records": 1,
+      "quad_triangles_after_mesh_conversion": 2
+    }
+  },
+  "execution": {
+    "command": "LIBDXFRW_TEST_DXF=<scratch DXF> FreeCADCmd <temporary macro>",
+    "exit_status": 0,
+    "blocked_before_import": true,
+    "observed": [
+      "FreeCAD printed that the DXF libraries were not found and attempted its configured download path.",
+      "FreeCAD then printed that the DXF libraries were unavailable and aborted the legacy import.",
+      "The macro's expected two-facet Mesh assertion was not reached."
+    ],
+    "meaning": "No legacy-importer behavior, geometry, or semantic support is established. The exit status reflects FreeCADCmd's macro process behavior and must not be treated as a pass."
+  },
+  "next_action": "If the legacy importer is an explicit required consumer, pin and provision a compatible Draft-dxf-importer revision in a disposable test environment, then run scratch-generated open and insert controls with exact facet/vertex/bounds assertions. Keep this route separate from the default C++ importer. Do not alter conforming libdxfrw POLYFACE output based on source inspection alone.",
+  "support_claim_effect": "NONE"
+}
