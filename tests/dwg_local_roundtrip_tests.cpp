@@ -42007,8 +42007,17 @@ int main(int argc, char** argv) {
             const std::uint64_t commonEndBit =
                 static_cast<std::uint64_t>(commonBuffer.getPosition()) * 8u
                 + commonBuffer.getBitPos();
-            const std::uint64_t searchEndBit =
+            const std::uint64_t rawEndBit =
                 static_cast<std::uint64_t>(malformed.m_rawBytes.size()) * 8u;
+            // Modern object frames provide an explicit body-bit bound. The
+            // legacy AC1015 profile only carries its total bounded object
+            // span, so restrict that search to the raw frame after the
+            // validated common prologue.
+            const std::uint64_t bodyEndBit = malformed.m_bodyBitSize == 0
+                ? rawEndBit
+                : commonEndBit
+                    + static_cast<std::uint64_t>(malformed.m_bodyBitSize);
+            const std::uint64_t searchEndBit = std::min(rawEndBit, bodyEndBit);
             bool foundBodyFailure = false;
             if (commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
