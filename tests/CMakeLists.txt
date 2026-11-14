@@ -5942,6 +5942,16 @@ add_test(NAME libdxfrw_assoc_group_registry_allocation
     COMMAND libdxfrw_assoc_group_registry_allocation_tests)
 set_tests_properties(libdxfrw_assoc_group_registry_allocation PROPERTIES
     LABELS "fast;dwg;associative;constraint-group;transaction" TIMEOUT 30)
+add_executable(libdxfrw_associative_constraint_group_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/associative_constraint_group_allocation_tests.cpp)
+target_compile_features(libdxfrw_associative_constraint_group_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_associative_constraint_group_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_associative_constraint_group_allocation_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_associative_constraint_group_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_associative_constraint_group_allocation_retry
+    COMMAND libdxfrw_associative_constraint_group_allocation_tests)
+set_tests_properties(libdxfrw_associative_constraint_group_allocation_retry PROPERTIES
+    LABELS "fast;dxf;associative;constraint-group;allocation;transaction;generated" TIMEOUT 30)
 add_executable(libdxfrw_constraint_group_candidate_api_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/constraint_group_candidate_api_tests.cpp)
 target_compile_features(libdxfrw_constraint_group_candidate_api_tests PRIVATE cxx_std_17)
