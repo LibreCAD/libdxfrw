@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-object-string-override-all-revision-matrix-rollback-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_RAW_OBJECT_STRING_OVERRIDE_ALL_REVISION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated raw XRECORD string-only and combined string/Int32 override transaction coverage to AC1014, AC1015, and AC1018, preserving existing AC1021+ profiles.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory XRECORD",
+    "profile": "One raw XRECORD with string overrides for groups 1, 3, 2, 6, and 300 plus Int32 replacements for groups 90 and 91.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_raw_object_string_override_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 0.70,
+    "testSourceSha256": "e18fff58438d94d16036cd37616e8053044c8144bf6dffb1f7375a198e084fdf",
+    "testExecutableSha256": "c8b63a06e9ee263c53a91108e3c9cec64aaa43d435641c6a187789b7f20bcbeb",
+    "allocationOffsets": {
+      "AC1014_string_ASCII": 10,
+      "AC1014_string_Binary": 9,
+      "AC1014_string_Int32_ASCII": 10,
+      "AC1014_string_Int32_Binary": 9,
+      "AC1015_string_ASCII": 10,
+      "AC1015_string_Binary": 9,
+      "AC1015_string_Int32_ASCII": 10,
+      "AC1015_string_Int32_Binary": 9,
+      "AC1018_string_ASCII": 10,
+      "AC1018_string_Binary": 9,
+      "AC1018_string_Int32_ASCII": 10,
+      "AC1018_string_Int32_Binary": 9,
+      "AC1021_through_AC1032_string_ASCII_each": 6,
+      "AC1021_through_AC1032_string_Binary_each": 5,
+      "AC1021_through_AC1032_string_Int32_ASCII_each": 6,
+      "AC1021_through_AC1032_string_Int32_Binary_each": 5,
+      "total": 202
+    },
+    "checks": [
+      "Every measured allocation failure refuses output and preserves the previous destination bytes",
+      "The full caller raw XRECORD remains unchanged after each injected failure and successful retry",
+      "Same-codec retry matches the clean output bytes for each version and encoding",
+      "Fresh typed raw-object readback checks all overridden strings and both Int32 values"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_raw_object_string_override_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure"
+    ]
+  },
+  "limitations": [
+    "Generated codec transaction evidence only; it establishes neither producer prevalence nor application semantics.",
+    "Other raw object types and override profiles remain outside this matrix.",
+    "No DWG/DXF fixture file was added; test outputs were generated under temporary storage."
+  ],
+  "priorReceipt": "docs/research/p6-dxf-raw-object-string-override-version-matrix-rollback-retry-2026-11-13.json"
+}
