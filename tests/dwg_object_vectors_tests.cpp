@@ -5815,7 +5815,9 @@ bool makeTableEntryHandleFrame(
     const std::vector<VportHandleField>& fields, int wrongRoleIndex,
     bool canonicalNulls, VportHandleFrame& frame,
     int typedNullIndex = -1,
-    std::uint8_t typedNullCode = DRW::DwgNullReference) {
+    std::uint8_t typedNullCode = DRW::DwgNullReference,
+    int relativeSoftPointerIndex = -1,
+    std::uint32_t relativeSoftPointerValue = 0u) {
     dwgBufferW object;
     object.putObjType(version, objectType);
     const bool explicitPrefixObjectSize =
@@ -5857,18 +5859,30 @@ bool makeTableEntryHandleFrame(
 
     dwgBufferW handles;
     const auto put = [&handles, canonicalNulls, wrongRoleIndex,
-                      typedNullIndex, typedNullCode](
+                      typedNullIndex, typedNullCode,
+                      relativeSoftPointerIndex, relativeSoftPointerValue,
+                      &source](
         std::size_t index, const VportHandleField& field) {
         const bool typedNull = static_cast<int>(index) == typedNullIndex;
+        const bool relativeSoftPointer =
+            static_cast<int>(index) == relativeSoftPointerIndex;
         dwgHandle value;
         value.code = canonicalNulls ? DRW::DwgNullReference
-            : (typedNull ? typedNullCode
+            : (relativeSoftPointer ? 0x0Cu
+                : typedNull ? typedNullCode
                 : static_cast<int>(index) == wrongRoleIndex
                 ? (field.role == DRW::DwgHardOwnership
                     ? DRW::DwgSoftPointer : DRW::DwgHardOwnership)
                 : field.role);
         value.rawCode = value.code;
-        value.ref = canonicalNulls || typedNull ? 0u : field.target;
+        if (canonicalNulls || typedNull) {
+            value.ref = 0u;
+        } else if (relativeSoftPointer) {
+            value.ref = relativeSoftPointerValue != 0u
+                ? relativeSoftPointerValue : source.handle - field.target;
+        } else {
+            value.ref = field.target;
+        }
         value.ref64 = value.ref;
         handles.putHandle(value);
     };
@@ -5902,16 +5916,25 @@ bool makeTableEntryHandleFrame(
 
 bool makeVportHandleFrame(DRW::Version version, VportCodecProbe& source,
                           int wrongRoleIndex, bool canonicalNulls,
-                          VportHandleFrame& frame) {
+                          VportHandleFrame& frame,
+                          bool relativeControl = false,
+                          std::uint32_t relativeControlOffset = 0u) {
     DRW_TextCodec codec;
     codec.setVersion(version, false);
     dwgBufferW body(&codec), strings(&codec), ignoredHandles(&codec);
     if (!source.encodeDwg(version, &body, &strings, &ignoredHandles))
         return false;
-    const auto fields = vportHandleFieldsFor(version, source);
+    auto fields = vportHandleFieldsFor(version, source);
+    if (relativeControl) {
+        if (fields.empty() || source.handle <= fields.front().target)
+            return false;
+        fields.front().role = 0x0Cu;
+    }
     return makeTableEntryHandleFrame(version, source, 65u, body, strings,
                                      fields, wrongRoleIndex, canonicalNulls,
-                                     frame);
+                                     frame, -1, DRW::DwgNullReference,
+                                     relativeControl ? 0 : -1,
+                                     relativeControlOffset);
 }
 
 std::vector<VportHandleField> ucsHandleFieldsFor(
@@ -20120,6 +20143,55 @@ void testAc1012PlusVportHandleRoles(TestContext& t) {
                  std::string("VPORT retries after final-field truncation in ")
                      + versionName(version));
     }
+
+    VportCodecProbe relativeSource;
+    relativeSource.handle = 9u;
+    relativeSource.parentHandle = 8u;
+    relativeSource.reactorHandles = {10u};
+    relativeSource.xDictHandle = 11u;
+    relativeSource.xrefBlockHandle.ref = 12u;
+    relativeSource.setDwgCommonObjectState(1, 0u, false);
+    relativeSource.name = "generated-relative-vport-control";
+    VportHandleFrame relativeFrame;
+    const bool relativeBuilt = makeVportHandleFrame(
+        DRW::AC1012, relativeSource, -1, false, relativeFrame, true);
+    VportCodecProbe relativeParsed;
+    const bool relativeRead = relativeBuilt
+        && parse(DRW::AC1012, relativeParsed, relativeFrame);
+    bool relativeControlRole = relativeRead
+        && relativeParsed.handle == relativeSource.handle
+        && relativeParsed.parentHandle == relativeSource.parentHandle
+        && !relativeParsed.dwgHandleFieldSpans().empty()
+        && relativeParsed.dwgHandleFieldSpans().front().m_name == "control"
+        && relativeParsed.dwgHandleFieldSpans().front().m_rawHandleCode
+            == 0x0Cu;
+    if (relativeBuilt) {
+        dwgBuffer wire(relativeFrame.bytes.data(), relativeFrame.bytes.size());
+        relativeControlRole = relativeControlRole
+            && setBitPosition(wire, relativeFrame.handleStartBit);
+        const dwgHandle rawControl = wire.getHandle();
+        relativeControlRole = relativeControlRole && wire.isGood()
+            && rawControl.rawCode == 0x0Cu && rawControl.ref == 1u;
+    }
+    t.expect(relativeControlRole,
+             "AC1012 VPORT control accepts code-12 relative soft pointer and resolves target");
+
+    VportHandleFrame relativeUnderflow;
+    const bool underflowBuilt = makeVportHandleFrame(
+        DRW::AC1012, relativeSource, -1, false, relativeUnderflow, true,
+        10u);
+    VportCodecProbe relativeRetry;
+    const bool relativeUnderflowRejected = underflowBuilt
+        && !parse(DRW::AC1012, relativeRetry, relativeUnderflow);
+    t.expect(relativeUnderflowRejected
+                 && relativeRetry.handle == DRW::NoHandle
+                 && relativeRetry.dwgHandleFieldSpans().empty(),
+             "underflowing AC1012 relative VPORT control rejects atomically");
+    t.expect(relativeBuilt && parse(DRW::AC1012, relativeRetry, relativeFrame)
+                 && relativeRetry.parentHandle == relativeSource.parentHandle
+                 && relativeRetry.dwgHandleFieldSpans().front().m_rawHandleCode
+                     == 0x0Cu,
+             "complete AC1012 relative VPORT control retries on the same parser");
 }
 
 void testAc1012PlusUcsHandleRoles(TestContext& t) {

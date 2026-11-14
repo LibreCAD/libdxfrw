@@ -6834,7 +6834,14 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
             return false;
         const bool canonicalNull = field.ref == 0u
             && field.rawCode == DRW::DwgNullReference;
-        if (field.rawCode != expectedRole && !canonicalNull) {
+        // ODA v5.4.1 §2.13 says relative offset-handle encodings are always
+        // soft pointers. Only the VPORT control field is read with offset=true.
+        const bool relativeSoftPointer = offset
+            && expectedRole == DRW::DwgSoftPointer
+            && (field.rawCode == 0x06u || field.rawCode == 0x08u
+                || field.rawCode == 0x0Au || field.rawCode == 0x0Cu);
+        if (field.rawCode != expectedRole && !relativeSoftPointer
+            && !canonicalNull) {
             DRW_DBG("VPORT handle role mismatch for ");
             DRW_DBG(name); DRW_DBG(": raw code ");
             DRW_DBG(static_cast<unsigned int>(field.rawCode));
