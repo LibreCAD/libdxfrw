@@ -1860,6 +1860,12 @@ public:
         legacyDynamicConstraint.setTextPoint(DRW_Coord{80.5, 81.5, 0.0});
         legacyDynamicConstraint.setText("version matrix legacy constraint");
 
+        genericDimension.handle = 0xDC1Bu;
+        genericDimension.setStyle("DIM_MATRIX_STYLE");
+        genericDimension.setDefPoint(DRW_Coord{85.0, 86.0, 87.0});
+        genericDimension.setTextPoint(DRW_Coord{85.5, 86.5, 0.0});
+        genericDimension.setText("version matrix generic dimension");
+
         arcDimension.handle = 0xDC19u;
         arcDimension.setArcDefPoint(DRW_Coord{90.0, 91.0, 92.0});
         arcDimension.setTextPoint(DRW_Coord{90.5, 91.5, 0.0});
@@ -1897,6 +1903,7 @@ public:
             && dxfW->writeDimension(&ordinate)
             && dxfW->writeDimension(&dynamicConstraint)
             && dxfW->writeDimension(&legacyDynamicConstraint)
+            && dxfW->writeDimension(&genericDimension)
             && dxfW->writeDimension(&arcDimension)
             && dxfW->writeDimension(&largeRadialDimension);
     }
@@ -1968,6 +1975,13 @@ public:
             && legacyDynamicConstraint.getDefPoint().x == 80.0
             && legacyDynamicConstraint.getText()
                 == "version matrix legacy constraint"
+            && genericDimension.handle == 0xDC1Bu
+            && genericDimension.getDefPoint().x == 85.0
+            && genericDimension.getDefPoint().y == 86.0
+            && genericDimension.getDefPoint().z == 87.0
+            && genericDimension.getTextPoint().x == 85.5
+            && genericDimension.getTextPoint().y == 86.5
+            && genericDimension.getText() == "version matrix generic dimension"
             && arcDimension.handle == 0xDC19u
             && arcDimension.getArcDefPoint().x == 90.0
             && arcDimension.getArcDefPoint().y == 91.0
@@ -2001,6 +2015,7 @@ public:
     DRW_DimOrdinate ordinate;
     DRW_DimLinear dynamicConstraint;
     DRW_DimLinear legacyDynamicConstraint;
+    DRW_Dimension genericDimension;
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadialDimension;
     bool written = false;
@@ -2028,6 +2043,10 @@ public:
                        == "version matrix legacy constraint") {
                 ++legacyDynamicConstraintCount;
                 legacyDynamicConstraint = *value;
+            } else if (value->getText()
+                       == "version matrix generic dimension") {
+                ++genericDimensionCount;
+                genericDimension = *value;
             } else {
                 ++linearCount;
                 linear = *value;
@@ -2086,6 +2105,7 @@ public:
     unsigned ordinateCount{0};
     unsigned dynamicConstraintCount{0};
     unsigned legacyDynamicConstraintCount{0};
+    unsigned genericDimensionCount{0};
     unsigned arcDimensionCount{0};
     unsigned largeRadialCount{0};
     DRW_DimAligned aligned;
@@ -2097,6 +2117,7 @@ public:
     DRW_DimOrdinate ordinate;
     DRW_DimLinear dynamicConstraint;
     DRW_DimLinear legacyDynamicConstraint;
+    DRW_DimLinear genericDimension;
     DRW_DimArc arcDimension;
     DRW_DimLargeRadial largeRadial;
     dx_data storage;
@@ -7172,6 +7193,7 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.ordinateCount == 1u
             && adapter.dynamicConstraintCount == 1u
             && adapter.legacyDynamicConstraintCount == 1u
+            && adapter.genericDimensionCount == 1u
             && adapter.arcDimensionCount == 1u
             && adapter.largeRadialCount == 1u
             && adapter.aligned.handle != 0u
@@ -7251,6 +7273,15 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.legacyDynamicConstraint.getDefPoint().z == 82.0
             && adapter.legacyDynamicConstraint.getText()
                 == "version matrix legacy constraint"
+            && adapter.genericDimension.handle != 0u
+            && adapter.genericDimension.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.genericDimension.getDefPoint().x == 85.0
+            && adapter.genericDimension.getDefPoint().y == 86.0
+            && adapter.genericDimension.getDefPoint().z == 87.0
+            && adapter.genericDimension.getTextPoint().x == 85.5
+            && adapter.genericDimension.getTextPoint().y == 86.5
+            && adapter.genericDimension.getText()
+                == "version matrix generic dimension"
             && adapter.arcDimension.handle != 0u
             && adapter.arcDimension.getStyle() == "DIM_MATRIX_STYLE"
             && adapter.arcDimension.getArcDefPoint().x == 90.0
@@ -7291,6 +7322,7 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                       << " dynamic=" << adapter.dynamicConstraintCount
                       << " legacyDynamic="
                       << adapter.legacyDynamicConstraintCount
+                      << " generic=" << adapter.genericDimensionCount
                       << " arcDimension=" << adapter.arcDimensionCount
                       << " largeRadial=" << adapter.largeRadialCount
                       << " alignedHandle=" << adapter.aligned.handle

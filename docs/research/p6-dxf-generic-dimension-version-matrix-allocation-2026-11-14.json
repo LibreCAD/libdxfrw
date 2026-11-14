@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-generic-dimension-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_GENERIC_DIMENSION_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Cover the plain DRW_Dimension base-class writer route in the generated seven-revision ASCII/Binary dimension transaction matrix.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "plain DRW_Dimension instance with default subtype 0, nondefault common points, style, and text",
+      "seven standard concrete DIMENSION subtypes, current/legacy dynamic-constraint profiles, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION in the same generated drawing",
+      "generated TEXTSTYLE and DIMSTYLE dependencies"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-generic-dimension-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Prime each version and encoding, measure allocation attempts in the clean full write, inject std::bad_alloc at each offset, require failure plus unchanged destination and caller state, retry with the same codec, compare exact clean bytes, and freshly read the base-class record through the callback selected by its DXF subtype."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 285,
+      "Binary": 284
+    },
+    "AC1015": {
+      "ASCII": 288,
+      "Binary": 286
+    },
+    "AC1018": {
+      "ASCII": 288,
+      "Binary": 286
+    },
+    "AC1021": {
+      "ASCII": 280,
+      "Binary": 278
+    },
+    "AC1024": {
+      "ASCII": 289,
+      "Binary": 287
+    },
+    "AC1027": {
+      "ASCII": 280,
+      "Binary": 278
+    },
+    "AC1032": {
+      "ASCII": 280,
+      "Binary": 278
+    }
+  },
+  "allocationOffsetTotal": 3967,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_dimension_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 28.31 seconds",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native rendering are not qualified.",
+    "Subtype 0 is delivered through the linear-dimension callback by current DXF reader dispatch; this receipt does not establish broader semantic interpretation of arbitrary plain base-class records.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The plain DRW_Dimension base-class writer route now has generated whole-operation ASCII/Binary rollback, caller-state preservation, same-codec retry, byte-identical output, and typed callback readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "P6-G remains open for public-writer inventory reconciliation, remaining direct routes and compound variants, and uncovered variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "300 completed slices and 34 remaining packages: 300/(300+34)=89.8%; equal-weight count, not effort-weighted."
+  }
+}
