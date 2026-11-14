@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **240 completed implementation slices** and **35 remaining
+The plan records **241 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`240 / (240 + 35) = 87.3%`. This is a count-based progress measure, not an
+`241 / (241 + 35) = 87.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1298,6 +1298,15 @@ control covers 64 allocation offsets. This is generated transaction evidence
 across these writer revisions only; producer profiles and native consumer
 meaning remain open
 ([version-matrix receipt](docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json)).
+
+**P6-G MATERIAL OBJECTS writer version-matrix follow-up (2026-11-13):** the
+generated rooted `ACAD_MATERIAL` graph now passes AC1021, AC1024, AC1027, and
+AC1032 in ASCII and Binary. All 40 ASCII and 39 Binary allocation failures per
+profile preserve the destination and source graph; same-adapter retries and
+fresh typed graph readback pass. The 316-offset focused CTest passes in 1.07
+seconds. This qualifies generated transaction behavior only; producer profiles,
+material semantics, and native rendering remain open
+([receipt](docs/research/p6-dxf-material-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G IMAGEBACKGROUND writer version-matrix transaction follow-up
 (2026-11-13):** the generated image background record now passes for AC1021,

@@ -257,45 +257,51 @@ bool run(const std::filesystem::path& directory) {
     MaterialExport exporter;
     const auto output = directory / "material-objects.dxf";
     const std::string sentinel = "prior MATERIAL destination bytes\n";
-    auto write = [&](bool binary) {
-        return exporter.fileExport(output.string(), DRW::AC1024, binary,
+    auto write = [&](DRW::Version version, bool binary) {
+        return exporter.fileExport(output.string(), version, binary,
             &data, false, true, dx_dxfSourceTextPolicy::Compatible,
             DRW::DxfTextWritePolicy::Compatible,
             dx_dxfProxyGraphicsPolicy::Compatible,
             dx_dwgReadCompletenessPolicy::AllowPartial);
     };
 
-    for (const bool binary : {false, true}) {
-        exporter.failAt = 1000000;
-        if (!write(binary) || !verifyGraph(output))
-            return fail("allocation calibration did not read back MATERIAL graph");
-        const long allocationCount = exporter.reached;
-        if (allocationCount <= 0)
-            return fail("calibration observed no OBJECTS callback allocations");
+    for (const DRW::Version version :
+         {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            exporter.failAt = 1000000;
+            if (!write(version, binary) || !verifyGraph(output))
+                return fail("allocation calibration did not read back MATERIAL graph");
+            const long allocationCount = exporter.reached;
+            if (allocationCount <= 0)
+                return fail("calibration observed no OBJECTS callback allocations");
 
-        for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not initialize destination sentinel");
+                }
+                exporter.failAt = offset;
+                exporter.reached = 0;
+                const bool wrote = write(version, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (wrote || exporter.reached < 1
+                    || !readAll(output, current) || current != sentinel
+                    || !sourceUnchanged(data, source))
+                    return fail("injected failure changed destination or source MATERIAL");
+                if (!write(version, binary) || !verifyGraph(output)
+                    || !sourceUnchanged(data, source))
+                    return fail("same-adapter retry failed MATERIAL readback");
             }
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            const bool wrote = write(binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached < 1
-                || !readAll(output, current) || current != sentinel
-                || !sourceUnchanged(data, source))
-                return fail("injected failure changed destination or source MATERIAL");
-            if (!write(binary) || !verifyGraph(output)
-                || !sourceUnchanged(data, source))
-                return fail("same-adapter retry failed MATERIAL readback");
+            std::cout << "MATERIAL OBJECTS target="
+                      << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
         }
-        std::cout << "MATERIAL OBJECTS " << (binary ? "Binary" : "ASCII")
-                  << ": allocation offsets=" << allocationCount
-                  << ", rollback/retry/readback=PASS\n";
     }
     std::error_code ignored;
     std::filesystem::remove(output, ignored);

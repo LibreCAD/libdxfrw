@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-material-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_MATERIAL_VERSION_MATRIX_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated rooted MATERIAL graph allocation rollback/retry and typed readback sweep across supported DXF target revisions.",
+  "source": {
+    "kind": "deterministic locally-authored AC1024 in-memory DWG source profile generated from a bounded MATERIAL object frame",
+    "profile": "One ACAD_MATERIAL NOD entry and dictionary, a ByBlock MATERIAL, its extension dictionary, nondefault material controls, and diffuse/refraction map data.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/material_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-material-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Run the existing whole-file adapter allocation-failure sweep for each target revision and encoding. Preserve a destination sentinel and compare every modeled source field after every injected failure and same-adapter retry; require typed rooted graph readback."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 40, "Binary": 39},
+    "AC1024": {"ASCII": 40, "Binary": 39},
+    "AC1027": {"ASCII": 40, "Binary": 39},
+    "AC1032": {"ASCII": 40, "Binary": 39},
+    "total": 316
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_material_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_material_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.09 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_material_objects_allocation_tests build-gcc/material-objects-allocation-scratch: PASS; 316 injected offsets across four target revisions and two encodings",
+    "diffCheck": "pending"
+  },
+  "limitations": [
+    "Generated target-revision transaction evidence only; it does not establish producer-authored profiles, independent material semantics, or native rendering.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated rooted MATERIAL graph now preserves source/destination state, retries, and passes typed readback at AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the remaining public-writer inventory and caller-state audit; preserve source-profile, graph-closure, and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "241 completed slices and 35 remaining packages: 241/(241+35)=87.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-dimassoc-version-matrix-allocation-rollback-retry-2026-11-13.json"
+}
