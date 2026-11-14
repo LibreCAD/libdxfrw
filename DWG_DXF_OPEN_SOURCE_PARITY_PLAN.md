@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **365 completed implementation and qualification slices** and **34 remaining
+The plan records **366 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`365 / (365 + 34) = 91.5%`. This is a count-based progress measure, not an
+`366 / (366 + 34) = 91.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6555,6 +6555,19 @@ outside the sandbox. These are generated macOS profiles only. Hosted
 Linux/Windows qualification remains pending, so P8 stays OPEN. See the
 [current-source receipt](docs/research/p8-freecad-current-source-ac1021-ac1024-open-insert-2026-11-14.json)
 and [release-bound workflow receipt](docs/research/p8-freecad-platform-workflow-114-pin-2026-11-12.json).
+
+**P8 current-source generated LINE plus primitive consumer recheck (2026-11-14):**
+at repository HEAD `e263deb5`, the current build and temporary-installed
+`dwg2dxf` binaries match (SHA-256
+`7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea`). Six
+focused native FreeCAD 1.1.4 macOS ARM64 open/insert cases pass in 5.15 seconds:
+generated AC1021 3D LINE, generated AC1021 mixed 2D/3D primitives, and generated
+AC1024 mixed 2D/3D primitives. Inputs are created from scratch at test runtime
+and are not retained as repository fixtures. This updates current-source local
+consumer evidence only; native Linux and Windows runs, physical producer
+drawings, ABI/package gates, and broader semantic profiles remain open. P8
+remains OPEN; no support claim is promoted. See the refreshed
+[current-source receipt](docs/research/p8-freecad-current-source-ac1021-ac1024-open-insert-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four
