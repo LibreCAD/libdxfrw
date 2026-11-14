@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **232 completed implementation slices** and **35 remaining
+The plan records **233 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`232 / (232 + 35) = 86.9%`. This is a count-based progress measure, not an
+`233 / (233 + 35) = 86.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1579,6 +1579,14 @@ still pass (12/11 offsets in this focused test; the separate whole-operation
 sweep remains 541/535). This follows the adapter's explicit same-revision
 output gate; it does not qualify cross-revision serialization or producer
 behavior. See the [refusal-gate receipt](docs/research/p6-dxf-wipeoutvariables-same-revision-output-gate-2026-11-13.json).
+
+**P6-F CLI WIPEOUTVARIABLES strict-source refusal (2026-11-13):** a
+scratch-generated AC1027 DWG with a WIPEOUTVARIABLES object is refused by
+`dwg2dxf` because the broader source-reference graph is not fully qualified.
+The CLI returns failure and preserves existing destination bytes both under
+default strict mode and with `--allow-partial-dwg-read`; that option does not
+bypass reference closure. This does not prove a version-mismatch refusal or a
+successful CLI retry. See the [CLI disposition receipt](docs/research/p6-cli-wipeoutvariables-incomplete-graph-refusal-2026-11-13.json).
 
 **P6 local SUN transaction slice (2026-11-13):** the generated whole-operation
 AC1027 sweep now includes a SUN object with nondefault state, ACI color,

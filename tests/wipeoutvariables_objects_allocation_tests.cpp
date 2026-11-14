@@ -290,6 +290,19 @@ void operator delete(void* value, std::size_t) noexcept { std::free(value); }
 void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
+    if (argc == 3 && std::string(argv[1]) == "--create-source") {
+        const std::filesystem::path source(argv[2]);
+        std::error_code error;
+        std::filesystem::create_directories(source.parent_path(), error);
+        if (error) {
+            std::cerr << "could not create DWG source directory: "
+                      << error.message() << '\n';
+            return 2;
+        }
+        dwgRW writer(source.string().c_str());
+        WipeoutAuthor author(writer);
+        return writer.write(&author, DRW::AC1027, false) ? 0 : 1;
+    }
     if (argc != 2) {
         std::cerr << "usage: wipeoutvariables_objects_allocation_tests SCRATCH_DIR\n";
         return 2;

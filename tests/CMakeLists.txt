@@ -3258,6 +3258,16 @@ add_test(NAME libdxfrw_wipeoutvariables_objects_allocation_retry
 set_tests_properties(libdxfrw_wipeoutvariables_objects_allocation_retry PROPERTIES
     LABELS "fast;dwg;dxf;wipeout;allocation;transaction;generated"
     TIMEOUT 60)
+if(LIBDXFRW_BUILD_DWG2DXF)
+    add_test(NAME dwg2dxf_wipeoutvariables_incomplete_graph_refusal
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_wipeoutvariables_cli_contract.py
+            --converter $<TARGET_FILE:dwg2dxf>
+            --generator $<TARGET_FILE:libdxfrw_wipeoutvariables_objects_allocation_tests>)
+    set_tests_properties(dwg2dxf_wipeoutvariables_incomplete_graph_refusal PROPERTIES
+        LABELS "fast;cli;dwg;dxf;wipeout;transaction;generated"
+        TIMEOUT 45)
+endif()
 
 # The direct NOD -> ACAD_IMAGE_VARS -> RASTERVARIABLES profile is authored
 # locally from the observed physical AC1027 ownership shape. It proves only
