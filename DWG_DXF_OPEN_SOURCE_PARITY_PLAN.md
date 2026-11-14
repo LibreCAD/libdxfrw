@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **302 completed implementation slices** and **34 remaining
+The plan records **304 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`302 / (302 + 34) = 89.9%`. This is a count-based progress measure, not an
+`304 / (304 + 34) = 89.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5869,17 +5869,19 @@ transaction controls pass ([identity receipt](docs/research/p8-render-settings-i
 This closes only identity transport; physical producer breadth and native
 rendering semantics remain open.
 
-**P6-G IMAGE compound writer revision matrix (2026-11-13):** a locally
-generated IMAGE plus generated IMAGEDEF and IMAGEDEF_REACTOR now passes the
-full-operation allocation sweep for AC1014, AC1015, AC1018, AC1021, AC1024,
-AC1027 and AC1032 in ASCII and Binary. All 1,451 injected failures preserve
-the prior destination and caller IMAGE model; same-writer retry reproduces
-the clean bytes, and fresh typed readback checks the image fields and reactor
-owner/reference graph. The simple `writeImage(image, name)` overload emits
-default IMAGEDEF calibration values; this receipt does not qualify imported
-or planned source metadata, producer semantics, independent reference closure,
-or native behavior. No fixture files were added. See the
-[IMAGE transaction receipt](docs/research/p6-dxf-image-writer-version-matrix-allocation-2026-11-13.json).
+**P6-G IMAGE compound writer revision matrix (2026-11-14):** generated
+IMAGE/IMAGEDEF/IMAGEDEF_REACTOR output now covers both the convenience writer
+and the planned-source overload across AC1014, AC1015, AC1018, AC1021, AC1024,
+AC1027 and AC1032 in ASCII and Binary. The planned profile carries nondefault
+IMAGEDEF calibration, resolution and loaded fields plus one selected reactor
+identity; both profiles pass full-operation allocation rollback, caller-state
+preservation, same-writer byte-identical retry and fresh typed graph readback.
+All 3,098 measured allocation failures passed; the focused CTest passes in
+22.09 seconds. This is generated plan/transport and same-library readback
+evidence only; imported producer semantics, independent reference closure and
+native behavior remain open. No fixture files were added. See the
+[planned-source transaction receipt](docs/research/p6-dxf-image-planned-source-version-matrix-2026-11-14.json)
+and [initial convenience-overload receipt](docs/research/p6-dxf-image-writer-version-matrix-allocation-2026-11-13.json).
 
 **P6-G OLE compound entity revision matrix (2026-11-13):** a generated
 OLEFRAME/OLE2FRAME pair with 130-byte payloads now passes whole-operation

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-image-planned-source-version-matrix-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_IMAGE_PLANNED_SOURCE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the IMAGE compound writer transaction matrix from the generated-definition convenience overload to the planned source-definition overload with selected reactor identity and nondefault IMAGEDEF metadata.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Image and ImageDefinitionPlanEntry",
+    "profiles": {
+      "generatedDefinition": "Existing convenience overload profile; writer synthesizes default IMAGEDEF calibration fields and one IMAGEDEF_REACTOR.",
+      "plannedSourceDefinition": "Source IMAGE handle 0xA71F references planned IMAGEDEF source handle 0xA720 and selected reactor source handle 0xA721; planned IMAGEDEF has nondefault U/V/UP/VP calibration, loaded=1, resolution=5 and one selected version-2 reactor owned by the source IMAGE."
+    },
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/image_writer_version_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-image-planned-source-version-matrix-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "4af60ecb1f65d6bcf19ef4c2074d41e029bb54ace66091b43819119fd1710cde",
+    "testExecutableSha256": "4cdefb622d859ebaea7586c51aa37abc4ff88b7b9c5f555705902eafc31cd9c6",
+    "method": "For both writer overload profiles, each revision and encoding gets a clean baseline; inject std::bad_alloc at every measured whole-file write allocation, require sentinel destination bytes and unchanged caller IMAGE handles/fields, retry on the same codec with byte-identical output, then freshly import and verify revision, IMAGE fields, IMAGEDEF metadata, selected/generated reactor identity and owner links."
+  },
+  "allocationOffsets": {
+    "AC1014": {"generatedASCII": 103, "generatedBinary": 102, "plannedASCII": 115, "plannedBinary": 114},
+    "AC1015": {"generatedASCII": 105, "generatedBinary": 104, "plannedASCII": 117, "plannedBinary": 116},
+    "AC1018": {"generatedASCII": 105, "generatedBinary": 104, "plannedASCII": 117, "plannedBinary": 116},
+    "AC1021": {"generatedASCII": 104, "generatedBinary": 103, "plannedASCII": 116, "plannedBinary": 115},
+    "AC1024": {"generatedASCII": 111, "generatedBinary": 110, "plannedASCII": 123, "plannedBinary": 122},
+    "AC1027": {"generatedASCII": 104, "generatedBinary": 103, "plannedASCII": 116, "plannedBinary": 115},
+    "AC1032": {"generatedASCII": 104, "generatedBinary": 103, "plannedASCII": 116, "plannedBinary": 115},
+    "totals": {"generatedDefinition": 1465, "plannedSourceDefinition": 1633, "all": 3098}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_image_writer_version_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_image_writer_version_allocation$' --output-on-failure: PASS 1/1 in 22.08 seconds",
+    "directRun": "build/tests/libdxfrw_image_writer_version_allocation_tests /Users/dli/dev/libdxfrw/build/tests/image-writer-version-allocation-scratch: PASS; all 3,098 measured offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated plan/transport and same-library readback evidence only; no producer-authored source or independent native consumer is involved.",
+    "One selected reactor and one planned IMAGEDEF profile are covered; broader producer variation, recursive closure, external reference semantics and native behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The IMAGE transaction matrix now covers both the generated convenience path and the planned-source overload with one selected reactor across all seven admitted revisions in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; source producer semantics and independent/native gates remain separate.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "304 completed slices and 34 remaining packages: 304/(304+34)=89.9%; count-based activity proxy only."
+  }
+}
