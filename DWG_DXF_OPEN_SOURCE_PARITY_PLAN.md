@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **338 completed implementation slices** and **34 remaining
+The plan records **339 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`338 / (338 + 34) = 90.9%`. This is a count-based progress measure, not an
+`339 / (339 + 34) = 90.9%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -19,9 +19,10 @@ historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
 
 **Newest local P6-G slice (2026-11-14):** generated AC1021 DIMSTYLE records
-with nondefault `DIMTFILLCLR` now pass allocation-failure rollback, caller
-state preservation, same-writer byte-identical retry, and fresh typed readback
-in ASCII and Binary. All 19 measured allocation failures pass; the focused
+with nondefault typed and dynamic `$DIMTFILLCLR` values now pass
+allocation-failure rollback, caller-state preservation, same-writer
+byte-identical retry, and fresh typed readback in ASCII and Binary. All 40
+measured allocation failures pass; the focused
 DIMSTYLE transaction test completes in under one second. This adds generated
 transaction evidence only; the peer-defined field and its semantic profile
 remain bounded as described below ([receipt](docs/research/p6-dxf-dimstyle-fill-color-allocation-retry-2026-11-14.json)).

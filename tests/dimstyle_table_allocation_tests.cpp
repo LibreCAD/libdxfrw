@@ -300,83 +300,106 @@ bool dimstyleTextFillColorAllocationSweep(
     const auto path = directory / "dimstyle-text-fill-color-allocation.dxf";
     const std::string prior = "prior DIMSTYLE fill-color bytes\n";
     for (const bool binary : {false, true}) {
-        long allocationCount = 0;
-        std::string expectedBytes;
-        {
-            dxfRW codec(path.string().c_str());
-            Export exporter(codec);
-            exporter.dimstyle.flags = 64;
-            exporter.dimstyle.dimtfill = 2;
-            exporter.dimstyle.dimtfillclr = 42;
-            exporter.failAt = 1000000;
-            if (!codec.write(&exporter, DRW::AC1021, binary)
-                || !exporter.styleAccepted || !exporter.accepted
-                || exporter.dimstyle.dimtfillclr != 42
-                || !readBytes(path, expectedBytes)) {
-                std::cerr << "DIMTFILLCLR allocation baseline failed: binary="
-                          << binary << '\n';
-                return false;
-            }
-            allocationCount = exporter.reached;
-            dxfRW readerCodec(path.string().c_str());
-            Reader reader;
-            if (!readerCodec.read(&reader, false)
-                || reader.dimstyles.size() != 1u
-                || reader.dimstyles.front().flags != 64
-                || reader.dimstyles.front().dimtfill != 2
-                || reader.dimstyles.front().dimtfillclr != 42)
-                return false;
-        }
-        if (allocationCount <= 0)
-            return false;
-
-        for (long offset = 0; offset < allocationCount; ++offset) {
+        for (const bool dynamicOverride : {false, true}) {
+            const int expectedColor = dynamicOverride ? 13 : 42;
+            long allocationCount = 0;
+            std::string expectedBytes;
             {
-                std::ofstream output(path,
-                                     std::ios::binary | std::ios::trunc);
-                output << prior;
-                if (!output)
+                dxfRW codec(path.string().c_str());
+                Export exporter(codec);
+                exporter.dimstyle.flags = 64;
+                exporter.dimstyle.dimtfill = 2;
+                exporter.dimstyle.dimtfillclr = 42;
+                if (dynamicOverride)
+                    exporter.dimstyle.add("$DIMTFILLCLR", 70, 13);
+                exporter.failAt = 1000000;
+                if (!codec.write(&exporter, DRW::AC1021, binary)
+                    || !exporter.styleAccepted || !exporter.accepted
+                    || exporter.dimstyle.dimtfillclr != 42
+                    || (dynamicOverride
+                        && (exporter.dimstyle.get("$DIMTFILLCLR") == nullptr
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->code() != 70
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->i_val()
+                                != 13))
+                    || !readBytes(path, expectedBytes)) {
+                    std::cerr << "DIMTFILLCLR allocation baseline failed: binary="
+                              << binary << '\n';
+                    return false;
+                }
+                allocationCount = exporter.reached;
+                dxfRW readerCodec(path.string().c_str());
+                Reader reader;
+                if (!readerCodec.read(&reader, false)
+                    || reader.dimstyles.size() != 1u
+                    || reader.dimstyles.front().flags != 64
+                    || reader.dimstyles.front().dimtfill != 2
+                    || reader.dimstyles.front().dimtfillclr != expectedColor)
                     return false;
             }
-            dxfRW codec(path.string().c_str());
-            Export exporter(codec);
-            exporter.dimstyle.flags = 64;
-            exporter.dimstyle.dimtfill = 2;
-            exporter.dimstyle.dimtfillclr = 42;
-            exporter.failAt = offset;
-            const bool written = codec.write(&exporter, DRW::AC1021, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (written || exporter.accepted
-                || exporter.reached != offset + 1
-                || !allocationFailed || !readBytes(path, current)
-                || current != prior || exporter.dimstyle.flags != 64
-                || exporter.dimstyle.dimtfill != 2
-                || exporter.dimstyle.dimtfillclr != 42) {
-                std::cerr << "DIMTFILLCLR allocation rollback failed: binary="
-                          << binary << " offset=" << offset << '\n';
+            if (allocationCount <= 0)
                 return false;
-            }
 
-            if (!codec.write(&exporter, DRW::AC1021, binary)
-                || !exporter.styleAccepted || !exporter.accepted
-                || exporter.dimstyle.dimtfillclr != 42
-                || !readBytes(path, current) || current != expectedBytes) {
-                std::cerr << "DIMTFILLCLR same-writer retry failed: binary="
-                          << binary << " offset=" << offset << '\n';
-                return false;
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream output(path,
+                                         std::ios::binary | std::ios::trunc);
+                    output << prior;
+                    if (!output)
+                        return false;
+                }
+                dxfRW codec(path.string().c_str());
+                Export exporter(codec);
+                exporter.dimstyle.flags = 64;
+                exporter.dimstyle.dimtfill = 2;
+                exporter.dimstyle.dimtfillclr = 42;
+                if (dynamicOverride)
+                    exporter.dimstyle.add("$DIMTFILLCLR", 70, 13);
+                exporter.failAt = offset;
+                const bool written = codec.write(&exporter, DRW::AC1021, binary);
+                exporter.failAt = -1;
+                std::string current;
+                if (written || exporter.accepted
+                    || exporter.reached != offset + 1
+                    || !allocationFailed || !readBytes(path, current)
+                    || current != prior || exporter.dimstyle.flags != 64
+                    || exporter.dimstyle.dimtfill != 2
+                    || exporter.dimstyle.dimtfillclr != 42
+                    || (dynamicOverride
+                        && (exporter.dimstyle.get("$DIMTFILLCLR") == nullptr
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->code() != 70
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->i_val()
+                                != 13))) {
+                    std::cerr << "DIMTFILLCLR allocation rollback failed: binary="
+                              << binary << " offset=" << offset << '\n';
+                    return false;
+                }
+
+                if (!codec.write(&exporter, DRW::AC1021, binary)
+                    || !exporter.styleAccepted || !exporter.accepted
+                    || exporter.dimstyle.dimtfillclr != 42
+                    || (dynamicOverride
+                        && (exporter.dimstyle.get("$DIMTFILLCLR") == nullptr
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->code() != 70
+                            || exporter.dimstyle.get("$DIMTFILLCLR")->i_val()
+                                != 13))
+                    || !readBytes(path, current) || current != expectedBytes) {
+                    std::cerr << "DIMTFILLCLR same-writer retry failed: binary="
+                              << binary << " offset=" << offset << '\n';
+                    return false;
+                }
+                dxfRW readerCodec(path.string().c_str());
+                Reader reader;
+                if (!readerCodec.read(&reader, false)
+                    || reader.dimstyles.size() != 1u
+                    || reader.dimstyles.front().flags != 64
+                    || reader.dimstyles.front().dimtfill != 2
+                    || reader.dimstyles.front().dimtfillclr != expectedColor)
+                    return false;
             }
-            dxfRW readerCodec(path.string().c_str());
-            Reader reader;
-            if (!readerCodec.read(&reader, false)
-                || reader.dimstyles.size() != 1u
-                || reader.dimstyles.front().flags != 64
-                || reader.dimstyles.front().dimtfill != 2
-                || reader.dimstyles.front().dimtfillclr != 42)
-                return false;
+            std::cout << "DIMTFILLCLR AC1021 " << (binary ? "Binary" : "ASCII")
+                      << (dynamicOverride ? " dynamic" : " typed")
+                      << " allocation offsets=" << allocationCount << '\n';
         }
-        std::cout << "DIMTFILLCLR AC1021 " << (binary ? "Binary" : "ASCII")
-                  << " allocation offsets=" << allocationCount << '\n';
     }
     return true;
 }

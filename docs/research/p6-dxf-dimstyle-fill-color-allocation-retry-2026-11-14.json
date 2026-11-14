@@ -4,13 +4,17 @@
   "title": "DIMSTYLE DIMTFILLCLR allocation rollback and retry",
   "scope": [
     "Exercise generated AC1021 DIMSTYLE output with table flags, DIMTFILL, and a nondefault peer-profile DIMTFILLCLR ACI value",
+    "Exercise both typed DIMTFILLCLR state and the exact $DIMTFILLCLR dynamic override, verifying override precedence",
     "Inject allocation failures throughout complete ASCII and Binary document writes",
-    "Verify output destination and caller DIMSTYLE state are preserved after each failure",
-    "Retry using the same codec and adapter, compare complete output bytes with a clean baseline, and read the typed values back"
+    "Verify output destination and caller DIMSTYLE state, including the dynamic override, are preserved after each failure",
+    "Retry using the same codec and adapter, compare complete output bytes with a clean baseline, and read the typed effective value back"
   ],
   "profile": {
     "dxfVersion": "AC1021",
-    "encodings": ["ASCII", "Binary"],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
     "fields": {
       "tableFlagsGroup70": 64,
       "dimtfillGroup69": 2,
@@ -21,25 +25,34 @@
   },
   "results": {
     "ASCII": {
-      "measuredAllocationOffsets": 10,
+      "typedMeasuredAllocationOffsets": 10,
+      "dynamicMeasuredAllocationOffsets": 11,
       "rollbackPassed": true,
       "callerStatePreserved": true,
       "sameWriterRetryByteIdentical": true,
-      "typedReadback": true
+      "typedReadback": {
+        "typedColor": 42,
+        "dynamicOverrideColor": 13
+      }
     },
     "Binary": {
-      "measuredAllocationOffsets": 9,
+      "typedMeasuredAllocationOffsets": 9,
+      "dynamicMeasuredAllocationOffsets": 10,
       "rollbackPassed": true,
       "callerStatePreserved": true,
       "sameWriterRetryByteIdentical": true,
-      "typedReadback": true
-    }
+      "typedReadback": {
+        "typedColor": 42,
+        "dynamicOverrideColor": 13
+      }
+    },
+    "totalMeasuredAllocationFailures": 40
   },
   "validation": {
     "buildCommand": "cmake --build build-gcc --target libdxfrw_dimstyle_table_allocation_tests -j4",
     "buildResult": "PASS (-Werror)",
     "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
-    "testResult": "PASS (1/1; 0.65 seconds)",
+    "testResult": "PASS (1/1; 0.62 seconds; typed and dynamic DIMTFILLCLR rollback/retry profiles)",
     "fullSuiteRun": false
   },
   "claimBoundary": [
