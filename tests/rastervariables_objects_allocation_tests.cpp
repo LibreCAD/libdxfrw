@@ -57,7 +57,8 @@ public:
         variables.m_classVersion = 0;
         variables.m_imageFrame = 0;
         variables.m_imageQuality = 1;
-        variables.m_units = version == DRW::AC1024 ? 3 : 1;
+        variables.m_units = version == DRW::AC1024 || version == DRW::AC1032
+            ? 3 : 1;
         variables.reactorHandles = {DRW::DwgNamedObjectsDictionaryHandle};
         variables.setDwgCommonObjectState(1, 1, false);
     }
@@ -160,7 +161,7 @@ bool run(const std::filesystem::path& directory) {
     } cleanup{scratchFiles};
 
     for (const DRW::Version version : {
-             DRW::AC1021, DRW::AC1024, DRW::AC1027}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto source = directory
             / ("rastervariables-source-"
                + std::to_string(static_cast<int>(version)) + ".dwg");
@@ -219,7 +220,8 @@ bool run(const std::filesystem::path& directory) {
                 return fail("allocation calibration export failed");
             }
             const long allocationCount = exporter.reached;
-            const std::int16_t expectedUnits = version == DRW::AC1024 ? 3 : 1;
+            const std::int16_t expectedUnits =
+                version == DRW::AC1024 || version == DRW::AC1032 ? 3 : 1;
             if (allocationCount <= 0
                 || !verifyGraph(destination, expectedUnits))
                 return fail("calibration did not emit the typed raster graph");
