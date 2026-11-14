@@ -75,9 +75,12 @@ static bool input(const std::filesystem::path&p,bool binary,const std::vector<Fi
 static bool read(const std::filesystem::path&p,Capture&c){dxfRW in(p.string().c_str());return in.read(&c,false);}
 static std::string file(const std::filesystem::path&p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
 static bool rawColor(const Capture&c,int expected){int n=0;for(const auto&g:c.raw.groups)if(g.code()==421){if(g.type()!=DRW_Variant::INTEGER||g.i_val()!=expected)return false;++n;}return n==1;}
-static bool sunReadback(const std::filesystem::path& path) {
+static bool sunReadback(const std::filesystem::path& path,
+                        DRW::Version expectedVersion) {
  Capture capture;
- if(!read(path,capture)||capture.count!=1)return false;
+ dxfRW input(path.string().c_str());
+ if(!input.read(&capture,false)||input.getSourceVersion()!=expectedVersion
+    ||capture.count!=1)return false;
  const DRW_Sun& sun=capture.first;
  return sun.handle==0xD010u&&sun.parentHandle==0x30u
   &&sun.m_classVersion==1u&&sun.m_isOn&&sun.m_color==7u
@@ -87,9 +90,13 @@ static bool sunReadback(const std::filesystem::path& path) {
   &&sun.m_shadowMapSize==512u&&sun.m_shadowSoftness==3u;
 }
 static bool allocationSweep(const std::filesystem::path& dir) {
- const auto path=dir/"allocation-sun.dxf";
  const std::string prior="prior SUN bytes\n";
- for(bool binary:{false,true}) {
+ const std::pair<DRW::Version,const char*> versions[]={
+  {DRW::AC1021,"AC1021"},{DRW::AC1024,"AC1024"},
+  {DRW::AC1027,"AC1027"},{DRW::AC1032,"AC1032"}};
+ for(const auto& target:versions)for(bool binary:{false,true}) {
+  const auto path=dir/(std::string("allocation-sun-")+target.second
+                       +(binary?"-binary.dxf":"-ascii.dxf"));
   long allocationCount=0;std::string expected;
   {
    dxfRW codec(path.string().c_str());Export exporter(codec);
@@ -100,8 +107,8 @@ static bool allocationSweep(const std::filesystem::path& dir) {
    exporter.sun.m_milliseconds=45678;exporter.sun.m_isDaylightSavings=true;
    exporter.sun.m_shadowType=2u;exporter.sun.m_shadowMapSize=512u;
    exporter.sun.m_shadowSoftness=3u;exporter.failAt=1000000;
-   const bool written=codec.write(&exporter,DRW::AC1027,binary);
-   if(!written||!exporter.accepted||!sunReadback(path))return false;
+   const bool written=codec.write(&exporter,target.first,binary);
+   if(!written||!exporter.accepted||!sunReadback(path,target.first))return false;
    allocationCount=exporter.reached;expected=file(path);
   }
   if(allocationCount<=0||expected.empty())return false;
@@ -115,16 +122,17 @@ static bool allocationSweep(const std::filesystem::path& dir) {
    exporter.sun.m_milliseconds=45678;exporter.sun.m_isDaylightSavings=true;
    exporter.sun.m_shadowType=2u;exporter.sun.m_shadowMapSize=512u;
    exporter.sun.m_shadowSoftness=3u;exporter.failAt=offset;
-   const bool written=codec.write(&exporter,DRW::AC1027,binary);
+   const bool written=codec.write(&exporter,target.first,binary);
    exporter.failAt=-1;
    if(written||exporter.accepted||exporter.reached!=1||file(path)!=prior
       ||exporter.sun.handle!=0xD010u||exporter.sun.parentHandle!=0x30u
       ||exporter.sun.m_intensity!=1.25||exporter.sun.m_julianDay!=2458123)
     return false;
-   const bool retried=codec.write(&exporter,DRW::AC1027,binary);
-   if(!retried||!exporter.accepted||file(path)!=expected||!sunReadback(path))return false;
+   const bool retried=codec.write(&exporter,target.first,binary);
+   if(!retried||!exporter.accepted||file(path)!=expected
+      ||!sunReadback(path,target.first))return false;
   }
-  std::cout<<"SUN DXF "<<(binary?"Binary":"ASCII")<<": allocation offsets="
+  std::cout<<"SUN "<<target.second<<" DXF "<<(binary?"Binary":"ASCII")<<": allocation offsets="
            <<allocationCount<<", rollback/retry/readback=PASS\n";
  }
  return true;

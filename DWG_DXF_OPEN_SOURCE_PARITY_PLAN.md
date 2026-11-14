@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **360 completed implementation and qualification slices** and **34 remaining
+The plan records **361 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`360 / (360 + 34) = 91.4%`. This is a count-based progress measure, not an
+`361 / (361 + 34) = 91.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -202,6 +202,16 @@ recovers on the same writer at AC1015. This closes generated transaction and
 minimum-version behavior only; definition-object closure, producer behavior
 and native Navisworks semantics remain unqualified. The focused selector
 passes in 0.54 seconds ([receipt](docs/research/p6-dxf-navisworks-model-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G SUN writer revision-matrix transaction follow-up (2026-11-14):**
+the existing whole-file allocation sweep now covers AC1021/AC1024/AC1027/AC1032
+in ASCII and Binary. All 56 injected allocation failures preserve the prior
+destination and caller SUN state; same-writer retries reproduce clean bytes,
+and fresh typed readback checks the source revision and modeled SUN fields.
+This is generated transaction/self-readback evidence only; source-producer
+prevalence, CMC values outside the admitted ACI projection and native sun
+rendering remain unqualified. The focused test passes in 0.39 seconds
+([receipt](docs/research/p6-dxf-sun-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the
