@@ -1403,6 +1403,12 @@ def check_source_disposition_projection(converter, root, writer):
             == [b"9", b"$REQUIREDVERSIONS", b"160", b"1"]
             for index in range(max(0, len(lines) - 3))) == 1
 
+    def has_header_boolean(payload, name, expected):
+        lines = [line.strip() for line in payload.splitlines()]
+        marker = [b"9", name.encode("ascii"), b"290", str(expected).encode("ascii")]
+        return sum(lines[index:index + 4] == marker
+                   for index in range(max(0, len(lines) - 3))) == 1
+
     admitted_bytes = (admitted_output.read_bytes()
                       if admitted_output.is_file() else b"")
     if (admitted.returncode != 0
@@ -1411,7 +1417,10 @@ def check_source_disposition_projection(converter, root, writer):
             or b"sourceRequiredVersionsMask=0x0000000000000001" not in admitted.stderr
             or b"sourceRequiredVersionsOutput=admitted" not in admitted.stderr
             or not output_has_revision(admitted_bytes, b"AC1032", False)
-            or not has_required_versions_mask(admitted_bytes)):
+            or not has_required_versions_mask(admitted_bytes)
+            or not has_header_boolean(admitted_bytes, "$PSTYLEMODE", 1)
+            or not has_header_boolean(admitted_bytes, "$EXTNAMES", 1)
+            or not has_header_boolean(admitted_bytes, "$OLESTARTUP", 0)):
         raise AssertionError(
             f"supported required-version mask did not survive AC1032 output: {admitted!r}")
 

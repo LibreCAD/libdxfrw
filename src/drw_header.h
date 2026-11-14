@@ -449,10 +449,12 @@ private:
                                       int& linearUnit, int& fraction,
                                       int& textArrowFit, int& textMove) const;
     bool getDxfHeaderIntegerValue(const char* dollarName, int groupCode,
-                                  int& value, bool& present) const noexcept;
+                                  int& value, bool& present,
+                                  int alternateGroupCode = -1) const noexcept;
     bool canWriteDxfHeaderIntegerRange(const char* dollarName, int groupCode,
                                        int minimum, int maximum,
-                                       bool* foundValue = nullptr) const noexcept;
+                                       bool* foundValue = nullptr,
+                                       int alternateGroupCode = -1) const noexcept;
     bool canWriteDwgInsunits() const noexcept;
     static bool matchesIntVar(const std::unordered_map<std::string, DRW_Variant*>& values,
                               const char* key, int code, int value);

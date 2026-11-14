@@ -1,10 +1,10 @@
 # DWG/DXF parity — remaining implementation plan
 
-## Progress estimate (2026-11-13)
+## Progress estimate (2026-11-14)
 
-The plan records **276 completed implementation slices** and **35 remaining
+The plan records **277 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`276 / (276 + 35) = 88.7%`. This is a count-based progress measure, not an
+`277 / (277 + 35) = 88.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1181,6 +1181,18 @@ layer-role, BLOCK_HEADER-role, tracked-fixture adapter import and
 historical-source refusal CTests pass 4/4 in 0.33 seconds. This is tolerant read compatibility for the tracked historical
 writer profile, not ODA role conformance or support/output qualification; no
 fixture was added. See the [AC1021 role receipt](docs/research/p6-ac1021-historical-block-header-body-roles-2026-11-13.json).
+
+**P6-F AC1032 HEADER boolean group-code readback (2026-11-14):** the
+AC2010+ writer emits `$EXTNAMES`, `$PSTYLEMODE`, and `$OLESTARTUP` using group
+290, while packed DWG flags and legacy DXF inputs can retain group 70. Header
+preflight now accepts those source representations for AC2010+ and emits the
+target's group-290 form; DWG flag composition accepts either representation
+and still rejects unrelated codes. The focused packed-flag control passes, and
+the fixture-free source-disposition CLI contract passes all 34 controls,
+including generated AC1032 output and readback. This closes only the local
+boolean field mismatch; broader HEADER version/envelope accounting, producer
+interoperability, and native qualification remain open. See the [HEADER boolean
+receipt](docs/research/p6-ac1032-header-boolean-group-codes-2026-11-14.json).
 
 After every slice: run its focused fast checks; update this queue and the
 relevant receipt; commit code, plan and receipt together; report the commit and

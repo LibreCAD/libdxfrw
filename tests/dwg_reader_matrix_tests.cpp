@@ -20075,6 +20075,19 @@ void testHeaderPackedFlags(TestContext& t) {
                  && DrwHeaderEncodeTestAccess::dxfFlagsWritable(modeled),
              "modeled HEADER values encode without undefined bits");
 
+    HeaderWriteProbe modernDxfFlags;
+    modernDxfFlags.addInt("$EXTNAMES", 1, 290);
+    modernDxfFlags.addInt("$PSTYLEMODE", 0, 290);
+    modernDxfFlags.addInt("$OLESTARTUP", 1, 290);
+    encoded = 0u;
+    t.expect(DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded)
+                 && encoded == ((1u << 11u) | (1u << 14u)),
+             "R2010+ DXF boolean group codes compose the equivalent DWG flags");
+    modernDxfFlags.addInt("$OLESTARTUP", 1, 280);
+    encoded = 0u;
+    t.expect(!DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded),
+             "modern HEADER flag variables still reject unrelated group codes");
+
     modeled.addInt("$ENDCAPS", 4, 280);
     encoded = 0u;
     t.expect(!DrwHeaderEncodeTestAccess::encodeFlags(modeled, encoded),

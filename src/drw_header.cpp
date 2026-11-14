@@ -904,6 +904,12 @@ bool DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
 
 void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){
 /*RLZ: TODO complete all vars to AC1024*/
+    // Packed DWG flags decode to their legacy group-70 representation, while
+    // modern DXF files may already carry group 290. Accept both for AC2010+
+    // and let the target-version writer below normalize the emitted code.
+    const int headerBooleanGroupCode = 70;
+    const int alternateHeaderBooleanGroupCode =
+        ver > DRW::AC1021 ? 290 : -1;
     if (!canWriteDxfHeaderStructure()
         || !canWriteDxfUnknownHeaderVariables()
         || !canWriteDxfLinetypeScale()
@@ -919,9 +925,12 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         || !canWriteDxfLwdisplay()
         || !canWriteDxfXedit()
         || !canWriteDxfHeaderFlags()
-        || !canWriteDxfHeaderIntegerRange("$EXTNAMES", 70, 0, 1)
-        || !canWriteDxfHeaderIntegerRange("$PSTYLEMODE", 70, 0, 1)
-        || !canWriteDxfHeaderIntegerRange("$OLESTARTUP", 70, 0, 1)
+        || !canWriteDxfHeaderIntegerRange("$EXTNAMES", headerBooleanGroupCode, 0, 1,
+                                          nullptr, alternateHeaderBooleanGroupCode)
+        || !canWriteDxfHeaderIntegerRange("$PSTYLEMODE", headerBooleanGroupCode, 0, 1,
+                                          nullptr, alternateHeaderBooleanGroupCode)
+        || !canWriteDxfHeaderIntegerRange("$OLESTARTUP", headerBooleanGroupCode, 0, 1,
+                                          nullptr, alternateHeaderBooleanGroupCode)
         || !canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
         || !canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
         || !canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
@@ -2853,7 +2862,7 @@ bool DRW_Header::canWriteDxfUcsBaseVariables() const noexcept {
 
 bool DRW_Header::getDxfHeaderIntegerValue(
         const char* dollarName, int groupCode, int& value,
-        bool& present) const noexcept {
+        bool& present, int alternateGroupCode) const noexcept {
     if (dollarName == nullptr || dollarName[0] != '$')
         return false;
     const std::string_view dollarKey(dollarName);
@@ -2869,7 +2878,8 @@ bool DRW_Header::getDxfHeaderIntegerValue(
             if ((key != dollarKey && key != bareKey) || present
                 || item.second == nullptr
                 || item.second->type() != DRW_Variant::INTEGER
-                || item.second->code() != groupCode)
+                || (item.second->code() != groupCode
+                    && item.second->code() != alternateGroupCode))
                 return false;
             value = item.second->content.i;
             present = true;
@@ -2881,12 +2891,13 @@ bool DRW_Header::getDxfHeaderIntegerValue(
 
 bool DRW_Header::canWriteDxfHeaderIntegerRange(
         const char* dollarName, int groupCode, int minimum, int maximum,
-        bool* foundValue) const noexcept {
+        bool* foundValue, int alternateGroupCode) const noexcept {
     if (minimum > maximum)
         return false;
     int value = 0;
     bool present = false;
-    if (!getDxfHeaderIntegerValue(dollarName, groupCode, value, present))
+    if (!getDxfHeaderIntegerValue(dollarName, groupCode, value, present,
+                                  alternateGroupCode))
         return false;
     if (foundValue != nullptr)
         *foundValue = present;
@@ -2952,8 +2963,10 @@ bool DRW_Header::canWriteDxfHeaderFlags() const noexcept {
 
 bool DRW_Header::encodeDwgHeaderFlags(std::uint32_t& flags) const noexcept {
     const auto read = [this](const char* name, int groupCode, int minimum,
-                             int maximum, int& value, bool& present) {
-        return getDxfHeaderIntegerValue(name, groupCode, value, present)
+                             int maximum, int& value, bool& present,
+                             int alternateGroupCode = -1) {
+        return getDxfHeaderIntegerValue(name, groupCode, value, present,
+                                        alternateGroupCode)
             && (!present || (value >= minimum && value <= maximum));
     };
     flags = m_dwgHeaderFlags;
@@ -2976,10 +2989,11 @@ bool DRW_Header::encodeDwgHeaderFlags(std::uint32_t& flags) const noexcept {
 
     const auto update = [&](const char* name, int groupCode, int maximum,
                             std::uint32_t mask, unsigned shift,
-                            bool inverted) {
+                            bool inverted, int alternateGroupCode = -1) {
         int field = 0;
         bool found = false;
-        if (!read(name, groupCode, 0, maximum, field, found))
+        if (!read(name, groupCode, 0, maximum, field, found,
+                  alternateGroupCode))
             return false;
         if (found) {
             flags &= ~mask;
@@ -2997,9 +3011,9 @@ bool DRW_Header::encodeDwgHeaderFlags(std::uint32_t& flags) const noexcept {
         || !update("$JOINSTYLE", 280, 3, 0x0180u, 7u, false)
         || !update("$LWDISPLAY", 290, 1, 0x0200u, 9u, true)
         || !update("$XEDIT", 290, 1, 0x0400u, 10u, true)
-        || !update("$EXTNAMES", 70, 1, 0x0800u, 11u, false)
-        || !update("$PSTYLEMODE", 70, 1, 0x2000u, 13u, false)
-        || !update("$OLESTARTUP", 70, 1, 0x4000u, 14u, false))
+        || !update("$EXTNAMES", 70, 1, 0x0800u, 11u, false, 290)
+        || !update("$PSTYLEMODE", 70, 1, 0x2000u, 13u, false, 290)
+        || !update("$OLESTARTUP", 70, 1, 0x4000u, 14u, false, 290))
         return false;
     return true;
 }
