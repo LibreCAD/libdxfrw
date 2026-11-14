@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **373 completed implementation and qualification slices** and **34 remaining
+The plan records **374 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`373 / (373 + 34) = 91.6%`. This is a count-based progress measure, not an
+`374 / (374 + 34) = 91.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -94,8 +94,8 @@ legacy AC1015 source has 28 frames (27 published, one failed); AC1018/AC1021/
 AC1024/AC1027/AC1032 each have 27 (26 published, one failed). Strict CLI output
 refuses atomically for AC1015/AC1018/AC1021/AC1024/AC1032. For those five
 profiles, explicit partial mode succeeds with an incomplete-output warning;
-the generated DXF reopens with the retained LINE and VPORT, and the source
-remains unchanged. The mutation search is bounded to the declared body span
+both ASCII and Binary generated DXF reopen with the retained LINE and VPORT,
+and the source remains unchanged. The mutation search is bounded to the declared body span
 after the common prologue where `m_bodyBitSize` is available; AC1015 instead
 uses its bounded raw-object end because that profile exposes no body-bit size.
 The failed frame contributes no retained integrity row, which is why this
@@ -103,7 +103,7 @@ bounded failure is eligible for explicit partial output while the truncated
 common-prologue cases above are not. AC1027 now joins as a reader-only profile:
 it also reports one failed frame, retains the following LINE, and balances
 all 27 object frames, while CLI output remains unqualified behind its separate
-source-reference closure gate. The focused partial-read selector passes 71
+source-reference closure gate. The focused partial-read selector passes 81
 controls. This is generated parser-recovery and CLI disposition evidence, not
 MLINESTYLE semantic or producer interoperability support evidence
 ([receipt](docs/research/p6-cli-malformed-object-body-recovery-2026-11-14.json)).
