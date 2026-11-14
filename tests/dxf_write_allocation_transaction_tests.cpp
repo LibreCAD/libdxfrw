@@ -7828,6 +7828,185 @@ bool runToleranceVersionSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runHelixVersionSweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "HELIX version allocation transaction: "
+                  << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeHelix = [] {
+        DRW_Helix value;
+        value.m_majorVersion = 1;
+        value.m_maintVersion = 2;
+        value.degree = 2;
+        value.flags = 8;
+        value.knotslist = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        value.controllist = {
+            std::make_shared<DRW_Coord>(1.0, 0.0, 0.0),
+            std::make_shared<DRW_Coord>(0.0, 1.0, 2.0),
+            std::make_shared<DRW_Coord>(-1.0, 0.0, 4.0)};
+        value.axisBasePt = DRW_Coord(2.0, 3.0, 4.0);
+        value.startPt = DRW_Coord(3.0, 3.0, 4.0);
+        value.axisVector = DRW_Coord(0.0, 0.0, 1.0);
+        value.radius = 1.0;
+        value.turns = 2.5;
+        value.turnHeight = 3.0;
+        value.handedness = true;
+        value.constraintType = 1;
+        return value;
+    };
+    const auto sameHelix = [](const DRW_Helix& actual,
+                              const DRW_Helix& expected) {
+        if (actual.handle != expected.handle
+            || actual.m_majorVersion != expected.m_majorVersion
+            || actual.m_maintVersion != expected.m_maintVersion
+            || actual.degree != expected.degree || actual.flags != expected.flags
+            || actual.knotslist != expected.knotslist
+            || actual.controllist.size() != expected.controllist.size()
+            || actual.axisBasePt.x != expected.axisBasePt.x
+            || actual.axisBasePt.y != expected.axisBasePt.y
+            || actual.axisBasePt.z != expected.axisBasePt.z
+            || actual.startPt.x != expected.startPt.x
+            || actual.startPt.y != expected.startPt.y
+            || actual.startPt.z != expected.startPt.z
+            || actual.axisVector.x != expected.axisVector.x
+            || actual.axisVector.y != expected.axisVector.y
+            || actual.axisVector.z != expected.axisVector.z
+            || actual.radius != expected.radius || actual.turns != expected.turns
+            || actual.turnHeight != expected.turnHeight
+            || actual.handedness != expected.handedness
+            || actual.constraintType != expected.constraintType)
+            return false;
+        for (std::size_t i = 0u; i < actual.controllist.size(); ++i) {
+            if (!actual.controllist[i] || !expected.controllist[i]
+                || actual.controllist[i]->x != expected.controllist[i]->x
+                || actual.controllist[i]->y != expected.controllist[i]->y
+                || actual.controllist[i]->z != expected.controllist[i]->z)
+                return false;
+        }
+        return true;
+    };
+    class HelixExport final : public dx_iface {
+    public:
+        HelixExport(dxfRW& codec, DRW_Helix source)
+            : output(codec), helix(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override { emitted = output.writeHelix(&helix); }
+        bool finalizeDxfWrite() override { return emitted; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Helix helix;
+        bool emitted = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dx_data decoded;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &decoded, false)
+            || decoded.sourceVersion != expectedVersion
+            || decoded.mBlock == nullptr || decoded.mBlock->ent.size() != 1u)
+            return false;
+        const auto* actual = dynamic_cast<const DRW_Helix*>(
+            decoded.mBlock->ent.front());
+        DRW_Helix expected = makeHelix();
+        if (actual != nullptr)
+            expected.handle = actual->handle;
+        return actual != nullptr && actual->handle != 0u
+            && sameHelix(*actual, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 7> versions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "previous complete HELIX destination\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("helix-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                HelixExport adapter(codec, makeHelix());
+                if (!codec.write(&adapter, version.first, binary)
+                    || !adapter.emitted)
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                HelixExport adapter(codec, makeHelix());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || !adapter.emitted || allocationFailed
+                    || allocationCount <= 0
+                    || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, version.first))
+                    return fail("calibration write/readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                HelixExport adapter(codec, makeHelix());
+                const DRW_Helix original(adapter.helix);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !sameHelix(adapter.helix, original)
+                    || !identitiesRolledBack || hasStagedOutput(output))
+                    return fail("injected failure changed caller or destination state");
+                const bool retried = codec.write(&adapter, version.first, binary)
+                    && adapter.emitted;
+                std::string retryBytes;
+                if (!retried || !sameHelix(adapter.helix, original)
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !readbackMatches(output, version.first)
+                    || hasStagedOutput(output))
+                    return fail("same-writer retry or typed readback failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "HELIX " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runLightListSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "LIGHTLIST allocation transaction: " << message << '\n';
@@ -9946,7 +10125,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|camera|light-entity|ole-frames|ray-xline|tolerance|helix|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9972,6 +10151,8 @@ int main(int argc, char** argv) {
             return runRayXlineVersionSweep(directory) ? 0 : 1;
         if (mode == "tolerance")
             return runToleranceVersionSweep(directory) ? 0 : 1;
+        if (mode == "helix")
+            return runHelixVersionSweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")
