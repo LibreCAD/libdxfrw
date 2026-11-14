@@ -93,20 +93,23 @@
     "files": [
       "tests/dwg2dxf_adapter_tests.cpp",
       "tools/research/audit_ac1027_source_references.py",
+      "tools/research/audit_mlinestyle_source_profile.py",
       "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
       "docs/research/p6-ac1027-cover-mlinestyle-physical-field-differential-2026-11-14.json"
     ],
-    "testSourceSha256": "5dbc89875083ed9ee487bcd45e2641d8d3dcbb81c95458a5d982e30db3bda262",
-    "verifierSha256": "3e25331417db7f7eb1347ec8eef03ad330b39f75108cf53aab2c26a5df596701",
-    "testExecutableSha256": "b1dc107565ad270e9bf2878bd22dcfbcbde2bcef9d4b574c284a7d2ae996c694",
-    "auditOutputSha256": "b61c944607bdf21dae8a9d1c36ccdf2b61db59edbbaa30eb6cf0a271406ddbe3",
-    "diagnosticOutputSha256": "750b11c88f04d12f836e89148a0cf8f846b368fa8d7f4957755ba729b089bc37",
-    "method": "The test adapter emits lossless text bytes as hex and typed scalar/element values from the real DWG decode. The verifier binds the source hash, requires the unique physical type-73/handle-0x18 peer object, compares strings and integer/color fields exactly, converts independent radians to degrees, compares floating fields with absolute tolerance 1e-12, verifies two ordered elements, and records the peer's exact 84-byte frame. Self-tests mutate angle, offset, and linetype index and require each mismatch to fail."
+    "testSourceSha256": "8441abe5ae8bd64f45e7683be1d1f0245df91fc94532b5c90313ee000b17547b",
+    "verifierSha256": "d49af99a06e28c5f1bea7331d383c841036ff3a5fbade33fdcb140e6a336a6f2",
+    "testExecutableSha256": "5af9f08f9a29030954b2a423e246a485512c190d6d9e2640e00e9d47deb9d6c1",
+    "auditOutputSha256": "78714f733d6824247f00d1e19eb61a41b93526e0472e2127470351331cb1aacd",
+    "diagnosticOutputSha256": "234679dd6fc441697b049755d3ef1a3827e46269e40efb3ea4e8360f0347bfe9",
+    "method": "The test adapter emits lossless text bytes as hex and typed scalar/element values from the real DWG decode. The verifier binds the source hash, requires the unique physical type-73/handle-0x18 peer object, compares strings and integer/color fields exactly, converts independent radians to degrees, compares floating fields with absolute tolerance 1e-12, verifies two ordered elements, and records the peer's exact 84-byte frame. Self-tests mutate angle, offset, and linetype index and require each mismatch to fail.",
+    "sourceProfileAuditSha256": "aea041e26e38340112bd91f6f583eafa83cae0ab8a9e4fd1d3584af36c5bf47e",
+    "sourceProfileAuditOutputSha256": "352147b1b270a5d621902e3119423bb93cbe27638add9529a3dac99e50eeeeeb"
   },
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS",
     "verifierSelfTest": "python3 tools/research/audit_ac1027_source_references.py --self-test: PASS; angle, offset, and linetype-index mutation rejection",
-    "physicalAudit": "audit_ac1027_source_references.py against hash-bound Cover.dwg and LibreDWG minJSON: PASS; source unchanged; 88/88 callback identities retained in the inventory (75 opaque frames, 13 standard objects); exact MLINESTYLE field differential passed",
+    "physicalAudit": "audit_ac1027_source_references.py against hash-bound Cover.dwg and LibreDWG minJSON: PASS; source unchanged; 88/88 callback identities retained (75 opaque, 13 standard objects, 0 AcDs history); all 88 raw bodies complete; exact MLINESTYLE field differential passed",
     "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure: PASS 1/1",
     "diffCheck": "git diff --check: PASS"
   },
@@ -115,7 +118,8 @@
     "LibreDWG minJSON exposes semantic values but not independent physical bit spans; exact per-field byte/bit boundaries and arbitrary trailing-byte accounting remain open.",
     "The audit does not qualify MLINE entity geometry, native rendering, strict whole-document output, or broader MLINESTYLE writer support.",
     "The source audit still observes strict conversion refusing the retained raw MLINESTYLE callback (qualified=4/5); no output support claim is promoted.",
-    "The generated mutation self-tests validate the comparator, not additional DWG fixtures or independent consumer behavior."
+    "The generated mutation self-tests validate the comparator, not additional DWG fixtures or independent consumer behavior.",
+    "The source audit closes Cover.dwg frame identity and raw-body byte coverage only; this does not establish exhaustive body-reference decoding, whole-drawing graph/output closure, or native behavior."
   ],
   "planImpact": {
     "completedSlice": "One physical AC1027 Cover MLINESTYLE scalar/element profile is independently field-differenced against LibreDWG minJSON with mutation-rejection controls.",

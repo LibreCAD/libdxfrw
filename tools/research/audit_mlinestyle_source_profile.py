@@ -15,6 +15,7 @@ from audit_ac1027_source_references import (
     MLINESTYLE_ELEMENT,
     MLINESTYLE_FIELDS,
     REPO,
+    SUMMARY,
     peer_handle,
     sha256,
     verify_mlinestyle_fields,
@@ -58,10 +59,14 @@ def main() -> int:
     )
 
     frames = []
+    inventory_frame_count = 0
+    inventory_bodies_complete = True
     for match in FRAME.finditer(output):
         (kind, handle, object_type, record, class_name, custom, owner,
          block_owner, xdict, reactors, evidence, offset, size,
-         data_storage) = match.groups()
+         data_storage, raw_body_bytes) = match.groups()
+        inventory_frame_count += 1
+        inventory_bodies_complete &= int(raw_body_bytes) == int(size)
         if int(object_type) == 73:
             frames.append({
                 "captureKind": kind,
@@ -112,6 +117,29 @@ def main() -> int:
         raise SystemExit("source frame and typed MLINESTYLE diagnostics do not align")
     if source_hash_before != source_hash_after:
         raise SystemExit("source DWG changed during the MLINESTYLE diagnostic")
+
+    summary_match = SUMMARY.search(output)
+    if summary_match is None:
+        raise SystemExit("source diagnostic omitted its frame-count summary")
+    (schema, source_version, callbacks, captured, retained,
+     standard_retained, acds_history_retained, utility_bound) = (
+        summary_match.groups()
+    )
+    if int(schema) != 2 or source_version != source.open("rb").read(6).decode(
+        "ascii", errors="replace"
+    ):
+        raise SystemExit("source diagnostic summary version/schema does not match input")
+    captured = int(captured)
+    retained = int(retained)
+    standard_retained = int(standard_retained)
+    acds_history_retained = int(acds_history_retained)
+    callbacks = int(callbacks)
+    inventory_identities = retained + standard_retained + acds_history_retained
+    source_inventory_closed = (
+        callbacks == captured == inventory_identities
+        and inventory_frame_count == inventory_identities
+        and inventory_bodies_complete
+    )
 
     expected_later_failure = False
     if result.returncode != 0:
@@ -179,11 +207,26 @@ def main() -> int:
         "diagnosticExitCode": result.returncode,
         "diagnosticOutputSha256": hashlib.sha256(result.stdout).hexdigest(),
         "laterUnrelatedVisualStyleCheckFailed": expected_later_failure,
-        "wholeSourceInventoryQualified": result.returncode == 0,
+        "diagnosticAssertionsPassed": result.returncode == 0,
+        "sourceCallbackCount": callbacks,
+        "capturedCallbackCount": captured,
+        "retainedOpaqueFrameCount": retained,
+        "retainedStandardObjectFrameCount": standard_retained,
+        "retainedAcDsHistoryFrameCount": acds_history_retained,
+        "publishedFrameIdentityCount": inventory_identities,
+        "printedFrameIdentityCount": inventory_frame_count,
+        "allPrintedFrameBodiesComplete": inventory_bodies_complete,
+        "sourceHashBoundByDiagnosticUtility": bool(int(utility_bound)),
+        "sourceHashBoundExternallyBeforeAndAfter": source_hash_before == source_hash_after,
+        "sourceFrameIdentityInventoryClosed": (
+            result.returncode == 0 and source_inventory_closed
+            and source_hash_before == source_hash_after
+        ),
+        "wholeDrawingSemanticOrOutputQualified": False,
         "limits": [
-            "Only the MLINESTYLE frame and typed callback are audited; whole-source frame closure is not qualified by this command.",
+            "Only the MLINESTYLE semantic fields are differentially compared; closure of source frame identities does not establish whole-drawing graph or output qualification.",
             "LibreDWG minJSON supplies semantic values and object size but not independent physical subfield bit spans.",
-            "The known later VISUALSTYLE diagnostic failure remains visible and does not count as MLINESTYLE support evidence."
+            "The source inventory separates ordinary opaque frames, standard OBJECTS frames, and the ACDS history frame lane; no support claim is promoted."
         ],
     }, indent=2, ensure_ascii=False))
     return 0

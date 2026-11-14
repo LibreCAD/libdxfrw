@@ -22,16 +22,17 @@ from bounded_process import run_bounded  # noqa: E402
 SUMMARY = re.compile(
     r"^opaqueSourceFrameInventory schema=(\d+) sourceVersion=(\S+) "
     r"sourceCallbacks=(\d+) captured=(\d+) retained=(\d+) "
-    r"standardCaptured=(\d+).*?sourceHashBoundByUtility=(\d+)$",
+    r"standardCaptured=(\d+) acdsHistoryCaptured=(\d+).*?"
+    r"sourceHashBoundByUtility=(\d+)$",
     re.MULTILINE,
 )
 FRAME = re.compile(
-    r"^ (opaque|standard) handle=(\d+) type=(\d+) record=(\S*) "
+    r"^ (opaque|standard|acds) handle=(\d+) type=(\d+) record=(\S*) "
     r"class=(\S*) custom=(\d+) "
     r"(?:payloadMatched=\d+ opaquePayload=\d+ )?"
     r"owner=(\d+) blockOwner=(\d+) "
     r"xdict=(\d+) reactors=([^ ]*) commonEvidence=(\d+) "
-    r"offset=(\d+) size=(\d+) dataStorage=(\d+)$",
+    r"offset=(\d+) size=(\d+) dataStorage=(\d+) rawBodyBytes=(\d+)$",
     re.MULTILINE,
 )
 BODY_FRAME = re.compile(
@@ -384,48 +385,42 @@ def verify_peer_profiles(
         if not isinstance(obj, dict):
             continue
         handle = peer_handle(obj.get("handle"))
-        if handle is None or (
-            int(obj.get("type", -1)) not in (65, 69, 73, 80, 501, 502, 504, 506)
-            and obj.get("object") != "MLEADERSTYLE"
-        ):
+        if handle is None:
             continue
         if handle in peer_by_handle:
-            raise SystemExit("LibreDWG minJSON repeats a profiled object handle")
+            raise SystemExit("LibreDWG minJSON repeats an object handle")
         peer_by_handle[handle] = obj
 
-    names = {
-        65: "VPORT", 69: "DIMSTYLE", 73: "MLINESTYLE", 80: "ACDBPLACEHOLDER",
-        501: "VISUALSTYLE", 502: "MATERIAL", 504: "TABLESTYLE",
-        505: "MLEADERSTYLE", 506: "SUN",
+    record_to_peer_object = {
+        "VPORT": "VPORT", "DIMSTYLE": "DIMSTYLE",
+        "MLINESTYLE": "MLINESTYLE", "ACDBPLACEHOLDER": "PLACEHOLDER",
+        "VISUALSTYLE": "VISUALSTYLE", "MATERIAL": "MATERIAL",
+        "TABLESTYLE": "TABLESTYLE", "MLEADERSTYLE": "MLEADERSTYLE",
+        "SORTENTSTABLE": "SORTENTSTABLE", "SUN": "SUN",
+    }
+    class_to_peer_object = {
+        "AcDbVisualStyle": "VISUALSTYLE",
+        "AcDbMaterial": "MATERIAL",
+        "AcDbTableStyle": "TABLESTYLE",
+        "AcDbMLeaderStyle": "MLEADERSTYLE",
+        "AcDbSortentsTable": "SORTENTSTABLE",
+        "AcDbSun": "SUN",
+    }
+    fixed_type_to_peer_object = {
+        65: "VPORT", 69: "DIMSTYLE", 73: "MLINESTYLE", 80: "PLACEHOLDER",
     }
     rows = []
     for frame in frames:
         object_type = int(frame["encodedType"])
-        if object_type not in names:
+        expected_object = (
+            record_to_peer_object.get(str(frame["recordName"] or ""))
+            or class_to_peer_object.get(str(frame["className"] or ""))
+            or fixed_type_to_peer_object.get(object_type)
+        )
+        if expected_object is None:
             continue
         obj = peer_by_handle.get(int(frame["handle"]))
-        expected_object = {
-            65: "VPORT",
-            69: "DIMSTYLE",
-            73: "MLINESTYLE",
-            80: "PLACEHOLDER",
-            501: "VISUALSTYLE",
-            502: "MATERIAL",
-            504: "TABLESTYLE",
-            505: "MLEADERSTYLE",
-            506: "SUN",
-        }[object_type]
-        expected_dxf = {
-            65: None,
-            69: None,
-            73: None,
-            80: "ACDBPLACEHOLDER",
-            501: None,
-            502: None,
-            504: None,
-            505: None,
-            506: None,
-        }[object_type]
+        expected_dxf = "ACDBPLACEHOLDER" if expected_object == "PLACEHOLDER" else None
         reactors = obj.get("reactors", []) if obj else []
         peer_reactors = [
             handle for handle in (peer_handle(item) for item in reactors)
@@ -442,7 +437,7 @@ def verify_peer_profiles(
         ):
             raise SystemExit(
                 f"LibreDWG minJSON identity/common-link mismatch for "
-                f"{names[object_type]} handle {frame['handle']}"
+                f"{expected_object} handle {frame['handle']}"
             )
         rows.append({
             "handle": int(frame["handle"]),
@@ -455,7 +450,7 @@ def verify_peer_profiles(
             "matchesLibdxfrwFrame": True,
         })
 
-        if object_type == 505:
+        if expected_object == "MLEADERSTYLE":
             expected_fields = {
                 "line_type": [5, 1, 20, 20],
                 "arrow_head": [5, 0, 0, 0],
@@ -824,7 +819,9 @@ def main() -> int:
 
     frames = []
     for match in FRAME.finditer(combined):
-        kind, handle, object_type, record, class_name, custom, owner, block_owner, xdict, reactors, evidence, offset, size, data_storage = match.groups()
+        (kind, handle, object_type, record, class_name, custom, owner,
+         block_owner, xdict, reactors, evidence, offset, size, data_storage,
+         raw_body_bytes) = match.groups()
         frames.append({
             "captureKind": kind,
             "handle": int(handle),
@@ -840,6 +837,7 @@ def main() -> int:
             "sourceOffset": int(offset),
             "objectSize": int(size),
             "hasDataStorage": bool(int(data_storage)),
+            "rawBodyBytes": int(raw_body_bytes),
         })
     if len({frame["handle"] for frame in frames}) != len(frames):
         raise SystemExit("source inventory contains duplicate captured frame handles")
@@ -1177,13 +1175,19 @@ def main() -> int:
             if frame["ownerHandle"] not in (0, 0xFFFFFFFF) else None
         )
 
-    schema, version, callbacks, captured, opaque_retained, standard_retained, utility_bound = summary.groups()
-    declared_frames = int(opaque_retained) + int(standard_retained)
+    (schema, version, callbacks, captured, opaque_retained,
+     standard_retained, acds_retained, utility_bound) = summary.groups()
+    declared_frames = (
+        int(opaque_retained) + int(standard_retained) + int(acds_retained)
+    )
     if int(schema) != 2 or len(frames) != declared_frames or declared_frames != int(captured):
         raise SystemExit(
             f"captured identity rows mismatch: rows={len(frames)} "
             f"declared={declared_frames} callbacksCaptured={captured}"
         )
+    if any(int(frame["rawBodyBytes"]) != int(frame["objectSize"])
+           for frame in frames):
+        raise SystemExit("source inventory has a frame without its full captured body")
     peer_evidence = None
     if args.peer_json is not None and args.peer_schema is not None:
         peer_evidence = verify_peer_profiles(
@@ -1201,7 +1205,9 @@ def main() -> int:
         )
     if version == "AC1027":
         mleader_styles = [
-            frame for frame in frames if frame["encodedType"] == 505
+            frame for frame in frames
+            if frame["recordName"] == "MLEADERSTYLE"
+            or frame["className"] == "AcDbMLeaderStyle"
         ]
         mleader_handle_fields = {
             int(owner): [] for owner, *_ in MLEADERSTYLE_HANDLE_FIELD.findall(combined)
@@ -1260,7 +1266,11 @@ def main() -> int:
                     "AC1027 MLEADERSTYLE lacks complete ODA body spans, peer "
                     "handle-role evidence, or rooted dictionary membership"
                 )
-        table_styles = [frame for frame in frames if frame["encodedType"] == 504]
+        table_styles = [
+            frame for frame in frames
+            if frame["recordName"] == "TABLESTYLE"
+            or frame["className"] == "AcDbTableStyle"
+        ]
         for frame in table_styles:
             profile = table_style_profiles.get(int(frame["handle"]))
             table_style_dictionary = next((
@@ -1320,7 +1330,9 @@ def main() -> int:
                     "profile, or exact ACAD_MLINESTYLE membership edge"
                 )
         visual_styles = [
-            frame for frame in frames if frame["encodedType"] == 501
+            frame for frame in frames
+            if frame["recordName"] == "VISUALSTYLE"
+            or frame["className"] == "AcDbVisualStyle"
         ]
         for frame in visual_styles:
             if (
@@ -1336,7 +1348,9 @@ def main() -> int:
                     "or peer-supported no-body-handle profile"
                 )
         materials = [
-            frame for frame in frames if frame["encodedType"] == 502
+            frame for frame in frames
+            if frame["recordName"] == "MATERIAL"
+            or frame["className"] == "AcDbMaterial"
         ]
         material_profiles = {
             int(handle): (int(semantic), int(raw_tail), key)
@@ -1535,6 +1549,7 @@ def main() -> int:
         "capturedOpaqueCallbacks": int(captured),
         "retainedOpaqueFrames": int(opaque_retained),
         "retainedStandardObjects": int(standard_retained),
+        "retainedAcDsHistoryFrames": int(acds_retained),
         "capturedFrameIdentities": len(frames),
         "typedBodyReferenceRows": len(typed_references),
         "typedLayerHandleFieldRows": sum(

@@ -2648,6 +2648,7 @@ public:
                       << " offset=" << frame.m_objectOffset
                       << " size=" << frame.m_objectSize
                       << " dataStorage=" << frame.m_hasDataStorage
+                      << " rawBodyBytes=" << frame.m_rawBytes.size()
                       << '\n';
         }
     }
@@ -2677,8 +2678,56 @@ public:
                       << " offset=" << frame.m_objectOffset
                       << " size=" << frame.m_objectSize
                       << " dataStorage=" << frame.m_hasDataStorage
+                      << " rawBodyBytes=" << frame.m_rawBytes.size()
                       << '\n';
         }
+    }
+    static void printAcDsHistorySourceFrames(const dx_data& data) {
+        for (const DRW_UnsupportedObject& frame : data.acdsHistoryDwgFrames) {
+            std::cerr << " acds handle=" << frame.m_handle
+                      << " type=" << frame.m_objectType
+                      << " record=" << frame.m_recordName
+                      << " class=" << frame.m_className
+                      << " custom=" << frame.m_isCustomClass
+                      << " owner=" << frame.m_parentHandle
+                      << " blockOwner=" << frame.m_blockOwnerHandle
+                      << " xdict=" << frame.m_xDictHandle
+                      << " reactors=";
+            for (std::size_t index = 0u;
+                 index < frame.m_reactorHandles.size(); ++index)
+                std::cerr << (index == 0u ? "" : ",")
+                          << frame.m_reactorHandles[index];
+            std::cerr << " commonEvidence="
+                      << static_cast<unsigned>(frame.m_commonLinkEvidence)
+                      << " offset=" << frame.m_objectOffset
+                      << " size=" << frame.m_objectSize
+                      << " dataStorage=" << frame.m_hasDataStorage
+                      << " rawBodyBytes=" << frame.m_rawBytes.size()
+                      << '\n';
+        }
+    }
+    static void printUnrepresentedSourceFrameIdentities(
+            const dx_data& data, std::uint64_t generation) {
+        std::size_t unrepresented = 0u;
+        for (const dx_data::StandardDwgFrameKey& identity :
+                data.m_opaqueDwgSourceFrameIdentities) {
+            const bool acdsFramePresent = std::any_of(
+                data.acdsHistoryDwgFrames.begin(),
+                data.acdsHistoryDwgFrames.end(),
+                [&identity](const DRW_UnsupportedObject& frame) {
+                    return frame.m_handle == identity.second;
+                });
+            if (identity.first != generation
+                || data.m_opaqueDwgSourceFrames.count(identity) != 0u
+                || data.m_standardDwgObjectFrames.count(identity) != 0u
+                || acdsFramePresent)
+                continue;
+            ++unrepresented;
+            std::cerr << " unrepresentedSourceFrameIdentity handle="
+                      << identity.second << '\n';
+        }
+        std::cerr << " sourceFrameIdentityProjection generation="
+                  << generation << " unrepresented=" << unrepresented << '\n';
     }
     static void printStandardObjectPayloadSummaries(
             const dx_data& data, std::uint64_t generation) {
@@ -22710,6 +22759,7 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
       << DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrameCount(data)
               << " standardCaptured="
               << DxIfaceStandardDwgCaptureTestAccess::frames(data)
+              << " acdsHistoryCaptured=" << data.acdsHistoryDwgFrames.size()
       << " inventoryScope=identity-common-header-and-selected-typed-models"
       << " bodyReferenceCoverage=partial-typed-models"
               << " sourceHashBoundByUtility=0\n";
@@ -22719,6 +22769,9 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
   DxIfaceStandardDwgCaptureTestAccess::printOpaqueSourceFrames(
       data, data.importGeneration);
   DxIfaceStandardDwgCaptureTestAccess::printStandardSourceFrames(
+      data, data.importGeneration);
+  DxIfaceStandardDwgCaptureTestAccess::printAcDsHistorySourceFrames(data);
+  DxIfaceStandardDwgCaptureTestAccess::printUnrepresentedSourceFrameIdentities(
       data, data.importGeneration);
   std::cout << " opaqueTypedBodyModels"
             << " dictionaryWithDefault=" << data.dictionaryWithDefaults.size()
@@ -23259,8 +23312,17 @@ bool opaqueDwgSourceInventory(const std::string& sourcePath) {
     const DRW_UnsupportedObject* rawFrame =
         DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
             data, data.importGeneration, style.handle);
+    const std::size_t matchingClassBindings = rawFrame == nullptr
+        ? 0u : static_cast<std::size_t>(std::count_if(
+            data.dwgClassCoverage.m_entries.begin(),
+            data.dwgClassCoverage.m_entries.end(),
+            [rawFrame](const DRW_DwgClassCoverageEntry& entry) {
+                return entry.m_state == DRW_DwgClassCoverageState::Published
+                    && entry.m_classNumber == rawFrame->m_objectType
+                    && entry.m_className == rawFrame->m_className;
+            }));
     if (rawFrame == nullptr || rawFrame->m_version != data.sourceVersion
-        || rawFrame->m_objectType != 501 || !rawFrame->m_isCustomClass
+        || matchingClassBindings != 1u || !rawFrame->m_isCustomClass
         || rawFrame->m_recordName != "VISUALSTYLE"
         || rawFrame->m_className != "AcDbVisualStyle"
         || rawFrame->m_isEntity
