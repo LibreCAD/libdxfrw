@@ -1,0 +1,70 @@
+{
+  "id": "p6-dxf-leader-version-matrix-allocation-2026-11-14",
+  "title": "LEADER whole-operation revision allocation transaction matrix",
+  "date": "2026-11-14",
+  "scope": "Generated DXF whole-operation transaction and same-library readback for one LEADER with a resolved STANDARD DIMSTYLE name and no annotation-handle reference.",
+  "profile": {
+    "geometry": "Three distinct 3D vertices, non-default text height/width, arrow/path/creation flags, block offset, and block color.",
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "minimumVersionBoundary": {
+      "refused": "AC1009",
+      "retry": "AC1014",
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ]
+    }
+  },
+  "verification": {
+    "checks": [
+      "Each injected whole-write allocation failure preserves the prior destination and modeled caller LEADER fields, then the same codec retries to byte-identical output with fresh typed readback.",
+      "The terminal allocation-boundary probe confirms the next non-faulting operation exactly matches clean bytes and typed readback.",
+      "AC1009 refusal preserves caller and destination; same-codec retry at AC1014 passes for ASCII and Binary.",
+      "Generated DXF files are removed after each lane; no drawing fixtures were added."
+    ],
+    "injectedAllocationFailuresByCell": {
+      "AC1014-ASCII": 90,
+      "AC1014-Binary": 89,
+      "AC1015-ASCII": 92,
+      "AC1015-Binary": 91,
+      "AC1018-ASCII": 92,
+      "AC1018-Binary": 91,
+      "AC1021-ASCII": 92,
+      "AC1021-Binary": 91,
+      "AC1024-ASCII": 99,
+      "AC1024-Binary": 98,
+      "AC1027-ASCII": 92,
+      "AC1027-Binary": 91,
+      "AC1032-ASCII": 92,
+      "AC1032-Binary": 91
+    },
+    "totalInjectedAllocationFailures": 1291,
+    "focusedCTest": "ctest --test-dir build -R ^libdxfrw_dxf_leader_version_allocation_transaction$ --output-on-failure",
+    "focusedCTestResult": "PASS, 1/1, 8.19 seconds",
+    "directCommand": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-leader-version-allocation leader-versions",
+    "directResult": "PASS, 14 revision/encoding cells and AC1009 refusal/AC1014 recovery in ASCII and Binary"
+  },
+  "artifacts": {
+    "testSource": "tests/dxf_write_allocation_transaction_tests.cpp",
+    "testSourceSha256": "c49c63b670e6840a6e1278b7b923abbde688af4eceaebbc8182a4373f9d26976",
+    "cmakeRegistration": "tests/CMakeLists.txt",
+    "testExecutable": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests",
+    "testExecutableSha256": "1a138c6417dc3c5f31c0ecbe691c18a18ab0721bc137aa7ad1e94fc4306a4526"
+  },
+  "limitations": [
+    "Generated writer and same-library readback only; not independent producer or consumer evidence.",
+    "This profile has no annotation handle and does not prove LEADER annotation-reference closure, native dimension rendering, or whole-document conversion."
+  ]
+}

@@ -6322,6 +6322,12 @@ add_test(NAME libdxfrw_dxf_mleader_version_allocation_transaction
         mleader-versions)
 set_tests_properties(libdxfrw_dxf_mleader_version_allocation_transaction PROPERTIES
     LABELS "dxf;fast;transaction;allocation;mleader;versions" TIMEOUT 120)
+add_test(NAME libdxfrw_dxf_leader_version_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-leader-version-allocation
+        leader-versions)
+set_tests_properties(libdxfrw_dxf_leader_version_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;leader;versions" TIMEOUT 120)
 add_test(NAME libdxfrw_dxf_sunstudy_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-sunstudy-allocation
