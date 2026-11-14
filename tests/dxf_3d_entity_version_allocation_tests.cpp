@@ -46,7 +46,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -59,6 +59,7 @@ const char* profileName(Profile profile) {
     case Profile::Arc: return "ARC";
     case Profile::BasicLine: return "LINE";
     case Profile::Ellipse: return "ELLIPSE";
+    case Profile::Text: return "TEXT";
     }
     return "unknown";
 }
@@ -156,6 +157,35 @@ DRW_Ellipse makeEllipse() {
     ellipse.staparam = 0.25;
     ellipse.endparam = 2.5;
     return ellipse;
+}
+
+DRW_Text makeText() {
+    DRW_Text text;
+    text.handle = 0xD92Du;
+    text.basePoint = DRW_Coord{12.0, -3.0, 1.0};
+    text.secPoint = DRW_Coord{15.0, 6.0, 2.0};
+    text.height = 2.0;
+    text.text = "revision matrix text";
+    text.angle = 15.0;
+    text.widthscale = 1.2;
+    text.oblique = 3.5;
+    text.style = "MatrixStyle";
+    text.textgen = 2;
+    text.alignH = DRW_Text::HCenter;
+    text.alignV = DRW_Text::VTop;
+    return text;
+}
+
+bool sameText(const DRW_Text& a, const DRW_Text& b,
+              bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x && a.basePoint.y == b.basePoint.y
+        && a.basePoint.z == b.basePoint.z && a.secPoint.x == b.secPoint.x
+        && a.secPoint.y == b.secPoint.y && a.secPoint.z == b.secPoint.z
+        && a.height == b.height && a.text == b.text && a.angle == b.angle
+        && a.widthscale == b.widthscale && a.oblique == b.oblique
+        && a.style == b.style && a.textgen == b.textgen
+        && a.alignH == b.alignH && a.alignV == b.alignV;
 }
 
 bool sameEllipse(const DRW_Ellipse& a, const DRW_Ellipse& b,
@@ -259,6 +289,7 @@ public:
         arc = makeArc();
         basicLine = makeBasicLine();
         ellipse = makeEllipse();
+        text = makeText();
         codec.setEllipseParts(8);
     }
 
@@ -281,6 +312,7 @@ public:
         case Profile::Arc: accepted = codec.writeArc(&arc); break;
         case Profile::BasicLine: accepted = codec.writeLine(&basicLine); break;
         case Profile::Ellipse: accepted = codec.writeEllipse(&ellipse); break;
+        case Profile::Text: accepted = codec.writeText(&text); break;
         }
     }
 
@@ -298,6 +330,7 @@ public:
     DRW_Arc arc;
     DRW_Line basicLine;
     DRW_Ellipse ellipse;
+    DRW_Text text;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -416,6 +449,14 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return ellipse != nullptr && ellipse->eType == DRW::ELLIPSE
             && sameEllipse(*ellipse, expected, false);
     }
+    if (profile == Profile::Text) {
+        const auto* text = dynamic_cast<const DRW_Text*>(entity);
+        DRW_Text expected = makeText();
+        if (expectedVersion == DRW::AC1009)
+            expected.style = "MATRIXSTYLE";
+        return text != nullptr && text->eType == DRW::TEXT
+            && sameText(*text, expected, false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -449,6 +490,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
         {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> ellipseVersions = {{
+        {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
+        {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 8> textVersions = {{
         {DRW::AC1009, "AC1009"}, {DRW::AC1014, "AC1014"},
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
@@ -493,6 +539,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Arc originalArc = exporter.arc;
                 const DRW_Line originalBasicLine = exporter.basicLine;
                 const DRW_Ellipse originalEllipse = exporter.ellipse;
+                const DRW_Text originalText = exporter.text;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -525,6 +572,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 case Profile::Ellipse:
                     callerPreserved = sameEllipse(exporter.ellipse,
                                                   originalEllipse);
+                    break;
+                case Profile::Text:
+                    callerPreserved = sameText(exporter.text, originalText);
                     break;
                 }
                 if (!allocationFailed || written
@@ -562,8 +612,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                             : profile == Profile::BasicLine
                                                 ? sameBasicLine(exporter.basicLine,
                                                     originalBasicLine)
-                                                : sameEllipse(exporter.ellipse,
-                                                    originalEllipse);
+                                            : profile == Profile::Ellipse
+                                                ? sameEllipse(exporter.ellipse,
+                                                    originalEllipse)
+                                                : sameText(exporter.text,
+                                                    originalText);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -605,6 +658,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : ellipseVersions)
             if (!runVersion(version.first, version.second))
                 return false;
+    } else if (profile == Profile::Text) {
+        for (const auto& version : textVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
     } else {
         for (const auto& version : legacyVersions)
             if (!runVersion(version.first, version.second))
@@ -622,7 +679,8 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Circle)
         && runProfile(directory, Profile::Arc)
         && runProfile(directory, Profile::BasicLine)
-        && runProfile(directory, Profile::Ellipse);
+        && runProfile(directory, Profile::Ellipse)
+        && runProfile(directory, Profile::Text);
 }
 } // namespace
 

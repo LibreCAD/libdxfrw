@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **311 completed implementation slices** and **34 remaining
+The plan records **312 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`311 / (311 + 34) = 90.1%`. This is a count-based progress measure, not an
+`312 / (312 + 34) = 90.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5658,6 +5658,13 @@ caller/destination state and pass same-codec byte-identical retry; typed
 readback checks the legacy polyline carrier and all modern ellipse fields. The
 expanded focused CTest passes in 8.58 seconds. This does not establish
 independent curve equivalence or native rendering.
+The direct TEXT writer now also covers AC1009 and the seven later revisions in
+ASCII and Binary, including aligned insertion point, style, text generation,
+height, width, oblique and rotation fields. The AC1009 style case verifies its
+uppercase spelling. All 159 measured allocation failures preserve caller and
+destination state and pass same-codec retry with typed readback; the focused
+CTest passes in 9.51 seconds. These generated checks do not qualify producer
+text/font behavior or native rendering.
 The same whole-operation sweep now calls `writeTableStyle()` directly with a
 locally generated legacy three-row style, a nondefault emitted text style and
 six ordered borders per row. Typed readback checks the style identity/name,
