@@ -265,6 +265,18 @@ bool run(const std::filesystem::path& directory) {
             dx_dwgReadCompletenessPolicy::AllowPartial);
     };
 
+    {
+        std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+        prior << sentinel;
+        if (!prior)
+            return fail("could not initialize AC1014 refusal sentinel");
+    }
+    exporter.failAt = -1;
+    std::string refusalBytes;
+    if (write(DRW::AC1014, false) || !readAll(output, refusalBytes)
+        || refusalBytes != sentinel || !sourceUnchanged(data, source))
+        return fail("AC1014 down-save refusal changed output or source MATERIAL");
+
     for (const DRW::Version version :
          {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         for (const bool binary : {false, true}) {
