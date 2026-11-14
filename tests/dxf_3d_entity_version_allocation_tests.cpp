@@ -45,7 +45,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -56,6 +56,7 @@ const char* profileName(Profile profile) {
     case Profile::Point: return "POINT";
     case Profile::Circle: return "CIRCLE";
     case Profile::Arc: return "ARC";
+    case Profile::BasicLine: return "LINE";
     }
     return "unknown";
 }
@@ -135,6 +136,26 @@ DRW_Arc makeArc() {
     return arc;
 }
 
+DRW_Line makeBasicLine() {
+    DRW_Line line;
+    line.handle = 0xD920u;
+    line.basePoint = DRW_Coord{1.0, 2.0, 3.0};
+    line.secPoint = DRW_Coord{-2.0, 4.0, 5.0};
+    line.thickness = 0.75;
+    return line;
+}
+
+bool sameBasicLine(const DRW_Line& a, const DRW_Line& b,
+                   bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x && a.basePoint.y == b.basePoint.y
+        && a.basePoint.z == b.basePoint.z
+        && a.secPoint.x == b.secPoint.x && a.secPoint.y == b.secPoint.y
+        && a.secPoint.z == b.secPoint.z && a.thickness == b.thickness
+        && a.extPoint.x == b.extPoint.x && a.extPoint.y == b.extPoint.y
+        && a.extPoint.z == b.extPoint.z;
+}
+
 bool sameCircle(const DRW_Circle& a, const DRW_Circle& b,
                 bool compareHandle = true) {
     return (!compareHandle || a.handle == b.handle)
@@ -211,6 +232,7 @@ public:
         point = makePoint();
         circle = makeCircle();
         arc = makeArc();
+        basicLine = makeBasicLine();
     }
 
     void writeEntities() override {
@@ -230,6 +252,7 @@ public:
         case Profile::Point: accepted = codec.writePoint(&point); break;
         case Profile::Circle: accepted = codec.writeCircle(&circle); break;
         case Profile::Arc: accepted = codec.writeArc(&arc); break;
+        case Profile::BasicLine: accepted = codec.writeLine(&basicLine); break;
         }
     }
 
@@ -245,6 +268,7 @@ public:
     DRW_Point point;
     DRW_Circle circle;
     DRW_Arc arc;
+    DRW_Line basicLine;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -330,6 +354,12 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return arc != nullptr && arc->eType == DRW::ARC
             && sameArc(*arc, expected, false);
     }
+    if (profile == Profile::BasicLine) {
+        const auto* line = dynamic_cast<const DRW_Line*>(entity);
+        const DRW_Line expected = makeBasicLine();
+        return line != nullptr && line->eType == DRW::LINE
+            && sameBasicLine(*line, expected, false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -400,6 +430,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Point originalPoint = exporter.point;
                 const DRW_Circle originalCircle = exporter.circle;
                 const DRW_Arc originalArc = exporter.arc;
+                const DRW_Line originalBasicLine = exporter.basicLine;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -424,6 +455,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Arc:
                     callerPreserved = sameArc(exporter.arc, originalArc);
+                    break;
+                case Profile::BasicLine:
+                    callerPreserved = sameBasicLine(exporter.basicLine,
+                                                    originalBasicLine);
                     break;
                 }
                 if (!allocationFailed || written
@@ -456,7 +491,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                     ? samePoint(exporter.point, originalPoint)
                                     : profile == Profile::Circle
                                         ? sameCircle(exporter.circle, originalCircle)
-                                        : sameArc(exporter.arc, originalArc);
+                                        : profile == Profile::Arc
+                                            ? sameArc(exporter.arc, originalArc)
+                                            : sameBasicLine(exporter.basicLine,
+                                                            originalBasicLine);
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
@@ -498,7 +536,8 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Trace)
         && runProfile(directory, Profile::Point)
         && runProfile(directory, Profile::Circle)
-        && runProfile(directory, Profile::Arc);
+        && runProfile(directory, Profile::Arc)
+        && runProfile(directory, Profile::BasicLine);
 }
 } // namespace
 
