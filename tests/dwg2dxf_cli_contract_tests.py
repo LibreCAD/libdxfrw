@@ -1430,59 +1430,63 @@ def check_partial_dwg_read_cli(converter, root, writer):
         if target_year is None:
             continue
 
-        for partial_mode in (False, True):
-            mode = "partial" if partial_mode else "strict"
-            output = root / f"malformed OBJECTS body {mode} {revision}.dxf"
-            output.write_bytes(SENTINEL)
-            arguments = [str(converter), str(source), "-o", str(output),
-                         f"-v{target_year}", "-y", "-d"]
-            if partial_mode:
-                arguments.append("--allow-partial-dwg-read")
-            result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
-            projection = next((line for line in result.stderr.splitlines()
-                               if line.startswith(
-                                   b"CLI source disposition projection:")), b"")
-            required_projection = (
-                b"sourceDwgObjectParseFailures=1",
-                b"sourceDwgEntityParseFailures=0",
-                b"sourceDwgFrameCoverage=partial",
-                b"sourceDwgFramesFailed=1",
-                # The failed MLINESTYLE is represented by its terminal frame
-                # disposition; its malformed body does not add a retained
-                # object-level integrity row.
-                b"sourceDwgIntegrityErrorsAmongRetained=0",
-            )
-            expected_gate = (
-                b"strict-complete conversion requires successful, complete DWG read disposition")
-            if (result.returncode != (0 if partial_mode else 1)
-                    or source.read_bytes() != original
-                    or b"operationSucceeded=true" not in result.stderr
-                    or any(field not in projection for field in required_projection)):
-                raise AssertionError(
-                    f"{revision} malformed OBJECTS body {mode} output had the wrong "
-                    f"disposition: {result!r}")
-            if partial_mode:
-                reopened = run_bounded(
-                    [str(writer), "--count-dxf-lines", str(output)],
-                    10, 131072, cwd=root)
-                if (not output.is_file() or output.read_bytes() == SENTINEL
-                        or reopened.returncode != 0
-                        or b"lineCount=1" not in reopened.stdout
-                        or b"vportCount=1" not in reopened.stdout):
+        for binary in (False, True):
+            encoding = "Binary" if binary else "ASCII"
+            for partial_mode in (False, True):
+                mode = "partial" if partial_mode else "strict"
+                output = root / f"malformed OBJECTS body {mode} {revision} {encoding}.dxf"
+                output.write_bytes(SENTINEL)
+                arguments = [str(converter), str(source), "-o", str(output),
+                             f"-v{target_year}", "-y", "-d"]
+                if binary:
+                    arguments.append("-b")
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
+                projection = next((line for line in result.stderr.splitlines()
+                                   if line.startswith(
+                                       b"CLI source disposition projection:")), b"")
+                required_projection = (
+                    b"sourceDwgObjectParseFailures=1",
+                    b"sourceDwgEntityParseFailures=0",
+                    b"sourceDwgFrameCoverage=partial",
+                    b"sourceDwgFramesFailed=1",
+                    # The failed MLINESTYLE is represented by its terminal frame
+                    # disposition; its malformed body does not add a retained
+                    # object-level integrity row.
+                    b"sourceDwgIntegrityErrorsAmongRetained=0",
+                )
+                expected_gate = (
+                    b"strict-complete conversion requires successful, complete DWG read disposition")
+                if (result.returncode != (0 if partial_mode else 1)
+                        or source.read_bytes() != original
+                        or b"operationSucceeded=true" not in result.stderr
+                        or any(field not in projection for field in required_projection)):
                     raise AssertionError(
-                        f"{revision} malformed OBJECTS body partial output did not "
-                        f"reopen with retained LINE: {reopened!r}")
-            elif (output.read_bytes() != SENTINEL or expected_gate not in result.stderr):
-                raise AssertionError(
-                    f"{revision} malformed OBJECTS body strict output did not "
-                    f"refuse atomically: {result!r}")
-            if partial_mode and (
-                    b"WARNING: explicit partial DWG read mode" not in result.stderr
-                    or b"is not a completeness/support claim" not in result.stderr):
-                raise AssertionError(
-                    f"{revision} malformed OBJECTS body partial mode lacked its "
-                    f"incomplete-output warning: {result!r}")
-            checked += 1
+                        f"{revision} malformed OBJECTS body {mode} output had the wrong "
+                        f"disposition: {result!r}")
+                if partial_mode:
+                    reopened = run_bounded(
+                        [str(writer), "--count-dxf-lines", str(output)],
+                        10, 131072, cwd=root)
+                    if (not output.is_file() or output.read_bytes() == SENTINEL
+                            or reopened.returncode != 0
+                            or b"lineCount=1" not in reopened.stdout
+                            or b"vportCount=1" not in reopened.stdout):
+                        raise AssertionError(
+                            f"{revision} malformed OBJECTS body partial output did not "
+                            f"reopen with retained LINE: {reopened!r}")
+                elif (output.read_bytes() != SENTINEL or expected_gate not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} malformed OBJECTS body strict output did not "
+                        f"refuse atomically: {result!r}")
+                if partial_mode and (
+                        b"WARNING: explicit partial DWG read mode" not in result.stderr
+                        or b"is not a completeness/support claim" not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} malformed OBJECTS body partial mode lacked its "
+                        f"incomplete-output warning: {result!r}")
+                checked += 1
     return checked
 
 
