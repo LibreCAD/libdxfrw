@@ -1859,6 +1859,32 @@ public:
         legacyDynamicConstraint.setDefPoint(DRW_Coord{80.0, 81.0, 82.0});
         legacyDynamicConstraint.setTextPoint(DRW_Coord{80.5, 81.5, 0.0});
         legacyDynamicConstraint.setText("version matrix legacy constraint");
+
+        arcDimension.handle = 0xDC19u;
+        arcDimension.setArcDefPoint(DRW_Coord{90.0, 91.0, 92.0});
+        arcDimension.setTextPoint(DRW_Coord{90.5, 91.5, 0.0});
+        arcDimension.setText("version matrix arc dimension");
+        arcDimension.setStyle("DIM_MATRIX_STYLE");
+        arcDimension.setExtLine1(DRW_Coord{91.0, 90.0, 0.0});
+        arcDimension.setExtLine2(DRW_Coord{91.0, 92.0, 0.0});
+        arcDimension.setArcCenter(DRW_Coord{90.0, 91.0, 0.0});
+        arcDimension.setLeaderPt1(DRW_Coord{92.0, 91.0, 0.0});
+        arcDimension.leaderPt2 = DRW_Coord{93.0, 91.0, 0.0};
+        arcDimension.arcStartAngle = 0.25;
+        arcDimension.arcEndAngle = 1.75;
+        arcDimension.isPartial = true;
+        arcDimension.hasLeader = true;
+
+        largeRadialDimension.handle = 0xDC1Au;
+        largeRadialDimension.setCenterPoint(DRW_Coord{100.0, 101.0, 102.0});
+        largeRadialDimension.setTextPoint(DRW_Coord{100.5, 101.5, 0.0});
+        largeRadialDimension.setText("version matrix large radial");
+        largeRadialDimension.setStyle("DIM_MATRIX_STYLE");
+        largeRadialDimension.setChordPoint(DRW_Coord{103.0, 100.0, 102.0});
+        largeRadialDimension.overrideCenterPoint =
+            DRW_Coord{100.0, 101.0, 102.0};
+        largeRadialDimension.jogPoint = DRW_Coord{104.0, 102.0, 0.0};
+        largeRadialDimension.jogAngle = 0.375;
     }
 
     void writeEntities() override {
@@ -1870,7 +1896,9 @@ public:
             && dxfW->writeDimension(&angular3p)
             && dxfW->writeDimension(&ordinate)
             && dxfW->writeDimension(&dynamicConstraint)
-            && dxfW->writeDimension(&legacyDynamicConstraint);
+            && dxfW->writeDimension(&legacyDynamicConstraint)
+            && dxfW->writeDimension(&arcDimension)
+            && dxfW->writeDimension(&largeRadialDimension);
     }
     bool finalizeDxfWrite() override { return written; }
 
@@ -1939,7 +1967,29 @@ public:
                 == "*LayerNameForDynamicConstraint"
             && legacyDynamicConstraint.getDefPoint().x == 80.0
             && legacyDynamicConstraint.getText()
-                == "version matrix legacy constraint";
+                == "version matrix legacy constraint"
+            && arcDimension.handle == 0xDC19u
+            && arcDimension.getArcDefPoint().x == 90.0
+            && arcDimension.getArcDefPoint().y == 91.0
+            && arcDimension.getArcDefPoint().z == 92.0
+            && arcDimension.getExtLine1().x == 91.0
+            && arcDimension.getExtLine2().y == 92.0
+            && arcDimension.getArcCenter().x == 90.0
+            && arcDimension.getLeaderPt1().x == 92.0
+            && arcDimension.leaderPt2.x == 93.0
+            && arcDimension.arcStartAngle == 0.25
+            && arcDimension.arcEndAngle == 1.75
+            && arcDimension.isPartial && arcDimension.hasLeader
+            && arcDimension.getText() == "version matrix arc dimension"
+            && largeRadialDimension.handle == 0xDC1Au
+            && largeRadialDimension.getCenterPoint().x == 100.0
+            && largeRadialDimension.getCenterPoint().y == 101.0
+            && largeRadialDimension.getCenterPoint().z == 102.0
+            && largeRadialDimension.getChordPoint().x == 103.0
+            && largeRadialDimension.overrideCenterPoint.x == 100.0
+            && largeRadialDimension.jogPoint.x == 104.0
+            && largeRadialDimension.jogAngle == 0.375
+            && largeRadialDimension.getText() == "version matrix large radial";
     }
 
     DRW_DimAligned aligned;
@@ -1951,6 +2001,8 @@ public:
     DRW_DimOrdinate ordinate;
     DRW_DimLinear dynamicConstraint;
     DRW_DimLinear legacyDynamicConstraint;
+    DRW_DimArc arcDimension;
+    DRW_DimLargeRadial largeRadialDimension;
     bool written = false;
     dx_data storage;
 };
@@ -1984,8 +2036,14 @@ public:
     }
     void addDimRadial(const DRW_DimRadial* value) override {
         if (value != nullptr) {
-            ++radialCount;
-            radial = *value;
+            if (const auto* large =
+                    dynamic_cast<const DRW_DimLargeRadial*>(value)) {
+                ++largeRadialCount;
+                largeRadial = *large;
+            } else {
+                ++radialCount;
+                radial = *value;
+            }
         }
     }
     void addDimDiametric(const DRW_DimDiametric* value) override {
@@ -2012,6 +2070,12 @@ public:
             ordinate = *value;
         }
     }
+    void addDimArc(const DRW_DimArc* value) override {
+        if (value != nullptr) {
+            ++arcDimensionCount;
+            arcDimension = *value;
+        }
+    }
 
     unsigned alignedCount{0};
     unsigned linearCount{0};
@@ -2022,6 +2086,8 @@ public:
     unsigned ordinateCount{0};
     unsigned dynamicConstraintCount{0};
     unsigned legacyDynamicConstraintCount{0};
+    unsigned arcDimensionCount{0};
+    unsigned largeRadialCount{0};
     DRW_DimAligned aligned;
     DRW_DimLinear linear;
     DRW_DimRadial radial;
@@ -2031,6 +2097,8 @@ public:
     DRW_DimOrdinate ordinate;
     DRW_DimLinear dynamicConstraint;
     DRW_DimLinear legacyDynamicConstraint;
+    DRW_DimArc arcDimension;
+    DRW_DimLargeRadial largeRadial;
     dx_data storage;
 };
 
@@ -7104,6 +7172,8 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.ordinateCount == 1u
             && adapter.dynamicConstraintCount == 1u
             && adapter.legacyDynamicConstraintCount == 1u
+            && adapter.arcDimensionCount == 1u
+            && adapter.largeRadialCount == 1u
             && adapter.aligned.handle != 0u
             && adapter.aligned.getStyle() == "DIM_MATRIX_STYLE"
             && adapter.aligned.getDefPoint().x == 1.25
@@ -7180,7 +7250,34 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
             && adapter.legacyDynamicConstraint.getDefPoint().y == 81.0
             && adapter.legacyDynamicConstraint.getDefPoint().z == 82.0
             && adapter.legacyDynamicConstraint.getText()
-                == "version matrix legacy constraint";
+                == "version matrix legacy constraint"
+            && adapter.arcDimension.handle != 0u
+            && adapter.arcDimension.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.arcDimension.getArcDefPoint().x == 90.0
+            && adapter.arcDimension.getArcDefPoint().y == 91.0
+            && adapter.arcDimension.getArcDefPoint().z == 92.0
+            && adapter.arcDimension.getExtLine1().x == 91.0
+            && adapter.arcDimension.getExtLine2().y == 92.0
+            && adapter.arcDimension.getArcCenter().x == 90.0
+            && adapter.arcDimension.getLeaderPt1().x == 92.0
+            && adapter.arcDimension.leaderPt2.x == 93.0
+            && adapter.arcDimension.arcStartAngle == 0.25
+            && adapter.arcDimension.arcEndAngle == 1.75
+            && adapter.arcDimension.isPartial
+            && adapter.arcDimension.hasLeader
+            && adapter.arcDimension.getText()
+                == "version matrix arc dimension"
+            && adapter.largeRadial.handle != 0u
+            && adapter.largeRadial.getStyle() == "DIM_MATRIX_STYLE"
+            && adapter.largeRadial.getCenterPoint().x == 100.0
+            && adapter.largeRadial.getCenterPoint().y == 101.0
+            && adapter.largeRadial.getCenterPoint().z == 102.0
+            && adapter.largeRadial.getChordPoint().x == 103.0
+            && adapter.largeRadial.overrideCenterPoint.x == 100.0
+            && adapter.largeRadial.jogPoint.x == 104.0
+            && adapter.largeRadial.jogAngle == 0.375
+            && adapter.largeRadial.getText()
+                == "version matrix large radial";
         if (!matches) {
             std::cerr << "DIMENSION readback diagnostic read=" << read
                       << " error=" << reader.getError()
@@ -7194,6 +7291,8 @@ bool runDimensionVersionSweep(const std::filesystem::path& directory) {
                       << " dynamic=" << adapter.dynamicConstraintCount
                       << " legacyDynamic="
                       << adapter.legacyDynamicConstraintCount
+                      << " arcDimension=" << adapter.arcDimensionCount
+                      << " largeRadial=" << adapter.largeRadialCount
                       << " alignedHandle=" << adapter.aligned.handle
                       << " alignedStyle=" << adapter.aligned.getStyle()
                       << " alignedDef=" << adapter.aligned.getDefPoint().x
