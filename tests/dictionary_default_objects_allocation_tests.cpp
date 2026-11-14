@@ -250,20 +250,26 @@ bool run(const std::filesystem::path& directory) {
         data.rawDictionaryWithDefaults.front();
     DictionaryDefaultExport exporter;
     const std::string sentinel = "prior dictionary-default bytes\n";
-    const auto write = [&exporter, &data, &outputPath](bool binary) {
-        return exporter.fileExport(outputPath.string(), DRW::AC1027, binary,
+    const auto write = [&exporter, &data, &outputPath](
+            DRW::Version version, bool binary) {
+        return exporter.fileExport(outputPath.string(), version, binary,
             &data, false, true);
     };
 
-    for (const bool directTyped : {false, true}) {
+    for (const DRW::Version version :
+         {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+      for (const bool directTyped : {false, true}) {
+        if (!directTyped && version != DRW::AC1027)
+            continue;
         exporter.directTyped = directTyped;
         for (const bool binary : {false, true}) {
             exporter.failAt = 1000000;
-            const bool wroteCalibration = write(binary);
+            const bool wroteCalibration = write(version, binary);
             const bool graphReadback = wroteCalibration
                 && verifyGraph(outputPath);
             if (!wroteCalibration || !graphReadback) {
                 std::cerr << "directTyped=" << directTyped
+                          << " target=" << static_cast<int>(version)
                           << " binary=" << binary
                           << " fileExport=" << wroteCalibration
                           << " callback=" << exporter.reached
@@ -283,7 +289,7 @@ bool run(const std::filesystem::path& directory) {
                 }
                 exporter.failAt = offset;
                 exporter.reached = 0;
-                const bool wrote = write(binary);
+                const bool wrote = write(version, binary);
                 exporter.failAt = -1;
                 std::string current;
                 if (wrote || exporter.reached < 1
@@ -293,7 +299,7 @@ bool run(const std::filesystem::path& directory) {
                                         sourceRawDictionary))
                     return fail(
                         "injected failure changed destination or source graph");
-                if (!write(binary) || !verifyGraph(outputPath)
+                if (!write(version, binary) || !verifyGraph(outputPath)
                     || !sourceUnchanged(data, sourceDictionary,
                                         sourcePlaceholder,
                                         sourceRawDictionary))
@@ -302,10 +308,12 @@ bool run(const std::filesystem::path& directory) {
             }
             std::cout << "DICTIONARYWDFLT/PLACEHOLDER "
                       << (directTyped ? "typed direct " : "raw adapter ")
+                      << static_cast<int>(version) << ' '
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
         }
+      }
     }
     std::filesystem::remove(sourcePath, error);
     std::filesystem::remove(outputPath, error);

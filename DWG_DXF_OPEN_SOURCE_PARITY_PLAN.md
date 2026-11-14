@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **243 completed implementation slices** and **35 remaining
+The plan records **244 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`243 / (243 + 35) = 87.4%`. This is a count-based progress measure, not an
+`244 / (244 + 35) = 87.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5162,12 +5162,15 @@ text is not ACIS syntax or geometry proof ([receipt](docs/research/p6-modeler-dx
 The existing generated DICTIONARYWDFLT/ACDBPLACEHOLDER rollback control now
 also invokes the public typed `writeDictionaryWithDefault()` and
 `writeAcDbPlaceholder()` entry points directly, retaining the raw adapter
-route. For the generated no-reactor graph, all 12 ASCII and 11 Binary typed
-route allocation offsets preserve the destination and source graph, then
-same-adapter retry passes typed readback; the raw route retains its 25/24
-offset sweeps. This closes the direct typed writer path for this bounded
-profile only; dictionary ownership variants and P6-G's wider writer inventory
-remain open ([receipt](docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json)).
+route. The typed route now covers AC1021, AC1024, AC1027 and AC1032 in both
+encodings: all 12 ASCII and 11 Binary offsets per target preserve destination
+and source graph state, then same-adapter retry passes typed readback. The raw
+adapter route remains qualified only at AC1027, where its 25/24 offset sweeps
+pass; AC1021 raw adapter output refuses this source profile and is not included
+in the typed-route matrix claim. This closes the typed writer transaction path
+for this bounded profile only; dictionary ownership variants and P6-G's wider
+writer inventory remain open
+([receipt](docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json)).
 The explicit `writeXRecordDwgCompatibility()` path now has whole-operation
 ASCII/Binary allocation rollback coverage for a generated XRECORD carrying
 both group 1070 and group 1071. All 90 ASCII and 88 Binary injected offsets
