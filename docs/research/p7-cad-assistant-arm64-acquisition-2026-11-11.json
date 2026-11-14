@@ -11,7 +11,7 @@
     "command": "curl -fL --retry 2 --output /private/tmp/cad_assistant_1.6.0_2021-10-06_arm64.dmg https://www.opencascade.com/sites/default/files/private/occt/applications/cad_assistant_1.6.0_2021-10-06_arm64.dmg",
     "result": "PASS: 45,435,791 bytes downloaded; SHA-256 a1a21d2b3294ca556b7a0172df8ed1a8046450894033147be09a9fd1549f2b2d matches the previously checked official release artifact."
   },
-  "disposition": "The previous network/DNS acquisition blocker is resolved. The official artifact is hash-matched, natively mounted and signature/notarization verified, but Launch Services file delivery failed before SAT/SAB import. Continue with local modeler implementation; attempt only a genuinely different in-app file-selection route for semantic evidence.",
+  "disposition": "The previous DNS blocker is resolved and the official artifact is hash-matched and natively verified. Launch Services produced a pre-import transfer error. A separate in-app picker attempt did not display the known-hash scratch SAB in Downloads and produced no import. Next external evidence work must resolve picker visibility/file access or use an independently authorized import path; continue local modeler implementation in parallel.",
   "limitations": [
     "CAD Assistant shares OCCT geometry-kernel lineage with FreeCAD and is not an independent-kernel vote.",
     "The current launch error provides no evidence about ACIS parsing or shape meaning.",
@@ -32,6 +32,11 @@
     "command": "open -a \"/private/tmp/cad-assistant-mount/CAD Assistant.app\" --args /tmp/libdxfrw-acis21500/cube.sab",
     "sampleSha256": "4b5919bc0188358a279ba833aec5d879fa2067ba8af42a8ea86e585d420fb8a8",
     "result": "The application launched, then displayed \"Error occurred transferring SAT file\" for the supplied SAB path. No import, shape, measurements, or geometry result was observed. The app was quit and the disk image detached.",
-    "disposition": "This invocation route is not a reader result. A native in-app file selection is required before making any semantic observation."
+    "disposition": "This invocation route is not a reader result. A native in-app file selection is required before making any semantic observation.",
+    "nativePickerRecheck": {
+      "procedure": "Launched the mounted application without a file argument and browsed its built-in filesystem picker to the user Downloads location. A temporary byte-identical copy of the generated cube SAB was present there with the expected SHA-256, but did not appear in the visible file list; no file was opened.",
+      "result": "No import or geometry observation. The temporary Downloads copy was removed; the app was quit and the read-only image detached.",
+      "limitation": "The visible picker filter/category state was not fully resolved; this is not evidence that CAD Assistant rejects the SAB content."
+    }
   }
 }

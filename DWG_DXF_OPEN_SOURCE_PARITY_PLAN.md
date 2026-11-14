@@ -6096,10 +6096,11 @@ and a native read-only mount passes strict code-signature and Gatekeeper
 notarization checks. Launching with a scratch ACIS 700 SAB through Launch
 Services produced an application dialog, "Error occurred transferring SAT
 file," before import. No shape or measurements were observed. The app was quit
-and the mount detached. The Launch Services route is ruled out for this file
-selection; a genuinely different in-app open route remains a semantic-evidence
-follow-up, while local modeler implementation continues. This does not alter
-any P7 claim ([acquisition receipt](docs/research/p7-cad-assistant-arm64-acquisition-2026-11-11.json)).
+and the mount detached. A separate in-app picker attempt also failed to expose
+the known-hash scratch SAB in Downloads, so no import or geometry result exists;
+the picker filter/access cause remains undiagnosed. Do not treat either route as
+ACIS evidence. Resolve file visibility or use a separately verified native import
+route while local modeler implementation continues ([acquisition receipt](docs/research/p7-cad-assistant-arm64-acquisition-2026-11-11.json)).
 
 A BRL-CAD STEPcode/openNURBS/librt probe independently checks selected
 topology and eight rays on the source-associated 2E1 solid. Its STEP bridge
