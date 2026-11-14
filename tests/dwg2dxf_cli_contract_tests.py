@@ -1314,6 +1314,31 @@ def check_partial_dwg_read_cli(converter, root, writer):
         checked += 1
 
         if target_year is None:
+            # AC1027 is useful for reader recovery, but its independent
+            # source-reference closure gate masks this CLI disposition. Verify
+            # that neither strict nor explicit-partial mode bypasses it.
+            output = root / f"malformed OBJECTS body {revision} source gate.dxf"
+            output.write_bytes(SENTINEL)
+            for partial_mode in (False, True):
+                arguments = [str(converter), str(source), "-o", str(output),
+                             "-v2013", "-y", "-d"]
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(arguments, 10, 2 * 1024 * 1024, cwd=root)
+                if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                        or source.read_bytes() != original
+                        or b"AC1027 DWG source references are not fully qualified"
+                           not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} {('partial' if partial_mode else 'strict')} "
+                        f"output bypassed its source-reference gate: {result!r}")
+                if partial_mode and (
+                        b"WARNING: explicit partial DWG read mode" not in result.stderr
+                        or b"sourceDwgObjectParseFailures=1" not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} partial source-gate refusal omitted its "
+                        f"failure disposition: {result!r}")
+                checked += 1
             continue
 
         for binary in (False, True):
