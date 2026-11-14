@@ -223,7 +223,8 @@ bool indexMatches(const DRW_PartialViewingIndex& actual,
 bool readbackMatches(const std::filesystem::path& path,
                      const DRW_Line& expectedLine,
                      const DRW_Polyline& expectedPolyline,
-                     const DRW_PartialViewingIndex& expectedIndex) {
+                     const DRW_PartialViewingIndex& expectedIndex,
+                     DRW::Version version) {
     dx_data data;
     class IndexReadback final : public dx_iface {
     public:
@@ -265,6 +266,7 @@ bool readbackMatches(const std::filesystem::path& path,
     } reader;
     if (!reader.fileImport(path.string(), &data, false)
         || data.sourceFormat != dx_source_format::DXF
+        || data.sourceVersion != version
         || reader.lines.size() != 1u || reader.points.size() != 1u
         || reader.polylines.size() != 1u
         || reader.fields.size() != 1u
@@ -394,157 +396,189 @@ bool run(const std::filesystem::path& directory) {
 
     const auto output = directory / "field-fieldlist-partial-viewing-index.dxf";
     const std::string sentinel = "prior FIELD/FIELDLIST/PARTIAL_VIEWING_INDEX destination\n";
-    for (const bool binary : {false, true}) {
+    const DRW::Version versions[] = {DRW::AC1018, DRW::AC1021, DRW::AC1024,
+                                     DRW::AC1027, DRW::AC1032};
+    const auto versionName = [](DRW::Version version) {
+      switch (version) {
+      case DRW::AC1018:
+        return "AC1018";
+      case DRW::AC1021:
+        return "AC1021";
+      case DRW::AC1024:
+        return "AC1024";
+      case DRW::AC1027:
+        return "AC1027";
+      case DRW::AC1032:
+        return "AC1032";
+      default:
+        return "UNKNOWN";
+      }
+    };
+    for (const DRW::Version version : versions) {
+      for (const bool binary : {false, true}) {
         long allocationCount = 0;
         std::string expectedBytes;
         {
-            const std::string outputName = output.string();
-            dxfRW codec(outputName.c_str());
-            IndexExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            codec.setDxfWriteRecordInventoryEnabled(true);
-            const DRW_Polyline sourcePolyline = exporter.polyline;
-            exporter.failAt = 1000000;
-            const bool exported = codec.write(&exporter, DRW::AC1027, binary);
-            const bool readback = exported && readbackMatches(
-                output, exporter.line, sourcePolyline, exporter.index);
-            if (!exported || !exporter.lineWritten || !exporter.pointWritten
-                || !exporter.polylineWritten
-                || !polylineMatches(exporter.polyline, sourcePolyline)
-                || exporter.point.handle != 0xD7B1u || !exporter.fieldWritten
-                || !exporter.fieldListWritten || !exporter.pathsWritten
-                || !exporter.objectPtrWritten
-                || !exporter.indexWritten || exporter.line.handle != 0xD7B0u
-                || !readback) {
-                std::cerr << "calibration codecWrite=" << exported
-                          << " lineWrite=" << exporter.lineWritten
-                          << " pointWrite=" << exporter.pointWritten
-                          << " polylineWrite=" << exporter.polylineWritten
-                          << " polylineSourceState="
-                          << polylineMatches(exporter.polyline, sourcePolyline)
-                          << " polylineHandle=" << exporter.polyline.handle
-                          << " vertexHandles="
-                          << (exporter.polyline.vertlist[0]
-                                  ? exporter.polyline.vertlist[0]->handle : 0u)
-                          << ','
-                          << (exporter.polyline.vertlist[1]
-                                  ? exporter.polyline.vertlist[1]->handle : 0u)
-                          << " fieldWrite=" << exporter.fieldWritten
-                          << " fieldListWrite=" << exporter.fieldListWritten
-                          << " pathsWrite=" << exporter.pathsWritten
-                          << " objectPtrWrite=" << exporter.objectPtrWritten
-                          << " indexWrite=" << exporter.indexWritten
-                          << " readback=" << readback
-                          << " binary=" << binary << '\n';
-                return fail("allocation calibration output did not read back");
-            }
-            allocationCount = exporter.reached;
-            if (!readAll(output, expectedBytes))
-                return fail("could not retain calibration output bytes");
+          const std::string outputName = output.string();
+          dxfRW codec(outputName.c_str());
+          IndexExport exporter(codec);
+          codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+          codec.setDxfWriteRecordInventoryEnabled(true);
+          const DRW_Polyline sourcePolyline = exporter.polyline;
+          exporter.failAt = 1000000;
+          const bool exported = codec.write(&exporter, version, binary);
+          const bool readback =
+              exported && readbackMatches(output, exporter.line, sourcePolyline,
+                                          exporter.index, version);
+          if (!exported || !exporter.lineWritten || !exporter.pointWritten ||
+              !exporter.polylineWritten ||
+              !polylineMatches(exporter.polyline, sourcePolyline) ||
+              exporter.point.handle != 0xD7B1u || !exporter.fieldWritten ||
+              !exporter.fieldListWritten || !exporter.pathsWritten ||
+              !exporter.objectPtrWritten || !exporter.indexWritten ||
+              exporter.line.handle != 0xD7B0u || !readback) {
+            std::cerr << "calibration codecWrite=" << exported
+                      << " lineWrite=" << exporter.lineWritten
+                      << " pointWrite=" << exporter.pointWritten
+                      << " polylineWrite=" << exporter.polylineWritten
+                      << " polylineSourceState="
+                      << polylineMatches(exporter.polyline, sourcePolyline)
+                      << " polylineHandle=" << exporter.polyline.handle
+                      << " vertexHandles="
+                      << (exporter.polyline.vertlist[0]
+                              ? exporter.polyline.vertlist[0]->handle
+                              : 0u)
+                      << ','
+                      << (exporter.polyline.vertlist[1]
+                              ? exporter.polyline.vertlist[1]->handle
+                              : 0u)
+                      << " fieldWrite=" << exporter.fieldWritten
+                      << " fieldListWrite=" << exporter.fieldListWritten
+                      << " pathsWrite=" << exporter.pathsWritten
+                      << " objectPtrWrite=" << exporter.objectPtrWritten
+                      << " indexWrite=" << exporter.indexWritten
+                      << " readback=" << readback << " binary=" << binary
+                      << '\n';
+            return fail("allocation calibration output did not read back");
+          }
+          allocationCount = exporter.reached;
+          if (!readAll(output, expectedBytes))
+            return fail("could not retain calibration output bytes");
         }
         if (allocationCount <= 0)
-            return fail("calibration observed no OBJECTS callback allocations");
+          return fail("calibration observed no OBJECTS callback allocations");
 
         for (long offset = 0; offset < allocationCount; ++offset) {
-            {
-                std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-                prior << sentinel;
-                if (!prior)
-                    return fail("could not initialize destination sentinel");
-            }
-            const std::string outputName = output.string();
-            dxfRW codec(outputName.c_str());
-            IndexExport exporter(codec);
-            codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
-            codec.setDxfWriteRecordInventoryEnabled(true);
-            const DRW_Line sourceLine = exporter.line;
-            const DRW_Point sourcePoint = exporter.point;
-            const DRW_Polyline sourcePolyline = exporter.polyline;
-            const DRW_Field sourceField = exporter.field;
-            const DRW_FieldList sourceFieldList = exporter.fieldList;
-            const DRW_MotionPath sourceMotionPath = exporter.motionPath;
-            const DRW_CurvePath sourceCurvePath = exporter.curvePath;
-            const DRW_PointPath sourcePointPath = exporter.pointPath;
-            const DRW_ObjectPtr sourceObjectPtr = exporter.objectPtr;
-            const DRW_PartialViewingIndex sourceIndex = exporter.index;
-            exporter.failAt = offset;
-            exporter.reached = 0;
-            exporter.lineWritten = false;
-            exporter.pointWritten = false;
-            exporter.polylineWritten = false;
-            exporter.fieldWritten = false;
-            exporter.fieldListWritten = false;
-            exporter.pathsWritten = false;
-            exporter.objectPtrWritten = false;
-            exporter.indexWritten = false;
-            const bool wrote = codec.write(&exporter, DRW::AC1027, binary);
-            exporter.failAt = -1;
-            std::string current;
-            if (wrote || exporter.reached != 1
-                || !readAll(output, current) || current != sentinel)
-                return fail("injected failure changed destination or missed allocation");
-            if (!lineMatches(exporter.line, sourceLine)
-                || exporter.point.handle != sourcePoint.handle
-                || exporter.point.parentHandle != sourcePoint.parentHandle
-                || exporter.point.basePoint.x != sourcePoint.basePoint.x
-                || exporter.point.basePoint.y != sourcePoint.basePoint.y
-                || exporter.point.basePoint.z != sourcePoint.basePoint.z
-                || !polylineMatches(exporter.polyline, sourcePolyline)
-                || exporter.field.handle != sourceField.handle
-                || exporter.field.parentHandle != sourceField.parentHandle
-                || exporter.field.m_evaluatorId != sourceField.m_evaluatorId
-                || exporter.field.m_fieldCode != sourceField.m_fieldCode
-                || exporter.field.m_valueString != sourceField.m_valueString
-                || exporter.field.m_valueStringLength != sourceField.m_valueStringLength
-                || exporter.fieldList.handle != sourceFieldList.handle
-                || exporter.fieldList.parentHandle != sourceFieldList.parentHandle
-                || exporter.fieldList.m_fieldHandles != sourceFieldList.m_fieldHandles
-                || exporter.motionPath.handle != sourceMotionPath.handle
-                || exporter.motionPath.parentHandle != sourceMotionPath.parentHandle
-                || exporter.motionPath.m_cameraPathHandle != sourceMotionPath.m_cameraPathHandle
-                || exporter.motionPath.m_targetPathHandle != sourceMotionPath.m_targetPathHandle
-                || exporter.motionPath.m_viewTableHandle != sourceMotionPath.m_viewTableHandle
-                || exporter.motionPath.m_frames != sourceMotionPath.m_frames
-                || exporter.motionPath.m_frameRate != sourceMotionPath.m_frameRate
-                || exporter.motionPath.m_cornerDeceleration != sourceMotionPath.m_cornerDeceleration
-                || exporter.curvePath.handle != sourceCurvePath.handle
-                || exporter.curvePath.parentHandle != sourceCurvePath.parentHandle
-                || exporter.curvePath.m_entityHandle != sourceCurvePath.m_entityHandle
-                || exporter.pointPath.handle != sourcePointPath.handle
-                || exporter.pointPath.parentHandle != sourcePointPath.parentHandle
-                || exporter.pointPath.m_point.x != sourcePointPath.m_point.x
-                || exporter.pointPath.m_point.y != sourcePointPath.m_point.y
-                || exporter.pointPath.m_point.z != sourcePointPath.m_point.z
-                || exporter.objectPtr.handle != sourceObjectPtr.handle
-                || exporter.objectPtr.parentHandle != sourceObjectPtr.parentHandle
-                || !indexMatches(exporter.index, sourceIndex))
-                return fail("injected failure changed entity, FIELD/path, or PVI state");
-            if (exporter.line.handle != sourceLine.handle)
-                return fail("failed write changed the caller LINE source handle");
-            const bool retry = codec.write(&exporter, DRW::AC1027, binary);
-            std::string retryBytes;
-            if (!retry || !exporter.lineWritten || !exporter.pointWritten
-                || !exporter.polylineWritten
-                || !exporter.fieldWritten
-                || !exporter.fieldListWritten || !exporter.pathsWritten
-                || !exporter.objectPtrWritten
-                || !exporter.indexWritten
-                || !readAll(output, retryBytes) || retryBytes != expectedBytes
-                || !readbackMatches(output, sourceLine, sourcePolyline,
-                                    sourceIndex)
-                || exporter.line.handle != sourceLine.handle
-                || exporter.point.handle != sourcePoint.handle
-                || !polylineMatches(exporter.polyline, sourcePolyline)
-                || !lineMatches(exporter.line, sourceLine)
-                || !indexMatches(exporter.index, sourceIndex))
-                return fail("same-codec retry failed exact bytes or graph readback");
+          {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+              return fail("could not initialize destination sentinel");
+          }
+          const std::string outputName = output.string();
+          dxfRW codec(outputName.c_str());
+          IndexExport exporter(codec);
+          codec.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+          codec.setDxfWriteRecordInventoryEnabled(true);
+          const DRW_Line sourceLine = exporter.line;
+          const DRW_Point sourcePoint = exporter.point;
+          const DRW_Polyline sourcePolyline = exporter.polyline;
+          const DRW_Field sourceField = exporter.field;
+          const DRW_FieldList sourceFieldList = exporter.fieldList;
+          const DRW_MotionPath sourceMotionPath = exporter.motionPath;
+          const DRW_CurvePath sourceCurvePath = exporter.curvePath;
+          const DRW_PointPath sourcePointPath = exporter.pointPath;
+          const DRW_ObjectPtr sourceObjectPtr = exporter.objectPtr;
+          const DRW_PartialViewingIndex sourceIndex = exporter.index;
+          exporter.failAt = offset;
+          exporter.reached = 0;
+          exporter.lineWritten = false;
+          exporter.pointWritten = false;
+          exporter.polylineWritten = false;
+          exporter.fieldWritten = false;
+          exporter.fieldListWritten = false;
+          exporter.pathsWritten = false;
+          exporter.objectPtrWritten = false;
+          exporter.indexWritten = false;
+          const bool wrote = codec.write(&exporter, version, binary);
+          exporter.failAt = -1;
+          std::string current;
+          if (wrote || exporter.reached != 1 || !readAll(output, current) ||
+              current != sentinel)
+            return fail(
+                "injected failure changed destination or missed allocation");
+          if (!lineMatches(exporter.line, sourceLine) ||
+              exporter.point.handle != sourcePoint.handle ||
+              exporter.point.parentHandle != sourcePoint.parentHandle ||
+              exporter.point.basePoint.x != sourcePoint.basePoint.x ||
+              exporter.point.basePoint.y != sourcePoint.basePoint.y ||
+              exporter.point.basePoint.z != sourcePoint.basePoint.z ||
+              !polylineMatches(exporter.polyline, sourcePolyline) ||
+              exporter.field.handle != sourceField.handle ||
+              exporter.field.parentHandle != sourceField.parentHandle ||
+              exporter.field.m_evaluatorId != sourceField.m_evaluatorId ||
+              exporter.field.m_fieldCode != sourceField.m_fieldCode ||
+              exporter.field.m_valueString != sourceField.m_valueString ||
+              exporter.field.m_valueStringLength !=
+                  sourceField.m_valueStringLength ||
+              exporter.fieldList.handle != sourceFieldList.handle ||
+              exporter.fieldList.parentHandle != sourceFieldList.parentHandle ||
+              exporter.fieldList.m_fieldHandles !=
+                  sourceFieldList.m_fieldHandles ||
+              exporter.motionPath.handle != sourceMotionPath.handle ||
+              exporter.motionPath.parentHandle !=
+                  sourceMotionPath.parentHandle ||
+              exporter.motionPath.m_cameraPathHandle !=
+                  sourceMotionPath.m_cameraPathHandle ||
+              exporter.motionPath.m_targetPathHandle !=
+                  sourceMotionPath.m_targetPathHandle ||
+              exporter.motionPath.m_viewTableHandle !=
+                  sourceMotionPath.m_viewTableHandle ||
+              exporter.motionPath.m_frames != sourceMotionPath.m_frames ||
+              exporter.motionPath.m_frameRate != sourceMotionPath.m_frameRate ||
+              exporter.motionPath.m_cornerDeceleration !=
+                  sourceMotionPath.m_cornerDeceleration ||
+              exporter.curvePath.handle != sourceCurvePath.handle ||
+              exporter.curvePath.parentHandle != sourceCurvePath.parentHandle ||
+              exporter.curvePath.m_entityHandle !=
+                  sourceCurvePath.m_entityHandle ||
+              exporter.pointPath.handle != sourcePointPath.handle ||
+              exporter.pointPath.parentHandle != sourcePointPath.parentHandle ||
+              exporter.pointPath.m_point.x != sourcePointPath.m_point.x ||
+              exporter.pointPath.m_point.y != sourcePointPath.m_point.y ||
+              exporter.pointPath.m_point.z != sourcePointPath.m_point.z ||
+              exporter.objectPtr.handle != sourceObjectPtr.handle ||
+              exporter.objectPtr.parentHandle != sourceObjectPtr.parentHandle ||
+              !indexMatches(exporter.index, sourceIndex))
+            return fail(
+                "injected failure changed entity, FIELD/path, or PVI state");
+          if (exporter.line.handle != sourceLine.handle)
+            return fail("failed write changed the caller LINE source handle");
+          const bool retry = codec.write(&exporter, version, binary);
+          std::string retryBytes;
+          if (!retry || !exporter.lineWritten || !exporter.pointWritten ||
+              !exporter.polylineWritten || !exporter.fieldWritten ||
+              !exporter.fieldListWritten || !exporter.pathsWritten ||
+              !exporter.objectPtrWritten || !exporter.indexWritten ||
+              !readAll(output, retryBytes) || retryBytes != expectedBytes ||
+              !readbackMatches(output, sourceLine, sourcePolyline, sourceIndex,
+                               version) ||
+              exporter.line.handle != sourceLine.handle ||
+              exporter.point.handle != sourcePoint.handle ||
+              !polylineMatches(exporter.polyline, sourcePolyline) ||
+              !lineMatches(exporter.line, sourceLine) ||
+              !indexMatches(exporter.index, sourceIndex))
+            return fail(
+                "same-codec retry failed exact bytes or graph readback");
         }
         std::cout << "FIELD/path/OBJECTPTR/PARTIAL_VIEWING_INDEX OBJECTS "
+                  << versionName(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }

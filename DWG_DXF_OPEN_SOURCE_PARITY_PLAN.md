@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **251 completed implementation slices** and **35 remaining
+The plan records **253 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`251 / (251 + 35) = 87.8%`. This is a count-based progress measure, not an
+`253 / (253 + 35) = 87.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1945,6 +1945,17 @@ in about 0.6 seconds. This proves generated transaction behavior only, not
 producer-authored unknown cell references or TABLEGEOMETRY consumer semantics.
 P6-G's full public-writer inventory remains open. See the
 [TABLEGEOMETRY matrix receipt](docs/research/p6-dxf-tablegeometry-objects-version-matrix-allocation-2026-11-13.json).
+
+**P6-G FIELD/path/PARTIAL_VIEWING_INDEX revision-matrix transaction slice
+(2026-11-13):** the generated FIELD, FIELDLIST, MOTIONPATH, CURVEPATH,
+POINTPATH, OBJECTPTR and three-entry PARTIALVIEWINGINDEX graph now passes
+allocation rollback, unchanged caller state, same-codec byte-identical retry,
+and typed graph readback at AC1018, AC1021, AC1024, AC1027 and AC1032 in both
+encodings. Readback checks the detected source revision. All 515 injected
+allocation failures pass; the focused CTest completes in about 1.4 seconds.
+This establishes generated transaction behavior only, not independent FIELD
+evaluation or native semantics. See the
+[FIELD/path/PARTIAL_VIEWING_INDEX receipt](docs/research/p6-dxf-field-path-partial-viewing-index-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH and MPOLYGON writes now have per-allocation rollback, same-writer retry,
