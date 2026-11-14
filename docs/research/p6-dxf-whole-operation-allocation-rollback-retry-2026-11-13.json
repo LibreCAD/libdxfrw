@@ -640,7 +640,13 @@
         "width": 12.0,
         "style": "STANDARD",
         "definedHeight": 2.25,
-        "definedHeightPresent": true
+        "definedHeightPresent": true,
+        "backgroundFlags": 1,
+        "backgroundScale": 1.35,
+        "backgroundACI": 3,
+        "backgroundTrueColor": "0x123456",
+        "backgroundColorName": "WHOLE_OPERATION_BACKGROUND_COLOR",
+        "backgroundTransparency": "0x02000000"
       },
       {
         "kind": "RAY",
@@ -716,10 +722,10 @@
   "implementation": {
     "productionCodeChanged": true,
     "test": "tests/dxf_write_allocation_transaction_tests.cpp",
-    "testSha256": "cdca7fca3fee1f5df8cb346b8808a2d2df143cce875d83e049707787375caa27",
+    "testSha256": "7b8105a3edf4a81d4f7b1d327b025eb617818ebbdd35474e94c866ea878c6d14",
     "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
     "ctestName": "libdxfrw_dxf_write_allocation_transaction",
-    "normalExecutableSha256": "dc7dd65d8c51ff4561c6f9368e22833a9a91e32c493efed3f41993cb4c04ec06",
+    "normalExecutableSha256": "5aa1b5de776e437a961694b6338250010182cb821fa3262374305fd396dd869c",
     "asanExecutableSha256": "3e68db34be81f3d2364c18ee8686fc77b11d321564255f71e1a73843f2a52be2",
     "productionFiles": [
       "src/libdxfrw.cpp",
@@ -731,7 +737,7 @@
     "productionSourceSha256": {
       "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
       "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
-      "tests/dxf_write_allocation_transaction_tests.cpp": "cdca7fca3fee1f5df8cb346b8808a2d2df143cce875d83e049707787375caa27",
+      "tests/dxf_write_allocation_transaction_tests.cpp": "7b8105a3edf4a81d4f7b1d327b025eb617818ebbdd35474e94c866ea878c6d14",
       "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
       "src/intern/dwg_dxf_output_transaction.cpp": "5c98c2d4a634b6da8706e92fb5948f2f023aebed1f2ea57a67c843a15446a363"
     },
@@ -759,8 +765,10 @@
       "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style.",
       "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND.",
       "An ASCII publication-race control creates a destination directory and marker after staged output is finalized but before commit; commit refuses with BAD_OPEN without replacing the concurrent destination, then corrected same-codec retry succeeds with typed readback.",
-      "The allocation sweep checks that each failed whole-file write and corrected retry leaves no target-prefixed staging file. A fresh pre-fix run had left two zero-byte staging files; the production fix makes ownership registration non-throwing and closes setup descriptors on all abort paths. Test startup removes only stale files with this control’s generated target prefixes."
-    ]
+      "The allocation sweep checks that each failed whole-file write and corrected retry leaves no target-prefixed staging file. A fresh pre-fix run had left two zero-byte staging files; the production fix makes ownership registration non-throwing and closes setup descriptors on all abort paths. Test startup removes only stale files with this control’s generated target prefixes.",
+      "The generated MTEXT profile now includes background-fill flags, box scale, ACI, true color, named color, and transparency. Whole-operation allocation failure preserves the caller record; same-codec retry reproduces clean bytes and typed readback checks all background fields."
+    ],
+    "currentTestOnlyExtension": "Added MTEXT background-fill groups with ACI, true color, color name, and transparency to the generated whole-file rollback/retry profile; no production source changed in this extension."
   },
   "procedure": {
     "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
@@ -776,7 +784,7 @@
     "testExitCode": 0,
     "ctest": "Normal writer-primitives and whole-write selectors: 2/2 passed in 2.60 seconds; ASan: 2/2 passed in 17.79 seconds.",
     "ascii": {
-      "measuredAllocationOffsets": 452,
+      "measuredAllocationOffsets": 1184,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -864,7 +872,7 @@
       "stagedOutputsRemovedOnEveryFailureAndRetry": true
     },
     "binary": {
-      "measuredAllocationOffsets": 446,
+      "measuredAllocationOffsets": 1160,
       "allOffsetsFailedAsExpected": true,
       "destinationPreserved": true,
       "callerLineAndRawObjectPreserved": true,
@@ -959,8 +967,8 @@
       "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
     },
     "currentRun": {
-      "normalDirectRun": "ASCII 452 allocation offsets; Binary 446 allocation offsets; every injected failure preserves destination, caller records and staging directory, then same-codec retry matches clean bytes and typed readback.",
-      "normalCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 2.60 seconds.",
+      "normalDirectRun": "ASCII 1184 allocation offsets; Binary 1160; every injected whole-file failure preserves destination, caller records and staging directory, then same-codec retry matches clean bytes and typed readback, including MTEXT background-fill fields.",
+      "normalCtest": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure: PASS 1/1 in 9.17 seconds.",
       "asanCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 17.79 seconds.",
       "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
       "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
@@ -977,7 +985,8 @@
       "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
       "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics.",
       "publicationRace": "ASCII finalization hook creates a destination directory with marker data after staged writes; final publication refuses with BAD_OPEN, preserves marker and source records, then the same codec succeeds after clearing the destination and typed readback matches.",
-      "stagingCleanup": "A pre-fix direct run left two zero-byte target-prefixed staging files after one-shot allocation failures. After changing POSIX temporary registration to no-throw swap and making abort close descriptors without a registered path, the fresh ASCII/Binary sweep leaves no staging files on any failure or retry."
+      "stagingCleanup": "A pre-fix direct run left two zero-byte target-prefixed staging files after one-shot allocation failures. After changing POSIX temporary registration to no-throw swap and making abort close descriptors without a registered path, the fresh ASCII/Binary sweep leaves no staging files on any failure or retry.",
+      "currentAsanStatus": "Not rerun for this test-only MTEXT background profile extension; the prior ASan result predates the current test-source hash."
     },
     "additionalFailuresFoundAndFixed": [
       {
@@ -1009,7 +1018,8 @@
       "retryTypedReadbackMatched": true,
       "scope": "Generated local filesystem publication-race transaction control; not native-format semantic or cross-platform filesystem qualification.",
       "stagingFileRemovedOnFailure": true
-    }
+    },
+    "mtextReadback": "Generated MTEXT insertion point, content, height, box width, style, explicitly present defined height, and background flags/scale/ACI/true-color/name/transparency match typed readback."
   },
   "limits": [
     "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with two ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
@@ -1018,5 +1028,11 @@
     "The publication-race control exercises one ASCII generated destination-directory replacement race on this macOS host; it does not establish behavior for every filesystem or platform.",
     "The injected temporary-path allocation failure and staging cleanup control ran on macOS POSIX. Windows uses a separate temporary-create implementation; its behavior is not qualified by this run."
   ],
-  "baseRevision": "547965fa"
+  "baseRevision": "547965fa",
+  "planImpact": {
+    "completedSlice": "The generated whole-file ASCII/Binary allocation sweep now exercises variable MTEXT background-fill output (including group 431 color-name serialization), caller-state rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the public-writer inventory and caller-state audit for uncovered direct routes, compound variants, and variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "266 completed slices and 35 remaining packages: 266/(266+35)=88.4%; count-based, not effort-weighted."
+  }
 }

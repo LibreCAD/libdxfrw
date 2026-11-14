@@ -808,6 +808,12 @@ public:
         mtext.style = "STANDARD";
         mtext.m_definedHeight = 2.25;
         mtext.m_definedHeightPresent = true;
+        mtext.m_backgroundFlags = 1;
+        mtext.m_backgroundScale = 1.35;
+        mtext.m_backgroundColor = 3;
+        mtext.m_backgroundColorTrue = 0x123456;
+        mtext.m_backgroundColorName = "WHOLE_OPERATION_BACKGROUND_COLOR";
+        mtext.m_backgroundTransparency = 0x02000000;
         ray.handle = kRayHandle;
         ray.basePoint = DRW_Coord(-5.0, 7.0, 2.0);
         ray.secPoint = DRW_Coord(1.0, 2.0, 3.0);
@@ -3394,6 +3400,14 @@ bool callerRecordsUnchanged(const Export& adapter) {
         && adapter.mtext.style == "STANDARD"
         && adapter.mtext.m_definedHeight == 2.25
         && adapter.mtext.m_definedHeightPresent
+        && adapter.mtext.m_backgroundFlags == 1
+        && adapter.mtext.m_backgroundScale == 1.35
+        && adapter.mtext.m_backgroundColor == 3
+        && adapter.mtext.m_backgroundColorTrue == 0x123456
+        && adapter.mtext.m_backgroundTrueColor == -1
+        && adapter.mtext.m_backgroundColorName
+            == "WHOLE_OPERATION_BACKGROUND_COLOR"
+        && adapter.mtext.m_backgroundTransparency == 0x02000000
         && adapter.ray.handle == kRayHandle
         && adapter.ray.basePoint.x == -5.0
         && adapter.ray.basePoint.y == 7.0
@@ -4739,6 +4753,14 @@ bool matchesReadback(const std::filesystem::path& path) {
         || adapter.mtext.style != "STANDARD"
         || adapter.mtext.m_definedHeight != 2.25
         || !adapter.mtext.m_definedHeightPresent
+        || adapter.mtext.m_backgroundFlags != 1
+        || adapter.mtext.m_backgroundScale != 1.35
+        || adapter.mtext.m_backgroundColor != 3
+        || adapter.mtext.m_backgroundColorTrue != 0x123456
+        || adapter.mtext.m_backgroundTrueColor != 0x123456
+        || adapter.mtext.m_backgroundColorName
+            != "WHOLE_OPERATION_BACKGROUND_COLOR"
+        || adapter.mtext.m_backgroundTransparency != 0x02000000
         || adapter.rayCount != 1u
         || adapter.ray.handle == 0u
         || adapter.ray.basePoint.x != -5.0
