@@ -926,6 +926,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
     return true;
 }
 
+bool runUnsupportedTextExtensionBoundaries(
+        const std::filesystem::path& directory);
+
 bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
         && runProfile(directory, Profile::Line)
@@ -939,7 +942,72 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Text)
         && runProfile(directory, Profile::RText)
         && runProfile(directory, Profile::ArcAlignedText)
+        && runUnsupportedTextExtensionBoundaries(directory)
         && runProfile(directory, Profile::Shape);
+}
+
+bool runUnsupportedTextExtensionBoundaries(
+        const std::filesystem::path& directory) {
+    for (const Profile profile : {Profile::RText, Profile::ArcAlignedText}) {
+        for (const bool binary : {false, true}) {
+            const std::string stem = std::string(profileName(profile))
+                + "-AC1009-refusal-retry";
+            const auto output = directory
+                / (stem + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            std::string expectedBytes;
+            {
+                dxfRW cleanCodec(output.string().c_str());
+                Export cleanExporter(cleanCodec, profile);
+                if (!cleanCodec.write(&cleanExporter, DRW::AC1014, binary)
+                    || !cleanExporter.accepted
+                    || !readBytes(output, expectedBytes)
+                    || !readbackMatches(output, profile, DRW::AC1014)) {
+                    std::cerr << profileName(profile)
+                              << " AC1014 boundary reference failed\n";
+                    return false;
+                }
+            }
+            const std::string sentinel = "prior unsupported target output\n";
+            {
+                std::ofstream prior(output,
+                                    std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return false;
+            }
+            dxfRW codec(output.string().c_str());
+            Export exporter(codec, profile);
+            const DRW_RText originalRText = exporter.rtext;
+            const DRW_ArcAlignedText originalArcAlignedText =
+                exporter.arcAlignedText;
+            const bool rejected = !codec.write(&exporter, DRW::AC1009, binary)
+                && !exporter.accepted
+                && (profile == Profile::RText
+                    ? sameRText(exporter.rtext, originalRText)
+                    : sameArcAlignedText(exporter.arcAlignedText,
+                                         originalArcAlignedText));
+            std::string afterRefusal;
+            if (!rejected || !readBytes(output, afterRefusal)
+                || afterRefusal != sentinel) {
+                std::cerr << profileName(profile)
+                          << " AC1009 refusal changed caller or destination\n";
+                return false;
+            }
+            const bool retried = codec.write(&exporter, DRW::AC1014, binary)
+                && exporter.accepted;
+            std::string retryBytes;
+            if (!retried || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, profile, DRW::AC1014)) {
+                std::cerr << profileName(profile)
+                          << " AC1009 refusal then AC1014 retry failed\n";
+                return false;
+            }
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+        }
+    }
+    return true;
 }
 } // namespace
 

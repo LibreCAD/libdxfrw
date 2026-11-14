@@ -270,18 +270,19 @@
       "Every injected allocation failure fails the enclosing write while preserving prior destination bytes and every caller entity field.",
       "Every failed cell retries through the same codec and reproduces the clean reference bytes.",
       "Fresh dx_iface fileImport readback checks source revision, typed RTEXT/ARCALIGNEDTEXT subtype, represented fields and approximation, and each profiled entity\u2019s modeled fields.",
+      "RTEXT and ARCALIGNEDTEXT refuse AC1009 while preserving caller and sentinel destination, then retry on the same codec at AC1014 in ASCII/Binary with clean-byte identity and typed readback.",
       "Generated DXF outputs are removed by the test; no fixture files were added."
     ],
     "focused_ctest": "ctest --test-dir build -R '^libdxfrw_3d_entity_version_allocation$' --output-on-failure",
-    "focused_ctest_result": "PASS, 1/1, 12.49 seconds",
+    "focused_ctest_result": "PASS, 1/1, 12.61 seconds",
     "direct_command": "build/tests/libdxfrw_3d_entity_version_allocation_tests build/tests/3d-entity-version-allocation",
     "direct_result": "PASS, 186 profile/encoding cells, 1772 injected allocation failures across 13 writer routes"
   },
   "artifacts": {
     "test_source": "tests/dxf_3d_entity_version_allocation_tests.cpp",
-    "test_source_sha256": "b7bcc7f6e7faf641814a79c13e9c2cdbc6a8b2be1fd627207c52d31d41079eb4",
+    "test_source_sha256": "1f7db0690842714fd714313f4ee64383033431d1cb4006a80b279bf7ce212155",
     "test_executable": "build/tests/libdxfrw_3d_entity_version_allocation_tests",
-    "test_executable_sha256": "9b233fcd6f96d21e833b42f43e36ddead7d6da2943e7abaaecdfc5ff262a8b87"
+    "test_executable_sha256": "b27a12cc6bed3f4eea7b0e890eef9d8ebee24724d5b5db07ead13b11fea786af"
   },
   "limitations": [
     "Locally generated writer and paired library self-readback evidence only; it is not independent format or producer evidence.",
