@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **249 completed implementation slices** and **35 remaining
+The plan records **250 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`249 / (249 + 35) = 87.7%`. This is a count-based progress measure, not an
+`250 / (250 + 35) = 87.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1925,6 +1925,16 @@ semantics, all legacy/modern dimension-variable combinations, or native
 rendering, and does not implement LibreCAD PR #3269's adapter-side
 `LC_LineType` reconciliation. See the
 [DIMSTYLE matrix receipt](docs/research/p6-dxf-dimstyle-version-matrix-allocation-2026-11-13.json).
+
+**P6-G SUNSTUDY source-version transaction matrix (2026-11-13):** the bounded
+generated source graph now runs the existing OBJECTS allocation-failure,
+whole-output rollback, same-adapter retry and typed graph-readback control at
+AC1024, AC1027 and AC1032, with output written to the matching revision. Each
+revision passes 22 ASCII and 20 Binary failure offsets (126 total); the focused
+CTest completes in about 0.6 seconds. Sources are generated from scratch and
+removed by the runner. This closes one transaction sub-slice only; P6-G's complete
+public-writer inventory remains open. See the
+[SUNSTUDY version-matrix receipt](docs/research/p6-dxf-sunstudy-objects-version-matrix-allocation-2026-11-13.json).
 
 **P6-G HATCH writer version-matrix transaction slice (2026-11-13):** generated
 HATCH and MPOLYGON writes now have per-allocation rollback, same-writer retry,

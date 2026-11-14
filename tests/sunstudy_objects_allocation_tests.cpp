@@ -83,7 +83,7 @@ bool verifyGraph(const std::filesystem::path& path) {
 }
 
 bool run(const std::filesystem::path& source,
-         const std::filesystem::path& destination) {
+         const std::filesystem::path& destination, DRW::Version version) {
     const auto fail = [](const char* message) {
         std::cerr << "SUNSTUDY OBJECTS allocation retry: " << message << '\n';
         return false;
@@ -93,13 +93,15 @@ bool run(const std::filesystem::path& source,
     if (!importer.enableWholeDxfSourceObservation()
         || !importer.fileImport(source.string(), &data, false)
         || data.sunStudies.size() != 1u || data.rawSunStudies.size() != 1u
-        || data.sourceVersion != DRW::AC1027)
-        return fail("generated source did not produce the qualified AC1027 graph");
+        || data.sourceVersion != version)
+        return fail("generated source did not produce the qualified revision graph");
 
     SunStudyExport exporter;
     exporter.cData = &data;
+    const char* revision = version == DRW::AC1024 ? "AC1024"
+        : version == DRW::AC1027 ? "AC1027" : "AC1032";
     const auto write = [&](bool binary) {
-        return exporter.fileExport(destination.string(), DRW::AC1027, binary,
+        return exporter.fileExport(destination.string(), version, binary,
             &data, false, true, dx_dxfSourceTextPolicy::Compatible,
             DRW::DxfTextWritePolicy::Compatible,
             dx_dxfProxyGraphicsPolicy::Compatible,
@@ -145,7 +147,8 @@ bool run(const std::filesystem::path& source,
         }
         if (offsets != static_cast<unsigned>(allocationCount))
             return fail("not every calibrated callback allocation offset was tested");
-        std::cout << "SUNSTUDY OBJECTS " << (binary ? "Binary" : "ASCII")
+        std::cout << "SUNSTUDY OBJECTS " << revision << ' '
+                  << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=" << offsets << '\n';
         ++encodings;
@@ -173,12 +176,20 @@ void operator delete(void* value, std::size_t) noexcept { std::free(value); }
 void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        std::cerr << "usage: sunstudy_objects_allocation_tests SOURCE_DXF DESTINATION_DXF\n";
+    if (argc != 4) {
+        std::cerr << "usage: sunstudy_objects_allocation_tests SOURCE_DXF DESTINATION_DXF VERSION\n";
+        return 2;
+    }
+    const std::string revision(argv[3]);
+    const DRW::Version version = revision == "AC1024" ? DRW::AC1024
+        : revision == "AC1027" ? DRW::AC1027
+        : revision == "AC1032" ? DRW::AC1032 : DRW::UNKNOWNV;
+    if (version == DRW::UNKNOWNV) {
+        std::cerr << "unsupported SUNSTUDY allocation revision: " << revision << '\n';
         return 2;
     }
     const auto before = failedAllocations;
-    if (!run(argv[1], argv[2]))
+    if (!run(argv[1], argv[2], version))
         return 1;
     if (failedAllocations == before) {
         std::cerr << "allocation fault injector did not reach operator new\n";
