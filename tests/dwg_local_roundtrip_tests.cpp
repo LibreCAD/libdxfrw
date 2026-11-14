@@ -41945,9 +41945,13 @@ int main(int argc, char** argv) {
     if (argc == 4
         && (std::string(argv[1]) == "--generate-cli-malformed-object-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-object-body-source")) {
+                   == "--generate-cli-malformed-object-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-object-prologue-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
+        const bool malformedPrologueSource = std::string(argv[1])
+            == "--generate-cli-malformed-object-prologue-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -41969,7 +41973,7 @@ int main(int argc, char** argv) {
                       << token << '\n';
             return 1;
         }
-        if (malformedBodySource) {
+        if (malformedBodySource || malformedPrologueSource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42019,7 +42023,8 @@ int main(int argc, char** argv) {
                     + static_cast<std::uint64_t>(malformed.m_bodyBitSize);
             const std::uint64_t searchEndBit = std::min(rawEndBit, bodyEndBit);
             bool foundBodyFailure = false;
-            if (commonParsed && commonBuffer.isGood()
+            bool foundPrologueFailure = false;
+            if (malformedBodySource && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
                 for (std::uint64_t bit = commonEndBit;
@@ -42058,11 +42063,75 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+            if (malformedPrologueSource && commonParsed
+                && commonBuffer.isGood()
+                && common.handle == malformed.m_handle) {
+                dwgBuffer prefix(malformed.m_rawBytes.data(),
+                                 malformed.m_rawBytes.size());
+                const std::uint32_t objectType = prefix.getObjType(version);
+                if (version > DRW::AC1014 && version < DRW::AC1024)
+                    (void)prefix.getRawLong32();
+                const dwgHandle objectHandle = prefix.getHandle();
+                const std::uint64_t prefixEndBit =
+                    static_cast<std::uint64_t>(prefix.getPosition()) * 8u
+                    + prefix.getBitPos();
+                if (prefix.isGood() && objectType == 73u
+                    && objectHandle.ref == malformed.m_handle
+                    && prefixEndBit < commonEndBit) {
+                    for (std::uint64_t bit = prefixEndBit;
+                         bit < commonEndBit; ++bit) {
+                        std::vector<std::uint8_t> candidate =
+                            malformed.m_rawBytes;
+                        candidate[static_cast<std::size_t>(bit / 8u)] ^=
+                            static_cast<std::uint8_t>(1u << (bit % 8u));
+
+                        dwgBuffer candidatePrefix(candidate.data(),
+                                                  candidate.size());
+                        const std::uint32_t candidateType =
+                            candidatePrefix.getObjType(version);
+                        if (version > DRW::AC1014
+                            && version < DRW::AC1024)
+                            (void)candidatePrefix.getRawLong32();
+                        const dwgHandle candidateHandle =
+                            candidatePrefix.getHandle();
+                        if (!candidatePrefix.isGood()
+                            || candidateType != objectType
+                            || candidateHandle.ref != objectHandle.ref)
+                            continue;
+
+                        dwgBuffer candidateCommon(candidate.data(),
+                                                  candidate.size());
+                        dwgBuffer candidateStrings =
+                            candidateCommon.forkIndependent();
+                        CommonObjectBodyProbe candidateHeader;
+                        const bool candidateCommonParsed =
+                            candidateHeader.parseCommon(
+                                version, &candidateCommon,
+                                version > DRW::AC1018
+                                    ? &candidateStrings : nullptr,
+                                malformed.m_bodyBitSize)
+                            && candidateCommon.isGood()
+                            && candidateHeader.handle == malformed.m_handle;
+                        if (candidateCommonParsed)
+                            continue;
+
+                        malformed.m_rawBytes.swap(candidate);
+                        malformed.m_objectSize = static_cast<std::uint32_t>(
+                            malformed.m_rawBytes.size());
+                        foundPrologueFailure = true;
+                        break;
+                    }
+                }
+            }
             std::error_code ignored;
             std::filesystem::remove(validPath, ignored);
-            if (!foundBodyFailure) {
-                std::cerr << "Could not find a one-bit MLINESTYLE body mutation "
-                             "that preserves the common object prologue; bytes="
+            if ((malformedBodySource && !foundBodyFailure)
+                || (malformedPrologueSource && !foundPrologueFailure)) {
+                const char* mutationKind = malformedBodySource
+                    ? "body" : "common-prologue";
+                std::cerr << "Could not find a one-bit MLINESTYLE "
+                          << mutationKind << " mutation that isolates the parser;"
+                          << "; bytes="
                           << malformed.m_rawBytes.size()
                           << " bodyBits=" << malformed.m_bodyBitSize
                           << " commonEndBit=" << commonEndBit
@@ -42076,7 +42145,7 @@ int main(int argc, char** argv) {
             if (!writer.write(&source, version, true) || !source.wrote) {
                 const DRW_OperationDiagnostic diagnostic =
                     writer.getLastDiagnostic();
-                std::cerr << "Could not generate malformed object body source: "
+                std::cerr << "Could not generate malformed OBJECTS control source: "
                           << diagnostic.code << " — "
                           << diagnostic.message << '\n';
                 return 1;

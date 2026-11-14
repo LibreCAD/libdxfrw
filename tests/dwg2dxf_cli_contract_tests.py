@@ -1271,6 +1271,8 @@ def check_partial_dwg_read_cli(converter, root, writer):
     # partial export stay closed because the integrity ledger contains an
     # error for that failed frame.
     malformed_object_profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
         "AC1021": "2007",
         "AC1024": "2010",
         # AC1027 has an independent source-reference closure issue that blocks
@@ -1280,9 +1282,13 @@ def check_partial_dwg_read_cli(converter, root, writer):
     }
     for revision, target_year in malformed_object_profiles.items():
         source = root / f"generated malformed OBJECTS source {revision}.dwg"
+        generator = (
+            "--generate-cli-malformed-object-prologue-source"
+            if revision in ("AC1015", "AC1018") else
+            "--generate-cli-malformed-object-source")
         generated = run_bounded(
-            [str(writer), "--generate-cli-malformed-object-source", str(source),
-             revision], 10, 131072, cwd=root)
+            [str(writer), generator, str(source), revision],
+            10, 131072, cwd=root)
         if generated.returncode != 0 or not source.is_file():
             raise AssertionError(
                 f"could not author malformed {revision} OBJECTS source: {generated!r}")
