@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **341 completed implementation slices** and **34 remaining
+The plan records **342 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`341 / (341 + 34) = 90.9%`. This is a count-based progress measure, not an
+`342 / (342 + 34) = 91.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -29,6 +29,15 @@ same-writer retry, and fresh DXF readback of the mapped handle in ASCII and
 Binary. This is bounded writer behavior only; the resolver's target graph and
 native plot-style semantics remain outside the evidence
 ([receipt](docs/research/p6-dxf-layer-plotstyle-reference-mapping-2026-11-14.json)).
+
+**P6-D bound LAYER PlotStyleName alias consistency (2026-11-14):** the private
+AC1027 adapter layer carries a source-bound plot-style handle separately from
+the public `DRW_Layer` group-390 aliases. `writeLayer()` now refuses conflicting
+values before output. Generated ASCII/Binary controls confirm sentinel
+preservation and same-writer retry after clearing the conflicting alias; the
+corrected record reads back the bound handle. This verifies alias consistency
+and serialization only, not referenced-object existence or full graph closure
+([receipt](docs/research/p6-dxf-bound-layer-plotstyle-alias-consistency-2026-11-14.json)).
 
 **P6-D LAYER xref linetype normalization (2026-11-14):** Autodesk's LAYER
 reference says xref-dependent records must be emitted with linetype

@@ -7852,6 +7852,7 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
     bool hasMaterial = false;
     std::uint32_t plotStyle = 0u;
     bool hasPlotStyle = false;
+    const auto* sourceBound = dynamic_cast<const DRW_Ac1027BoundLayer*>(ent);
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()
         || !ent->getDxfMaterialHandle(material, hasMaterial)
@@ -7862,7 +7863,9 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         || (version <= DRW::AC1014
             && (!ent->plotF
                 || ent->lWeight != DRW_LW_Conv::widthDefault
-                || (hasPlotStyle && plotStyle != 0x0Fu)))) {
+                || (hasPlotStyle && plotStyle != 0x0Fu)))
+        || (sourceBound != nullptr && hasPlotStyle
+            && plotStyle != sourceBound->sourcePlotStyle)) {
         m_writeError = true;
         return false;
     }
@@ -7955,7 +7958,6 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
             write(writer->writeBool(290, ent->plotF));
             write(writer->writeInt16(370,
                                      DRW_LW_Conv::lineWidth2dxfInt(ent->lWeight)));
-            const auto* sourceBound = dynamic_cast<const DRW_Ac1027BoundLayer*>(ent);
             if (sourceBound != nullptr) {
                 if (version != DRW::AC1027 || !m_requireResolvedBlockOwners
                     || sourceBound->sourcePlotStyle == 0u

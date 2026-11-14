@@ -2,6 +2,7 @@
 // Generated LAYER table-record allocation rollback/retry control.
 #include "lc3_compat_check.cpp"
 #include "libdxfrw.h"
+#include "../src/intern/dxf_ac1027_bound_layer.h"
 
 #include <array>
 #include <cstdlib>
@@ -95,7 +96,8 @@ public:
     void addLayer(const DRW_Layer& value) override {
         if (value.name == "Generated allocation retry LAYER"
             || value.name == "XREF|External"
-            || value.name == "XREF|EXTERNAL")
+            || value.name == "XREF|EXTERNAL"
+            || value.name == "Bound plot style")
             layers.push_back(value);
     }
     std::vector<DRW_Layer> layers;
@@ -247,6 +249,56 @@ bool xrefLayerLinetypeNormalization(
         }
     }
     std::cout << "xref-dependent LAYER linetype normalization passed\n";
+    return true;
+}
+
+class BoundPlotStyleExport final : public LC3CompatCheck {
+public:
+    explicit BoundPlotStyleExport(dxfRW& codec)
+        : codec(codec), layer(DRW_Layer{}, 0x123u) {
+        layer.name = "Bound plot style";
+        layer.handlePlotS = "456";
+    }
+    void writeHeader(DRW_Header&) override {}
+    void writeLayers() override { accepted = codec.writeLayer(&layer); }
+    bool finalizeDxfWrite() override { return accepted; }
+
+    dxfRW& codec;
+    DRW_Ac1027BoundLayer layer;
+    bool accepted = false;
+};
+
+bool boundPlotStyleAliasConsistency(
+    const std::filesystem::path& directory) {
+    const auto path = directory / "bound-layer-plotstyle-alias.dxf";
+    const std::string prior = "prior LAYER destination bytes\n";
+    for (const bool binary : {false, true}) {
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output)
+                return false;
+        }
+        dxfRW codec(path.string().c_str());
+        codec.setSourceBlockRecords(std::vector<DRW_Block_Record>{}, true);
+        BoundPlotStyleExport exporter(codec);
+        const bool written = codec.write(&exporter, DRW::AC1027, binary);
+        std::string current;
+        if (written || exporter.accepted || !readBytes(path, current)
+            || current != prior || exporter.layer.handlePlotS != "456") {
+            std::cerr << "conflicting bound LAYER plot-style alias was not "
+                         "refused\n";
+            return false;
+        }
+        exporter.layer.handlePlotS.clear();
+        const bool retried = codec.write(&exporter, DRW::AC1027, binary);
+        if (!retried || !exporter.accepted
+            || !readbackPlotStyleMatches(path, "123")) {
+            std::cerr << "corrected bound LAYER plot-style retry failed\n";
+            return false;
+        }
+    }
+    std::cout << "bound LAYER PlotStyleName alias refusal and retry passed\n";
     return true;
 }
 
@@ -462,5 +514,6 @@ int main() {
             && preR2000PlotStyleRefusalAndRetry(directory)
             && plotStyleReferenceMapping(directory)
             && xrefLayerLinetypeNormalization(directory)
+            && boundPlotStyleAliasConsistency(directory)
         ? 0 : 2;
 }
