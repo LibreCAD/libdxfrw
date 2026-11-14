@@ -1425,7 +1425,8 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary,
                              int shadePlotMode = 4,
                              bool modelLayoutVportTarget = false,
                              bool includeLayerViewportOverrides = false,
-                             std::uint8_t layerViewportOverrideProfileMask = 0x0Fu) {
+                             std::uint8_t layerViewportOverrideProfileMask = 0x0Fu,
+                             const char* fileVersion = "AC1027") {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
         return false;
@@ -1434,7 +1435,7 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary,
     std::unique_ptr<dxfWriter> writer = binary
         ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
         : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
-    writer->setVersion("AC1027", true);
+    writer->setVersion(fileVersion, true);
     const auto string = [&writer](int code, const char* value) {
         return writer->writeString(code, value);
     };
@@ -1653,7 +1654,7 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary,
     };
 
     bool written = string(0, "SECTION") && string(2, "HEADER")
-        && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(9, "$ACADVER") && string(1, fileVersion)
         && string(9, "$TILEMODE") && integer(70, 0)
         && string(9, "$CTAB") && string(1, "Sheet A")
         && string(0, "ENDSEC") && string(0, "SECTION")
@@ -3444,18 +3445,33 @@ void testLayoutObjectsAllocationRetry(TestContext& t) {
         return matches;
     };
 
+    const DRW::Version outputVersions[] = {
+        DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    const auto versionName = [](DRW::Version version) {
+        switch (version) {
+        case DRW::AC1021: return "AC1021";
+        case DRW::AC1024: return "AC1024";
+        case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
+        default: return "UNKNOWN";
+        }
+    };
     for (const bool binary : {false, true}) {
         const std::string encoding = binary ? "binary" : "ascii";
-        const auto input = directory / ("source-" + encoding + ".dxf");
-        const auto output = directory / ("destination-" + encoding + ".dxf");
-        if (!writeLayoutGraphControl(input, binary, true, "703", 5)) {
-            t.expect(false, "generated LAYOUT/RapidRT source graph is complete");
+      for (const DRW::Version version : outputVersions) {
+        const auto input = directory / ("source-" + encoding + "-"
+            + versionName(version) + ".dxf");
+        const auto output = directory / ("destination-" + encoding + "-"
+            + versionName(version) + ".dxf");
+        if (!writeLayoutGraphControl(input, binary, true, "703", 5,
+                                     false, false, 0x0Fu, versionName(version))) {
+            t.expect(false, "generated revision-matched LAYOUT/RapidRT source graph is complete");
             continue;
         }
-
         const auto importGraph = [&](LayoutObjectsWriter& adapter,
                                      dx_data& data) {
             if (!adapter.fileImport(input.string(), &data, false)
+                || data.sourceVersion != version
                 || !graphMatches(data))
                 return false;
             adapter.cData = &data;
@@ -3471,8 +3487,16 @@ void testLayoutObjectsAllocationRetry(TestContext& t) {
             adapter.inject = true;
             adapter.offset = probe;
             const bool written = imported && adapter.fileExport(
-                output.string(), DRW::AC1027, binary, &data, false);
+                output.string(), version, binary, &data, false);
             materialAllocationCountdown = -1L;
+            if (!written || !adapter.objectsCallbackReached) {
+                std::cerr << "LAYOUT/RapidRT calibration stopped before allocation sweep: target="
+                          << versionName(version) << " source="
+                          << versionName(data.sourceVersion) << " imported="
+                          << imported << " wrote=" << written
+                          << " objectsCallback=" << adapter.objectsCallbackReached
+                          << '\n';
+            }
             if (written && adapter.objectsCallbackReached
                 && adapter.remaining > 0L && adapter.remaining < probe)
                 allocationCount = probe - adapter.remaining;
@@ -3500,7 +3524,7 @@ void testLayoutObjectsAllocationRetry(TestContext& t) {
             adapter.offset = offset;
             const std::size_t failuresBefore = materialFailedAllocations;
             const bool failed = imported && !adapter.fileExport(
-                output.string(), DRW::AC1027, binary, &data, false);
+                output.string(), version, binary, &data, false);
             materialAllocationCountdown = -1L;
             const bool rolledBack = failed && adapter.objectsCallbackReached
                 && materialFailedAllocations == failuresBefore + 1u
@@ -3518,7 +3542,7 @@ void testLayoutObjectsAllocationRetry(TestContext& t) {
             adapter.inject = false;
             adapter.objectsCallbackReached = false;
             const bool retried = rolledBack && adapter.fileExport(
-                output.string(), DRW::AC1027, binary, &data, false);
+                output.string(), version, binary, &data, false);
             dx_data readback;
             dx_iface reader;
             const bool read = retried && adapter.objectsCallbackReached
@@ -3528,16 +3552,18 @@ void testLayoutObjectsAllocationRetry(TestContext& t) {
         }
         t.expect(allFailuresRolledBack && injectedFailures == allocationCount,
                  binary
-                     ? "binary LAYOUT/RapidRT OBJECTS allocation sweep rolls back every measured offset"
-                     : "ASCII LAYOUT/RapidRT OBJECTS allocation sweep rolls back every measured offset");
+                     ? "versioned binary LAYOUT/RapidRT allocation sweep rolls back every measured offset"
+                     : "versioned ASCII LAYOUT/RapidRT allocation sweep rolls back every measured offset");
         t.expect(allRetriesReadBack,
                  binary
-                     ? "binary LAYOUT/RapidRT OBJECTS allocation sweep retries with graph readback"
-                     : "ASCII LAYOUT/RapidRT OBJECTS allocation sweep retries with graph readback");
-        std::cout << "LAYOUT/RapidRT " << encoding << ": allocations="
+                     ? "versioned binary LAYOUT/RapidRT allocation sweep retries with graph readback"
+                     : "versioned ASCII LAYOUT/RapidRT allocation sweep retries with graph readback");
+        std::cout << "LAYOUT/RapidRT " << versionName(version) << ' '
+                  << encoding << ": allocations="
                   << allocationCount << ", rollback/retry/readback="
                   << (allFailuresRolledBack && allRetriesReadBack ? "PASS" : "FAIL")
                   << '\n';
+      }
     }
 }
 
