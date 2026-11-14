@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "POINTCLOUD definition/reactor DXF writer version transaction matrix",
+  "sourceRevision": "f9322eef",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_pointcloud_def_version_allocation_tests.cpp",
+    "testSha256": "ad004fc7fc9244301ee74729dbfffece7024fe60db026138fa477f2d71627188",
+    "cmake": "tests/CMakeLists.txt",
+    "cmakeSha256": "80fa687f465352d23a907b9bdfacd1f24e66bb74ebf5c19af5821683060016bc",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "recordVariants": [
+      "POINTCLOUDDEFINITION",
+      "POINTCLOUDDEFINITIONEX",
+      "POINTCLOUDDEFREACTOR",
+      "POINTCLOUDDEFREACTOREX"
+    ],
+    "generatedFields": [
+      "record identity, owner handle, variant kind and class version",
+      "definition variants: long RCS/RCP path, loaded state, 64-bit point count and extents",
+      "reactor variants: common identity/owner/class fields"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_pointcloud_def_version_allocation_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_pointcloud_def_version_allocation$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 1.28 seconds",
+    "directCommand": "build-gcc/tests/libdxfrw_pointcloud_def_version_allocation_tests /private/tmp/p6-pointcloud-def-version-allocation",
+    "allocationFailures": 502,
+    "allocationOffsetsByVariant": {
+      "DEFINITION": 160,
+      "DEFINITIONEX": 160,
+      "REACTOR": 91,
+      "REACTOREX": 91
+    },
+    "rollback": "Every injected allocation failure preserves the previous destination and caller record.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed callback readback verifies revision, record variant and every serialized modeled field.",
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated transaction behavior for all four public POINTCLOUD definition/reactor writer variants across seven target revisions and two encodings."
+    ],
+    "doesNotProve": [
+      "ACAD_POINTCLOUD dictionary membership or recursive entity/definition/reactor graph closure.",
+      "Independent producer interoperability or external RCS/RCP asset loading.",
+      "Native point-cloud rendering or broader 3D support."
+    ]
+  },
+  "qualificationEligible": false
+}
