@@ -6212,6 +6212,12 @@ add_test(NAME libdxfrw_dxf_lightlist_allocation_transaction
         light-list)
 set_tests_properties(libdxfrw_dxf_lightlist_allocation_transaction PROPERTIES
     LABELS "dxf;fast;objects;transaction;allocation" TIMEOUT 60)
+add_test(NAME libdxfrw_dxf_light_entity_allocation_transaction
+    COMMAND libdxfrw_dxf_write_allocation_transaction_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dxf-light-entity-allocation
+        light-entity)
+set_tests_properties(libdxfrw_dxf_light_entity_allocation_transaction PROPERTIES
+    LABELS "dxf;fast;transaction;allocation;light" TIMEOUT 60)
 add_test(NAME libdxfrw_dxf_sunstudy_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-sunstudy-allocation

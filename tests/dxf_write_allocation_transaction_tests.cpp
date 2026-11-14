@@ -6887,6 +6887,195 @@ bool runLongMTextSweep(const std::filesystem::path& directory) {
     return true;
 }
 
+bool runLightEntitySweep(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "LIGHT entity allocation transaction: " << message << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return fail("could not create scratch directory");
+    const auto makeLight = [] {
+        DRW_Light value;
+        value.handle = 0xDA30u;
+        value.m_classVersion = 1u;
+        value.m_name = "ALLOCATION_MATRIX_LIGHT";
+        value.m_type = 2u;
+        value.m_status = true;
+        value.m_color = 3u;
+        value.m_plotGlyph = true;
+        value.m_intensity = 2.5;
+        value.m_position = DRW_Coord(10.0, 11.0, 12.0);
+        value.m_target = DRW_Coord(13.0, 14.0, 15.0);
+        value.m_attenuationType = 1u;
+        value.m_useAttenuationLimits = true;
+        value.m_attenuationStartLimit = 0.5;
+        value.m_attenuationEndLimit = 12.5;
+        value.m_hotspotAngle = 0.25;
+        value.m_falloffAngle = 0.75;
+        value.m_castShadows = true;
+        value.m_shadowType = 1u;
+        value.m_shadowMapSize = 512u;
+        value.m_shadowMapSoftness = 2u;
+        return value;
+    };
+    const auto sameLight = [](const DRW_Light& a, const DRW_Light& b) {
+        return a.handle == b.handle && a.m_classVersion == b.m_classVersion
+            && a.m_name == b.m_name && a.m_type == b.m_type
+            && a.m_status == b.m_status && a.m_color == b.m_color
+            && a.m_colorRgb == b.m_colorRgb
+            && a.m_plotGlyph == b.m_plotGlyph
+            && a.m_intensity == b.m_intensity
+            && a.m_position.x == b.m_position.x
+            && a.m_position.y == b.m_position.y
+            && a.m_position.z == b.m_position.z
+            && a.m_target.x == b.m_target.x
+            && a.m_target.y == b.m_target.y
+            && a.m_target.z == b.m_target.z
+            && a.m_attenuationType == b.m_attenuationType
+            && a.m_useAttenuationLimits == b.m_useAttenuationLimits
+            && a.m_attenuationStartLimit == b.m_attenuationStartLimit
+            && a.m_attenuationEndLimit == b.m_attenuationEndLimit
+            && a.m_hotspotAngle == b.m_hotspotAngle
+            && a.m_falloffAngle == b.m_falloffAngle
+            && a.m_castShadows == b.m_castShadows
+            && a.m_shadowType == b.m_shadowType
+            && a.m_shadowMapSize == b.m_shadowMapSize
+            && a.m_shadowMapSoftness == b.m_shadowMapSoftness;
+    };
+    class LightExport final : public dx_iface {
+    public:
+        LightExport(dxfRW& codec, DRW_Light source)
+            : output(codec), light(std::move(source)) {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+            dxfW = &output;
+        }
+        void writeEntities() override { written = output.writeLight(&light); }
+        bool finalizeDxfWrite() override { return written; }
+        dxfRW& output;
+        dx_data storage;
+        DRW_Light light;
+        bool written = false;
+    };
+    class LightReadback final : public dx_iface {
+    public:
+        LightReadback() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+        void addLight(const DRW_Light& value) override {
+            light = value;
+            found = true;
+        }
+        dx_data storage;
+        DRW_Light light;
+        bool found = false;
+    };
+    const auto readbackMatches = [&](const std::filesystem::path& path,
+                                     DRW::Version expectedVersion) {
+        dxfRW reader(path.string().c_str());
+        LightReadback probe;
+        const bool read = reader.read(&probe, true);
+        DRW_Light expected = makeLight();
+        if (probe.found)
+            expected.handle = probe.light.handle;
+        return read && reader.getSourceVersion() == expectedVersion
+            && probe.found && probe.light.handle != 0u
+            && sameLight(probe.light, expected);
+    };
+    const std::array<std::pair<DRW::Version, const char*>, 4> versions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::string sentinel = "previous complete document\n";
+    for (const auto& version : versions) {
+        for (const bool binary : {false, true}) {
+            const auto output = directory
+                / (std::string("light-entity-") + version.second
+                   + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            if (!clearStagedOutput(output))
+                return fail("could not clear stale output staging files");
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                LightExport adapter(codec, makeLight());
+                if (!codec.write(&adapter, version.first, binary))
+                    return fail("warm-up write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                dxfRW codec(output.string().c_str());
+                LightExport adapter(codec, makeLight());
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                disarmAllocationFailure();
+                if (!wrote || allocationFailed || allocationCount <= 0
+                    || !readBytes(output, expectedBytes))
+                    return fail("calibration write failed");
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                       std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail("could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                LightExport adapter(codec, makeLight());
+                const DRW_Light original(adapter.light);
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version.first, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                const bool stageRemains = hasStagedOutput(output);
+                if (wrote || !injected || !bytesRead || afterFailure != sentinel
+                    || !sameLight(adapter.light, original)
+                    || !identitiesRolledBack || stageRemains)
+                    return fail("injected allocation failure changed state");
+                const bool retried = codec.write(&adapter, version.first, binary);
+                std::string retryBytes;
+                const bool retryRead = readBytes(output, retryBytes);
+                const bool readback = retryRead
+                    && readbackMatches(output, version.first);
+                const bool staged = hasStagedOutput(output);
+                if (!retried || !sameLight(adapter.light, original)
+                    || !retryRead || retryBytes != expectedBytes
+                    || !readback || staged) {
+                    std::cerr << "version=" << version.second << " binary="
+                              << binary << " retried=" << retried
+                              << " callerSame=" << sameLight(adapter.light, original)
+                              << " retryRead=" << retryRead
+                              << " bytesMatch=" << (retryBytes == expectedBytes)
+                              << " readback=" << readback << " staged=" << staged
+                              << '\n';
+                    return fail("same-codec retry or typed readback failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "LIGHT entity " << version.second << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
+
 bool runLightListSweep(const std::filesystem::path& directory) {
     const auto fail = [](const char* message) {
         std::cerr << "LIGHTLIST allocation transaction: " << message << '\n';
@@ -9005,7 +9194,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|hatch-mpolygon-versions|long-mtext|light-entity|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -9021,6 +9210,8 @@ int main(int argc, char** argv) {
             return runHatchVersionTransactionSweep(directory) ? 0 : 1;
         if (mode == "long-mtext")
             return runLongMTextSweep(directory) ? 0 : 1;
+        if (mode == "light-entity")
+            return runLightEntitySweep(directory) ? 0 : 1;
         if (mode == "light-list")
             return runLightListSweep(directory) ? 0 : 1;
         if (mode == "sun-study")

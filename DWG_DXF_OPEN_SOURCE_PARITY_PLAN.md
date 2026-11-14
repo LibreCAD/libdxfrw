@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **258 completed implementation slices** and **35 remaining
+The plan records **259 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`258 / (258 + 35) = 88.1%`. This is a count-based progress measure, not an
+`259 / (259 + 35) = 88.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5497,6 +5497,15 @@ focused CTest passes in 1.83 seconds. This closes generated transaction coverage
 profile across the four revisions only; source-profile provenance, ACAD_LIGHT
 dictionary membership and native consumer behavior remain unqualified
 ([version-matrix receipt](docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json)).
+The public `writeLight()` entity route now has a generated whole-operation
+allocation matrix at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. All
+746 measured failure offsets preserve the prior destination, complete caller
+LIGHT state, handle-binding state and staging cleanup; same-codec retry
+reproduces byte-identical output and fresh typed readback checks the source
+revision, emitted handle validity, and every modeled LIGHT field. The focused
+CTest passes in 1.79 seconds. This is generated transaction and serializer
+readback evidence only, not source-producer interoperability or native lighting
+qualification ([receipt](docs/research/p6-dxf-light-entity-version-matrix-allocation-2026-11-13.json)).
 The whole-operation sweep now covers a generated `SUNSTUDY` with two date
 entries, three modeled hours, subset/range selection and nondefault viewport
 settings at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary. Across the
