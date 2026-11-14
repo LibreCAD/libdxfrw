@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **355 completed implementation slices** and **34 remaining
+The plan records **356 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`355 / (355 + 34) = 91.3%`. This is a count-based progress measure, not an
+`356 / (356 + 34) = 91.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6303,6 +6303,15 @@ the LibreCAD_3 source and build directories were not a clean checkout/build
 pair, and DWG import was disabled. Keep P8-D open for clean-build, DWG import,
 broader compatibility, ABI and platform qualification. See the
 [LibreCAD_3 receipt](docs/research/p8-librecad3-current-libdxfrw-focused-compat-2026-11-13.json).
+
+**Local LibreCAD consumer compile guards (2026-11-14):** the existing
+`lc3_compat_check` target and downstream C++14 consumer contract both build
+successfully against this checkout. This confirms compile-time compatibility
+for the mirrored LibreCAD_3 override surface and the public C++ language-level
+contract only. It does not build a clean LibreCAD checkout or exercise runtime
+import/export, the PR #3269 changed-LTYPE save/readback regression, binary ABI,
+or platform behavior. P8-D remains open; see the
+[compile-guard receipt](docs/research/p8-local-librecad-consumer-compile-guards-2026-11-14.json).
 
 **Clean LibreCAD_3 `origin/master` AC1009 save gate (2026-11-13):** a fresh
 source archive at LibreCAD_3 `origin/master` commit

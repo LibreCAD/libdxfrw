@@ -1,0 +1,34 @@
+{
+  "title": "Local LibreCAD consumer compile guards",
+  "date": "2026-11-14",
+  "repository": "LibreCAD/libdxfrw",
+  "sourceRevision": "7f75a4338cadd034a1e3d8a2710631323ae10613",
+  "buildDirectory": "build-gcc",
+  "buildType": "Release",
+  "commands": [
+    "cmake --build build-gcc --target lc3_compat_check -j4",
+    "cmake --build build-gcc --target libdxfrw_consumer_cxx17_contract -j4"
+  ],
+  "results": {
+    "lc3_compat_check": "PASS",
+    "libdxfrw_consumer_cxx17_contract": "PASS"
+  },
+  "sourceSha256": {
+    "tests/lc3_compat_check.cpp": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+    "tests/consumer_cxx17_contract.cpp": "d6ef0249a9559ca05d38c46029f4e1f502dd568d088f2ac6c95c263941608279",
+    "tests/CMakeLists.txt": "603873caec81003512fe3577e2c770cc7517eb5e7edd381e8789d4f668f90099",
+    "CMakeLists.txt": "9e3f030c644d562f9458be7c355dcd1bc77fa73a768c8e85b1b499c94c984562"
+  },
+  "scope": {
+    "proves": [
+      "The current public headers compile against the maintained LibreCAD_3 DXFimpl override surface checked by lc3_compat_check.",
+      "A downstream target requesting C++14 receives a usable compile contract through the public dxfrw target."
+    ],
+    "doesNotProve": [
+      "A clean LibreCAD or LibreCAD_3 checkout and full application build.",
+      "Runtime DXF/DWG import, export, or changed-LTYPE-definition save/readback behavior.",
+      "ABI binary compatibility, native platform qualification, or DWG feature parity."
+    ]
+  },
+  "qualificationEligible": false
+}
