@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-generated-ac1032-primitives-open-insert-2026-11-14",
+  "date": "2026-11-14",
+  "status": "PASS_MACOS_ARM64_AC1021_AC1024_AC1032_GENERATED_PRIMITIVE_OPEN_INSERT",
+  "supportClaimEffect": "none",
+  "scope": "Extend the scratch-generated FreeCAD primitive handoff profile to AC1032, then run the focused AC1021/AC1024/AC1032 open/insert matrix through FreeCAD's pinned C++ DXF importer.",
+  "implementation": {
+    "commit": "b2afd68c159287f2f4b023d524ec100aec266b70",
+    "sourceSha256": {
+      "tests/dwg_local_roundtrip_tests.cpp": "f44af1564008e542cb04544e51cc526391f5c47c4c30f55b04618d4a9bf01ed9",
+      "tests/CMakeLists.txt": "3f34f2effeaf7f3978511579e468b3ab2212d7e8326dec0b14ab6156670b77c8",
+      "tests/run_freecad_installed_3d_line_test.cmake": "b54bbcc2b49b87ea539c08a6c04138ba36601d7c80cab7f08783a410a7639358",
+      ".github/workflows/freecad-platform-qualification.yml": "42e32319df203c6eaf86a2a287dcdcff6a00c677b2cb0cf6dfd133f7c6b58238"
+    }
+  },
+  "binding": {
+    "platform": "macOS 27.2.1 arm64",
+    "freecad": {
+      "version": "1.1.4",
+      "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+      "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60"
+    },
+    "converter": {
+      "builtPath": "build-gcc/dwg2dxf/dwg2dxf",
+      "installedPath": "/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+      "sha256": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
+      "builtAndInstalledBinariesMatch": true
+    },
+    "generator": {
+      "path": "build-gcc/libdxfrw_dwg_local_roundtrip",
+      "sha256": "c3e4188a0eb8e760fe343d59eed742d741c7d6dc7b45c2f3fa591048e12afebe"
+    }
+  },
+  "generatedProfile": {
+    "version": "AC1032",
+    "provenance": "Created from scratch at test runtime; no DWG or DXF fixture was committed.",
+    "dwgSha256": "fd45e97c44d7daa3c284165fbbea54dec29c2c031ba80e02b1286c2d99704153",
+    "convertedDxfSha256": "2c9a28e878649235f086879d5cf1e57d0cbbca26fe0a5d3ffaa98560274436ee",
+    "sourceFrameAccounting": "53 published of 53 observed; zero parse failures. Two warning-severity integrity observations remain: HEADER envelope length and CLASSES section boundary. Their presence prevents treating this generated vector as full-version qualification."
+  },
+  "observations": {
+    "importer": "FreeCAD 1.1.4 C++ DXF importer",
+    "operations": ["open", "insert"],
+    "testedSourceVersions": ["AC1021", "AC1024", "AC1032"],
+    "focusedTests": 6,
+    "result": "6/6 passed in 5.18 seconds",
+    "geometry": "Nine supported primitive shapes passed exact counts and geometry checks in all three revisions. The pinned importer reports generated 3DFACE and SOLID records unsupported; the existing POLYFACE wireframe boundary remains asserted.",
+    "sandbox": "The default sandbox hides ARM NEON and Qt aborts before import. The same six tests pass outside the sandbox."
+  },
+  "platformWorkflow": {
+    "file": ".github/workflows/freecad-platform-qualification.yml",
+    "linuxAndWindowsSelectorsInclude": "generated AC1032 primitive open/insert tests",
+    "hostedRuns": "Pending; workflow_dispatch only."
+  },
+  "limitations": [
+    "This is generated transport and importer behavior on macOS ARM64, not producer-authored interoperability or broad AC1032 support.",
+    "The two warning-severity integrity observations are retained in the receipt and are not treated as evidence of complete DWG semantics.",
+    "Native Linux and Windows execution remains pending.",
+    "FreeCAD's pinned importer does not create surfaces for the tested 3DFACE or SOLID records and imports the tested POLYFACE as a wire; this does not qualify those surface/mesh entities in FreeCAD."
+  ]
+}
