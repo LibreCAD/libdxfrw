@@ -58,7 +58,7 @@ bool sameReadback(const DRW_LType& actual) {
 }
 
 bool hasEditMetadata(const DRW_LType& lineType) {
-    if (lineType.appData.size() != 1u || lineType.appData.front().size() != 3u)
+    if (lineType.appData.size() != 1u || lineType.appData.front().size() != 4u)
         return false;
     auto value = lineType.appData.front().cbegin();
     if (value->code() != 102 || value->c_str() == nullptr
@@ -68,6 +68,10 @@ bool hasEditMetadata(const DRW_LType& lineType) {
     if (value->code() != 1 || value->c_str() == nullptr
         || std::string(value->c_str())
             != "preserve while editing definition")
+        return false;
+    ++value;
+    if (value->code() != 310 || value->c_str() == nullptr
+        || std::string(value->c_str()) != "CAFE")
         return false;
     ++value;
     return value->code() == 102 && value->c_str() != nullptr
@@ -257,6 +261,7 @@ bool editedImportedRecordRoundTrip(const std::filesystem::path& directory) {
     sourceLineType.appData.push_back({
         {102, std::string("{LTYPE_EDIT_METADATA")},
         {1, std::string("preserve while editing definition")},
+        {310, std::string("CAFE")},
         {102, std::string("}")}});
     DRW_LTypeSegment textElement;
     textElement.length = 10.0;

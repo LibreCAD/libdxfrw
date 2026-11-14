@@ -88,8 +88,8 @@
     },
     {
       "scope": "Disposable test source only; added an LTYPE table entry for the MLINESTYLE's VENDOR_MLS reference, then separately removed the unrelated MLINESTYLE OBJECTS section.",
-      "finding": "Adding the missing LTYPE target does not remove the OBJECTS-emission failure. Removing the MLINESTYLE OBJECTS section lets export complete, after which the test reaches a separate failed assertion: the edited LTYPE output lacks expected preview group 310 value CAFE.",
-      "result": "The complex-LTYPE failure contains independent fixture/output issues and is not yet resolved. These edits were not copied into either repository."
+      "finding": "Adding the missing LTYPE target does not remove the OBJECTS-emission failure, which is caused by the fixture's MLINESTYLE route rather than the edited LTYPE itself. Removing that object lets export complete and its output contains the nested LTYPE application group 310=CAFE before the name/subclass fields. The test helper only collects LTYPE fields after group 2, so its final assertion is order-sensitive and misses preserved application data.",
+      "result": "No LTYPE binary application-data loss was observed in this experiment. The fixture still needs to isolate the LTYPE regression from the MLINESTYLE object, or independently qualify that object route; the helper must account for valid group ordering. All changes were confined to the disposable checkout."
     }
   ],
   "fixturePolicy": {
@@ -100,7 +100,7 @@
     "The clean LibreCAD fast-test target links its bundled libdxfrw; the upstream overlay was tested with a temporary focused target.",
     "Only three of the five merged PR #3269 regression cases pass with this upstream checkout; the two failures need isolated investigation and resolution before P8-D can close.",
     "The DWG failure is currently traced to a wrong-typed HEADER variable; no coercion was added because it would weaken strict output validation.",
-    "The complex-LTYPE failure is entangled with an unrelated MLINESTYLE-to-LTYPE dependency in the test input.",
+    "The complex-LTYPE failure is entangled with a separate MLINESTYLE OBJECTS route in the test input; adding its missing LTYPE target did not cure export. Removing that object allowed the LTYPE edit and nested 310 application data to emit, while the consumer test helper missed the pre-name application group due to its scan order.",
     "LibreCAD_3 clean linked tests, ABI comparison, Linux/Windows qualification, and native application behavior remain unqualified."
   ]
 }
