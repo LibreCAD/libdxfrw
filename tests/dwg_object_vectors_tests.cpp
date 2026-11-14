@@ -6564,8 +6564,8 @@ void testMLineStyleR2018HandleRoles(TestContext& t) {
     source.description = "generated handle-role control";
     source.flags = 3;
     source.fillColor = 256;
-    source.startAngle = 0.5;
-    source.endAngle = 1.25;
+    source.startAngle = 45.0;
+    source.endAngle = 135.0;
     for (std::size_t i = 0; i < 2u; ++i) {
         DRW_MLineElement element;
         element.offset = i == 0u ? 0.5 : -0.25;
@@ -6599,7 +6599,9 @@ void testMLineStyleR2018HandleRoles(TestContext& t) {
                                           frame.handleBits);
     const auto& spans = parsed.getLinetypeHandleSpans();
     spansMatch = spansMatch && parsedOk && spans.size() == 2u
-        && parsed.elements.size() == 2u;
+        && parsed.elements.size() == 2u
+        && std::abs(parsed.startAngle - source.startAngle) <= 1e-12
+        && std::abs(parsed.endAngle - source.endAngle) <= 1e-12;
     for (std::size_t i = 0; spansMatch && i < 2u; ++i) {
         const std::uint64_t startBit = frame.handleStartBit
             + static_cast<std::uint64_t>(wire.getPosition()) * 8u
@@ -6845,8 +6847,10 @@ void testMLineStyleCmcRetention(TestContext& t) {
     const std::uint8_t wireElementCount = wire.getRawChar8();
     t.expect(wireStyleFlags == 3u && wireName == source.name
                  && wireDescription == source.description
-                 && wireStartAngle == source.startAngle
-                 && wireEndAngle == source.endAngle
+                 && wireStartAngle
+                     == source.startAngle * 0.017453292519943295769236907684886
+                 && wireEndAngle
+                     == source.endAngle * 0.017453292519943295769236907684886
                  && wireElementCount == elements.size(),
              "MLINESTYLE CMC wire walk reaches angles and element count");
     for (std::size_t i = 0; i < elements.size(); ++i) {
@@ -6890,8 +6894,9 @@ void testMLineStyleCmcRetention(TestContext& t) {
                  && parsed.name == source.name
                  && parsed.description == source.description
                  && parsed.flags == source.flags
-                 && parsed.startAngle == source.startAngle
-                 && parsed.endAngle == source.endAngle && parsedColors,
+                 && std::abs(parsed.startAngle - source.startAngle) <= 1e-12
+                 && std::abs(parsed.endAngle - source.endAngle) <= 1e-12
+                 && parsedColors,
              "MLINESTYLE parser retains C0-C3 CMC and following fields");
     t.expect(parsed.getLinetypeHandleSpans().empty(),
              "pre-R2018 MLINESTYLE keeps inline linetype indices without handle spans");
@@ -6915,8 +6920,10 @@ void testMLineStyleCmcRetention(TestContext& t) {
         t.expect(anomalousRead && anomalousInput.isGood()
                      && anomalous.fillColorDwgIndex == 256u
                      && anomalous.elements.size() == elements.size()
-                     && anomalous.startAngle == source.startAngle
-                     && anomalous.endAngle == source.endAngle
+                     && std::abs(anomalous.startAngle - source.startAngle)
+                         <= 1e-12
+                     && std::abs(anomalous.endAngle - source.endAngle)
+                         <= 1e-12
                      && anomalous.elements[1].colorDwgIndex == 256u
                      && anomalous.elements[1].linetypeIndex
                          == linetypeIndexes[1]

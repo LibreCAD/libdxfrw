@@ -41,6 +41,11 @@
 
 namespace {
 
+constexpr double kMLineRadiansToDegrees =
+    57.295779513082320876798154814105;
+constexpr double kMLineDegreesToRadians =
+    0.017453292519943295769236907684886;
+
 bool validCellStyleMapCellStyle(
     DRW::Version version, const DRW_TableStyleCellStyle& style) noexcept;
 
@@ -22082,8 +22087,10 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
     parsed.fillColorBookName = std::move(fillBook);
     if (version >= DRW::AC1018)
         parsed.fillColorDwgIndex = fillIndex;
-    parsed.startAngle = parsedStartAngle;
-    parsed.endAngle = parsedEndAngle;
+    parsed.startAngle = parsedStartAngle * kMLineRadiansToDegrees;
+    parsed.endAngle = parsedEndAngle * kMLineRadiansToDegrees;
+    if (!std::isfinite(parsed.startAngle) || !std::isfinite(parsed.endAngle))
+        return fail();
     parsed.elements = std::move(parsedElements);
     parsed.m_linetypeHandleSpans = std::move(parsedLinetypeHandleSpans);
     parsed.parentHandle = parsedParentHandle;
@@ -22222,8 +22229,8 @@ bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
             }
         };
         writeColor(encodedFillColor, fillColor24);
-        buf->putBitDouble(startAngle);
-        buf->putBitDouble(endAngle);
+        buf->putBitDouble(startAngle * kMLineDegreesToRadians);
+        buf->putBitDouble(endAngle * kMLineDegreesToRadians);
 
         const std::size_t numLines = elements.size();
         buf->putRawChar8(static_cast<std::uint8_t>(numLines));

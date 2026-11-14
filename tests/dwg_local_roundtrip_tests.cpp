@@ -4664,7 +4664,7 @@ public:
         mlineStyle.name = "LOCAL_MLINESTYLE";
         mlineStyle.description = "LOCAL_MLINESTYLE_DESC";
         mlineStyle.startAngle = 0.0;
-        mlineStyle.endAngle = 1.5707963267948966;
+        mlineStyle.endAngle = 90.0;
         DRW_MLineElement mlineElement;
         mlineElement.offset = 0.5;
         mlineElement.color = 256;
@@ -7696,9 +7696,17 @@ public:
     void addMLineStyle(const DRW_MLineStyle& data) override {
         if (data.handle == 0xA800u)
             readMLineStyleSeen_ = data.name == "LOCAL_MLINESTYLE"
+                && data.description == "LOCAL_MLINESTYLE_DESC"
                 && data.parentHandle == 0xA601u
+                && data.flags == 0
+                && data.fillColor == 256
+                && data.startAngle == 0.0
+                && data.endAngle == 90.0
                 && data.elements.size() == 1
-                && data.elements.front().offset == 0.5;
+                && data.elements.front().offset == 0.5
+                && data.elements.front().color == 256
+                && data.elements.front().linetypeIndex
+                    == (expectedVersion_ >= DRW::AC1032 ? -1 : 0);
         if (data.handle == 0xA801u)
             readMalformedStyleSeen_ = true;
     }

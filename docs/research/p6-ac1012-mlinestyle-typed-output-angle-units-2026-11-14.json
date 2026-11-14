@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-mlinestyle-typed-output-angle-units-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_AC1012_MLINESTYLE_ANGLE_CODEC_PASS_OUTPUT_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Correct DWG/DXF MLINESTYLE angle-unit conversion and retain source-frame evidence. The generated angle codec and an independent DXF readback provide bounded evidence; strict DWG-to-DXF output remains unqualified because the MLINESTYLE raw callback is required to retain source identity and bytes.",
+  "authority": {
+    "dwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "\u00a720.4.73 MLINESTYLE: startang and endang are BD fields"
+    },
+    "dxfSpecification": {
+      "publisher": "Autodesk",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "fields": {
+        "51": "Start angle, default 90 degrees",
+        "52": "End angle, default 90 degrees"
+      }
+    },
+    "compatibilityBasis": "The public DRW_MLineStyle/DXF model keeps angle fields in degrees, matching resetDxf defaults, DXF groups, and LibreCAD consumers. DWG BD fields are converted to/from radians at the DWG codec boundary."
+  },
+  "source": {
+    "version": "AC1012",
+    "producer": "LibreDWG dwgadd 0.14 plus local LibreDWG C API mutation helper",
+    "createdFromScratch": true,
+    "path": "/private/tmp/p6-e-ac1012-header-linked.dwg",
+    "sha256": "8d897bf94d568a305f459e7e88e5878a86942fc25fcbbb0a531bfbe2422260e0",
+    "previousReceipt": "docs/research/p6-ac1012-generated-dimstyle-hard-pointer-followup-2026-11-14.json",
+    "mlineStyleProfile": "Standard; two elements at offsets +0.5 and -0.5; BYLAYER colors and linetypes; 90-degree start and end caps",
+    "independentDwGObservation": "LibreDWG reads the source MLINESTYLE start/end angles as 1.5707963267948966 radians."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h"
+    ],
+    "changes": [
+      "The typed MLINESTYLE callback and its auxiliary raw DWG callback are both retained. Physical AC1027 source auditing demonstrated that the raw callback supplies source-frame bytes, identity, and common links needed to bind the typed record.",
+      "DRW_MLineStyle::parseDwg converts DWG BD radians to public/API degrees and refuses a non-finite converted result.",
+      "DRW_MLineStyle::encodeDwg converts public/API degrees to DWG BD radians. DXF parse/write continue to use degree-valued groups directly.",
+      "The public field comments now state the degree-based API unit and DWG wire unit."
+    ]
+  },
+  "validation": {
+    "buildResult": "PASS",
+    "dwgObjectVectors": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests",
+      "result": "PASS",
+      "log": "/private/tmp/p6-e-mlinestyle-restored-rebuilt-focused-ctest-2026-11-14.log",
+      "logSha256": "5baca9c16cebc99bdb5592fef46e3ee523baefb526c03cff6cf07726d2193b9d",
+      "coverage": "AC1024 MLINESTYLE independent wire walk confirms degree-to-radian encoded angles and same-object parse returns public degrees; AC1032 hard-pointer path also checks angle roundtrip."
+    },
+    "focusedCtests": {
+      "selector": "libdxfrw_dwg_object_vectors, libdxfrw_ac1032_mlinestyle_handle_roles, libdxfrw_mlinestyle_cmc_retention, dwg2dxf_mline_style_typed_capture_limits, libdxfrw_mline_style_objects_allocation, libdxfrw_mline_style_body_transactions, libdxfrw_mline_source_dependency, libdxfrw_mline_style_authority",
+      "result": "PASS 8/8 after restoring the source-preserving raw callback",
+      "log": "/private/tmp/p6-e-mlinestyle-restored-rebuilt-focused-ctest-2026-11-14.log",
+      "logSha256": "5baca9c16cebc99bdb5592fef46e3ee523baefb526c03cff6cf07726d2193b9d"
+    },
+    "writerTransactionMatrix": {
+      "selector": "libdxfrw_mline_style_objects_allocation, libdxfrw_mline_style_body_transactions, libdxfrw_mline_source_dependency, libdxfrw_mline_style_authority",
+      "result": "PASS within the restored-route focused set; includes seven-revision ASCII/Binary writer rollback, retry, and typed readback matrix",
+      "log": "/private/tmp/p6-e-mlinestyle-restored-rebuilt-focused-ctest-2026-11-14.log",
+      "logSha256": "5baca9c16cebc99bdb5592fef46e3ee523baefb526c03cff6cf07726d2193b9d"
+    },
+    "currentStrictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p6-e-ac1012-header-linked.dwg -y -d -v2000 /private/tmp/p6-e-ac1012-header-linked-angle-fixed-current.dxf",
+      "binarySha256": "e73f784baeec88675bfb523b584e6e12a54c76063719dd957faab5f3df54a521",
+      "log": "/private/tmp/p6-e-ac1012-header-linked-angle-fixed-current.log",
+      "logSha256": "7cd725787ff98b1c83efc035c3eb6e6d9a3bc59f6ed55930bd55300d32f9895a",
+      "result": "Expected strict refusal: source read publishes 30/30 frames, then output refuses the unqualified MLINESTYLE raw callback at handle 0x18/type 73 (qualified=4/5). This preserves source evidence and is not a parser failure."
+    },
+    "supersededStrictConversionExperiment": {
+      "result": "Not valid support evidence. Conversion passed only while the raw MLINESTYLE callback was suppressed, which caused the physical AC1027 source audit to lose the type-73 source frame. That suppression has been reverted.",
+      "outputSha256": "b3f1b3d0871eccdc00c4e38b37575bfb7e60ba90d33c53469d550c3e7ad8e747",
+      "independentReadback": {
+        "reader": "LibreDWG 0.14 dxf_read_file API",
+        "executableSha256": "bfbf05598f6288ccb65079b10cb4cab0eb698b78f05f73a63dda5a55474c73b7",
+        "log": "/private/tmp/p6-e-ac1012-mlinestyle-independent-readback.log",
+        "logSha256": "d943428eab578e4875c06babf0296b0412183d4904a51ec4fc301e7453f24e90",
+        "result": "The experimental DXF bytes contain 90-degree fields, two elements, and the expected offsets/colors/linetype sentinels; this validates the encoded values only, not the current DWG-to-DXF source route."
+      }
+    },
+    "physicalSourceFrameAudit": {
+      "source": "/Users/dli/doc/dwg/Cover.dwg",
+      "sourceVersion": "AC1027",
+      "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "auditCommand": "python3 tools/research/audit_ac1027_source_references.py --executable build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --source /Users/dli/doc/dwg/Cover.dwg --peer-json /private/tmp/p6-e-ac1027-cover-libredwg-minjson-2026-11-14.json --peer-schema /Users/dli/dev/libredwg/src/dwg2.spec",
+      "auditJson": "/private/tmp/p6-e-ac1027-cover-source-audit-2026-11-14.json",
+      "auditJsonSha256": "2c7c01b80d05994580554b44b6054a957c84270ba35923b74452e99620ea17fb",
+      "libdxfrwDiagnosticSha256": "4fb61c1a71fa8402d5d33d9c333778f669ba41aedc49ac05c4fc6c57384dfcfb",
+      "peer": "LibreDWG 0.13.3.553_6d6a_dirty",
+      "peerJsonSha256": "8045f3c0ddf61811daefd21549a70001a6dfb7cd0645e095912f721ec5c7da64",
+      "peerSchema": "/Users/dli/dev/libredwg/src/dwg2.spec",
+      "peerSchemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "result": "PASS: 111/111 frames publish; the 84-byte type-73 MLINESTYLE handle 0x18 has owner/reactor 0x17 and ACAD_MLINESTYLE dictionary membership key Standard. LibreDWG minJSON independently matches type, size, owner, and reactor. Audit disposition: 88 opaque callbacks, 75 retained opaque frames, 13 retained standard objects, zero undecoded body-reference profiles.",
+      "semanticLimit": "This audit validates frame identity, common links, and dictionary membership, not typed MLINESTYLE scalar/element fields or native rendering."
+    },
+    "buildCommands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests libdxfrw_mline_source_dependency_tests libdxfrw_mline_style_objects_allocation_tests -j4"
+    ]
+  },
+  "limitations": [
+    "The DWG source and generated files are scratch/local research inputs; no DWG/DXF fixture is added to the repository.",
+    "Current strict conversion refuses the MLINESTYLE source callback because typed source-frame binding and writer admission are not qualified. Do not suppress the raw callback to pass the output gate.",
+    "The AC1027 source audit proves identity/common-link/dictionary closure only; semantic fields, arbitrary trailing-body preservation, MLINE entity geometry, LibreCAD/LibreCAD_3 rendering, and FreeCAD/native application behavior remain open.",
+    "P6-D remains open for per-version source-bound field/no-loss census and broader independent semantic evidence."
+  ]
+}

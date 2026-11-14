@@ -6501,8 +6501,8 @@ protected:
 
 public:
   int flags;              /*!< style flags (BS) */
-  double startAngle;      /*!< start angle (BD) */
-  double endAngle;        /*!< end angle (BD) */
+  double startAngle;      /*!< start angle in degrees (DXF/API); DWG stores radians */
+  double endAngle;        /*!< end angle in degrees (DXF/API); DWG stores radians */
   UTF8STRING description; /*!< description (TV / DXF 3) */
   int fillColor = 256;    /*!< CMC fill color / DXF 62 (256 = ByLayer) */
   int fillColor24 = -1;   /*!< DWG CMC RGB (-1 = absent; not mapped by DXF MLINESTYLE) */
