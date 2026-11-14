@@ -67,6 +67,7 @@
   "cli_policy": {
     "strict": "Refuses before replacing the destination; source and sentinel destination are unchanged.",
     "explicit_partial": "Succeeds with the partial-output warning; reopened DXF contains exactly the retained LINE and VPORT; source is unchanged.",
+    "retry": "For each output-eligible profile and encoding, explicit-partial conversion replaces the same sentinel destination preserved by the immediately preceding strict refusal.",
     "retained_integrity_errors": 0,
     "profiles": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1032"],
     "encodings": ["ASCII", "Binary"],

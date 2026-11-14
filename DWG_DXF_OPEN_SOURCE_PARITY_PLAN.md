@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **374 completed implementation and qualification slices** and **34 remaining
+The plan records **375 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`374 / (374 + 34) = 91.7%`. This is a count-based progress measure, not an
+`375 / (375 + 34) = 91.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -95,7 +95,9 @@ AC1024/AC1027/AC1032 each have 27 (26 published, one failed). Strict CLI output
 refuses atomically for AC1015/AC1018/AC1021/AC1024/AC1032. For those five
 profiles, explicit partial mode succeeds with an incomplete-output warning;
 both ASCII and Binary generated DXF reopen with the retained LINE and VPORT,
-and the source remains unchanged. The mutation search is bounded to the declared body span
+and the source remains unchanged. Strict refusal preserves one sentinel
+destination which the following explicit-partial retry successfully replaces.
+The mutation search is bounded to the declared body span
 after the common prologue where `m_bodyBitSize` is available; AC1015 instead
 uses its bounded raw-object end because that profile exposes no body-bit size.
 The failed frame contributes no retained integrity row, which is why this
