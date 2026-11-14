@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **366 completed implementation and qualification slices** and **34 remaining
+The plan records **367 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`366 / (366 + 34) = 91.5%`. This is a count-based progress measure, not an
+`367 / (367 + 34) = 91.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6568,6 +6568,18 @@ consumer evidence only; native Linux and Windows runs, physical producer
 drawings, ABI/package gates, and broader semantic profiles remain open. P8
 remains OPEN; no support claim is promoted. See the refreshed
 [current-source receipt](docs/research/p8-freecad-current-source-ac1021-ac1024-open-insert-2026-11-14.json).
+
+**P8 pinned FreeCAD 3DFACE boundary with supported mixed-profile controls
+(2026-11-14):** the generated AC1021/AC1024 consumer profile now includes one
+tilted 3DFACE alongside the nine previously qualified shaped entities. Native
+FreeCAD 1.1.4 macOS ARM64 C++ DXF import reports the 3DFACE exactly once as
+unsupported and creates no 3DFACE shape; the remaining nine shapes still pass
+their exact count, bounds, topology, lengths and spline checks. Open and insert
+pass for both revisions (4/4, 3.44 seconds). This pins the importer limitation
+to this FreeCAD route and build; it is not a libdxfrw 3DFACE support failure or
+a support claim for FreeCAD's legacy importer, other platforms, or other
+consumers. Generated inputs are scratch-only. P8 remains OPEN; see the
+[3DFACE boundary receipt](docs/research/p8-freecad-generated-3dface-boundary-ac1021-ac1024-2026-11-14.json).
 
 **P8 classic 3D POLYLINE consumer slice (2026-11-12):** the generated
 AC1021 profile now also contains a classic `POLYLINE` with flag 8 and four

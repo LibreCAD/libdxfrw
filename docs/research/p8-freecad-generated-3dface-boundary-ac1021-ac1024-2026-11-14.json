@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-generated-3dface-boundary-ac1021-ac1024-2026-11-14",
+  "date": "2026-11-14",
+  "status": "PASS_MACOS_ARM64_PINNED_CPP_IMPORTER_3DFACE_UNSUPPORTED_MIXED_PROFILE",
+  "supportClaimEffect": "none",
+  "scope": "Reproduce FreeCAD 1.1.4 C++ DXF importer behavior for one generated tilted 3DFACE while retaining positive exact-geometry controls for the nine shaped entities in the mixed AC1021/AC1024 source profile.",
+  "binding": {
+    "repositoryHead": "8bb51b66d8ba2a6f8718f2dbc70a23556af29e99",
+    "sourceTreeCodeHead": "38be1fe5d59fd2f740d48cea33c7a4f590327ef9",
+    "platform": "macOS 27.2.1 arm64",
+    "freecad": {
+      "version": "1.1.4",
+      "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+      "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+      "appBinarySha256": "a535464ece9a6175a3b15f385b35818402007eb3a8853384dacd65f128b50b1e"
+    },
+    "converter": {
+      "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+      "installedPath": "/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+      "sha256": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
+      "buildAndInstalledBinariesMatch": true
+    },
+    "sourceSha256": {
+      "tests/CMakeLists.txt": "ee94925a8c34afcc01f2ee709b649cfcfaae37169dfa9d04e5c7b0fbef9cbac5",
+      "tests/dwg_local_roundtrip_tests.cpp": "06cca20d4248534ab769aa37c1422455e1eebc92c68bf6bc3391fdaeedb9cc26",
+      "tests/freecad_dwg2dxf_import_check.FCMacro": "62846762707d70498bd00589b9b120667e26ac03bdd32b3a41dab89c4f5010b8",
+      "tests/run_freecad_installed_3d_line_test.cmake": "4406b4d34a8403379ff16a75aa8dc0a03e31cfd0be2ad2faed348631d55cba5f"
+    },
+    "artifactSha256": {
+      "build-gcc/dwg2dxf/dwg2dxf": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
+      "build-gcc/libdxfrw.a": "12340a4ded751333391a7ccaa60b5b7a2c1682b2c0ae953d2339b7fee95a1b56"
+    }
+  },
+  "inputProfiles": {
+    "provenance": "Each DWG is generated from scratch at test runtime by libdxfrw; successful test cleanup removes DWG/DXF files. No test drawing fixture was added.",
+    "entityCounts": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "POLYLINE": 2,
+      "3DFACE": 1,
+      "SPLINE": 1
+    },
+    "threeDFace": {
+      "points": [
+        [
+          101,
+          102,
+          1
+        ],
+        [
+          104,
+          102,
+          4
+        ],
+        [
+          104,
+          106,
+          8
+        ],
+        [
+          101,
+          106,
+          5
+        ]
+      ],
+      "planar": true,
+      "sourceBytesRetained": false
+    }
+  },
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_generated_ac102(1|4)_primitives_(open|insert)$' --output-on-failure",
+    "result": "PASS 4/4 in 3.44 seconds",
+    "tests": {
+      "dwg2dxf_freecad_generated_ac1021_primitives_open": "PASS",
+      "dwg2dxf_freecad_generated_ac1021_primitives_insert": "PASS",
+      "dwg2dxf_freecad_generated_ac1024_primitives_open": "PASS",
+      "dwg2dxf_freecad_generated_ac1024_primitives_insert": "PASS"
+    },
+    "observed": {
+      "freecadImporter": "Pinned FreeCAD C++ DXF importer",
+      "threeDFaceReportedEntityCount": 1,
+      "threeDFaceUnsupportedCount": 1,
+      "threeDFaceCreatedShapes": 0,
+      "otherShapedEntities": 9,
+      "otherShapedEntitiesExactGeometryChecks": "PASS"
+    },
+    "predicateControl": "python3 tests/freecad_dwg2dxf_import_check.FCMacro --self-test: PASS 32 controls"
+  },
+  "limitations": [
+    "This records the unsupported 3DFACE result only for FreeCAD 1.1.4 C++ DXF import on macOS ARM64.",
+    "The nine positive shapes are existing POINT/LINE/CIRCLE/ARC/ELLIPSE/POLYLINE/SPLINE profiles; they do not qualify surfaces, meshes, or ACIS.",
+    "No conclusion is made about the legacy Python importer, native Linux/Windows, other consumers, or format-level 3DFACE support.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Keep 3DFACE unsupported in this pinned C++ importer profile; qualify documented alternate importer routes only when the application explicitly selects them, and continue P8 Linux/Windows plus P7 surface/modeler implementation and independent semantic work."
+}
