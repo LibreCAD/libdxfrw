@@ -249,7 +249,7 @@ bool run(const std::filesystem::path& directory) {
 
     const std::string sentinel = "prior raw XRECORD destination bytes\n";
     for (const DRW::Version version : {
-             DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
       for (const bool binary : {false, true}) {
         for (const bool combinedOverrides : {false, true}) {
             const std::string outputName = (combinedOverrides
