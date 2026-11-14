@@ -7885,6 +7885,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             blockEnd.color = 5;
             blockEnd.visible = false;
             blockEnd.ltypeScale = 2.5;
+            blockEnd.lWeight = DRW_LW_Conv::width09;
+            blockEnd.transparency = static_cast<int>(0x03000040u);
         }
         void writeBlockRecords() override {
             switch (overload) {
@@ -8040,7 +8042,11 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             || footer.parentHandle != expectedFooterOwner
             || footer.layer != "LOCAL_BLOCK_FOOTER_LAYER"
             || footer.lineType != "DASHED" || footer.color != 5
-            || footer.visible || footer.ltypeScale != 2.5)
+            || footer.visible || footer.ltypeScale != 2.5
+            || footer.lWeight != (version > DRW::AC1014
+                ? DRW_LW_Conv::width09 : DRW_LW_Conv::widthByLayer)
+            || footer.transparency != (version > DRW::AC1015
+                ? static_cast<int>(0x03000040u) : DRW::Opaque))
             return false;
         std::vector<std::uint32_t> emittedInsertHandles;
         emittedInsertHandles.reserve(probe.inserts.size());
@@ -8109,6 +8115,8 @@ bool runBlockRecordSweep(const std::filesystem::path& directory) {
             || adapter.blockEnd.lineType != "DASHED"
             || adapter.blockEnd.color != 5 || adapter.blockEnd.visible
             || adapter.blockEnd.ltypeScale != 2.5
+            || adapter.blockEnd.lWeight != DRW_LW_Conv::width09
+            || adapter.blockEnd.transparency != static_cast<int>(0x03000040u)
             || adapter.inserts.size() != original.size())
             return false;
         for (std::size_t index = 0; index < original.size(); ++index) {
