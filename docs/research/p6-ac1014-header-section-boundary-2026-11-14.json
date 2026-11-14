@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1014-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound R14/AC1014 file-header locator and AcDb:Header envelope accounting for one external local sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["2.14.1", "3.1", "3.2"],
+    "rules": [
+      "R13-R15 section-locator record count selects the documented header CRC XOR value; count 5 uses 0x3CC4.",
+      "The file-header CRC is followed by the 16-byte 0x95A04E... sentinel.",
+      "The R13-R15 AcDb:Header section contains a begin sentinel, declared byte count and data, 16-bit CRC, then end sentinel."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1014.dwg",
+    "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+    "size": 1312281,
+    "version": "AC1014",
+    "provenanceLimit": "The file is from a local ACadSharp sample checkout; its producer and source-generation provenance were not established in this audit. It is not a repository fixture."
+  },
+  "fileHeader": {
+    "locatorCountOffset": 21,
+    "locatorCount": 5,
+    "locatorRecordsStart": 25,
+    "locatorRecordBytes": 9,
+    "crcOffset": 70,
+    "crcRawBeforeMagicXor": "0x8F2C",
+    "documentedCount5MagicXor": "0x3CC4",
+    "crcComputed": "0xB3E8",
+    "crcStored": "0xB3E8",
+    "sentinelOffset": 72,
+    "sentinelHex": "95a04e2899821ae55e41e05f9d3a4d00",
+    "sectionLocators": [
+      {"id": 0, "address": 13431, "size": 475},
+      {"id": 1, "address": 13906, "size": 3648},
+      {"id": 2, "address": 1307974, "size": 4157},
+      {"id": 3, "address": 0, "size": 0},
+      {"id": 4, "address": 1312277, "size": 4}
+    ],
+    "crcMethod": "Independent bytewise implementation of ODA §2.14.1 reflected 0xA001 table update, seed 0, then the §3.2 count-specific XOR."
+  },
+  "headerSection": {
+    "offset": 13431,
+    "size": 475,
+    "sha256": "0617c56ae9ba5fedce8d1e4ed9b6a60569747951c17ddb57e2b9b658e1496323",
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 437,
+    "dataOffset": 20,
+    "payloadEndOffset": 457,
+    "crcOffset": 457,
+    "crcHexLittleEndian": "1f4e",
+    "crcComputed": "0x4E1F",
+    "crcSeed": "0xC0C1",
+    "endSentinelOffset": 459,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 475,
+    "unclaimedSuffixBytes": 0,
+    "crcMethod": "Independent bytewise implementation of ODA §2.14.1 over section bytes 16 through 456 inclusive, seed 0xC0C1."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1014.dwg -y -d -v2000 /private/tmp/p6-e-ac1014-probe.dxf",
+    "executableSha256": "553464f0a037426f755d633e914d45ab85a7cc4459821923ca3d3fbf0eac1f20",
+    "traceSha256": "53abedcccfb65f1387802bbe467f42eff62fec564c6a8732c2f7855968329178",
+    "observation": "The current AC1014 reader reports section 0 at offset 13431, size 475; declared size 437; payload end 457; trailer end 475; unclaimed bytes 0; and operationSucceeded=true, legacyError=0. The overall conversion exits 1 after three unrelated entity/block warnings, so this is only a HEADER/file-locator result."
+  },
+  "limits": [
+    "One unverified-provenance source does not establish AC1014 producer breadth or whole-drawing support.",
+    "Other R13-R15 section records, optional templates, and source profiles are outside this bounded header-section accounting result.",
+    "No sample or derived DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Continue P6-E only for source/version profiles not already accounted by hash-bound receipts. Keep any unexplained suffix unclaimed and strict-complete output refused."
+}
