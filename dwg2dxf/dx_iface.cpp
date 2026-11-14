@@ -12137,12 +12137,147 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         object.parentHandle)
                                 && object.m_owningNetworkHandle
                                     == m_selectedDwgAssociativeRootHandle;
+                            const auto hasReciprocalNetworkDictionary =
+                                [&dictionaries, data](
+                                    const DRW_AssociativeObject& network) {
+                                if (network.parentHandle <= 0
+                                    || static_cast<std::uint64_t>(
+                                           network.parentHandle)
+                                        > std::numeric_limits<std::uint32_t>::max())
+                                    return false;
+                                const std::uint32_t dictionaryHandle =
+                                    static_cast<std::uint32_t>(
+                                        network.parentHandle);
+                                const auto dictionaryAt =
+                                    dictionaries.find(dictionaryHandle);
+                                if (dictionaryAt == dictionaries.end())
+                                    return false;
+                                const DRW_Dictionary& dictionary =
+                                    *dictionaryAt->second;
+                                if (dictionary.countCap
+                                    || dictionary.m_entries.size()
+                                        > DRW_Dictionary::kMaxEntries
+                                    || dictionary.parentHandle == 0u
+                                    || dictionary.parentHandle == DRW::NoHandle
+                                    || !(data->sourceFormat
+                                             == dx_source_format::DWG
+                                         ? dictionary.hasCompleteDwgEntries()
+                                         : dictionary.hasCompleteDxfEntries()))
+                                    return false;
+                                std::size_t matchingKeys = 0u;
+                                std::size_t matchingTargets = 0u;
+                                for (const DRW_Dictionary::Entry& entry :
+                                     dictionary.m_entries) {
+                                    if (layoutSymbolKey(entry.m_name)
+                                        != "ACAD_ASSOCNETWORK")
+                                        continue;
+                                    ++matchingKeys;
+                                    if (entry.m_handle == network.handle)
+                                        ++matchingTargets;
+                                }
+                                return matchingKeys == 1u
+                                    && matchingTargets == 1u
+                                    && network.reactorHandles
+                                        == std::vector<std::uint32_t>{
+                                            dictionaryHandle};
+                            };
+                            const auto sourceBoundDictionaryOwnedNetwork =
+                                [&associativeRecords, &dictionaries, data,
+                                 &hasReciprocalNetworkDictionary](
+                                    const DRW_AssociativeObject& network) {
+                                if (network.m_owningNetworkHandle == 0u
+                                    || !hasReciprocalNetworkDictionary(network))
+                                    return false;
+                                const auto networkDictionary =
+                                    network.parentHandle <= 0
+                                        || static_cast<std::uint64_t>(
+                                               network.parentHandle)
+                                            > std::numeric_limits<std::uint32_t>::max()
+                                    ? dictionaries.end()
+                                    : dictionaries.find(
+                                          static_cast<std::uint32_t>(
+                                              network.parentHandle));
+                                if (networkDictionary == dictionaries.end()
+                                    || networkDictionary->second->parentHandle
+                                        == 0u
+                                    || networkDictionary->second->parentHandle
+                                        == DRW::NoHandle
+                                    || networkDictionary->second->reactorHandles
+                                        .size() != 1u
+                                    || networkDictionary->second->reactorHandles
+                                        .front()
+                                            != networkDictionary->second
+                                                ->parentHandle)
+                                    return false;
+                                const std::uint32_t ownerDictionaryHandle =
+                                    static_cast<std::uint32_t>(
+                                        networkDictionary->second->parentHandle);
+                                const auto ownerDictionary =
+                                    dictionaries.find(ownerDictionaryHandle);
+                                if (ownerDictionary == dictionaries.end()
+                                    || ownerDictionary->second->countCap
+                                    || ownerDictionary->second->m_entries.size()
+                                        > DRW_Dictionary::kMaxEntries
+                                    || !(data->sourceFormat
+                                             == dx_source_format::DWG
+                                         ? ownerDictionary->second
+                                               ->hasCompleteDwgEntries()
+                                         : ownerDictionary->second
+                                               ->hasCompleteDxfEntries()))
+                                    return false;
+                                std::size_t ownerKeys = 0u;
+                                std::size_t ownerTargets = 0u;
+                                for (const DRW_Dictionary::Entry& entry :
+                                     ownerDictionary->second->m_entries) {
+                                    if (layoutSymbolKey(entry.m_name)
+                                        != "ACAD_ASSOCNETWORK")
+                                        continue;
+                                    ++ownerKeys;
+                                    if (entry.m_handle
+                                        == networkDictionary->first)
+                                        ++ownerTargets;
+                                }
+                                const bool blockRecordOwnsDictionary =
+                                    std::any_of(
+                                        data->blockRecords.begin(),
+                                        data->blockRecords.end(),
+                                        [&ownerDictionaryHandle,
+                                         &ownerDictionary](
+                                            const DRW_Block_Record& record) {
+                                            return record.handle
+                                                    == ownerDictionary->second
+                                                        ->parentHandle
+                                                && record.xDictHandle
+                                                    == ownerDictionaryHandle;
+                                        });
+                                if (ownerKeys != 1u || ownerTargets != 1u
+                                    || !blockRecordOwnsDictionary)
+                                    return false;
+                                const auto owner = associativeRecords.find(
+                                    network.m_owningNetworkHandle);
+                                if (owner == associativeRecords.end()
+                                    || layoutSymbolKey(
+                                           owner->second->m_recordName)
+                                        != "ACDBASSOCNETWORK")
+                                    return false;
+                                const std::size_t reciprocalActions =
+                                    static_cast<std::size_t>(std::count_if(
+                                        owner->second->m_actions.begin(),
+                                        owner->second->m_actions.end(),
+                                        [&network](
+                                            const DRW_AssociativeHandleRef& ref) {
+                                            return ref.m_handle == network.handle
+                                                && !ref.m_isOwned;
+                                        }));
+                                return reciprocalActions == 1u;
+                            };
                             if (!object.m_networkFieldsParsed
                                 || object.m_classVersion != 1u
                                 || object.m_networkVersion != 0
                                 || (!rootNetwork
                                     && !sortDictionaryOwnedNetwork
-                                    && !selectedDictionaryOwnedNetwork)
+                                    && !selectedDictionaryOwnedNetwork
+                                    && !sourceBoundDictionaryOwnedNetwork(object))
                                 || object.m_actionBodyHandle != 0u
                                 || object.m_maxDependencyIndex != 0
                                 || !object.m_dependencies.empty()
@@ -12236,7 +12371,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                             && m_selectedDwgAssociativeChildDictionaries
                                                 .at(action.m_handle)
                                                 == static_cast<std::uint32_t>(
-                                                    target->second->parentHandle)));
+                                                    target->second->parentHandle))
+                                        || hasReciprocalNetworkDictionary(
+                                            *target->second));
                                 const bool ownedActionTarget =
                                     action.m_isOwned
                                     && (variableTarget || groupTarget)
@@ -14557,7 +14694,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (visiting.count(child) != 0u) {
                             const auto associative =
                                 associativeRecords.find(child);
-                            const auto sortDictionary =
+                            const auto childDictionary =
                                 dictionaries.find(child);
                             const bool reciprocalNetworkOwner =
                                 dictionaryKey == "ACAD_ASSOCNETWORK"
@@ -14569,8 +14706,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     == frame.handle;
                             const bool reciprocalSortDictionaryOwner =
                                 dictionaryKey == "ACAD_ASSOCNETWORK"
-                                && sortDictionary != dictionaries.end()
-                                && sortDictionary->second->parentHandle
+                                && childDictionary != dictionaries.end()
+                                && childDictionary->second->parentHandle
                                     == frame.handle
                                 && std::find(m_sortDictionaryHandles.begin(),
                                              m_sortDictionaryHandles.end(),
@@ -14580,6 +14717,76 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                              m_sortDictionaryHandles.end(),
                                              frame.handle)
                                     != m_sortDictionaryHandles.end();
+                            bool reciprocalBlockNetworkDictionaryOwner = false;
+                            if (dictionaryKey == "ACAD_ASSOCNETWORK"
+                                && childDictionary != dictionaries.end()
+                                && childDictionary->second->parentHandle
+                                    == frame.handle
+                                && childDictionary->second->reactorHandles
+                                    == std::vector<std::uint32_t>{frame.handle}
+                                && !childDictionary->second->countCap
+                                && childDictionary->second->m_entries.size()
+                                    == 1u
+                                && (data->sourceFormat == dx_source_format::DWG
+                                    ? childDictionary->second
+                                        ->hasCompleteDwgEntries()
+                                    : childDictionary->second
+                                        ->hasCompleteDxfEntries())) {
+                                const bool blockRecordXdict =
+                                    frame.dictionary != nullptr
+                                    && std::any_of(
+                                        data->blockRecords.begin(),
+                                        data->blockRecords.end(),
+                                        [&frame](
+                                            const DRW_Block_Record& record) {
+                                            return record.handle
+                                                    == frame.dictionary
+                                                        ->parentHandle
+                                                && record.xDictHandle
+                                                    == frame.handle;
+                                        });
+                                const DRW_Dictionary::Entry& networkEntry =
+                                    childDictionary->second->m_entries.front();
+                                const auto nestedNetwork =
+                                    associativeRecords.find(
+                                        networkEntry.m_handle);
+                                if (blockRecordXdict
+                                    && layoutSymbolKey(networkEntry.m_name)
+                                        == "ACAD_ASSOCNETWORK"
+                                    && nestedNetwork
+                                        != associativeRecords.end()
+                                    && layoutSymbolKey(
+                                           nestedNetwork->second->m_recordName)
+                                        == "ACDBASSOCNETWORK"
+                                    && nestedNetwork->second->parentHandle
+                                        == childDictionary->first
+                                    && nestedNetwork->second->reactorHandles
+                                        == std::vector<std::uint32_t>{
+                                            childDictionary->first}
+                                    && nestedNetwork->second
+                                        ->m_owningNetworkHandle != 0u) {
+                                    const auto ownerNetwork =
+                                        associativeRecords.find(
+                                            nestedNetwork->second
+                                                ->m_owningNetworkHandle);
+                                    reciprocalBlockNetworkDictionaryOwner =
+                                        ownerNetwork
+                                            != associativeRecords.end()
+                                        && layoutSymbolKey(
+                                               ownerNetwork->second
+                                                   ->m_recordName)
+                                            == "ACDBASSOCNETWORK"
+                                        && std::count_if(
+                                            ownerNetwork->second->m_actions.begin(),
+                                            ownerNetwork->second->m_actions.end(),
+                                            [&nestedNetwork](
+                                                const DRW_AssociativeHandleRef& ref) {
+                                                return ref.m_handle
+                                                        == nestedNetwork->first
+                                                    && !ref.m_isOwned;
+                                            }) == 1;
+                                }
+                            }
                             const bool selectedReciprocalParentDictionary =
                                 dictionaryKey == "ACAD_ASSOCNETWORK"
                                 && m_selectedDwgAssociativeSource == data
@@ -14597,10 +14804,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     });
                             if (!reciprocalNetworkOwner
                                 && !reciprocalSortDictionaryOwner
+                                && !reciprocalBlockNetworkDictionaryOwner
                                 && !selectedReciprocalParentDictionary)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "dictionary ownership cycle is outside the reciprocal associative or SORTENTSTABLE owner profile");
+                                    "dictionary ownership cycle is outside the reciprocal associative or SORTENTSTABLE owner profile: key="
+                                        + dictionaryKey + " parent="
+                                        + std::to_string(frame.handle)
+                                        + " child=" + std::to_string(child));
                             // A nested network's reactor points back to its
                             // containing dictionary. When its action path
                             // reached the network first, the dictionary entry
