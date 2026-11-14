@@ -50,14 +50,19 @@ def main() -> int:
 
     rows = []
     for name, declaration_lines in sorted(declarations.items()):
-        references = []
+        references_by_file: dict[Path, dict[str, int]] = {}
         call_pattern = re.compile(r"\b" + re.escape(name) + r"\s*\(")
         for path, source in contents.items():
             for match in call_pattern.finditer(source):
-                references.append({
-                    "file": path.relative_to(args.root).as_posix(),
+                reference = references_by_file.setdefault(path, {
                     "line": source[:match.start()].count("\n") + 1,
+                    "occurrences": 0,
                 })
+                reference["occurrences"] += 1
+        references = [
+            {"file": path.relative_to(args.root).as_posix(), **reference}
+            for path, reference in sorted(references_by_file.items())
+        ]
         rows.append({
             "method": name,
             "declaration_count": len(declaration_lines),

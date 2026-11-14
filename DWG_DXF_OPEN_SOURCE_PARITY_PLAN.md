@@ -40,7 +40,7 @@ now enumerates 114 unique public `dxfRW` writer names across 120 declarations
 name. Forty names have no call site in the broad
 `dxf_write_allocation_transaction_tests.cpp` file; focused tests may cover
 them, so this is a navigation result, not proof of rollback/retry/readback or
-version coverage. The index records each focused test location and does not
+version coverage. The index records each focused test file and first reference line and does not
 count as a completed P6-G writer profile ([index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-14.json),
 [generator](tools/research/audit_dxf_public_writer_test_mentions.py)).
 
