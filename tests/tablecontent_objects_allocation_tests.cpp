@@ -180,8 +180,9 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
     return !input.bad();
 }
 
-bool write(TableContentExport& exporter, dxfRW& codec, bool binary) {
-    return codec.write(&exporter, DRW::AC1027, binary);
+bool write(TableContentExport& exporter, dxfRW& codec,
+           DRW::Version version, bool binary) {
+    return codec.write(&exporter, version, binary);
 }
 
 bool verify(const std::filesystem::path& path) {
@@ -375,17 +376,21 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
     if (!runDirectEncoderAllocationSweep())
         return fail("direct encoder allocation rollback/retry failed");
-    const auto output = directory / "tablecontent-objects.dxf";
     const std::string sentinel = "prior TABLECONTENT destination bytes\n";
-    dxfRW codec(output.string().c_str());
-    TableContentExport exporter(codec);
-    TableContentExport expected(codec);
+    for (const DRW::Version version : {
+             DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+      const auto output = directory
+          / ("tablecontent-objects-"
+             + std::to_string(static_cast<int>(version)) + ".dxf");
+      dxfRW codec(output.string().c_str());
+      TableContentExport exporter(codec);
+      TableContentExport expected(codec);
 
-    for (const bool binary : {false, true}) {
-        if (!write(exporter, codec, binary))
+      for (const bool binary : {false, true}) {
+        if (!write(exporter, codec, version, binary))
             return fail("warm-up export was refused");
         exporter.failAt = 1000000;
-        if (!write(exporter, codec, binary))
+        if (!write(exporter, codec, version, binary))
             return fail("allocation calibration export was refused");
         if (!verify(output))
             return fail("calibration output did not read back typed content");
@@ -402,7 +407,7 @@ bool run(const std::filesystem::path& directory) {
             exporter.failAt = offset;
             exporter.reached = 0;
             exporter.emitted = false;
-            const bool wrote = write(exporter, codec, binary);
+            const bool wrote = write(exporter, codec, version, binary);
             exporter.failAt = -1;
             std::string current;
             if (wrote || exporter.reached < 1 || !readAll(output, current)
@@ -410,18 +415,20 @@ bool run(const std::filesystem::path& directory) {
                 return fail("injected failure changed destination or was missed");
             if (!sourceUnchanged(exporter, expected))
                 return fail("injected failure changed the caller object");
-            if (!write(exporter, codec, binary) || !verify(output))
+            if (!write(exporter, codec, version, binary) || !verify(output))
                 return fail("same-writer retry failed typed readback");
             if (!sourceUnchanged(exporter, expected))
                 return fail("same-writer retry changed the caller object");
         }
         std::cout << "TABLECONTENT OBJECTS "
+                  << static_cast<int>(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
+      }
+      std::error_code ignored;
+      std::filesystem::remove(output, ignored);
     }
-    std::error_code ignored;
-    std::filesystem::remove(output, ignored);
     return true;
 }
 } // namespace

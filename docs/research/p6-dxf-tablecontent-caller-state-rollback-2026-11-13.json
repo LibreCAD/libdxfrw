@@ -4,10 +4,12 @@
   "date": "2026-11-13",
   "status": "GENERATED_TABLECONTENT_CALLER_STATE_ROLLBACK_RETRY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Strengthen the caller-state assertion in the existing whole-file DXF TABLECONTENT allocation sweep.",
+  "scope": "Strengthen caller-state assertions and cover the generated whole-file DXF TABLECONTENT allocation profile across four output revisions.",
   "source": {
     "kind": "deterministic locally-authored in-memory DRW graph",
     "profile": "One standalone TABLECONTENT object with one named column, one row, and one typed UTF-8 scalar cell; no external sample or fixture file is used.",
+    "targetVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
     "fixtureFilesAdded": 0
   },
   "implementation": {
@@ -21,7 +23,10 @@
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_tablecontent_objects_allocation_tests --parallel 2: PASS",
     "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure: PASS 1/1",
-    "directRun": "34 direct DWG encoder offsets; 14 ASCII and 12 Binary whole-file DXF allocation offsets: PASS",
+    "directRun": "34 direct DWG encoder offsets; each of AC1021/AC1024/AC1027/AC1032 passes 14 ASCII and 12 Binary whole-file OBJECTS callback allocation offsets: PASS",
+    "focusedCTestElapsedSeconds": 1.26,
+    "testSourceSha256": "27f1ebc51e5e020632c59058bd6124a45123f546e3ea1f0c06d9dd746bbca96e",
+    "testExecutableSha256": "59a89dfd6216566f8e92bd10f4014b6332f2430a7e38a0c21676500f875587e6",
     "fullSuites": "NOT RUN"
   },
   "limitations": [

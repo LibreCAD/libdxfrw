@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **228 completed implementation slices** and **35 remaining
+The plan records **229 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`228 / (228 + 35) = 86.7%`. This is a count-based progress measure, not an
+`229 / (229 + 35) = 86.7%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -4977,9 +4977,11 @@ generated standalone TABLECONTENT OBJECTS allocation sweep now compares the
 complete public table-content payload used by its fixture (table flags and
 references, grid vectors, every cell field, borders, attributes, values,
 merged ranges and subrecord ranges) after each injected failure and retry. The
-focused test passes; it reaches 14 ASCII and 12 Binary whole-file allocation
-offsets plus 34 direct DWG encoder offsets. This strengthens caller-preservation
-evidence for that generated profile only. The broader P6-G writer inventory and
+focused test passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and
+Binary; each target lane reaches 14 ASCII and 12 Binary whole-file OBJECTS
+callback allocation offsets (104 total), plus 34 direct DWG encoder offsets.
+The focused fast CTest passes in 1.26 seconds. This strengthens caller-preservation evidence for that generated profile only.
+The broader P6-G writer inventory and
 coverage of the other remaining public writers are still open; see the
 [TABLECONTENT caller-state receipt](docs/research/p6-dxf-tablecontent-caller-state-rollback-2026-11-13.json).
 The existing generated DATATABLE sweep received the same caller-state tightening:
