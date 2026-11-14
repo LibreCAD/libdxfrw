@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-image-writer-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_IMAGE_COMPOUND_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend full-operation allocation rollback, same-writer retry and typed readback for the generated IMAGE/IMAGEDEF/IMAGEDEF_REACTOR compound writer across every admitted target revision.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Image and generated IMAGEDEF",
+    "profile": "One IMAGE entity with pixel dimensions, image display adjustments, polygonal clipping and one generated IMAGEDEF/IMAGEDEF_REACTOR pair emitted through dx_iface::writeObjects(). The simple writeImage(image, name) overload emits default IMAGEDEF calibration fields; pixel dimensions are verified on IMAGE, not attributed to IMAGEDEF.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/image_writer_version_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-image-writer-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "c1eda39ae7e24ad887de41db3bb696bbc3435632820bbe7f261633d8bbd9bd9c",
+    "testExecutableSha256": "58838247f4c7b2ba9793daa78f1f8153edcc339d1b41b243645cc56f80b673f6",
+    "method": "For each revision and encoding, generate a clean baseline, inject std::bad_alloc at every measured whole-file write allocation, require sentinel destination bytes and source IMAGE fields/handles to survive, retry on the same codec and compare exact output bytes, then freshly import and verify the target revision, image geometry/display/clipping, IMAGEDEF name and IMAGEDEF/REACTOR handle and owner links."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 102, "Binary": 101},
+    "AC1015": {"ASCII": 104, "Binary": 103},
+    "AC1018": {"ASCII": 104, "Binary": 103},
+    "AC1021": {"ASCII": 103, "Binary": 102},
+    "AC1024": {"ASCII": 110, "Binary": 109},
+    "AC1027": {"ASCII": 103, "Binary": 102},
+    "AC1032": {"ASCII": 103, "Binary": 102},
+    "totals": {"ASCII": 729, "Binary": 722, "all": 1451}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_image_writer_version_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_image_writer_version_allocation$' --output-on-failure: PASS 1/1 in 3.23 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_image_writer_version_allocation_tests: PASS; all 1,451 measured allocation offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated writer transaction and same-library self-readback only; no independent producer, native application, source-span or platform evidence.",
+    "This generated profile uses the simple IMAGEDEF writer route and does not qualify planned/imported IMAGEDEF source metadata profiles.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated IMAGE/IMAGEDEF/IMAGEDEF_REACTOR output now has whole-operation allocation rollback, source-model preservation, same-writer byte-identical retry and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the writer/profile inventory; imported/planned IMAGEDEF metadata and independent/native semantics remain separate evidence gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "270 completed slices and 35 remaining packages: 270/(270+35)=88.5%; count-based activity proxy only."
+  }
+}
