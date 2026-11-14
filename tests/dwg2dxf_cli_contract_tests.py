@@ -1312,15 +1312,16 @@ def check_skipped_record_projection(converter, root, writer):
         b"sourceDwgFramesUnrecognized=0",
     )
     raw_only_versions = {
-        # AC1018 uses the already-qualified AC1021 target because the
-        # generated VPORT state is not representable in an AC1018 DXF.
-        "AC1018": (b"AC1018", b"AC1021", "2007"),
-        "AC1021": (b"AC1021", b"AC1021", "2007"),
-        "AC1024": (b"AC1024", b"AC1024", "2010"),
-        "AC1032": (b"AC1032", b"AC1032", "2018"),
+        # AC1015/AC1018 use the AC1021 target because generated VPORT state
+        # is not representable by their source DXF revisions.
+        "AC1015": (b"AC1015", b"AC1021", "2007", b"29"),
+        "AC1018": (b"AC1018", b"AC1021", "2007", b"28"),
+        "AC1021": (b"AC1021", b"AC1021", "2007", b"28"),
+        "AC1024": (b"AC1024", b"AC1024", "2010", b"28"),
+        "AC1032": (b"AC1032", b"AC1032", "2018", b"28"),
     }
     import re
-    for source_version, (revision, target_revision, target_year) in raw_only_versions.items():
+    for source_version, (revision, target_revision, target_year, frame_count) in raw_only_versions.items():
         raw_source = root / f"generated raw-only TABLECONTENT {source_version}.dwg"
         generated = run_bounded(
             [str(writer), "--generate-cli-raw-only-source", str(raw_source),
@@ -1356,7 +1357,7 @@ def check_skipped_record_projection(converter, root, writer):
                     or any(field not in projection for field in raw_only_projection)
                     or not source_frames or not published_frames
                     or source_frames.group(1) != published_frames.group(1)
-                    or source_frames.group(1) != b"28"
+                    or source_frames.group(1) != frame_count
                     or b"strict-complete conversion requires successful, complete DWG read disposition"
                        not in strict.stderr):
                 raise AssertionError(
@@ -1385,7 +1386,7 @@ def check_skipped_record_projection(converter, root, writer):
                     or any(field not in projection for field in raw_only_projection)
                     or not source_frames or not published_frames
                     or source_frames.group(1) != published_frames.group(1)
-                    or source_frames.group(1) != b"28"
+                    or source_frames.group(1) != frame_count
                     or not output_has_revision(payload, target_revision, binary)
                     or b"TABLECONTENT" in payload
                     or raw_source.read_bytes() != raw_source_bytes):

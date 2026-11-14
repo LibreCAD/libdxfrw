@@ -14862,12 +14862,28 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                 DRW_DBG(" handle=");
                 DRW_DBG(obj.handle);
                 DRW_DBG("]\n");
-              } else if (version < DRW::AC1018 && buff.isGood()) {
-                // Legacy R13/R14/R2000 content bodies remain raw while the
-                // independent common shell is unavailable for this profile.
+              } else if (version < DRW::AC1018 && commonParsed
+                         && commonObject.handle == obj.handle) {
+                // Legacy R13/R14/R2000 TABLECONTENT bodies remain opaque.
+                // The typed attempt may leave `buff` bad, so use the
+                // independently validated common prologue from the start of
+                // readDwgObject and retain only the bounded raw frame. Never
+                // publish partial typed content or qualify DXF output.
                 intfa.addUnsupportedObject(
                     makeRawObject(oType, cit->second, false));
+                const std::string &className = cit->second->className;
+                const std::string &recordName = cit->second->recName;
+                const std::string objectName =
+                    recordName.empty() ? className : recordName;
+                ++m_skippedCustomClasses[className.empty()
+                    ? recordName.c_str() : className.c_str()];
+                ++m_skippedUnsupportedObjects[objectName];
                 ret = true;
+                DRW_DBG("[table-content-legacy-raw-only class=");
+                DRW_DBG(className.c_str());
+                DRW_DBG(" handle=");
+                DRW_DBG(obj.handle);
+                DRW_DBG("]\n");
               }
               break;
             }

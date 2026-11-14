@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-raw-only-tablecontent-legacy-ac1015-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Fix the legacy raw-only TABLECONTENT fallback so a failed typed parse does not poison an independently validated AC1015 common-object prologue or count the frame as a parser failure.",
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "change": "For pre-AC1018 TABLECONTENT fallback, rely on readDwgObject's previously validated common prologue and matching handle instead of buff.isGood() after the failed typed parse. Publish only the bounded raw object, increment exact skipped-class/object counters, and keep the typed payload unavailable."
+  },
+  "profile": {
+    "sourceVersion": "AC1015",
+    "targetVersion": "AC1021",
+    "sourceOrigin": "Generated from scratch in the focused test's temporary directory; no fixture file was committed.",
+    "tableContentRawOnlyObjects": 2,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "skippedCustomClassInstances": 2,
+    "skippedUnsupportedObjectInstances": 2,
+    "frameCoverage": "complete",
+    "sourceFrames": 29,
+    "publishedFrames": 29,
+    "failedFrames": 0,
+    "unresolvedFrames": 0,
+    "unrecognizedDispositions": 0
+  },
+  "controls": [
+    "Strict ASCII and Binary conversion refuses without replacing destination sentinels and reports the complete raw-only disposition.",
+    "Explicit partial ASCII and Binary conversion succeeds with the omission warning, leaves the source unchanged, and does not emit TABLECONTENT.",
+    "Direct dxfRW readback of each partial output finds exactly one LINE and one VPORT.",
+    "The preceding generated AC1015 profile produced two object parse failures and only 27 of 29 published frames; the corrected profile publishes all 29 and classifies both TABLECONTENT objects as skipped."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+    "test": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --skipped-record-only",
+    "result": "PASS: 48 version/profile controls in the five-profile raw-only matrix"
+  },
+  "limits": [
+    "The synthetic TABLECONTENT body is intentionally unsupported and demonstrates bounded raw-only recovery and CLI disposition, not TABLECONTENT wire semantics, producer validity, graph closure, or output support.",
+    "AC1027 remains excluded from the isolated partial-output matrix because its independent source-reference closure preflight refuses this generated profile.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

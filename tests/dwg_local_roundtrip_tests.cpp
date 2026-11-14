@@ -41849,7 +41849,9 @@ int main(int argc, char** argv) {
         DRW::Version version = DRW::AC1032;
         if (argc == 4) {
             const std::string token(argv[3]);
-            if (token == "AC1018")
+            if (token == "AC1015")
+                version = DRW::AC1015;
+            else if (token == "AC1018")
                 version = DRW::AC1018;
             else if (token == "AC1021")
                 version = DRW::AC1021;
