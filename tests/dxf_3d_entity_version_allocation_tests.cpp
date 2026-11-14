@@ -3,6 +3,7 @@
 #include "dx_iface.h"
 
 #include <array>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -44,7 +45,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace };
+enum class Profile { Face, Line, Solid, Trace, Point };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -52,6 +53,7 @@ const char* profileName(Profile profile) {
     case Profile::Line: return "3DLINE";
     case Profile::Solid: return "SOLID";
     case Profile::Trace: return "TRACE";
+    case Profile::Point: return "POINT";
     }
     return "unknown";
 }
@@ -99,6 +101,25 @@ DRW_Trace makeTrace() {
     trace.thickness = 0.75;
     trace.extPoint = DRW_Coord{0.0, 1.0, 0.0};
     return trace;
+}
+
+DRW_Point makePoint() {
+    DRW_Point point;
+    point.handle = 0xD929u;
+    point.basePoint = DRW_Coord{-2.0, 3.0, 4.0};
+    point.thickness = 1.25;
+    point.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    point.xAxisAngle = 0.625;
+    return point;
+}
+
+bool samePoint(const DRW_Point& a, const DRW_Point& b,
+               bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x && a.basePoint.y == b.basePoint.y
+        && a.basePoint.z == b.basePoint.z && a.thickness == b.thickness
+        && a.extPoint.x == b.extPoint.x && a.extPoint.y == b.extPoint.y
+        && a.extPoint.z == b.extPoint.z && a.xAxisAngle == b.xAxisAngle;
 }
 
 bool sameTrace(const DRW_Trace& a, const DRW_Trace& b,
@@ -149,6 +170,7 @@ public:
         line = makeLine();
         solid = makeSolid();
         trace = makeTrace();
+        point = makePoint();
     }
 
     void writeEntities() override {
@@ -165,6 +187,7 @@ public:
         case Profile::Line: accepted = codec.write3DLine(&line); break;
         case Profile::Solid: accepted = codec.writeSolid(&solid); break;
         case Profile::Trace: accepted = codec.writeTrace(&trace); break;
+        case Profile::Point: accepted = codec.writePoint(&point); break;
         }
     }
 
@@ -177,6 +200,7 @@ public:
     DRW_3DLine line;
     DRW_Solid solid;
     DRW_Trace trace;
+    DRW_Point point;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -236,6 +260,19 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
             && line->extPoint.y == expected.extPoint.y
             && line->extPoint.z == expected.extPoint.z
             && line->thickness == expected.thickness;
+    }
+    if (profile == Profile::Point) {
+        const auto* point = dynamic_cast<const DRW_Point*>(entity);
+        const DRW_Point expected = makePoint();
+        return point != nullptr && point->eType == DRW::POINT
+            && point->basePoint.x == expected.basePoint.x
+            && point->basePoint.y == expected.basePoint.y
+            && point->basePoint.z == expected.basePoint.z
+            && point->thickness == expected.thickness
+            && point->extPoint.x == expected.extPoint.x
+            && point->extPoint.y == expected.extPoint.y
+            && point->extPoint.z == expected.extPoint.z
+            && std::abs(point->xAxisAngle - expected.xAxisAngle) < 1e-12;
     }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
@@ -304,6 +341,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_3DLine originalLine = exporter.line;
                 const DRW_Solid originalSolid = exporter.solid;
                 const DRW_Trace originalTrace = exporter.trace;
+                const DRW_Point originalPoint = exporter.point;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -319,6 +357,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Trace:
                     callerPreserved = sameTrace(exporter.trace, originalTrace);
+                    break;
+                case Profile::Point:
+                    callerPreserved = samePoint(exporter.point, originalPoint);
                     break;
                 }
                 if (!allocationFailed || written
@@ -345,7 +386,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                         ? sameLine(exporter.line, originalLine)
                         : profile == Profile::Solid
                             ? sameTrace(exporter.solid, originalSolid)
-                            : sameTrace(exporter.trace, originalTrace);
+                            : profile == Profile::Trace
+                                ? sameTrace(exporter.trace, originalTrace)
+                                : samePoint(exporter.point, originalPoint);
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
@@ -384,7 +427,8 @@ bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
         && runProfile(directory, Profile::Line)
         && runProfile(directory, Profile::Solid)
-        && runProfile(directory, Profile::Trace);
+        && runProfile(directory, Profile::Trace)
+        && runProfile(directory, Profile::Point);
 }
 } // namespace
 
