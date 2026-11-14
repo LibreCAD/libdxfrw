@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **357 completed implementation and qualification slices** and **34 remaining
+The plan records **358 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`357 / (357 + 34) = 91.3%`. This is a count-based progress measure, not an
+`358 / (358 + 34) = 91.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -168,6 +168,18 @@ AC1021. This closes only the generated SECTIONOBJECT transaction/version
 sub-slice; non-null SECTION_SETTINGS closure, producer semantics, native
 presentation and DWG source support remain unqualified. The focused selector
 passes in 0.44 seconds ([receipt](docs/research/p6-dxf-sectionobject-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G POINTCLOUD version transaction slice (2026-11-14):** the generated
+direct-writer matrix now covers AC1021/AC1024/AC1027/AC1032 in ASCII and
+Binary. All 86 injected allocation failures preserve the prior destination
+and caller model; same-writer retry reproduces clean bytes and typed readback
+checks the baseline source files, point count, extents and UCS fields. A
+separate AC1027+ intensity profile verifies AC1024 loss refusal, and the
+AC1018 minimum-version refusal is also checked in both encodings; each retries
+on the same writer at the first admitting revision. This closes generated
+version/transaction behavior only, with null definition/reactor handles; graph
+closure, clipping and producer/consumer semantics remain unqualified. The
+focused selector passes in 0.40 seconds ([receipt](docs/research/p6-dxf-pointcloud-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the

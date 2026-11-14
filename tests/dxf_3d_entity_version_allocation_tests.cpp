@@ -48,7 +48,7 @@ void disarmAllocationFailure() noexcept {
 
 enum class Profile {
     Face, Line, Solid, Trace, Point, Circle, Arc, BasicLine, Ellipse, Text,
-    RText, ArcAlignedText, Shape, SectionObject
+    RText, ArcAlignedText, Shape, SectionObject, PointCloud
 };
 
 const char* profileName(Profile profile) {
@@ -67,6 +67,7 @@ const char* profileName(Profile profile) {
     case Profile::ArcAlignedText: return "ARCALIGNEDTEXT";
     case Profile::Shape: return "SHAPE";
     case Profile::SectionObject: return "SECTIONOBJECT";
+    case Profile::PointCloud: return "POINTCLOUD";
     }
     return "unknown";
 }
@@ -298,6 +299,59 @@ bool sameSectionObject(const DRW_SectionObject& a,
                == b.m_indicatorColorDwgMetadataPresent;
 }
 
+DRW_PointCloud makePointCloud(bool withLateFields = false) {
+    DRW_PointCloud pointCloud;
+    pointCloud.handle = 0xD947u;
+    pointCloud.classVersion = 2u;
+    pointCloud.origin = DRW_Coord{11.0, 12.0, 13.0};
+    pointCloud.savedFilename = "clouds/version-matrix.rcs";
+    pointCloud.sourceFileCount = 2;
+    pointCloud.sourceFiles = {"clouds/part-a.rcs", "clouds/part-b.rcs"};
+    pointCloud.extentsMin = DRW_Coord{-10.0, -20.0, -30.0};
+    pointCloud.extentsMax = DRW_Coord{40.0, 50.0, 60.0};
+    pointCloud.pointCount = 987654u;
+    pointCloud.ucsName = "VERSION_MATRIX_POINTCLOUD_UCS";
+    pointCloud.ucsOrigin = DRW_Coord{1.0, 2.0, 3.0};
+    pointCloud.ucsXDirection = DRW_Coord{0.0, 1.0, 0.0};
+    pointCloud.ucsYDirection = DRW_Coord{-1.0, 0.0, 0.0};
+    pointCloud.ucsZDirection = DRW_Coord{0.0, 0.0, 1.0};
+    if (withLateFields) {
+        pointCloud.intensityScheme = 2;
+        pointCloud.intensityStyle = {1.5, 9.5, 2.5, 8.5};
+    }
+    return pointCloud;
+}
+
+bool samePointCloud(const DRW_PointCloud& a, const DRW_PointCloud& b,
+                    bool compareHandle = true) {
+    const auto samePoint = [](const DRW_Coord& x, const DRW_Coord& y) {
+        return x.x == y.x && x.y == y.y && x.z == y.z;
+    };
+    return (!compareHandle || a.handle == b.handle)
+        && a.classVersion == b.classVersion && samePoint(a.origin, b.origin)
+        && a.savedFilename == b.savedFilename
+        && a.sourceFileCount == b.sourceFileCount
+        && a.sourceFiles == b.sourceFiles
+        && samePoint(a.extentsMin, b.extentsMin)
+        && samePoint(a.extentsMax, b.extentsMax)
+        && a.pointCount == b.pointCount && a.ucsName == b.ucsName
+        && samePoint(a.ucsOrigin, b.ucsOrigin)
+        && samePoint(a.ucsXDirection, b.ucsXDirection)
+        && samePoint(a.ucsYDirection, b.ucsYDirection)
+        && samePoint(a.ucsZDirection, b.ucsZDirection)
+        && a.definitionHandle == b.definitionHandle
+        && a.reactorHandle == b.reactorHandle
+        && a.showIntensity == b.showIntensity
+        && a.intensityScheme == b.intensityScheme
+        && a.intensityStyle.minIntensity == b.intensityStyle.minIntensity
+        && a.intensityStyle.maxIntensity == b.intensityStyle.maxIntensity
+        && a.intensityStyle.lowThreshold == b.intensityStyle.lowThreshold
+        && a.intensityStyle.highThreshold == b.intensityStyle.highThreshold
+        && a.showClipping == b.showClipping
+        && a.clippingCount == b.clippingCount
+        && a.clippings.size() == b.clippings.size();
+}
+
 bool sameShape(const DRW_Shape& a, const DRW_Shape& b,
                bool compareHandle = true) {
     return (!compareHandle || a.handle == b.handle)
@@ -454,7 +508,8 @@ bool sameLine(const DRW_3DLine& a, const DRW_3DLine& b) {
 
 class Export final : public dx_iface {
 public:
-    Export(dxfRW& codec, Profile profile) : codec(codec), profile(profile) {
+    Export(dxfRW& codec, Profile profile, bool pointCloudLateFields = false)
+        : codec(codec), profile(profile) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &codec;
@@ -472,6 +527,7 @@ public:
         arcAlignedText = makeArcAlignedText();
         shape = makeShape();
         sectionObject = makeSectionObject();
+        pointCloud = makePointCloud(pointCloudLateFields);
         codec.setEllipseParts(8);
     }
 
@@ -501,6 +557,8 @@ public:
         case Profile::Shape: accepted = codec.writeShape(&shape); break;
         case Profile::SectionObject:
             accepted = codec.writeSectionObject(&sectionObject); break;
+        case Profile::PointCloud:
+            accepted = codec.writePointCloud(&pointCloud); break;
         }
     }
 
@@ -523,6 +581,7 @@ public:
     DRW_ArcAlignedText arcAlignedText;
     DRW_Shape shape;
     DRW_SectionObject sectionObject;
+    DRW_PointCloud pointCloud;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -538,7 +597,8 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 }
 
 bool readbackMatches(const std::filesystem::path& path, Profile profile,
-                     DRW::Version expectedVersion) {
+                     DRW::Version expectedVersion,
+                     bool pointCloudLateFields = false) {
     dx_data data;
     dx_iface reader;
     if (!reader.fileImport(path.string(), &data, false)
@@ -734,6 +794,12 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         return section != nullptr && section->eType == DRW::SECTION
             && sameSectionObject(*section, makeSectionObject(), false);
     }
+    if (profile == Profile::PointCloud) {
+        const auto* pointCloud = dynamic_cast<const DRW_PointCloud*>(entity);
+        return pointCloud != nullptr && pointCloud->eType == DRW::POINTCLOUD
+            && samePointCloud(*pointCloud,
+                              makePointCloud(pointCloudLateFields), false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -783,6 +849,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 4>
         sectionObjectVersions = {{
+        {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+        {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 4>
+        pointCloudVersions = {{
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
         {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
     const std::array<std::pair<DRW::Version, const char*>, 8> shapeVersions = {{
@@ -836,6 +906,7 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Shape originalShape = exporter.shape;
                 const DRW_SectionObject originalSectionObject =
                     exporter.sectionObject;
+                const DRW_PointCloud originalPointCloud = exporter.pointCloud;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -885,6 +956,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 case Profile::SectionObject:
                     callerPreserved = sameSectionObject(
                         exporter.sectionObject, originalSectionObject);
+                    break;
+                case Profile::PointCloud:
+                    callerPreserved = samePointCloud(
+                        exporter.pointCloud, originalPointCloud);
                     break;
                 }
                 if (!allocationFailed || written
@@ -938,9 +1013,13 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                                                         : profile == Profile::Shape
                                                             ? sameShape(exporter.shape,
                                                                 originalShape)
-                                                            : sameSectionObject(
-                                                                exporter.sectionObject,
-                                                                originalSectionObject);
+                                                            : profile == Profile::SectionObject
+                                                                ? sameSectionObject(
+                                                                    exporter.sectionObject,
+                                                                    originalSectionObject)
+                                                                : samePointCloud(
+                                                                    exporter.pointCloud,
+                                                                    originalPointCloud);
                 const bool retryReadback = readbackMatches(output, profile,
                                                             target);
                 if (!retried || !exporter.accepted
@@ -996,6 +1075,10 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 return false;
     } else if (profile == Profile::SectionObject) {
         for (const auto& version : sectionObjectVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
+    } else if (profile == Profile::PointCloud) {
+        for (const auto& version : pointCloudVersions)
             if (!runVersion(version.first, version.second))
                 return false;
     } else {
@@ -1066,6 +1149,117 @@ bool runSectionObjectVersionBoundary(
     return true;
 }
 
+bool runPointCloudVersionLossBoundary(
+        const std::filesystem::path& directory) {
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return false;
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "POINTCLOUD-boundary-binary.dxf"
+                      : "POINTCLOUD-boundary-ascii.dxf");
+        std::string expectedBytes;
+        {
+            dxfRW cleanCodec(output.string().c_str());
+            Export cleanExporter(cleanCodec, Profile::PointCloud, true);
+            if (!cleanCodec.write(&cleanExporter, DRW::AC1027, binary)
+                || !cleanExporter.accepted
+                || !readBytes(output, expectedBytes)
+                || !readbackMatches(output, Profile::PointCloud,
+                                    DRW::AC1027, true))
+                return false;
+        }
+        const std::string sentinel = "prior POINTCLOUD version target\n";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+                return false;
+        }
+        dxfRW codec(output.string().c_str());
+        Export exporter(codec, Profile::PointCloud, true);
+        const DRW_PointCloud original = exporter.pointCloud;
+        const bool refused = !codec.write(&exporter, DRW::AC1024, binary)
+            && !exporter.accepted
+            && samePointCloud(exporter.pointCloud, original);
+        std::string afterRefusal;
+        if (!refused || !readBytes(output, afterRefusal)
+            || afterRefusal != sentinel) {
+            std::cerr << "POINTCLOUD AC1024 refusal changed caller or "
+                         "destination\n";
+            return false;
+        }
+        const bool retried = codec.write(&exporter, DRW::AC1027, binary)
+            && exporter.accepted;
+        std::string retryBytes;
+        if (!retried || !readBytes(output, retryBytes)
+            || retryBytes != expectedBytes
+            || !readbackMatches(output, Profile::PointCloud,
+                                DRW::AC1027, true)) {
+            std::cerr << "POINTCLOUD AC1024 refusal then AC1027 retry failed\n";
+            return false;
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
+bool runPointCloudMinimumVersionBoundary(
+        const std::filesystem::path& directory) {
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory))
+        return false;
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "POINTCLOUD-minimum-binary.dxf"
+                      : "POINTCLOUD-minimum-ascii.dxf");
+        std::string expectedBytes;
+        {
+            dxfRW cleanCodec(output.string().c_str());
+            Export cleanExporter(cleanCodec, Profile::PointCloud);
+            if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+                || !cleanExporter.accepted
+                || !readBytes(output, expectedBytes)
+                || !readbackMatches(output, Profile::PointCloud,
+                                    DRW::AC1021))
+                return false;
+        }
+        const std::string sentinel = "prior POINTCLOUD minimum target\n";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior)
+                return false;
+        }
+        dxfRW codec(output.string().c_str());
+        Export exporter(codec, Profile::PointCloud);
+        const DRW_PointCloud original = exporter.pointCloud;
+        const bool refused = !codec.write(&exporter, DRW::AC1018, binary)
+            && !exporter.accepted
+            && samePointCloud(exporter.pointCloud, original);
+        std::string afterRefusal;
+        if (!refused || !readBytes(output, afterRefusal)
+            || afterRefusal != sentinel) {
+            std::cerr << "POINTCLOUD AC1018 refusal changed caller or "
+                         "destination\n";
+            return false;
+        }
+        const bool retried = codec.write(&exporter, DRW::AC1021, binary)
+            && exporter.accepted;
+        std::string retryBytes;
+        if (!retried || !readBytes(output, retryBytes)
+            || retryBytes != expectedBytes
+            || !readbackMatches(output, Profile::PointCloud, DRW::AC1021)) {
+            std::cerr << "POINTCLOUD AC1018 refusal then AC1021 retry failed\n";
+            return false;
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
         && runProfile(directory, Profile::Line)
@@ -1082,7 +1276,10 @@ bool run(const std::filesystem::path& directory) {
         && runUnsupportedTextExtensionBoundaries(directory)
         && runProfile(directory, Profile::Shape)
         && runProfile(directory, Profile::SectionObject)
-        && runSectionObjectVersionBoundary(directory);
+        && runSectionObjectVersionBoundary(directory)
+        && runProfile(directory, Profile::PointCloud)
+        && runPointCloudVersionLossBoundary(directory)
+        && runPointCloudMinimumVersionBoundary(directory);
 }
 
 bool runUnsupportedTextExtensionBoundaries(
@@ -1173,9 +1370,18 @@ int main(int argc, char** argv) {
                   << (passed ? "PASS" : "FAIL") << '\n';
         return passed ? 0 : 1;
     }
+    if (argc == 3 && std::string(argv[2]) == "--pointcloud-versions") {
+        const std::filesystem::path directory(argv[1]);
+        const bool passed = runProfile(directory, Profile::PointCloud)
+            && runPointCloudVersionLossBoundary(directory)
+            && runPointCloudMinimumVersionBoundary(directory);
+        std::cout << "POINTCLOUD version transaction matrix: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    }
     if (argc != 2) {
         std::cerr << "usage: dxf_3d_entity_version_allocation_tests SCRATCH_DIR"
-                     " [--sectionobject-versions]\n";
+                     " [--sectionobject-versions|--pointcloud-versions]\n";
         return 2;
     }
     return run(argv[1]) ? 0 : 1;

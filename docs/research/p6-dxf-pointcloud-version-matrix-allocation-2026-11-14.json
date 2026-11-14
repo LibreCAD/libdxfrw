@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "POINTCLOUD DXF writer version transaction matrix",
+  "sourceRevision": "55b955e5",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+    "testSha256": "5b9f5d97654ca0433a51f564451268e81b6fa8cc13c17e8f607b00af8159d70f",
+    "cmake": "tests/CMakeLists.txt",
+    "cmakeSha256": "823407cef5a7b246239c1f408da409ac8f4bbb754e9cf3bb72b58a372800aa32",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "entity": "POINTCLOUD",
+    "generatedFields": [
+      "class version, origin, saved filename, two source file names and count",
+      "extents, point count, UCS name, origin and axes",
+      "AC1027+ intensity scheme and four intensity-range values in the version-loss probe"
+    ],
+    "definitionAndReactorHandles": "null in the matrix profile; no external graph claim",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_3d_entity_version_allocation_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_pointcloud_version_allocation$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 0.40 seconds",
+    "directCommand": "build-gcc/tests/libdxfrw_3d_entity_version_allocation_tests /private/tmp/p6-pointcloud-version-allocation --pointcloud-versions",
+    "allocationFailures": 86,
+    "allocationOffsetsByProfile": {
+      "AC1021_ASCII": 10,
+      "AC1021_Binary": 11,
+      "AC1024_ASCII": 10,
+      "AC1024_Binary": 11,
+      "AC1027_ASCII": 11,
+      "AC1027_Binary": 11,
+      "AC1032_ASCII": 11,
+      "AC1032_Binary": 11
+    },
+    "rollback": "Every injected allocation failure preserves the prior destination and caller POINTCLOUD.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed readback checks the generated baseline fields in each version and encoding; a separate late-state probe checks the AC1027+ intensity fields.",
+    "versionBoundaries": [
+      "AC1018 ASCII and Binary refusal for the unsupported base POINTCLOUD entity preserves destination and caller state, then retries at AC1021.",
+      "AC1024 ASCII and Binary refusal of nondefault AC1027+ intensity fields preserves destination and caller state, then retries at AC1027."
+    ],
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated POINTCLOUD writer transaction behavior for AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+      "The minimum supported target refusal and the selected AC1027+ intensity-field loss guard."
+    ],
+    "doesNotProve": [
+      "Producer prevalence or independent consumer semantics.",
+      "Definition/reactor handle graph closure or non-null reference transport.",
+      "POINTCLOUD clipping, intensity display, or broader DWG support."
+    ]
+  },
+  "qualificationEligible": false
+}

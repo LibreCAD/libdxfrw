@@ -6169,6 +6169,13 @@ add_test(NAME libdxfrw_sectionobject_version_allocation
 set_tests_properties(libdxfrw_sectionobject_version_allocation PROPERTIES
     LABELS "dxf;fast;entity;sectionobject;transaction;allocation;versions"
     TIMEOUT 30)
+add_test(NAME libdxfrw_pointcloud_version_allocation
+    COMMAND libdxfrw_3d_entity_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/pointcloud-version-allocation
+        --pointcloud-versions)
+set_tests_properties(libdxfrw_pointcloud_version_allocation PROPERTIES
+    LABELS "dxf;fast;entity;pointcloud;transaction;allocation;versions"
+    TIMEOUT 30)
 
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp
