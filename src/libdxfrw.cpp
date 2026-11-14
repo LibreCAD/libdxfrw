@@ -7963,7 +7963,9 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                     || sourceBound->sourcePlotStyle == 0u
                     || sourceBound->sourcePlotStyle == DRW::NoHandle)
                     return failDxfWrite();
-                const auto target = remapObjectHandle(sourceBound->sourcePlotStyle);
+                const auto target = m_referenceResolver
+                    ? resolveReference(sourceBound->sourcePlotStyle)
+                    : remapObjectHandle(sourceBound->sourcePlotStyle);
                 if (target == 0u || target == DRW::NoHandle)
                     return failDxfWrite();
                 write(writer->writeString(390, toHexStr(target)));

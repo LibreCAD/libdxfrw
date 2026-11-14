@@ -291,9 +291,12 @@ bool boundPlotStyleAliasConsistency(
             return false;
         }
         exporter.layer.handlePlotS.clear();
+        codec.setReferenceResolver([](std::uint32_t handle) {
+            return handle == 0x123u ? 0x789u : handle;
+        });
         const bool retried = codec.write(&exporter, DRW::AC1027, binary);
         if (!retried || !exporter.accepted
-            || !readbackPlotStyleMatches(path, "123")) {
+            || !readbackPlotStyleMatches(path, "789")) {
             std::cerr << "corrected bound LAYER plot-style retry failed\n";
             return false;
         }
