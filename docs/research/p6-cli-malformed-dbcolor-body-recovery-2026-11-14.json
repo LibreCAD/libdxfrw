@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "slice": "P6-F malformed supported DBCOLOR body recovery",
+  "status": "generated fast control passed",
+  "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-dbcolor-body-source",
+  "mutation": "Generate a valid typed DBCOLOR object with an intact common prologue, then flip one body bit within the declared object-body bound until DRW_DbColor::parseDwg rejects it. Replay the bounded raw object in a fresh generated source.",
+  "profiles": [
+    {
+      "version": "AC1018",
+      "sha256": "264763d1c9169ccd2e7a45a4aa6d14909070cb2123adcdc3f86c4d8f6e0bd845",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1021",
+      "sha256": "2ee7845a9f97aea7ff3e1b93cc7fd73e0bf72c6bafd467f6ae5be0549db9619b",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1024",
+      "sha256": "49eb5f31e01331fea85817612c89bfc642e35a122fc2bb46d07d8f331748f2f7",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1024"
+    },
+    {
+      "version": "AC1027",
+      "sha256": "a8aaf3755b207d1d247b9be9f4a6250c2d74140b8b6780e064ac8d637b67ec93",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "qualification": "reader-only for output; independent source-reference closure gate applies"
+    },
+    {
+      "version": "AC1032",
+      "sha256": "f3c9f17c35e026b04467528b28ee6968e4edb310727bf08e3f62fcf0cadec652",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1032"
+    }
+  ],
+  "per_profile_observation": {
+    "read_succeeded": true,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 1,
+    "retained_line_count": 1,
+    "frame_accounting": "source = published + failed"
+  },
+  "cli_policy": {
+    "output_eligible_profiles": ["AC1018", "AC1021", "AC1024", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "strict": "Refuses before replacing the sentinel destination; source remains unchanged.",
+    "explicit_partial": "Replaces the same sentinel destination after strict refusal, emits the incomplete-output warning, and reopens with one LINE and one VPORT; source remains unchanged.",
+    "AC1027": "Strict and explicit-partial attempts preserve the destination and refuse at the source-reference closure gate."
+  },
+  "validation": {
+    "focused_selector": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "focused_selector_result": "PASS: CLI partial DWG read (116 strict/partial/readback controls)",
+    "ctest": "dwg2dxf_cli_partial_read_disposition",
+    "ctest_result": "PASS 1/1 in 2.98 seconds"
+  },
+  "limitations": [
+    "Generated DWG/DXF control files are temporary and are not committed as fixtures.",
+    "This establishes parser failure isolation and CLI disposition for generated DBCOLOR only; it does not establish DBCOLOR semantics or producer interoperability.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}
