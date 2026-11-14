@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **288 completed implementation slices** and **35 remaining
+The plan records **290 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`288 / (288 + 35) = 89.2%`. This is a count-based progress measure, not an
+`290 / (290 + 34) = 89.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -12,9 +12,9 @@ not stop local implementation. Keep the independent gate status at **0 of 6
 complete (0%)**: P4–P8 are OPEN and P9 is DEFERRED_EXTERNAL. No phase gate has
 met its full evidence requirements. Completed implementation actions have
 been removed from the execution queue; their commits and receipts remain the
-evidence record. The remaining count is derived from the OPEN P4–P8 rows below;
-closing a sub-slice under P6-G does not reduce its parent package until P6-G's
-full inventory gate passes. Treat the percentage as a rough equal-weight
+evidence record. The remaining count is derived from the OPEN P4–P8 rows below; closing a
+sub-slice under P6-G does not reduce its parent package until P6-G's full
+inventory gate passes. Treat the percentage as a rough equal-weight
 activity proxy, not as the percentage of package gates completed. Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
@@ -84,6 +84,8 @@ LINE, a finalized partial frame, and no unrelated HATCH. Both
 independently; the broader `libdxfrw_dwg_local_roundtrip` CTest remains red
 with 380 assertions across unrelated profiles and is not counted as passing
 evidence. No DWG/DXF fixture is committed. See the [receipt](docs/research/p8-dwg-malformed-line-reader-recovery-2026-11-13.json).
+
+**P4-A source witness — COMPLETE (2026-11-14).** A new LibreDWG 0.14-authored AC1027 `Constraints.dwg` profile is hash-pinned and independently inventoried against its LibreDWG minJSON view. The current libdxfrw source inventory publishes all 160 frames, maps 123 captured callbacks with zero unrepresented identities, and binds five associative custom-object frames (two networks, one constraint group, two geometry dependencies) by handle, type, class, owner, reactors, span, and size. The peer confirms the class-version-2 profiles, but shares LibreDWG lineage; strict-complete output still refuses unqualified references. This completes only P4-A source/callback identity; P4-D graph/output closure and independent semantics remain open ([receipt](docs/research/p4-ac1027-libredwg-constraints-source-callback-profile-2026-11-14.json)).
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now
@@ -1202,14 +1204,14 @@ integration/release checkpoints.
 
 | ID | State | Remaining work | Ready evidence / dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source and graph closure | Qualify a new source-backed OBJECTS subgraph end to end: exact source/frame identities, handle roles, recursive dependencies, emitted records and fresh readback. Resolve the AC1032 associative-network class-version-2 schema and the AC1027 Sweep suffix/embedded-entity profile before admitting those routes. Keep strict whole-source output refused until all frames, references and omitted-frame dependencies close. | Resume only on a distinct eligible producer/source witness. Keep known null-member, orphan-owner, unsupported-frame, named-block SORTENTSTABLE and unresolved HEADER cases refused. |
+| P4 | OPEN — source and graph closure | P4-A now has a distinct AC1027 LibreDWG-authored associative-constraints source/callback identity witness; its same-lineage peer and strict-output refusal do not qualify semantics or support. Continue qualifying a new source-backed OBJECTS subgraph end to end: exact source/frame identities, handle roles, recursive dependencies, emitted records and fresh readback. Resolve the AC1032 associative-network class-version-2 schema and the AC1027 Sweep suffix/embedded-entity profile before admitting those routes. Keep strict whole-source output refused until all frames, references and omitted-frame dependencies close. | Resume only on a distinct eligible producer/source witness. Keep known null-member, orphan-owner, unsupported-frame, named-block SORTENTSTABLE and unresolved HEADER cases refused. |
 | P5 | OPEN — FIELD, TABLE and native semantics | Obtain a FIELD/FIELDLIST graph with a visible root and complete membership. Qualify TABLE producer profiles, retained subrecords, R24 TABLECONTENT, native acceptance/rendering, Content Format/CELLSTYLEMAP semantics, layer overrides and dynamic constraint evaluation. Resolve the VIEWPORT group-91 type only with native ASCII and Binary evidence. | Source spans and graph roles for the exact candidate, then focused readback; native consumer evidence for semantics. Do not repeat screened corpora or codec controls. |
 | P6 | OPEN — version, schema and no-loss audit | Resolve the IMAGEDEF parent-role conflict before output; qualify PERSUBENTMGR/TABLECONTENT/DATATABLE semantics and graph/output routes; finish remaining per-version field, geometry/no-loss, HEADER envelope/suffix, CLI disposition and caller-state audits. Keep partial/raw-only records explicit and strict output refused where closure is missing. | ODA v5.4.1 plus source-bound traces/independent peers for exact gaps. Reuse passed generated transaction controls; do not reopen them without a new failure. |
 | P7 | OPEN — ACIS/ACDS and independent 3D meaning | Complete entity→owner/key→AcDs→SAT/SAB association, versioned framing/index/suffix/prototype assembly and exact DXF binding. Resolve ACIS 21500 header/entity semantics; qualify topology, transforms, units, trims, periodicity and spline meaning with an independent kernel. Preserve refusal for unrepresented wireframe and unqualified shell fields. | P4 graph closure plus eligible source/producer and independent semantic evidence; native modeler acceptance remains a separate gate. |
 | P8 | OPEN — consumers, platforms, packaging and release | Qualify required 3D consumers; complete native Linux/Windows FreeCAD open/insert checks; close clean-consumer reproducibility, ABI, hosted package CI and supported-platform release decisions. | Exact candidate/build/module/platform receipts. Same-library generated transport does not qualify native behavior. The default SOLID/TRACE wireframe callback now applies the Autodesk arbitrary-axis OCS transform and finite-thickness boundary delivery to legacy consumers; it does not qualify native behavior. Completed LibreCAD/LibreCAD_3 compatibility evidence is retained in its [metadata test compatibility receipt](docs/research/p8-librecad-upstream-table-attribute-test-compat-2026-11-12.json), the [base callback receipt](docs/research/p8-solid-trace-default-z-wireframe-fallback-2026-11-13.json), the [thickness receipt](docs/research/p8-solid-trace-finite-thickness-wireframe-2026-11-13.json), and the [arbitrary-axis receipt](docs/research/p8-solid-trace-arbitrary-axis-ocs-wireframe-2026-11-13.json). |
 | P9 | DEFERRED_EXTERNAL — six non-promoting items | Resolve J256, J260, J268, J284, J293 and J295 using their successor registry and eligible independent evidence. Preserve claim lineage; none can promote support claims by itself. | `metadata/external-evidence-resolution-v1.json`; all external/platform admission criteria remain in force. |
 
-## Remaining core work packages (35)
+## Remaining core work packages (34)
 
 These are the equal-weight denominator for the progress estimate above. Each
 package ends with an evidence-backed receipt and commit; remove it from this
@@ -1219,7 +1221,6 @@ dependency-ready local package. Do not stop implementation at a blocker.
 
 | ID | State | Implementation sub-plan | Entry evidence and exit check |
 | --- | --- | --- | --- |
-| P4-A | OPEN | Select one distinct producer-authored OBJECTS subgraph and freeze source hash, version, producer/build, frame census, and source-to-callback identity. | New eligible source not already screened; provenance and hashed inventory receipt. |
 | P4-B | OPEN | Resolve AC1032 associative-network class-version-2 fields from ODA and source-bound spans; add bounded parser and boundary controls. | Exact source/class frame plus ODA chapter; field/span map and generated boundary controls. |
 | P4-C | OPEN | Resolve AC1027 Sweep suffix and embedded-entity layout without assuming padding; preserve unknown bytes until role/order is proven. | Source-bound Sweep frame and ODA version comparison; truncation and following-frame alignment controls. |
 | P4-D | OPEN | Close one selected source OBJECTS subgraph: frame identities, handle roles, owners, dictionary edges, recursive dependencies, and omissions. | P4-A witness; zero unknown dispositions for the admitted profile. |
