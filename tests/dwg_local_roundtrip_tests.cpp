@@ -28393,6 +28393,23 @@ bool matchesHatchTangentControl(const DRW_Hatch& hatch, int variant) {
     return true;
 }
 
+class CommonObjectBodyProbe final : public DRW_Dictionary {
+public:
+    bool parseCommon(DRW::Version version, dwgBuffer* body,
+                     dwgBuffer* strings, std::uint32_t bodyBitSize) {
+        return DRW_TableEntry::parseDwg(version, body, strings, bodyBitSize);
+    }
+    bool parseCommonHandles(DRW::Version version, dwgBuffer* body) {
+        return DRW_TableEntry::parseDwgCommonHandleData(
+            version, body, false, false);
+    }
+};
+
+class MLineStyleBodyProbe final : public DRW_MLineStyle {
+public:
+    using DRW_MLineStyle::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28402,7 +28419,11 @@ public:
               ? libdxfrw_test::makeRawCustomObject(
                     sourceVersion, 700u, 0x700u, "TABLECONTENT",
                     "AcDbTableContent", "ACAD_TABLE")
-              : makeCliSkippedObject(kind, 0, sourceVersion)),
+              : kind == 7
+                  ? libdxfrw_test::makeRawCustomObject(
+                        sourceVersion, 700u, 0x700u, "MLINESTYLE",
+                        "AcDbMlineStyle", "ACAD_MLINESTYLE")
+                  : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(kind == 5
               ? libdxfrw_test::makeRawCustomObject(
                     sourceVersion, 700u, 0x702u, "TABLECONTENT",
@@ -28411,6 +28432,16 @@ public:
           opaqueThird_(makeCliSkippedObject(kind, 2, sourceVersion)) {
         cData = &owned_;
         currentBlock = owned_.mBlock;
+        if (kind_ == 8) {
+            mlineStyle_.handle = 0x700u;
+            mlineStyle_.name = "RECOVERY_BODY_PROFILE";
+            mlineStyle_.description = "generated malformed-body control";
+            DRW_MLineElement element;
+            element.offset = 0.5;
+            element.color = 256;
+            element.linetypeIndex = 0;
+            mlineStyle_.elements.push_back(element);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28444,7 +28475,7 @@ public:
     void writeDimstyles() override {}
     void writeAppId() override {}
     void writeDwgClasses() override {
-        if (kind_ >= 2) {
+        if (kind_ >= 2 && kind_ != 7 && kind_ != 8) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28455,7 +28486,9 @@ public:
         }
     }
     void writeObjects() override {
-        if (kind_ >= 2) {
+        if (kind_ == 8) {
+            wrote = writer_->writeMLineStyle(&mlineStyle_) && wrote;
+        } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->writeRawDwgObject(&opaqueSecond_) && wrote;
@@ -28486,6 +28519,23 @@ public:
         ++vports;
         dx_iface::addVport(vport);
     }
+    void addUnsupportedObject(const DRW_UnsupportedObject& object) override {
+        if (reader_ != nullptr && object.m_handle == 0x700u
+            && object.m_objectType == 73) {
+            capturedMLineStyle_ = object;
+            hasCapturedMLineStyle_ = true;
+        }
+        dx_iface::addUnsupportedObject(object);
+    }
+    void setMalformedObject(const DRW_UnsupportedObject& object) {
+        opaque_ = object;
+    }
+    bool hasCapturedMLineStyle() const noexcept {
+        return hasCapturedMLineStyle_;
+    }
+    const DRW_UnsupportedObject& capturedMLineStyle() const noexcept {
+        return capturedMLineStyle_;
+    }
     void addDwgFramePublication(const DRW_DwgFramePublication& frame) override {
         dx_iface::addDwgFramePublication(frame);
         if (reader_ != nullptr) {
@@ -28505,6 +28555,9 @@ private:
     DRW_UnsupportedObject opaque_;
     DRW_UnsupportedObject opaqueSecond_;
     DRW_UnsupportedObject opaqueThird_;
+    DRW_MLineStyle mlineStyle_;
+    DRW_UnsupportedObject capturedMLineStyle_;
+    bool hasCapturedMLineStyle_{false};
     dx_data owned_;
 };
 
@@ -41890,7 +41943,11 @@ int main(int argc, char** argv) {
         return read ? 0 : 1;
     }
     if (argc == 4
-        && std::string(argv[1]) == "--generate-cli-malformed-object-source") {
+        && (std::string(argv[1]) == "--generate-cli-malformed-object-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-object-body-source")) {
+        const bool malformedBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-object-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -41912,6 +41969,112 @@ int main(int argc, char** argv) {
                       << token << '\n';
             return 1;
         }
+        if (malformedBodySource) {
+            const std::filesystem::path validPath =
+                std::string(argv[2]) + ".valid-control.dwg";
+            if (std::filesystem::exists(validPath)) {
+                std::cerr << "Refusing to replace an existing valid control\n";
+                return 1;
+            }
+            dwgRW validWriter(validPath.string().c_str());
+            ReadOutcomeControl validSource(&validWriter, 8, nullptr, version);
+            if (!validWriter.write(&validSource, version, true)
+                || !validSource.wrote) {
+                const DRW_OperationDiagnostic diagnostic =
+                    validWriter.getLastDiagnostic();
+                std::cerr << "Could not generate valid MLINESTYLE control: "
+                          << diagnostic.code << " — "
+                          << diagnostic.message << '\n';
+                return 1;
+            }
+
+            dwgRW validReader(validPath.string().c_str());
+            ReadOutcomeControl capture(nullptr, 0, &validReader, version);
+            if (!validReader.read(&capture, false)
+                || !capture.hasCapturedMLineStyle()) {
+                std::cerr << "Could not capture generated MLINESTYLE frame\n";
+                return 1;
+            }
+            DRW_UnsupportedObject malformed = capture.capturedMLineStyle();
+            dwgBuffer commonBuffer(malformed.m_rawBytes.data(),
+                                   malformed.m_rawBytes.size());
+            dwgBuffer commonStrings = commonBuffer.forkIndependent();
+            CommonObjectBodyProbe common;
+            const bool commonParsed = common.parseCommon(
+                version, &commonBuffer,
+                version > DRW::AC1018 ? &commonStrings : nullptr,
+                malformed.m_bodyBitSize);
+            const std::uint64_t commonEndBit =
+                static_cast<std::uint64_t>(commonBuffer.getPosition()) * 8u
+                + commonBuffer.getBitPos();
+            const std::uint64_t searchEndBit =
+                static_cast<std::uint64_t>(malformed.m_rawBytes.size()) * 8u;
+            bool foundBodyFailure = false;
+            if (commonParsed && commonBuffer.isGood()
+                && common.handle == malformed.m_handle
+                && commonEndBit < searchEndBit) {
+                for (std::uint64_t bit = commonEndBit;
+                     bit < searchEndBit; ++bit) {
+                    std::vector<std::uint8_t> candidate = malformed.m_rawBytes;
+                    candidate[static_cast<std::size_t>(bit / 8u)] ^=
+                        static_cast<std::uint8_t>(1u << (bit % 8u));
+                    dwgBuffer candidateCommon(candidate.data(),
+                                              candidate.size());
+                    dwgBuffer candidateStrings =
+                        candidateCommon.forkIndependent();
+                    CommonObjectBodyProbe candidateHeader;
+                    bool candidateCommonParsed =
+                        candidateHeader.parseCommon(
+                            version, &candidateCommon,
+                            version > DRW::AC1018 ? &candidateStrings : nullptr,
+                            malformed.m_bodyBitSize)
+                        && candidateCommon.isGood()
+                        && candidateHeader.handle == malformed.m_handle;
+                    if (candidateCommonParsed && version > DRW::AC1018) {
+                        candidateCommonParsed =
+                            candidateHeader.parseCommonHandles(
+                                version, &candidateCommon);
+                    }
+                    if (!candidateCommonParsed)
+                        continue;
+                    dwgBuffer typedBuffer(candidate.data(), candidate.size());
+                    MLineStyleBodyProbe typed;
+                    if (!typed.parseDwg(version, &typedBuffer,
+                                        malformed.m_bodyBitSize)) {
+                        malformed.m_rawBytes.swap(candidate);
+                        malformed.m_objectSize = static_cast<std::uint32_t>(
+                            malformed.m_rawBytes.size());
+                        foundBodyFailure = true;
+                        break;
+                    }
+                }
+            }
+            std::error_code ignored;
+            std::filesystem::remove(validPath, ignored);
+            if (!foundBodyFailure) {
+                std::cerr << "Could not find a one-bit MLINESTYLE body mutation "
+                             "that preserves the common object prologue; bytes="
+                          << malformed.m_rawBytes.size()
+                          << " bodyBits=" << malformed.m_bodyBitSize
+                          << " commonEndBit=" << commonEndBit
+                          << " searchEndBit=" << searchEndBit << '\n';
+                return 1;
+            }
+
+            dwgRW writer(argv[2]);
+            ReadOutcomeControl source(&writer, 7, nullptr, version);
+            source.setMalformedObject(malformed);
+            if (!writer.write(&source, version, true) || !source.wrote) {
+                const DRW_OperationDiagnostic diagnostic =
+                    writer.getLastDiagnostic();
+                std::cerr << "Could not generate malformed object body source: "
+                          << diagnostic.code << " — "
+                          << diagnostic.message << '\n';
+                return 1;
+            }
+            return 0;
+        }
+
         dwgRW writer(argv[2]);
         ReadOutcomeControl source(&writer, 6, nullptr, version);
         if (!writer.write(&source, version, true) || !source.wrote) {
