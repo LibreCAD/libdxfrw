@@ -262,6 +262,14 @@ if(LIBDXFRW_BUILD_TESTS)
                 --unsupported-dwg-codepage-only)
         set_tests_properties(dwg2dxf_unsupported_source_codepage PROPERTIES
             LABELS "fast;cli;dwg;codepage" TIMEOUT 25)
+        add_test(NAME dwg2dxf_skipped_record_disposition
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --skipped-record-only)
+        set_tests_properties(dwg2dxf_skipped_record_disposition PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
     endif()
     add_test(NAME libdxfrw_independent_dxf_selftest
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B

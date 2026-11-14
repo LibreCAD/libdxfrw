@@ -1205,6 +1205,61 @@ def check_partial_dwg_read_cli(converter, root, writer):
     return checked
 
 
+def check_skipped_record_projection(converter, root, writer):
+    """Check skipped custom-class disposition at admitted raw-writer revisions."""
+    if writer is None:
+        raise AssertionError("skip projection control requires the local DWG writer")
+    checked = 0
+    for version in ("AC1024", "AC1027", "AC1032"):
+        version_bytes = version.encode("ascii")
+        strict_guard = (b"AC1027 DWG source references are not fully qualified"
+                        if version == "AC1027" else
+                        b"strict-complete conversion requires successful, complete DWG read disposition")
+        profiles = (
+            ("--generate-cli-skip-source", "single", 1, False),
+            ("--generate-cli-skip-source-multiple", "multiple", 3, False),
+            ("--generate-cli-skip-source-multi-class", "multi-class", 3, True),
+        )
+        for option, label, instances, distinct_classes in profiles:
+            source = root / f"generated {label} skipped-record source {version}.dwg"
+            generated = run_bounded(
+                [str(writer), option, str(source), version], 10, 131072, cwd=root)
+            if generated.returncode != 0 or not source.is_file():
+                raise AssertionError(
+                    f"could not author {version} {label} skipped-record DWG: {generated!r}")
+            original = source.read_bytes()
+            if original[:6] != version_bytes:
+                raise AssertionError(f"{version} skip-source generator emitted another version")
+            output = root / f"{label} skipped-record destination {version}.dxf"
+            output.write_bytes(SENTINEL)
+            result = run_bounded(
+                [str(converter), str(source), "-o", str(output), "-v2013", "-y", "-d"],
+                10, 2 * 1024 * 1024, cwd=root)
+            projection = next((line for line in result.stderr.splitlines()
+                               if line.startswith(b"CLI source disposition projection:")), b"")
+            count = str(instances).encode("ascii")
+            expected = (
+                b"sourceDwgSkippedCustomClassInstances=" + count,
+                b"sourceDwgSkippedUnsupportedObjectInstances=" + count,
+            )
+            if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                    or source.read_bytes() != original
+                    or any(item not in projection for item in expected)
+                    or strict_guard not in result.stderr):
+                raise AssertionError(
+                    f"{version} {label} skipped records were not projected and "
+                    f"refused atomically: {result!r}")
+            if distinct_classes and (
+                    b"skippedCustomClasses: sourceNames=3 observedInstances=3"
+                    not in result.stderr
+                    or b"skippedUnsupportedObjects: sourceNames=3 observedInstances=3"
+                    not in result.stderr):
+                raise AssertionError(
+                    f"{version} distinct skipped classes were not reported: {result!r}")
+            checked += 1
+    return checked
+
+
 def check_source_disposition_projection(converter, root, writer):
     """Expose repair, skip, decoder-issue and required-version decisions."""
     checked = 0
@@ -1543,89 +1598,7 @@ def check_source_disposition_projection(converter, root, writer):
                 f"{result!r}")
     checked += len(exact_issue_cases)
 
-    if writer is None:
-        raise AssertionError("skip projection control requires the local DWG writer")
-    skipped_source = root / "generated skipped-record source.dwg"
-    generated = run_bounded(
-        [str(writer), "--generate-cli-skip-source", str(skipped_source)],
-        10, 131072, cwd=root)
-    if generated.returncode != 0 or not skipped_source.is_file():
-        raise AssertionError(f"could not author skipped-record DWG locally: {generated!r}")
-    skipped_bytes = skipped_source.read_bytes()
-    skipped_output = root / "skipped-record destination.dxf"
-    skipped_output.write_bytes(SENTINEL)
-    skipped = run_bounded(
-        [str(converter), str(skipped_source), "-o", str(skipped_output),
-         "-v2013", "-y", "-d"], 10, 2 * 1024 * 1024, cwd=root)
-    projection = next((line for line in skipped.stderr.splitlines()
-                       if line.startswith(b"CLI source disposition projection:")), b"")
-    if (skipped.returncode != 1 or skipped_output.read_bytes() != SENTINEL
-            or skipped_source.read_bytes() != skipped_bytes
-            or b"sourceDwgSkippedCustomClassInstances=1" not in projection
-            or b"sourceDwgSkippedUnsupportedObjectInstances=1" not in projection
-            or b"AC1027 DWG source references are not fully qualified"
-            not in skipped.stderr):
-        raise AssertionError(
-            f"strict output did not project and refuse skipped DWG records: {skipped!r}")
-    checked += 1
-
-    multiple_source = root / "generated multiple skipped-record source.dwg"
-    multiple_generated = run_bounded(
-        [str(writer), "--generate-cli-skip-source-multiple", str(multiple_source)],
-        10, 131072, cwd=root)
-    if multiple_generated.returncode != 0 or not multiple_source.is_file():
-        raise AssertionError(
-            f"could not author multiple skipped-record DWG locally: "
-            f"{multiple_generated!r}")
-    multiple_bytes = multiple_source.read_bytes()
-    multiple_output = root / "multiple skipped-record destination.dxf"
-    multiple_output.write_bytes(SENTINEL)
-    multiple_skipped = run_bounded(
-        [str(converter), str(multiple_source), "-o", str(multiple_output),
-         "-v2013", "-y", "-d"], 10, 2 * 1024 * 1024, cwd=root)
-    projection = next((line for line in multiple_skipped.stderr.splitlines()
-                       if line.startswith(b"CLI source disposition projection:")), b"")
-    if (multiple_skipped.returncode != 1
-            or multiple_output.read_bytes() != SENTINEL
-            or multiple_source.read_bytes() != multiple_bytes
-            or b"sourceDwgSkippedCustomClassInstances=3" not in projection
-            or b"sourceDwgSkippedUnsupportedObjectInstances=3" not in projection
-            or b"AC1027 DWG source references are not fully qualified"
-            not in multiple_skipped.stderr):
-        raise AssertionError(
-            "three same-class skipped DWG objects were not aggregated/refused "
-            f"atomically: {multiple_skipped!r}")
-    checked += 1
-
-    multi_class_source = root / "generated distinct skipped-class source.dwg"
-    multi_class_generated = run_bounded(
-        [str(writer), "--generate-cli-skip-source-multi-class", str(multi_class_source)],
-        10, 131072, cwd=root)
-    if multi_class_generated.returncode != 0 or not multi_class_source.is_file():
-        raise AssertionError(
-            f"could not author distinct-class skipped-record DWG locally: "
-            f"{multi_class_generated!r}")
-    multi_class_bytes = multi_class_source.read_bytes()
-    multi_class_output = root / "distinct skipped-class destination.dxf"
-    multi_class_output.write_bytes(SENTINEL)
-    multi_class_skipped = run_bounded(
-        [str(converter), str(multi_class_source), "-o", str(multi_class_output),
-         "-v2013", "-y", "-d"], 10, 2 * 1024 * 1024, cwd=root)
-    projection = next((line for line in multi_class_skipped.stderr.splitlines()
-                       if line.startswith(b"CLI source disposition projection:")), b"")
-    if (multi_class_skipped.returncode != 1
-            or multi_class_output.read_bytes() != SENTINEL
-            or multi_class_source.read_bytes() != multi_class_bytes
-            or b"sourceDwgSkippedCustomClassInstances=3" not in projection
-            or b"sourceDwgSkippedUnsupportedObjectInstances=3" not in projection
-            or b"skippedCustomClasses: sourceNames=3 observedInstances=3" not in multi_class_skipped.stderr
-            or b"skippedUnsupportedObjects: sourceNames=3 observedInstances=3" not in multi_class_skipped.stderr
-            or b"AC1027 DWG source references are not fully qualified"
-            not in multi_class_skipped.stderr):
-        raise AssertionError(
-            "three distinct unknown classes were not counted and refused "
-            f"atomically: {multi_class_skipped!r}")
-    checked += 1
+    checked += check_skipped_record_projection(converter, root, writer)
     return checked
 
 
@@ -2222,6 +2195,8 @@ def main():
                         help="run only the strict/explicit-partial DWG CLI controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
+    parser.add_argument("--skipped-record-only", action="store_true",
+                        help="run only generated skipped-record disposition controls")
     parser.add_argument("--sunstudy-observation-only", action="store_true",
                         help="run only explicit DXF source observation CLI controls")
     args = parser.parse_args()
@@ -2279,6 +2254,10 @@ def main():
         if args.unsupported_dwg_codepage_only:
             checked = check_unsupported_dwg_codepage(converter, root)
             print(f"CLI unsupported DWG codepage: PASS ({checked} diagnostic control)")
+            return
+        if args.skipped_record_only:
+            checked = check_skipped_record_projection(converter, root, args.writer)
+            print(f"CLI skipped-record disposition: PASS ({checked} version/profile controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)

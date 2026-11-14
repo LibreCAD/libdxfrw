@@ -24903,11 +24903,12 @@ DRW_UnsupportedObject makeLocalRawReplayObject(
         "AcDbLocalRawReplay", "LOCAL_S110", encodedHandle);
 }
 
-DRW_UnsupportedObject makeCliSkippedObject(int kind, std::size_t ordinal) {
+DRW_UnsupportedObject makeCliSkippedObject(
+    int kind, std::size_t ordinal, DRW::Version version = DRW::AC1027) {
     const std::uint32_t handle =
         0x700u + static_cast<std::uint32_t>(ordinal * 2u);
     if (kind != 4)
-        return makeLocalRawReplayObject(DRW::AC1027, 500u, handle);
+        return makeLocalRawReplayObject(version, 500u, handle);
 
     static const std::array<const char*, 3> recordNames{{
         "LOCAL_CLI_SKIP_A", "LOCAL_CLI_SKIP_B", "LOCAL_CLI_SKIP_C"}};
@@ -24918,7 +24919,7 @@ DRW_UnsupportedObject makeCliSkippedObject(int kind, std::size_t ordinal) {
     if (ordinal >= recordNames.size())
         return {};
     return libdxfrw_test::makeRawCustomObject(
-        DRW::AC1027, static_cast<std::uint16_t>(500u + ordinal), handle,
+        version, static_cast<std::uint16_t>(500u + ordinal), handle,
         recordNames[ordinal], classNames[ordinal], appNames[ordinal]);
 }
 
@@ -28340,11 +28341,12 @@ bool matchesHatchTangentControl(const DRW_Hatch& hatch, int variant) {
 
 class ReadOutcomeControl final : public dx_iface {
 public:
-    ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr)
+    ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
+                       DRW::Version sourceVersion = DRW::AC1027)
         : writer_(writer), reader_(reader), kind_(kind),
-          opaque_(makeCliSkippedObject(kind, 0)),
-          opaqueSecond_(makeCliSkippedObject(kind, 1)),
-          opaqueThird_(makeCliSkippedObject(kind, 2)) {
+          opaque_(makeCliSkippedObject(kind, 0, sourceVersion)),
+          opaqueSecond_(makeCliSkippedObject(kind, 1, sourceVersion)),
+          opaqueThird_(makeCliSkippedObject(kind, 2, sourceVersion)) {
         cData = &owned_;
         currentBlock = owned_.mBlock;
     }
@@ -41803,7 +41805,7 @@ int main(int argc, char** argv) {
         }
         return 0;
     }
-    if (argc == 3
+    if ((argc == 3 || argc == 4)
         && (std::string(argv[1]) == "--generate-cli-skip-source"
             || std::string(argv[1]) == "--generate-cli-skip-source-multiple"
             || std::string(argv[1]) == "--generate-cli-skip-source-multi-class")) {
@@ -41815,8 +41817,23 @@ int main(int argc, char** argv) {
         const std::string option(argv[1]);
         const int kind = option == "--generate-cli-skip-source-multiple" ? 3
             : (option == "--generate-cli-skip-source-multi-class" ? 4 : 2);
-        ReadOutcomeControl source(&writer, kind);
-        if (!writer.write(&source, DRW::AC1027, true) || !source.wrote) {
+        DRW::Version version = DRW::AC1027;
+        if (argc == 4) {
+            const std::string token(argv[3]);
+            if (token == "AC1015") version = DRW::AC1015;
+            else if (token == "AC1018") version = DRW::AC1018;
+            else if (token == "AC1021") version = DRW::AC1021;
+            else if (token == "AC1024") version = DRW::AC1024;
+            else if (token == "AC1027") version = DRW::AC1027;
+            else if (token == "AC1032") version = DRW::AC1032;
+            else {
+                std::cerr << "Unsupported CLI skip source version: "
+                          << token << '\n';
+                return 1;
+            }
+        }
+        ReadOutcomeControl source(&writer, kind, nullptr, version);
+        if (!writer.write(&source, version, true) || !source.wrote) {
             const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
             std::cerr << "Could not generate CLI skip DWG source: "
                       << diagnostic.code << " — " << diagnostic.message << '\n';
