@@ -49,13 +49,14 @@ public:
 
 class WipeoutAuthor final : public dx_iface {
 public:
-    explicit WipeoutAuthor(dwgRW& output) : output(output) {
+    WipeoutAuthor(dwgRW& output, DRW::Version version = DRW::AC1027)
+        : output(output) {
         cData = &storage;
         currentBlock = storage.mBlock;
         variables.handle = 0xB600u;
         variables.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         variables.m_classVersion = 0;
-        variables.m_displayFrame = 1;
+        variables.m_displayFrame = version == DRW::AC1021 ? 0 : 1;
         variables.reactorHandles = {DRW::DwgNamedObjectsDictionaryHandle};
         variables.setDwgCommonObjectState(1, 1, false);
     }
@@ -102,7 +103,8 @@ bool readAll(const std::filesystem::path& path, std::string& value) {
     return !input.bad();
 }
 
-bool verifyGraph(const std::filesystem::path& path) {
+bool verifyGraph(const std::filesystem::path& path,
+                 std::uint16_t expectedDisplayFrame) {
     dx_data data;
     WipeoutReadback reader;
     if (!reader.fileImport(path.string(), &data, false)
@@ -118,7 +120,7 @@ bool verifyGraph(const std::filesystem::path& path) {
         && variables.handle == 0xB600u
         && variables.parentHandle == data.namedObjectDictionary.handle
         && variables.m_classVersion == 0
-        && variables.m_displayFrame == 1
+        && variables.m_displayFrame == expectedDisplayFrame
         && variables.reactorHandles
             == std::vector<std::uint32_t>{data.namedObjectDictionary.handle};
 }
@@ -136,17 +138,19 @@ bool sourceRecordUnchanged(const dx_data& data,
         && actual.m_displayFrame == expected.m_displayFrame;
 }
 
-bool run(const std::filesystem::path& directory) {
+bool run(const std::filesystem::path& directory, DRW::Version version) {
     const auto fail = [](const char* message) {
         std::cerr << "WIPEOUTVARIABLES OBJECTS allocation retry: "
                   << message << '\n';
         return false;
     };
-    const auto source = directory / "wipeoutvariables-source.dwg";
+    const auto versionText = std::to_string(static_cast<int>(version));
+    const auto source = directory
+        / ("wipeoutvariables-source-" + versionText + ".dwg");
     const std::string sentinel = "prior destination bytes\n";
     std::array<std::filesystem::path, 2> destinations{{
-        directory / "wipeoutvariables-ascii.dxf",
-        directory / "wipeoutvariables-binary.dxf"}};
+        directory / ("wipeoutvariables-" + versionText + "-ascii.dxf"),
+        directory / ("wipeoutvariables-" + versionText + "-binary.dxf")}};
     struct Cleanup {
         std::filesystem::path source;
         std::array<std::filesystem::path, 2> destinations;
@@ -164,16 +168,19 @@ bool run(const std::filesystem::path& directory) {
 
     {
         dwgRW sourceWriter(source.string().c_str());
-        WipeoutAuthor author(sourceWriter);
-        if (!sourceWriter.write(&author, DRW::AC1027, false))
-            return fail("from-scratch AC1027 source generation failed");
+        WipeoutAuthor author(sourceWriter, version);
+        if (!sourceWriter.write(&author, version, false)) {
+            std::cerr << "from-scratch source generation refused version="
+                      << static_cast<int>(version) << '\n';
+            return fail("from-scratch DWG source generation failed");
+        }
     }
 
     dx_data data;
     dx_iface importer;
     if (!importer.fileImport(source.string(), &data, false)
         || data.sourceFormat != dx_source_format::DWG
-        || data.sourceVersion != DRW::AC1027
+        || data.sourceVersion != version
         || data.wipeoutVariablesCaptureFailed
         || data.dwgWipeoutVariables.size() != 1u
         || data.wipeoutVariablesRetainedRecords != 1u)
@@ -192,29 +199,8 @@ bool run(const std::filesystem::path& directory) {
             dx_dwgReadCompletenessPolicy::Legacy);
     };
 
-    for (const DRW::Version rejectedTarget : {DRW::AC1021, DRW::AC1024}) {
-        const auto rejectedPath = directory
-            / (std::string("wipeoutvariables-cross-version-")
-               + std::to_string(static_cast<int>(rejectedTarget)) + ".dxf");
-        const std::string rejectedSentinel = "cross-version destination bytes\n";
-        {
-            std::ofstream output(rejectedPath,
-                std::ios::binary | std::ios::trunc);
-            output.write(rejectedSentinel.data(),
-                         static_cast<std::streamsize>(rejectedSentinel.size()));
-            if (!output)
-                return fail("could not initialize cross-version sentinel");
-        }
-        const bool wrote = write(rejectedPath, rejectedTarget, false);
-        std::string current;
-        const bool preserved = !wrote && readAll(rejectedPath, current)
-            && current == rejectedSentinel
-            && sourceRecordUnchanged(data, sourceRecord);
-        std::error_code ignored;
-        std::filesystem::remove(rejectedPath, ignored);
-        if (!preserved)
-            return fail("cross-revision target was not refused atomically");
-    }
+    const std::uint16_t expectedDisplayFrame =
+        version == DRW::AC1021 ? 0u : 1u;
 
     for (std::size_t index = 0; index < destinations.size(); ++index) {
         const bool binary = index % 2u != 0u;
@@ -227,11 +213,12 @@ bool run(const std::filesystem::path& directory) {
                 return fail("could not initialize destination sentinel");
         }
         exporter.failAt = 1000000;
-        if (!write(destinations[index], DRW::AC1027, binary)) {
+        if (!write(destinations[index], version, binary)) {
             return fail("allocation calibration export failed");
         }
         const long allocationCount = exporter.reached;
-        if (allocationCount <= 0 || !verifyGraph(destinations[index]))
+        if (allocationCount <= 0
+            || !verifyGraph(destinations[index], expectedDisplayFrame))
             return fail("calibration did not emit the typed wipeout graph");
 
         unsigned offsets = 0u;
@@ -246,7 +233,7 @@ bool run(const std::filesystem::path& directory) {
             }
             exporter.failAt = offset;
             exporter.reached = 0;
-            const bool wrote = write(destinations[index], DRW::AC1027, binary);
+            const bool wrote = write(destinations[index], version, binary);
             exporter.failAt = -1;
             std::string current;
             if (wrote || exporter.reached < 1
@@ -254,15 +241,16 @@ bool run(const std::filesystem::path& directory) {
                 || current != sentinel
                 || !sourceRecordUnchanged(data, sourceRecord))
                 return fail("injected failure changed destination or caller record");
-            if (!write(destinations[index], DRW::AC1027, binary)
-                || !verifyGraph(destinations[index])
+            if (!write(destinations[index], version, binary)
+                || !verifyGraph(destinations[index], expectedDisplayFrame)
                 || !sourceRecordUnchanged(data, sourceRecord))
                 return fail("same-adapter retry failed typed graph readback");
             ++offsets;
         }
         if (offsets != static_cast<unsigned>(allocationCount))
             return fail("not every calibrated callback allocation was injected");
-        std::cout << "WIPEOUTVARIABLES OBJECTS "
+        std::cout << "WIPEOUTVARIABLES OBJECTS version="
+                  << static_cast<int>(version) << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=" << offsets << '\n';
@@ -315,8 +303,12 @@ int main(int argc, char** argv) {
         return 2;
     }
     const auto before = failedAllocations;
-    if (!run(directory))
-        return 1;
+    for (const DRW::Version version : {
+             DRW::AC1018, DRW::AC1021, DRW::AC1024, DRW::AC1027,
+             DRW::AC1032}) {
+        if (!run(directory, version))
+            return 1;
+    }
     if (failedAllocations == before) {
         std::cerr << "allocation fault injector did not reach operator new\n";
         return 1;

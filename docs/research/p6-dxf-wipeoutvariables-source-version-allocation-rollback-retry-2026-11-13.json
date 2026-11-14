@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-wipeoutvariables-source-version-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_WIPEOUTVARIABLES_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated WIPEOUTVARIABLES DWG-to-DXF transaction coverage across matching supported source and target revisions.",
+  "source": {
+    "kind": "deterministic locally-authored DWG generated in test scratch storage",
+    "profile": "One direct NOD ACAD_WIPEOUT_VARS entry and one WIPEOUTVARIABLES object, class version 0, display-frame 0 at AC1021 and 1 at AC1018/AC1024/AC1027/AC1032, with a NOD reactor.",
+    "versions": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/wipeoutvariables_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-wipeoutvariables-source-version-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each matching source/target version, generate and import one DWG, calibrate ASCII and Binary output, inject bad_alloc at every measured callback allocation, require destination-sentinel and caller-record preservation, retry with the same adapter, and verify typed graph readback."
+  },
+  "allocationOffsets": {
+    "eachVersion": {"ASCII": 12, "Binary": 11},
+    "versions": 5,
+    "total": 115
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wipeoutvariables_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_wipeoutvariables_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 2.39 seconds",
+    "directControl": "build/tests/libdxfrw_wipeoutvariables_objects_allocation_tests /tmp/libdxfrw-wipeout-matrix: PASS; 12 ASCII and 11 Binary offsets at each of AC1018/AC1021/AC1024/AC1027/AC1032",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated source/writer/parser transaction evidence only; independent producer interoperability and native wipeout rendering remain unqualified.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated direct-NOD WIPEOUTVARIABLES graph passes every allocation rollback, same-adapter retry, and typed readback check across AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the public-writer inventory and caller-state audit; producer profiles and native display semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "248 completed slices and 35 remaining packages: 248/(248+35)=87.6%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-wipeoutvariables-allocation-rollback-retry-2026-11-13.json"
+}
