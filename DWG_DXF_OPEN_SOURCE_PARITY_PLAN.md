@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **304 completed implementation slices** and **34 remaining
+The plan records **305 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`304 / (304 + 34) = 89.9%`. This is a count-based progress measure, not an
+`305 / (305 + 34) = 90.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5315,16 +5315,16 @@ destination, child-XRECORD and typed-readback checks remain active. This is one
 generated DATATABLE profile only; P6-G's remaining writer inventory is still
 open ([DATATABLE caller-state receipt](docs/research/p6-dxf-datatable-caller-state-rollback-retry-2026-11-13.json)).
 
-**P6-G PROXY_ENTITY two-argument writer overload transaction slice (2026-11-13):**
-the typed proxy-entity allocation control now also exercises the public
-`writeProxyEntity(entity, outputClassId)` overload with no object-ID references
-and no configured resolver. All 9 ASCII and 9 Binary injected callback
-allocation failures preserve the destination and caller handle/payload; the
-same codec retries to byte-identical output and typed readback verifies the
-emitted entity. The existing resolver-overload sweep remains at 11 ASCII and
-10 Binary offsets. The focused CTest passes in 0.29 seconds. This closes one
-overload/profile only, not proxy graph semantics or producer qualification.
-See the [follow-up receipt](docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json).
+**P6-G PROXY_ENTITY overload revision-matrix transaction slice (2026-11-14):**
+both public routes—the resolver-taking overload with eight object-ID
+references and the two-argument overload with no references or configured
+resolver—now pass allocation rollback, caller-state preservation, same-codec
+byte-identical retry and typed readback for AC1018/AC1021/AC1024/AC1027/AC1032
+in ASCII and Binary. All 195 measured callback allocation failures passed;
+the focused CTest passes in 2.03 seconds. This is generated transport and
+self-readback only, not proxy graph closure, producer prevalence or application
+semantics. See the [revision-matrix receipt](docs/research/p6-dxf-proxy-entity-overloads-version-matrix-2026-11-14.json)
+and [initial overload receipt](docs/research/p6-dxf-proxy-entity-two-argument-overload-allocation-rollback-retry-2026-11-13.json).
 
 **P6-G retained SUN raw-owner overload transaction slice (2026-11-13):** a
 generated AC1027 VPORT/SUN pair now exercises

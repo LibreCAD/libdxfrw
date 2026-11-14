@@ -2,6 +2,7 @@
 // Generated typed PROXY_ENTITY object-ID allocation rollback/retry control.
 #include "dx_iface.h"
 
+#include <array>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <iterator>
 #include <new>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -164,13 +166,13 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 }
 
 bool readbackMatches(const std::filesystem::path& path,
-                     bool includeObjectIds = true) {
-    dxfRW codec(path.string().c_str());
+                     bool includeObjectIds, DRW::Version expectedVersion) {
     Readback reader;
-    const bool read = codec.read(&reader, false);
-    if (!read || reader.proxies.size() != 1u) {
+    const bool read = reader.fileImport(path.string(), &reader.storage, false);
+    if (!read || reader.storage.sourceVersion != expectedVersion
+        || reader.proxies.size() != 1u) {
         std::cerr << "PROXY_ENTITY readback read=" << read
-                  << " error=" << static_cast<int>(codec.getError())
+                  << " version=" << static_cast<int>(reader.storage.sourceVersion)
                   << " records=" << reader.proxies.size() << '\n';
         return false;
     }
@@ -197,9 +199,16 @@ bool runProfile(const std::filesystem::path& directory,
         && !std::filesystem::is_directory(directory))
         return fail("could not create scratch directory");
 
-    const auto output = directory / outputName;
     const std::string sentinel = "prior PROXY_ENTITY destination bytes\n";
-    for (const bool binary : {false, true}) {
+    const std::array<std::pair<DRW::Version, const char*>, 5> versions = {{
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
+    for (const auto& version : versions) {
+      for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (std::string(outputName) + "-" + version.second
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
         long allocationCount = 0;
         std::string expectedBytes;
         {
@@ -207,9 +216,9 @@ bool runProfile(const std::filesystem::path& directory,
             codec.setDxfClasses(std::vector<DRW_Class>{makeProxyClass()});
             Export exporter(codec, explicitResolver, includeObjectIds);
             exporter.failAt = 1000000;
-            const bool wrote = codec.write(&exporter, DRW::AC1024, binary);
+            const bool wrote = codec.write(&exporter, version.first, binary);
             if (!wrote || !exporter.accepted
-                || !readbackMatches(output, includeObjectIds))
+                || !readbackMatches(output, includeObjectIds, version.first))
                 return fail("calibration output did not read back");
             allocationCount = exporter.reached;
             if (!readBytes(output, expectedBytes))
@@ -231,7 +240,7 @@ bool runProfile(const std::filesystem::path& directory,
             Export exporter(codec, explicitResolver, includeObjectIds);
             const DRW_ProxyEntity source = exporter.proxy;
             exporter.failAt = offset;
-            const bool wrote = codec.write(&exporter, DRW::AC1024, binary);
+            const bool wrote = codec.write(&exporter, version.first, binary);
             if (!allocationFailed || wrote || exporter.accepted
                 || allocationAttempts != static_cast<std::size_t>(offset + 1)
                 || !proxyMatches(exporter.proxy, source, false)) {
@@ -247,30 +256,32 @@ bool runProfile(const std::filesystem::path& directory,
                 return fail("injected failure replaced destination");
 
             exporter.failAt = -1;
-            const bool retried = codec.write(&exporter, DRW::AC1024, binary);
+            const bool retried = codec.write(&exporter, version.first, binary);
             std::string retryBytes;
             if (!retried || !exporter.accepted
                 || !readBytes(output, retryBytes)
                 || retryBytes != expectedBytes
-                || !readbackMatches(output, includeObjectIds)
+                || !readbackMatches(output, includeObjectIds, version.first)
                 || !proxyMatches(exporter.proxy, source, false))
                 return fail("same-codec retry failed exact bytes/readback");
         }
         std::cout << "PROXY_ENTITY " << profileName << ' '
+                  << version.second << ' '
                   << (binary ? "Binary" : "ASCII")
                   << ": allocation offsets=" << allocationCount
                   << ", rollback/retry/readback=PASS\n";
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
     return true;
 }
 
 bool run(const std::filesystem::path& directory) {
-    return runProfile(directory, true, true, "proxy-entity-object-ids.dxf",
+    return runProfile(directory, true, true, "proxy-entity-object-ids",
                       "object-ID")
         && runProfile(directory, false, false,
-                      "proxy-entity-default-overload.dxf",
+                      "proxy-entity-default-overload",
                       "two-argument overload");
 }
 } // namespace

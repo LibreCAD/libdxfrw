@@ -6147,7 +6147,7 @@ add_test(NAME libdxfrw_proxy_entity_object_id_allocation
     COMMAND libdxfrw_proxy_entity_object_id_allocation_tests
         ${CMAKE_CURRENT_BINARY_DIR}/proxy-entity-object-id-allocation)
 set_tests_properties(libdxfrw_proxy_entity_object_id_allocation PROPERTIES
-    LABELS "dxf;fast;entity;transaction;allocation" TIMEOUT 30)
+    LABELS "dxf;fast;entity;transaction;allocation;versions" TIMEOUT 120)
 
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp
