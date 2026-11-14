@@ -28420,6 +28420,11 @@ public:
     using DRW_XRecord::parseDwg;
 };
 
+class DictionaryVarBodyProbe final : public DRW_DictionaryVar {
+public:
+    using DRW_DictionaryVar::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28465,6 +28470,11 @@ public:
             xrecord_.m_values.push_back(value);
             xrecord_.m_dataEntries.push_back(std::move(value));
         }
+        if (kind_ == 12) {
+            dictionaryVar_.handle = 0x700u;
+            dictionaryVar_.m_schema = 0;
+            dictionaryVar_.m_value = "generated recovery value";
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28500,9 +28510,13 @@ public:
     void writeDwgClasses() override {
         if (kind_ == 9) {
             wrote = writer_->registerDbColorObjectClass(&dbColor_) && wrote;
+        } else if (kind_ == 12) {
+            wrote = writer_->registerDictionaryVarObjectClass(
+                &dictionaryVar_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
-        } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8 && kind_ != 11) {
+        } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
+                   && kind_ != 11) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28519,6 +28533,8 @@ public:
             wrote = writer_->writeDbColor(&dbColor_) && wrote;
         } else if (kind_ == 11) {
             wrote = writer_->writeXRecord(&xrecord_) && wrote;
+        } else if (kind_ == 12) {
+            wrote = writer_->writeDictionaryVar(&dictionaryVar_) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28588,6 +28604,7 @@ private:
     DRW_MLineStyle mlineStyle_;
     DRW_DbColor dbColor_;
     DRW_XRecord xrecord_;
+    DRW_DictionaryVar dictionaryVar_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     dx_data owned_;
@@ -41983,7 +42000,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-dbcolor-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-xrecord-body-source")) {
+                   == "--generate-cli-malformed-xrecord-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-dictionaryvar-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -41992,6 +42011,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-dbcolor-body-source";
         const bool malformedXRecordBodySource = std::string(argv[1])
             == "--generate-cli-malformed-xrecord-body-source";
+        const bool malformedDictionaryVarBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-dictionaryvar-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42014,7 +42035,8 @@ int main(int argc, char** argv) {
             return 1;
         }
         if (malformedBodySource || malformedPrologueSource
-            || malformedDbColorBodySource || malformedXRecordBodySource) {
+            || malformedDbColorBodySource || malformedXRecordBodySource
+            || malformedDictionaryVarBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42024,7 +42046,8 @@ int main(int argc, char** argv) {
             dwgRW validWriter(validPath.string().c_str());
             ReadOutcomeControl validSource(
                 &validWriter, malformedDbColorBodySource ? 9
-                    : malformedXRecordBodySource ? 11 : 8,
+                    : malformedXRecordBodySource ? 11
+                        : malformedDictionaryVarBodySource ? 12 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42069,7 +42092,8 @@ int main(int argc, char** argv) {
             bool foundBodyFailure = false;
             bool foundPrologueFailure = false;
             if ((malformedBodySource || malformedDbColorBodySource
-                 || malformedXRecordBodySource)
+                 || malformedXRecordBodySource
+                 || malformedDictionaryVarBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42106,6 +42130,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedXRecordBodySource) {
                             XRecordBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedDictionaryVarBodySource) {
+                            DictionaryVarBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42185,12 +42214,14 @@ int main(int argc, char** argv) {
             std::error_code ignored;
             std::filesystem::remove(validPath, ignored);
             if (((malformedBodySource || malformedDbColorBodySource
-                  || malformedXRecordBodySource)
+                  || malformedXRecordBodySource
+                  || malformedDictionaryVarBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
                     ? "DBCOLOR" : malformedXRecordBodySource
-                        ? "XRECORD" : "MLINESTYLE";
+                        ? "XRECORD" : malformedDictionaryVarBodySource
+                            ? "DICTIONARYVAR" : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
                 std::cerr << "Could not find a one-bit " << objectKind << ' '
