@@ -3958,14 +3958,29 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         dimtm = reader->getDouble();
         break;
     case 70:
-        // Autodesk defines group 70 as the DIMSTYLE table-entry flags. The
-        // published DIMSTYLE schema does not define a second group-70 color
-        // field, so reject repeated occurrences rather than silently
-        // overwriting flags or guessing which occurrence is DIMTFILLCLR.
-        if ((m_dxfDimensionPresence & kDxfDxfEntryFlagsSeen) != 0)
+        if ((m_dxfDimensionPresence & kDxfDxfEntryFlagsSeen) == 0) {
+            // Autodesk defines the first occurrence as table-entry flags.
+            m_dxfDimensionPresence |= kDxfDxfEntryFlagsSeen;
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        // ezdxf documents a second R2007+ group 70 as the unofficial
+        // DIMTFILLCLR ACI index. Preserve that peer profile, but reject older
+        // files, out-of-range indices, and further occurrences rather than
+        // guessing at additional meanings.
+        if ((m_dxfDimensionPresence & kDxfDxfFillColorSeen) != 0
+            || reader->getSourceVersion() < DRW::AC1021)
             return false;
-        m_dxfDimensionPresence |= kDxfDxfEntryFlagsSeen;
-        return DRW_TableEntry::parseCode(code, reader);
+        dimtfillclr = reader->getInt32();
+        if (dimtfillclr < 0 || dimtfillclr > 256)
+            return false;
+        dimtfillclrRgb = -1;
+        dimtfillclrMethod = 0;
+        dimtfillclrFlags = 0;
+        dimtfillclrRawIndex = 0;
+        dimtfillclrName.clear();
+        dimtfillclrBookName.clear();
+        m_dxfDimensionPresence |= kDxfDxfFillColorSeen;
+        break;
     case 69:
         dimtfill = reader->getInt32();
         if (dimtfill < 0 || dimtfill > 2)
@@ -4307,6 +4322,8 @@ bool DRW_Dimstyle::syncStructToVarsImpl(dxfReader* reader) {
     addDouble("$DIMFXL", 49, dimfxl);
     addDouble("$DIMJOGANG", 50, dimjogang);
     addInt("$DIMTFILL", 69, dimtfill);
+    if (dimtfillclr != 0 || hasDxfDimensionFillColor())
+        addInt("$DIMTFILLCLR", 70, dimtfillclr);
     addInt("$DIMARCSYM", 90, dimarcsym);
     addDouble("$DIMDLE", 46, dimdle);
     addDouble("$DIMDLI", 43, dimdli);

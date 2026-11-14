@@ -159,7 +159,7 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool duplicateDimstyleEntryFlags(std::string& bytes) {
+bool addDimstyleFillColor(std::string& bytes, int color) {
     std::istringstream input(bytes);
     std::ostringstream output;
     std::string code;
@@ -178,7 +178,7 @@ bool duplicateDimstyleEntryFlags(std::string& bytes) {
             inDimstyle = value == "DIMSTYLE";
         output << code << '\n' << value << '\n';
         if (inDimstyle && !duplicated && codeValue == "70") {
-            output << code << '\n' << value << '\n';
+            output << "70\n" << color << '\n';
             duplicated = true;
         }
     }
@@ -226,40 +226,71 @@ bool readbackMatches(const std::filesystem::path& path) {
             == handleHex(reader.textstyles.front().handle);
 }
 
-bool duplicateDimstyleGroup70Refusal(const std::filesystem::path& directory) {
-    const auto path = directory / "dimstyle-duplicate-group70.dxf";
+bool dimstyleTextFillColorTypedOutput(const std::filesystem::path& directory) {
+    const auto path = directory / "dimstyle-text-fill-color.dxf";
+    const auto malformedPath = directory / "dimstyle-text-fill-color-third-70.dxf";
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.flags = 64;
+        exporter.dimstyle.dimtfill = 2;
+        exporter.dimstyle.dimtfillclr = 42;
+        if (!codec.write(&exporter, DRW::AC1021, binary)
+            || !exporter.accepted)
+            return false;
+
+        dxfRW validCodec(path.string().c_str());
+        Reader validReader;
+        if (!validCodec.read(&validReader, false)
+            || validReader.dimstyles.size() != 1u
+            || validReader.dimstyles.front().flags != 64
+            || validReader.dimstyles.front().dimtfill != 2
+            || validReader.dimstyles.front().dimtfillclr != 42) {
+            std::cerr << "DIMSTYLE second group-70 color readback failed: binary="
+                      << binary << '\n';
+            return false;
+        }
+
+        std::string bytes;
+        if (!binary) {
+            if (!readBytes(path, bytes) || !addDimstyleFillColor(bytes, 7))
+                return false;
+            std::ofstream output(malformedPath,
+                                 std::ios::binary | std::ios::trunc);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+            if (!output)
+                return false;
+            output.close();
+            // This now has three group-70 values: entry flags, DIMTFILLCLR,
+            // and an unassigned third occurrence.
+            dxfRW malformedCodec(malformedPath.string().c_str());
+            Reader malformedReader;
+            if (malformedCodec.read(&malformedReader, false)
+                || malformedCodec.getError() != DRW::BAD_CODE_PARSED) {
+                std::cerr << "third DIMSTYLE group-70 occurrence was accepted\n";
+                return false;
+            }
+        }
+    }
+
+    // The dynamic compatibility view must take precedence over the typed
+    // value while still emitting exactly one second group-70 occurrence.
     {
         dxfRW codec(path.string().c_str());
         Export exporter(codec);
         exporter.dimstyle.flags = 64;
+        exporter.dimstyle.dimtfill = 2;
+        exporter.dimstyle.dimtfillclr = 42;
+        exporter.dimstyle.add("$DIMTFILLCLR", 70, 13);
         if (!codec.write(&exporter, DRW::AC1021, false)
             || !exporter.accepted)
             return false;
-    }
-
-    dxfRW validCodec(path.string().c_str());
-    Reader validReader;
-    if (!validCodec.read(&validReader, false)
-        || validReader.dimstyles.size() != 1u
-        || validReader.dimstyles.front().flags != 64)
-        return false;
-
-    std::string bytes;
-    if (!readBytes(path, bytes) || !duplicateDimstyleEntryFlags(bytes))
-        return false;
-    {
-        std::ofstream output(path, std::ios::binary | std::ios::trunc);
-        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
-        if (!output)
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
+        if (!readerCodec.read(&reader, false) || reader.dimstyles.size() != 1u
+            || reader.dimstyles.front().flags != 64
+            || reader.dimstyles.front().dimtfillclr != 13)
             return false;
-    }
-
-    dxfRW duplicateCodec(path.string().c_str());
-    Reader duplicateReader;
-    if (duplicateCodec.read(&duplicateReader, false)
-        || duplicateCodec.getError() != DRW::BAD_CODE_PARSED) {
-        std::cerr << "duplicate DIMSTYLE group-70 flags were not refused\n";
-        return false;
     }
     return true;
 }
@@ -736,7 +767,7 @@ bool dimstyleTextFillAndArcSymbolDowngradeRetry(
     return true;
 }
 
-bool dimstyleTextFillColorRefusalRetry(
+bool dimstyleTextFillColorDowngradeRetry(
     const std::filesystem::path& directory) {
     const auto path = directory / "dimstyle-text-fill-color.dxf";
     const auto cleanPath =
@@ -745,7 +776,7 @@ bool dimstyleTextFillColorRefusalRetry(
     for (const bool binary : {false, true}) {
         dxfRW cleanCodec(cleanPath.string().c_str());
         Export cleanExporter(cleanCodec);
-        if (!cleanCodec.write(&cleanExporter, DRW::AC1021, binary)
+        if (!cleanCodec.write(&cleanExporter, DRW::AC1018, binary)
             || !cleanExporter.accepted)
             return false;
         std::string expectedBytes;
@@ -763,15 +794,13 @@ bool dimstyleTextFillColorRefusalRetry(
             dxfRW codec(path.string().c_str());
             Export exporter(codec);
             if (useOverride) {
-                exporter.dimstyle.dimtfill = 2;
-                exporter.dimstyle.add("$DIMTFILLCLR", 70, 5);
+                exporter.dimstyle.add("$DIMTFILLCLR", 70, 42);
             } else {
-                exporter.dimstyle.dimtfill = 2;
-                exporter.dimstyle.dimtfillclr = 5;
+                exporter.dimstyle.dimtfillclr = 42;
             }
-            if (codec.write(&exporter, DRW::AC1021, binary)
+            if (codec.write(&exporter, DRW::AC1018, binary)
                 || exporter.accepted) {
-                std::cerr << "unmapped DIMTFILLCLR color was accepted: binary="
+                std::cerr << "pre-2007 DIMTFILLCLR downgrade was accepted: binary="
                           << binary << " override=" << useOverride << '\n';
                 return false;
             }
@@ -779,7 +808,6 @@ bool dimstyleTextFillColorRefusalRetry(
             if (!readBytes(path, current) || current != prior)
                 return false;
 
-            exporter.dimstyle.dimtfill = 0;
             if (useOverride) {
                 const auto field = exporter.dimstyle.vars.find("$DIMTFILLCLR");
                 if (field == exporter.dimstyle.vars.end())
@@ -788,11 +816,12 @@ bool dimstyleTextFillColorRefusalRetry(
                 exporter.dimstyle.vars.erase(field);
             } else {
                 exporter.dimstyle.dimtfillclr = 0;
+                exporter.dimstyle.dimtfillclrMethod = 0;
             }
-            if (!codec.write(&exporter, DRW::AC1021, binary)
+            if (!codec.write(&exporter, DRW::AC1018, binary)
                 || !exporter.accepted || !readBytes(path, current)
                 || current != expectedBytes || !readbackMatches(path)) {
-                std::cerr << "DIMTFILLCLR refusal retry failed: binary="
+                std::cerr << "DIMTFILLCLR downgrade retry failed: binary="
                           << binary << " override=" << useOverride << '\n';
                 return false;
             }
@@ -976,7 +1005,7 @@ int main() {
         }
     } cleanup{directory};
     return allocationSweep(directory)
-        && duplicateDimstyleGroup70Refusal(directory)
+        && dimstyleTextFillColorTypedOutput(directory)
         && dimfxlRefusalRetry(directory)
         && dimaltrndRefusalRetry(directory)
         && dimfxlonRefusalRetry(directory)
@@ -984,7 +1013,7 @@ int main() {
         && dimtxtdirectionTypedOutput(directory)
         && dimstyleTextFillAndArcSymbolTypedOutput(directory)
         && dimstyleTextFillAndArcSymbolDowngradeRetry(directory)
-        && dimstyleTextFillColorRefusalRetry(directory)
+        && dimstyleTextFillColorDowngradeRetry(directory)
         && dimstyleJogAngleTypedOutput(directory)
         && dimstyleJogAngleDowngradeRetry(directory)
         && dimstyleJogAngleDomainRefusalRetry(directory) ? 0 : 2;

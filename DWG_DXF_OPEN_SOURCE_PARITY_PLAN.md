@@ -18,15 +18,16 @@ activity proxy, not as the percentage of package gates completed. Do not count
 historical evidence notes or the earlier
 145-entry mixed checkpoint as extra completed items.
 
-**Newest local P6-D slice (2026-11-14):** DIMSTYLE DXF parsing now accepts
-the documented group-70 table-entry flags once and rejects a repeated group
-70 instead of silently overwriting the flags or interpreting an occurrence
-as the peer-only DIMTFILLCLR color. A generated AC1021 ASCII control confirms
-the single flags value survives readback and the duplicate is rejected with
-`BAD_CODE_PARSED`; the focused DIMSTYLE allocation CTest passes. This closes
-the repeated-group parsing ambiguity only. DIMTFILLCLR's DXF mapping,
-producer-authored interoperability, and native consumer semantics remain
-unqualified. See [receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
+**Newest local P6-D slice (2026-11-14):** DIMSTYLE DXF parsing and writing
+now preserve the documented first group-70 table-entry flags and the
+peer-documented second R2007+ group-70 DIMTFILLCLR ACI index. Generated
+AC1021 ASCII/Binary typed output/readback and dynamic override controls pass;
+a third group-70 occurrence and nondefault pre-R2007 downgrade both refuse,
+with same-writer retry covered. The focused DIMSTYLE allocation CTest passes.
+Autodesk's published DIMSTYLE schema still lists only the flags field, so the
+color mapping remains an explicitly unofficial ezdxf compatibility profile;
+RGB/book colors and native producer/consumer behavior remain unqualified. See
+[receipt](docs/research/p6-dxf-dimstyle-text-fill-arc-symbol-2026-11-14.json).
 
 ## Authority and completion gates
 

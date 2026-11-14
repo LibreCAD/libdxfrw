@@ -8380,18 +8380,36 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             && ent->dimtfillclrName.empty()
             && ent->dimtfillclrBookName.empty();
     };
+    const auto dimstyleTextFillColorHasDxfProjection = [&]() {
+        if (ent->dimtfillclrRgb != -1 || ent->dimtfillclrFlags != 0
+            || ent->dimtfillclrRawIndex != 0
+            || !ent->dimtfillclrName.empty()
+            || !ent->dimtfillclrBookName.empty())
+            return false;
+        switch (ent->dimtfillclrMethod) {
+        case 0:
+            return ent->dimtfillclr >= 0 && ent->dimtfillclr <= 256;
+        case dwgColor::BYBLOCK:
+            return ent->dimtfillclr == 0;
+        case dwgColor::ACI:
+            return ent->dimtfillclr > 0 && ent->dimtfillclr < 256;
+        case dwgColor::BYLAYER:
+            return ent->dimtfillclr == 256;
+        default:
+            return false;
+        }
+    };
     if (ent->dimtfill < 0 || ent->dimtfill > 2
         || ent->dimarcsym < 0 || ent->dimarcsym > 2
-        || !dimstyleTextFillColorIsDefault()) {
-        // DIMTFILLCLR has an unofficial group-70 DXF projection, but group
-        // 70 is also the documented DIMSTYLE table-entry flags field. Do not
-        // emit the retained DWG CMC value as a second, ambiguous record field.
+        || !dimstyleTextFillColorHasDxfProjection()) {
         return failDxfWrite();
     }
     if (version < DRW::AC1021
         && ((ent->dimtfill != 0 && !ent->get("$DIMTFILL"))
             || (ent->dimarcsym != 0 && !ent->get("$DIMARCSYM"))
-            || (ent->dimjogang != 0.0 && !ent->get("$DIMJOGANG")))) {
+            || (ent->dimjogang != 0.0 && !ent->get("$DIMJOGANG"))
+            || (!dimstyleTextFillColorIsDefault()
+                && !ent->get("$DIMTFILLCLR")))) {
         return failDxfWrite();
     }
 
@@ -8415,10 +8433,16 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             m_writeError = true;
             return false;
         }
-        if (value->code() == 70) {
-            // Group 70 is the documented DIMSTYLE entry flags field. The
-            // peer-only DIMTFILLCLR interpretation is ambiguous without a
-            // corresponding typed, occurrence-aware parser representation.
+        if (value->code() == 70
+            && (kv.first != "$DIMTFILLCLR"
+                || value->type() != DRW_Variant::INTEGER
+                || value->i_val() < 0 || value->i_val() > 256)) {
+            // The second group 70 is the peer-documented DIMTFILLCLR ACI
+            // index; other dynamic aliases must not overwrite table flags.
+            return failDxfWrite();
+        }
+        if (version < DRW::AC1021 && value->code() == 70
+            && value->i_val() != 0) {
             return failDxfWrite();
         }
         if (version < DRW::AC1021 && value->code() == 49
@@ -8922,6 +8946,10 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             writer->writeInt16(69, ent->dimtfill);
         if (!dimVarCodes.count(90))
             writer->writeInt32(90, ent->dimarcsym);
+        if (!dimVarCodes.count(70)
+            && (!dimstyleTextFillColorIsDefault()
+                || ent->hasDxfDimensionFillColor()))
+            writer->writeInt16(70, ent->dimtfillclr);
     }
     if (version > DRW::AC1014) {
         wI(79, ent->dimazin);

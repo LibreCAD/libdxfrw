@@ -1985,6 +1985,9 @@ public:
     default: return false;
     }
   }
+  bool hasDxfDimensionFillColor() const noexcept {
+    return (m_dxfDimensionPresence & kDxfDxfFillColorSeen) != 0;
+  }
   //! The DIMSTYLE DXF contract exposes these colors as ACI/index values only.
   //! Return false if retained DWG CMC detail has no verified DXF projection.
   bool canWriteDxfDimensionColors() const noexcept;
@@ -2149,8 +2152,9 @@ public:
   dwgHandle dimltex2H;  /*!< code 347 */
   std::map<std::string, DRW_Variant *>
       vars; /*!< extra/override variables written after standard fields */
-  // DWG-only CMC companions for DIMTFILLCLR. No class-specific DXF mapping
-  // is established by the current Autodesk DIMSTYLE reference.
+  // DWG CMC companions for DIMTFILLCLR. Autodesk's published DIMSTYLE DXF
+  // schema does not define the full CMC; ezdxf documents an unofficial ACI
+  // index in a second group-70 occurrence.
   std::int32_t dimtfillclrRgb{-1};
   std::uint8_t dimtfillclrMethod{0};
   std::uint8_t dimtfillclrFlags{0};
@@ -2173,9 +2177,10 @@ private:
   static constexpr std::uint16_t kDxfDxfDimltype = 0x0040;
   static constexpr std::uint16_t kDxfDxfDimltex1 = 0x0080;
   static constexpr std::uint16_t kDxfDxfDimltex2 = 0x0100;
-  // Keep the DIMSTYLE record's group-70 entry flags distinct from the
-  // unofficial DIMTFILLCLR interpretation also reported with group 70.
+  // Occurrence tracking for the documented flags and peer-documented
+  // R2007+ DIMTFILLCLR fields, both represented by group 70.
   static constexpr std::uint16_t kDxfDxfEntryFlagsSeen = 0x0200;
+  static constexpr std::uint16_t kDxfDxfFillColorSeen = 0x0400;
   std::uint16_t m_dxfDimensionPresence {0};
   DRW::Version m_dxfDimensionSourceVersion {DRW::UNKNOWNV};
   // Live logical text bytes retained by the DIMSTYLE DXF parser fields.
