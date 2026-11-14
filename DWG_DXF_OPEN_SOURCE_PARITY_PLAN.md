@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **364 completed implementation and qualification slices** and **34 remaining
+The plan records **365 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`364 / (364 + 34) = 91.5%`. This is a count-based progress measure, not an
+`365 / (365 + 34) = 91.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -246,6 +246,18 @@ readback checks the modeled ramps and defaults. The focused CTest passes in
 0.58 seconds. This adds generated codec transaction evidence only; dictionary
 membership, independent producer semantics, native point-cloud styling and
 external consumer behavior remain unqualified ([receipt](docs/research/p6-dxf-pointcloud-colormap-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G WIPEOUT revision-matrix transaction slice (2026-11-14):** a generated
+64-vertex polygon profile now covers AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/
+AC1032 in ASCII and Binary. All 168 injected allocation failures preserve the
+caller entity and destination; same-writer retries reproduce clean bytes and
+fresh typed readback checks the geometry, clipping/display fields and boundary.
+The version-loss control also refuses nondefault `clipMode` at AC1021 while
+preserving the prior file and caller, then retries on the same codec at AC1024
+with byte-identical output and typed readback. The focused CTest passes in
+0.51 seconds. This is generated serializer evidence only; IMAGEDEF/reactor
+closure, producer semantics and native masking behavior remain unqualified
+([receipt](docs/research/p6-dxf-wipeout-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the
