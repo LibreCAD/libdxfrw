@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **363 completed implementation and qualification slices** and **34 remaining
+The plan records **364 completed implementation and qualification slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`363 / (363 + 34) = 91.4%`. This is a count-based progress measure, not an
+`364 / (364 + 34) = 91.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -235,6 +235,17 @@ injected allocation failures pass. This is generated writer transport only;
 dictionary membership, entity/reactor graph closure, external asset loading
 and native semantics remain unqualified. The focused selector passes in 1.28
 seconds ([receipt](docs/research/p6-dxf-pointcloud-def-version-matrix-allocation-2026-11-14.json)).
+
+**P6-G POINTCLOUDCOLORMAP revision-matrix transaction slice (2026-11-14):**
+the generated OBJECTS writer profile now covers AC1014/AC1015/AC1018/AC1021/
+AC1024/AC1027/AC1032 in ASCII and Binary. Its two color ramps and one
+classification ramp each carry ordered scheme names and class versions. All
+172 injected allocation failures preserve the caller model and prior
+destination; same-writer retries reproduce clean bytes, and fresh typed
+readback checks the modeled ramps and defaults. The focused CTest passes in
+0.58 seconds. This adds generated codec transaction evidence only; dictionary
+membership, independent producer semantics, native point-cloud styling and
+external consumer behavior remain unqualified ([receipt](docs/research/p6-dxf-pointcloud-colormap-version-matrix-allocation-2026-11-14.json)).
 
 **P6-D DIMSTYLE implementation slice (2026-11-14):** DIMSTYLE DXF parsing and writing
 now preserve the documented first group-70 table-entry flags and the

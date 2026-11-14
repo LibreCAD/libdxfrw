@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-14",
+  "slice": "P6-G generated POINTCLOUDCOLORMAP revision-matrix allocation rollback, retry, and typed readback",
+  "sourceRevision": "786d8149",
+  "target": "Direct DXF OBJECTS writer for POINTCLOUDCOLORMAP",
+  "profiles": {
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "generatedFields": [
+      "nondefault intensity, elevation, and classification defaults",
+      "two color ramps with ordered scheme names and distinct class versions",
+      "one classification ramp with ordered scheme names and class version"
+    ]
+  },
+  "allocationFailures": {
+    "AC1014": {"ASCII": 14, "Binary": 14},
+    "AC1015": {"ASCII": 14, "Binary": 14},
+    "AC1018": {"ASCII": 14, "Binary": 14},
+    "AC1021": {"ASCII": 11, "Binary": 11},
+    "AC1024": {"ASCII": 11, "Binary": 11},
+    "AC1027": {"ASCII": 11, "Binary": 11},
+    "AC1032": {"ASCII": 11, "Binary": 11},
+    "total": 172
+  },
+  "assertions": [
+    "each injected allocation failure leaves the caller model unchanged",
+    "each injected allocation failure preserves the pre-existing destination sentinel",
+    "retrying on the same codec reproduces the clean reference bytes exactly",
+    "fresh typed readback verifies version, defaults, ramp counts, class versions, and ordered names"
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_pointcloud_colormap_version_allocation_tests -j4",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_pointcloud_colormap_version_allocation$' --output-on-failure",
+    "result": "passed 1/1 in 0.58 seconds",
+    "directRun": "passed all 14 version/encoding profiles"
+  },
+  "sha256": {
+    "tests/dxf_pointcloud_colormap_version_allocation_tests.cpp": "1fab72c296156aae63116f49bd229c7876bce561d237ec1aefc59384fdede5c9",
+    "tests/CMakeLists.txt": "0d14559af34b3f9fe98f036b71b9f1c4955c9523e8ad11178d13f9ca41083552",
+    "src/libdxfrw.cpp": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "temporaryDrawingsCommitted": false,
+  "qualificationEligible": false,
+  "limits": [
+    "Generated writer and self-readback transaction evidence only.",
+    "Does not prove dictionary membership, object graph closure, producer interoperability, native point-cloud styling, or external consumer behavior.",
+    "Does not promote a DWG or DXF support claim."
+  ]
+}

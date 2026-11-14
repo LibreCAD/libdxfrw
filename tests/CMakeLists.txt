@@ -6214,6 +6214,18 @@ add_test(NAME libdxfrw_pointcloud_def_version_allocation
 set_tests_properties(libdxfrw_pointcloud_def_version_allocation PROPERTIES
     LABELS "dxf;fast;objects;pointcloud;transaction;allocation;versions"
     TIMEOUT 30)
+add_executable(libdxfrw_pointcloud_colormap_version_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_pointcloud_colormap_version_allocation_tests.cpp)
+target_compile_features(libdxfrw_pointcloud_colormap_version_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_pointcloud_colormap_version_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_pointcloud_colormap_version_allocation_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_pointcloud_colormap_version_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_pointcloud_colormap_version_allocation
+    COMMAND libdxfrw_pointcloud_colormap_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/pointcloud-colormap-version-allocation)
+set_tests_properties(libdxfrw_pointcloud_colormap_version_allocation PROPERTIES
+    LABELS "dxf;fast;objects;pointcloud;transaction;allocation;versions"
+    TIMEOUT 60)
 
 add_executable(libdxfrw_sun_owner_override_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/sun_owner_override_allocation_tests.cpp
