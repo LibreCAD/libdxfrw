@@ -45,7 +45,7 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line, Solid, Trace, Point };
+enum class Profile { Face, Line, Solid, Trace, Point, Circle, Arc };
 
 const char* profileName(Profile profile) {
     switch (profile) {
@@ -54,6 +54,8 @@ const char* profileName(Profile profile) {
     case Profile::Solid: return "SOLID";
     case Profile::Trace: return "TRACE";
     case Profile::Point: return "POINT";
+    case Profile::Circle: return "CIRCLE";
+    case Profile::Arc: return "ARC";
     }
     return "unknown";
 }
@@ -111,6 +113,42 @@ DRW_Point makePoint() {
     point.extPoint = DRW_Coord{0.0, 1.0, 0.0};
     point.xAxisAngle = 0.625;
     return point;
+}
+
+DRW_Circle makeCircle() {
+    DRW_Circle circle;
+    circle.handle = 0xD927u;
+    circle.basePoint = DRW_Coord{7.0, -4.0, 2.0};
+    circle.radious = 6.5;
+    circle.thickness = 1.25;
+    return circle;
+}
+
+DRW_Arc makeArc() {
+    DRW_Arc arc;
+    arc.handle = 0xD926u;
+    arc.basePoint = DRW_Coord{-3.0, 4.0, 2.5};
+    arc.radious = 4.75;
+    arc.staangle = 0.25;
+    arc.endangle = 2.75;
+    arc.thickness = 0.5;
+    return arc;
+}
+
+bool sameCircle(const DRW_Circle& a, const DRW_Circle& b,
+                bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x && a.basePoint.y == b.basePoint.y
+        && a.basePoint.z == b.basePoint.z && a.radious == b.radious
+        && a.thickness == b.thickness && a.extPoint.x == b.extPoint.x
+        && a.extPoint.y == b.extPoint.y && a.extPoint.z == b.extPoint.z;
+}
+
+bool sameArc(const DRW_Arc& a, const DRW_Arc& b,
+             bool compareHandle = true) {
+    return sameCircle(a, b, compareHandle)
+        && std::abs(a.staangle - b.staangle) < 1e-12
+        && std::abs(a.endangle - b.endangle) < 1e-12;
 }
 
 bool samePoint(const DRW_Point& a, const DRW_Point& b,
@@ -171,6 +209,8 @@ public:
         solid = makeSolid();
         trace = makeTrace();
         point = makePoint();
+        circle = makeCircle();
+        arc = makeArc();
     }
 
     void writeEntities() override {
@@ -188,6 +228,8 @@ public:
         case Profile::Solid: accepted = codec.writeSolid(&solid); break;
         case Profile::Trace: accepted = codec.writeTrace(&trace); break;
         case Profile::Point: accepted = codec.writePoint(&point); break;
+        case Profile::Circle: accepted = codec.writeCircle(&circle); break;
+        case Profile::Arc: accepted = codec.writeArc(&arc); break;
         }
     }
 
@@ -201,6 +243,8 @@ public:
     DRW_Solid solid;
     DRW_Trace trace;
     DRW_Point point;
+    DRW_Circle circle;
+    DRW_Arc arc;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -274,6 +318,18 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
             && point->extPoint.z == expected.extPoint.z
             && std::abs(point->xAxisAngle - expected.xAxisAngle) < 1e-12;
     }
+    if (profile == Profile::Circle) {
+        const auto* circle = dynamic_cast<const DRW_Circle*>(entity);
+        const DRW_Circle expected = makeCircle();
+        return circle != nullptr && circle->eType == DRW::CIRCLE
+            && sameCircle(*circle, expected, false);
+    }
+    if (profile == Profile::Arc) {
+        const auto* arc = dynamic_cast<const DRW_Arc*>(entity);
+        const DRW_Arc expected = makeArc();
+        return arc != nullptr && arc->eType == DRW::ARC
+            && sameArc(*arc, expected, false);
+    }
     const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
     const DRW_Trace expected = profile == Profile::Solid
         ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
@@ -342,6 +398,8 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 const DRW_Solid originalSolid = exporter.solid;
                 const DRW_Trace originalTrace = exporter.trace;
                 const DRW_Point originalPoint = exporter.point;
+                const DRW_Circle originalCircle = exporter.circle;
+                const DRW_Arc originalArc = exporter.arc;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
                 bool callerPreserved = false;
@@ -360,6 +418,12 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                     break;
                 case Profile::Point:
                     callerPreserved = samePoint(exporter.point, originalPoint);
+                    break;
+                case Profile::Circle:
+                    callerPreserved = sameCircle(exporter.circle, originalCircle);
+                    break;
+                case Profile::Arc:
+                    callerPreserved = sameArc(exporter.arc, originalArc);
                     break;
                 }
                 if (!allocationFailed || written
@@ -388,7 +452,11 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                             ? sameTrace(exporter.solid, originalSolid)
                             : profile == Profile::Trace
                                 ? sameTrace(exporter.trace, originalTrace)
-                                : samePoint(exporter.point, originalPoint);
+                                : profile == Profile::Point
+                                    ? samePoint(exporter.point, originalPoint)
+                                    : profile == Profile::Circle
+                                        ? sameCircle(exporter.circle, originalCircle)
+                                        : sameArc(exporter.arc, originalArc);
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
@@ -428,7 +496,9 @@ bool run(const std::filesystem::path& directory) {
         && runProfile(directory, Profile::Line)
         && runProfile(directory, Profile::Solid)
         && runProfile(directory, Profile::Trace)
-        && runProfile(directory, Profile::Point);
+        && runProfile(directory, Profile::Point)
+        && runProfile(directory, Profile::Circle)
+        && runProfile(directory, Profile::Arc);
 }
 } // namespace
 

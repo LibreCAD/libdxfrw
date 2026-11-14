@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **308 completed implementation slices** and **34 remaining
+The plan records **309 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`308 / (308 + 34) = 90.1%`. This is a count-based progress measure, not an
+`309 / (309 + 34) = 90.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5642,8 +5642,12 @@ same-codec, byte-identical retry. A generated POINT profile with nondefault
 position, thickness, extrusion and UCS angle now has the same coverage across
 all seven revisions in both encodings; its 126 allocation failures also pass
 rollback, retry and typed readback. The expanded focused CTest passes in 4.83
-seconds. This is generated writer transaction/self-readback evidence only; it
-does not qualify producer-authored geometry or native 3D consumers
+seconds. Generated CIRCLE and ARC profiles with nondefault center, radius,
+thickness and arc angles add the same seven-revision ASCII/Binary checks; their
+252 measured failures also pass rollback, retry and typed readback. The
+expanded focused CTest passes in 6.66 seconds. This is generated writer
+transaction/self-readback evidence only; it does not qualify producer-authored
+geometry or native 3D consumers
 ([revision-matrix receipt](docs/research/p6-dxf-3d-entity-version-allocation-2026-11-14.json)).
 The same whole-operation sweep now calls `writeTableStyle()` directly with a
 locally generated legacy three-row style, a nondefault emitted text style and
