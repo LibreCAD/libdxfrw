@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **290 completed implementation slices** and **34 remaining
+The plan records **291 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`290 / (290 + 34) = 89.5%`. This is a count-based progress measure, not an
+`291 / (291 + 34) = 89.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -85,7 +85,7 @@ independently; the broader `libdxfrw_dwg_local_roundtrip` CTest remains red
 with 380 assertions across unrelated profiles and is not counted as passing
 evidence. No DWG/DXF fixture is committed. See the [receipt](docs/research/p8-dwg-malformed-line-reader-recovery-2026-11-13.json).
 
-**P4-A source witness — COMPLETE (2026-11-14).** A new LibreDWG 0.14-authored AC1027 `Constraints.dwg` profile is hash-pinned and independently inventoried against its LibreDWG minJSON view. The current libdxfrw source inventory publishes all 160 frames, maps 123 captured callbacks with zero unrepresented identities, and binds five associative custom-object frames (two networks, one constraint group, two geometry dependencies) by handle, type, class, owner, reactors, span, and size. The peer confirms the class-version-2 profiles, but shares LibreDWG lineage; strict-complete output still refuses unqualified references. This completes only P4-A source/callback identity; P4-D graph/output closure and independent semantics remain open ([receipt](docs/research/p4-ac1027-libredwg-constraints-source-callback-profile-2026-11-14.json)).
+**P4-A source witness — COMPLETE (2026-11-14).** A new LibreDWG 0.14-authored AC1027 `Constraints.dwg` profile is hash-pinned and independently inventoried against its LibreDWG minJSON view. The current libdxfrw source inventory publishes all 160 frames, maps 123 captured callbacks with zero unrepresented identities, and binds five associative custom-object frames (two networks, one constraint group, two geometry dependencies) by handle, type, class, owner, reactors, span, and size. The peer confirms the class-version-2 profiles, but shares LibreDWG lineage; strict-complete output still refuses unqualified references. This completes only P4-A source/callback identity; P4-D graph/output closure and independent semantics remain open ([receipt](docs/research/p4-ac1027-libredwg-constraints-source-callback-profile-2026-11-14.json)). A follow-up source-backed fix now retains AC1027 class-version-2 `network_action_index` separately from the base action index for handles 0x3E0 and 0x3E2; the physical probe passes while `m_networkFieldsParsed` remains false. This candidate retention does not resolve class-version-2 field semantics or qualify output ([source probe](tools/research/audit_ac1027_associative_constraints.py)).
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now

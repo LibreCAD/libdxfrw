@@ -32532,11 +32532,14 @@ bool DRW_AssociativeObject::parseDwgConstraintCandidate(
                 m_networkVersion = networkVersion;
                 m_networkActionIndex = networkActionIndex;
                 m_networkFieldsParsed = true;
-            } else if (version == DRW::AC1032) {
-                // The AC1032 physical candidate and LibreDWG peer both
-                // expose these as distinct fields. Retain the decoded values
-                // without promoting this version to the qualified writer
-                // profile; m_networkFieldsParsed stays false.
+            } else if (version == DRW::AC1032
+                       || (version == DRW::AC1027
+                           && m_classVersion == 2u)) {
+                // Physical AC1027/AC1032 class-version-2 candidates and the
+                // LibreDWG peer expose these as distinct fields. Retain the
+                // decoded values without promoting either version to the
+                // qualified writer profile; m_networkFieldsParsed stays
+                // false.
                 m_networkVersion = networkVersion;
                 m_networkActionIndex = networkActionIndex;
             } else {

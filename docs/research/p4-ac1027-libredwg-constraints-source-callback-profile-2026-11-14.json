@@ -7,6 +7,20 @@
       "996": 0,
       "997": 0
     },
+    "networkIndexCandidates": {
+      "992": {
+        "baseActionIndex": 1,
+        "networkActionIndex": 1,
+        "networkVersion": 0,
+        "writerQualified": false
+      },
+      "994": {
+        "baseActionIndex": 0,
+        "networkActionIndex": 1,
+        "networkVersion": 0,
+        "writerQualified": false
+      }
+    },
     "peerAssociativeReferenceTargetsPresent": true,
     "peerObjectCount": 160,
     "records": {
@@ -121,8 +135,10 @@
   "status": "P4_A_AC1027_SOURCE_AND_CALLBACK_IDENTITY_CAPTURED",
   "supportClaimEffect": "none",
   "tools": {
+    "ac1027CandidateProfileOutput": "Physical AC1027 class-version-2 associative-network candidate fields, base/network index separation, and owner/action graph PASS; writer qualification remains false",
+    "ac1027CandidateProfileReturnCode": 0,
     "adapterInventoryExecutable": "/Users/dli/dev/libdxfrw/build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
-    "adapterInventorySha256": "db1368e9c0fdccb2a046820e4a846d7d7771abd5b3801ed67ff59f76a2018cd4",
+    "adapterInventorySha256": "3c8377fcdd0ff35850941fedabbc765c17474885c8b93d7965206f475b53fe0c",
     "inventoryLimit": "The inventory prints the complete source identity projection, then exits nonzero at a pre-existing Cover-specific SCALE profile assertion; this receipt does not treat that later assertion as a sample failure or pass.",
     "inventoryReturnCode": 1,
     "libredwgPeerVersion": "dwgread 0.14",

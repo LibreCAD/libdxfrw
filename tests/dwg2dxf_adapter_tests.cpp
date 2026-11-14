@@ -54360,6 +54360,76 @@ bool physicalAc1032AssociativeNetworkCandidateProfile(
     return true;
 }
 
+bool physicalAc1027AssociativeNetworkCandidateProfile(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(sourcePath.string(), &data, false)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1027)
+        return fail("physical AC1027 associative-network source did not import as AC1027 DWG");
+
+    const DRW_AssociativeObject* nestedNetwork = nullptr;
+    const DRW_AssociativeObject* rootNetwork = nullptr;
+    for (const DRW_AssociativeObject& object : data.dwgAssociativeObjects) {
+        if (object.m_recordName != "ACDBASSOCNETWORK")
+            continue;
+        if (object.handle == 0x3E0u)
+            nestedNetwork = &object;
+        else if (object.handle == 0x3E2u)
+            rootNetwork = &object;
+    }
+    const auto completePrefix = [](const DRW_AssociativeObject& object,
+                                   DRW_AssociativePrefixStatus::Kind kind) {
+        return std::count_if(object.m_prefixStatuses.begin(),
+                             object.m_prefixStatuses.end(),
+            [kind](const DRW_AssociativePrefixStatus& status) {
+                return status.m_kind == kind
+                    && status.m_status
+                        == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                    && status.m_classVersion == 2u;
+            }) == 1;
+    };
+    if (nestedNetwork == nullptr || rootNetwork == nullptr
+        || nestedNetwork->m_classVersion != 2u
+        || rootNetwork->m_classVersion != 2u
+        || nestedNetwork->parentHandle != 0x3DFu
+        || rootNetwork->parentHandle != 0x3E1u
+        || nestedNetwork->reactorHandles
+            != std::vector<std::uint32_t>{0x3DFu}
+        || rootNetwork->reactorHandles
+            != std::vector<std::uint32_t>{0x3E1u}
+        || nestedNetwork->m_owningNetworkHandle != rootNetwork->handle
+        || rootNetwork->m_owningNetworkHandle != 0u
+        || nestedNetwork->m_actionIndex != 1 || rootNetwork->m_actionIndex != 0
+        || nestedNetwork->m_networkVersion != 0
+        || rootNetwork->m_networkVersion != 0
+        || nestedNetwork->m_networkActionIndex != 1
+        || rootNetwork->m_networkActionIndex != 1
+        || nestedNetwork->m_networkFieldsParsed
+        || rootNetwork->m_networkFieldsParsed
+        || nestedNetwork->m_actions.size() != 1u
+        || rootNetwork->m_actions.size() != 1u
+        || !nestedNetwork->m_actions.front().m_isOwned
+        || nestedNetwork->m_actions.front().m_handle != 0x3E3u
+        || rootNetwork->m_actions.front().m_isOwned
+        || rootNetwork->m_actions.front().m_handle != nestedNetwork->handle
+        || !completePrefix(*nestedNetwork,
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+        || !completePrefix(*nestedNetwork,
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork)
+        || !completePrefix(*rootNetwork,
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+        || !completePrefix(*rootNetwork,
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork))
+        return fail("AC1027 class-version-2 network candidates or owner/action roles changed");
+
+    std::cout << "Physical AC1027 class-version-2 associative-network "
+                 "candidate fields, base/network index separation, and "
+                 "owner/action graph PASS; writer qualification remains false\n";
+    return true;
+}
+
 bool physicalAc1032AssociativeGraphClosure(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -89988,6 +90058,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--assocnetwork-ac1032-candidate-profile")
         return physicalAc1032AssociativeNetworkCandidateProfile(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--assocnetwork-ac1027-candidate-profile")
+        return physicalAc1027AssociativeNetworkCandidateProfile(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--assocnetwork-ac1032-graph-closure")
         return physicalAc1032AssociativeGraphClosure(argv[2]) ? 0 : 1;

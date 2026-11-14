@@ -204,6 +204,19 @@ def main() -> int:
         if source_inventory_status != 0 and not expected_other_profile_refusal:
             raise SystemExit("source inventory stopped before its known Cover-specific assertion:\n" + output[-8000:])
 
+        candidate_status, candidate_output = run(
+            [str(adapter_tests), "--assocnetwork-ac1027-candidate-profile", str(source)],
+            args.timeout,
+        )
+        candidate_summary = next(
+            (line.strip() for line in candidate_output.splitlines()
+             if line.startswith("Physical AC1027 class-version-2 associative-network ")),
+            "",
+        )
+        if (candidate_status != 0
+                or "base/network index separation" not in candidate_summary):
+            raise SystemExit("AC1027 network candidate profile failed:\n" + candidate_output[-8000:])
+
         cli_output_path = Path(work) / "must-not-publish.dxf"
         cli_status, cli_output = run(
             [str(dwg2dxf), str(source), "-y", "-d", "-v2013", str(cli_output_path)],
@@ -236,6 +249,8 @@ def main() -> int:
                 "adapterInventorySha256": sha256(adapter_tests),
                 "inventoryReturnCode": source_inventory_status,
                 "inventoryLimit": "The inventory prints the complete source identity projection, then exits nonzero at a pre-existing Cover-specific SCALE profile assertion; this receipt does not treat that later assertion as a sample failure or pass.",
+                "ac1027CandidateProfileReturnCode": candidate_status,
+                "ac1027CandidateProfileOutput": candidate_summary,
                 "strictCliReturnCode": cli_status,
                 "strictCliOutputPublished": cli_output_path.exists(),
                 "strictCliDisposition": "refused before output preparation because AC1027 DWG source references are not fully qualified",
@@ -259,6 +274,17 @@ def main() -> int:
                 "classVersions": {
                     str(h): found[h]["peerClassVersion"]
                     for h in EXPECTED_ASSOCIATIVE
+                },
+                "networkIndexCandidates": {
+                    str(h): {
+                        "baseActionIndex": peer_by_handle[h].get("action_index"),
+                        "networkVersion": peer_by_handle[h].get("network_version"),
+                        "networkActionIndex": peer_by_handle[h].get(
+                            "network_action_index"
+                        ),
+                        "writerQualified": False,
+                    }
+                    for h in (992, 994)
                 },
             },
             "limits": [
