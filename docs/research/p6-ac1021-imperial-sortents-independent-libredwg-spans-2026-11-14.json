@@ -1,0 +1,207 @@
+{
+  "comparison": {
+    "allBodyAndHandleStreamBoundsMatch": true,
+    "allCapturedParserAndPeerFieldStartsAndEndsMatch": true,
+    "allDecodedRolesAndTargetsMatch": true,
+    "matchedEntityFieldSpanCount": 170,
+    "matchedOwnerFieldSpanCount": 16,
+    "matchedSortFieldSpanCount": 170,
+    "matchedTableCount": 16,
+    "parserCountSpanProfileCount": 16,
+    "profiles": [
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 165,
+        "entryCount": 165,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 165,
+        "tableHandle": 27706
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 5,
+        "entryCount": 5,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 5,
+        "tableHandle": 28371
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 28657
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 72751
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 74624
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 75578
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 77312
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 179212
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 180665
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 180723
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 180781
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 180871
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 180970
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 181056
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 181155
+      },
+      {
+        "allBodyAndHandleFieldSpansMatch": true,
+        "countFieldSpanComparedToParser": true,
+        "entityFieldSpanCount": 0,
+        "entryCount": 0,
+        "ownerHandleFieldMatches": true,
+        "peerDecodedTargetsMatch": true,
+        "sortFieldSpanCount": 0,
+        "tableHandle": 181213
+      }
+    ],
+    "verboseTraceAndMinJsonReferenceCodesWidthsAndTargetsMatch": true
+  },
+  "coordinateFrame": "object-relative decompressed DWG bitstream; body/handle streams separately bounded",
+  "date": "2026-11-14",
+  "id": "p6-ac1021-imperial-sortents-independent-libredwg-spans-2026-11-14",
+  "independentPeer": {
+    "executable": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "fieldPositionSource": "LibreDWG v0.14 decoder LOG_INSANE cursor positions and object bitstream bounds",
+    "minJsonSha256": "fa0a6a47d812fcc66659e56c17b7f6542dbf27a632af8cc5e3fbb94fc99c990d",
+    "name": "LibreDWG dwgread",
+    "traceSha256": "17cb4c79e7b14173c52622dafa470f88c0baf4243bad4d54f1ad42afaf062338",
+    "verbosity": 5,
+    "version": "dwgread 0.14"
+  },
+  "limitations": [
+    "The source witness is one AC1021 producer profile; it does not establish other DWG revisions or producer prevalence.",
+    "Matching reference offsets does not resolve recursive target ownership/closure, DXF output, or native draw order.",
+    "No DWG/DXF fixture was added; the existing local source was read without modification."
+  ],
+  "planImpact": {
+    "completedSlice": "Independent LibreDWG v0.14 trace agrees with libdxfrw on every SORTENTSTABLE count/body bound, sort-handle span and target, handle-stream bound, block-owner span and target, and entity-handle span and target for all 16 AC1021 profiles.",
+    "remaining": "Recursive target closure, other uncovered frame families, strict output, other producer/revision profiles, and native ordering remain open."
+  },
+  "schema": "libdxfrw.research-receipt.v1",
+  "source": {
+    "fixtureFilesAdded": 0,
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "unchangedDuringRun": true,
+    "version": "AC1021"
+  },
+  "status": "INDEPENDENT_LIBREDWG_SORTENTSTABLE_FIELD_SPAN_DIFFERENTIAL_PASS",
+  "supportClaimEffect": "none"
+}
