@@ -44,7 +44,17 @@ void disarmAllocationFailure() noexcept {
     allocationsBeforeFailure = -1;
 }
 
-enum class Profile { Face, Line };
+enum class Profile { Face, Line, Solid, Trace };
+
+const char* profileName(Profile profile) {
+    switch (profile) {
+    case Profile::Face: return "3DFACE";
+    case Profile::Line: return "3DLINE";
+    case Profile::Solid: return "SOLID";
+    case Profile::Trace: return "TRACE";
+    }
+    return "unknown";
+}
 
 DRW_3Dface makeFace() {
     DRW_3Dface face;
@@ -65,6 +75,46 @@ DRW_3DLine makeLine() {
     line.extPoint = DRW_Coord{0.0, 1.0, 0.0};
     line.thickness = 2.5;
     return line;
+}
+
+DRW_Solid makeSolid() {
+    DRW_Solid solid;
+    solid.handle = 0xD92Bu;
+    solid.basePoint = DRW_Coord{0.0, 0.0, 1.5};
+    solid.secPoint = DRW_Coord{3.0, 0.0, 1.5};
+    solid.thirdPoint = DRW_Coord{3.0, 2.0, 1.5};
+    solid.fourPoint = DRW_Coord{0.0, 2.0, 1.5};
+    solid.thickness = 0.5;
+    solid.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    return solid;
+}
+
+DRW_Trace makeTrace() {
+    DRW_Trace trace;
+    trace.handle = 0xD92Cu;
+    trace.basePoint = DRW_Coord{0.0, 0.0, 2.0};
+    trace.secPoint = DRW_Coord{3.0, 0.0, 2.0};
+    trace.thirdPoint = DRW_Coord{3.0, 2.0, 2.0};
+    trace.fourPoint = DRW_Coord{0.0, 2.0, 2.0};
+    trace.thickness = 0.75;
+    trace.extPoint = DRW_Coord{0.0, 1.0, 0.0};
+    return trace;
+}
+
+bool sameTrace(const DRW_Trace& a, const DRW_Trace& b,
+               bool compareHandle = true) {
+    return (!compareHandle || a.handle == b.handle)
+        && a.basePoint.x == b.basePoint.x
+        && a.basePoint.y == b.basePoint.y && a.basePoint.z == b.basePoint.z
+        && a.secPoint.x == b.secPoint.x && a.secPoint.y == b.secPoint.y
+        && a.secPoint.z == b.secPoint.z
+        && a.thirdPoint.x == b.thirdPoint.x
+        && a.thirdPoint.y == b.thirdPoint.y
+        && a.thirdPoint.z == b.thirdPoint.z
+        && a.fourPoint.x == b.fourPoint.x && a.fourPoint.y == b.fourPoint.y
+        && a.fourPoint.z == b.fourPoint.z
+        && a.extPoint.x == b.extPoint.x && a.extPoint.y == b.extPoint.y
+        && a.extPoint.z == b.extPoint.z && a.thickness == b.thickness;
 }
 
 bool sameFace(const DRW_3Dface& a, const DRW_3Dface& b) {
@@ -97,6 +147,8 @@ public:
         dxfW = &codec;
         face = makeFace();
         line = makeLine();
+        solid = makeSolid();
+        trace = makeTrace();
     }
 
     void writeEntities() override {
@@ -108,8 +160,12 @@ public:
             }
         } trackingScope{reached};
         armAllocationFailure(failAt);
-        accepted = profile == Profile::Face
-            ? codec.write3dface(&face) : codec.write3DLine(&line);
+        switch (profile) {
+        case Profile::Face: accepted = codec.write3dface(&face); break;
+        case Profile::Line: accepted = codec.write3DLine(&line); break;
+        case Profile::Solid: accepted = codec.writeSolid(&solid); break;
+        case Profile::Trace: accepted = codec.writeTrace(&trace); break;
+        }
     }
 
     bool finalizeDxfWrite() override { return accepted; }
@@ -119,6 +175,8 @@ public:
     dx_data storage;
     DRW_3Dface face;
     DRW_3DLine line;
+    DRW_Solid solid;
+    DRW_Trace trace;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -141,7 +199,7 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
         || data.sourceVersion != expectedVersion || data.mBlock == nullptr
         || data.mBlock->ent.size() != 1u) {
         std::cerr << "3D entity typed readback failed, profile="
-                  << (profile == Profile::Face ? "3DFACE" : "3DLINE")
+                  << profileName(profile)
                   << "\n";
         return false;
     }
@@ -164,25 +222,33 @@ bool readbackMatches(const std::filesystem::path& path, Profile profile,
             && face->fourPoint.z == expected.fourPoint.z
             && face->invisibleflag == expected.invisibleflag;
     }
-    const auto* line = dynamic_cast<const DRW_3DLine*>(entity);
-    const DRW_3DLine expected = makeLine();
-    return line != nullptr && line->eType == DRW::THREEDLINE
-        && line->basePoint.x == expected.basePoint.x
-        && line->basePoint.y == expected.basePoint.y
-        && line->basePoint.z == expected.basePoint.z
-        && line->secPoint.x == expected.secPoint.x
-        && line->secPoint.y == expected.secPoint.y
-        && line->secPoint.z == expected.secPoint.z
-        && line->extPoint.x == expected.extPoint.x
-        && line->extPoint.y == expected.extPoint.y
-        && line->extPoint.z == expected.extPoint.z
-        && line->thickness == expected.thickness;
+    if (profile == Profile::Line) {
+        const auto* line = dynamic_cast<const DRW_3DLine*>(entity);
+        const DRW_3DLine expected = makeLine();
+        return line != nullptr && line->eType == DRW::THREEDLINE
+            && line->basePoint.x == expected.basePoint.x
+            && line->basePoint.y == expected.basePoint.y
+            && line->basePoint.z == expected.basePoint.z
+            && line->secPoint.x == expected.secPoint.x
+            && line->secPoint.y == expected.secPoint.y
+            && line->secPoint.z == expected.secPoint.z
+            && line->extPoint.x == expected.extPoint.x
+            && line->extPoint.y == expected.extPoint.y
+            && line->extPoint.z == expected.extPoint.z
+            && line->thickness == expected.thickness;
+    }
+    const auto* trace = dynamic_cast<const DRW_Trace*>(entity);
+    const DRW_Trace expected = profile == Profile::Solid
+        ? static_cast<const DRW_Trace&>(makeSolid()) : makeTrace();
+    return trace != nullptr
+        && trace->eType == (profile == Profile::Solid ? DRW::SOLID : DRW::DXF_TRACE)
+        && sameTrace(*trace, expected, false);
 }
 
 bool runProfile(const std::filesystem::path& directory, Profile profile) {
     const auto fail = [profile](const char* message) {
-        std::cerr << (profile == Profile::Face ? "3DFACE" : "3DLINE")
-                  << " transaction matrix: " << message << '\n';
+        std::cerr << profileName(profile) << " transaction matrix: "
+                  << message << '\n';
         return false;
     };
     if (!std::filesystem::create_directories(directory)
@@ -198,10 +264,14 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
         {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
         {DRW::AC1027, "AC1027"}, {DRW::AC1032, "AC1032"}}};
+    const std::array<std::pair<DRW::Version, const char*>, 7> legacyVersions = {{
+        {DRW::AC1014, "AC1014"}, {DRW::AC1015, "AC1015"},
+        {DRW::AC1018, "AC1018"}, {DRW::AC1021, "AC1021"},
+        {DRW::AC1024, "AC1024"}, {DRW::AC1027, "AC1027"},
+        {DRW::AC1032, "AC1032"}}};
     const auto runVersion = [&](DRW::Version target, const char* versionName) {
         for (const bool binary : {false, true}) {
-            const std::string stem = profile == Profile::Face
-                ? "3dface-" : "3dline-";
+            const std::string stem = std::string(profileName(profile)) + "-";
             const auto output = directory
                 / (stem + versionName + (binary ? "-binary.dxf" : "-ascii.dxf"));
             std::string expectedBytes;
@@ -232,11 +302,25 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 Export exporter(codec, profile);
                 const DRW_3Dface originalFace = exporter.face;
                 const DRW_3DLine originalLine = exporter.line;
+                const DRW_Solid originalSolid = exporter.solid;
+                const DRW_Trace originalTrace = exporter.trace;
                 exporter.failAt = offset;
                 const bool written = codec.write(&exporter, target, binary);
-                const bool callerPreserved = profile == Profile::Face
-                    ? sameFace(exporter.face, originalFace)
-                    : sameLine(exporter.line, originalLine);
+                bool callerPreserved = false;
+                switch (profile) {
+                case Profile::Face:
+                    callerPreserved = sameFace(exporter.face, originalFace);
+                    break;
+                case Profile::Line:
+                    callerPreserved = sameLine(exporter.line, originalLine);
+                    break;
+                case Profile::Solid:
+                    callerPreserved = sameTrace(exporter.solid, originalSolid);
+                    break;
+                case Profile::Trace:
+                    callerPreserved = sameTrace(exporter.trace, originalTrace);
+                    break;
+                }
                 if (!allocationFailed || written
                     || exporter.reached != offset + 1 || !callerPreserved) {
                     std::cerr << "offset=" << offset
@@ -255,16 +339,21 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
                 exporter.failAt = -1;
                 const bool retried = codec.write(&exporter, target, binary);
                 std::string retryBytes;
+                const bool retryCallerPreserved = profile == Profile::Face
+                    ? sameFace(exporter.face, originalFace)
+                    : profile == Profile::Line
+                        ? sameLine(exporter.line, originalLine)
+                        : profile == Profile::Solid
+                            ? sameTrace(exporter.solid, originalSolid)
+                            : sameTrace(exporter.trace, originalTrace);
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
                     || !readbackMatches(output, profile, target)
-                    || (profile == Profile::Face
-                        ? !sameFace(exporter.face, originalFace)
-                        : !sameLine(exporter.line, originalLine)))
+                    || !retryCallerPreserved)
                     return fail("same-codec retry or typed readback failed");
             }
-            std::cout << (profile == Profile::Face ? "3DFACE " : "3DLINE ")
+            std::cout << profileName(profile) << ' '
                       << versionName << ' '
                       << (binary ? "Binary" : "ASCII")
                       << ": offsets=" << allocationCount
@@ -279,8 +368,12 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
         for (const auto& version : faceVersions)
             if (!runVersion(version.first, version.second))
                 return false;
-    } else {
+    } else if (profile == Profile::Line) {
         for (const auto& version : lineVersions)
+            if (!runVersion(version.first, version.second))
+                return false;
+    } else {
+        for (const auto& version : legacyVersions)
             if (!runVersion(version.first, version.second))
                 return false;
     }
@@ -289,7 +382,9 @@ bool runProfile(const std::filesystem::path& directory, Profile profile) {
 
 bool run(const std::filesystem::path& directory) {
     return runProfile(directory, Profile::Face)
-        && runProfile(directory, Profile::Line);
+        && runProfile(directory, Profile::Line)
+        && runProfile(directory, Profile::Solid)
+        && runProfile(directory, Profile::Trace);
 }
 } // namespace
 

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **306 completed implementation slices** and **34 remaining
+The plan records **307 completed implementation slices** and **34 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`306 / (306 + 34) = 90.0%`. This is a count-based progress measure, not an
+`307 / (307 + 34) = 90.0%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -5634,9 +5634,13 @@ AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 and 3DLINE output for
 AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary. Every cell
 sweeps all nine measured allocation offsets, verifies destination and caller
 rollback, retries through the same codec for byte-identical output, and checks
-typed geometry readback. The focused CTest passes in 2.08 seconds. This is
-generated writer transaction/self-readback evidence only; it does not qualify
-producer-authored geometry or native 3D consumers ([revision-matrix receipt](docs/research/p6-dxf-3d-entity-version-allocation-2026-11-14.json)).
+typed geometry readback. The same matrix covers generated SOLID and TRACE
+profiles across all seven revisions in ASCII and Binary, including their WCS
+corner geometry, non-default thickness, and extrusion. All 506 measured
+allocation failures preserve caller and destination state and permit
+same-codec, byte-identical retry. The focused CTest passes in 3.96 seconds.
+This is generated writer transaction/self-readback evidence only; it does not
+qualify producer-authored geometry or native 3D consumers ([revision-matrix receipt](docs/research/p6-dxf-3d-entity-version-allocation-2026-11-14.json)).
 The same whole-operation sweep now calls `writeTableStyle()` directly with a
 locally generated legacy three-row style, a nondefault emitted text style and
 six ordered borders per row. Typed readback checks the style identity/name,

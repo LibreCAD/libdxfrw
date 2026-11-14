@@ -1,8 +1,8 @@
 {
   "id": "p6-dxf-3d-entity-version-allocation-2026-11-14",
-  "title": "3DFACE and 3DLINE DXF writer revision transaction matrix",
+  "title": "3DFACE, 3DLINE, SOLID, and TRACE DXF writer revision transaction matrix",
   "date": "2026-11-14",
-  "scope": "Generated direct-writer transaction and library self-readback controls for 3DFACE and 3DLINE.",
+  "scope": "Generated direct-writer transaction and library self-readback controls for 3DFACE, 3DLINE, SOLID, and TRACE.",
   "profiles": {
     "3DFACE": {
       "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
@@ -15,11 +15,23 @@
       "encodings": ["ASCII", "Binary"],
       "allocation_offsets_per_cell": 9,
       "geometry": "Distinct 3D endpoints, non-default extrusion and thickness; AC1014 is excluded by the writer's minimum-version gate."
+    },
+    "SOLID": {
+      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "encodings": ["ASCII", "Binary"],
+      "allocation_offsets_per_cell": {"AC1014-ASCII": 9, "AC1014-Binary": 10, "other-cells": 10},
+      "geometry": "Four WCS corners at a shared elevation, non-default extrusion and thickness."
+    },
+    "TRACE": {
+      "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "encodings": ["ASCII", "Binary"],
+      "allocation_offsets_per_cell": {"ASCII": 9, "Binary": 10},
+      "geometry": "Four WCS corners at a shared elevation, non-default extrusion and thickness."
     }
   },
   "verification": {
-    "cells": 26,
-    "allocation_failures": 234,
+    "cells": 54,
+    "allocation_failures": 506,
     "checks": [
       "Every injected allocation failure fails the enclosing write while preserving the prior destination bytes and caller entity fields.",
       "Every failed cell retries through the same codec and reproduces the clean reference bytes.",
@@ -27,15 +39,15 @@
       "The generated test removes its DXF outputs; no fixture files were added."
     ],
     "focused_ctest": "ctest --test-dir build -R '^libdxfrw_3d_entity_version_allocation$' --output-on-failure",
-    "focused_ctest_result": "PASS, 1/1, 2.08 seconds",
+    "focused_ctest_result": "PASS, 1/1, 3.96 seconds",
     "direct_command": "build/tests/libdxfrw_3d_entity_version_allocation_tests build/tests/3d-entity-version-allocation",
-    "direct_result": "PASS, 26 profile/encoding cells, 234 injected allocation failures"
+    "direct_result": "PASS, 54 profile/encoding cells, 506 injected allocation failures"
   },
   "artifacts": {
     "test_source": "tests/dxf_3d_entity_version_allocation_tests.cpp",
-    "test_source_sha256": "a9bc313caa67dbc0009886f199cd56070325f55e020bcd104fd7202916d4247e",
+    "test_source_sha256": "380b59891d72b25e085d9986c62caa676f14b689042ce55b6dd3854dccda0b47",
     "test_executable": "build/tests/libdxfrw_3d_entity_version_allocation_tests",
-    "test_executable_sha256": "de9129eb8e9fae101562692349f8c16b36157f4378e9a72337eb525664aaf13b"
+    "test_executable_sha256": "bf5034a18e68bcc6ef6ea9c498bf8b10020a62a0f2942b3fe5b1990d5899315d"
   },
   "limitations": [
     "Locally generated writer and self-readback evidence only; paired implementation behavior is not independent format proof.",
