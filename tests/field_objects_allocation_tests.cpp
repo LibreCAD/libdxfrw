@@ -209,7 +209,10 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
     const auto output = directory / "field-objects-allocation.dxf";
     const std::string sentinel = "prior FIELD/FIELDLIST destination bytes\n";
-    for (const bool binary : {false, true}) {
+    const DRW::Version versions[] = {
+        DRW::AC1018, DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032};
+    for (const DRW::Version version : versions) {
+      for (const bool binary : {false, true}) {
         for (const FailureTarget target :
                 {FailureTarget::Field, FailureTarget::FieldList}) {
             long allocationCount = 0;
@@ -217,7 +220,7 @@ bool run(const std::filesystem::path& directory) {
             {
                 dxfRW codec(output.string().c_str());
                 Export exporter(codec, target, 1000000);
-                const bool wrote = codec.write(&exporter, DRW::AC1032, binary);
+                const bool wrote = codec.write(&exporter, version, binary);
                 if (!wrote || !exporter.accepted || exporter.reached <= 0
                     || !readbackMatches(output))
                     return fail("calibration write or readback failed");
@@ -237,7 +240,7 @@ bool run(const std::filesystem::path& directory) {
                 Export exporter(codec, target, offset);
                 const DRW_Field originalField = exporter.field;
                 const DRW_FieldList originalFieldList = exporter.fieldList;
-                const bool written = codec.write(&exporter, DRW::AC1032, binary);
+                const bool written = codec.write(&exporter, version, binary);
                 std::string current;
                 if (written || exporter.accepted || exporter.reached != offset + 1
                     || !allocationFailed || !readBytes(output, current)
@@ -249,7 +252,7 @@ bool run(const std::filesystem::path& directory) {
                     return fail("injected failure changed caller object state");
                 exporter.failAt = -1;
                 exporter.accepted = true;
-                const bool retry = codec.write(&exporter, DRW::AC1032, binary);
+                const bool retry = codec.write(&exporter, version, binary);
                 std::string retryBytes;
                 if (!retry || !exporter.accepted
                     || !readBytes(output, retryBytes)
@@ -258,9 +261,11 @@ bool run(const std::filesystem::path& directory) {
             }
             std::cout << (target == FailureTarget::Field ? "FIELD" : "FIELDLIST")
                       << ' ' << (binary ? "Binary" : "ASCII")
+                      << " version=" << static_cast<int>(version)
                       << ": " << allocationCount
                       << " allocation failures, destination rollback/retry/readback PASS\n";
         }
+      }
     }
     std::error_code ignored;
     std::filesystem::remove(output, ignored);

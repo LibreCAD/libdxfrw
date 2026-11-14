@@ -1,7 +1,8 @@
 {
   "title": "FIELD/FIELDLIST writer allocation rollback and retry",
   "date": "2026-11-13",
-  "scope": "Strengthen the generated whole-operation ASCII/Binary FIELD and FIELDLIST transaction control to compare the caller's complete modeled test profile after failures and verify the supported typed payload after clean same-codec retry.",
+  "scope": "Generated whole-operation ASCII/Binary FIELD and FIELDLIST transaction controls across AC1018, AC1021, AC1024, AC1027 and AC1032; compare the caller's complete modeled test profile after failures and verify typed payload after same-codec retry.",
+  "writerVersionMatrix": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
   "generatedProfiles": {
     "FIELD": {
       "handle": "0xA501",
@@ -30,12 +31,14 @@
     "build": "cmake --build build-gcc --target libdxfrw_field_objects_allocation_tests --parallel 2",
     "buildResult": "PASS",
     "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_field_objects_allocation$' --output-on-failure",
-    "ctestResult": "PASS, 1/1 (0.31 sec)",
+    "ctestResult": "PASS, 1/1 (0.35 sec)",
     "allocationSweep": {
-      "fieldAscii": "12/12 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
-      "fieldListAscii": "4/4 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
-      "fieldBinary": "11/11 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed.",
-      "fieldListBinary": "4/4 failures injected; destination and modeled caller state preserved; same-codec retry and typed readback passed."
+      "AC1018": {"fieldAscii": 11, "fieldListAscii": 5, "fieldBinary": 10, "fieldListBinary": 4, "total": 30},
+      "AC1021": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1024": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1027": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1032": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "summary": "154/154 failures injected; caller state and destination preserved; same-codec retry and typed readback passed."
     },
     "readback": "FIELD handle/owner/common metadata, extData/appData counts, evaluator and expression, CadValue format/data type/size/unit, variant code/type/double value, formatted value string/length, child/object handle vectors, and child-value count match the generated profile. FIELDLIST handle/owner/common metadata, extData/appData counts, unknown field and single FIELD member handle match.",
     "gitDiffCheck": "PASS",

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **238 completed implementation slices** and **35 remaining
+The plan records **239 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`238 / (238 + 35) = 87.2%`. This is a count-based progress measure, not an
+`239 / (239 + 35) = 87.2%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -2293,15 +2293,16 @@ transaction CTest passes in 6.26 seconds. See the
 [transaction receipt](docs/research/p6-dxf-dimension-allocation-rollback-retry-2026-11-13.json).
 
 **P6 FIELD/FIELDLIST caller-state slice (2026-11-13):** strengthened the
-existing generated whole-operation allocation control to compare the complete
-modeled FIELD value profile and common metadata before/after every injected
-failure, and to check that profile plus the FIELDLIST's single member on fresh
-readback. The four ASCII/Binary writer sweeps cover 12/11 FIELD and 4/4
-FIELDLIST allocation failures respectively; every destination rolls back and
-same-codec retry reproduces clean bytes. This checks the generated object
-profile only; root dictionary reachability, source-producer semantics and
-native field evaluation remain open. The focused CTest passes in 0.30 seconds.
-See the [FIELD/FIELDLIST receipt](docs/research/p6-dxf-field-fieldlist-allocation-rollback-retry-2026-11-13.json).
+generated whole-operation allocation control to compare the complete modeled
+FIELD value profile and common metadata before/after every injected failure,
+and to check that profile plus the FIELDLIST's single member on fresh readback.
+The writer sweeps now cover AC1018, AC1021, AC1024, AC1027 and AC1032, in ASCII
+and Binary. All 154 measured FIELD/FIELDLIST allocation failures preserve
+caller state and the destination, then pass same-codec retry and typed readback.
+This checks generated object profiles only; root dictionary reachability,
+source-producer semantics and native field evaluation remain open. The focused
+CTest passes in 0.35 seconds. See the [FIELD/FIELDLIST
+receipt](docs/research/p6-dxf-field-fieldlist-allocation-rollback-retry-2026-11-13.json).
 
 **AC1024 CLASSES high-bit string-size discrepancy:** the 2026-11-09 current-
 binary recheck confirms `operationSucceeded=true`, `legacyError=0` and no
