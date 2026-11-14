@@ -3175,6 +3175,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --layer-dxf-color-policy)
     set_tests_properties(libdxfrw_layer_dwg_cmc_roundtrip PROPERTIES
         LABELS "fast;dxf;dwg;color" TIMEOUT 30)
+    add_test(NAME libdxfrw_layer_truecolor_version_loss_retry
+        COMMAND libdxfrw_dxf_fixture_tests --layer-truecolor-version-loss-retry)
+    set_tests_properties(libdxfrw_layer_truecolor_version_loss_retry PROPERTIES
+        LABELS "fast;dxf;layer;color;versions;retry" TIMEOUT 30)
     add_test(NAME libdxfrw_view_vport_ambient_cmc
         COMMAND libdxfrw_dxf_fixture_tests --view-vport-ambient-cmc)
     set_tests_properties(libdxfrw_view_vport_ambient_cmc PROPERTIES

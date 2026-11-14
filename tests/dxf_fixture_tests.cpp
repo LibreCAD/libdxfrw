@@ -28885,6 +28885,80 @@ void testLayerDxfColorPolicy(TestContext& t) {
     std::filesystem::remove(path, error);
 }
 
+void testLayerTrueColorVersionLossRefusalAndRetry(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-layer-rgb-version-loss-"
+           + std::to_string(std::chrono::steady_clock::now()
+                                .time_since_epoch().count()));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary LAYER RGB version-loss directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    class DirectLayerWriter final : public dx_iface {
+    public:
+        DRW_Layer layer;
+        bool emitted = false;
+        void writeLayers() override {
+            emitted = dxfW->writeLayer(&layer);
+        }
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "rgb-binary.dxf" : "rgb-ascii.dxf");
+        const std::string sentinel = "layer-rgb-version-sentinel";
+        {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+        }
+        DirectLayerWriter writer;
+        dx_data data;
+        writer.cData = &data;
+        writer.currentBlock = data.mBlock;
+        writer.layer.name = "RGB_LAYER";
+        writer.layer.color = 1;
+        writer.layer.color24 = 0x123456;
+        dxfRW codec(output.string().c_str());
+        writer.dxfW = &codec;
+
+        const bool refused = !codec.write(&writer, DRW::AC1015, binary);
+        std::ifstream prior(output, std::ios::binary);
+        const std::string priorContents(
+            (std::istreambuf_iterator<char>(prior)),
+            std::istreambuf_iterator<char>());
+        const bool refusalIsAtomic = refused && !writer.emitted
+            && priorContents == sentinel;
+        t.expect(refusalIsAtomic,
+            binary ? "binary AC1015 refuses LAYER truecolor atomically"
+                   : "ASCII AC1015 refuses LAYER truecolor atomically");
+        if (!refusalIsAtomic)
+            continue;
+
+        const bool retried = codec.write(&writer, DRW::AC1018, binary);
+        dx_iface reader;
+        dx_data readback;
+        const bool loaded = retried && reader.fileImport(
+            output.string(), &readback, false);
+        const auto found = std::find_if(readback.layers.begin(),
+            readback.layers.end(), [](const DRW_Layer& value) {
+                return value.name == "RGB_LAYER";
+            });
+        t.expect(loaded && found != readback.layers.end()
+                     && found->color24 == 0x123456,
+                 binary ? "binary AC1018 retry reads back LAYER truecolor"
+                        : "ASCII AC1018 retry reads back LAYER truecolor");
+    }
+}
+
 void testViewVportAmbientColorCmc(TestContext& t) {
     struct TempFiles {
         std::vector<std::filesystem::path> paths;
@@ -68510,6 +68584,14 @@ int main(int argc, char** argv) {
         testLayerDxfColorPolicy(context);
         testLayerDxfGroup70Flags(context);
         std::cout << "Generated LAYER color and group-70 policies: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--layer-truecolor-version-loss-retry") {
+        TestContext context;
+        testLayerTrueColorVersionLossRefusalAndRetry(context);
+        std::cout << "LAYER truecolor version-loss refusal and retry: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

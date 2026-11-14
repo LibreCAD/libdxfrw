@@ -7854,6 +7854,7 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         || !ent->validateDxf()
         || !ent->getDxfMaterialHandle(material, hasMaterial)
         || (hasMaterial && version < DRW::AC1021)
+        || (ent->color24 >= 0 && version <= DRW::AC1015)
         || (!ent->colorName.empty() && version <= DRW::AC1015)) {
         m_writeError = true;
         return false;
