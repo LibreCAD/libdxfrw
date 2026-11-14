@@ -6170,10 +6170,10 @@ Native source-release builds and platform qualification remain open.
   `dwg2dxf` profiles without dropping required geometry. After the latest
   OBJECTS writer identity changes, the LibreCAD_3 facade guard, downstream
   C++14-to-C++17 contract target, and generated 3D consumer probe were rebuilt
-  against the current source; the focused probe passed 1/1. This refreshes local
-  compile and transport evidence only. Native application, ABI, independent
-  consumer, and Linux/Windows qualification remain open ([current-source
-  recheck](docs/research/p8-current-consumer-compile-and-probe-recheck-2026-11-12.json)).
+  against current HEAD `88ef24f8`; the focused probe passed 1/1 in 0.24 seconds.
+  This refreshes local compile and transport evidence only. Native application,
+  ABI, independent consumer, and Linux/Windows qualification remain open
+  ([current-source recheck](docs/research/p8-current-consumer-compile-and-probe-recheck-2026-11-14.json)).
 
 ### Incomplete TABLE proxy fallback transport (generated fast slice)
 

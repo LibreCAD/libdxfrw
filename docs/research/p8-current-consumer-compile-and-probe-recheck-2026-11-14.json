@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-current-consumer-compile-and-probe-recheck-2026-11-14",
+  "date": "2026-11-14",
+  "status": "LOCAL_COMPATIBILITY_AND_GENERATED_3D_PROBE_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the LibreCAD_3 facade API, downstream C++17 contract, and generated 3D DXF consumer probe against repository HEAD 88ef24f82007f64a19bcdbca4c378113c9bb60b6.",
+  "binding": {
+    "repositoryHead": "88ef24f82007f64a19bcdbca4c378113c9bb60b6",
+    "platform": "Darwin arm64",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "src/drw_interface.h": "a25f02effd686279f3b355a4458c52f5bbd140c6cf2576d930d706557b96b67f",
+      "tests/lc3_compat_check.cpp": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+      "tests/consumer_cxx17_contract.cpp": "d6ef0249a9559ca05d38c46029f4e1f502dd568d088f2ac6c95c263941608279",
+      "tests/semantic_differential_adapter.cpp": "b3f40115d99569ac46d11f9c7b1592c636a5cd555c9025d9b29e2a61ad772140",
+      "tests/CMakeLists.txt": "e67688c9c1405c7685bae837e076877a84b4dfd23971355a90ccc015e160286a"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "d1690ff0987412a7d594d0058eac1929415bfce95d2e09d6e9de0d67c8270242",
+      "build-gcc/tests/libdxfrw_3d_consumer_probe": "94e4b8652f128fdb8e9229c3053e7b6e18b901c1865cf7f669d155c168c28b1c"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target lc3_compat_check libdxfrw_consumer_cxx17_contract libdxfrw_3d_consumer_probe -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+      "result": "PASS 1/1 (0.24 seconds)"
+    }
+  },
+  "limitations": [
+    "The facade and language-contract targets are compile checks, not clean downstream application builds or binary ABI qualification.",
+    "The generated probe writes and reads generated ASCII/Binary DXF through libdxfrw; it does not prove independent-consumer semantics or native behavior.",
+    "Native application behavior, native Linux/Windows consumers, FreeCAD geometry profiles, hosted package CI, and release-platform policy remain open.",
+    "No DWG/DXF fixture was added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue with a source-backed P6 implementation gap; retain P4-P9 phase gates and refusal policy."
+}
