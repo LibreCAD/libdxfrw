@@ -25,6 +25,7 @@ public:
     long failAt = -1;
     long reached = 0;
     bool directTyped = false;
+    DRW::Version targetVersion = DRW::AC1027;
 
     void writeObjects() override {
         if (directTyped) {
@@ -39,8 +40,14 @@ public:
                 DRW_AcDbPlaceholder placeholder;
                 placeholder.handle = source.handle;
                 placeholder.parentHandle = source.parentHandle;
-                const bool dictionaryWritten = dxfW->writeDictionaryWithDefault(
-                    &cData->dictionaryWithDefaults.front());
+                DRW_DictionaryWithDefault dictionary =
+                    cData->dictionaryWithDefaults.front();
+                // AC1014 predates the DXF group-281 cloning field, so its
+                // only lossless/default profile is cloning value zero.
+                if (targetVersion == DRW::AC1014)
+                    dictionary.cloning = 0;
+                const bool dictionaryWritten =
+                    dxfW->writeDictionaryWithDefault(&dictionary);
                 const bool placeholderWritten = dictionaryWritten
                     && dxfW->writeAcDbPlaceholder(&placeholder);
                 return dictionaryWritten && placeholderWritten;
@@ -97,6 +104,19 @@ const char* sourceText =
     "100\nAcDbDictionary\n280\n0\n281\n1\n100\nAcDbDictionaryWithDefault\n340\n11\n"
     "0\nENDSEC\n0\nEOF\n";
 
+// AC1014 predates both the DICTIONARYWDFLT cloning field and the HEADER
+// plot-style ID. Keep a matching generated source profile for that target.
+const char* ac1014SourceText =
+    "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1014\n"
+    "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+    "0\nDICTIONARY\n5\nC\n330\n0\n100\nAcDbDictionary\n"
+    "280\n1\n281\n1\n3\nACAD_PLOTSTYLENAME\n350\n10\n"
+    "0\nACDBPLACEHOLDER\n5\n11\n330\n10\n"
+    "0\nDICTIONARYWDFLT\n5\n10\n330\nC\n"
+    "100\nAcDbDictionary\n3\nACAD_PLOTSTYLENAME\n350\n11\n"
+    "100\nAcDbDictionaryWithDefault\n340\n11\n"
+    "0\nENDSEC\n0\nEOF\n";
+
 bool readAll(const std::filesystem::path& path, std::string& value) {
     std::ifstream input(path, std::ios::binary);
     if (!input)
@@ -127,7 +147,8 @@ bool import(const std::filesystem::path& path, dx_data& data) {
     return true;
 }
 
-bool verifyGraph(const std::filesystem::path& path) {
+bool verifyGraph(const std::filesystem::path& path, int expectedCloning,
+                 bool expectHeaderPlotStyle) {
     dx_data data;
     if (!import(path, data))
         return false;
@@ -142,22 +163,28 @@ bool verifyGraph(const std::filesystem::path& path) {
         });
     std::uint64_t plotStyleHandle = 0u;
     bool hasPlotStyleHandle = false;
+    const bool headerPlotStyleValid =
+        data.headerC.getDxfPlotStyleIdHandle(
+            plotStyleHandle, hasPlotStyleHandle)
+        && (expectHeaderPlotStyle
+            ? hasPlotStyleHandle && plotStyleHandle == placeholder.handle
+            : !hasPlotStyleHandle);
     return root != data.namedObjectDictionary.m_entries.end()
         && data.namedObjectDictionary.handle == 0xCu
         && dictionary.parentHandle == data.namedObjectDictionary.handle
+        && dictionary.cloning == expectedCloning
         && dictionary.handle != placeholder.handle
         && dictionary.m_defaultEntryHandle == placeholder.handle
         && placeholder.parentHandle == dictionary.handle
         && placeholder.name == "ACDBPLACEHOLDER"
-        && data.headerC.getDxfPlotStyleIdHandle(
-               plotStyleHandle, hasPlotStyleHandle)
-        && hasPlotStyleHandle && plotStyleHandle == placeholder.handle;
+        && headerPlotStyleValid;
 }
 
 bool sourceUnchanged(const dx_data& data,
                      const DRW_DictionaryWithDefault& dictionary,
                      const DRW_RawDxfObject& placeholder,
-                     const DRW_RawDxfObject& rawDictionaryBaseline) {
+                     const DRW_RawDxfObject& rawDictionaryBaseline,
+                     bool expectHeaderPlotStyle) {
     if (!data.hasSingleSuccessfulDictionaryDefaultImport()
         || !data.hasNamedObjectDictionary
         || data.namedObjectDictionary.handle != 0xCu
@@ -213,7 +240,9 @@ bool sourceUnchanged(const dx_data& data,
         && rawDictionary.rawValues == rawDictionaryBaseline.rawValues
         && data.headerC.getDxfPlotStyleIdHandle(
                plotStyleHandle, hasPlotStyleHandle)
-        && hasPlotStyleHandle && plotStyleHandle == 0x11u;
+        && (expectHeaderPlotStyle
+            ? hasPlotStyleHandle && plotStyleHandle == 0x11u
+            : !hasPlotStyleHandle);
 }
 
 bool run(const std::filesystem::path& directory) {
@@ -228,6 +257,7 @@ bool run(const std::filesystem::path& directory) {
         return fail("could not create scratch directory");
 
     const auto sourcePath = directory / "dictionary-default-source.dxf";
+    const auto ac1014SourcePath = directory / "dictionary-default-ac1014-source.dxf";
     const auto outputPath = directory / "dictionary-default-output.dxf";
     {
         std::ofstream source(sourcePath, std::ios::binary | std::ios::trunc);
@@ -235,29 +265,47 @@ bool run(const std::filesystem::path& directory) {
         if (!source)
             return fail("could not create generated source DXF");
     }
+    {
+        std::ofstream source(ac1014SourcePath,
+                             std::ios::binary | std::ios::trunc);
+        source << ac1014SourceText;
+        if (!source)
+            return fail("could not create generated AC1014 source DXF");
+    }
     dx_data data;
+    dx_data ac1014Data;
     if (!import(sourcePath, data)
+        || !import(ac1014SourcePath, ac1014Data)
         || data.namedObjectDictionary.m_entries.size() != 1u
         || data.namedObjectDictionary.m_entries.front().m_handle != 0x10u
         || data.dictionaryWithDefaults.front().handle != 0x10u
         || data.dictionaryWithDefaults.front().m_defaultEntryHandle != 0x11u
         || data.rawPlaceholders.front().handle != 0x11u)
         return fail("generated DICTIONARYWDFLT graph did not import");
-    const DRW_DictionaryWithDefault sourceDictionary =
-        data.dictionaryWithDefaults.front();
-    const DRW_RawDxfObject sourcePlaceholder = data.rawPlaceholders.front();
     const DRW_RawDxfObject sourceRawDictionary =
         data.rawDictionaryWithDefaults.front();
+    const DRW_RawDxfObject ac1014RawDictionary =
+        ac1014Data.rawDictionaryWithDefaults.front();
     DictionaryDefaultExport exporter;
+    dx_data* activeData = &data;
     const std::string sentinel = "prior dictionary-default bytes\n";
-    const auto write = [&exporter, &data, &outputPath](
+    const auto write = [&exporter, &activeData, &outputPath](
             DRW::Version version, bool binary) {
+        exporter.targetVersion = version;
         return exporter.fileExport(outputPath.string(), version, binary,
-            &data, false, true);
+            activeData, false, true);
     };
 
     for (const DRW::Version version :
-         {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+         {DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+          DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+      activeData = version == DRW::AC1014 ? &ac1014Data : &data;
+      const DRW_DictionaryWithDefault sourceDictionary =
+          activeData->dictionaryWithDefaults.front();
+      const DRW_RawDxfObject sourcePlaceholder =
+          activeData->rawPlaceholders.front();
+      const DRW_RawDxfObject& rawDictionaryBaseline =
+          version == DRW::AC1014 ? ac1014RawDictionary : sourceRawDictionary;
       for (const bool directTyped : {false, true}) {
         if (!directTyped && version != DRW::AC1027)
             continue;
@@ -265,8 +313,12 @@ bool run(const std::filesystem::path& directory) {
         for (const bool binary : {false, true}) {
             exporter.failAt = 1000000;
             const bool wroteCalibration = write(version, binary);
+            const int expectedCloning = version == DRW::AC1014
+                ? 0 : sourceDictionary.cloning;
+            const bool expectHeaderPlotStyle = version != DRW::AC1014;
             const bool graphReadback = wroteCalibration
-                && verifyGraph(outputPath);
+                && verifyGraph(outputPath, expectedCloning,
+                               expectHeaderPlotStyle);
             if (!wroteCalibration || !graphReadback) {
                 std::cerr << "directTyped=" << directTyped
                           << " target=" << static_cast<int>(version)
@@ -294,15 +346,19 @@ bool run(const std::filesystem::path& directory) {
                 std::string current;
                 if (wrote || exporter.reached < 1
                     || !readAll(outputPath, current) || current != sentinel
-                    || !sourceUnchanged(data, sourceDictionary,
+                    || !sourceUnchanged(*activeData, sourceDictionary,
                                         sourcePlaceholder,
-                                        sourceRawDictionary))
+                                        rawDictionaryBaseline,
+                                        expectHeaderPlotStyle))
                     return fail(
                         "injected failure changed destination or source graph");
-                if (!write(version, binary) || !verifyGraph(outputPath)
-                    || !sourceUnchanged(data, sourceDictionary,
+                if (!write(version, binary)
+                    || !verifyGraph(outputPath, expectedCloning,
+                                    expectHeaderPlotStyle)
+                    || !sourceUnchanged(*activeData, sourceDictionary,
                                         sourcePlaceholder,
-                                        sourceRawDictionary))
+                                        rawDictionaryBaseline,
+                                        expectHeaderPlotStyle))
                     return fail(
                         "same-adapter retry failed typed graph readback");
             }
@@ -316,6 +372,7 @@ bool run(const std::filesystem::path& directory) {
       }
     }
     std::filesystem::remove(sourcePath, error);
+    std::filesystem::remove(ac1014SourcePath, error);
     std::filesystem::remove(outputPath, error);
     return true;
 }

@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dictionary-default-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DICTIONARY_DEFAULT_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated direct DICTIONARYWDFLT and ACDBPLACEHOLDER writer transaction evidence across admitted DXF revisions; retain the AC1027 raw-adapter control.",
+  "source": {
+    "kind": "locally authored DXF source strings written in the test scratch directory",
+    "profile": "NOD ACAD_PLOTSTYLENAME to DICTIONARYWDFLT to ACDBPLACEHOLDER, with a HEADER plot-style handle for AC1015+; AC1014 uses its own grammar-compatible source without group 281 or HEADER plot-style ID.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dictionary_default_objects_allocation_tests.cpp",
+      "docs/research/p6-dxf-dictionary-default-version-matrix-allocation-2026-11-13.json",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "1bc6d59af6676dd1eb64c2a3d8d313b6f3e0f0dd2c9f6d81ec830179b590d656",
+    "testExecutableSha256": "e526ee1c9c8a54f3bb02b311742f037282694f6cd0e01288c94f25fc03f47bae",
+    "method": "For each admitted target and encoding, calibrate the complete staged file write, inject std::bad_alloc at every measured callback allocation, require the prior destination and caller graph to remain unchanged, retry on the same adapter, and freshly read back the typed dictionary/default/placeholder graph. Verify cloning=0 at AC1014 and preservation of the CEPSNID binding only where that HEADER field is available."
+  },
+  "allocationOffsets": {
+    "AC1014": {"typedDirectASCII": 17, "typedDirectBinary": 17},
+    "AC1015": {"typedDirectASCII": 12, "typedDirectBinary": 11},
+    "AC1018": {"typedDirectASCII": 12, "typedDirectBinary": 11},
+    "AC1021": {"typedDirectASCII": 12, "typedDirectBinary": 11},
+    "AC1024": {"typedDirectASCII": 12, "typedDirectBinary": 11},
+    "AC1027": {"typedDirectASCII": 12, "typedDirectBinary": 11, "rawAdapterASCII": 25, "rawAdapterBinary": 24},
+    "AC1032": {"typedDirectASCII": 12, "typedDirectBinary": 11},
+    "totals": {"ASCII": 114, "Binary": 107, "all": 221}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dictionary_default_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 0.82 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_dictionary_default_objects_allocation_tests /private/tmp/libdxfrw-dictionary-default-matrix: PASS; all 221 allocation offsets passed destination/caller rollback, same-adapter retry and graph readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and self-readback evidence only; no producer-authored graph breadth, native plot-style behavior or independent semantic proof is established.",
+    "AC1014 correctly omits the later HEADER plot-style ID and group-281 cloning field in this profile; this is versioned codec evidence, not an adapter downgrade policy.",
+    "This does not implement LibreCAD PR #3269's separate LC_LineType/archived-DRW_LType adapter reconciliation."
+  ],
+  "planImpact": {
+    "completedSlice": "Direct DICTIONARYWDFLT plus ACDBPLACEHOLDER transaction coverage now spans AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary; the existing AC1027 raw-adapter route remains covered.",
+    "remainingP6G": "Continue the public-writer inventory for uncovered routes, overloads and profile variants; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "268 completed slices and 35 remaining packages: 268/(268+35)=88.4%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-dxf-dictionary-default-objects-allocation-failure-retry-2026-11-08.json"
+}
