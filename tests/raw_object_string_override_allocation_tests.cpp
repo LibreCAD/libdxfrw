@@ -12,6 +12,12 @@
 #include <vector>
 
 namespace {
+enum class RawWriteMode {
+    Plain,
+    StringOverrides,
+    StringAndInt32Overrides
+};
+
 long allocationsBeforeFailure = -1;
 std::size_t allocationAttempts = 0u;
 bool allocationFailed = false;
@@ -111,9 +117,9 @@ bool rawObjectMatches(const DRW_RawDxfObject& actual,
 class Export final : public dx_iface {
 public:
     explicit Export(dxfRW& codec, DRW::Version version,
-                    bool combinedOverrides)
+                    RawWriteMode mode)
         : codec(codec), object(makeRawObject(version)),
-          combinedOverrides(combinedOverrides) {
+          mode(mode) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &codec;
@@ -124,11 +130,14 @@ public:
             ~TrackingScope() { disarmAllocationFailure(); }
         } trackingScope;
         armAllocationFailure(failAt);
-        accepted = combinedOverrides
-            ? codec.writeRawDxfObjectWithStringAndInt32Overrides(
-                  &object, stringOverrides(), int32Overrides())
-            : codec.writeRawDxfObjectWithStringOverrides(
-                  &object, stringOverrides());
+        if (mode == RawWriteMode::Plain)
+            accepted = codec.writeRawDxfObject(&object);
+        else if (mode == RawWriteMode::StringAndInt32Overrides)
+            accepted = codec.writeRawDxfObjectWithStringAndInt32Overrides(
+                &object, stringOverrides(), int32Overrides());
+        else
+            accepted = codec.writeRawDxfObjectWithStringOverrides(
+                &object, stringOverrides());
         reached = static_cast<long>(allocationAttempts);
     }
 
@@ -137,7 +146,7 @@ public:
     dxfRW& codec;
     dx_data storage;
     DRW_RawDxfObject object;
-    bool combinedOverrides;
+    RawWriteMode mode;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -168,7 +177,10 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
 }
 
 bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
-                              bool expectInt32Override) {
+                              RawWriteMode mode) {
+    const bool expectStringOverrides = mode != RawWriteMode::Plain;
+    const bool expectInt32Overrides =
+        mode == RawWriteMode::StringAndInt32Overrides;
     return object.name == "XRECORD" && object.handle == 0xD8A0u
         && object.parentHandle == 0xCu && object.groups.size() == 10u
         && object.groups[0].code() == 5
@@ -177,43 +189,52 @@ bool rawObjectReadbackMatches(const DRW_RawDxfObject& object,
         && object.groups[3].code() == 1
         && object.groups[3].type() == DRW_Variant::STRING
         && object.groups[3].c_str() != nullptr
-        && std::string(object.groups[3].c_str()) == "replacement first value"
+        && std::string(object.groups[3].c_str())
+            == (expectStringOverrides ? "replacement first value"
+                                      : "original first value")
         && object.groups[4].code() == 3
         && object.groups[4].type() == DRW_Variant::STRING
         && object.groups[4].c_str() != nullptr
-        && std::string(object.groups[4].c_str()) == "replacement second value"
+        && std::string(object.groups[4].c_str())
+            == (expectStringOverrides ? "replacement second value"
+                                      : "original second value")
         && object.groups[5].code() == 2
         && object.groups[5].type() == DRW_Variant::STRING
         && object.groups[5].c_str() != nullptr
-        && std::string(object.groups[5].c_str()) == "replacement symbol name"
+        && std::string(object.groups[5].c_str())
+            == (expectStringOverrides ? "replacement symbol name"
+                                      : "original symbol name")
         && object.groups[6].code() == 6
         && object.groups[6].type() == DRW_Variant::STRING
         && object.groups[6].c_str() != nullptr
-        && std::string(object.groups[6].c_str()) == "replacement linetype"
+        && std::string(object.groups[6].c_str())
+            == (expectStringOverrides ? "replacement linetype"
+                                      : "original linetype")
         && object.groups[7].code() == 300
         && object.groups[7].type() == DRW_Variant::STRING
         && object.groups[7].c_str() != nullptr
         && std::string(object.groups[7].c_str())
-            == "replacement extended string"
+            == (expectStringOverrides ? "replacement extended string"
+                                      : "original extended string")
         && object.groups[8].code() == 90
         && object.groups[8].type() == DRW_Variant::INTEGER
-        && object.groups[8].i_val() == (expectInt32Override ? 2718 : 314)
+        && object.groups[8].i_val() == (expectInt32Overrides ? 2718 : 314)
         && object.groups[9].code() == 91
         && object.groups[9].type() == DRW_Variant::INTEGER
-        && object.groups[9].i_val() == (expectInt32Override ? -91 : 17);
+        && object.groups[9].i_val() == (expectInt32Overrides ? -91 : 17);
 }
 
 bool readbackMatches(const std::filesystem::path& path,
-                     bool combinedOverrides) {
+                     RawWriteMode mode) {
     dxfRW codec(path.string().c_str());
     Readback reader;
     const bool read = codec.read(&reader, false);
     const bool matched = read && reader.objects.size() == 1u
-        && rawObjectReadbackMatches(reader.objects.front(), combinedOverrides);
+        && rawObjectReadbackMatches(reader.objects.front(), mode);
     if (!matched) {
         std::cerr << "raw XRECORD readback diagnostics: read=" << read
                   << " objects=" << reader.objects.size()
-                  << " combined=" << combinedOverrides << '\n';
+                  << " mode=" << static_cast<unsigned>(mode) << '\n';
         for (const auto& object : reader.objects) {
             std::cerr << "  identity=" << object.name << '/' << object.handle
                       << '/' << object.parentHandle << " groups="
@@ -252,10 +273,15 @@ bool run(const std::filesystem::path& directory) {
              DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
              DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
       for (const bool binary : {false, true}) {
-        for (const bool combinedOverrides : {false, true}) {
-            const std::string outputName = (combinedOverrides
-                ? "raw-xrecord-string-int32-overrides-"
-                : "raw-xrecord-string-overrides-")
+        for (const RawWriteMode mode : {RawWriteMode::Plain,
+                                        RawWriteMode::StringOverrides,
+                                        RawWriteMode::StringAndInt32Overrides}) {
+            const char* const profile = mode == RawWriteMode::Plain
+                ? "raw-xrecord-plain-"
+                : (mode == RawWriteMode::StringAndInt32Overrides
+                    ? "raw-xrecord-string-int32-overrides-"
+                    : "raw-xrecord-string-overrides-");
+            const std::string outputName = std::string(profile)
                 + std::to_string(static_cast<int>(version))
                 + (binary ? "-binary.dxf" : "-ascii.dxf");
             const auto output = directory / outputName;
@@ -263,11 +289,11 @@ bool run(const std::filesystem::path& directory) {
             std::string expectedBytes;
             {
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, version, combinedOverrides);
+                Export exporter(codec, version, mode);
                 exporter.failAt = 1000000;
                 const bool wrote = codec.write(&exporter, version, binary);
                 if (!wrote || !exporter.accepted
-                    || !readbackMatches(output, combinedOverrides))
+                    || !readbackMatches(output, mode))
                     return fail("calibration output did not read back");
                 allocationCount = exporter.reached;
                 if (!readBytes(output, expectedBytes))
@@ -285,7 +311,7 @@ bool run(const std::filesystem::path& directory) {
                         return fail("could not initialize destination sentinel");
                 }
                 dxfRW codec(output.string().c_str());
-                Export exporter(codec, version, combinedOverrides);
+                Export exporter(codec, version, mode);
                 const DRW_RawDxfObject source = exporter.object;
                 exporter.failAt = offset;
                 const bool wrote = codec.write(&exporter, version, binary);
@@ -331,14 +357,16 @@ bool run(const std::filesystem::path& directory) {
                 if (!retried || !exporter.accepted
                     || !readBytes(output, retryBytes)
                     || retryBytes != expectedBytes
-                    || !readbackMatches(output, combinedOverrides)
+                    || !readbackMatches(output, mode)
                     || !rawObjectMatches(exporter.object, source))
                     return fail("same-codec retry failed exact bytes/readback");
             }
             std::cout << "raw XRECORD version="
                       << static_cast<int>(version) << ' '
-                      << (combinedOverrides ? "string+Int32" : "string")
-                      << " overrides "
+                      << (mode == RawWriteMode::Plain ? "plain"
+                          : (mode == RawWriteMode::StringAndInt32Overrides
+                              ? "string+Int32" : "string"))
+                      << (mode == RawWriteMode::Plain ? " " : " overrides ")
                       << (binary ? "Binary" : "ASCII")
                       << ": allocation offsets=" << allocationCount
                       << ", rollback/retry/readback=PASS\n";
