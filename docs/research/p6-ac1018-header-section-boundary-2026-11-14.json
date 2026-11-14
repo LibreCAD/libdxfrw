@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1018-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound AC1018 physical HEADER page and decoded envelope accounting for one external local sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["4.5", "9"],
+    "rules": [
+      "The R2004 section map identifies the HEADER section and its pages.",
+      "The decoded AcDb:Header envelope contains a begin sentinel, declared data size, CRC, and end sentinel; the logical section boundary determines whether any bytes remain unclaimed."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1018.dwg",
+    "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+    "size": 1097214,
+    "version": "AC1018",
+    "provenanceLimit": "The file is from a local ACadSharp sample checkout; its producer and source-generation provenance were not established. It is not a repository fixture."
+  },
+  "physicalHeaderPage": {
+    "pageNumber": 54,
+    "fileOffset": 1095008,
+    "pageBytes": 800,
+    "pageSha256": "2a7df13e088e6284d6d58a7b60af7da5b431c2b10f44afacf5b7a89d414d8061",
+    "compressedDataBytes": 740,
+    "compressedDataChecksumStored": "0x1c08db19",
+    "compressedDataChecksumCalculated": "0x1c08db19"
+  },
+  "decodedHeaderEnvelope": {
+    "logicalSectionId": 1,
+    "inputBytes": 630,
+    "beginSentinelOffset": 0,
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 592,
+    "dataOffset": 20,
+    "payloadEndOffset": 612,
+    "crcOffset": 612,
+    "storedCrc": "0x43ac",
+    "endSentinelOffset": 614,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 630,
+    "unclaimedSuffixBytes": 0,
+    "crcDisposition": "The reader's CRC check completed without a HeaderSectionCrc diagnostic; the trace prints stored CRC 0x43AC. No independent CRC implementation was run for this receipt."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1018.dwg -y -d -v2004 /private/tmp/p6-e-ac1018-probe.dxf",
+    "executableSha256": "553464f0a037426f755d633e914d45ab85a7cc4459821923ca3d3fbf0eac1f20",
+    "traceSha256": "c19e3ba1c4dce9278a3eed8eb3afc8f68c0197e772488c44f7bde7350f1b04ef",
+    "exitCode": 1,
+    "observation": "The reader decoded and parsed the HEADER envelope with zero unclaimed bytes. Whole-file DXF export later stopped at strict IMAGEDEF/reactor source-correlation preflight; that later failure does not establish a HEADER failure."
+  },
+  "limitations": [
+    "One local sample with unknown producer provenance does not qualify an AC1018 producer profile.",
+    "The exact-header sample does not classify the separate 739-byte unclaimed suffix in the two ODA File Converter AC1018 maintenance-55 witnesses documented in p6-ac1018-oda-header-suffix-diagnostic-admission-2026-11-03.json.",
+    "No output or support claim is promoted; the ODA-produced suffix cases remain strictly refused."
+  ]
+}
