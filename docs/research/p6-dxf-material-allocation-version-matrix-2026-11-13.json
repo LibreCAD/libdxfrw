@@ -8,7 +8,7 @@
   "source": {
     "kind": "deterministic locally-authored AC1024 in-memory DWG source profile generated from a bounded MATERIAL object frame",
     "profile": "One ACAD_MATERIAL NOD entry and dictionary, a ByBlock MATERIAL, its extension dictionary, nondefault material controls, and diffuse/refraction map data.",
-    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
     "olderTargetRefusal": {
       "targetVersion": "AC1014",
       "encoding": "ASCII",
@@ -27,21 +27,23 @@
       "docs/research/p6-dxf-material-allocation-version-matrix-2026-11-13.json"
     ],
     "productionCodeChanged": false,
-    "testSourceSha256": "39e792df2232f318d1d08bb0f7f827987f8793a552df259d0c7fb5f9b9a5e636",
-    "testExecutableSha256": "1ac7d41bc92ce5dcb46ee919e347c6045a880b1d51781e0be54b821eab7806cb",
+    "testSourceSha256": "4bb251143775d0dd1c4b86d83129e99a1c9a12bf217b2b94c08fdc2403ab0abd",
+    "testExecutableSha256": "e3529afa88546a985e84d1788180e1612f388ea512e07a11d9b5573671d98b6b",
     "method": "Run the existing whole-file adapter allocation-failure sweep for each target revision and encoding. Preserve a destination sentinel and compare every modeled source field after every injected failure and same-adapter retry; require typed rooted graph readback."
   },
   "allocationOffsets": {
+    "AC1015": {"ASCII": 41, "Binary": 40},
+    "AC1018": {"ASCII": 41, "Binary": 40},
     "AC1021": {"ASCII": 40, "Binary": 39},
     "AC1024": {"ASCII": 40, "Binary": 39},
     "AC1027": {"ASCII": 40, "Binary": 39},
     "AC1032": {"ASCII": 40, "Binary": 39},
-    "total": 316
+    "total": 478
   },
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_material_objects_allocation_tests -j4: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_material_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.09 seconds",
-    "directControl": "build-gcc/tests/libdxfrw_material_objects_allocation_tests build-gcc/material-objects-allocation-scratch: PASS; AC1014 generated-source down-save refusal preserves destination/caller state; 316 injected offsets across four supported transaction target revisions and two encodings",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_material_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.41 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_material_objects_allocation_tests build-gcc/material-objects-allocation-scratch: PASS; AC1014 generated-source down-save refusal preserves destination/caller state; 478 injected offsets across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 and ASCII/Binary",
     "diffCheck": "PASS"
   },
   "limitations": [
@@ -49,10 +51,10 @@
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "The generated rooted MATERIAL graph now preserves source/destination state, retries, and passes typed readback at AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary.",
+    "completedSlice": "The generated rooted MATERIAL graph now preserves source/destination state, retries, and passes typed readback at AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary; AC1014 is refused atomically for this AC1024 source profile.",
     "remainingP6G": "Continue the remaining public-writer inventory and caller-state audit; preserve source-profile, graph-closure, and semantic gates.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "262 completed slices and 35 remaining packages: 262/(262+35)=88.2%; count-based, not effort-weighted."
+    "progressEstimate": "263 completed slices and 35 remaining packages: 263/(263+35)=88.3%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-dxf-dimassoc-version-matrix-allocation-rollback-retry-2026-11-13.json"
 }

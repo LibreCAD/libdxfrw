@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-13)
 
-The plan records **262 completed implementation slices** and **35 remaining
+The plan records **263 completed implementation slices** and **35 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`262 / (262 + 35) = 88.2%`. This is a count-based progress measure, not an
+`263 / (263 + 35) = 88.3%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -1299,16 +1299,16 @@ meaning remain open
 ([version-matrix receipt](docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G MATERIAL OBJECTS writer version-matrix follow-up (2026-11-13):** the
-generated rooted `ACAD_MATERIAL` graph now passes AC1021, AC1024, AC1027, and
-AC1032 in ASCII and Binary. All 40 ASCII and 39 Binary allocation failures per
-profile preserve the destination and source graph; same-adapter retries and
-fresh typed graph readback pass. The 316-offset focused CTest passes in 1.09
-seconds. This qualifies generated transaction behavior only; producer profiles,
-material semantics, and native rendering remain open. The generated AC1024
-source profile is refused atomically when targeting AC1014; the sentinel and
-source graph remain unchanged, and the subsequent AC1021+ matrix succeeds.
-This is a profile-specific refusal, not a general MATERIAL version boundary
-claim
+generated rooted `ACAD_MATERIAL` graph now passes AC1015, AC1018, AC1021,
+AC1024, AC1027, and AC1032 in ASCII and Binary. Each lane injects 41 ASCII/40
+Binary allocation failures at AC1015/AC1018 and 40/39 at later revisions;
+every failure preserves the destination and source graph, then same-adapter
+retry and fresh typed readback pass. The 478-offset focused CTest passes in
+1.41 seconds. The generated AC1024 source profile is refused atomically at
+AC1014, preserving the sentinel and source graph. This qualifies generated
+transaction behavior only; producer profiles, material semantics, and native
+rendering remain open. AC1014 is a profile-specific refusal, not a general
+MATERIAL version boundary claim
 ([receipt](docs/research/p6-dxf-material-allocation-version-matrix-2026-11-13.json)).
 
 **P6-G IMAGEBACKGROUND writer version-matrix transaction follow-up

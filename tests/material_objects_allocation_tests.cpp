@@ -278,7 +278,8 @@ bool run(const std::filesystem::path& directory) {
         return fail("AC1014 down-save refusal changed output or source MATERIAL");
 
     for (const DRW::Version version :
-         {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+         {DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024,
+          DRW::AC1027, DRW::AC1032}) {
         for (const bool binary : {false, true}) {
             exporter.failAt = 1000000;
             if (!write(version, binary) || !verifyGraph(output))
