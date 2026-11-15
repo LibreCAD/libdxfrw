@@ -11177,6 +11177,41 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             }
             return connected(previous, first);
         };
+        const auto fullCircleFor = [](const DRW_HatchLoop& loop, PolygonSegment& circle) {
+            if ((loop.type & 2) != 0 || loop.objlist.size() != 1
+                || !loop.objlist[0] || loop.objlist[0]->eType != DRW::ARC)
+                return false;
+            const auto* arc = dynamic_cast<const DRW_Arc*>(loop.objlist[0].get());
+            if (arc == nullptr || (arc->isccw != 0 && arc->isccw != 1)
+                || !std::isfinite(arc->radious) || arc->radious <= 0.0
+                || !std::isfinite(arc->staangle) || !std::isfinite(arc->endangle))
+                return false;
+            constexpr double fullTurn = 2.0 * M_PI;
+            const double span = std::abs(arc->endangle - arc->staangle);
+            if (!std::isfinite(span)
+                || std::abs(span - fullTurn)
+                    > 8.0 * std::numeric_limits<double>::epsilon() * fullTurn)
+                return false;
+            const double angle = arc->isccw ? arc->staangle : -arc->staangle;
+            const double dx = arc->radious * std::cos(angle);
+            const double dy = arc->radious * std::sin(angle);
+            circle = {arc->basePoint.x + dx, arc->basePoint.y + dy,
+                      arc->basePoint.x - dx, arc->basePoint.y - dy,
+                      arc->isccw ? 1.0 : -1.0};
+            const double tolerance = 1e-10 * arc->radious;
+            const double chord = std::hypot(circle.endX - circle.startX,
+                                            circle.endY - circle.startY);
+            const double diameter = 2.0 * arc->radious;
+            return std::isfinite(circle.startX) && std::isfinite(circle.startY)
+                && std::isfinite(circle.endX) && std::isfinite(circle.endY)
+                && std::isfinite(chord) && std::isfinite(diameter)
+                && chord > 0.0 && diameter > 0.0
+                && std::abs((circle.startX - arc->basePoint.x) - dx) <= tolerance
+                && std::abs((circle.startY - arc->basePoint.y) - dy) <= tolerance
+                && std::abs((circle.endX - arc->basePoint.x) + dx) <= tolerance
+                && std::abs((circle.endY - arc->basePoint.y) + dy) <= tolerance
+                && std::abs(chord - diameter) <= 1e-10 * diameter;
+        };
         const bool polylineOnly = m_dxfWriteAttemptActive
             ? m_mPolygonPolylinePathsOnlySelected : m_mPolygonPolylinePathsOnly;
         if (polylineOnly) {
@@ -11186,8 +11221,10 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                         loop->objlist.front().get());
                     if (polyline == nullptr || polyline->vertlist.empty())
                         return m_dxfWriteAttemptActive ? failDxfWrite() : false;
-                } else if (!canProjectPolyline(*loop)) {
-                    return m_dxfWriteAttemptActive ? failDxfWrite() : false;
+                } else {
+                    PolygonSegment circle{};
+                    if (!fullCircleFor(*loop, circle) && !canProjectPolyline(*loop))
+                        return m_dxfWriteAttemptActive ? failDxfWrite() : false;
                 }
             }
         }
@@ -11208,6 +11245,22 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         writer->writeInt32(91, loopCount);
         for (int i = 0; i < loopCount; ++i) {
             DRW_HatchLoop *loop = ent->looplist.at(i).get();
+            PolygonSegment circle{};
+            if (fullCircleFor(*loop, circle)) {
+                writer->writeInt32(92, loop->type | 2);
+                writer->writeInt16(73, 1);
+                writer->writeInt16(72, 1);
+                writer->writeInt32(93, 2);
+                writer->writeDouble(10, circle.startX);
+                writer->writeDouble(20, circle.startY);
+                writer->writeDouble(42, circle.bulge);
+                writer->writeDouble(10, circle.endX);
+                writer->writeDouble(20, circle.endY);
+                writer->writeDouble(42, circle.bulge);
+                if (!writeBoundaryHandles(*loop))
+                    return false;
+                continue;
+            }
             if (canProjectPolyline(*loop)) {
                 bool hasBulge = false;
                 for (const auto& edge : loop->objlist) {

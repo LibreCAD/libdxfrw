@@ -254,6 +254,90 @@ bool runPolicy(bool binary) {
     if (!ok) std::cerr << "MPOLYGON polyline-only policy failed: binary=" << binary << '\n';
     return ok;
 }
+
+bool runFullCircle(bool binary, bool ccw, bool strict, int profile,
+                   DRW::Version version) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-circle-" + std::to_string(nonce) + ".dxf");
+    Emitter emitter(ccw, false, {0.3, 0.3 + 2.0 * M_PI, 1.0});
+    auto& loop = *emitter.polygon.looplist[0];
+    loop.objlist.erase(loop.objlist.begin());
+    auto* arc = static_cast<DRW_Arc*>(loop.objlist[0].get());
+    if (profile == 1) arc->endangle -= 1e-8; // near-full remains an edge
+    if (profile == 2) arc->basePoint.x += 1e16; // precision fallback
+    dxfRW output(path.string().c_str());
+    output.setMPolygonPolylinePathsOnly(strict);
+    emitter.writer = &output;
+    {
+        std::ofstream sentinel(path, std::ios::binary);
+        sentinel << "prior output";
+    }
+    bool ok = true;
+    if (profile == 0) {
+        arc->radious = -1.0;
+        ok = !output.write(&emitter, version, binary) && !emitter.accepted;
+        {
+            std::ifstream preserved(path, std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(preserved)),
+                                    std::istreambuf_iterator<char>());
+            ok = ok && bytes == "prior output" && arc->radious == -1.0;
+        }
+        arc->radious = 5.0;
+    }
+    const bool expected = profile == 0 || !strict;
+    ok = (output.write(&emitter, version, binary) == expected)
+        && emitter.accepted == expected && ok;
+    if (!expected) {
+        std::ifstream preserved(path, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(preserved)),
+                                std::istreambuf_iterator<char>());
+        ok = ok && bytes == "prior output";
+    } else {
+        Capture capture;
+        dxfRW input(path.string().c_str());
+        ok = input.read(&capture, false) && capture.count == 1 && ok;
+        if (capture.polygon.looplist.size() != 1 || !capture.polygon.looplist[0]
+            || capture.polygon.looplist[0]->objlist.size() != 1) {
+            ok = false;
+        } else {
+            const auto& result = *capture.polygon.looplist[0];
+            ok = ok && result.m_boundaryHandles == std::vector<std::uint32_t>({0x50u});
+            if (profile == 0) {
+                const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(result.objlist[0].get());
+                const double angle = ccw ? 0.3 : -0.3;
+                ok = ok && (result.type & 2) != 0 && polyline
+                    && (polyline->flags & 1) != 0 && polyline->vertlist.size() == 2
+                    && polyline->vertlist[0] && polyline->vertlist[1]
+                    && std::abs(polyline->vertlist[0]->x - (5.0 + 5.0 * std::cos(angle))) < 1e-12
+                    && std::abs(polyline->vertlist[0]->y - 5.0 * std::sin(angle)) < 1e-12
+                    && std::abs(polyline->vertlist[1]->x - (5.0 - 5.0 * std::cos(angle))) < 1e-12
+                    && std::abs(polyline->vertlist[1]->y + 5.0 * std::sin(angle)) < 1e-12
+                    && polyline->vertlist[0]->bulge == (ccw ? 1.0 : -1.0)
+                    && polyline->vertlist[1]->bulge == (ccw ? 1.0 : -1.0);
+            } else {
+                ok = ok && (result.type & 2) == 0
+                    && result.objlist[0]->eType == DRW::ARC;
+            }
+        }
+    }
+    ok = ok && loop.type == 0 && loop.objlist.size() == 1
+        && loop.objlist[0]->eType == DRW::ARC;
+    std::error_code ignored;
+    if (peerOutput && version == DRW::AC1021 && profile == 0 && !strict) {
+        const auto name = std::string("circle-") + (binary ? "binary-" : "ascii-")
+            + (ccw ? "ccw.dxf" : "cw.dxf");
+        std::filesystem::copy_file(path, std::filesystem::path(peerOutput) / name,
+            std::filesystem::copy_options::overwrite_existing, ignored);
+        ok = !ignored && ok;
+        ignored.clear();
+    }
+    std::filesystem::remove(path, ignored);
+    if (!ok) std::cerr << "MPOLYGON full-circle profile failed: binary=" << binary
+        << " ccw=" << ccw << " strict=" << strict << " profile=" << profile
+        << " version=" << static_cast<int>(version) << '\n';
+    return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -284,5 +368,13 @@ int main(int argc, char** argv) {
             ok = runPrecisionProfile(binary, mode) && ok;
     for (bool binary : {false, true})
         ok = runPolicy(binary) && ok;
+    for (DRW::Version version : {DRW::AC1014, DRW::AC1015, DRW::AC1018,
+                                 DRW::AC1021, DRW::AC1024, DRW::AC1027,
+                                 DRW::AC1032})
+        for (bool binary : {false, true})
+            for (bool ccw : {false, true})
+                for (bool strict : {false, true})
+                    for (int profile : {0, 1, 2})
+                        ok = runFullCircle(binary, ccw, strict, profile, version) && ok;
     return ok ? 0 : 1;
 }

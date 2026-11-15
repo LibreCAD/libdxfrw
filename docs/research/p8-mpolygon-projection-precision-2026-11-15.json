@@ -14,7 +14,7 @@
   ],
   "limits": [
     "The 1e-10 tolerance is an admission threshold, not an exhaustive numerical proof for all finite inputs; unqualified cases keep the existing edge representation.",
-    "Native application rendering, full-circle projection, and the remaining LibreCAD extended-geometry expectation remain open.",
+    "Native application rendering, mixed-edge full-circle projection, and native extended-geometry behavior remain open.",
     "No DWG or DXF fixture files were added."
   ]
 }

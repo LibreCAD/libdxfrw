@@ -16,7 +16,7 @@
   "limits": [
     "The local LibreCAD adapter and focused tests pass both linked builds; this is not a current-head integration or complete application qualification.",
     "The setting affects only typed writeMPolygon calls; raw replay, native rendering and other MPOLYGON fields are not covered.",
-    "Full-circle projection and broader consumer/platform and ABI qualification remain open.",
+    "Mixed-edge full-circle projection and broader consumer/platform and ABI qualification remain open.",
     "No DWG or DXF fixture files were added."
   ]
 }

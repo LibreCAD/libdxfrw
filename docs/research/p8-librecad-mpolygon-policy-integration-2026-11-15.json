@@ -21,7 +21,7 @@
   "limits": [
     "The downstream patches are local and unmerged, and have not been checked against a newer LibreCAD head.",
     "The application adapter compiles with the setting, but this is not an end-to-end application save qualification. The policy applies only to typed MPOLYGON writes, not raw replay.",
-    "Native rendering, full-circle projection, 3D consumers, full LibreCAD_3 and binary ABI/platform qualification remain open.",
+    "Native rendering, mixed-edge full-circle projection, 3D consumers, full LibreCAD_3 and binary ABI/platform qualification remain open.",
     "No DWG or DXF fixture files were added."
   ]
 }

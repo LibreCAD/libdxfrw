@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-full-circle-projection-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_single_arc_full_circle_projection",
+  "supportClaimEffect": "none",
+  "finding": "The bundled LibreCAD writer represents a full-circle MPOLYGON arc as two half-circle bulges. The upstream polyline-only policy initially refused that boundary.",
+  "change": "Project a one-edge full circular arc to a closed two-vertex polyline with signed unit bulges, provided its angular span is within eight machine epsilons of one full turn and its endpoint offsets and diameter meet the radius-relative precision guard. Other arc profiles retain the previous path or are refused by the opt-in policy.",
+  "verification": [
+    "Before the change, all eight exact-circle direction/encoding/policy profiles failed the expected projection; they pass afterwards.",
+    "The generated matrix covers seven DXF revisions, ASCII/Binary, both directions, default and polyline-only modes, full-circle output, near-full and large-coordinate fallback, invalid-radius failure followed by same-writer retry, original source state and boundary-handle readback.",
+    "ezdxf 1.4.5 reconstructs both semicircles' centers, radii, sweep and orientation for four independent ASCII/Binary and direction profiles; the optional peer tool creates and removes scratch files.",
+    "The upstream-linked LibreCAD DIMASSOC/MPOLYGON selector remains 12/12 passing, and adjacent HATCH/MPOLYGON tests pass."
+  ],
+  "limits": [
+    "The angular-span tolerance normalizes deviations within eight machine epsilons of one turn; it is not an exact raw-angle preservation claim.",
+    "Only isolated one-edge circles are projected; mixed-edge full circles, native rendering, arbitrary applications and 3D consumer behavior remain unqualified.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

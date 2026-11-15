@@ -63,6 +63,25 @@ def check(directory, binary, ccw, start, end):
                               actual_sweep, expected_sweep, arc_start[2]))
 
 
+def check_circle(directory, binary, ccw):
+    name = (f"circle-{'binary' if binary else 'ascii'}-"
+            f"{'ccw' if ccw else 'cw'}.dxf")
+    entities = list(ezdxf.readfile(directory / name).modelspace().query("MPOLYGON"))
+    if len(entities) != 1:
+        raise AssertionError((name, "entity count", len(entities)))
+    path = entities[0].paths[0]
+    if not path.is_closed or len(path.vertices) != 2:
+        raise AssertionError((name, "circle path", path.vertices))
+    for index in range(2):
+        start = path.vertices[index]
+        end = path.vertices[(index + 1) % 2]
+        center, first, last, radius = bulge_to_arc(start[:2], end[:2], start[2])
+        if not (close(center.x, 5.0) and close(center.y, 0.0)
+                and close(radius, 5.0) and close((last - first) % math.tau, math.pi)
+                and (start[2] > 0.0) == ccw):
+            raise AssertionError((name, "circle segment", index, center, radius))
+
+
 def main():
     if len(sys.argv) != 2:
         raise SystemExit(f"usage: {sys.argv[0]} GENERATOR")
@@ -74,9 +93,10 @@ def main():
             for ccw in (False, True):
                 for start, end in PROFILES:
                     check(directory, binary, ccw, start, end)
-        if len(list(directory.glob("*.dxf"))) != 16:
-            raise AssertionError("Expected exactly 16 generated peer files")
-    print(f"ezdxf {ezdxf.__version__}: 16 MPOLYGON arc reconstructions PASS")
+                check_circle(directory, binary, ccw)
+        if len(list(directory.glob("*.dxf"))) != 20:
+            raise AssertionError("Expected exactly 20 generated peer files")
+    print(f"ezdxf {ezdxf.__version__}: 16 arcs and 4 full circles PASS")
 
 
 if __name__ == "__main__":
