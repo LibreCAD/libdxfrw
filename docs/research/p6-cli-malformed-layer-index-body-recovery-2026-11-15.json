@@ -1,0 +1,43 @@
+{
+  "title": "Generated LAYER_INDEX body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_LAYER_INDEX_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for bounded malformed LAYER_INDEX OBJECTS bodies across six generated DWG revisions, including continuation, strict refusal, and explicit-partial output readback where admitted.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DRW_LayerIndex has typed DWG parse and write routes. Its generated entry points to a real IDBUFFER, whose object-ID list points to the following LINE, keeping both referenced targets present in the source profile."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-layer-index-body-source",
+    "profile": "One LAYER_INDEX entry (index 1, name RECOVERY_LAYER, entry handle 0x702) targets an IDBUFFER at 0x702; that IDBUFFER points to the following LINE at 0x703.",
+    "mutation": "The generator searches the bounded object frame for a one-bit mutation rejected by DRW_LayerIndex::parseDwg while preserving the object handle and common prologue."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1015"},
+    "AC1018": {"controls": 5, "output_revision": "AC1018"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and partial output remain refused by the existing source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after the receipt and plan update.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_layer_index_recovery$' --output-on-failure passed 1/1 in 1.15 seconds; verbose rerun reports 28 controls and passed in 0.91 seconds total.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate remains at its latest recorded 917 controls / 29.40 seconds and was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and disposition evidence only; producer-authored LAYER_INDEX semantics and native selection behavior are not qualified.",
+    "The generated entry-to-IDBUFFER-to-LINE graph keeps the tested targets present but does not establish arbitrary LAYER_INDEX graph closure or owner policy.",
+    "AC1027 output remains refused by the source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}
