@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **558 completed implementation and qualification slices** and **32 remaining
+The plan records **559 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`558 / (558 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
+`559 / (559 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -138,6 +138,21 @@ full-circle arcs before extending it ([projection receipt](docs/research/p8-mpol
 DIMASSOC raw replay and native associative behavior also remain open
 ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
+
+**P6-E adjacent packet — ODA AC1024 VISUALSTYLE extension graph.** Two
+locally generated ODA DWGs each contain 24 styles with a style-owned extension
+dictionary and one `ACAD_XREC_ROUNDTRIP` XRECORD. LibreDWG's independent DWG
+decode and ODA's returned DXF agree on all 126 ordered payload values for each
+style, matched by unique description because ODA renumbers handles
+([receipt](docs/research/p6-oda-ac1024-visualstyle-extension-graph-2026-11-15.json)).
+First bind libdxfrw's 24 typed records, extension links, dictionary/XRECORD
+frames and complete payloads to those source identities. If they agree, adapt
+the existing AC1021 extension-graph admission and selected-graph output tests
+for this exact 126-value AC1024 profile, preserving role and owner closure,
+ASCII/Binary readback, mutation refusal, destination rollback and same-adapter
+retry. Verify that the intended graph is emitted and then rerun the partial
+diagnostic; the independent HEADER suffix gate remains closed. ODA-generated
+inputs and peer agreement do not establish native semantic support.
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now

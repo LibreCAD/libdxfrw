@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "ODA AC1024 VISUALSTYLE extension graph and independent payload comparison",
+  "status": "GENERATED_SOURCE_PEER_GRAPH_COMPARISON",
+  "supportClaimEffect": "none",
+  "scope": "Two from-scratch generated mesh DXFs converted to AC1024 DWG by ODA File Converter 27.1.0.0 and returned by ODA to DXF; no sample files are committed.",
+  "tools": {
+    "independentDwgReader": "LibreDWG dwgread 0.14 JSON",
+    "comparison": "Scratch Python script /private/tmp/compare-oda-visualstyles.py; normalizes numeric values but retains all group codes, values and order. Matches unique VISUALSTYLE description within each input; does not assume ODA preserves handles."
+  },
+  "samples": [
+    {
+      "name": "polyface",
+      "dwgSha256": "f18332b967e99776adac0e0cf1a6a66612275e270604f7591478586802573c13",
+      "odaReturnedDxfSha256": "c1827537abf8400a20277d2d6f8ec4463223d992cf653270b47f3a25791fdb23",
+      "libredwgJsonSha256": "911eba4900d3710b7d220b97201762cda23e03735004cf37dd0492c3df92598b"
+    },
+    {
+      "name": "closedmesh",
+      "dwgSha256": "df2ec8285245a09a0ba709672797df2d0fcc2d16906aac7d8462c2a7496d10b5",
+      "odaReturnedDxfSha256": "0f04e390fdca642bcbf6271d39118a046de113a35553c8bf7cce100aa3bc3d3f",
+      "libredwgJsonSha256": "a8126e4e67f595aa5eb81a468d5b99bef22b1165851c7893b35447d8b9dcf2d1"
+    }
+  ],
+  "observation": {
+    "eachDwg": "24 uniquely described VISUALSTYLE records; each has an H3 extension link to a DICTIONARY owned by that style; each dictionary has cloning=1, hardOwner=1 and exactly one H2 ACAD_XREC_ROUNDTRIP entry to an XRECORD owned by and reacting to the dictionary. These source facts are from LibreDWG JSON, not yet correlated with libdxfrw standard-object physical frames.",
+    "payload": "For each of 24 style descriptions in each sample, all 126 ordered XRECORD group-code/value pairs in LibreDWG source decode agree with the XRECORD reached through the ODA-returned DXF extension graph. Numeric DXF formatting differences were normalized before comparison.",
+    "diagnostic": "libdxfrw --allow-partial-dwg-read refuses at VISUALSTYLE carrier coverage. Its AC1024 typed profile requires no extension dictionary, so the observed graph is outside the admitted profile. Strict conversion independently refuses unclaimed HEADER suffix bytes."
+  },
+  "nextAction": "Bind libdxfrw typed style/dictionary/XRECORD capture and physical frames to these graphs. Adapt the existing AC1021 extension-graph source admission and tests only for the proven AC1024 profile, with exact emitted references/payload, ASCII/Binary fresh readback, failure rollback and retry. Then rerun partial diagnostics; retain strict HEADER refusal.",
+  "limits": [
+    "Locally generated ODA sources, not independently authenticated producer-authored drawings.",
+    "LibreDWG source decoding and ODA DXF agree on payload order and value but do not establish visual semantics, native consumer behavior or source bit spans.",
+    "Comparison matches unique descriptions and follows each source/output graph; no claim that handles remain equal.",
+    "No libdxfrw source-frame or output closure established in this receipt; no support claim is promoted."
+  ]
+}
