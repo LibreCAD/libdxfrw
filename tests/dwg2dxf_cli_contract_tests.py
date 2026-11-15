@@ -2373,6 +2373,16 @@ def check_malformed_motionpath_body(converter, root, writer):
         "--generate-cli-malformed-motionpath-body-source", profiles)
 
 
+def check_malformed_sunstudy_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "SUNSTUDY",
+        "--generate-cli-malformed-sunstudy-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3691,6 +3701,8 @@ def main():
                     converter, root, args.writer))
             motionpath_checked = check_malformed_motionpath_body(
                 converter, root, args.writer)
+            sunstudy_checked = check_malformed_sunstudy_body(
+                converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3716,7 +3728,8 @@ def main():
                   f"{background_image_checked} IMAGEBACKGROUND, "
                   f"{background_ibl_checked} IBLBACKGROUND, "
                   f"{background_skylight_checked} SKYLIGHTBACKGROUND, "
-                  f"{motionpath_checked} MOTIONPATH, and "
+                  f"{motionpath_checked} MOTIONPATH, "
+                  f"{sunstudy_checked} SUNSTUDY, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "
