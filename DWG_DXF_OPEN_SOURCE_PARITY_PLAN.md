@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **441 completed implementation and qualification slices** and **30 remaining
+The plan records **442 completed implementation and qualification slices** and **29 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`441 / (441 + 30) = 93.6%`. This is a count-based progress measure, not an
+`442 / (442 + 29) = 93.8%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -723,6 +723,8 @@ The PointCloud reactor/ReactorEx body profile also has the dedicated
 `dwg2dxf_cli_pointcloud_reactor_recovery` selector.
 The modern SUN body profile has the dedicated `dwg2dxf_cli_sun_recovery`
 selector.
+The legacy SUNSTUDY profile now has `dwg2dxf_cli_sunstudy_recovery`, so its ten
+recovery controls run independently of the 29-second aggregate.
 
 **P6-F forty-fifth generated OBJECTS body recovery profile (2026-11-15):**
 `POINTCLOUDDEFREACTOR` and `POINTCLOUDDEFREACTOREX` now have bounded malformed

@@ -29,6 +29,7 @@
     "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
     "diff_check": "git diff --check passed.",
     "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 28.07 seconds.",
+    "dedicated_test": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_sunstudy_recovery$' passed 1/1 and reported 10 controls.",
     "cohort": "863 controls, up from 853."
   },
   "modern_revision_exclusions": {

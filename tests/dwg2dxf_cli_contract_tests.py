@@ -3855,6 +3855,8 @@ def main():
                         help="run only generated skipped-record disposition controls")
     parser.add_argument("--sunstudy-observation-only", action="store_true",
                         help="run only explicit DXF source observation CLI controls")
+    parser.add_argument("--sunstudy-recovery-only", action="store_true",
+                        help="run only generated legacy SUNSTUDY recovery controls")
     parser.add_argument("--sun-only", action="store_true",
                         help="run only generated SUN recovery controls")
     args = parser.parse_args()
@@ -3872,6 +3874,11 @@ def main():
         if args.sunstudy_observation_only:
             checked = check_sunstudy_observation_cli(converter, root)
             print(f"SUNSTUDY observation CLI: PASS ({checked} route/refusal controls)")
+            return
+        if args.sunstudy_recovery_only:
+            checked = check_malformed_sunstudy_body(
+                converter, root, args.writer)
+            print(f"CLI SUNSTUDY recovery: PASS ({checked} controls)")
             return
         if args.sun_only:
             checked = check_malformed_sun_body(converter, root, args.writer)
