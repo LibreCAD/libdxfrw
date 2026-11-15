@@ -21,5 +21,10 @@
     "Permits bounded tolerant import only; anomalous roles remain integrity errors and cannot promote strict output or broader producer support.",
     "No new DWG/DXF fixture committed."
   ],
-  "followup": "The subsequently corrected isolated large-radial fixture projection passes the complete local fixture test; see p8-large-radial-fixture-projection-2026-11-15.json."
+  "followup": "The subsequently corrected isolated large-radial fixture projection passes the complete local fixture test; see p8-large-radial-fixture-projection-2026-11-15.json.",
+  "hosted_linux_followup": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43720529635/job/132831392926",
+    "source_commit": "58f5452c617e60a2761c0b5e3533772482378fc9",
+    "result": "The focused Linux run still fails, but confirms DWG fixture assertions fall from 19 to two and reader-matrix assertions from 13 to nine; the independent large-radial test-projection correction was committed later and is not in this run. The local roundtrip retains 363 cascading failures."
+  }
 }
