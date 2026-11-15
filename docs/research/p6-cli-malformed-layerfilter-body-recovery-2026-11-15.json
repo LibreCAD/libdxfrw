@@ -1,0 +1,43 @@
+{
+  "title": "Generated LAYERFILTER malformed-body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_LAYERFILTER_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for one bounded malformed LAYERFILTER OBJECTS body across six generated DWG revisions, including following-frame continuation, strict refusal, and explicit-partial output readback where admitted.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser recovery inventory",
+    "reason": "DRW_LayerFilter has a bounded typed DWG parser with a counted vector of variable-text names, allowing a small generated failure profile without introducing layer-reference or rendering claims."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer in the temporary test directory; generated DWG and DXF files are removed by the test runner.",
+    "generator": "--generate-cli-malformed-layerfilter-body-source",
+    "profile": "One custom AcDbLayerFilter object at handle 0x700 with one RECOVERY_LAYER name, followed by a LINE at handle 0x701.",
+    "mutation": "The generator captures the valid custom-class frame, searches only its bounded body for a one-bit mutation rejected by DRW_LayerFilter::parseDwg, and preserves the common prologue and object handle. The selected count mutation requires a second name for which no bounded TU remains."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each source reports one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and explicit-partial output remain refused by the existing source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j2 passed.",
+    "syntax": "python3 -B -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after plan and receipt changes.",
+    "targeted": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --layerfilter-recovery-only passed and reported 28 controls; ctest --test-dir build-gcc -R '^dwg2dxf_cli_layerfilter_recovery$' --output-on-failure passed 1/1 in 0.88 seconds.",
+    "aggregate": "The 917-control dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser-recovery and disposition evidence only; producer-authored LAYERFILTER prevalence and native layer-filter behavior are not qualified.",
+    "The single-name body does not qualify layer existence, membership graph closure, filtering semantics, or graphics behavior.",
+    "AC1027 output remains refused by the existing source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

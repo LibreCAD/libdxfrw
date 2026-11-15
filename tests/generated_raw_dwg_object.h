@@ -25,11 +25,13 @@ inline dwgHandle rawObjectHandle(std::uint8_t code, std::uint32_t reference) {
 inline DRW_UnsupportedObject makeRawCustomObject(
     DRW::Version version, std::uint16_t classNumber, std::uint32_t handle,
     const std::string& recordName, const std::string& className,
-    const std::string& appName, std::uint32_t encodedHandle = 0) {
+    const std::string& appName, std::uint32_t encodedHandle = 0,
+    const std::string& singleVariableTextBody = {}) {
     if (encodedHandle == 0)
         encodedHandle = handle;
 
     dwgBufferW body;
+    dwgBufferW strings;
     dwgBufferW handles;
     std::uint64_t objectSizeBit = 0;
     const bool hasExplicitObjectSize =
@@ -46,18 +48,46 @@ inline DRW_UnsupportedObject makeRawCustomObject(
         body.putBit(0); // R2004+: XDictionary handle follows
     if (version > DRW::AC1024)
         body.putBit(0); // R2013+: no DataStorage payload
-    body.putRawLong32(0x12345678u);
-    body.putRawShort16(0xABCDu);
-    body.putRawChar8(0x5Au);
+    if (!singleVariableTextBody.empty()) {
+        body.putBitLong(1);
+        if (version > DRW::AC1018)
+            strings.putVariableText(version, singleVariableTextBody);
+        else
+            body.putVariableText(version, singleVariableTextBody);
+    } else {
+        body.putRawLong32(0x12345678u);
+        body.putRawShort16(0xABCDu);
+        body.putRawChar8(0x5Au);
+    }
 
     // R2007+ strings live at the end of the object data and are indexed by
-    // the bounded string-stream footer. This generated class has no strings;
-    // an empty, seven-bit stream keeps the string-presence encoding valid.
+    // the bounded string-stream footer.
     if (version > DRW::AC1018) {
         body.alignToByte();
-        for (int bit = 0; bit < 7; ++bit)
-            body.putBit(0);
-        body.putRawShort16(7);
+        if (singleVariableTextBody.empty()) {
+            // An empty, seven-bit stream keeps the string-presence encoding
+            // valid for generated profiles with no variable text.
+            for (int bit = 0; bit < 7; ++bit)
+                body.putBit(0);
+            body.putRawShort16(7);
+        } else {
+            const std::uint64_t stringBits = strings.bitCount();
+            for (std::uint64_t bit = 0; bit < stringBits; ++bit) {
+                body.putBit((strings.data()[static_cast<std::size_t>(bit / 8u)]
+                             >> (7u - bit % 8u)) & 1u);
+            }
+            // The footer flag must occupy the last bit of the object's final
+            // byte. Pad the detached stream to seven modulo eight bits, then
+            // include that padding in its encoded length so the 16-bit size
+            // field and final flag end exactly at the byte boundary.
+            std::uint64_t encodedStringBits = stringBits;
+            while ((encodedStringBits & 7u) != 7u) {
+                body.putBit(0);
+                ++encodedStringBits;
+            }
+            body.putRawShort16(
+                static_cast<std::uint16_t>(encodedStringBits));
+        }
         body.putBit(1);
     }
     body.alignToByte();

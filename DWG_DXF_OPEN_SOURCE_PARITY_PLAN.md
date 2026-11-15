@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **454 completed implementation and qualification slices** and **32 remaining
+The plan records **455 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`454 / (454 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
+`455 / (455 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -747,6 +747,19 @@ explicit-partial ASCII/Binary output and fresh readback pass. The dedicated
 selector now passes 28 controls. This is generated recovery disposition only;
 AC1027 remains behind its source-reference gate, and AC1032 plot-style meaning
 is not qualified.
+
+**P6-F LAYERFILTER generated malformed-body recovery slice (2026-11-15):** a
+from-scratch custom-class source carries one bounded layer name, followed by a
+LINE; a one-bit count mutation makes the typed parser reject the second
+missing name while preserving the common object prologue. AC1015/AC1018/AC1021/
+AC1024/AC1027/AC1032 preserve frame accounting and continue to the LINE.
+Strict conversion refuses atomically at output-qualified revisions, and
+explicit-partial ASCII/Binary output with fresh LINE readback passes for
+AC1015, AC1018, AC1021, AC1024, and AC1032. AC1027 remains behind the existing
+source-reference gate. The focused selector passes 28 controls. This generated
+parser-recovery result does not establish producer-authored layer membership,
+graph closure, or native layer-filter behavior
+([receipt](docs/research/p6-cli-malformed-layerfilter-body-recovery-2026-11-15.json)).
 
 The earlier DICTIONARYWDFLT candidate screen exposed a missing graph shape and
 is superseded by this complete generated plot-style owner profile; its receipt
