@@ -478,25 +478,33 @@ bool inspectRawEntityTableNameReferences(
     }
 }
 
-bool exactAc1027MaterialSourceMatches(const DRW_UnsupportedObject& raw,
-                                      const DRW_Material& typed) noexcept {
-    if (!dx_ac1027_material_wire::matches(raw, typed)) return false;
+bool exactMaterialSourceMatches(const DRW_UnsupportedObject& raw,
+                                const DRW_Material& typed,
+                                DRW::Version version) noexcept {
+    if ((version == DRW::AC1027 && !dx_ac1027_material_wire::matches(raw, typed))
+        || (version == DRW::AC1024 && !dx_ac1024_material_wire::matches(raw, typed))
+        || (version != DRW::AC1027 && version != DRW::AC1024)) return false;
     try {
         DRW_TextCodec codec;
-        codec.setVersion(DRW::AC1027, false);
+        codec.setVersion(version, false);
         dwgBuffer buf(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
         dwgBuffer type = buf.forkIndependent();
-        if (type.getObjType(DRW::AC1027) != raw.m_objectType || !type.isGood())
+        if (type.getObjType(version) != raw.m_objectType || !type.isGood())
             return false;
         Ac1027MaterialSourceProbe parsed;
-        return parsed.parseDwg(DRW::AC1027, &buf, raw.m_bodyBitSize)
+        return parsed.parseDwg(version, &buf, raw.m_bodyBitSize)
             && parsed.hasCompleteDwgSemanticFields()
             && parsed.handle == typed.handle
             && parsed.parentHandle == typed.parentHandle
             && parsed.reactorHandles == typed.reactorHandles
-            && standardDwgCommonEqual(parsed, typed, DRW::AC1027, true)
+            && standardDwgCommonEqual(parsed, typed, version, true)
             && dxfMaterial::sameState(parsed, typed);
     } catch (...) { return false; }
+}
+
+bool exactAc1027MaterialSourceMatches(const DRW_UnsupportedObject& raw,
+                                      const DRW_Material& typed) noexcept {
+    return exactMaterialSourceMatches(raw, typed, DRW::AC1027);
 }
 
 template <typename EntityT>
@@ -58903,6 +58911,78 @@ bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,s
 }
 
 } // namespace
+
+bool dx_iface::hasCompleteAc1024DefaultMaterialSourceEvidence(const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024
+        || !data.dwgReadOutcome.attempted || !data.dwgReadOutcome.operationSucceeded
+        || data.importGeneration == 0u || data.materials.size() != 3u)
+        return false;
+    try {
+        if (!validateNamedObjectRootForExport(data, "ACAD_MATERIAL", true)) return false;
+        const auto nodFrame = data.m_standardDwgObjectFrames.find(
+            {data.importGeneration, data.namedObjectDictionary.handle});
+        if (nodFrame == data.m_standardDwgObjectFrames.end()
+            || nodFrame->second.generation != data.importGeneration
+            || !nodFrame->second.sourceProfileBound || !nodFrame->second.publicationSeen
+            || !nodFrame->second.payloadMatched || !nodFrame->second.typedBaseline
+            || !standardDwgModelsEqual(*nodFrame->second.typedBaseline,
+                data.namedObjectDictionary, DRW::AC1024, dwgObjType::DICTIONARY))
+            return false;
+        const DRW_Dictionary::Entry* root = nullptr;
+        for (const auto& entry : data.namedObjectDictionary.m_entries) {
+            if (entry.m_name == "ACAD_MATERIAL") {
+                if (root != nullptr) return false;
+                root = &entry;
+            }
+        }
+        if (root == nullptr) return false;
+        const DRW_Dictionary* dictionary = nullptr;
+        for (const auto& candidate : data.dictionaries) {
+            if (candidate.handle != root->m_handle) continue;
+            if (dictionary != nullptr) return false;
+            dictionary = &candidate;
+        }
+        if (dictionary == nullptr || !dictionary->hasCompleteDwgEntries()
+            || dictionary->parentHandle != data.namedObjectDictionary.handle
+            || dictionary->m_entries.size() != 3u) return false;
+        const auto frame = data.m_standardDwgObjectFrames.find(
+            {data.importGeneration, dictionary->handle});
+        if (frame == data.m_standardDwgObjectFrames.end()
+            || frame->second.generation != data.importGeneration
+            || !frame->second.sourceProfileBound || !frame->second.publicationSeen
+            || !frame->second.membershipSeen || !frame->second.payloadMatched
+            || !frame->second.typedBaseline
+            || !standardDwgModelsEqual(*frame->second.typedBaseline, *dictionary,
+                                       DRW::AC1024, dwgObjType::DICTIONARY)
+            || !dx_ac1024_material_wire::dictionary(frame->second.raw, *dictionary,
+                                                    data.namedObjectDictionary.handle))
+            return false;
+        std::unordered_set<std::uint32_t> handles;
+        std::unordered_set<std::string> names;
+        for (const auto& entry : dictionary->m_entries) {
+            const DRW_Material* material = nullptr;
+            for (const auto& candidate : data.materials) {
+                if (candidate.handle != entry.m_handle) continue;
+                if (material != nullptr) return false;
+                material = &candidate;
+            }
+            if (material == nullptr || material->parentHandle != dictionary->handle
+                || material->m_name != entry.m_name
+                || !handles.insert(entry.m_handle).second
+                || !names.insert(entry.m_name).second) return false;
+            const auto source = data.m_opaqueDwgSourceFrames.find(
+                {data.importGeneration, material->handle});
+            if (source == data.m_opaqueDwgSourceFrames.end()
+                || !exactModernClassSourceMatches(data, source->second,
+                    "MATERIAL", "AcDbMaterial", 3, DRW::AC1024)
+                || !exactAc1027ClassFrameCensus(data.m_opaqueDwgSourceFrames,
+                    data.importGeneration, source->second, 3u)
+                || !exactMaterialSourceMatches(source->second, *material, DRW::AC1024))
+                return false;
+        }
+        return names == std::unordered_set<std::string>{"ByBlock", "ByLayer", "Global"};
+    } catch (...) { return false; }
+}
 
 bool dx_iface::hasCompleteAc1024LayerSourceEvidence(const dx_data& data) const noexcept {
     if (data.sourceFormat != dx_source_format::DWG

@@ -1913,6 +1913,7 @@ public:
     }
     bool validateAc1027HeaderMaterial(std::uint32_t&) const noexcept;
     bool hasCompleteAc1024LayerSourceEvidence(const dx_data&) const noexcept;
+    bool hasCompleteAc1024DefaultMaterialSourceEvidence(const dx_data&) const noexcept;
     bool usesAc1027DefaultLayerProfile() const noexcept;
     bool validateAc1027DefaultLayer(const DRW_Layer&, std::uint32_t&) const noexcept;
     bool inspectAc1027DefaultLayerOutput(const dxfRW::DxfTablesWriteView&) noexcept;

@@ -116,22 +116,24 @@ inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& t
         return fail("body hard-owner or boundary");
     Bits footer{raw.m_rawBytes.data(), end - 17u, end};
     const auto size = static_cast<std::uint32_t>(footer.little(2u));
-    if (footer.take(1u) != 1u || !footer.good || (size != 350u && size != 403u)
+    const bool generatedAc1024 = version == DRW::AC1024 && size == 404u;
+    if (footer.take(1u) != 1u || !footer.good
+        || (size != 350u && size != 403u && !generatedAc1024)
         || size > end - 17u || end - 17u - size != body.pos)
         return fail("string footer span");
     Bits text{raw.m_rawBytes.data(), body.pos, end - 17u};
     for (const auto& entry : typed.m_entries) {
         const auto length = text.shortValue();
-        if (length != entry.m_name.size() + (size == 403u ? 1u : 0u))
+        if (length != entry.m_name.size() + (size == 350u ? 0u : 1u))
             return fail("dictionary string length/order");
         for (const char c : entry.m_name)
             if (text.little(2u) != static_cast<unsigned char>(c))
                 return fail("dictionary string value/order");
-        if (size == 403u && text.little(2u) != 0u)
+        if (size != 350u && text.little(2u) != 0u)
             return fail("dictionary string terminator");
     }
     const auto textTail = text.end - text.pos;
-    if ((size == 350u ? textTail != 0u : textTail != 5u)
+    if ((size == 350u ? textTail != 0u : textTail != (generatedAc1024 ? 6u : 5u))
         || text.take(textTail) != 0u || !text.good)
         return fail("dictionary string tail");
     Bits handles{raw.m_rawBytes.data(), end, total};

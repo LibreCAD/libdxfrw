@@ -197,5 +197,15 @@
     "cleanSourceInventory": "1201 released files; no DWG/DXF fixture committed",
     "ctestInventory": "1372 tests; added only libdxfrw_dwg_ac1024_material_wire",
     "limits": "No independent native material semantic validation, graph output qualification, LAYER 347/390 closure or complete-document support claim. HEADER suffix remains gated."
+  },
+  "materialSourceBinding": {
+    "scope": "AC1024 source evidence gate for the three canonical MATERIAL objects and their dictionary, without changing output admission or claiming native material semantics.",
+    "binding": "Revalidate the same-generation, publication-matched and payload-matched source baselines for the NOD and its ACAD_MATERIAL dictionary, the dictionary source wire, the complete and unchanged MATERIAL class receipt and exact three-frame census. Each typed material is reparsed from its matched raw class frame and checked against its typed common state and semantic fields. Exact ByBlock, ByLayer and Global names and unaliased dictionary ownership are required.",
+    "generatedControl": "A locally authored AC1024 graph uses a 404-bit null-terminated dictionary string stream with six zero alignment bits. The source-wire observer admits this exact AC1024 variant alongside the previously witnessed 350-bit ODA stream; AC1027 remains unchanged. LibreDWG 0.14 independently read the locally authored drawing and verified the dictionary links, three names, owners, reactors, default values and layer-0 material reference. Generated DWG SHA-256 f1ad4f11dd8676d4351d35bce43e9273f703abdf7ebb6f85c39be10f2ac8b9a5; peer log SHA-256 21f4ec9905323bc4e5a444391d59db36807bdaf7b45a1e22854fe1ea6eb1abf9.",
+    "validation": "The existing fixture-free layer source binding test now authors an AC1024 material graph and verifies source mutations to material and dictionary raw bytes, material name, dictionary and NOD references, payload status and class count are refused, followed by successful restoration on the same adapter. A graph without material evidence is rejected. Both local ODA-generated drawings pass the same source and mutation checks. The material wire tests and adjacent AC1027 strict graph and dictionary tests are run separately. GCC 16 syntax check uses -Wall -Wextra -pedantic -Werror.",
+    "qualificationDigest": "10eb0965256ab9170338c906fa3d35f8f82a3691e53c6aa2f675dc447ae52364",
+    "cleanSourceInventory": "1201 released files, unchanged; no DWG/DXF fixture committed",
+    "ctestInventory": "1372 tests, unchanged",
+    "limits": "This gate is groundwork and is not connected to LAYER output admission. Source reparse uses libdxfrw on both sides. Independent graph inspection does not establish material-rendering semantics, layer 347/390 output closure, HEADER suffix interpretation or complete-document support."
   }
 }
