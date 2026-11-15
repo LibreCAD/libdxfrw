@@ -30211,7 +30211,7 @@ bool runDwgReadOutcomeControls(const std::filesystem::path& directory) {
     if (!exportImporter.fileImport(paths[1].string(), &exportData, false)) return false;
     const auto sourceOutcome = exportData.dwgReadOutcome;
     if (!exporter.fileExport((directory / "read-outcome-export.dxf").string(),
-                             DRW::AC1018, false, &exportData, false)
+                             DRW::AC1032, false, &exportData, false)
             || exportData.dwgReadOutcome.sourceVersion != sourceOutcome.sourceVersion
             || exportData.dwgReadOutcome.sourceVersion != DRW::AC1027
             || exportData.dwgReadOutcome.operationSucceeded != sourceOutcome.operationSucceeded
@@ -30220,6 +30220,33 @@ bool runDwgReadOutcomeControls(const std::filesystem::path& directory) {
             || exportData.dwgReadOutcome.observations.frames.status != sourceOutcome.observations.frames.status
             || exportData.dwgReadOutcome.observedReceiptCarriers != sourceOutcome.observedReceiptCarriers)
         return false;
+    {
+        std::ifstream exported(directory / "read-outcome-export.dxf", std::ios::binary);
+        dxfReaderAscii tags(&exported);
+        bool requestedVersion = false;
+        int code = 0;
+        while (tags.readRec(&code)) {
+            if (code == 9 && tags.getString() == "$ACADVER") {
+                requestedVersion = tags.readRec(&code) && code == 1
+                    && tags.getString() == "AC1032";
+                break;
+            }
+        }
+        if (!requestedVersion) return false;
+    }
+    // The AC1027 source's DIMSTYLE retains CMC fill-color metadata. A legacy
+    // output cannot silently discard that metadata, even for a partial read.
+    const auto legacyOutput = directory / "read-outcome-legacy-export.dxf";
+    const std::string legacySentinel = "preserve unrepresentable DIMSTYLE\n";
+    { std::ofstream file(legacyOutput, std::ios::binary); file << legacySentinel; }
+    if (exporter.fileExport(legacyOutput.string(), DRW::AC1018, false,
+                            &exportData, false))
+        return false;
+    {
+        std::ifstream file(legacyOutput, std::ios::binary);
+        if (std::string(std::istreambuf_iterator<char>(file), {}) != legacySentinel)
+            return false;
+    }
     const auto strictOutput = directory / "read-outcome-strict-export.dxf";
     const std::string strictSentinel = "preserve strict complete destination\n";
     {
