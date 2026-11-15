@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-background-solid-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_SOLIDBACKGROUND_RECOVERY_AND_PARTIAL_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed Solid BACKGROUND body recovery with strict refusal and explicit-partial ASCII/Binary readback.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-background-solid-body-source",
+    "object": "Solid BACKGROUND class version 0 with generated solid color 0x123456; no owner, reactor, or type-specific handle dependency is added.",
+    "bodyMutation": "One bit is flipped after the validated common prologue. AC1015 searches only the remaining bounded object-frame bytes because its bodyBitSize is zero; modern revisions search only the declared object body span.",
+    "versions": ["AC1015", "AC1018", "AC1027", "AC1032"],
+    "excludedVersions": {
+      "AC1021": "The bounded post-prologue/body-span search found no one-bit mutation that makes the typed parser fail.",
+      "AC1024": "The bounded declared-body-span search found no one-bit mutation that makes the typed parser fail."
+    },
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-background-solid-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each eligible reader records one object parse failure and one failed object frame, retains the following LINE callback, and balances source = published + failed. Strict ASCII/Binary conversion refuses atomically. Explicit-partial ASCII/Binary conversion succeeds at AC1015/AC1018/AC1032; fresh DXF readback contains the retained LINE and VPORT. AC1027 reader recovery succeeds but both CLI modes refuse at the existing DWG source-reference qualification gate. The input DWGs remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 18,
+    "perRevisionControls": {
+      "AC1015": 5,
+      "AC1018": 5,
+      "AC1027": 3,
+      "AC1032": 5
+    },
+    "fullFocusedDispositionCohortControls": 710,
+    "outputQualification": "Explicit-partial ASCII/Binary conversion and readback pass at AC1015/AC1018/AC1032. AC1027 is reader-only behind the source-reference gate. No claim is made for AC1021/AC1024 or the other Background variants."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "focusedControl": "check_malformed_background_solid_body: PASS; 18 strict/partial/readback controls across AC1015/AC1018/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 25.98 seconds",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition only; the output/readback result covers this Solid subtype and generated field profile.",
+    "No other Background subtype, native visual semantics, producer prevalence, or interoperability is established.",
+    "AC1021/AC1024 are excluded because no parser-failing mutation was found in the bounded body span searched.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds generated Solid BACKGROUND body recovery at AC1015/AC1018/AC1027/AC1032, with strict refusal and explicit-partial ASCII/Binary output/readback at AC1015/AC1018/AC1032.",
+    "remainingP6F": "Continue the source/resource inventory and select the next supported OBJECTS body parser with a bounded reproducible failure; treat unmutated revisions and sibling Background variants separately.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "417 completed slices and 32 remaining packages: 417/(417+32)=92.9%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-rastervariables-body-recovery-2026-11-14.json"
+}
