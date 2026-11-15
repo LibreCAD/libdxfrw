@@ -7905,7 +7905,11 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
     bool hasMaterial = false;
     std::uint32_t plotStyle = 0u;
     bool hasPlotStyle = false;
-    const auto* sourceBound = dynamic_cast<const DRW_Ac1027BoundLayer*>(ent);
+    const auto* sourceBound1027 = dynamic_cast<const DRW_Ac1027BoundLayer*>(ent);
+    const auto* sourceBound1024 = dynamic_cast<const DRW_Ac1024BoundLayer*>(ent);
+    const bool sourceBound = sourceBound1027 != nullptr || sourceBound1024 != nullptr;
+    const auto sourcePlotStyle = sourceBound1027 ? sourceBound1027->sourcePlotStyle
+        : sourceBound1024 ? sourceBound1024->sourcePlotStyle : 0u;
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()
         || !ent->getDxfMaterialHandle(material, hasMaterial)
@@ -7917,8 +7921,7 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
             && (!ent->plotF
                 || ent->lWeight != DRW_LW_Conv::widthDefault
                 || (hasPlotStyle && plotStyle != 0x0Fu)))
-        || (sourceBound != nullptr && hasPlotStyle
-            && plotStyle != sourceBound->sourcePlotStyle)) {
+        || (sourceBound && hasPlotStyle && plotStyle != sourcePlotStyle)) {
         m_writeError = true;
         return false;
     }
@@ -8011,14 +8014,15 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
             write(writer->writeBool(290, ent->plotF));
             write(writer->writeInt16(370,
                                      DRW_LW_Conv::lineWidth2dxfInt(ent->lWeight)));
-            if (sourceBound != nullptr) {
-                if (version != DRW::AC1027 || !m_requireResolvedBlockOwners
-                    || sourceBound->sourcePlotStyle == 0u
-                    || sourceBound->sourcePlotStyle == DRW::NoHandle)
+            if (sourceBound) {
+                if ((sourceBound1027 != nullptr && version != DRW::AC1027)
+                    || (sourceBound1024 != nullptr && version != DRW::AC1024)
+                    || !m_requireResolvedBlockOwners
+                    || sourcePlotStyle == 0u || sourcePlotStyle == DRW::NoHandle)
                     return failDxfWrite();
                 const auto target = m_referenceResolver
-                    ? resolveReference(sourceBound->sourcePlotStyle)
-                    : remapObjectHandle(sourceBound->sourcePlotStyle);
+                    ? resolveReference(sourcePlotStyle)
+                    : remapObjectHandle(sourcePlotStyle);
                 if (target == 0u || target == DRW::NoHandle)
                     return failDxfWrite();
                 write(writer->writeString(390, toHexStr(target)));

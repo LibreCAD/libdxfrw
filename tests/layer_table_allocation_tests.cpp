@@ -252,24 +252,28 @@ bool xrefLayerLinetypeNormalization(
     return true;
 }
 
+template <class BoundLayer>
 class BoundPlotStyleExport final : public LC3CompatCheck {
 public:
     explicit BoundPlotStyleExport(dxfRW& codec)
         : codec(codec), layer(DRW_Layer{}, 0x123u) {
         layer.name = "Bound plot style";
         layer.handlePlotS = "456";
+        layer.handleMaterialS = "ABC";
     }
     void writeHeader(DRW_Header&) override {}
     void writeLayers() override { accepted = codec.writeLayer(&layer); }
     bool finalizeDxfWrite() override { return accepted; }
 
     dxfRW& codec;
-    DRW_Ac1027BoundLayer layer;
+    BoundLayer layer;
     bool accepted = false;
 };
 
+template <class BoundLayer>
 bool boundPlotStyleAliasConsistency(
-    const std::filesystem::path& directory) {
+    const std::filesystem::path& directory, DRW::Version version,
+    DRW::Version wrongVersion) {
     const auto path = directory / "bound-layer-plotstyle-alias.dxf";
     const std::string prior = "prior LAYER destination bytes\n";
     for (const bool binary : {false, true}) {
@@ -281,8 +285,8 @@ bool boundPlotStyleAliasConsistency(
         }
         dxfRW codec(path.string().c_str());
         codec.setSourceBlockRecords(std::vector<DRW_Block_Record>{}, true);
-        BoundPlotStyleExport exporter(codec);
-        const bool written = codec.write(&exporter, DRW::AC1027, binary);
+        BoundPlotStyleExport<BoundLayer> exporter(codec);
+        const bool written = codec.write(&exporter, version, binary);
         std::string current;
         if (written || exporter.accepted || !readBytes(path, current)
             || current != prior || exporter.layer.handlePlotS != "456") {
@@ -292,11 +296,22 @@ bool boundPlotStyleAliasConsistency(
         }
         exporter.layer.handlePlotS.clear();
         codec.setReferenceResolver([](std::uint32_t handle) {
-            return handle == 0x123u ? 0x789u : handle;
+            return handle == 0x123u ? 0x789u : handle == 0xABCu ? 0xDEFu : handle;
         });
-        const bool retried = codec.write(&exporter, DRW::AC1027, binary);
+        exporter.accepted = false;
+        if (codec.write(&exporter, wrongVersion, binary) || exporter.accepted
+            || !readBytes(path, current) || current != prior) {
+            std::cerr << "wrong-version bound LAYER was not refused\n";
+            return false;
+        }
+        exporter.accepted = false;
+        const bool retried = codec.write(&exporter, version, binary);
+        dxfRW readerCodec(path.string().c_str());
+        Reader reader;
         if (!retried || !exporter.accepted
-            || !readbackPlotStyleMatches(path, "789")) {
+            || !readerCodec.read(&reader, false) || reader.layers.size() != 1u
+            || reader.layers.front().handlePlotS != "789"
+            || reader.layers.front().handleMaterialS != "DEF") {
             std::cerr << "corrected bound LAYER plot-style retry failed\n";
             return false;
         }
@@ -517,6 +532,7 @@ int main() {
             && preR2000PlotStyleRefusalAndRetry(directory)
             && plotStyleReferenceMapping(directory)
             && xrefLayerLinetypeNormalization(directory)
-            && boundPlotStyleAliasConsistency(directory)
+            && boundPlotStyleAliasConsistency<DRW_Ac1027BoundLayer>(directory, DRW::AC1027, DRW::AC1024)
+            && boundPlotStyleAliasConsistency<DRW_Ac1024BoundLayer>(directory, DRW::AC1024, DRW::AC1027)
         ? 0 : 2;
 }

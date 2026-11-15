@@ -207,5 +207,14 @@
     "cleanSourceInventory": "1201 released files, unchanged; no DWG/DXF fixture committed",
     "ctestInventory": "1372 tests, unchanged",
     "limits": "This gate is groundwork and is not connected to LAYER output admission. Source reparse uses libdxfrw on both sides. Independent graph inspection does not establish material-rendering semantics, layer 347/390 output closure, HEADER suffix interpretation or complete-document support."
+  },
+  "boundLayerWriterControl": {
+    "scope": "Private opt-in AC1024 LAYER writer projection; not connected to adapter source admission or output-graph qualification.",
+    "behavior": "The projection requires an AC1024 output version, resolved-owner writer mode, a non-null source plot-style handle and a consistent plot-style alias. Existing material and plot-style reference resolvers supply remapped group 347 and 390 targets. The separate AC1027 projection and version restriction remain intact.",
+    "validation": "The generated fast layer transaction regression exercises each AC1024 and AC1027 marker in ASCII and binary. A conflicting plot-style alias and a wrong output version both refuse while preserving existing destination bytes; correction succeeds on the same writer and readback checks both remapped 347 and 390 values. Existing allocation, version and legacy layer controls remain in the same test; GCC 16 syntax checking passed under -Werror.",
+    "qualificationDigest": "a8694b34df743edd1e620b4b270dd940f6914994c02fed73159db05b255cb560",
+    "cleanSourceInventory": "1201 released files, unchanged; no DWG/DXF fixture committed",
+    "ctestInventory": "1372 tests, unchanged",
+    "limits": "This low-level marker and readback do not prove the referenced objects exist. AC1024 source binding, staged TABLES/OBJECTS inspection, graph closure and full-document HEADER evidence remain required before adapter admission."
   }
 }

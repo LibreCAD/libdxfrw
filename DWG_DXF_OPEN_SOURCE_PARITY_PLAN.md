@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **572 completed implementation and qualification slices** and **32 remaining
+The plan records **573 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`572 / (572 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
+`573 / (573 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -153,7 +153,9 @@ graph now passes ASCII/Binary output, ODA conversion and independent readback.
 The source gate now binds the three MATERIAL class frames, their no-reactor
 dictionary and the NOD to import-time evidence. A locally authored material
 graph passes LibreDWG inspection and mutation/refusal/restoration controls.
-Bind that source gate to Global material and both layers during output; adapt the AC1027
+A separate AC1024 writer projection now remaps layer 347/390 with version and
+strict-owner checks, rollback and retry controls; it is not yet selected by the adapter.
+Bind the source gate to Global material and both layers during output; adapt the AC1027
 source-bound pattern only for the evidenced AC1024 two-layer profile. Prove emitted 347/390
 roles, graph ownership, source mutation refusal, destination rollback and retry,
 plus LibreCAD compatibility. Re-run partial conversion; keep the independent
