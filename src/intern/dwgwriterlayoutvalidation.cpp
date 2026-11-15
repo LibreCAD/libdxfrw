@@ -563,15 +563,13 @@ ValidationResult validateR2004(const R2004Snapshot& snapshot) {
             if (!dwgSafety::add(address, page.size, address))
                 return fail(ValidationCategory::Span);
         }
-        const bool repeatHeader = receipt.version >= DRW::AC1027;
         std::uint64_t expectedFileSize = address;
-        if (repeatHeader && !dwgSafety::add(expectedFileSize, 0x6cu,
-                                           expectedFileSize))
+        if (!dwgSafety::add(expectedFileSize, 0x6cu, expectedFileSize))
             return fail(ValidationCategory::Span);
         if (address != receipt.declaredFileSize
             || receipt.actualFileSize != expectedFileSize)
             return fail(ValidationCategory::Header);
-        if (repeatHeader) {
+        {
             if (!checkedSpan(snapshot.assembled, address, 0x6cu, span)
                 || !std::equal(snapshot.fileHeader.cbegin() + 0x80,
                                snapshot.fileHeader.cbegin() + 0xec, span))

@@ -433,7 +433,7 @@ target_link_libraries(libdxfrw_dwg_modern_repeated_header_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_dwg_modern_repeated_header
     COMMAND libdxfrw_dwg_modern_repeated_header_tests)
 set_tests_properties(libdxfrw_dwg_modern_repeated_header PROPERTIES
-    LABELS "dwg;fast;transaction;AC1027;AC1032" TIMEOUT 30)
+    LABELS "dwg;fast;transaction;AC1018;AC1024;AC1027;AC1032" TIMEOUT 30)
 
 add_executable(libdxfrw_dwg_modern_repeated_header_fault_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dwg_modern_repeated_header_tests.cpp
@@ -447,7 +447,7 @@ target_link_libraries(libdxfrw_dwg_modern_repeated_header_fault_tests PRIVATE dx
 add_test(NAME libdxfrw_dwg_modern_repeated_header_fault
     COMMAND libdxfrw_dwg_modern_repeated_header_fault_tests)
 set_tests_properties(libdxfrw_dwg_modern_repeated_header_fault PROPERTIES
-    LABELS "dwg;fast;transaction;AC1027;AC1032" TIMEOUT 30)
+    LABELS "dwg;fast;transaction;AC1018;AC1024;AC1027;AC1032" TIMEOUT 30)
 
 add_executable(libdxfrw_dwg_modern_header_section_size_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dwg_modern_header_section_size_tests.cpp)

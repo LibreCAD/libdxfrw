@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **575 completed implementation and qualification slices** and **32 remaining
+The plan records **576 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`575 / (575 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
+`576 / (576 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -150,6 +150,18 @@ and address the next actual document gate (the earlier lossy diagnostic reached
 TABLESTYLE). Prove the physical source's emitted 347/390 links and native
 consumer behavior before any broader support claim. Do not discard the suffix or
 clear references to get past a gate.
+
+**P6 writer interoperability packet — AC1018/AC1024 container and objects.**
+The required R2004-family repeated file-header copy is now emitted and checked
+for AC1018 and AC1024 as well as AC1027/AC1032. An independent container verifier
+no longer reports the missing copy or trailing-data findings on generated
+AC1024, but still reports page-header size disagreements. ODA rejects the generated
+AC1018 and AC1024 drawings while reading LAYER and other records. Trace the
+locally generated and ODA-authored source frames against ODA v5.4.1, separate
+container interpretation from record bit-boundary/handle defects, fix only
+source-proven issues, and require ODA and LibreDWG readback plus failure/retry
+controls. Do not promote writer support from the header-copy repair alone
+([receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json)).
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now

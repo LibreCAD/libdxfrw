@@ -1023,10 +1023,10 @@ bool dwgWriter18::finalize() {
     if (!dwgSafety::add(addrSPM, static_cast<std::uint64_t>(spmPage.size()),
                         lastPageEndAddr))
         return false;
-    const bool repeatHeader = m_version >= DRW::AC1027;
+    // ODA v5.4.1 section 4.1 requires the encrypted file-header data to be
+    // repeated at EOF for the R2004 container, including AC1018 and AC1024.
     auto fileHdr = buildFileHeader(addrSPM, dataSectionMapPageId,
-                                   lastPageEndAddr,
-                                   repeatHeader ? lastPageEndAddr : 0,
+                                   lastPageEndAddr, lastPageEndAddr,
                                    static_cast<std::uint32_t>(pageSizes.size()),  // total pages (incl SPM)
                                    fileHeaderVersion(), fileCodePageId());
     R2004LayoutReceipt receipt;
@@ -1079,8 +1079,8 @@ bool dwgWriter18::finalize() {
     if (receiptAddress > std::numeric_limits<std::size_t>::max())
         return false;
     receipt.actualFileSize = receiptAddress;
-    if (repeatHeader && !dwgSafety::add(receipt.actualFileSize, 0x6cu,
-                                        receipt.actualFileSize))
+    if (!dwgSafety::add(receipt.actualFileSize, 0x6cu,
+                        receipt.actualFileSize))
         return false;
     if (receipt.actualFileSize > std::numeric_limits<std::size_t>::max())
         return false;
@@ -1092,9 +1092,8 @@ bool dwgWriter18::finalize() {
             assembled.insert(assembled.end(), page.cbegin(), page.cend());
         assembled.insert(assembled.end(), dsmPage.cbegin(), dsmPage.cend());
         assembled.insert(assembled.end(), spmPage.cbegin(), spmPage.cend());
-        if (repeatHeader)
-            assembled.insert(assembled.end(), fileHdr.cbegin() + 0x80,
-                             fileHdr.cbegin() + 0xec);
+        assembled.insert(assembled.end(), fileHdr.cbegin() + 0x80,
+                         fileHdr.cbegin() + 0xec);
     } catch (...) {
         return false;
     }

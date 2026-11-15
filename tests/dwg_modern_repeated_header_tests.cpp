@@ -20,7 +20,7 @@ std::uint32_t crc32(const std::uint8_t* p, std::size_t n);
 int mutation = 0;
 void corrupt(dwgWriterLayoutValidation::Snapshot& snapshot) {
     auto* state = std::get_if<dwgWriterLayoutValidation::R2004Snapshot>(&snapshot);
-    if (!state || state->receipt.version < DRW::AC1027) return;
+    if (!state) return;
     if (mutation == 1) state->assembled.back() ^= 1;
     if (mutation == 3) state->assembled.pop_back();
     if (mutation == 2 || mutation == 4) {
@@ -89,7 +89,7 @@ public:
     dwgRW& out;
     bool fail = true, ok = false;
 };
-bool verify(const std::vector<std::uint8_t>& bytes, bool modern) {
+bool verify(const std::vector<std::uint8_t>& bytes) {
     if (bytes.size() < 0x100) return false;
     std::array<std::uint8_t, 0x6c> header{};
     std::uint32_t seed = 1;
@@ -101,7 +101,6 @@ bool verify(const std::vector<std::uint8_t>& bytes, bool modern) {
     header[0x68] = header[0x69] = header[0x6a] = header[0x6b] = 0;
     if (crc32(header.data(), header.size()) != stored) return false;
     const auto address = get64(header.data() + 0x34);
-    if (!modern) return address == 0;
     if (address != bytes.size() - header.size()) return false;
     for (std::size_t i = 0; i < header.size(); ++i)
         if (bytes[address + i] != bytes[0x80 + i]) return false;
@@ -109,12 +108,16 @@ bool verify(const std::vector<std::uint8_t>& bytes, bool modern) {
 }
 }
 
-int main() {
-    auto root = std::filesystem::temp_directory_path() /
+int main(int argc, char** argv) {
+    const bool keep = argc == 3 && std::string(argv[1]) == "--keep";
+    if (argc != 1 && !keep) return 2;
+    auto root = keep ? std::filesystem::path(argv[2]) : std::filesystem::temp_directory_path() /
         ("modern-repeated-header-" + std::to_string(
             std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directories(root);
-    struct Cleanup { std::filesystem::path p; ~Cleanup() { std::error_code e; std::filesystem::remove_all(p,e); } } cleanup{root};
+    struct Cleanup { std::filesystem::path p; bool keep; ~Cleanup() {
+        if (!keep) { std::error_code e; std::filesystem::remove_all(p,e); }
+    }} cleanup{root,keep};
     for (auto version : {DRW::AC1018, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto path = root / (std::to_string(static_cast<int>(version)) + ".dwg");
         const std::string sentinel = "prior destination";
@@ -125,7 +128,7 @@ int main() {
         }
         writer.fail = false;
 #ifdef DWG_LAYOUT_VALIDATION_TESTS
-        if (version >= DRW::AC1027) {
+        {
             for (mutation = 1; mutation <= 4; ++mutation) {
                 dwgWriterLayoutValidation::setTestSnapshotObserver(corrupt);
                 const bool written = output.write(&writer, version, true);
@@ -140,18 +143,17 @@ int main() {
             std::cerr << "retry/header verification failed for " << static_cast<int>(version) << '\n'; return 1;
         }
         const auto bytes = read(path);
-        const bool modern = version >= DRW::AC1027;
-        if (!verify(bytes, modern)) return 1;
-        if (modern) {
+        if (!verify(bytes)) return 1;
+        {
             auto corrupted = bytes;
             corrupted.back() ^= 1;
-            if (verify(corrupted, true)) return 1;
+            if (verify(corrupted)) return 1;
             corrupted = bytes;
             corrupted[0x80 + 0x34] ^= 1;
-            if (verify(corrupted, true)) return 1;
+            if (verify(corrupted)) return 1;
             corrupted = bytes;
             corrupted.pop_back();
-            if (verify(corrupted, true)) return 1;
+            if (verify(corrupted)) return 1;
         }
     }
 }
