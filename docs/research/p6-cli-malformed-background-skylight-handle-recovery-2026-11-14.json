@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-background-skylight-handle-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_SKYLIGHT_TYPE_HANDLE_RECOVERY_AND_PARTIAL_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated SKYLIGHT BACKGROUND type-specific sun-handle parser recovery with strict refusal and explicit-partial ASCII/Binary readback.",
+  "source": {
+    "kind": "Scratch-only DWGs authored at test runtime by the in-tree DWG writer; each generated typed seed is converted to a raw mutated frame and injected with matching custom-class registration.",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-background-skylight-handle-source",
+    "object": "SKYLIGHT BACKGROUND class version 0 with non-null sun handle 0xE900. No owner/reactor graph or target object is added.",
+    "mutation": "One bit is flipped only after parsing and consuming the common OBJECTS handle tail. The typed DRW_Background::Skylight parser then rejects the type-specific sun-handle encoding; the common header and common handles remain valid.",
+    "eligibleRevisions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-background-skylight-handle-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each eligible reader records one object parse failure and one failed object frame, retains the following LINE callback, and balances source = published + failed. Strict ASCII/Binary conversion refuses atomically. Explicit-partial ASCII/Binary conversion succeeds with fresh DXF readback of the retained LINE and VPORT at AC1021/AC1024/AC1032. AC1027 reader recovery succeeds but both CLI modes refuse at the existing DWG source-reference qualification gate. Source DWGs remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1021": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1024": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1027": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1032": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      }
+    },
+    "cliDispositionControls": 18,
+    "perRevisionControls": {
+      "AC1021": 5,
+      "AC1024": 5,
+      "AC1027": 3,
+      "AC1032": 5
+    },
+    "fullFocusedDispositionCohortControls": 825,
+    "outputQualification": "Explicit-partial ASCII/Binary conversion and readback pass at AC1021/AC1024/AC1032. AC1027 is reader-only behind the source-reference gate. This profile exercises only generated type-specific handle parser recovery."
+  },
+  "binding": {
+    "baseCommit": "d3c10da3 Add IBL BACKGROUND recovery controls",
+    "writerTestExecutableSha256": "01995c3a3eae71048808bb04763a23b0ed066d2615ad9b06867ea30f11edfb5e",
+    "converterExecutableSha256": "d7aad05d69eb00b0860d7a87f1496beb4465e15f6a880ca2665a96d90b68213c",
+    "generatorSourceSha256": "c621f64dfc0882afc1d65bdb231fd34728ef631f3309e21bea9d8bf1f52edd13",
+    "harnessSourceSha256": "4917749d6d666a6c776cc41afbeef8959f6cfd248fda6ceb0567f5dbb97372fe"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "eligibilityScan": "Generated scratch sources for AC1021/AC1024/AC1027/AC1032; each search starts at the first bit after common handle parsing and finds one parser-failing mutation before raw frame end.",
+    "focusedControl": "check_malformed_background_skylight_handle: PASS; 18 disposition controls across AC1021/AC1024/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 27.90 seconds",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated malformed type-handle recovery and CLI disposition only; there is no target graph or real sun object.",
+    "No target role/closure, appearance, native application behavior, producer prevalence, or cross-implementation interoperability is established.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds generated SKYLIGHT BACKGROUND type-specific sun-handle recovery across AC1021/AC1024/AC1027/AC1032, with strict refusal and explicit-partial ASCII/Binary output/readback at AC1021/AC1024/AC1032.",
+    "remainingP6F": "Continue the source/resource inventory for the next supported OBJECTS type with a concrete bounded malformed profile. Do not infer completeness from these generated parser profiles.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "422 completed slices and 32 remaining packages: 422/(422+32)=93.0%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-background-ibl-body-recovery-2026-11-14.json"
+}

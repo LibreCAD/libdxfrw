@@ -28744,7 +28744,7 @@ public:
                 DRW::DwgNamedObjectsDictionaryHandle};
             rasterVariables_.setDwgCommonObjectState(1, 1, false);
         }
-        if (kind_ >= 35 && kind_ <= 39) {
+        if (kind_ >= 35 && kind_ <= 40) {
             background_.handle = 0x700u;
             background_.m_classVersion = 0;
             if (kind_ == 35) {
@@ -28774,13 +28774,16 @@ public:
                 background_.m_useTiling = false;
                 background_.m_offset = {12.5, 34.5, 0.0};
                 background_.m_scale = {1.25, 0.75, 0.0};
-            } else {
+            } else if (kind_ == 39) {
                 background_.m_kind = DRW_Background::Ibl;
                 background_.m_iblName = "RECOVERY_BACKGROUND_IBL";
                 background_.m_enabled = true;
                 background_.m_displayImage = true;
                 background_.m_rotation = 0.625;
                 background_.m_secondaryBackgroundHandle = 0;
+            } else {
+                background_.m_kind = DRW_Background::Skylight;
+                background_.m_sunHandle = 0xE900u;
             }
         }
         if (kind_ == 6) {
@@ -28901,7 +28904,7 @@ public:
                 wrote = writer_->registerRasterVariablesObjectClass(
                     &rasterVariables_) && wrote;
             }
-        } else if (kind_ >= 35 && kind_ <= 39) {
+        } else if (kind_ >= 35 && kind_ <= 40) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerBackgroundObjectClass(&background_)
@@ -28915,7 +28918,7 @@ public:
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
-                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 39)) {
+                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29006,7 +29009,7 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeRasterVariables(
                                &rasterVariables_)) && wrote;
-        } else if (kind_ >= 35 && kind_ <= 39) {
+        } else if (kind_ >= 35 && kind_ <= 40) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeBackground(&background_)) && wrote;
@@ -42542,6 +42545,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-background-image-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-background-ibl-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-background-skylight-handle-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42605,6 +42610,9 @@ int main(int argc, char** argv) {
         const bool malformedBackgroundIblBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-background-ibl-body-source";
+        const bool malformedBackgroundSkylightHandleSource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-background-skylight-handle-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42686,6 +42694,7 @@ int main(int argc, char** argv) {
             || malformedBackgroundGradientBodySource
             || malformedBackgroundImageBodySource
             || malformedBackgroundIblBodySource
+            || malformedBackgroundSkylightHandleSource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42736,6 +42745,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 38
                                                                                                         : malformedBackgroundIblBodySource
                                                                                                             ? 39
+                                                                                                        : malformedBackgroundSkylightHandleSource
+                                                                                                            ? 40
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -42779,7 +42790,34 @@ int main(int argc, char** argv) {
                 ? rawEndBit
                 : commonEndBit
                     + static_cast<std::uint64_t>(malformed.m_bodyBitSize);
-            const std::uint64_t searchEndBit = std::min(rawEndBit, bodyEndBit);
+            std::uint64_t searchStartBit = commonEndBit;
+            std::uint64_t searchEndBit = std::min(rawEndBit, bodyEndBit);
+            if (malformedBackgroundSkylightHandleSource) {
+                if (version <= DRW::AC1018) {
+                    std::cerr << "SKYLIGHT type-handle recovery requires a "
+                              << "detached R2007+ handle stream\n";
+                    return 1;
+                }
+                dwgBuffer handleStartBuffer(malformed.m_rawBytes.data(),
+                                            malformed.m_rawBytes.size());
+                dwgBuffer handleStartStrings =
+                    handleStartBuffer.forkIndependent();
+                CommonObjectBodyProbe handleStartProbe;
+                if (!handleStartProbe.parseCommon(
+                        version, &handleStartBuffer, &handleStartStrings,
+                        malformed.m_bodyBitSize)
+                    || !handleStartProbe.parseCommonHandles(
+                        version, &handleStartBuffer)
+                    || !handleStartBuffer.isGood()) {
+                    std::cerr << "Could not locate the SKYLIGHT type-handle "
+                              << "span after common OBJECTS handles\n";
+                    return 1;
+                }
+                searchStartBit =
+                    static_cast<std::uint64_t>(handleStartBuffer.getPosition())
+                        * 8u + handleStartBuffer.getBitPos();
+                searchEndBit = rawEndBit;
+            }
             bool foundBodyFailure = false;
             bool foundPrologueFailure = false;
             if ((malformedBodySource || malformedDbColorBodySource
@@ -42806,11 +42844,12 @@ int main(int argc, char** argv) {
                  || malformedBackgroundGradientBodySource
                  || malformedBackgroundImageBodySource
                  || malformedBackgroundIblBodySource
+                 || malformedBackgroundSkylightHandleSource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
-                && commonEndBit < searchEndBit) {
-                for (std::uint64_t bit = commonEndBit;
+                && searchStartBit < searchEndBit) {
+                for (std::uint64_t bit = searchStartBit;
                      bit < searchEndBit; ++bit) {
                     std::vector<std::uint8_t> candidate = malformed.m_rawBytes;
                     candidate[static_cast<std::size_t>(bit / 8u)] ^=
@@ -42969,6 +43008,12 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedBackgroundSkylightHandleSource) {
+                            BackgroundBodyProbe typed;
+                            typed.m_kind = DRW_Background::Skylight;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43068,6 +43113,7 @@ int main(int argc, char** argv) {
                   || malformedBackgroundGradientBodySource
                   || malformedBackgroundImageBodySource
                   || malformedBackgroundIblBodySource
+                  || malformedBackgroundSkylightHandleSource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43115,17 +43161,22 @@ int main(int argc, char** argv) {
                                                                                                                     ? "IMAGEBACKGROUND"
                                                                                                                 : malformedBackgroundIblBodySource
                                                                                                                     ? "IBLBACKGROUND"
+                                                                                                                : malformedBackgroundSkylightHandleSource
+                                                                                                                    ? "SKYLIGHTBACKGROUND"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
-                    ? "common-prologue" : "body";
+                    ? "common-prologue"
+                    : malformedBackgroundSkylightHandleSource
+                        ? "type-handle-tail" : "body";
                 std::cerr << "Could not find a one-bit " << objectKind << ' '
                           << mutationKind << " mutation that isolates the parser;"
                           << "; bytes="
                           << malformed.m_rawBytes.size()
                           << " bodyBits=" << malformed.m_bodyBitSize
                           << " commonEndBit=" << commonEndBit
+                          << " searchStartBit=" << searchStartBit
                           << " searchEndBit=" << searchEndBit << '\n';
                 return 1;
             }
@@ -43161,6 +43212,8 @@ int main(int argc, char** argv) {
                                                                                         ? 38
                                                                                     : malformedBackgroundIblBodySource
                                                                                         ? 39
+                                                                                    : malformedBackgroundSkylightHandleSource
+                                                                                        ? 40
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
