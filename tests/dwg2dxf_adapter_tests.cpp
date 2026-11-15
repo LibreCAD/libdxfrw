@@ -88653,6 +88653,18 @@ static bool dxfLayerDefaultPlotStyleGraph() {
     if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
             adapter, data, DRW::AC1021, true))
         return fail("corrected default-only source did not recover");
+    data.layers.front().handlePlotS = "0";
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("an explicit null plot-style reference was refused");
+    data.layers.front().handlePlotS = "0G";
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("a malformed plot-style reference was accepted");
+    data.layers.front().handlePlotS = original;
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("corrected plot-style reference did not recover");
     const auto colorKey = dx_data::DwgDbColorKey{
         data.importGeneration, 0x50u};
     auto rawColor = data.dxfDbColorRawObjects.find(colorKey);

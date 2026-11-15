@@ -91411,8 +91411,11 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
             std::uint32_t target = 0u;
             const auto& text = layer.handlePlotS;
             const auto parsed = std::from_chars(text.data(), text.data() + text.size(), target, 16);
-            if (text.size() > 8u || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || !target)
+            if (text.size() > 8u || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size())
                 return false;
+            // An explicit null handle is preserved by the LAYER writer and
+            // does not name a plot-style object that needs graph closure.
+            if (target == 0u) continue;
             if (target == 0xFu && (!state.active || cData->rawDictionaryWithDefaults.empty())) continue;
             selected = target; ++relevant;
         }

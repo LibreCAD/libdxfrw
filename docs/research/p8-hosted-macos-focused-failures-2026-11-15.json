@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-15",
+  "url": "https://github.com/dxli/libdxfrw/actions/runs/43718064921/job/132823846597",
+  "artifact": "https://github.com/dxli/libdxfrw/actions/runs/43718064921",
+  "source_commit": "20f72f5c7c8281dc1f5e75d5f9553e770b50476c",
+  "runner": "macos-15 ARM64, Apple Clang",
+  "result": "4/7 focused tests passed, 3 failed, 0 skipped; the qualification job failed.",
+  "failed": [
+    {
+      "test": "libdxfrw_dwg_local_roundtrip",
+      "assertions": 363,
+      "examples": [
+        "Generated modern MATERIAL capability gate rejects a local self-roundtrip setup",
+        "HATCH/MPOLYGON and polyline local DXF expectations fail"
+      ]
+    },
+    {
+      "test": "libdxfrw_dwg_reader_matrix",
+      "assertions": 13,
+      "examples": [
+        "Generated AC1021, AC1024 and AC1027 source/frame controls fail",
+        "Tracked AC1027 ENC source checks fail"
+      ]
+    },
+    {
+      "test": "libdxfrw_dwg_fixtures",
+      "assertions": 19,
+      "examples": [
+        "Several tracked ENC fixtures fail reader table stage; source emits handle-role integrity diagnostics"
+      ]
+    }
+  ],
+  "limits": [
+    "Failure counts include cascading assertions; they are not counts of distinct defects.",
+    "Focused self-tests do not provide independent semantic evidence.",
+    "Do not waive, suppress, or reclassify these failures without tracing the underlying cause and preserving the contract.",
+    "Linux and Windows focused result and native FreeCAD gates remain separate."
+  ],
+  "linux_comparison": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43718064921/job/132823846642",
+    "runner": "ubuntu-24.04 x86_64, GCC 13",
+    "result": "4/7 pass, same three failing tests and identical 363, 13 and 19 assertion counts; this cross-platform similarity does not by itself prove a common root cause."
+  }
+}
